@@ -74,7 +74,6 @@ using namespace std;
 #define expf(x) exp(x)
 #endif
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -105,9 +104,19 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
+#define EXTERNAL_VERSION "0.51"
+
 class mspUI;
 
-#define EXTERNAL_VERSION "0.5"
+struct Max_Meta : Meta
+{
+    void declare(const char* key, const char* value)
+    {
+        if ((strcmp("name", key) == 0) || (strcmp("author", key) == 0)) {
+            post("%s : %s", key, value);
+        }
+    }
+};
 
 /*--------------------------------------------------------------------------*/
 typedef struct faust
@@ -501,12 +510,13 @@ int main()
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
 	dsp* thedsp = new mydsp();
-	mspUI* dspUI = new mspUI();
-	thedsp->buildUserInterface(dspUI);
-
+	mspUI dspUI;
+   
+	thedsp->buildUserInterface(&dspUI);
+  
 	// Add the same method for every parameters and use the symbol as a selector
 	// inside this method
-	for (mspUI::iterator it = dspUI->begin(); it != dspUI->end(); ++it) {
+	for (mspUI::iterator it = dspUI.begin(); it != dspUI.end(); ++it) {
 		char* name = const_cast<char*>(it->second->GetName().c_str());
 		addmess((method)faust_method, name, A_GIMME, 0);
 	}
@@ -515,11 +525,15 @@ int main()
 	addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
     addmess((method)faust_mute, (char*)"mute", A_GIMME, 0);
 	dsp_initclass();
-
-    delete(dspUI);
-    delete(thedsp);
-	post((char*)"Faust DSP object 32 bits v%s", EXTERNAL_VERSION);
+    
+    post((char*)"Faust DSP object 32 bits v%s", EXTERNAL_VERSION);
     post((char*)"Copyright (c) 2012 Grame");
+    Max_Meta meta;
+    post("------------------------------");
+    mydsp::metadata(&meta);
+    post("------------------------------");
+
+    delete(thedsp);
 	return 0;
 }
 

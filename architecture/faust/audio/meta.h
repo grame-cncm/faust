@@ -19,40 +19,13 @@
  ************************************************************************
  ************************************************************************/
  
-#ifndef __misc__
-#define __misc__
+#ifndef __meta__
+#define __meta__
 
-#include <map>
-#include <string.h>
-#include <stdlib.h>
-
-#include "faust/gui/meta.h"
-
-struct XXXX_Meta : std::map<const char*, const char*>
+struct Meta
 {
-    void declare(const char* key, const char* value) { (*this)[key]=value; }
+    virtual void declare(const char* key, const char* value) = 0;
 };
 
-struct MY_Meta : Meta, std::map<const char*, const char*>
-{
-    void declare(const char* key, const char* value) { (*this)[key]=value; }
-};
-
-inline int	lsr(int x, int n)	{ return int(((unsigned int)x) >> n); }
-inline int 	int2pow2(int x)		{ int r=0; while ((1<<r)<x) r++; return r; }
-
-long lopt(char *argv[], const char *name, long def)
-{
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
-	return def;
-}
-
-char* lopts(char *argv[], const char *name, char* def)
-{
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
-	return def;
-}
 #endif
 
