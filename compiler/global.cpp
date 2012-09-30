@@ -319,7 +319,7 @@ void global::init()
     BCOMPLEXITY = tree("BCOMPLEXITY");
     
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
-    yyfilename = "????";
+    yyfilename = "";
     yyin = 0;
     
     Typed::init();

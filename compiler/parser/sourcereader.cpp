@@ -349,7 +349,9 @@ void declareMetadata(Tree key, Tree value)
         gGlobal->gMetaDataSet[key].insert(value);
     } else {
         string fkey(yyfilename);
-        fkey += "/";
+        if (fkey != "") {
+            fkey += "/";
+        }
         fkey += tree2str(key);
         gGlobal->gMetaDataSet[tree(fkey.c_str())].insert(value);
     }
