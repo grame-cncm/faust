@@ -52,6 +52,10 @@
 #include <map>
 #include <math.h>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #ifdef __APPLE__
 #include <Carbon/Carbon.h>
 #include <unistd.h>
@@ -271,6 +275,23 @@ class mspUI : public UI
 };
 
 //--------------------------------------------------------------------------
+static bool check_digit(const string& name)
+{
+    for (int i = name.size() - 1; i >= 0; i--) {
+        if (isdigit(name[i])) return true;
+    }
+    return false;
+}
+
+static int count_digit(const string& name)
+{
+    int count = 0;
+    for (int i = name.size() - 1; i >= 0; i--) {
+        if (isdigit(name[i])) count++;
+    }
+    return count;
+}
+
 void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
     /*
