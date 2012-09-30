@@ -199,7 +199,7 @@ class mspSlider : public mspUIObject{
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "Slider(float): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
+            sprintf(buffer, "Slider(float): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
 		}
 
 		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
@@ -251,10 +251,13 @@ class mspUI : public UI
 		void openVerticalBox(const char* label) {}
 		void closeBox() {}
 
-		void SetValue(string name, double f)
+		bool SetValue(string name, double f)
 		{
 			if (fUITable.count(name)) {
-				fUITable[name]->SetValue(f);
+                fUITable[name]->SetValue(f);
+                return true;
+            } else {
+                return false;
             }
 		}
 		iterator begin()	{return fUITable.begin();}
@@ -268,8 +271,9 @@ class mspUI : public UI
 };
 
 //--------------------------------------------------------------------------
-void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* at)
+void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
+    /*
 	if (ac < 0) return;
     if (at[0].a_type != A_FLOAT) return;
 
@@ -277,6 +281,98 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* at)
     float value = at[0].a_w.w_float;
 
   	obj->dspUI->SetValue(name, value); // doesn't have any effect if name is unknown
+    */
+    
+    bool res = false;
+    
+    if (ac < 0) return;
+    
+    // Check if no argument is there, consider it is a toggle message for a button
+    if (ac == 0) {
+        
+        string name = string((s)->s_name);
+        float off = 0.0f;
+        float on = 1.0f;
+        obj->dspUI->SetValue(name, off);
+        obj->dspUI->SetValue(name, on);
+        
+        av[0].a_type = A_FLOAT;
+        av[0].a_w.w_float = off;
+        faust_method(obj, s, 1, av);
+        
+        return;
+    }
+
+    string name = string((s)->s_name);
+    //printf("param_name name = %s  ac = %d\n", (s)->s_name, ac);
+    
+    // List of values
+    if (check_digit(name)) {
+        
+        int ndigit = 0;
+        int pos;
+        
+        for (pos = name.size() - 1; pos >= 0; pos--) {
+            if (isdigit(name[pos]) || name[pos] == ' ') {
+                ndigit++;
+            } else {
+                break;
+            }
+        }
+        pos++;
+        
+        string prefix = name.substr(0, pos);
+        string num_base = name.substr(pos);
+        int num = atoi(num_base.c_str());
+        
+        int i;
+        t_atom* ap;
+       
+        // Increment ap each time to get to the next atom
+        for (i = 0, ap = av; i < ac; i++, ap++) {
+            float value;
+            switch (atom_gettype(ap)) {
+                case A_LONG: {
+                    value = (float)ap[0].a_w.w_long;
+                    break;
+                }
+                case A_FLOAT:
+                    value = ap[0].a_w.w_float;
+                    break;
+                    
+                default:
+                    post("Invalid argument in parameter setting"); 
+                    return;         
+            }
+            
+            stringstream num_val;
+            num_val << num + i;
+            char param_name[256];
+            
+            switch (ndigit - count_digit(num_val.str())) {
+                case 0: 
+                    sprintf(param_name, "%s%s", prefix.c_str(), num_val.str().c_str());
+                    break;
+                case 1: 
+                    sprintf(param_name, "%s %s", prefix.c_str(), num_val.str().c_str());
+                    break;
+                case 2: 
+                    sprintf(param_name, "%s  %s", prefix.c_str(), num_val.str().c_str());
+                    break;
+            }
+            
+            //printf("param_name = %s value = %f\n", param_name, value);
+            res = obj->dspUI->SetValue(param_name, value); // Doesn't have any effect if name is unknown
+        }
+    // Standard parameter
+    } else {
+        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+        res = obj->dspUI->SetValue(name, value); // Doesn't have any effect if name is unknown
+    }
+    
+    if (!res) {
+        post("Unknown parameter : %s", (s)->s_name);
+    }
 }
 
 /*--------------------------------------------------------------------------*/
