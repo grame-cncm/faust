@@ -37,7 +37,7 @@
 #import <UIKit/UIKit.h>
 #import "iPhoneViewController.h"
 
-#include "misc.h"
+#include "faust/misc.h"
 
 #include <list>
 #include <map>
