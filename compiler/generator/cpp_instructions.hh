@@ -107,10 +107,11 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&" << inst->fZone << ")"; EndLine();
+                *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&" << inst->fZone << ")"; 
             } else {
-                *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&" << inst->fZone << ")"; EndLine();
+                *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&" << inst->fZone << ")"; 
             }
+            EndLine();
         }
 
         virtual void visit(AddSliderInst* inst)
@@ -124,10 +125,11 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "interface->addNumEntry"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+            }
             EndLine();
         }
 
@@ -140,10 +142,11 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "interface->addVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            }
             EndLine();
         }
 
@@ -173,23 +176,27 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); 
             } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()); 
             }
+            
+            EndLine();
         }
 
         virtual void visit(RetInst* inst)
         {
             if (inst->fResult) {
-                *fOut << "return "; inst->fResult->accept(this); EndLine();
+                *fOut << "return "; inst->fResult->accept(this); 
+                EndLine();
             }
         }
 
         virtual void visit(DropInst* inst)
         {
             if (inst->fResult) {
-                inst->fResult->accept(this); EndLine();
+                inst->fResult->accept(this); 
+                EndLine();
             }
         }
 
@@ -604,7 +611,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
             // Generate new result symbol, both arguments are equal, so fCurType is the one of last evaluated one
             fCurValue = generateNameVec();
-            *fOut << fTypeDirectTable[fCurType] << " " << fCurValue << "[" << inst->fSize << "]"; EndLine();
+            *fOut << fTypeDirectTable[fCurType] << " " << fCurValue << "[" << inst->fSize << "]"; 
+            EndLine();
 
             // Generate stream
             if (inst->fInst1->fSize >= 1 && inst->fInst2->fSize >= 1) {
@@ -634,7 +642,9 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                 case Typed::kFloat: {
                     string res = generateNameVec();
-                    *fOut << fTypeDirectTable[Typed::kFloat] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    *fOut << fTypeDirectTable[Typed::kFloat] << " " << res << "[" << inst->fSize << "]"; 
+                    EndLine();
+                    
                     switch (fCurType) {
 
                         case Typed::kInt:
@@ -691,7 +701,9 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                 case Typed::kDouble: {
                     string res = generateNameVec();
-                    *fOut << fTypeDirectTable[Typed::kDouble] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    *fOut << fTypeDirectTable[Typed::kDouble] << " " << res << "[" << inst->fSize << "]"; 
+                    EndLine();
+                    
                     switch (fCurType) {
 
                         case Typed::kInt:
@@ -734,7 +746,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
         virtual void visit(FunCallInst* inst)
         {
             string res = generateNameVec();
-            *fOut << fTypeDirectTable[fCurType] << " " << res << "[" << inst->fSize << "]"; EndLine();
+            *fOut << fTypeDirectTable[fCurType] << " " << res << "[" << inst->fSize << "]"; 
+            EndLine();
 
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
@@ -864,7 +877,8 @@ class MRCPPInstVisitor : public CPPInstVisitor {
             if (struct_typed && gTypeTable.find(struct_typed->fName) == gTypeTable.end()) {
                 Typed* sub_type = struct_typed->fType;
                 *fOut << "struct " << struct_typed->fName << " {" << endl;
-                *fOut << "\t" << generateType(sub_type, "f"); EndLine();
+                *fOut << "\t" << generateType(sub_type, "f"); 
+                EndLine();
                 *fOut << "}";
                 EndLine();
                 gTypeTable[struct_typed->fName] = struct_typed;

@@ -102,10 +102,11 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "interface->addButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")"; EndLine();
+                *fOut << "interface->addButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")"; 
             } else {
-                *fOut << "interface->addCheckButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")"; EndLine();
+                *fOut << "interface->addCheckButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")";
             }
+            EndLine();
         }
 
         virtual void visit(AddSliderInst* inst)
@@ -119,11 +120,11 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "interface->addNumEntry"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " <<  inst->fMax << ", " << inst->fStep << ")";
-
+            }
             EndLine();
         }
 
@@ -136,10 +137,11 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "interface->addVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            }
             EndLine();
         }
 
@@ -169,23 +171,26 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); 
             } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()); 
             }
+            EndLine();
         }
 
         virtual void visit(RetInst* inst)
         {
             if (inst->fResult) {
-                *fOut << "return "; inst->fResult->accept(this); EndLine();
+                *fOut << "return "; inst->fResult->accept(this); 
+                EndLine();
             }
         }
 
         virtual void visit(DropInst* inst)
         {
             if (inst->fResult) {
-                inst->fResult->accept(this); EndLine();
+                inst->fResult->accept(this); 
+                EndLine();
             }
         }
 

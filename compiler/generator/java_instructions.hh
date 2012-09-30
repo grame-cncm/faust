@@ -104,10 +104,11 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
+                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")";
             } else {
-                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
+                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; 
             }
+            EndLine();
         }
 
         virtual void visit(AddSliderInst* inst)
@@ -169,14 +170,16 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(RetInst* inst)
         {
             if (inst->fResult) {
-                *fOut << "return "; inst->fResult->accept(this); EndLine();
+                *fOut << "return "; inst->fResult->accept(this); 
+                EndLine();
             }
         }
 
         virtual void visit(DropInst* inst)
         {
             if (inst->fResult) {
-                inst->fResult->accept(this); EndLine();
+                inst->fResult->accept(this); 
+                EndLine();
             }
         }
 
