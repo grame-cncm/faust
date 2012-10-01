@@ -40,18 +40,23 @@ CXXFLAGS += -fvisibility=hidden -Wno-parentheses $(addprefix -I, $(subprojects))
 CXXFLAGS += -I`llvm-config --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
-all : faust libfaust
+all : faust libfaust.a
+
+libmain.o : libmain.cpp
+	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
+
+global.o : global.cpp
+	$(CXX) $(CXXFLAGS) global.cpp -c -o global.o
+
+main.o : main.cpp
+	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
+
 
 faust : $(objects) main.o libmain.o global.o
-	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
-	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
-	$(CXX) $(CXXFLAGS) global.cpp -c -o global.o
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `llvm-config --ldflags --libs all` -ldl -o faust
 
-libfaust : $(objects) libmain.o global.o
-	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
-	$(CXX) $(CXXFLAGS) global.cpp -c -o global.o
-	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o libfaust.a
+libfaust.a : $(objects) libmain.o global.o
+	libtool $(objects) libmain.o global.o -static -o libfaust.a
 
 
 .PHONY: clean depend ctags parser

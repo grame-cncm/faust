@@ -32,6 +32,7 @@
 #include <string.h>
 #include <semaphore.h>
 #include <sys/types.h>
+#include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -215,46 +216,17 @@ static void cpuID(unsigned i, unsigned regs[4])
 int get_max_cpu()
 {
     //return sysconf(_SC_NPROCESSORS_ONLN);
+
+    int physical_count = 0;
+    size_t size = sizeof(physical_count);
+    sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
+    printf("physical cpu cores: %d\n", physical_count);
     
-    unsigned regs[4];
+    int logical_count = 0;
+    sysctlbyname("hw.logicalcpu", &logical_count, &size, NULL, 0);
+    printf("logical cpu cores: %d\n", logical_count);
     
-    // Get vendor
-    char vendor[12];
-    cpuID(0, regs);
-    ((unsigned *)vendor)[0] = regs[1]; // EBX
-    ((unsigned *)vendor)[1] = regs[3]; // EDX
-    ((unsigned *)vendor)[2] = regs[2]; // ECX
-    string cpuVendor = string(vendor, 12);
-    
-    // Get CPU features
-    cpuID(1, regs);
-    unsigned cpuFeatures = regs[3]; // EDX
-    
-    // Logical core count per CPU
-    cpuID(1, regs);
-    unsigned logical = (regs[1] >> 16) & 0xff; // EBX[23:16]
-    printf("logical cpus: %d\n", logical);
-    unsigned cores = logical;
-    
-    if (cpuVendor == "GenuineIntel") {
-        // Get DCP cache info
-        cpuID(4, regs);
-        cores = ((regs[0] >> 26) & 0x3f) + 1; // EAX[31:26] + 1
-        
-    } else if (cpuVendor == "AuthenticAMD") {
-        // Get NC: Number of CPU cores - 1
-        cpuID(0x80000008, regs);
-        cores = ((unsigned)(regs[2] & 0xff)) + 1; // ECX[7:0] + 1
-    }
-    
-    printf("cpu cores: %d\n", cores);
-    
-    // Detect hyper-threads  
-    bool hyperThreads = cpuFeatures & (1 << 28) && cores < logical;
-    
-    printf("hyper-threads: %s\n",  (hyperThreads ? "true" : "false"));
-    
-    return cores;
+    return physical_count;
 }
 
 static int GetPID()

@@ -32,7 +32,6 @@
 #endif
 
 #include "global.hh"
-
 #include "compatibility.hh"
 #include "signals.hh"
 #include "sigtype.hh"
