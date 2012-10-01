@@ -324,10 +324,12 @@ iphonenet :
 faust-tools: 
 	llvm-g++ -O3 ../architecture/bench-llvm.cpp $(LIB)/faust/libfaust.a  `llvm-config --ldflags --libs all`  -o bench-llvm
 	$(CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
-	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp ../architecture/scheduler.cpp `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a $(LIB)/faust/libHTTPDFaust.a  -o faust-jack-gtk
+	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a $(LIB)/faust/libHTTPDFaust.a  -o faust-jack-gtk
 
-	llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp ../architecture/scheduler.cpp `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -o faust-netjack-gtk
-	
+	llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -o faust-netjack-gtk
+
+scheduler:
+	$(CLANG) -arch i386 -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll	
 
 #../architecture/scheduler.cpp 
 #-Wl,-flat_namespace,-undefined,dynamic_lookup 

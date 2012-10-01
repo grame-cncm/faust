@@ -470,4 +470,13 @@ void CodeContainer::processFIR(void)
         CodeLoop::computeUseCount(fCurLoop);
         CodeLoop::groupSeqLoops(fCurLoop);
     }
+    
+    // Verify code
+    /*
+    CodeVerifier verifier;
+    fGlobalDeclarationInstructions->accept(&verifier);
+    fDeclarationInstructions->accept(&verifier);
+    handleComputeBlock(&verifier);
+    fCurLoop->generateOutput(&verifier);
+    */
 }

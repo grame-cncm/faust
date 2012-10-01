@@ -438,8 +438,7 @@ static INLINE int Range(int min, int max, int val)
 }
 
 #if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
-    typedef void (* computeThreadExternalFun) (void* dsp, int cur_thread);
-    extern computeThreadExternalFun gComputeThreadExternal;
+    extern "C" void computeThreadExternal(void* dsp, int num_thread) __attribute__((weak_import));
 #else
     void computeThreadExternal(void* dsp, int num_thread);
 #endif
@@ -871,11 +870,7 @@ class DSPThread {
         void Run()
         {
             while (sem_wait(fSemaphore) != 0) {}
-        #if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
-            gComputeThreadExternal(fDSP, fNumThread + 1);
-        #else
             computeThreadExternal(fDSP, fNumThread + 1);
-        #endif
         }
                 
         void Signal()

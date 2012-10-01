@@ -25,10 +25,6 @@
 
 #include <stdio.h>
 
-// For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
-typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
-computeThreadExternalFun gComputeThreadExternal = 0;
-
 static int gLLVMInit = 0;
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
@@ -267,10 +263,6 @@ bool llvm_dsp_factory::initJIT()
         fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
         fCompute = (computeFun)LoadOptimize("compute_mydsp");
         fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
-        // FIXME : what happens if loaded from bitcode or IR ?
-        if (fScheduler) {
-            gComputeThreadExternal = (computeThreadExternalFun)LoadOptimize("computeThreadExternal");
-        }
         return true;
     } catch (...) {
         // Module does not contain the Faust entry points...

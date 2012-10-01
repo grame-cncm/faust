@@ -228,7 +228,9 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
     Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
 
-    ReturnInst::Create(getGlobalContext(), load_ptr, block); verifyFunction(*sr_fun);
+    ReturnInst::Create(getGlobalContext(), load_ptr, block); 
+    
+    verifyFunction(*sr_fun);
     fBuilder->ClearInsertionPoint();
  }
 

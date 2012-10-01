@@ -731,7 +731,9 @@ struct CodeVerifier : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         fCurVarScope[inst->fAddress->getName()] = inst->fAddress->getAccess();
-        inst->fValue->accept(this);
+        if (inst->fValue) {
+            inst->fValue->accept(this);
+        }
     }
 
     virtual void visit(LoadVarInst* inst)
@@ -749,11 +751,11 @@ struct CodeVerifier : public DispatchVisitor {
                     break;
 
                 case Address::kStack:
-                    cout << "Error load : stack variable " << inst->fAddress->getName() << " with no enclosing definition " << std::endl;
+                    cout << "Error load : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
                     break;
 
                 case Address::kLoop:
-                    cout << "Error load : loop variable " << inst->fAddress->getName() << " with no enclosing loop " << std::endl;
+                    cout << "Error load : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
                     break;
 
                 case Address::kLink:
@@ -778,13 +780,15 @@ struct CodeVerifier : public DispatchVisitor {
                     break;
 
                 case Address::kStack:
-                    if (decl_access != Address::kStack)
-                        cout << "Error load : stack variable " << inst->fAddress->getName() << " with no enclosing definition " << std::endl;
+                    if (decl_access != Address::kStack) {
+                        cout << "Error load : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+                    }
                     break;
 
                 case Address::kLoop:
-                    if (decl_access != Address::kLoop)
-                        cout << "Error load : loop variable " << inst->fAddress->getName() << " with no enclosing loop " << std::endl;
+                    if (decl_access != Address::kLoop) {
+                        cout << "Error load : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
+                    }
                     break;
 
                 case Address::kLink:
@@ -812,11 +816,11 @@ struct CodeVerifier : public DispatchVisitor {
                     break;
 
                 case Address::kStack:
-                    cout << "Error store : stack variable " << inst->fAddress->getName() << " with no enclosing definition " << std::endl;
+                    cout << "Error store : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
                     break;
 
                 case Address::kLoop:
-                    cout << "Error store : loop variable " << inst->fAddress->getName() << " with no enclosing loop " << std::endl;
+                    cout << "Error store : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
                     break;
 
                 case Address::kLink:
@@ -841,13 +845,15 @@ struct CodeVerifier : public DispatchVisitor {
                     break;
 
                 case Address::kStack:
-                    if (decl_access != Address::kStack)
-                        cout << "Error store : stack variable " << inst->fAddress->getName() << " with no enclosing definition " << std::endl;
+                    if (decl_access != Address::kStack) {
+                        cout << "Error store : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+                    }
                     break;
 
                 case Address::kLoop:
-                    if (decl_access != Address::kLoop)
-                        cout << "Error store : loop variable " << inst->fAddress->getName() << " with no enclosing loop " << std::endl;
+                    if (decl_access != Address::kLoop) {
+                        cout << "Error store : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
+                    }
                     break;
 
                 case Address::kLink:
@@ -912,7 +918,7 @@ struct CodeVerifier : public DispatchVisitor {
         fCurVarScope = fStackVarsTable.top();
         fStackVarsTable.pop();
    }
-
+   
 };
 
 // Specialize all simple kStruct variables with a given value

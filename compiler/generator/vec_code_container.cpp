@@ -48,7 +48,7 @@ void VectorCodeContainer::moveStack2Struct()
                 if (inst->fValue) {
                     fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
                 }
-   
+                
                 // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
             }
@@ -201,7 +201,7 @@ void VectorCodeContainer::processFIR(void)
         // Sort arrays to be at the begining
         fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
     }
-   
+    
     if (gGlobal->gVectorLoopVariant == 0) {
         fDAGBlock = generateDAGLoopVariant0(fFullCount);
     } else if (gGlobal->gVectorLoopVariant == 1) {
@@ -209,4 +209,15 @@ void VectorCodeContainer::processFIR(void)
     } else {
         fDAGBlock = NULL;
     }
+    
+    assert(fDAGBlock);
+    
+    // Verify code
+    /*
+    CodeVerifier verifier;
+    fGlobalDeclarationInstructions->accept(&verifier);
+    fDeclarationInstructions->accept(&verifier);
+    handleComputeBlock(&verifier);
+    fDAGBlock->accept(&verifier);
+    */
 }
