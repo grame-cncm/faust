@@ -108,7 +108,22 @@ using namespace std;
 
 class mspUI;
 
-struct Max_Meta : Meta
+struct Max_Meta1 : Meta
+{
+    int fCount;
+    
+    Max_Meta1():fCount(0)
+    {}
+     
+    void declare(const char* key, const char* value)
+    {
+        if ((strcmp("name", key) == 0) || (strcmp("author", key) == 0)) {
+            fCount++;
+        }
+    }
+};
+
+struct Max_Meta2 : Meta
 {
     void declare(const char* key, const char* value)
     {
@@ -117,6 +132,7 @@ struct Max_Meta : Meta
         }
     }
 };
+
 
 /*--------------------------------------------------------------------------*/
 typedef struct faust
@@ -444,7 +460,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
 			}
 			post((char*)"------------------");
 			for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
-				char param[64];
+				char param[256];
 				it->second->toString(param);
 				post(param);
 			}
@@ -511,8 +527,7 @@ int main()
 
 	dsp* thedsp = new mydsp();
 	mspUI dspUI;
-   
-	thedsp->buildUserInterface(&dspUI);
+ 	thedsp->buildUserInterface(&dspUI);
   
 	// Add the same method for every parameters and use the symbol as a selector
 	// inside this method
@@ -528,10 +543,14 @@ int main()
     
     post((char*)"Faust DSP object 32 bits v%s", EXTERNAL_VERSION);
     post((char*)"Copyright (c) 2012 Grame");
-    Max_Meta meta;
-    post("------------------------------");
-    mydsp::metadata(&meta);
-    post("------------------------------");
+    Max_Meta1 meta1;
+    mydsp::metadata(&meta1);
+    if (meta1.fCount > 0) {
+        Max_Meta2 meta2;
+        post("------------------------------");
+        mydsp::metadata(&meta2);
+        post("------------------------------");
+    }
 
     delete(thedsp);
 	return 0;
