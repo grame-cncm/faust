@@ -341,6 +341,12 @@ static bool process_cmdline(int argc, const char* argv[])
 
     // adjust related options
     if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
+    
+    if (gGlobal->gVecSize < 4) {
+        stringstream error;
+        error << "[-vs = "<< gGlobal->gVecSize << "] should be at least 4" << endl;
+        throw faustexception(error.str());
+    }
 
     if (gGlobal->gVecLoopSize > gGlobal->gVecSize) {
         stringstream error;
