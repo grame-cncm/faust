@@ -4,7 +4,7 @@ file(GLOB SUB_SUB_SOURCES */*/*cpp)
 file(GLOB LOKI_SOURCES ../libraries/loki/*cpp)
 
 include_directories(boxes documentator draw draw/device draw/schema errors evaluate extended generator normalize parallelize
-    parser patternmatcher propagate signals tlib utils ../libraries)
+    parser patternmatcher propagate signals tlib utils ../libraries . ../architecture)
 
 
 exec_program(llvm-config ARGS --includedir OUTPUT_VARIABLE LLVM_DIR)
@@ -50,7 +50,7 @@ target_link_libraries(libfaust pthread dl)
 target_link_libraries(libfaust ${LLVM_LIBS})
 
 # COMMANDLINE FAUST EXECUTABLE
-add_executable(faust main.cpp)
+add_executable(faust main.cpp libmain.cpp global.cpp)
 set_property(TARGET faust
     APPEND
     PROPERTY LINK_FLAGS ${LLVM_LDFLAGS}
