@@ -1816,6 +1816,11 @@ struct InstBuilder
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), type, exp);
     }
+    
+    static DeclareVarInst* genDecArrayVar(string vname, Address::AccessType var_access, Typed* type, int size)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
+    }
 
     static LoadVarInst* genLoadVar(string vname, Address::AccessType var_access)
     {
@@ -1841,6 +1846,11 @@ struct InstBuilder
     static DeclareVarInst* genDecStructVar(string vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
+    }
+    
+    static DeclareVarInst* genDecArrayStructVar(string vname, Typed* type, int size)
+    {
+        return genDecArrayVar(vname, Address::kStruct, type, size);
     }
 
     static LoadVarInst* genLoadStructVar(string vname)
@@ -1930,6 +1940,11 @@ struct InstBuilder
     static DeclareVarInst* genDecStackVar(string vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
+    }
+    
+    static DeclareVarInst* genDecArrayStackVar(string vname, Typed* type, int size)
+    {
+        return genDecArrayVar(vname, Address::kStack, type, size);
     }
 
     static LoadVarInst* genLoadStackVar(string vname)
@@ -2071,6 +2086,19 @@ struct InstBuilder
                     const string& arg2, Typed::VarType arg2_ty,
                     const string& arg3, Typed::VarType arg3_ty,
                     const string& arg4, Typed::VarType arg4_ty, BlockInst* code = new BlockInst());
+    static DeclareFunInst* genFunction5(const string& name, Typed::VarType res,
+                    const string& arg1, Typed::VarType arg1_ty,
+                    const string& arg2, Typed::VarType arg2_ty,
+                    const string& arg3, Typed::VarType arg3_ty,
+                    const string& arg4, Typed::VarType arg4_ty,
+                    const string& arg5, Typed::VarType arg5_ty, BlockInst* code = new BlockInst());
+     static DeclareFunInst* genFunction6(const string& name, Typed::VarType res,
+                    const string& arg1, Typed::VarType arg1_ty,
+                    const string& arg2, Typed::VarType arg2_ty,
+                    const string& arg3, Typed::VarType arg3_ty,
+                    const string& arg4, Typed::VarType arg4_ty,
+                    const string& arg5, Typed::VarType arg5_ty, 
+                    const string& arg6, Typed::VarType arg6_ty, BlockInst* code = new BlockInst());
 
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
     // HACK : 09/12/11

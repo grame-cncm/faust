@@ -200,19 +200,6 @@ struct AtomicCounter
     
 };
 
-
-static void cpuID(unsigned i, unsigned regs[4]) 
-{
-#ifdef _WIN32
-    __cpuid((int *)regs, (int)i);
-#else
-    asm volatile
-    ("cpuid" : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3])
-     : "a" (i), "c" (0));
-    // ECX is set to zero for CPUID function 4
-#endif
-}
-
 int get_max_cpu()
 {
     //return sysconf(_SC_NPROCESSORS_ONLN);
@@ -545,7 +532,7 @@ class TaskQueue
      
     public:
   
-        INLINE TaskQueue(int task_queue_size, int cur_thread)
+        INLINE TaskQueue(int task_queue_size)
         {
             fTaskQueueSize = task_queue_size;
             fTaskList = new int[fTaskQueueSize];
@@ -656,14 +643,14 @@ class TaskQueue
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
         
-        INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread, int& tasknum)
+        INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread, int* task_num)
         {
             int task_slice = task_list_size / thread_num;
             int task_slice_rest = task_list_size % thread_num;
 
             if (task_slice == 0) {
                 // Each thread directly executes one task
-                tasknum = task_list[cur_thread];
+                *task_num = task_list[cur_thread];
                 // Thread 0 takes remaining ready tasks 
                 if (cur_thread == 0) { 
                     for (int index = 0; index < task_slice_rest - thread_num; index++) {
@@ -677,7 +664,7 @@ class TaskQueue
                     PushHead(task_list[cur_thread * task_slice + index]);
                 }
                 // Each thread directly executes one task 
-                tasknum = task_list[cur_thread * task_slice + index];
+                *task_num = task_list[cur_thread * task_slice + index];
                 // Thread 0 takes remaining ready tasks 
                 if (cur_thread == 0) {
                     for (index = 0; index < task_slice_rest; index++) {
@@ -1036,7 +1023,7 @@ class WorkStealingScheduler {
             fTaskGraph = new TaskGraph(task_queue_size);
             fTaskQueueList = new TaskQueue*[fDynamicNumThreads];
             for (int i = 0; i < fDynamicNumThreads; i++) {
-                fTaskQueueList[i] = new TaskQueue(task_queue_size, i);
+                fTaskQueueList[i] = new TaskQueue(task_queue_size);
             }
         }
         
@@ -1100,6 +1087,11 @@ class WorkStealingScheduler {
         void GetReadyTask(int cur_thread, int* task_num)
         {
             fTaskGraph->GetReadyTask(fTaskQueueList[cur_thread], task_num);
+        }
+        
+        void InitTaskList(int task_list_size, int* task_list, int cur_thread, int* task_num)
+        {
+            fTaskQueueList[cur_thread]->InitTaskList(task_list_size, task_list, fDynamicNumThreads, cur_thread, task_num);
         }
 
 };
@@ -1171,6 +1163,11 @@ void activateOneOutputTask(void* scheduler, int cur_thread, int task, int* task_
 void getReadyTask(void* scheduler, int cur_thread, int* task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
+}
+
+void initTaskList(void* scheduler, int task_list_size, int* task_list, int cur_thread, int* task_num)
+{
+    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList(task_list_size, task_list, cur_thread, task_num);
 }
 
 #ifdef __cplusplus

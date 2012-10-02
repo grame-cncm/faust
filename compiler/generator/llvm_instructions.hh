@@ -61,6 +61,8 @@ using namespace llvm;
 
 typedef llvm::Value* LlvmValue;
 
+#define VECTOR_ALIGN 0
+
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
    #define VECTOR_OF_TYPES vector<const llvm::Type*>
@@ -1242,8 +1244,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // By default: non aligned vector load
                 LoadInst* load_inst = fBuilder->CreateLoad(casted_load_ptr);
-                if (!aligned)
+                if (!aligned) {
+                #ifdef VECTOR_ALIGN
+                    load_inst->setAlignment(16);
+                #else
                     load_inst->setAlignment(1);
+                #endif
+                }
                 return load_inst;
             } else {
                 return load;
@@ -1578,8 +1585,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // By default: non aligned vector store
                 StoreInst* store_inst = fBuilder->CreateStore(store, casted_store_ptr, vola);
-                if (!aligned)
-                    store_inst->setAlignment(1);
+                if (!aligned) {
+                #ifdef VECTOR_ALIGN
+                    store_inst->setAlignment(16);
+                #else
+                    load_inst->setAlignment(1);
+                #endif
+                }
+
             } else {
                 //cerr << "genVectorStore scalar" << endl;
                 //store_ptr->dump();

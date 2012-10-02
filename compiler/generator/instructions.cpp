@@ -141,6 +141,42 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
+DeclareFunInst* InstBuilder::genFunction5(const string& name, Typed::VarType res,
+                                const string& arg1, Typed::VarType arg1_ty,
+                                const string& arg2, Typed::VarType arg2_ty,
+                                const string& arg3, Typed::VarType arg3_ty,
+                                const string& arg4, Typed::VarType arg4_ty,
+                                const string& arg5, Typed::VarType arg5_ty, BlockInst* code)
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg5, arg5_ty));
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+}
+
+DeclareFunInst* InstBuilder::genFunction6(const string& name, Typed::VarType res,
+                                const string& arg1, Typed::VarType arg1_ty,
+                                const string& arg2, Typed::VarType arg2_ty,
+                                const string& arg3, Typed::VarType arg3_ty,
+                                const string& arg4, Typed::VarType arg4_ty,
+                                const string& arg5, Typed::VarType arg5_ty, 
+                                const string& arg6, Typed::VarType arg6_ty, BlockInst* code)
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg5, arg5_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg6, arg6_ty));
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+}
+
 //--------------------------
 // Coding Types as trees
 //--------------------------

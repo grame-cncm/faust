@@ -240,9 +240,11 @@ bool llvm_dsp_factory::initJIT()
     }
     
     // We use '4' to activate de auto-vectorizer
+#if defined(LLVM_31)
     if (fOptLevel > 3) {
         Builder.Vectorize = true;
     }
+#endif
       
     Builder.DisableUnrollLoops = (fOptLevel == 0);
     Builder.populateFunctionPassManager(fpm);
