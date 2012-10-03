@@ -132,38 +132,8 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
 }
 
-void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread)
+void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code)
 {
-    // Compute ready tasks list
-    vector<int> task_num;
-    for (int l = dag.size() - 1; l >= 0; l--) {
-        lclset::const_iterator next;
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
-            if ((*p)->getBackwardLoopDependencies().size() == 0) {
-                task_num.push_back((*p)->getIndex());
-            }
-        }
-    }
-
-    BlockInst* gen_code = loop_code;
-    
-    /*
-    BlockInst* then_block = NULL;
-
-    if (master_thread) {
-        then_block = InstBuilder::genBlockInst();
-        gen_code = then_block;
-    } else {
-        gen_code = loop_code;
-    }
-    */
-    
-    /*
-    if (task_num.size() > 1) {
-        gen_code->pushBackInst(InstBuilder::genDecArrayStackVar("task_list", InstBuilder::genBasicTyped(Typed::kInt), task_num.size()));
-    }
-    */
-
     // Last stage connected to end task
     if (dag[0].size() > 1) {
         list<ValueInst*> fun_args;
@@ -189,45 +159,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code
             }
         }
     }
-
-    // Push n - 1 ready tasks
-    /*
-    for (unsigned int i = 0; i < task_num.size(); i++) {
-        
-        //list<ValueInst*> fun_args;
-        //fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
-        //fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-        //fun_args.push_back(InstBuilder::genIntNumInst(task_num[i]));
-        //gen_code->pushBackInst(InstBuilder::genVoidFunCallInst("pushHead", fun_args));
-        
-        gen_code->pushBackInst(InstBuilder::genStoreArrayStackVar("task_list", InstBuilder::genIntNumInst(i), InstBuilder::genIntNumInst(task_num[i])));
-    }
-    */
-
-    // Keep the "n" task to be directly activated
-    //gen_code->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(task_num[task_num.size() - 1])));
-
-    //if (master_thread) {
-    //    loop_code->pushBackInst(InstBuilder::genLabelInst("/* Master thread init processing */"));
-    //    ValueInst* if_cond = InstBuilder::genBinopInst(kEQ, InstBuilder::genLoadFunArgsVar("num_thread"), InstBuilder::genIntNumInst(0));
-    //    loop_code->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
-    //}
     
-    /*
-    if (task_num.size() > 1) {
-        list<ValueInst*> fun_args1;
-        fun_args1.push_back(InstBuilder::genLoadStructVar("fScheduler"));
-        fun_args1.push_back(InstBuilder::genIntNumInst(task_num.size()));
-        //fun_args1.push_back(InstBuilder::genLoadArrayStackAddressVar("task_list", InstBuilder::genIntNumInst(0)));
-        fun_args1.push_back(InstBuilder::genLoadStackVar("task_list"));
-        fun_args1.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-        fun_args1.push_back(InstBuilder::genLoadStackVarAddress("tasknum"));
-        gen_code->pushBackInst(InstBuilder::genVoidFunCallInst("initTaskList", fun_args1));
-    } else {
-        gen_code->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(task_num[0])));
-    }
-    */
-    
+    // Push ready tasks in each thread WSQ
     gen_code->pushBackInst(InstBuilder::genLabelInst("/* Push ready tasks in each thread WSQ */"));
     list<ValueInst*> fun_args1;
     fun_args1.push_back(InstBuilder::genLoadStructVar("fScheduler"));
@@ -241,7 +174,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
     loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar(counter)));
     loop_code->pushBackInst(InstBuilder::genStoreStructVar("fIndex", InstBuilder::genIntNumInst(0)));
     
-    generateDAGLoopWSSAux1(dag, loop_code, true);
+    generateDAGLoopWSSAux1(dag, loop_code);
 
     list<ValueInst*> fun_args1;
     fun_args1.push_back(InstBuilder::genLoadStructVar("fScheduler"));
@@ -289,7 +222,6 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
 
     // Specific init instructions
     list<ValueInst*> fun_args;
-    //fun_args.push_back(InstBuilder::genIntNumInst(4096));
     fun_args.push_back(InstBuilder::genIntNumInst(loop_count));
     fun_args.push_back(InstBuilder::genIntNumInst(ready_loop.size()));
     pushInitMethod(InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
@@ -348,8 +280,6 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     generateLocalInputs(loop_code);
     generateLocalOutputs(loop_code);
 
-    //generateDAGLoopWSSAux1(dag, loop_code, true);
-
     // Work stealing task
     BlockInst* ws_block = InstBuilder::genBlockInst();
     ws_block->pushBackInst(InstBuilder::genLabelInst("/* Work Stealing task */"));
@@ -372,7 +302,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     generateLocalOutputs(last_block);
 
     // Generates init DAG and ready tasks activations
-    generateDAGLoopWSSAux1(dag, last_block, false);
+    generateDAGLoopWSSAux1(dag, last_block);
     last_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(0)));
     switch_block->addCase(LAST_TASK_INDEX, last_block);
   
