@@ -858,7 +858,7 @@ class DSPThread {
             
             AVOIDDENORMALS;
             
-            get_affinity(pthread_self());
+            get_affinity(thread->fThread);
             
             // One "dummy" cycle to setup thread
             if (thread->fRealTime) {
@@ -1107,7 +1107,6 @@ class WorkStealingScheduler {
         void SignalAll()
         {
             GetRealTime();
-            //TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
             fThreadPool->SignalAll(fDynamicNumThreads - 1);
         }
         
@@ -1225,13 +1224,6 @@ void getReadyTask(void* scheduler, int cur_thread, int* task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
-
-/*
-void initTaskList(void* scheduler, int task_list_size, int* task_list, int cur_thread, int* task_num)
-{
-    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList(task_list_size, task_list, cur_thread, task_num);
-}
-*/
 
 void initTaskList(void* scheduler)
 {
