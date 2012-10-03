@@ -238,6 +238,27 @@ static int GetPID()
 #define THREAD_SET_PRIORITY         0
 #define THREAD_SCHEDULED_PRIORITY   1
 
+static void get_affinity(pthread_t thread)
+{
+    thread_affinity_policy theTCPolicy;
+    mach_msg_type_number_t count = THREAD_AFFINITY_POLICY_COUNT;
+    boolean_t get_default = false;
+    kern_return_t res = thread_policy_get(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, &count, &get_default);
+    if (res == KERN_SUCCESS)  {
+        printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
+    }
+}
+
+static void set_affinity(pthread_t thread, int tag)
+{
+    thread_affinity_policy theTCPolicy;
+    theTCPolicy.affinity_tag = tag;
+    kern_return_t res = thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, THREAD_AFFINITY_POLICY_COUNT);
+    if (res == KERN_SUCCESS)  {
+        printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
+    }
+}
+
 static UInt32 GetThreadPriority(pthread_t thread, int inWhichPriority);
 
 // returns the thread's priority as it was last set by the API
@@ -621,10 +642,9 @@ class TaskQueue
             fStealingStart = 0;
 		}
         
-        static INLINE int GetNextTask(void* taskqueuelist, int cur_thread, int num_threads)
+        static INLINE int GetNextTask(TaskQueue** task_queue_list, int cur_thread, int num_threads)
         {
             int tasknum;
-            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
             
             for (int i = 0; i < num_threads; i++) {
                 if ((i != cur_thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
@@ -674,9 +694,8 @@ class TaskQueue
             }
         }
         
-        static INLINE void InitAll(void* taskqueuelist, int num_threads)
+        static INLINE void InitAll(TaskQueue** task_queue_list, int num_threads)
         {
-            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
             for (int i = 0; i < num_threads; i++) {
                 task_queue_list[i]->InitOne();
             }
@@ -724,7 +743,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (tasknum == WORK_STEALING_INDEX) {
                     tasknum = task;
@@ -737,7 +755,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (*tasknum == WORK_STEALING_INDEX) {
                     *tasknum = task;
@@ -750,7 +767,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue& queue, int task)
         {   
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue.PushHead(task);
             }
@@ -759,7 +775,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue* queue, int task)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue->PushHead(task);
             }
@@ -768,7 +783,6 @@ class TaskGraph
         INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
         {   
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 tasknum = task;
             } else {
@@ -779,7 +793,6 @@ class TaskGraph
         INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 *tasknum = task;
             } else {
@@ -819,6 +832,8 @@ class DSPThread {
             DSPThread* thread = static_cast<DSPThread*>(arg);
             
             AVOIDDENORMALS;
+            
+            get_affinity(thread->fThread);
             
             // One "dummy" cycle to setup thread
             if (thread->fRealTime) {
@@ -927,6 +942,9 @@ class DSPThread {
                 printf("Cannot create thread res = %d err = %s\n", res, strerror(errno));
                 return -1;
             }
+            
+            // Set affinity
+            set_affinity(fThread, fNumThread + 1);
 
             pthread_attr_destroy(&attributes);
             return 0;
