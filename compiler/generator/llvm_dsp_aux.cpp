@@ -183,6 +183,9 @@ bool llvm_dsp_factory::initJIT()
     builder.setEngineKind(EngineKind::JIT);
     builder.setUseMCJIT(true);
     builder.setMCPU(llvm::sys::getHostCPUName());
+    
+    TargetMachine* tm = builder.selectTarget();
+    //tm->Options.PrintMachineCode = 1;
     /*
     SmallVector<std::string, 4> attrs;
     attrs.push_back("sse");
@@ -191,7 +194,7 @@ bool llvm_dsp_factory::initJIT()
     attrs.push_back("enable-unsafe-fp-math");
     builder.setMAttrs(attrs);
     */
-    fJIT = builder.create();
+    fJIT = builder.create(tm);
     if (!fJIT) {
         return false;
     }

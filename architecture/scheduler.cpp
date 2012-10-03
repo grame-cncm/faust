@@ -252,6 +252,27 @@ static UInt32 GetThreadScheduledPriority(pthread_t thread)
     return GetThreadPriority(thread, THREAD_SCHEDULED_PRIORITY);
 }
 
+static void get_affinity(pthread_t thread)
+{
+    thread_affinity_policy theTCPolicy;
+    mach_msg_type_number_t count = THREAD_AFFINITY_POLICY_COUNT;
+    boolean_t get_default = false;
+    kern_return_t res = thread_policy_get(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, &count, &get_default);
+    if (res == KERN_SUCCESS)  {
+        printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
+    }
+}
+
+static void set_affinity(pthread_t thread, int tag)
+{
+    thread_affinity_policy theTCPolicy;
+    theTCPolicy.affinity_tag = tag;
+    kern_return_t res = thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, THREAD_AFFINITY_POLICY_COUNT);
+    if (res == KERN_SUCCESS)  {
+        printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
+    }
+}
+
 static int SetThreadToPriority(pthread_t thread, UInt32 inPriority, Boolean inIsFixed, UInt64 period, UInt64 computation, UInt64 constraint)
 {
     if (inPriority == 96) {
@@ -592,7 +613,7 @@ class TaskQueue
         {
             AtomicCounter old_val;
             AtomicCounter new_val;
-            
+             
             do {
                 old_val = fCounter;
                 new_val = old_val;
@@ -621,11 +642,10 @@ class TaskQueue
             fStealingStart = 0;
 		}
         
-        static INLINE int GetNextTask(void* taskqueuelist, int cur_thread, int num_threads)
+        static INLINE int GetNextTask(TaskQueue** task_queue_list, int cur_thread, int num_threads)
         {
             int tasknum;
-            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
-            
+             
             for (int i = 0; i < num_threads; i++) {
                 if ((i != cur_thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
                 #ifdef __linux__
@@ -643,6 +663,7 @@ class TaskQueue
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
         
+        /*
         INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread, int* task_num)
         {
             int task_slice = task_list_size / thread_num;
@@ -673,10 +694,33 @@ class TaskQueue
                 }
             }
         }
+        */
         
-        static INLINE void InitAll(void* taskqueuelist, int num_threads)
+        INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread)
         {
-            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
+            int task_slice = task_list_size / thread_num;
+            int task_slice_rest = task_list_size % thread_num;
+            
+            //printf("InitTaskList task_list_size = %d thread_num = %d cur_thread = %d\n", task_list_size, thread_num, cur_thread);
+            //printf("task_slice = %d  task_slice_rest = %d\n", task_slice, task_slice_rest);
+            
+            // cur_thread takes it's slice of tasks
+            for (int index = 0; index < task_slice; index++) {
+                //printf("PushHead this %x = %d  \n", this, task_list[cur_thread * task_slice + index]);
+                PushHead(task_list[cur_thread * task_slice + index]);
+            }
+            
+            // Thread 0 takes remaining ready tasks 
+            if (cur_thread == 0) {
+                for (int index = 0; index < task_slice_rest; index++) {
+                    //printf("PushHead this %x MASTER = %d  \n",  this, task_list[cur_thread * task_slice + index]);
+                    PushHead(task_list[thread_num * task_slice + index]);
+                }
+            }
+        }
+        
+        static INLINE void InitAll(TaskQueue** task_queue_list, int num_threads)
+        {
             for (int i = 0; i < num_threads; i++) {
                 task_queue_list[i]->InitOne();
             }
@@ -724,7 +768,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (tasknum == WORK_STEALING_INDEX) {
                     tasknum = task;
@@ -737,7 +780,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (*tasknum == WORK_STEALING_INDEX) {
                     *tasknum = task;
@@ -750,7 +792,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue& queue, int task)
         {   
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue.PushHead(task);
             }
@@ -759,7 +800,6 @@ class TaskGraph
         INLINE void ActivateOutputTask(TaskQueue* queue, int task)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue->PushHead(task);
             }
@@ -768,7 +808,6 @@ class TaskGraph
         INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
         {   
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 tasknum = task;
             } else {
@@ -779,7 +818,6 @@ class TaskGraph
         INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
         {
             //assert(task < fTaskQueueSize);
-            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 *tasknum = task;
             } else {
@@ -819,6 +857,8 @@ class DSPThread {
             DSPThread* thread = static_cast<DSPThread*>(arg);
             
             AVOIDDENORMALS;
+            
+            get_affinity(pthread_self());
             
             // One "dummy" cycle to setup thread
             if (thread->fRealTime) {
@@ -927,6 +967,9 @@ class DSPThread {
                 printf("Cannot create thread res = %d err = %s\n", res, strerror(errno));
                 return -1;
             }
+            
+            // Set affinity
+            set_affinity(fThread, fNumThread + 1);
 
             pthread_attr_destroy(&attributes);
             return 0;
@@ -1011,10 +1054,14 @@ class WorkStealingScheduler {
         
         int fStaticNumThreads;
         int fDynamicNumThreads;
+        
+        int* fReadyTaskList;
+        int fReadyTaskListSize;
+        int fReadyTaskListIndex;
     
     public:
     
-        WorkStealingScheduler(int task_queue_size)
+        WorkStealingScheduler(int task_queue_size, int init_task_list_size)
         {
             fStaticNumThreads = get_max_cpu();
             fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : fStaticNumThreads;
@@ -1025,6 +1072,10 @@ class WorkStealingScheduler {
             for (int i = 0; i < fDynamicNumThreads; i++) {
                 fTaskQueueList[i] = new TaskQueue(task_queue_size);
             }
+            
+            fReadyTaskListSize = init_task_list_size;
+            fReadyTaskList = new int[fReadyTaskListSize];
+            fReadyTaskListIndex = 0;
         }
         
         ~WorkStealingScheduler()
@@ -1035,6 +1086,12 @@ class WorkStealingScheduler {
                 delete(fTaskQueueList[i]);
             }
             delete[] fTaskQueueList;
+            delete[] fReadyTaskList;
+        }
+        
+        void AddReadyTask(int task_num)
+        {
+            fReadyTaskList[fReadyTaskListIndex++] = task_num;
         }
         
         void StartAll(void* dsp)
@@ -1050,7 +1107,7 @@ class WorkStealingScheduler {
         void SignalAll()
         {
             GetRealTime();
-            TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
+            //TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
             fThreadPool->SignalAll(fDynamicNumThreads - 1);
         }
         
@@ -1089,9 +1146,13 @@ class WorkStealingScheduler {
             fTaskGraph->GetReadyTask(fTaskQueueList[cur_thread], task_num);
         }
         
-        void InitTaskList(int task_list_size, int* task_list, int cur_thread, int* task_num)
+        void InitTaskList()
         {
-            fTaskQueueList[cur_thread]->InitTaskList(task_list_size, task_list, fDynamicNumThreads, cur_thread, task_num);
+            TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
+            
+            for (int cur_thread = 0; cur_thread < fDynamicNumThreads; cur_thread++) {
+                fTaskQueueList[cur_thread]->InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, cur_thread);
+            }
         }
 
 };
@@ -1105,9 +1166,9 @@ extern "C"
 {
 #endif
 
-void* createScheduler(int task_queue_size)
+void* createScheduler(int task_queue_size, int init_task_list_size)
 {
-    return new WorkStealingScheduler(task_queue_size);
+    return new WorkStealingScheduler(task_queue_size, init_task_list_size);
 }
 
 void deleteScheduler(void* scheduler)
@@ -1165,9 +1226,21 @@ void getReadyTask(void* scheduler, int cur_thread, int* task_num)
     static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
 
+/*
 void initTaskList(void* scheduler, int task_list_size, int* task_list, int cur_thread, int* task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList(task_list_size, task_list, cur_thread, task_num);
+}
+*/
+
+void initTaskList(void* scheduler)
+{
+    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList();
+}
+
+void addReadyTask(void* scheduler, int task_num)
+{
+    static_cast<WorkStealingScheduler*>(scheduler)->AddReadyTask(task_num);
 }
 
 #ifdef __cplusplus

@@ -210,7 +210,7 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
 /**
  *  Adds forward dependencies in the DAG and returns loop count
  */
-int CodeContainer::computeForwardDAG(lclgraph dag)
+void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>& ready_loop)
 {
     #define START_TASK_MAX 2
 
@@ -218,15 +218,24 @@ int CodeContainer::computeForwardDAG(lclgraph dag)
 
     for (int l = dag.size() - 1; l >= 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+            
+            // Setup forward dependancy
             for (lclset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin(); p1!=(*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
             }
+            
+            // Setup loop index
             (*p)->fIndex = loop_index;
             loop_index++;
+            
+            // Keep ready loops
+            if ((*p)->getBackwardLoopDependencies().size() == 0) {
+                ready_loop.push_back((*p)->getIndex());
+            }
         }
     }
     
-    return loop_index;
+    loop_count = loop_index;
 }
 
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args)

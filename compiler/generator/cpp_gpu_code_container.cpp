@@ -727,8 +727,10 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     fComputeBlockInstructions->accept(&block_visitor);
 
     lclgraph dag;
+    vector<int> ready_loop;
+    int loop_count;
     CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
+    computeForwardDAG(dag, loop_count, ready_loop);
 
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
@@ -1435,10 +1437,12 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     // Generates local variables declaration and setup
     BlockKernelInstVisitor block_visitor(fGPUOut, n+1);
     fComputeBlockInstructions->accept(&block_visitor);
-
+  
     lclgraph dag;
+    vector<int> ready_loop;
+    int loop_count;
     CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
+    computeForwardDAG(dag, loop_count, ready_loop);
 
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
