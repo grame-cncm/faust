@@ -2073,81 +2073,101 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual void visit(ForLoopInst* inst)
         {
+            string loop_counter_name;
             Function* function = fBuilder->GetInsertBlock()->getParent();
             assert(function);
 
-            // Prepare init_code block
+            // Prepare init_block
             BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init_block", function);
+            
+            // Prepare exec_block
+            BasicBlock* exec_block = BasicBlock::Create(getGlobalContext(), "exec_block", function);
+            
+            // Prepare loop_body_block 
+            BasicBlock* loop_body_block = BasicBlock::Create(getGlobalContext(), "loop_body_block", function);
 
-            // Link previous_block and init_block
-            fBuilder->CreateBr(init_block);
-
-            // Start insertion in init_block
-            fBuilder->SetInsertPoint(init_block);
-
-            // Compute init value, now loop counter is allocated
-            inst->fInit->accept(this);
-
-            // Get loop counter local variable
-            DeclareVarInst* declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-            StoreVarInst* store_inst = dynamic_cast<StoreVarInst*>(inst->fInit);
-            string loop_counter_name;
-
-            if (declare_inst) {
-                loop_counter_name = declare_inst->getName();
-            } else if (store_inst) {
-                loop_counter_name = store_inst->getName();
-            } else {
-                cerr << "Error in ForLoopInst "<< endl;
-                assert(false);
-            }
-
-            assert(fDSPStackVars.find(loop_counter_name) != fDSPStackVars.end());
-            Value* loop_counter = fBuilder->CreateLoad(fDSPStackVars[loop_counter_name]);
-
-            // Prepare exec_code block
-            BasicBlock* exec_block = BasicBlock::Create(getGlobalContext(), "exec_code", function);
-
-            // Create the exit_block and insert it
+            // Create the exit_block
             BasicBlock* exit_block = BasicBlock::Create(getGlobalContext(), "exit_block", function);
+            
+            // Init section
+            {
+                // Link previous_block and init_block
+                fBuilder->CreateBr(init_block);
 
-            // Link init_block and exec_block
-            fBuilder->CreateBr(exec_block);
+                // Start insertion in init_block
+                fBuilder->SetInsertPoint(init_block);
 
-            // Start insertion in exec_block
-            fBuilder->SetInsertPoint(exec_block);
+                // Compute init value, now loop counter is allocated
+                inst->fInit->accept(this);
+             
+                // Get loop counter local variable
+                DeclareVarInst* declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
+                StoreVarInst* store_inst = dynamic_cast<StoreVarInst*>(inst->fInit);
 
+                if (declare_inst) {
+                    loop_counter_name = declare_inst->getName();
+                } else if (store_inst) {
+                    loop_counter_name = store_inst->getName();
+                } else {
+                    cerr << "Error in ForLoopInst "<< endl;
+                    assert(false);
+                }
+
+                assert(fDSPStackVars.find(loop_counter_name) != fDSPStackVars.end());
+             
+                // Link init_block and exec_block
+                fBuilder->CreateBr(exec_block);
+                
+                // Start insertion in exec_block
+                fBuilder->SetInsertPoint(exec_block);
+            }
+            
             // Start the PHI node with an entry for start
             PHINode* phi_node = CREATE_PHI(fBuilder->getInt32Ty(), loop_counter_name);
-            phi_node->addIncoming(loop_counter, init_block);
+            phi_node->addIncoming(genInt32(0, 0), init_block);
+            
+            // End condition
+            {
+                // Compute end condition, result in fCurValue
+                inst->fEnd->accept(this);
 
-            // Generates loop internal code
-            inst->fCode->accept(this);
+                // Convert condition to a bool
+                Value* end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
+                
+                // Insert the conditional branch into the last block of loop
+                fBuilder->CreateCondBr(end_cond, loop_body_block, exit_block);
+            }
+            
+            // Loop body
+            {
+                // Start insertion in loop_body_block
+                fBuilder->SetInsertPoint(loop_body_block);
+         
+                // Generates loop internal code
+                inst->fCode->accept(this);
+            }
 
             // Get last block of post code section
             BasicBlock* current_block = fBuilder->GetInsertBlock();
 
-            // Compute next index, result in fCurValue
-            StoreVarInst* store_inst1 = dynamic_cast<StoreVarInst*>(inst->fIncrement);
-            assert(store_inst1);
-            store_inst1->fValue->accept(this);
-            Value* next_index = fCurValue;
-            next_index->setName("nextindex");
+            // Next index computation
+            {
+                // Compute next index, result in fCurValue
+                StoreVarInst* store_inst1 = dynamic_cast<StoreVarInst*>(inst->fIncrement);
+                assert(store_inst1);
+                store_inst1->fValue->accept(this);
+                Value* next_index = fCurValue;
+                next_index->setName("next_index");
 
-            // Store the next value
-            fBuilder->CreateStore(next_index, fDSPStackVars[loop_counter_name]);
-
-            // Compute end condition, result in fCurValue
-            inst->fEnd->accept(this);
-
-            // Convert condition to a bool
-            Value* end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
-
-            // Add a new entry to the PHI node for the backedge
-            phi_node->addIncoming(next_index, current_block);
-
-            // Insert the conditional branch into the last block of loop
-            fBuilder->CreateCondBr(end_cond, exec_block, exit_block);
+                // Store the next value
+                fBuilder->CreateStore(next_index, fDSPStackVars[loop_counter_name]);
+        
+                // Add a new entry to the PHI node for the backedge
+                phi_node->addIncoming(next_index, current_block);
+             
+                // Back to start of loop
+                fBuilder->CreateBr(exec_block);
+            }
 
             // Move insertion in exit_block
             fBuilder->SetInsertPoint(exit_block);
