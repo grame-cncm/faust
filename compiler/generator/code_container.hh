@@ -171,7 +171,7 @@ class CodeContainer : public virtual Garbageable {
         void printGraphDotFormat(ostream& fout);
 
         void transformDAG(DispatchVisitor* visitor);
-        int computeForwardDAG(lclgraph dag);
+        void computeForwardDAG(lclgraph dag, int& loop_count, vector<int>& ready_loop);
         void sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
 
         void generateLocalInputs(BlockInst* loop_code);
