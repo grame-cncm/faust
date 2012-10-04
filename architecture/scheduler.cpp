@@ -662,57 +662,20 @@ class TaskQueue
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
         
-        /*
-        INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread, int* task_num)
-        {
-            int task_slice = task_list_size / thread_num;
-            int task_slice_rest = task_list_size % thread_num;
-
-            if (task_slice == 0) {
-                // Each thread directly executes one task
-                *task_num = task_list[cur_thread];
-                // Thread 0 takes remaining ready tasks 
-                if (cur_thread == 0) { 
-                    for (int index = 0; index < task_slice_rest - thread_num; index++) {
-                        PushHead(task_list[task_slice_rest + index]);
-                    }
-                }
-            } else {
-                // Each thread takes a part of ready tasks
-                int index;
-                for (index = 0; index < task_slice - 1; index++) {
-                    PushHead(task_list[cur_thread * task_slice + index]);
-                }
-                // Each thread directly executes one task 
-                *task_num = task_list[cur_thread * task_slice + index];
-                // Thread 0 takes remaining ready tasks 
-                if (cur_thread == 0) {
-                    for (index = 0; index < task_slice_rest; index++) {
-                        PushHead(task_list[thread_num * task_slice + index]);
-                    }
-                }
-            }
-        }
-        */
-        
+          
         INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread)
         {
             int task_slice = task_list_size / thread_num;
             int task_slice_rest = task_list_size % thread_num;
             
-            //printf("InitTaskList task_list_size = %d thread_num = %d cur_thread = %d\n", task_list_size, thread_num, cur_thread);
-            //printf("task_slice = %d  task_slice_rest = %d\n", task_slice, task_slice_rest);
-            
             // cur_thread takes it's slice of tasks
             for (int index = 0; index < task_slice; index++) {
-                //printf("PushHead this %x = %d  \n", this, task_list[cur_thread * task_slice + index]);
                 PushHead(task_list[cur_thread * task_slice + index]);
             }
             
             // Thread 0 takes remaining ready tasks 
             if (cur_thread == 0) {
                 for (int index = 0; index < task_slice_rest; index++) {
-                    //printf("PushHead this %x MASTER = %d  \n",  this, task_list[cur_thread * task_slice + index]);
                     PushHead(task_list[thread_num * task_slice + index]);
                 }
             }
