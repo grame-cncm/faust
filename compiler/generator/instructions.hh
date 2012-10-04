@@ -614,6 +614,28 @@ struct Address : public Printable {
             *fOut << "kVolatile";
         }
     }
+    
+    static string dumpString(AccessType access)
+    {
+        if (access & kStruct) {
+            return "kStruct";
+        } else if (access & kStaticStruct) {
+            return "kStaticStruct";
+        } else if (access & kFunArgs) {
+            return "kFunArgs";
+        } else if (access & kStack) {
+            return "kStack";
+        } else if (access & kGlobal) {
+            return "kGlobal";
+        } else if (access & kLink) {
+            return "kLink";
+        } else if (access & kLoop) {
+            return "kLoop";
+        } else if (access & kVolatile) {
+            return "kVolatile";
+        }
+    }
+
 
     virtual Address* clone(CloneVisitor* cloner) = 0;
 

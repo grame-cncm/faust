@@ -61,7 +61,6 @@ class CodeContainer : public virtual Garbageable {
         BlockInst* fInitInstructions;
         BlockInst* fPostInitInstructions;
 
-
         // To be used in allocate method (or constructor)
         BlockInst* fAllocateInstructions;
         

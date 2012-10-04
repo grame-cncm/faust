@@ -44,7 +44,7 @@ void VectorCodeContainer::moveStack2Struct()
                 // Variable moved to the Struct
                 fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
                 
-                 // For local thread access (in compute), rewrite the Declare instruction by a Store
+                // For local thread access (in compute), rewrite the Declare instruction by a Store
                 if (inst->fValue) {
                     fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
                 }
@@ -213,11 +213,20 @@ void VectorCodeContainer::processFIR(void)
     assert(fDAGBlock);
     
     // Verify code
-    /*
+     /*
     CodeVerifier verifier;
+    BlockInst global_block;
+    global_block.pushBackInst(fGlobalDeclarationInstructions);
+    global_block.pushBackInst(fDeclarationInstructions);
+    global_block.pushBackInst(fComputeBlockInstructions);
+    global_block.pushBackInst(fDAGBlock);
+    global_block.accept(&verifier);
+    
+   
     fGlobalDeclarationInstructions->accept(&verifier);
     fDeclarationInstructions->accept(&verifier);
     handleComputeBlock(&verifier);
     fDAGBlock->accept(&verifier);
     */
+    
 }

@@ -555,7 +555,7 @@ struct ParLoopBuilder : public DispatchVisitor {
 /*
 Constant propagation :
 
-1) changer des variales en constantes dans le code initial
+1) changer des variables en constantes dans le code initial
 
 2) cloner le code avec ConstantPropagationCloneVisitor
 
@@ -701,13 +701,15 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
  Verificateur de code :
 
- - vérifier que les Load/Sore utilisent des variables bien définies
+ - vérifier que les Load/Store utilisent des variables bien définies
+ 
+ - vérifier que les Load utilisent des variables bien initialiés (soit par une Declaration ou un Store prealable)
 
  - vérifier que les Funcall correspondent à des fonctions existantes
 
- - vérifier que les variables de boucles (kLoop) sont bien à l'intérieur d'une boucle de même variable
+ - vérifier que les variables de boucles (kLoop) sont bien à l'intérieur d'une boucle de même nom de variable
 
- - vérifier que les variables kStack sont bien utilisées dans un scope où elles sont définies
+ - vérifier que les variables kStack sont bien utilisées dans un scope où elles sont définies (et pas en dehors)
 
  - vérifier que les variables kFunArgs sont bien utilisées dans un scope où elles sont définies (à l'intérieur d'une fonction avec les bons arguments)
 
@@ -715,10 +717,10 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
 struct CodeVerifier : public DispatchVisitor {
 
-    typedef map <string, Address::AccessType> VarScope;
+    typedef map <string, pair <Address::AccessType, bool> > VarScope;
 
     map <string, FunTyped*> fFunctionTable;
-    stack<VarScope> fStackVarsTable;
+    vector<VarScope> fStackVarsTable;
     VarScope fCurVarScope;
 
     CodeVerifier()
@@ -727,145 +729,132 @@ struct CodeVerifier : public DispatchVisitor {
     }
     virtual ~CodeVerifier()
     {}
+    
+    void printScope(VarScope scope)
+    {
+        VarScope::iterator it;
+        cout << "----printScope----" << endl;
+        for (it = scope.begin(); it != scope.end(); it++) {
+            cout << "Variable : " << (*it).first << endl;
+        }
+    }
+
+    bool getVarName(const string& name, pair <Address::AccessType, bool>& res) 
+    {
+        cout << "----getVarName : " << name << " ----" << endl;
+        printScope(fCurVarScope);
+         
+        if (fCurVarScope.find(name) != fCurVarScope.end()) {
+            cout << "Variable \"" << name << "\" found in current scope" << std::endl;
+            res = fCurVarScope[name];
+            return true;
+        } else {
+            vector<VarScope>::reverse_iterator rit; 
+            int scope_num = 1;
+            for (rit = fStackVarsTable.rbegin(); rit < fStackVarsTable.rend(); ++rit, scope_num++) {
+                VarScope scope = *rit;
+                cout << "SCOPE : "  << scope_num << std::endl;
+                printScope(scope);
+                if (scope.find(name) != scope.end()) {
+                    cout << "Variable \"" << name << "\" found in  scope " << scope_num << std::endl;
+                    res = scope[name];
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+    }
+    
+    bool setVarName(const string& name) 
+    {
+        cout << "----setVarName : " << name << " ----" << endl;
+        printScope(fCurVarScope);
+         
+        if (fCurVarScope.find(name) != fCurVarScope.end()) {
+            cout << "Variable \"" << name << "\" found in current scope" << std::endl;
+            fCurVarScope[name].second = true;
+            return true;
+        } else {
+            vector<VarScope>::reverse_iterator rit; 
+            int scope_num = 1;
+            for (rit = fStackVarsTable.rbegin(); rit < fStackVarsTable.rend(); ++rit, scope_num++) {
+                VarScope scope = *rit;
+                cout << "SCOPE : "  << scope_num << std::endl;
+                printScope(scope);
+                if (scope.find(name) != scope.end()) {
+                    scope[name].second = true;
+                    cout << "Variable \"" << name << "\" found in  scope " << scope_num << std::endl;
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+    }
 
     virtual void visit(DeclareVarInst* inst)
     {
-        fCurVarScope[inst->fAddress->getName()] = inst->fAddress->getAccess();
+        string name = inst->fAddress->getName();
+        fCurVarScope[name].first = inst->fAddress->getAccess();
+       
         if (inst->fValue) {
             inst->fValue->accept(this);
+            // variable is initialized...
+            fCurVarScope[name].second = true;
+        } else {
+            // variable is not initialized...
+            fCurVarScope[name].second = false;
         }
     }
-
+    
     virtual void visit(LoadVarInst* inst)
     {
-        if (fCurVarScope.find(inst->fAddress->getName()) == fCurVarScope.end()) {
-
-            Address::AccessType var_access = inst->fAddress->getAccess();
-
-            switch (var_access) {
-
-                case Address::kGlobal:
-                case Address::kFunArgs:
-                case Address::kStruct:
-                case Address::kStaticStruct:
-                    break;
-
-                case Address::kStack:
-                    cout << "Error load : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
-                    break;
-
-                case Address::kLoop:
-                    cout << "Error load : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
-                    break;
-
-                case Address::kLink:
-                    // TO CHECK
-                    break;
-
-                default:
-                    break;
-            }
-
+        pair <Address::AccessType, bool> var_def;
+        bool res = getVarName(inst->fAddress->getName(), var_def);
+        
+        if (!res) {
+            cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
         } else {
-
-            Address::AccessType decl_access = fCurVarScope[inst->fAddress->getName()];
-            Address::AccessType var_access = inst->fAddress->getAccess();
-
-            switch (var_access) {
-
-                case Address::kStruct:
-                case Address::kStaticStruct:
-                case Address::kFunArgs:
-                case Address::kGlobal:
-                    break;
-
-                case Address::kStack:
-                    if (decl_access != Address::kStack) {
-                        cout << "Error load : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
-                    }
-                    break;
-
-                case Address::kLoop:
-                    if (decl_access != Address::kLoop) {
-                        cout << "Error load : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
-                    }
-                    break;
-
-                case Address::kLink:
-                    // TO CHECK
-                    break;
-
-                default:
-                    break;
+            if (!var_def.second) {
+                cout << "Error load : variable \"" << inst->fAddress->getName() << "\" not initialized !!" << std::endl;
+            }
+            if (var_def.first != inst->fAddress->getAccess()) {
+                cout << "Error load : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
             }
         }
     }
-
+    
+    virtual void visit(LoadVarAddressInst* inst)
+    {
+        pair <Address::AccessType, bool> var_def;
+        bool res = getVarName(inst->fAddress->getName(), var_def);
+        
+        if (!res) {
+            cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+        } else {
+            if (var_def.first != inst->fAddress->getAccess()) {
+                cout << "Error load : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+            }
+        }
+    }
+   
     virtual void visit(StoreVarInst* inst)
     {
-        if (fCurVarScope.find(inst->fAddress->getName()) == fCurVarScope.end()) {
-
-            Address::AccessType var_access = inst->fAddress->getAccess();
-
-            switch (var_access) {
-
-                case Address::kGlobal:
-                case Address::kFunArgs:
-                case Address::kStruct:
-                case Address::kStaticStruct:
-                    break;
-
-                case Address::kStack:
-                    cout << "Error store : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
-                    break;
-
-                case Address::kLoop:
-                    cout << "Error store : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
-                    break;
-
-                case Address::kLink:
-                    // TO CHECK
-                    break;
-
-                default:
-                    break;
-            }
-
+        pair <Address::AccessType, bool> var_def;
+        bool res = getVarName(inst->fAddress->getName(), var_def);
+        
+        if (!res) {
+            cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
         } else {
-
-            Address::AccessType decl_access = fCurVarScope[inst->fAddress->getName()];
-            Address::AccessType var_access = inst->fAddress->getAccess();
-
-            switch (var_access) {
-
-                case Address::kStruct:
-                case Address::kStaticStruct:
-                case Address::kFunArgs:
-                case Address::kGlobal:
-                    break;
-
-                case Address::kStack:
-                    if (decl_access != Address::kStack) {
-                        cout << "Error store : stack variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
-                    }
-                    break;
-
-                case Address::kLoop:
-                    if (decl_access != Address::kLoop) {
-                        cout << "Error store : loop variable \"" << inst->fAddress->getName() << "\" with no enclosing loop" << std::endl;
-                    }
-                    break;
-
-                case Address::kLink:
-                    // TO CHECK
-                    break;
-
-                default:
-                    break;
-            }
+            if (var_def.first != inst->fAddress->getAccess()) {
+                cout << "Error store : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+            }        
         }
 
         inst->fValue->accept(this);
+        // variable is initialized...
+        setVarName(inst->fAddress->getName());
     }
 
     virtual void visit(FunCallInst* inst)
@@ -884,40 +873,56 @@ struct CodeVerifier : public DispatchVisitor {
     {
         fFunctionTable[inst->fName] = inst->fType;
 
-        // Keep current variable state, start an empty one
-        fStackVarsTable.push(fCurVarScope);
-        fCurVarScope.clear();
-
         // Function arguments pushed in the variable table
         list<NamedTyped*>::const_iterator it1;
         for (it1 = inst->fType->fArgsTypes.begin(); it1 != inst->fType->fArgsTypes.end(); it1++) {
-           fCurVarScope[(*it1)->fName] = Address::kFunArgs;
+           fCurVarScope[(*it1)->fName].first = Address::kFunArgs;
         }
 
+        // Internal will start a new scope of variables
         inst->fCode->accept(this);
-
-        // Restore old variable state
-        fCurVarScope = fStackVarsTable.top();
-        fStackVarsTable.pop();
     }
-
+    
     virtual void visit(ForLoopInst* inst)
     {
-        // Loop variable added in fCurVarScope
-        inst->fInit->accept(this);
-        inst->fEnd->accept(this);
-        inst->fIncrement->accept(this);
-
-        // Keep current variable state, start an empty one
-        fStackVarsTable.push(fCurVarScope);
+        cout << "visit(ForLoopInst* inst) " << endl;
+        printScope(fCurVarScope);
+        
+         // Keep current variable state, start an empty one
+        fStackVarsTable.push_back(fCurVarScope);
         fCurVarScope.clear();
-
+        
+        // Variable definition in a new scope...
+        inst->fInit->accept(this);
+        inst->fIncrement->accept(this);
+        inst->fEnd->accept(this);
+        
+        // And block is a new scope...
         inst->fCode->accept(this);
-
+        
         // Restore old variable state
-        fCurVarScope = fStackVarsTable.top();
-        fStackVarsTable.pop();
-   }
+        fCurVarScope = fStackVarsTable.back();
+        fStackVarsTable.pop_back();
+    }
+      
+    virtual void visit(BlockInst* inst)
+    {
+        cout << "visit(BlockInst* inst) " << endl;
+        printScope(fCurVarScope);
+        
+         // Keep current variable state, start an empty one
+        fStackVarsTable.push_back(fCurVarScope);
+        fCurVarScope.clear();
+        
+        list<StatementInst*>::const_iterator it;
+        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+            (*it)->accept(this);
+        }
+        
+        // Restore old variable state
+        fCurVarScope = fStackVarsTable.back();
+        fStackVarsTable.pop_back();
+    }
    
 };
 
