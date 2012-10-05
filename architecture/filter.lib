@@ -726,7 +726,7 @@ with {
 //   _ : lowpass(N,fc) : _
 //   _ : highpass(N,fc) : _
 // where
-//   N = filter order (number of poles) [nonnegative integer]
+//   N = filter order (number of poles) [nonnegative constant integer]
 //   fc = desired cut-off frequency (-3dB frequency) in Hz
 // REFERENCE: 
 //  https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html
