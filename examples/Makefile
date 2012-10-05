@@ -63,6 +63,10 @@ testlin: alsagtk alsaqt jackgtk jackconsole jackqt netjackqt puredata ladspa dss
 testmac: caqt puredata maxmsp maxmsp64 csound csounddouble supercollider
 
 
+json :
+	install -d jsondir
+	$(MAKE) DEST='jsondir/' ARCH='gen-json.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-L$(LIB)/faust/ -lHTTPDFaust' -f Makefile.compile
+
 alsagtk :
 	install -d alsagtkdir
 	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0` $(OSCLIB) $(HTTPDLIB)'  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
