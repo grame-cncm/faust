@@ -1004,7 +1004,6 @@ class WorkStealingScheduler {
         
         ~WorkStealingScheduler()
         {
-            printf("~WorkStealingScheduler\n");
             delete fThreadPool;
             delete fTaskGraph;
             delete[] fTaskQueueList;

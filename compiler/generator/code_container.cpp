@@ -425,7 +425,7 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp)
+void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)
 {
     if (gGlobal->gVecLoopSize > 0 && !loop->fIsRecursive) {
         loop->generateDAGVectorLoop(block, count, omp, gGlobal->gVecLoopSize);
@@ -434,7 +434,7 @@ void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, De
     }
 }
 
-void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst * count, int loop_num, bool omp)
+void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp)
 {
     if (gGlobal->gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();

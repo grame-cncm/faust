@@ -273,6 +273,9 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 {
     BlockInst* loop_code = fComputeThreadBlockInstructions;
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
+    
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    loop_code->pushBackInst(count_dec);
 
     ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
@@ -280,7 +283,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Generate input/output access
     generateLocalInputs(loop_code);
     generateLocalOutputs(loop_code);
-
+ 
     // Work stealing task
     BlockInst* ws_block = InstBuilder::genBlockInst();
     ws_block->pushBackInst(InstBuilder::genLabelInst("/* Work Stealing task */"));
@@ -301,7 +304,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Generate input/output access
     generateLocalInputs(last_block);
     generateLocalOutputs(last_block);
-
+   
     // Generates init DAG and ready tasks activations
     generateDAGLoopWSSAux1(dag, last_block);
     last_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(0)));
@@ -321,8 +324,9 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
-    switch_block_code->pushBackInst(count_dec);
+    
+    StoreVarInst* count_store = InstBuilder::genStoreStackVar("count", init3);
+    switch_block_code->pushBackInst(count_store);
 
     for (int l = dag.size() - 1; l > 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++, loop_num++) {
