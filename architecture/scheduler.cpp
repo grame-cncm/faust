@@ -646,11 +646,9 @@ class TaskQueue
            
         static INLINE int GetNextTask(TaskQueue* task_queue_list, int cur_thread, int num_threads)
         {
-            //printf("GetNextTask %d \n", cur_thread);
-            
             int tasknum;
             for (int i = 0; i < num_threads; i++) {
-                if ((i != cur_thread) && (tasknum = task_queue_list[i].PopTail()) != WORK_STEALING_INDEX) {
+                if ((tasknum = task_queue_list[i].PopTail()) != WORK_STEALING_INDEX) {
                 #ifdef __linux__
                     //if (cur_thread != MASTER_THREAD)
                         task_queue_list[cur_thread].ResetStealingDur();
@@ -663,10 +661,9 @@ class TaskQueue
 			//if (cur_thread != MASTER_THREAD)
                 task_queue_list[cur_thread].MeasureStealingDur();
         #endif
-            return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
+           return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
-    
-          
+         
         INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread)
         {
             int task_slice = task_list_size / thread_num;
@@ -981,7 +978,6 @@ class WorkStealingScheduler {
         TaskQueue* fTaskQueueList;
         TaskGraph* fTaskGraph;
         
-        int fStaticNumThreads;
         int fDynamicNumThreads;
         
         int* fReadyTaskList;
@@ -992,9 +988,7 @@ class WorkStealingScheduler {
     
         WorkStealingScheduler(int task_queue_size, int init_task_list_size)
         {
-            fStaticNumThreads = get_max_cpu();
-            fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : fStaticNumThreads;
-            printf("WorkStealingScheduler %d\n", fDynamicNumThreads);
+            fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : get_max_cpu();
             
             fThreadPool = new DSPThreadPool(fDynamicNumThreads);
             fTaskGraph = new TaskGraph(task_queue_size);
@@ -1024,7 +1018,7 @@ class WorkStealingScheduler {
         
         void StartAll(void* dsp)
         {
-            fThreadPool->StartAll(fStaticNumThreads - 1, true, dsp);
+            fThreadPool->StartAll(fDynamicNumThreads - 1, true, dsp);
         }
         
         void StopAll()
