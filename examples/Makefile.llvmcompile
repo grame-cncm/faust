@@ -28,7 +28,8 @@ LINK = $(LLVM_PREFIX)/llvm-link
 $(DEST)% : %.dsp
 	cp /usr/local/lib/faust/$(ARCH) $(DEST)
 	#faust -vec -lv 1  -lang llvm  -vs 64 -vls 4 $< -o $@.bc
-	faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
+	#faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
+	faust -sch -vs 256  -lang llvm  -vs 64 $< -o $@.bc
 	#faust  -lang llvm  $< -o $@.bc
 	#faust -sch  -lang llvm  -vs 64 $< -o $@.bc
 	$(OPT) -S -O3 $@.bc -o $@.ll
@@ -38,7 +39,8 @@ $(DEST)% : %.dsp
 	$(OPT) -O3 $@.scheduler.ll -o $@.scheduler.bc
 	$(LINK) $@.scheduler.bc $@.bc -o $@_sch.bc
 	#llvm-g++ ../architecture/scheduler.cpp -g -O1 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
-	$(CLANG) -O3 -I/opt/local -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
+	#$(CLANG) -O3 -I/opt/local -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s $@.scheduler.ll -o $@
+	$(CLANG) -g -I/opt/local  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s $@.scheduler.ll -o $@
 	#llvm-g++ -g -I/opt/local -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
 
 clean :

@@ -170,29 +170,28 @@ static INLINE int DEC_ATOMIC(volatile int* val)
 }
  
 // To be used in lock-free queue
-struct AtomicCounter
+struct AtomicCounter 
 {
     union {
         struct {
             short fHead;	
             short fTail;	
-        }
-        scounter;
+        } scounter;
         int fValue;
-    }info;
+    } info;
     
-	INLINE AtomicCounter()
+    INLINE AtomicCounter()
 	{
         info.fValue = 0;
     }
-     
- 	INLINE  AtomicCounter& operator=(AtomicCounter& obj)
+      
+ 	INLINE AtomicCounter& operator=(AtomicCounter& obj)
     {
         info.fValue = obj.info.fValue;
         return *this;
     }
     
-	INLINE  AtomicCounter& operator=(volatile AtomicCounter& obj)
+	INLINE AtomicCounter& operator=(volatile AtomicCounter& obj)
 	{
         info.fValue = obj.info.fValue;
         return *this;
@@ -553,7 +552,10 @@ class TaskQueue
      
     public:
   
-        INLINE TaskQueue(int task_queue_size)
+        INLINE TaskQueue()
+        {}
+        
+        INLINE void Init(int task_queue_size)
         {
             fTaskQueueSize = task_queue_size;
             fTaskList = new int[fTaskQueueSize];
@@ -610,7 +612,7 @@ class TaskQueue
         }
         
         INLINE int PopTail()
-        {
+        {   
             AtomicCounter old_val;
             AtomicCounter new_val;
              
@@ -641,27 +643,29 @@ class TaskQueue
 		{
             fStealingStart = 0;
 		}
-        
-        static INLINE int GetNextTask(TaskQueue** task_queue_list, int cur_thread, int num_threads)
+           
+        static INLINE int GetNextTask(TaskQueue* task_queue_list, int cur_thread, int num_threads)
         {
+            //printf("GetNextTask %d \n", cur_thread);
+            
             int tasknum;
             for (int i = 0; i < num_threads; i++) {
-                if ((i != cur_thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
+                if ((i != cur_thread) && (tasknum = task_queue_list[i].PopTail()) != WORK_STEALING_INDEX) {
                 #ifdef __linux__
                     //if (cur_thread != MASTER_THREAD)
-                        task_queue_list[cur_thread]->ResetStealingDur();
+                        task_queue_list[cur_thread].ResetStealingDur();
                 #endif
                     return tasknum;    // Task is found
                 }
             }
-            NOP();
+            //NOP();
         #ifdef __linux__
 			//if (cur_thread != MASTER_THREAD)
-                task_queue_list[cur_thread]->MeasureStealingDur();
+                task_queue_list[cur_thread].MeasureStealingDur();
         #endif
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
-        
+    
           
         INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread)
         {
@@ -681,10 +685,10 @@ class TaskQueue
             }
         }
         
-        static INLINE void InitAll(TaskQueue** task_queue_list, int num_threads)
+        static INLINE void InitAll(TaskQueue* task_queue_list, int num_threads)
         {
             for (int i = 0; i < num_threads; i++) {
-                task_queue_list[i]->InitOne();
+                task_queue_list[i].InitOne();
             }
         }
      
@@ -727,30 +731,18 @@ class TaskGraph
             } 
         }
           
-        INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
+        INLINE void ActivateOutputTask(TaskQueue& queue, int task, int* tasknum)
         {
             //assert(task < fTaskQueueSize);
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (tasknum == WORK_STEALING_INDEX) {
-                    tasknum = task;
+                    *tasknum = task;
                 } else {
                     queue.PushHead(task);
                 }
             }    
         }
-        
-        INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
-        {
-            //assert(task < fTaskQueueSize);
-            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-                if (*tasknum == WORK_STEALING_INDEX) {
-                    *tasknum = task;
-                } else {
-                    queue->PushHead(task);
-                }
-            }    
-        }
-         
+          
         INLINE void ActivateOutputTask(TaskQueue& queue, int task)
         {   
             //assert(task < fTaskQueueSize);
@@ -758,49 +750,24 @@ class TaskGraph
                 queue.PushHead(task);
             }
         }
-        
-        INLINE void ActivateOutputTask(TaskQueue* queue, int task)
-        {
-            //assert(task < fTaskQueueSize);
-            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-                queue->PushHead(task);
-            }
-        }
-        
-        INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
+         
+        INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int* tasknum)
         {   
-            //assert(task < fTaskQueueSize);
-            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-                tasknum = task;
-            } else {
-                tasknum = queue.PopHead(); 
-            }
-        }
-        
-        INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
-        {
             //assert(task < fTaskQueueSize);
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 *tasknum = task;
             } else {
-                *tasknum = queue->PopHead(); 
+                *tasknum = queue.PopHead(); 
             }
         }
         
-        INLINE void GetReadyTask(TaskQueue& queue, int& tasknum)
-        {
-            if (tasknum == WORK_STEALING_INDEX) {
-                tasknum = queue.PopHead();
-            }
-        }
-        
-        INLINE void GetReadyTask(TaskQueue* queue, int* tasknum)
+        INLINE void GetReadyTask(TaskQueue& queue, int* tasknum)
         {
             if (*tasknum == WORK_STEALING_INDEX) {
-                *tasknum = queue->PopHead();
+                *tasknum = queue.PopHead();
             }
         }
- 
+        
 };
 
 class DSPThread {
@@ -1011,7 +978,7 @@ class WorkStealingScheduler {
     private:
     
         DSPThreadPool* fThreadPool;
-        TaskQueue** fTaskQueueList;
+        TaskQueue* fTaskQueueList;
         TaskGraph* fTaskGraph;
         
         int fStaticNumThreads;
@@ -1027,12 +994,13 @@ class WorkStealingScheduler {
         {
             fStaticNumThreads = get_max_cpu();
             fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : fStaticNumThreads;
+            printf("WorkStealingScheduler %d\n", fDynamicNumThreads);
             
             fThreadPool = new DSPThreadPool(fDynamicNumThreads);
             fTaskGraph = new TaskGraph(task_queue_size);
-            fTaskQueueList = new TaskQueue*[fDynamicNumThreads];
+            fTaskQueueList = new TaskQueue[fDynamicNumThreads];
             for (int i = 0; i < fDynamicNumThreads; i++) {
-                fTaskQueueList[i] = new TaskQueue(task_queue_size);
+                fTaskQueueList[i].Init(task_queue_size);
             }
             
             fReadyTaskListSize = init_task_list_size;
@@ -1042,11 +1010,9 @@ class WorkStealingScheduler {
         
         ~WorkStealingScheduler()
         {
+            printf("~WorkStealingScheduler\n");
             delete fThreadPool;
             delete fTaskGraph;
-            for (int i = 0; i < fDynamicNumThreads; i++) {
-                delete(fTaskQueueList[i]);
-            }
             delete[] fTaskQueueList;
             delete[] fReadyTaskList;
         }
@@ -1074,7 +1040,7 @@ class WorkStealingScheduler {
         
         void PushHead(int cur_thread, int task_num)
         {
-            fTaskQueueList[cur_thread]->PushHead(task_num);
+            fTaskQueueList[cur_thread].PushHead(task_num);
         }
           
         int GetNextTask(int cur_thread)
@@ -1110,9 +1076,8 @@ class WorkStealingScheduler {
         void InitTaskList()
         {
             TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
-            
-            for (int cur_thread = 0; cur_thread < fDynamicNumThreads; cur_thread++) {
-                fTaskQueueList[cur_thread]->InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, cur_thread);
+             for (int cur_thread = 0; cur_thread < fDynamicNumThreads; cur_thread++) {
+                fTaskQueueList[cur_thread].InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, cur_thread);
             }
         }
 

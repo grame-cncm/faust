@@ -951,12 +951,14 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
     int t0 = getCertifiedSigType(sel)->nature();
     int t1 = getCertifiedSigType(s1)->nature();
     int t2 = getCertifiedSigType(s2)->nature();
-    
-    if (dynamic_cast<SimpleValueInst*>(val1) && dynamic_cast<SimpleValueInst*>(val2)) {
-        return generateSelect2WithSelect(sig, t0, t1, t2, cond, val1, val2);
-    } else {
-        return generateSelect2WithIf(sig, t0, t1, t2, cond, val1, val2, getCertifiedSigType(s1));
-    }
+     
+     ::Type type = getCertifiedSigType(s1);
+     
+     if (type->variability() == kSamp && (!dynamic_cast<SimpleValueInst*>(val1) || !dynamic_cast<SimpleValueInst*>(val2))) {
+         return generateSelect2WithIf(sig, t0, t1, t2, cond, val1, val2, type);
+     } else {
+         return generateSelect2WithSelect(sig, t0, t1, t2, cond, val1, val2);
+     }
 }
 
 ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* cond, ValueInst* val1, ValueInst* val2)
@@ -1010,7 +1012,15 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1,
     block1 = InstBuilder::genBlockInst(block1_inst);
     block2 = InstBuilder::genBlockInst(block2_inst);
     
-     switch (type->variability()) {
+    /* 
+    generateSelect2WithIf only called for kSamp code for now 
+    (othersiwe generated "sel" variables are not correctly handled in -sch mode when they are moved from "compute" to "computeThread").
+    */
+    pushComputeDSPMethod(var);
+    pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
+    
+    /*
+    switch (type->variability()) {
         
         case kBlock:
             pushComputeBlockMethod(var);
@@ -1023,6 +1033,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1,
             pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
             break;
     }
+    */
     
     return generateCacheCode(sig, InstBuilder::genLoadStackVar(vname));
 }

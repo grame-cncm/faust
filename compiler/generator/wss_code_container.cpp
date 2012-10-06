@@ -216,6 +216,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     pushGlobalDeclare(InstBuilder::genFunction3("getReadyTask", Typed::kVoid, "scheduler", Typed::kVoid_ptr, "cur_thread", Typed::kInt, "task_num", Typed::kInt_ptr));
     pushGlobalDeclare(InstBuilder::genFunction1("initTaskList", Typed::kVoid, "scheduler", Typed::kVoid_ptr));
     pushGlobalDeclare(InstBuilder::genFunction2("addReadyTask", Typed::kVoid, "scheduler", Typed::kVoid_ptr, "task_num", Typed::kInt));
+    
     pushGlobalDeclare(InstBuilder::genLabelInst("#ifdef __cplusplus"));
     pushGlobalDeclare(InstBuilder::genLabelInst("}"));
     pushGlobalDeclare(InstBuilder::genLabelInst("#endif"));
