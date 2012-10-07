@@ -414,7 +414,6 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 	int vec = wi->vectorability() | wd->vectorability();
 
     return makeTableType(tt->content(), n, v, c, vec);
-
 }
 
 /**
@@ -438,11 +437,9 @@ static Type infereReadTableType(Type tbl, Type ri)
 	Type temp =  tt->content()->promoteVariability(ri->variability()|tt->variability())
 	  ->promoteComputability(ri->computability()|tt->computability())
 	  ->promoteVectorability(ri->vectorability()|tt->vectorability())
-	  ->promoteBoolean(ri->boolean()|tt->boolean())
-	  ;
+	  ->promoteBoolean(ri->boolean()|tt->boolean());
 
 	return temp;
-
 }
 
 static Type infereDocConstantTblType(Type size, Type init)

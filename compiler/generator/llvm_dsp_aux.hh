@@ -79,8 +79,6 @@ typedef void (* metadataFun) (MetaGlue* meta);
 
 class llvm_dsp_aux;
 
-struct Meta;
-
 class llvm_dsp_factory {
 
     friend class llvm_dsp_aux;
@@ -142,7 +140,7 @@ class llvm_dsp_factory {
         
         bool initJIT();
         
-        void metadataDSPFactory(Meta* m);
+        void metadataDSPFactory(Meta* meta);
     
 };
 

@@ -570,7 +570,6 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst* val1 = inst->fInst1->clone(this);
         ValueInst* val2 = inst->fInst2->clone(this);
 
-
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         FloatNumInst* float2 = dynamic_cast<FloatNumInst*>(val2);
 

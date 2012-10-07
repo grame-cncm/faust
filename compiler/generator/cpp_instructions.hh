@@ -477,8 +477,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                         fTab++;
                         tab1(fTab, *fOut);
                         ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn())
+                        if (!((*it).second)->hasReturn()) {
                             *fOut << "break;";
+                        }
                         fTab--;
                         tab1(fTab, *fOut);
                     *fOut << "}";

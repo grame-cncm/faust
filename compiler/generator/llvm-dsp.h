@@ -81,7 +81,6 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const s
  *
  * @return the LLVM bitcode as a string.
 */
-
 std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 /**
@@ -137,12 +136,19 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
  * Write a Faust DSP factory into a LLVM IR (textual) file.
  * 
  * @param factory - the Faust DSP factory
- * @param ir_code_path - the LLVM bitcode file pathname
+ * @param ir_code_path - the LLVM bitcode file pathname.
  *
 */
 void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
-void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
+/**
+ * Call global declarations with the given meta object.
+ * 
+ * @param factory - the Faust DSP factory
+ * @param meta - the meta object to be used.
+ *
+*/
+void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
 
 /**
 * Instance class

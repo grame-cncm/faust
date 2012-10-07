@@ -32,6 +32,6 @@
 
 // define the static members of context
 
-int contextor::top=0;
+int contextor::top = 0;
 
 int	contextor::pile[1024];

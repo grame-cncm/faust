@@ -45,19 +45,16 @@ void sigvisitor::visit(Tree sig)
 		
 	else if (isSigReal(sig, &r)) 				visitReal (sig, r);
 	
-		
 	else if (isSigInput(sig, &i))				visitInput (sig, i);
 		
 	else if (isSigOutput(sig, &i, s1)) 			visitOutput (sig, i, s1);
 	
-		
 	else if (isSigDelay1(sig, s1)) 				visitDelay1 (sig, s1);
 	
 	else if (isSigPrefix(sig, s1, s2)) 			visitPrefix (sig, s1, s2);
 	
 	else if (isSigFixDelay(sig, s1, s2)) 		visitFixDelay (sig, s1, s2);
 	
-		
 	else if (isSigBinOp(sig, &i, s1, s2)) 		visitBinOp(sig, i, s1, s2);
 		
 	else if (isSigIntCast(sig, s1))				visitIntCast(sig, s1);

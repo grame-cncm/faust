@@ -40,6 +40,7 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 static Module* LoadModule(const std::string filename)
 {
     //printf("Load module : %s \n", filename.c_str());
+    
     SMDiagnostic err;
     Module* res = ParseIRFile(filename, err, getGlobalContext());
     if (!res) {
@@ -164,7 +165,6 @@ bool llvm_dsp_factory::initJIT()
     }
     
     if (gLLVMInit++ == 0) {
-        //printf("InitializeNativeTarget\n");
         InitializeNativeTarget();
     }
     if (fTarget != "") {
@@ -290,10 +290,10 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
 }
 
-void llvm_dsp_factory::metadataDSPFactory(Meta* m)
+void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
 {
     MetaGlue glue;
-    buildMetaGlue(&glue, m);
+    buildMetaGlue(&glue, meta);
     fMetadata(&glue);
 }
   

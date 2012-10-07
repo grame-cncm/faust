@@ -130,7 +130,6 @@ void CodeContainer::closeLoop(Tree sig)
     Tree S = symlist(sig);
     if (l->isEmpty() || fCurLoop->hasRecDependencyIn(S)) {
         fCurLoop->absorb(l);
-        //delete l; HACK !!!
     } else {
         // cout << " will NOT absorb" << endl;
         // we have an independent loop
@@ -285,7 +284,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 
             // First declaration
             gPowerGlobalTable[faust_power] = 1;
-         }
+        }
 
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));

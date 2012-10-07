@@ -477,8 +477,9 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                         fTab++;
                         tab(fTab, *fOut);
                         ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn())
+                        if (!((*it).second)->hasReturn()) {
                             *fOut << "break;";
+                        }
                         fTab--;
                         tab(fTab, *fOut);
                     *fOut << "}";

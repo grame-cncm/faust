@@ -70,12 +70,12 @@ bool BlockInst::hasReturn()
     return dynamic_cast<RetInst*>(*it);
 }
 
-struct StoreVarInst * DeclareVarInst::store (ValueInst * exp)
+struct StoreVarInst * DeclareVarInst::store(ValueInst * exp)
 {
     return InstBuilder::genStoreVarInst(fAddress, exp);
 }
 
-struct LoadVarInst * DeclareVarInst::load ()
+struct LoadVarInst * DeclareVarInst::load()
 {
     return InstBuilder::genLoadVarInst(fAddress);
 }

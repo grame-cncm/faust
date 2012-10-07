@@ -228,5 +228,4 @@ void VectorCodeContainer::processFIR(void)
     handleComputeBlock(&verifier);
     fDAGBlock->accept(&verifier);
     */
-    
 }
