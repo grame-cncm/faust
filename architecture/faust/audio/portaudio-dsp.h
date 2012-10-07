@@ -46,11 +46,14 @@
 
 static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv);
 
-static void pa_error(int err)
+static bool pa_error(int err)
 {
 	if (err != paNoError) {
 		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
-	}
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /******************************************************************************
@@ -65,9 +68,10 @@ class portaudio : public audio {
 
     private:
 
-        dsp*			fDsp;
-        PaStream*		fAudioStream;
-        long fSampleRate, fBufferSize;
+        dsp* fDsp;
+        PaStream* fAudioStream;
+        long fSampleRate;
+        long fBufferSize;
         
         //----------------------------------------------------------------------------
         // 	number of physical input and output channels of the PA device
@@ -79,7 +83,7 @@ class portaudio : public audio {
         // tables of noninterleaved input and output channels for FAUST
         //----------------------------------------------------------------------------
         float** fInChannel;
-        float** fOutChannel[;
+        float** fOutChannel;
 
         //----------------------------------------------------------------------------
         // allocated the noninterleaved input and output channels for FAUST
@@ -116,12 +120,14 @@ class portaudio : public audio {
         virtual bool init(const char* name, dsp* DSP)
         {
             fDsp = DSP;
-            pa_error(Pa_Initialize());
+            if (pa_error(Pa_Initialize())) {
+                return false;
+            }
 
             const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
             const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
 
-            fDevNumInChans = (fDsp->getNumInputs() > 0) ? idev->maxInputChannels : 0 ;
+            fDevNumInChans = (fDsp->getNumInputs() > 0) ? idev->maxInputChannels : 0;
             fDevNumOutChans = (fDsp->getNumOutputs() > 0) ? odev->maxOutputChannels : 0;
 
             PaStreamParameters inputParameters;
@@ -152,8 +158,12 @@ class portaudio : public audio {
 
         virtual bool start() 
         {
-            pa_error(Pa_OpenDefaultStream(&fAudioStream, fDevNumInChans, fDevNumOutChans, paFloat32, fSampleRate, fBufferSize, audioCallback, this));
-            Pa_StartStream(fAudioStream);
+            if (pa_error(Pa_OpenDefaultStream(&fAudioStream, fDevNumInChans, fDevNumOutChans, paFloat32, fSampleRate, fBufferSize, audioCallback, this))) {
+                return false;
+            }
+            if (pa_error(Pa_StartStream(fAudioStream)) {
+                return false;
+            }
             return true;
         }
 
@@ -166,7 +176,7 @@ class portaudio : public audio {
             }
         }
 
-        int processAudio(const float *ibuf, float *obuf, unsigned long frames) 
+        int processAudio(const float* ibuf, float* obuf, unsigned long frames) 
         {
             const float* fInputBuffer = ibuf;
             float* fOutputBuffer = obuf;
@@ -194,7 +204,7 @@ class portaudio : public audio {
 //----------------------------------------------------------------------------
 // Port Audio Callback
 //----------------------------------------------------------------------------
-static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv)
+static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void* drv)
 {
 	portaudio* pa = (portaudio*) drv;
 	return pa->processAudio((const float*)ibuf, (float*)obuf, frames);

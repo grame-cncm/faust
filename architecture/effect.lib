@@ -3,7 +3,6 @@ declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
 declare version "1.33";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
-declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 
@@ -83,7 +82,7 @@ with {
     pregain = pow(10.0,2*drive);
     clip(lo,hi) = min(hi) : max(lo);
     cubic(x) = x - x*x*x/3;
-    postgain = max(1.0,1.0/pregain); // unity gain when nearly linear
+    postgain = max(1.0,1.0/pregain);
 };
 
 cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : dcblocker;
@@ -984,7 +983,7 @@ with {
   t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
   path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
   revin_group(x)  = fdn_group(hgroup("[4] Input Controls", x));
-  nonl_group(x) = revin_group(vgroup("[4] Nonnlinearity",x));
+  nonl_group(x) = revin_group(vgroup("[4] Nonlinearity",x));
   quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
 
   nonl = nonl_group(hslider("[style:knob] [tooltip: nonlinear mode coupling]",
