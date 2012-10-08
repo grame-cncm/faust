@@ -12,8 +12,8 @@ MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2'
 VSIZE := 1024
 
 all : icc gcc
-icc : ialsascal ialsavec ialsavec2 ialsaomp2 ialsasch ialsasch2
-gcc : galsascal galsavec galsavec2 galsaomp2 galsasch galsasch2
+icc : ialsascal ialsavec ialsavec2 ialsavec4 ialsaomp2 ialsasch ialsasch2
+gcc : galsascal galsavec galsavec2 galsavec4 galsaomp2 galsasch galsasch2
 osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiovec3 gcoreaudiovec4 gcoreaudiosch gcoreaudiosch2
 
 
@@ -46,6 +46,10 @@ ialsavec2 :
 ialsavec3 :
 	install -d ialsavec3dir
 	$(MAKE) DEST='ialsavec3dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ialsavec4 :
+	install -d ialsavec4dir
+	$(MAKE) DEST='ialsavec4dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -g -vs 16' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ialsaomp :
 	install -d ialsaompdir
@@ -86,6 +90,10 @@ galsavec2 :
 galsavec3 :
 	install -d galsavec3dir
 	$(MAKE) DEST='galsavec3dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+galsavec4 :
+	install -d galsavec4dir
+	$(MAKE) DEST='galsavec4dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -g -vs 16' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 galsaomp :
 	install -d galsaompdir
