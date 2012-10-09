@@ -106,7 +106,6 @@ bool setRealtimePriority ()
     param.sched_priority = 89; /* 0 to 99  */
     err = sched_setscheduler(0, SCHED_FIFO, &param); 
     setuid (uid);
-	cerr << "setRealtimePriority -> " << err << endl;
     return (err != -1);
 }
 
@@ -1656,8 +1655,12 @@ int main(int argc, char *argv[] )
 	pthread_create(&guithread, NULL, run_ui, interface);
 	
 	bool rt = setRealtimePriority();
-	printf(rt?"RT : ":"NRT: "); audio.shortinfo();
-	if (fopt(argc, argv, "--verbose", "-v")) audio.longinfo();
+	if (rt == false) {
+		cerr << "WARNING : not running with realtime priority" << endl;
+	}
+	if (fopt(argc, argv, "--verbose", "-v")) {
+		audio.longinfo();
+	}
 	bool running = true;
 	audio.write();
 	audio.write();
@@ -1676,6 +1679,9 @@ int main(int argc, char *argv[] )
 #ifdef BENCHMARKMODE
     printstats(argv[0], audio.buffering(), DSP.getNumInputs(), DSP.getNumOutputs());
 #endif       
+	if (fopt(argc, argv, "--verbose", "-v")) {
+		cout << "CLOCKSPERSEC = " << rdtscpersec() << endl;
+	}
 
   	return 0;
 }
