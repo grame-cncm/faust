@@ -153,17 +153,10 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     llvm_compute_args.push_back(fStruct_DSP_ptr);
     llvm_compute_args.push_back(fBuilder->getInt32Ty());
 
-    //if (!gGlobal->gVectorSwitch) {
-        LLVM_TYPE buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
-        llvm_compute_args.push_back(PointerType::get(PointerType::get(buffer_type, 0), 0));
-        llvm_compute_args.push_back(PointerType::get(PointerType::get(buffer_type, 0), 0));
-    /*
-    } else {
-        llvm_compute_args.push_back(PointerType::get(PointerType::get(VectorType::get(fBuilder->getFloatTy(), gGlobal->gVecSize), 0), 0));
-        llvm_compute_args.push_back(PointerType::get(PointerType::get(VectorType::get(fBuilder->getFloatTy(), gGlobal->gVecSize), 0), 0));
-    }
-    */
-
+    LLVM_TYPE buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
+    llvm_compute_args.push_back(PointerType::get(PointerType::get(buffer_type, 0), 0));
+    llvm_compute_args.push_back(PointerType::get(PointerType::get(buffer_type, 0), 0));
+  
     FunctionType* llvm_compute_type = FunctionType::get(fBuilder->getVoidTy(), llvm_compute_args, false);
 
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
@@ -528,16 +521,8 @@ void LLVMCodeContainer::produceInternal()
     generateGetNumInputs(true);
     generateGetNumOutputs(true);
 
-    // TODO : Input and output rates
-
-    // Init code generator with fields_names
-    //if (gGlobal->gVectorSwitch) {
-        //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gGlobal->gVecSize);
-    //    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, fKlassName);
-    //} else {
-        fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
-    //}
-
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+  
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);
@@ -561,8 +546,9 @@ void LLVMCodeContainer::produceInternal()
 Module* LLVMCodeContainer::produceModule(const string& filename)
 {
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    if (!fGeneratedSR)
+    if (!fGeneratedSR) {
         pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    }
     pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     fKlassName = "_" + fKlassName;
@@ -585,14 +571,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateGetNumInputs();
     generateGetNumOutputs();
 
-    // Init code generator with fields_names
-    //if (gGlobal->gVectorSwitch) {
-        //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gGlobal->gVecSize);
-      //  fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, fKlassName);
-    //} else {
-        fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
-    //}
-
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+  
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);

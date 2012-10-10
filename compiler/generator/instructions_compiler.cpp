@@ -230,8 +230,8 @@ bool InstructionsCompiler::getCompiledExpression(Tree sig, InstType& cexp)
  */
 InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& cexp)
 {
-     InstType old;
-     if (fCompileProperty.get(sig, old) && (old != cexp)) {
+    InstType old;
+    if (fCompileProperty.get(sig, old) && (old != cexp)) {
         //cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
         //exit(1);
     }
@@ -299,15 +299,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
 
-    Typed* type;
-    /*
-    if (gGlobal->gVectorSwitch) {
-        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), gGlobal->gVecSize);
-    } else {
-        type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
-    }
-    */
-    type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
 
@@ -513,13 +505,6 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
-            /*
-            if (gGlobal->gVectorSwitch) {
-                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize);
-            } else {
-                type = InstBuilder::genBasicTyped(ctype);
-            }
-            */
             type = InstBuilder::genBasicTyped(ctype);
             pushDeclare(InstBuilder::genDecStructVar(vname, type));
             pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
@@ -527,26 +512,12 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 
         case kBlock:
             getTypedNames(t, "Slow", ctype, vname);
-             /*
-            if (gGlobal->gVectorSwitch) {
-                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize);
-            } else {
-                type = InstBuilder::genBasicTyped(ctype);
-            }
-            */
             type = InstBuilder::genBasicTyped(ctype);
             pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, type, exp));
             return InstBuilder::genLoadStackVar(vname);
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
-             /*
-            if (gGlobal->gVectorSwitch) {
-                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize);
-            } else {
-                type = InstBuilder::genBasicTyped(ctype);
-            }
-            */
             type = InstBuilder::genBasicTyped(ctype);
             pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, type, exp));
             return InstBuilder::genLoadStackVar(vname);
@@ -1114,15 +1085,7 @@ ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const string& name)
 {
     string varname = getFreshID(name);
-    Typed* type;
-    /*
-    if (gGlobal->gVectorSwitch) {
-        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gGlobal->gVecSize);
-    } else {
-        type = InstBuilder::genBasicTyped(yped::kFloatMacro);
-    }
-    */
-    type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
@@ -1144,15 +1107,7 @@ ValueInst* InstructionsCompiler::generateCheckbox(Tree sig, Tree path)
 ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name)
 {
     string varname = getFreshID(name);
-    Typed* type;
-    /*
-    if (gGlobal->gVectorSwitch) {
-        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gGlobal->gVecSize);
-    } else {
-        type = InstBuilder::genBasicTyped(yped::kFloatMacro);
-    }
-    */
-    type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));

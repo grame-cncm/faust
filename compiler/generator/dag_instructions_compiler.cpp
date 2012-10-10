@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include "dag_instructions_compiler.hh"
-
 #include "ppsig.hh"
 #include "Text.hh"
 #include "sigtyperules.hh"
@@ -43,15 +42,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
     // "input" and "inputs" used as a name convention
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
 
-        Typed* type;
-        /*
-        if (gGlobal->gVectorSwitch) {
-            type =  InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro)), 0);
-        } else {
-            type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
-        }
-        */
-        type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+        Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
 
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name1 = subst("fInput$0_ptr", T(index));
@@ -295,12 +286,12 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
 
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
-    string      vname;
-    Typed::VarType    ctype;
-    int         sharing = getSharingCount(sig);
-    ::Type        t = getCertifiedSigType(sig);
+    string vname;
+    Typed::VarType ctype;
+    int sharing = getSharingCount(sig);
+    ::Type t = getCertifiedSigType(sig);
     Occurences* o = fOccMarkup.retrieve(sig);
-    int         d = o->getMaxDelay();
+    int d = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
         if (d == 0) {
@@ -381,12 +372,12 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 {
     Occurences* o = fOccMarkup.retrieve(sig);
-    ::Type      t = getCertifiedSigType(sig);
-    int         c = getSharingCount(sig);
-    bool        b;
+    ::Type t = getCertifiedSigType(sig);
+    int c = getSharingCount(sig);
+    bool b;
 
-    int         i;
-    Tree        x,y;
+    int i;
+    Tree x,y;
 
     if (o->getMaxDelay() > 0) {
         b = true;
