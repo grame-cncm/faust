@@ -126,19 +126,6 @@ void FirCodeContainer::dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* ds
     }
 }
 
-void FirCodeContainer::dump(ostream* dst)
-{
-    FIRInstVisitor firvisitor(dst);
-    dumpGlobalsAndInit(firvisitor, dst);
-    dumpThread(firvisitor, dst);
-    dumpComputeBlock(firvisitor, dst);
-    dumpCompute(firvisitor, dst);
-    dumpMemory(dst);
-    dumpFlatten(dst);
-
-    dst->flush();
-}
-
 void FirCodeContainer::dumpFlatten(ostream* dst)
 {
     *dst << "======= Flatten FIR ==========" << std::endl;
@@ -171,6 +158,17 @@ void FirCodeContainer::dumpMemory(ostream* dst)
         *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << std::endl;
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes" << "\n\n";
     }
+}
+void FirCodeContainer::dump(ostream* dst)
+{
+    FIRInstVisitor firvisitor(dst);
+    dumpGlobalsAndInit(firvisitor, dst);
+    dumpThread(firvisitor, dst);
+    dumpComputeBlock(firvisitor, dst);
+    dumpCompute(firvisitor, dst);
+    dumpMemory(dst);
+    dumpFlatten(dst);
+    dst->flush();
 }
 
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)

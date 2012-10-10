@@ -195,7 +195,6 @@ void VectorCodeContainer::processFIR(void)
     handleComputeBlock(&counter);
     
     if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {
-        // printf("Move stack variables in struct size = %d\n", counter.fSizeBytes);
         // Transform some stack variables in struct variables
         moveStack2Struct();
     } else {
@@ -215,6 +214,8 @@ void VectorCodeContainer::processFIR(void)
     
     // Verify code
     /*
+    Still not working for Array variables access
+    
     CodeVerifier verifier;
     BlockInst* global_block = flattenFIR();
     global_block->accept(&verifier);
