@@ -134,6 +134,17 @@ void FirCodeContainer::dump(ostream* dst)
     dumpComputeBlock(firvisitor, dst);
     dumpCompute(firvisitor, dst);
     dumpMemory(dst);
+    dumpFlatten(dst);
+
+    dst->flush();
+}
+
+void FirCodeContainer::dumpFlatten(ostream* dst)
+{
+    *dst << "======= Flatten FIR ==========" << std::endl;
+    *dst << std::endl;
+    FIRInstVisitor firvisitor(dst);
+    flattenFIR()->accept(&firvisitor);
 }
 
 void FirCodeContainer::dumpMemory(ostream* dst)

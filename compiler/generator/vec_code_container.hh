@@ -34,6 +34,7 @@ class VectorCodeContainer : public virtual CodeContainer {
         StatementInst* generateDAGLoopVariant1(const string& counter);
         
         void processFIR(void);
+        BlockInst* flattenFIR(void);
 
     protected:
 

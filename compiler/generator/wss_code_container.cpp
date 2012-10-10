@@ -468,4 +468,24 @@ void WSSCodeContainer::processFIR(void)
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    
+    /*
+    // Verify code
+    CodeVerifier verifier;
+    BlockInst global_block;
+    // Declaration part
+    global_block.merge(fExtGlobalDeclarationInstructions);
+    global_block.merge(fGlobalDeclarationInstructions);
+    global_block.merge(fDeclarationInstructions);
+    // Init method
+    global_block.merge(fInitInstructions);
+    global_block.merge(fPostInitInstructions);
+    global_block.merge(fStaticInitInstructions);
+    global_block.merge(fPostStaticInitInstructions);
+    // Compute method
+    global_block.merge(fComputeBlockInstructions);
+    global_block.pushBackInst(fDAGBlock);
+    global_block.accept(&verifier);
+    */
+
 }

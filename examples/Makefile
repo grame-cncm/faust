@@ -52,7 +52,7 @@ else
 MYGCCFLAGS := '-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL) $(HTTPDCTRL)'
 endif
 
-VSIZE := 256
+VSIZE := 512
 
 SC_SOURCE_DIR = ../../supercollider
 

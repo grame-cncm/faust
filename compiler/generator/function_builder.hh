@@ -721,10 +721,11 @@ struct CodeVerifier : public DispatchVisitor {
     map <string, FunTyped*> fFunctionTable;
     vector<VarScope> fStackVarsTable;
     VarScope fCurVarScope;
+    int fError;
 
-    CodeVerifier()
+    CodeVerifier():fError(0)
     {
-        cout << "CodeVerifier" << std::endl;
+        //cout << "CodeVerifier" << std::endl;
     }
     virtual ~CodeVerifier()
     {}
@@ -740,11 +741,11 @@ struct CodeVerifier : public DispatchVisitor {
 
     bool getVarName(const string& name, pair <Address::AccessType, bool>& res) 
     {
-        cout << "----getVarName : " << name << " ----" << endl;
-        printScope(fCurVarScope);
+        //cout << "----getVarName : " << name << " ----" << endl;
+        //printScope(fCurVarScope);
          
         if (fCurVarScope.find(name) != fCurVarScope.end()) {
-            cout << "Variable \"" << name << "\" found in current scope" << std::endl;
+            //cout << "Variable \"" << name << "\" found in current scope" << std::endl;
             res = fCurVarScope[name];
             return true;
         } else {
@@ -752,10 +753,10 @@ struct CodeVerifier : public DispatchVisitor {
             int scope_num = 1;
             for (rit = fStackVarsTable.rbegin(); rit < fStackVarsTable.rend(); ++rit, scope_num++) {
                 VarScope scope = *rit;
-                cout << "SCOPE : "  << scope_num << std::endl;
-                printScope(scope);
+                //cout << "SCOPE : "  << scope_num << std::endl;
+                //printScope(scope);
                 if (scope.find(name) != scope.end()) {
-                    cout << "Variable \"" << name << "\" found in  scope " << scope_num << std::endl;
+                    //cout << "getVarName Variable \"" << name << "\" found in scope " << scope_num << std::endl;
                     res = scope[name];
                     return true;
                 }
@@ -767,27 +768,28 @@ struct CodeVerifier : public DispatchVisitor {
     
     bool setVarName(const string& name) 
     {
-        cout << "----setVarName : " << name << " ----" << endl;
-        printScope(fCurVarScope);
+        //cout << "----setVarName : " << name << " ----" << endl;
+        //printScope(fCurVarScope);
          
         if (fCurVarScope.find(name) != fCurVarScope.end()) {
-            cout << "Variable \"" << name << "\" found in current scope" << std::endl;
+            //cout << "Variable \"" << name << "\" found in current scope" << std::endl;
             fCurVarScope[name].second = true;
+            //cout << "setVarName Variable \"" << name << "\" found in CURRENT scope " << std::endl;
             return true;
         } else {
             vector<VarScope>::reverse_iterator rit; 
             int scope_num = 1;
             for (rit = fStackVarsTable.rbegin(); rit < fStackVarsTable.rend(); ++rit, scope_num++) {
-                VarScope scope = *rit;
-                cout << "SCOPE : "  << scope_num << std::endl;
-                printScope(scope);
-                if (scope.find(name) != scope.end()) {
-                    scope[name].second = true;
-                    cout << "Variable \"" << name << "\" found in  scope " << scope_num << std::endl;
+                //VarScope scope = *rit;
+                //cout << "SCOPE : "  << scope_num << std::endl;
+                //printScope(scope);
+                if ((*rit).find(name) != (*rit).end()) {
+                    (*rit)[name].second = true;
+                    //cout << "setVarName Variable \"" << name << "\" found in scope " << scope_num << std::endl;
                     return true;
                 }
             }
-            
+            //cout << "setVarName Variable \"" << name << "\" NOT found in scope " << scope_num << std::endl;
             return false;
         }
     }
@@ -801,9 +803,11 @@ struct CodeVerifier : public DispatchVisitor {
             inst->fValue->accept(this);
             // variable is initialized...
             fCurVarScope[name].second = true;
+            //cout << "DeclareVarInst Variable \"" << name << "\" SET VALUE" << std::endl;
         } else {
             // variable is not initialized...
             fCurVarScope[name].second = false;
+            //cout << "DeclareVarInst Variable \"" << name << "\"" << std::endl;
         }
     }
     
@@ -813,13 +817,18 @@ struct CodeVerifier : public DispatchVisitor {
         bool res = getVarName(inst->fAddress->getName(), var_def);
         
         if (!res) {
-            cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+            if (inst->fAddress->getAccess() != Address::kFunArgs) {
+                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+                fError++;
+            }
         } else {
-            if (!var_def.second) {
+            if (!var_def.second && inst->fAddress->getAccess() != Address::kFunArgs) {
                 cout << "Error load : variable \"" << inst->fAddress->getName() << "\" not initialized !!" << std::endl;
+                fError++;
             }
             if (var_def.first != inst->fAddress->getAccess()) {
                 cout << "Error load : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+                fError++;
             }
         }
     }
@@ -830,10 +839,14 @@ struct CodeVerifier : public DispatchVisitor {
         bool res = getVarName(inst->fAddress->getName(), var_def);
         
         if (!res) {
-            cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+            if (inst->fAddress->getAccess() != Address::kFunArgs) {
+                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+                fError++;
+            }
         } else {
             if (var_def.first != inst->fAddress->getAccess()) {
                 cout << "Error load : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+                fError++;
             }
         }
     }
@@ -845,9 +858,11 @@ struct CodeVerifier : public DispatchVisitor {
         
         if (!res) {
             cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+            fError++;
         } else {
             if (var_def.first != inst->fAddress->getAccess()) {
                 cout << "Error store : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+                fError++;
             }        
         }
 
@@ -859,11 +874,12 @@ struct CodeVerifier : public DispatchVisitor {
     virtual void visit(FunCallInst* inst)
     {
         if (fFunctionTable.find(inst->fName) == fFunctionTable.end()) {
-             cout << "Error : function " << inst->fName << " not defined! " << std::endl;
+             cout << "Error : function \"" << inst->fName << "\" not defined! " << std::endl;
         } else {
              FunTyped* type = fFunctionTable[inst->fName];
              if (type->fArgsTypes.size() != inst->fArgs.size()) {
                 cout << "Error : function args list and actual args mismatch : args " << type->fArgsTypes.size() << " actual : " << inst->fArgs.size() << std::endl;
+                fError++;
              }
         }
     }
@@ -884,8 +900,8 @@ struct CodeVerifier : public DispatchVisitor {
     
     virtual void visit(ForLoopInst* inst)
     {
-        cout << "visit(ForLoopInst* inst) " << endl;
-        printScope(fCurVarScope);
+        //cout << "visit(ForLoopInst* inst) " << endl;
+        //printScope(fCurVarScope);
         
          // Keep current variable state, start an empty one
         fStackVarsTable.push_back(fCurVarScope);
@@ -906,8 +922,8 @@ struct CodeVerifier : public DispatchVisitor {
       
     virtual void visit(BlockInst* inst)
     {
-        cout << "visit(BlockInst* inst) " << endl;
-        printScope(fCurVarScope);
+        //cout << "visit(BlockInst* inst) " << endl;
+        //printScope(fCurVarScope);
         
          // Keep current variable state, start an empty one
         fStackVarsTable.push_back(fCurVarScope);

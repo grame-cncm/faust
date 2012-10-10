@@ -59,6 +59,7 @@ class FirCodeContainer : public virtual CodeContainer {
         virtual void dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst);
         virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst) = 0;
         virtual void dumpMemory(ostream* dst);
+        virtual void dumpFlatten(ostream* dst);
 };
 
 class FirScalarCodeContainer : public FirCodeContainer {

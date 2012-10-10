@@ -632,8 +632,8 @@ struct Address : public Printable {
         } else if (access & kVolatile) {
             return "kVolatile";
         }
+        return "";
     }
-
 
     virtual Address* clone(CloneVisitor* cloner) = 0;
 
@@ -1042,6 +1042,14 @@ struct BlockInst : public StatementInst
     void pushBackInst(StatementInst* inst)
     {
         fCode.push_back(inst);
+    }
+    
+    void merge(BlockInst* inst)
+    {
+        list<StatementInst*>::const_iterator it;
+        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+            fCode.push_back(*it);
+        }
     }
 
     bool hasReturn();

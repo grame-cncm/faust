@@ -21,6 +21,7 @@
 
 #include "vec_code_container.hh"
 #include "global.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -213,19 +214,20 @@ void VectorCodeContainer::processFIR(void)
     assert(fDAGBlock);
     
     // Verify code
-     /*
+    /*
     CodeVerifier verifier;
-    BlockInst global_block;
-    global_block.pushBackInst(fGlobalDeclarationInstructions);
-    global_block.pushBackInst(fDeclarationInstructions);
-    global_block.pushBackInst(fComputeBlockInstructions);
-    global_block.pushBackInst(fDAGBlock);
-    global_block.accept(&verifier);
+    BlockInst* global_block = flattenFIR();
+    global_block->accept(&verifier);
     
-   
-    fGlobalDeclarationInstructions->accept(&verifier);
-    fDeclarationInstructions->accept(&verifier);
-    handleComputeBlock(&verifier);
-    fDAGBlock->accept(&verifier);
+    if (verifier.fError) {
+        //throw faustexception("Incorrect FIR code\n");
+    }
     */
+}
+
+BlockInst* VectorCodeContainer::flattenFIR(void)
+{
+    BlockInst* global_block = CodeContainer::flattenFIR();
+    global_block->pushBackInst(fDAGBlock);
+    return global_block;
 }

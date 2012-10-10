@@ -186,6 +186,8 @@ class CodeContainer : public virtual Garbageable {
 
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
         virtual void processFIR(void);
+        
+        virtual BlockInst* flattenFIR(void);
 
         // Fill code for each method
         StatementInst* pushDeclare(StatementInst* inst)

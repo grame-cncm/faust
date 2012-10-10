@@ -2470,7 +2470,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 Value* comp_value = fBuilder->CreateICmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmIntInst, arg1, arg2);
                 return generateScalarSelect(comparator, comp_value, arg1, arg2, size);
 
-             } else {
+            } else {
                 // Should not happen
                 cerr << "generateFunMinMaxAux" << endl;
                 //arg1->getType()->dump();

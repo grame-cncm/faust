@@ -478,13 +478,30 @@ void CodeContainer::processFIR(void)
         CodeLoop::computeUseCount(fCurLoop);
         CodeLoop::groupSeqLoops(fCurLoop);
     }
+}
+
+BlockInst* CodeContainer::flattenFIR(void)
+{
+    BlockInst* global_block = InstBuilder::genBlockInst();
     
-    // Verify code
-    /*
-    CodeVerifier verifier;
-    fGlobalDeclarationInstructions->accept(&verifier);
-    fDeclarationInstructions->accept(&verifier);
-    handleComputeBlock(&verifier);
-    fCurLoop->generateOutput(&verifier);
-    */
+    // Declaration part
+    global_block->merge(fExtGlobalDeclarationInstructions);
+    global_block->merge(fGlobalDeclarationInstructions);
+    global_block->merge(fDeclarationInstructions);
+    
+    // Init method
+    global_block->merge(fInitInstructions);
+    global_block->merge(fPostInitInstructions);
+    global_block->merge(fStaticInitInstructions);
+    global_block->merge(fPostStaticInitInstructions);
+    
+    // Subcontainers
+    list<CodeContainer*>::const_iterator it;
+    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+        global_block->merge((*it)->flattenFIR());
+    }
+   
+    // Compute method
+    global_block->merge(fComputeBlockInstructions);
+    return global_block;
 }

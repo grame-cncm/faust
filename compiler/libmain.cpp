@@ -634,6 +634,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (gOutputLang == "fir") {
+        
+            //cout << "FIR " << endl;
 
             container = FirCodeContainer::createContainer(numInputs, numOutputs, true);
 

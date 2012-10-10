@@ -404,24 +404,12 @@ void CPPVectorCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
-    
-    /*
-    StackVariableSizeCounter counter;
-    generateComputeBlock(&counter);
-    printf("Stack size = %d\n", counter.fSizeBytes);
-    */
-
+ 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
  
     // Generates it
     fDAGBlock->accept(&fCodeProducer);
-
-    /*
-    ScalVecDispatcherVisitor visitor(new CPPInstVisitor(fOut, n+2), new CPPVecAccelerateInstVisitor(fOut, n+2));
-    block->accept(&visitor);
-    */
-
     tab(n+1, *fOut); *fOut << "}";
 }
 
@@ -465,7 +453,6 @@ void CPPWorkStealingCodeContainer::produceClass()
     // Inherited method
     CPPCodeContainer::produceClass();
 
-    //tab(n, *fOut);
     *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
