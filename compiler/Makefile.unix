@@ -337,6 +337,7 @@ generator/vec_code_container.o: signals/interval.hh tlib/tlib.hh tlib/num.hh tli
 generator/vec_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/vec_code_container.o: generator/function_builder.hh parallelize/code_loop.hh generator/fir_to_fir.hh
 generator/vec_code_container.o: global.hh parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
+generator/vec_code_container.o: errors/exception.hh
 generator/wss_code_container.o: generator/wss_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/wss_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh
 generator/wss_code_container.o: tlib/tree.hh generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -455,9 +456,7 @@ signals/sigtyperules.o: tlib/shlysis.hh signals/ppsig.hh signals/prim2.hh signal
 signals/sigtyperules.o: signals/sigvisitor.hh documentator/lateq.hh signals/recursivness.hh errors/exception.hh
 signals/sigtyperules.o: global.hh parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
 signals/sigvisitor.o: signals/sigvisitor.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
-signals/sigvisitor.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh extended/xtended.hh
-signals/sigvisitor.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
-signals/sigvisitor.o: tlib/property.hh generator/Text.hh documentator/lateq.hh
+signals/sigvisitor.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 signals/subsignals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 signals/subsignals.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/property.hh errors/exception.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh garbageable.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh global.hh

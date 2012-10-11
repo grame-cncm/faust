@@ -487,5 +487,4 @@ void WSSCodeContainer::processFIR(void)
     global_block.pushBackInst(fDAGBlock);
     global_block.accept(&verifier);
     */
-
 }

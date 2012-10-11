@@ -24,16 +24,12 @@
 
 using namespace std;
 
-#include <string>
-#include <list>
-#include <set>
-#include <map>
-
 #include "instructions.hh"
 #include "type_manager.hh"
 #include "binop.hh"
 #include "Text.hh"
 
+#include <string>
 #include <iostream>
 #include <sstream>
 #include <fstream>

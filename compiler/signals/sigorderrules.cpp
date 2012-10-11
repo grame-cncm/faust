@@ -73,8 +73,6 @@ int getSigOrder(Tree sig)
 // shortcut for order inference algorithm
 #define O getSigOrder
 
-
-
 /**
  * Infere the order of a term according to its components
  * @param sig the signal to analyze
@@ -95,7 +93,6 @@ static int infereSigOrder(Tree sig)
 		for (int i=0; i<sig->arity(); i++) { args.push_back( O(sig->branch(i)) ); }
 		return xt->infereSigOrder(args);
 	}
-
 	
 	else if (isSigInt(sig, &i))					return 0;
 		
@@ -141,9 +138,9 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigAttach(sig, s1, s2)) 			return O(s1);
 				
-	else if (isRec(sig, var, body))				faustexception("ERROR infering signal order : isRec"); //return 3;  // not supposed to happen.
+	else if (isRec(sig, var, body))				throw faustexception("ERROR infering signal order : isRec\n"); //return 3;  // not supposed to happen.
 				
-	else if (isRef(sig, var))					faustexception("ERROR infering signal order : isRef"); //return 3;  // not supposed to happen. 
+	else if (isRef(sig, var))					throw faustexception("ERROR infering signal order : isRef\n"); //return 3;  // not supposed to happen. 
 
 	else if (isProj(sig, &i, s1))				return 3;
 	                                                	

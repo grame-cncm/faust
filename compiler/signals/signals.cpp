@@ -28,13 +28,11 @@
 #include "global.hh"
 #include "signals.hh"
 
-//inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
 	return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
 }
 
-//inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 {
 	return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);

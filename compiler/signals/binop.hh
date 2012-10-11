@@ -79,7 +79,6 @@ struct BinOp
 extern BinOp* gBinOpTable[];
 extern BinOp* gBinOpLateqTable[];
 
-
 enum {
 	kAdd, kSub, kMul, kDiv, kRem,
 	kLsh, kRsh,
