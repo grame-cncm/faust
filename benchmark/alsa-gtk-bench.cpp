@@ -103,7 +103,7 @@ bool setRealtimePriority ()
     uid = getuid ();
     pw = getpwnam ("root");
     setuid (pw->pw_uid); 
-    param.sched_priority = 99; /* 0 to 99  */
+    param.sched_priority = 89; /* 0 to 99  */
     err = sched_setscheduler(0, SCHED_FIFO, &param); 
     setuid (uid);
     return (err != -1);
@@ -399,7 +399,7 @@ class AudioInterface : public AudioParam
 		snd_pcm_hw_params_set_channels_near(fInputDevice, fInputParams, &fCardInputs);
 		snd_pcm_hw_params_set_channels_near(fOutputDevice, fOutputParams, &fCardOutputs);
 
-		printf("inputs : %u, outputs : %u\n", fCardInputs, fCardOutputs);
+		//printf("inputs : %u, outputs : %u\n", fCardInputs, fCardOutputs);
 
 		// enregistrement des parametres d'entree-sortie
 		
@@ -1655,8 +1655,12 @@ int main(int argc, char *argv[] )
 	pthread_create(&guithread, NULL, run_ui, interface);
 	
 	bool rt = setRealtimePriority();
-	printf(rt?"RT : ":"NRT: "); audio.shortinfo();
-	if (fopt(argc, argv, "--verbose", "-v")) audio.longinfo();
+	if (rt == false) {
+		cerr << "WARNING : not running with realtime priority" << endl;
+	}
+	if (fopt(argc, argv, "--verbose", "-v")) {
+		audio.longinfo();
+	}
 	bool running = true;
 	audio.write();
 	audio.write();
@@ -1675,6 +1679,9 @@ int main(int argc, char *argv[] )
 #ifdef BENCHMARKMODE
     printstats(argv[0], audio.buffering(), DSP.getNumInputs(), DSP.getNumOutputs());
 #endif       
+	if (fopt(argc, argv, "--verbose", "-v")) {
+		cout << "CLOCKSPERSEC = " << rdtscpersec() << endl;
+	}
 
   	return 0;
 }
