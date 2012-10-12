@@ -120,63 +120,68 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Function call creation
         list<ValueInst*> fArgsValueList;
         DropInst* fFunctionCall;
+        
+        bool findVar(const string& name)
+        {
+            return find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end();
+        }
 
         void createParameter(Address* address)
         {
             switch(address->getAccess()) {
 
                 case Address::kStack:
-                case Address::kLoop:
-                    if (fLocalVarTable.find(address->getName()) == fLocalVarTable.end()) {
+                case Address::kLoop: {
+                    string name = address->getName();
+                    if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
 
-                        if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->getName()) == fAddedVarTable.end()) {  // First encounter
+                        if (!findVar(name)) {  // First encounter
 
                             // Be sure variable is defined
-                            //cerr << "createParameter kStack " << address->getName() << endl;
-                            assert(DeclareVarInst::gVarTable.find(address->getName()) != DeclareVarInst::gVarTable.end());
+                            //cout << "createParameter kStack " << name << endl;
+                            assert(DeclareVarInst::gVarTable.find(name) != DeclareVarInst::gVarTable.end());
 
                             // Local in the enclosing context, becomes a fun parameter
                             BasicCloneVisitor cloner;
-                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), DeclareVarInst::gVarTable[address->getName()]->clone(&cloner)));
+                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, DeclareVarInst::gVarTable[name]->clone(&cloner)));
 
                             // It becomes a value in the fun-call argument list
-                            fArgsValueList.push_back(InstBuilder::genLoadStackVar(address->getName()));
+                            fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
 
                             // Variable added in parameter list
-                            fAddedVarTable.push_back(address->getName());
+                            fAddedVarTable.push_back(name);
                         }
 
                     } else {
                         // Loop own local, nothing to do
                     }
                     break;
+                }
 
-                case Address::kStruct:
-                case Address::kStaticStruct:
-                    // Nothing to do
-                    break;
-
-                case Address::kFunArgs:
-
-                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->getName()) == fAddedVarTable.end()) {  // First encounter
+                case Address::kFunArgs: {
+                    string name = address->getName();
+                    if (!findVar(name)) {  // First encounter
 
                         // Be sure variable is defined
-                        cerr << "createParameter kFunArgs " << address->getName() << endl;
-                        assert(DeclareVarInst::gVarTable.find(address->getName()) != DeclareVarInst::gVarTable.end());
+                        //cout << "createParameter kFunArgs " << name << endl;
+                        assert(DeclareVarInst::gVarTable.find(name) != DeclareVarInst::gVarTable.end());
 
                         // Parameter in the enclosing function, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), DeclareVarInst::gVarTable[address->getName()]->clone(&cloner)));
+                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, DeclareVarInst::gVarTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list : keep it's kFunArgs status
-                        fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(address->getName()));
+                        fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
 
                         // Variable added in parameter list
-                        fAddedVarTable.push_back(address->getName());
+                        fAddedVarTable.push_back(name);
                     }
                     break;
+                }
 
                 case Address::kGlobal:
+                case Address::kStruct:
+                case Address::kStaticStruct:
                     // Nothing to do
                     break;
 
@@ -287,8 +292,9 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
     ValueInst* visit(LoadVarInst* inst)
     {
         if (inst->fAddress->getAccess() == Address::kLink) {
-            assert(fLinkTable.find(inst->fAddress->getName()) != fLinkTable.end());
-            return fLinkTable[inst->fAddress->getName()]->clone(this);
+            string name = inst->fAddress->getName();
+            assert(fLinkTable.find(name) != fLinkTable.end());
+            return fLinkTable[name]->clone(this);
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -328,9 +334,9 @@ struct StackVariableRemover : public DispatchVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                fLinkTable[inst->fAddress->getName()] = inst->fValue;
+            string name = inst->fAddress->getName();
+            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
+                fLinkTable[name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -338,9 +344,9 @@ struct StackVariableRemover : public DispatchVisitor {
         virtual void visit(StoreVarInst* inst)
         {
             DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                fLinkTable[inst->fAddress->getName()] = inst->fValue;
+            string name = inst->fAddress->getName();
+            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
+                fLinkTable[name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -472,9 +478,9 @@ struct SeqLoopBuilder : public DispatchVisitor {
         virtual void visit(StoreVarInst* inst)
         {
             DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getName().find("output") != string::npos) {
-                string link_name = "link" + inst->fAddress->getName().substr(strlen("output"), 0xFFFF);
+            string name = inst->fAddress->getName();
+            if (name.find("output") != string::npos) {
+                string link_name = "link" + name.substr(strlen("output"), 0xFFFF);
                 fLinkTable[link_name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
                 inst->fAddress->setName(link_name);
@@ -494,9 +500,9 @@ struct SeqLoopBuilder : public DispatchVisitor {
         virtual void visit(LoadVarInst* inst)
         {
             DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getName().find("input") != string::npos) {
-                string link_name = "link" + inst->fAddress->getName().substr(strlen("input"), 0xFFFF);
+            string name = inst->fAddress->getName();
+            if (name.find("input") != string::npos) {
+                string link_name = "link" + name.substr(strlen("input"), 0xFFFF);
                 inst->fAddress->setAccess(Address::kLink);
                 inst->fAddress->setName(link_name);
             }
@@ -646,15 +652,16 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst* val1 = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
+        string name = inst->fAddress->getName();
 
         if (float1) {
             //float1->dump();
             // Creates a "link" so that corresponding load see the real value
-            fValueTable[inst->fAddress->getName()] = float1;
+            fValueTable[name] = float1;
             return new DropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
-            fValueTable[inst->fAddress->getName()] = int1;
+            fValueTable[name] = int1;
             return new DropInst();
         } else {
             BasicCloneVisitor cloner;
@@ -664,8 +671,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(LoadVarInst* inst)
     {
-        if (fValueTable.find(inst->fAddress->getName()) != fValueTable.end())  {
-            return fValueTable[inst->fAddress->getName()];
+        string name = inst->fAddress->getName();
+        if (fValueTable.find(name) != fValueTable.end())  {
+            return fValueTable[name];
         } else {
             BasicCloneVisitor cloner;
             return new LoadVarInst(inst->fAddress->clone(&cloner));
@@ -678,15 +686,16 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
+        string name = inst->fAddress->getName();
 
         if (float1) {
             //float1->dump();
             // Creates a "link" so that corresponding load see the real value
-            fValueTable[inst->fAddress->getName()] = float1;
+            fValueTable[name] = float1;
             return new DropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
-            fValueTable[inst->fAddress->getName()] = int1;
+            fValueTable[name] = int1;
             return new DropInst();
         } else {
             BasicCloneVisitor cloner;
@@ -814,20 +823,21 @@ struct CodeVerifier : public DispatchVisitor {
     virtual void visit(LoadVarInst* inst)
     {
         pair <Address::AccessType, bool> var_def;
-        bool res = getVarName(inst->fAddress->getName(), var_def);
+        string name = inst->fAddress->getName();
+        bool res = getVarName(name, var_def);
         
         if (!res) {
             if (inst->fAddress->getAccess() != Address::kFunArgs) {
-                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name << "\" with no enclosing definition" << std::endl;
                 fError++;
             }
         } else {
             if (!var_def.second && inst->fAddress->getAccess() != Address::kFunArgs) {
-                cout << "Error load : variable \"" << inst->fAddress->getName() << "\" not initialized !!" << std::endl;
+                cout << "Error load : variable \"" << name << "\" not initialized !!" << std::endl;
                 fError++;
             }
             if (var_def.first != inst->fAddress->getAccess()) {
-                cout << "Error load : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+                cout << "Error load : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
             }
         }
@@ -836,16 +846,17 @@ struct CodeVerifier : public DispatchVisitor {
     virtual void visit(LoadVarAddressInst* inst)
     {
         pair <Address::AccessType, bool> var_def;
-        bool res = getVarName(inst->fAddress->getName(), var_def);
+        string name = inst->fAddress->getName();
+        bool res = getVarName(name, var_def);
         
         if (!res) {
             if (inst->fAddress->getAccess() != Address::kFunArgs) {
-                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name << "\" with no enclosing definition" << std::endl;
                 fError++;
             }
         } else {
             if (var_def.first != inst->fAddress->getAccess()) {
-                cout << "Error load : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+                cout << "Error load : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
             }
         }
@@ -854,21 +865,22 @@ struct CodeVerifier : public DispatchVisitor {
     virtual void visit(StoreVarInst* inst)
     {
         pair <Address::AccessType, bool> var_def;
-        bool res = getVarName(inst->fAddress->getName(), var_def);
+        string name = inst->fAddress->getName();
+        bool res = getVarName(name, var_def);
         
         if (!res) {
-            cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << inst->fAddress->getName() << "\" with no enclosing definition" << std::endl;
+            cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name << "\" with no enclosing definition" << std::endl;
             fError++;
         } else {
             if (var_def.first != inst->fAddress->getAccess()) {
-                cout << "Error store : incoherency in variable access \"" << inst->fAddress->getName() << "\"" << std::endl;
+                cout << "Error store : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
             }        
         }
 
         inst->fValue->accept(this);
         // variable is initialized...
-        setVarName(inst->fAddress->getName());
+        setVarName(name);
     }
 
     virtual void visit(FunCallInst* inst)
@@ -955,10 +967,11 @@ struct StructVarAnalyser : public DispatchVisitor {
         if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fType) || dynamic_cast<NamedTyped*>(inst->fType))) {
             Typed::VarType type = inst->fType->getType();
             ValueInst* init;
-            if (type == Typed::kFloat)
+            if (type == Typed::kFloat) {
                 init = InstBuilder::genFloatNumInst(0.5);
-            else
+            } else {
                 init = InstBuilder::genIntNumInst(1);
+            }
             fSpecializedValueTable[inst->fAddress->getName()] = init;
         }
     }
@@ -1012,9 +1025,10 @@ struct ControlSpecializer : public DispatchVisitor {
         // Rewrite Load as an access to kept ValueInst
         ValueInst* visit(LoadVarInst* inst)
         {
+            string name = inst->fAddress->getName();
             if (inst->fAddress->getAccess() == Address::kLink) {
-                assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
-                return fSpecializedValueTable[inst->fAddress->getName()]->clone(this);
+                assert(fSpecializedValueTable.find(name) != fSpecializedValueTable.end());
+                return fSpecializedValueTable[name]->clone(this);
             } else {
                 return BasicCloneVisitor::visit(inst);
             }

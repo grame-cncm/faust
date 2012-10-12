@@ -166,8 +166,10 @@ void FirCodeContainer::dump(ostream* dst)
     dumpThread(firvisitor, dst);
     dumpComputeBlock(firvisitor, dst);
     dumpCompute(firvisitor, dst);
-    dumpMemory(dst);
+    
     dumpFlatten(dst);
+    dumpMemory(dst);
+    
     dst->flush();
 }
 
