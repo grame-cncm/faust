@@ -297,35 +297,34 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	
 	xtended* xt = (xtended*) getUserData(exp);
 
-
 	// constants
 	//-----------
 	
-	if ( 	xt || 
-			isBoxInt(exp) || isBoxReal(exp) || 
-			isBoxWire(exp) || isBoxCut(exp) ||
-			isBoxPrim0(exp) || isBoxPrim1(exp) || 
-			isBoxPrim2(exp) || isBoxPrim3(exp) || 
-			isBoxPrim4(exp) || isBoxPrim5(exp) ||
-			isBoxFFun(exp) || isBoxFConst(exp) || isBoxFVar(exp) ) {
+	if (xt || 
+        isBoxInt(exp) || isBoxReal(exp) || 
+        isBoxWire(exp) || isBoxCut(exp) ||
+        isBoxPrim0(exp) || isBoxPrim1(exp) || 
+        isBoxPrim2(exp) || isBoxPrim3(exp) || 
+        isBoxPrim4(exp) || isBoxPrim5(exp) ||
+        isBoxFFun(exp) || isBoxFConst(exp) || isBoxFVar(exp)) {
 		return exp;
 
 	// block-diagram constructors
 	//---------------------------
 	
-	} else if (	isBoxSeq(exp, e1, e2) ) {
+	} else if (isBoxSeq(exp, e1, e2)) {
 		return boxSeq(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
 
-	} else if (	isBoxPar(exp, e1, e2) ) {
+	} else if (isBoxPar(exp, e1, e2)) {
 		return boxPar(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
 
-	} else if (	isBoxRec(exp, e1, e2) ) {
+	} else if (isBoxRec(exp, e1, e2)) {
 		return boxRec(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
 
-	} else if (	isBoxSplit(exp, e1, e2) ) {
+	} else if (isBoxSplit(exp, e1, e2)) {
 		return boxSplit(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
 
-	} else if (	isBoxMerge(exp, e1, e2) ) {
+	} else if (isBoxMerge(exp, e1, e2)) {
 		return boxMerge(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
 		
 	// Modules
@@ -337,7 +336,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             // it is a closure, we have an environment to access
             return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
         } else {
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access", exp);
             throw faustexception("No environment to access\n");
         }
 
@@ -351,9 +350,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             Tree lenv3 = copyEnvReplaceDefs(lenv2, ldef, visited2, localValEnv);
             return eval(closure(exp2,notused,visited2,lenv3), visited, localValEnv);
         } else {
-
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "Not a closure ", val);
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "Not a closure", val);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access", exp);
             throw faustexception("No environment to access\n");
         }
 
@@ -1114,7 +1112,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 	// check that the definition exists
 	if (isNil(lenv)) {
-    	evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
+    	evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol", id);
 	    stringstream error;
         error << "undefined symbol " << *id << endl;
         throw faustexception(error.str());
@@ -1208,8 +1206,8 @@ static Tree	evalPatternList(Tree patterns, Tree env)
 	if (isNil(patterns)) {
 		return gGlobal->nil;
 	} else {
-		return cons(	evalPattern(hd(patterns), env), 
-						evalPatternList(tl(patterns), env)  );
+		return cons(evalPattern(hd(patterns), env), 
+                    evalPatternList(tl(patterns), env));
 	}
 }
 
