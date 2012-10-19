@@ -76,7 +76,7 @@ typedef	UInt8	CAAudioHardwareDeviceSectionID;
 
 class TCoreAudioRenderer
 {
-    private:
+    protected:
     
         int	fDevNumInChans;
         int	fDevNumOutChans;
@@ -115,7 +115,7 @@ class TCoreAudioRenderer
                                             AudioDevicePropertyID inPropertyID,
                                             void* inClientData);
     
-        void compute(int inNumberFrames)
+        virtual void compute(int inNumberFrames)
         {
             fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
         }
@@ -140,16 +140,16 @@ typedef TCoreAudioRenderer * TCoreAudioRendererPtr;
 
 static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
 {
-    cout << "- - - - - - - - - - - - - - - - - - - -" << endl;
-    cout << "  Sample Rate: "		<< inDesc->mSampleRate  << endl;
-    cout << "  Format ID:%.*s\n"	<< sizeof(inDesc->mFormatID) << (char*)&inDesc->mFormatID << endl;
-    cout << "  Format Flags "		<< inDesc->mFormatFlags << endl;
-    cout << "  Bytes per Packet: "	<< inDesc->mBytesPerPacket << endl;
-    cout << "  Frames per Packet: "	<< inDesc->mFramesPerPacket << endl;
-    cout << "  Bytes per Frame: "	<< inDesc->mBytesPerFrame << endl;
-    cout << "  Channels per Frame: "<< inDesc->mChannelsPerFrame << endl;
-    cout << "  Bits per Channel: "	<< inDesc->mBitsPerChannel << endl;
-    cout << "- - - - - - - - - - - - - - - - - - - -" << endl;
+    printf("- - - - - - - - - - - - - - - - - - - -\n");
+    printf("  Sample Rate:%f\n", inDesc->mSampleRate);
+    printf("  Format ID:%.*s\n", (int)sizeof(inDesc->mFormatID), (char*)&inDesc->mFormatID);
+    printf("  Format Flags:%lX\n", inDesc->mFormatFlags);
+    printf("  Bytes per Packet:%ld\n", inDesc->mBytesPerPacket);
+    printf("  Frames per Packet:%ld\n", inDesc->mFramesPerPacket);
+    printf("  Bytes per Frame:%ld\n", inDesc->mBytesPerFrame);
+    printf("  Channels per Frame:%ld\n", inDesc->mChannelsPerFrame);
+    printf("  Bits per Channel:%ld\n", inDesc->mBitsPerChannel);
+    printf("- - - - - - - - - - - - - - - - - - - -\n");
 }
 
 static void printError(OSStatus err)
@@ -270,9 +270,10 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, int sampl
 			*id = inDefault;
 			return noErr;
 		} else {
-            printf("GetDefaultDevice : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
-            if (CreateAggregateDevice(inDefault, outDefault, samplerate, id) != noErr)
+            //printf("GetDefaultDevice : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
+            if (CreateAggregateDevice(inDefault, outDefault, samplerate, id) != noErr) {
                 return kAudioHardwareBadDeviceError;
+            }
        	}
 	} else if (inChan > 0) {
 		*id = inDefault;
@@ -297,11 +298,11 @@ OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID
     vector<AudioDeviceID> captureDeviceIDArray;
 
     if (err != noErr) {
-        printf("Input device does not have subdevices\n");
+        //printf("Input device does not have subdevices\n");
         captureDeviceIDArray.push_back(captureDeviceID);
     } else {
         int num_devices = outSize / sizeof(AudioObjectID);
-        printf("Input device has %d subdevices\n", num_devices);
+        //printf("Input device has %d subdevices\n", num_devices);
         for (int i = 0; i < num_devices; i++) {
             captureDeviceIDArray.push_back(sub_device[i]);
         }
@@ -311,11 +312,11 @@ OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID
     vector<AudioDeviceID> playbackDeviceIDArray;
 
     if (err != noErr) {
-        printf("Output device does not have subdevices\n");
+        //printf("Output device does not have subdevices\n");
         playbackDeviceIDArray.push_back(playbackDeviceID);
     } else {
         int num_devices = outSize / sizeof(AudioObjectID);
-        printf("Output device has %d subdevices\n", num_devices);
+        //printf("Output device has %d subdevices\n", num_devices);
         for (int i = 0; i < num_devices; i++) {
             playbackDeviceIDArray.push_back(sub_device[i]);
         }
@@ -336,7 +337,7 @@ OSStatus TCoreAudioRenderer::SRNotificationCallback(AudioDeviceID inDevice,
     switch (inPropertyID) {
 
         case kAudioDevicePropertyNominalSampleRate: {
-            printf("JackCoreAudioDriver::SRNotificationCallback kAudioDevicePropertyNominalSampleRate\n");
+            //printf("JackCoreAudioDriver::SRNotificationCallback kAudioDevicePropertyNominalSampleRate\n");
             driver->fState = true;
             // Check new sample rate
             Float64 sampleRate;
@@ -346,7 +347,7 @@ OSStatus TCoreAudioRenderer::SRNotificationCallback(AudioDeviceID inDevice,
                 printf("Cannot get current sample rate\n");
                 printError(err);
             } else {
-                printf("SRNotificationCallback : checked sample rate = %f\n", sampleRate);
+                //printf("SRNotificationCallback : checked sample rate = %f\n", sampleRate);
             }
             break;
         }
@@ -369,7 +370,7 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
         printError(err);
         return -1;
     } else {
-        printf("Current sample rate = %f\n", sampleRate);
+        //printf("Current sample rate = %f\n", sampleRate);
     }
 
     // If needed, set new sample rate
@@ -394,7 +395,7 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
         int count = 0;
         while (!fState && count++ < WAIT_COUNTER) {
             usleep(100000);
-            printf("Wait count = %d\n", count);
+            //printf("Wait count = %d\n", count);
         }
 
         // Check new sample rate
@@ -404,7 +405,7 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
             printf("Cannot get current sample rate\n");
             printError(err);
         } else {
-            printf("Checked sample rate = %f\n", sampleRate);
+            //printf("Checked sample rate = %f\n", sampleRate);
         }
 
         // Remove SR change notification
@@ -450,9 +451,9 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
                 printError(osErr);
             } else {
                 keptclockdomain = (keptclockdomain == 0) ? clockdomain : keptclockdomain;
-                printf("TCoreAudioRenderer::CreateAggregateDevice : input clockdomain = %d\n", clockdomain);
+                //printf("TCoreAudioRenderer::CreateAggregateDevice : input clockdomain = %d\n", clockdomain);
                 if (clockdomain != 0 && clockdomain != keptclockdomain) {
-                    printf("TCoreAudioRenderer::CreateAggregateDevice : devices do not share the same clock!! clock drift compensation would be needed...\n");
+                    //printf("TCoreAudioRenderer::CreateAggregateDevice : devices do not share the same clock!! clock drift compensation would be needed...\n");
                     need_clock_drift_compensation = true;
                 }
             }
@@ -470,9 +471,9 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
                 printError(osErr);
             } else {
                 keptclockdomain = (keptclockdomain == 0) ? clockdomain : keptclockdomain;
-                printf("TCoreAudioRenderer::CreateAggregateDevice : output clockdomain = %d", clockdomain);
+                //printf("TCoreAudioRenderer::CreateAggregateDevice : output clockdomain = %d", clockdomain);
                 if (clockdomain != 0 && clockdomain != keptclockdomain) {
-                    printf("TCoreAudioRenderer::CreateAggregateDevice : devices do not share the same clock!! clock drift compensation would be needed...\n");
+                    //printf("TCoreAudioRenderer::CreateAggregateDevice : devices do not share the same clock!! clock drift compensation would be needed...\n");
                     need_clock_drift_compensation = true;
                 }
             }
@@ -491,12 +492,12 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     char device_name[256];
     for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
         GetDeviceNameFromID(captureDeviceID[i], device_name);
-        printf("Separated input = '%s' \n", device_name);
+        //printf("Separated input = '%s' \n", device_name);
     }
 
     for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
         GetDeviceNameFromID(playbackDeviceID[i], device_name);
-        printf("Separated output = '%s' \n", device_name);
+        //printf("Separated output = '%s' \n", device_name);
     }
 
     osErr = AudioHardwareGetPropertyInfo(kAudioHardwarePropertyPlugInForBundleID, &outSize, &outWritable);
@@ -544,13 +545,13 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     SInt32 system;
     Gestalt(gestaltSystemVersion, &system);
 
-    printf("TCoreAudioRenderer::CreateAggregateDevice : system version = %x limit = %x\n", system, 0x00001054);
+    //printf("TCoreAudioRenderer::CreateAggregateDevice : system version = %x limit = %x\n", system, 0x00001054);
 
     // Starting with 10.5.4 systems, the AD can be internal... (better)
     if (system < 0x00001054) {
-        printf("TCoreAudioRenderer::CreateAggregateDevice : public aggregate device....\n");
+        //printf("TCoreAudioRenderer::CreateAggregateDevice : public aggregate device....\n");
     } else {
-        printf("TCoreAudioRenderer::CreateAggregateDevice : private aggregate device....\n");
+        //printf("TCoreAudioRenderer::CreateAggregateDevice : private aggregate device....\n");
         CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceIsPrivateKey), AggregateDeviceNumberRef);
     }
 
@@ -691,7 +692,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
 
     if (fClockDriftCompensate) {
         if (need_clock_drift_compensation) {
-            printf("Clock drift compensation activated...\n");
+            //printf("Clock drift compensation activated...\n");
 
             // Get the property data size
             osErr = AudioObjectGetPropertyDataSize(*outAggregateDevice, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize);
@@ -702,7 +703,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
 
             //	Calculate the number of object IDs
             subDevicesNum = outSize / sizeof(AudioObjectID);
-            printf("TCoreAudioRenderer::CreateAggregateDevice clock drift compensation, number of sub-devices = %d\n", subDevicesNum);
+            //printf("TCoreAudioRenderer::CreateAggregateDevice clock drift compensation, number of sub-devices = %d\n", subDevicesNum);
             AudioObjectID subDevices[subDevicesNum];
             outSize = sizeof(subDevices);
 
@@ -722,7 +723,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
                 }
             }
         } else {
-            printf("Clock drift compensation was asked but is not needed (devices use the same clock domain)\n");
+            //printf("Clock drift compensation was asked but is not needed (devices use the same clock domain)\n");
         }
     }
 
@@ -752,7 +753,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         CFRelease(playbackDeviceUID[i]);
     }
 
-    printf("New aggregate device %d\n", *outAggregateDevice);
+    //printf("New aggregate device %d\n", *outAggregateDevice);
     return noErr;
 
 error:
@@ -808,7 +809,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
     fInChannel = new float*[fDevNumInChans];
     fOutChannel = new float*[fDevNumOutChans];
 
-    printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
+    //printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
 
     SInt32 major;
     SInt32 minor;
@@ -842,7 +843,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
             printError(err);
             return OPEN_ERR;
         } else {
-            printf("Use fixed buffer size %ld\n", bufferSize);
+            //printf("Use fixed buffer size %ld\n", bufferSize);
         }
     }
 
@@ -922,21 +923,21 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
 
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
     if (err1 != noErr) {
-        printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap-INFO 1\n");
+        printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
         printError(err1);
     }
 
     in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-    printf("in_nChannels = %ld\n", in_nChannels);
+    //printf("in_nChannels = %ld\n", in_nChannels);
 
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
     if (err1 != noErr) {
-        printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap-INFO 0\n");
+        printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
         printError(err1);
     }
 
     out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-    printf("out_nChannels = %ld\n", out_nChannels);
+    //printf("out_nChannels = %ld\n", out_nChannels);
 
     /*
     Just ignore this case : seems to work without any further change...
@@ -988,7 +989,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
-        PrintStreamDesc(&srcFormat);
+        //PrintStreamDesc(&srcFormat);
 
         srcFormat.mSampleRate = samplerate;
         srcFormat.mFormatID = kAudioFormatLinearPCM;
@@ -999,7 +1000,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
         srcFormat.mChannelsPerFrame = inChan;
         srcFormat.mBitsPerChannel = 32;
 
-        PrintStreamDesc(&srcFormat);
+        //PrintStreamDesc(&srcFormat);
 
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
@@ -1015,7 +1016,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
-        PrintStreamDesc(&dstFormat);
+        //PrintStreamDesc(&dstFormat);
 
         dstFormat.mSampleRate = samplerate;
         dstFormat.mFormatID = kAudioFormatLinearPCM;
@@ -1026,7 +1027,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
         dstFormat.mChannelsPerFrame = outChan;
         dstFormat.mBitsPerChannel = 32;
 
-        PrintStreamDesc(&dstFormat);
+        //PrintStreamDesc(&dstFormat);
 
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
@@ -1142,7 +1143,7 @@ long TCoreAudioRenderer::Stop()
 class coreaudio : public audio {
 
     TCoreAudioRenderer audio_device;
-	long			fSampleRate, fFramesPerBuf;
+	long fSampleRate, fFramesPerBuf;
 
  public:
 			 coreaudio(long srate, long fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
