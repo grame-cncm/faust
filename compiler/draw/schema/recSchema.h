@@ -38,7 +38,7 @@ class recSchema : public schema
 	vector<point>	fOutputPoint;
 
   public:
-	friend schema* makeRecSchema (schema* s1, schema* s2);
+    friend schema*  makeRecSchema (schema* s1, schema* s2);
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);
@@ -49,8 +49,6 @@ class recSchema : public schema
   private:
 	recSchema (schema* s1, schema* s2, double width);
 	void 			drawDelaySign(device& dev, double x, double y, double size);
-    void 			drawFeedback(device& dev, const point& src, const point& dst, double dx);
-    void 			drawFeedfront(device& dev, const point& src, const point& dst, double dx);
 
     void 			collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
     void 			collectFeedfront(collector& c, const point& src, const point& dst, double dx);

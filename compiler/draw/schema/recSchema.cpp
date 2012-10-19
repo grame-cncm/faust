@@ -123,9 +123,8 @@ point recSchema::outputPoint(unsigned int i) const
 
 
 /**
- * Draw the two subschema s1 and s2 as well as the feedback
- * connections between s1 and s2, and the feedfrom connections
- * beetween s2 and s1.
+ * Draw the two subschema s1 and s2 as well as the implicit feedback
+ * delays between s1 and s2.
  */
 void recSchema::draw(device& dev)
 {
@@ -135,32 +134,14 @@ void recSchema::draw(device& dev)
     fSchema1->draw(dev);
     fSchema2->draw(dev);
 
-    // draw the output lines
-    for (unsigned int i=0; i<outputs(); i++) {
-        point p = fSchema1->outputPoint(i);
-        point q = outputPoint(i);
-        //dev.trait(p.x, p.y, q.x, q.y);
-    }
-
-    // draw the input lines
-    unsigned int skip = fSchema2->outputs();
-    for (unsigned int i=0; i<inputs(); i++) {
-        point p = fSchema1->inputPoint(i+skip);
-        point q = inputPoint(i);
-        //dev.trait(p.x, p.y, q.x, q.y);
-    }
-
-    // draw the feedback connections to each fSchema2 input
+    // draw the implicit feedback delay to each fSchema2 input
+    double dw = (orientation()==kLeftRight) ? dWire : -dWire;
     for (unsigned int i=0; i<fSchema2->inputs(); i++) {
-        drawFeedback(dev, fSchema1->outputPoint(i), fSchema2->inputPoint(i), i*dWire);
-    }
+        const point& p = fSchema1->outputPoint(i);
+        drawDelaySign(dev, p.x + i*dw, p.y, dw/2);
 
-    // draw the feedfront connections from each fSchema2 output
-    for (unsigned int i=0; i<fSchema2->outputs(); i++) {
-        drawFeedfront(dev, fSchema2->outputPoint(i), fSchema1->inputPoint(i), i*dWire);
     }
 }
-
 
 /**
  * Draw the delay sign of a feedback connection
@@ -218,22 +199,6 @@ void recSchema::collectTraits(collector& c)
  * Draw a feedback connection between two points with an horizontal
  * displacement dx
  */
-void recSchema::drawFeedback(device& dev, const point& src, const point& dst, double dx)
-{
-    double	ox = src.x + ((orientation()==kLeftRight) ? dx : -dx);
-    double	ct = (orientation()==kLeftRight) ? dWire/2 : -dWire/2;
-
-    drawDelaySign(dev, ox, src.y, ct);
-    //dev.trait(ox, src.y-ct, ox, dst.y);
-    //dev.trait(ox, dst.y, dst.x, dst.y);
-}
-
-
-
-/**
- * Draw a feedback connection between two points with an horizontal
- * displacement dx
- */
 void recSchema::collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out)
 {
     double	ox = src.x + ((orientation()==kLeftRight) ? dx : -dx);
@@ -251,20 +216,6 @@ void recSchema::collectFeedback(collector& c, const point& src, const point& dst
     c.addTrait(trait(src,br));
     c.addTrait(trait(br,out));
 
-}
-
-
-/**
- * Draw a feedfrom connection between two points with an horizontal
- * displacement dx
- */
-void recSchema::drawFeedfront(device& dev, const point& src, const point& dst, double dx)
-{
-//    double	ox = src.x + ((orientation()==kLeftRight) ? -dx : dx);
-
-//	dev.trait(ox, src.y, src.x, src.y);
-//	dev.trait(ox, src.y, ox, dst.y);
-//	dev.trait(ox, dst.y, dst.x, dst.y);
 }
 
 

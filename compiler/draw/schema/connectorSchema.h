@@ -1,4 +1,3 @@
-
 /************************************************************************
  ************************************************************************
     FAUST compiler
@@ -20,39 +19,46 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef __connectorSchema__
+#define __connectorSchema__
 
-#include "inverterSchema.h"
-#include <assert.h>
-#include <iostream>
 
-using namespace std;
-
-//#define invcolor "#f44444"
-
+#include "schema.h"
+#include <vector>
+#include <string>
 
 /**
- * Build n cables in parallel
+ * A simple rectangular box with a text and inputs and outputs.
+ * The constructor is private in order to make sure
+ * makeconnectorSchema is used instead
  */
-schema* makeInverterSchema (const string& color)
+class connectorSchema : public schema
 {
-    return new inverterSchema(color);
-}
+  protected:
+    // fields only defined after place() is called
+    vector<point>	fInputPoint;	///< input connection points
+    vector<point>	fOutputPoint;	///< output connection points
 
 
-/**
- * Build n cables in parallel
- */
-inverterSchema::inverterSchema(const string& color)
-    : 	blockSchema (1, 1, 2.5*dWire, dWire, "-1", color, "")
-{
-}
+  public:
+    friend schema*  makeConnectorSchema ();
+
+    virtual void 	place(double x, double y, int orientation);
+    virtual void 	draw(device& dev);
+    virtual point	inputPoint(unsigned int i) const;
+    virtual point 	outputPoint(unsigned int i) const;
+    virtual void    collectTraits(collector& c);
+
+  protected:
+    connectorSchema ();
+
+    void placeInputPoints();
+    void placeOutputPoints();
+    void collectInputWires(collector& c);
+    void collectOutputWires(collector& c);
+
+};
+
+#endif
 
 
-/**
- * Nothing to draw. Actual drawing will take place when the wires
- * are enlargered
- */
-void inverterSchema::draw(device& dev)
-{
-    dev.triangle(x() + dHorz, y()+0.5, width() - 2*dHorz, height()-1, fColor.c_str(),fLink.c_str(), orientation()==kLeftRight);
-}
