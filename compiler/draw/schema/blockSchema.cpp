@@ -184,8 +184,7 @@ void blockSchema::draw(device& dev)
 	drawRectangle(dev);
 	drawText(dev);
     drawOrientationMark(dev);
-    drawInputWires(dev);
-    drawOutputWires(dev);
+    drawInputArrows(dev);
 }
 
 /**
@@ -234,36 +233,20 @@ void blockSchema::drawOrientationMark(device& dev)
 
 	dev.markSens( px, py, orientation() );
 }
-#if 1
 /**
  * Draw horizontal arrows from the input points to the
  * blockSchema rectangle
  */
-void blockSchema::drawInputWires(device& dev)
+void blockSchema::drawInputArrows(device& dev)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
     for (unsigned int i=0; i<inputs(); i++) {
         point p = fInputPoint[i];
-        //dev.trait(p.x, p.y, p.x+dx, p.y);
         dev.fleche(p.x+dx, p.y, 0, orientation());
     }
 }
 
-/**
- * Draw horizontal line from the blockSchema rectangle to the
- * output points
- */
-void blockSchema::drawOutputWires(device& dev)
-{
-    //double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
-
-    for (unsigned int i=0; i<outputs(); i++) {
-        point p = fOutputPoint[i];
-        //dev.trait(p.x, p.y, p.x-dx, p.y);
-    }
-}
-#endif
 
 /**
  * Draw horizontal arrows from the input points to the
