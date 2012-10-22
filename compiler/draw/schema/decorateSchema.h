@@ -40,13 +40,13 @@ class decorateSchema : public schema
 	vector<point>	fOutputPoint;
 
   public:
-	friend schema* makeDecorateSchema (schema* s1, double margin, const string& text);
+    friend schema*  makeDecorateSchema (schema* s1, double margin, const string& text);
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);
-    virtual void    collectTraits(collector& c);
     virtual point	inputPoint(unsigned int i)	const;
 	virtual point 	outputPoint(unsigned int i)	const;
+    virtual void    collectTraits(collector& c);
 
   private:
 	decorateSchema (schema* s1, double margin, const string& text);

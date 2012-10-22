@@ -143,9 +143,9 @@ class schema
  	// abstract interface for subclasses
 	virtual void 	place(double x, double y, int orientation) 	= 0;
     virtual void 	draw(device& dev) 							= 0;
-    virtual void 	collectTraits(collector& c)					= 0;
     virtual point	inputPoint(unsigned int i) const			= 0;
 	virtual point 	outputPoint(unsigned int i)const			= 0;
+    virtual void 	collectTraits(collector& c)					= 0;
 };
 
 // various functions to create schemas
@@ -155,7 +155,6 @@ schema* makeBlockSchema 	(unsigned int inputs,
   							 const string& name,
 							 const string& color,
 							 const string& link);
-
 schema* makeCableSchema 	(unsigned int n=1);
 schema* makeInverterSchema 	(const string& color);
 schema* makeCutSchema 		();
@@ -167,6 +166,7 @@ schema* makeSplitSchema 	(schema* s1, schema* s2);
 schema* makeRecSchema 		(schema* s1, schema* s2);
 schema* makeTopSchema 		(schema* s1, double margin, const string& text, const string& link);
 schema* makeDecorateSchema 	(schema* s1, double margin, const string& text);
+schema* makeConnectorSchema ();
 
 
 

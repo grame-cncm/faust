@@ -37,7 +37,7 @@ class blockSchema : public schema
   protected:
 	const string	fText;			///< Text to be displayed
 	const string	fColor;			///< color of the box
-	const string	fLink;			///< option URL link
+    const string	fLink;			///< option URL link
 
 	// fields only defined after place() is called
 	vector<point>	fInputPoint;	///< input connection points
@@ -45,22 +45,23 @@ class blockSchema : public schema
 
 
   public:
-  	friend schema* makeBlockSchema (	unsigned int inputs,
-  										unsigned int outputs,
-  										const string& name,
-  										const string& color,
-  										const string& link);
+    friend schema*  makeBlockSchema (	unsigned int inputs,
+                                        unsigned int outputs,
+                                        const string& name,
+                                        const string& color,
+                                        const string& link);
 
 	virtual void 	place(double x, double y, int orientation);
 	virtual void 	draw(device& dev);
 	virtual point	inputPoint(unsigned int i) const;
 	virtual point 	outputPoint(unsigned int i) const;
+    virtual void    collectTraits(collector& c);
 
   protected:
 	blockSchema (	unsigned int inputs, unsigned int outputs,
 					double width, double height,
   					const string& name, const string& color,
-  					const string& link);
+                    const string& link);
 
 	void placeInputPoints();
 	void placeOutputPoints();
@@ -68,10 +69,9 @@ class blockSchema : public schema
   	void drawRectangle(device& dev);
 	void drawText(device& dev);
 	void drawOrientationMark(device& dev);
-    void drawInputWires(device& dev);
-    void drawOutputWires(device& dev);
+    void drawInputArrows(device& dev);
+//    void drawOutputWires(device& dev);
 
-    void collectTraits(collector& c);
     void collectInputWires(collector& c);
     void collectOutputWires(collector& c);
 

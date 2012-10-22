@@ -41,7 +41,7 @@ class topSchema : public schema
 	vector<point>	fOutputPoint;
 
   public:
-	friend schema* makeTopSchema (schema* s1, double margin, const string& text, const string& link);
+    friend schema*  makeTopSchema (schema* s1, double margin, const string& text, const string& link);
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);
