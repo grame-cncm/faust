@@ -38,7 +38,7 @@ class mergeSchema : public schema
 
   public:
 
-	friend schema* makeMergeSchema (schema* s1, schema* s2);
+    friend schema*  makeMergeSchema (schema* s1, schema* s2);
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);

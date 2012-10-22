@@ -38,7 +38,7 @@ class splitSchema : public schema
 
  public:
 
- 	friend schema* makeSplitSchema (schema* s1, schema* s2);
+    friend schema*  makeSplitSchema (schema* s1, schema* s2);
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);

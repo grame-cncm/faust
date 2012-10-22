@@ -36,7 +36,7 @@ class cableSchema : public schema
 	vector<point>	fPoint;
 
   public:
-  	friend schema* makeCableSchema (unsigned int n);
+    friend schema*  makeCableSchema (unsigned int n);
 
 	virtual void 	place(double x, double y, int orientation);
 	virtual void 	draw(device& dev);

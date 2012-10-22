@@ -31,6 +31,7 @@ static double quantize(int n)
 	return dLetter * (q *((n+q-1)/q));
 }
 
+
 /**
  * Build a simple colored blockSchema with a certain number of
  * inputs and outputs, a text to be displayed, and an optional link.
@@ -38,18 +39,19 @@ static double quantize(int n)
  * and the maximum number of ports.
  */
 schema* makeBlockSchema (	unsigned int inputs,
-							unsigned int outputs,
-							const string& text,
-							const string& color,
-							const string& link )
+                            unsigned int outputs,
+                            const string& text,
+                            const string& color,
+                            const string& link )
 {
-	// determine the optimal size of the box
-	double minimal = 3*dWire;
-	double w = 2*dHorz + max( minimal, quantize(text.size()) );
-	double h = 2*dVert + max( minimal, max(inputs, outputs) * dWire );
+    // determine the optimal size of the box
+    double minimal = 3*dWire;
+    double w = 2*dHorz + max( minimal, quantize(text.size()) );
+    double h = 2*dVert + max( minimal, max(inputs, outputs) * dWire );
 
-	return new blockSchema(inputs, outputs, w, h, text, color, link);
+    return new blockSchema(inputs, outputs, w, h, text, color, link);
 }
+
 
 /**
  * Build a simple colored blockSchema with a certain number of
@@ -63,16 +65,17 @@ blockSchema::blockSchema (	unsigned int inputs,
 							double height,
 							const string& text,
 							const string& color,
-							const string& link )
+                            const string& link)
 
 	: 	schema( inputs, outputs, width, height ),
 	  	fText(text),
 	  	fColor(color),
-	  	fLink(link)
+        fLink(link)
 {
     for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0,0));
     for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0,0));
 }
+
 
 /**
  * Define the graphic position of the blockSchema. Computes the graphic
@@ -89,6 +92,7 @@ void blockSchema::place(double x, double y, int orientation)
 	endPlace();
 }
 
+
 /**
  * Returns an input point
  */
@@ -99,6 +103,7 @@ point blockSchema::inputPoint(unsigned int i) const
 	return fInputPoint[i];
 }
 
+
 /**
  * Returns an output point
  */
@@ -108,6 +113,7 @@ point blockSchema::outputPoint(unsigned int i) const
 	assert (i < outputs());
 	return fOutputPoint[i];
 }
+
 
 /**
  * Computes the input points according to the position and the
@@ -177,9 +183,8 @@ void blockSchema::draw(device& dev)
 
 	drawRectangle(dev);
 	drawText(dev);
-	drawOrientationMark(dev);
-    drawInputWires(dev);
-    drawOutputWires(dev);
+    drawOrientationMark(dev);
+    drawInputArrows(dev);
 }
 
 /**
@@ -228,36 +233,20 @@ void blockSchema::drawOrientationMark(device& dev)
 
 	dev.markSens( px, py, orientation() );
 }
-#if 1
 /**
  * Draw horizontal arrows from the input points to the
  * blockSchema rectangle
  */
-void blockSchema::drawInputWires(device& dev)
+void blockSchema::drawInputArrows(device& dev)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
     for (unsigned int i=0; i<inputs(); i++) {
         point p = fInputPoint[i];
-        //dev.trait(p.x, p.y, p.x+dx, p.y);
         dev.fleche(p.x+dx, p.y, 0, orientation());
     }
 }
 
-/**
- * Draw horizontal line from the blockSchema rectangle to the
- * output points
- */
-void blockSchema::drawOutputWires(device& dev)
-{
-    //double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
-
-    for (unsigned int i=0; i<outputs(); i++) {
-        point p = fOutputPoint[i];
-        //dev.trait(p.x, p.y, p.x-dx, p.y);
-    }
-}
-#endif
 
 /**
  * Draw horizontal arrows from the input points to the

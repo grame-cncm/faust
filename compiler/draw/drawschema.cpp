@@ -147,6 +147,8 @@ static schema* 	generateUserInterfaceSchema(Tree t);
 static char* 	legalFileName(Tree t, int n, char* dst);
 static int 		cholddir ();
 static int 		mkchdir(const char* dirname);
+static schema*  addSchemaInputs(int ins, schema* x);
+static schema*  addSchemaOutputs(int outs, schema* x);
 
 
 
@@ -218,10 +220,12 @@ static void writeSchemaFile(Tree bd)
 {
 	Tree			id;
 	schema* 		ts;
+    int             ins, outs;
 
 	char 			temp[1024];
 
 	gOccurrences = new Occurrences(bd);
+    getBoxType (bd, &ins, &outs);
 
 	bool hasname = getDefNameProperty(bd, id); 
 
@@ -238,7 +242,7 @@ static void writeSchemaFile(Tree bd)
 	// generate the label of the schema
 	stringstream s2; s2 << tree2str(id);
 	string link = gBackLink[bd];
-	ts = makeTopSchema(generateInsideSchema(bd), 20, s2.str(), link);
+    ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, s2.str(), link);
 	// draw to the device defined by gDevSuffix
 	if (strcmp(gDevSuffix, "svg") == 0) {
 		SVGDev dev(s1.str().c_str(), ts->width(), ts->height());
@@ -629,3 +633,39 @@ static schema* generateAbstractionSchema(schema* x, Tree t)
 	return makeSeqSchema(x, generateDiagramSchema(t));
 }
 
+static schema* addSchemaInputs(int ins, schema* x)
+{
+    if (ins==0) {
+        return x;
+    } else {
+        schema* y = 0;
+        do {
+            schema* z = makeConnectorSchema();
+            if (y != 0) {
+                y = makeParSchema(y,z);
+            } else {
+                y = z;
+            }
+        } while (--ins);
+        return makeSeqSchema(y,x);
+    }
+}
+
+
+static schema* addSchemaOutputs(int outs, schema* x)
+{
+    if (outs==0) {
+        return x;
+    } else {
+        schema* y = 0;
+        do {
+            schema* z = makeConnectorSchema();
+            if (y != 0) {
+                y = makeParSchema(y,z);
+            } else {
+                y = z;
+            }
+        } while (--outs);
+        return makeSeqSchema(x,y);
+    }
+}
