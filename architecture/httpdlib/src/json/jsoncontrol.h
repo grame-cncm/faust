@@ -66,7 +66,7 @@ template <typename C> class jsoncontrol : public jsonnode
 			out << eol << "\"label\": \"" << fName << "\",";
 			out << eol << "\"address\": \"" << getAddress() << "\"";
 			if (fMeta.size()) {
-				out << addrcomma << eol << "\"meta\": \"" << "[ "; eol++;
+				out << addrcomma << eol << "\"meta\": " << "[ "; eol++;
 				addrcomma = "";
 		//		for (TMetas::const_iterator i=fMeta.begin(); i!=fMeta.end();) {
 				TMetas::const_iterator i=fMeta.begin();
