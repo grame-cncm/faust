@@ -492,6 +492,7 @@ draw/device/SVGDev.o: evaluate/loopDetector.hh
 draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/collector.o: draw/schema/schema.h draw/device/device.h garbageable.hh
+draw/schema/connectorSchema.o: draw/schema/connectorSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/cutSchema.o: draw/schema/cutSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/decorateSchema.o: draw/schema/decorateSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/enlargedSchema.o: draw/schema/enlargedSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
