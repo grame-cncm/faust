@@ -596,10 +596,13 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
                     return new FloatNumInst(float1->fNum * float2->fNum);
                 case kDiv:
                     return new FloatNumInst(float1->fNum / float2->fNum);
+                default:
+                    return 0;
             }
 
         } else if (int1 && int2) {
             assert(false);
+            return 0;
             //return new IntNumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
             return new BinopInst(inst->fOpcode, val1, val2);
@@ -618,6 +621,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return (int1) ? int1 : new IntNumInst(int(float1->fNum));
         } else {
             assert(false);
+            return 0;
         }
     }
 

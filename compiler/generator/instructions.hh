@@ -97,9 +97,7 @@ struct IndexedAddress;
 // Visitors
 // =========
 
-class InstVisitor : public Garbageable {
-
-    public:
+struct InstVisitor : public virtual Garbageable {
 
         InstVisitor()
         {}
@@ -162,9 +160,7 @@ class InstVisitor : public Garbageable {
 
 };
 
-class CloneVisitor : public virtual Garbageable {
-
-    public:
+struct CloneVisitor : public virtual Garbageable {
 
         CloneVisitor()
         {}
@@ -1396,10 +1392,14 @@ class BasicCloneVisitor : public CloneVisitor {
 
 struct DispatchVisitor : public InstVisitor {
 
+    
+    using InstVisitor::visit;
+    
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fValue)
+        if (inst->fValue) {
             inst->fValue->accept(this);
+        }
     }
 
     virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
@@ -1434,14 +1434,16 @@ struct DispatchVisitor : public InstVisitor {
 
     virtual void visit(RetInst* inst)
     {
-        if (inst->fResult)
+        if (inst->fResult) {
             inst->fResult->accept(this);
+        }
     }
 
     virtual void visit(DropInst* inst)
     {
-        if (inst->fResult)
+        if (inst->fResult) {
             inst->fResult->accept(this);
+        }
     }
 
     virtual void visit(Select2Inst* inst)
@@ -1466,7 +1468,7 @@ struct DispatchVisitor : public InstVisitor {
         inst->fCode->accept(this);
     }
 
-     virtual void visit(WhileLoopInst* inst)
+    virtual void visit(WhileLoopInst* inst)
     {
         inst->fCond->accept(this);
         inst->fCode->accept(this);
