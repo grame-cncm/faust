@@ -41,24 +41,24 @@ template <typename C> class jsonui
 		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
-		virtual void openTabBox(const char* label)					{ fFactory->opengroup( "tabbox", label); }
-		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup( "horizontalbox", label); }
-		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup( "verticalbox", label); }
+		virtual void openTabBox(const char* label)					{ fFactory->opengroup( "tgroup", label); }
+		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup( "hgroup", label); }
+		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup( "vgroup", label); }
 		virtual void closeBox()										{ fFactory->closegroup(); }
 
 		// -- active widgets
 		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); }
-		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbutton", label, fMeta); }
+		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbox", label, fMeta); }
 		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "verticalslider", label, init, min, max, step, fMeta); }
+							{ fFactory->addnode<C>( "vslider", label, init, min, max, step, fMeta); }
 		virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "horizontalslider", label, init, min, max, step, fMeta); }
+							{ fFactory->addnode<C>( "hslider", label, init, min, max, step, fMeta); }
 		virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "numentry", label, init, min, max, step, fMeta); }
+							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); }
 
 		// -- passive widgets
-		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)				{}
-		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)			{}
+		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, fMeta); }
+		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)	{ fFactory->addnode<C>( "vbargraph", label, fMeta); }
 
 		// -- metadata declarations
 		virtual void declare(C* , const char* key, const char* val)		{ fMeta[key] = val; }
