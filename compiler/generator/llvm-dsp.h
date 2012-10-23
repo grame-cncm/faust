@@ -30,11 +30,6 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 struct llvm_dsp_factory {};
 
 /**
@@ -185,9 +180,5 @@ llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
  * @param dsp - the DSP instance to be deleted.
 */ 
 void deleteDSPInstance(llvm_dsp* dsp);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

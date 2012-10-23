@@ -173,11 +173,6 @@ class llvm_dsp_aux : public dsp {
 
 // Public interface
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
@@ -227,9 +222,5 @@ class EXPORT llvm_dsp : public dsp {
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
