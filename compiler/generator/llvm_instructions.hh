@@ -1574,7 +1574,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        void genVectorStore(Value* store_ptr, Value* store, int size, bool vola, bool aligned)
+        void genVectorStore(Value* store_ptr, Value* store, int size, bool isvolatile, bool aligned)
         {
             if (size > 1) {
                 //cerr << "genVectorStore vector" << endl;
@@ -1584,7 +1584,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 Value* casted_store_ptr = fBuilder->CreateBitCast(store_ptr, PointerType::get(store->getType(), 0));
 
                 // By default: non aligned vector store
-                StoreInst* store_inst = fBuilder->CreateStore(store, casted_store_ptr, vola);
+                StoreInst* store_inst = fBuilder->CreateStore(store, casted_store_ptr, isvolatile);
                 if (!aligned) {
                 #ifdef VECTOR_ALIGN
                     store_inst->setAlignment(16);
@@ -1604,9 +1604,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     && (store->getType() == llvm::Type::getInt32Ty(getGlobalContext()))) {
                         // Cast Int value to "null"
                         Value* casted_store = ConstantPointerNull::get(PointerType::get(fBuilder->getInt8Ty(), 0));
-                        fBuilder->CreateStore(casted_store, store_ptr, vola);
+                        fBuilder->CreateStore(casted_store, store_ptr, isvolatile);
                 } else {
-                    fBuilder->CreateStore(store, store_ptr, vola);
+                    fBuilder->CreateStore(store, store_ptr, isvolatile);
                 }
             }
         }

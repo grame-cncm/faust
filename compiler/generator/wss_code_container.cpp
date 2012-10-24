@@ -173,7 +173,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
     BlockInst* loop_code = fComputeBlockInstructions;
 
     loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar(counter)));
-    loop_code->pushBackInst(InstBuilder::genStoreStructVar("fIndex", InstBuilder::genIntNumInst(0)));
+    loop_code->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genIntNumInst(0)));
     
     generateDAGLoopWSSAux1(dag, loop_code);
 
@@ -330,7 +330,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     // Generates switch/case block "header"
     ValueInst* init1 = InstBuilder::genLoadStructVar("fFullcount");
-    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadStructVar("fIndex"));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
