@@ -849,7 +849,8 @@ class TaskQueue
 			//if (cur_thread != MASTER_THREAD)
                 task_queue_list[cur_thread].MeasureStealingDur();
         #endif
-           return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
+            //printf("GetNextTask WORK_STEALING_INDEX\n");
+            return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
          
         INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread)
@@ -955,11 +956,45 @@ class TaskGraph
         
 };
 
+class DSPThread;
+
+class DSPThreadPool {
+    
+    private:
+    
+        DSPThread** fThreadPool;
+        int fThreadCount; 
+        volatile int fCurThreadCount;
+      
+    public:
+        
+        DSPThreadPool(int thread_pool_size);
+        ~DSPThreadPool();
+    
+        void StartAll(int num_thread, bool realtime, void* dsp);
+       
+        void StopAll();
+      
+        void SignalAll(int num_thread);
+        
+        void SignalOne()
+        {
+            DEC_ATOMIC(&fCurThreadCount);
+        }
+
+        bool IsFinished()
+        {
+            return (fCurThreadCount == 0);
+        }
+
+};
+
 class DSPThread {
 
     private:
     
         pthread_t fThread;
+        DSPThreadPool* fThreadPool;
         Semaphore fSemaphore;
         char fName[128];
         bool fRealTime;
@@ -989,8 +1024,8 @@ class DSPThread {
     
     public: 
     
-        DSPThread(int num_thread, void* dsp)
-            :fSemaphore(0), fNumThread(num_thread), fDSP(dsp), fRealTime(false)
+        DSPThread(int num_thread, DSPThreadPool* pool, void* dsp)
+            :fSemaphore(0), fThreadPool(pool), fNumThread(num_thread), fDSP(dsp), fRealTime(false)
         {}
 
         virtual ~DSPThread()
@@ -998,8 +1033,10 @@ class DSPThread {
         
         void Run()
         {
+            //printf("=====Run===== %x\n", pthread_self());
             fSemaphore.wait();
             computeThreadExternal(fDSP, fNumThread + 1);
+            fThreadPool->SignalOne();
         }
                 
         void Signal()
@@ -1084,63 +1121,56 @@ class DSPThread {
 
 };
 
-class DSPThreadPool {
+DSPThreadPool::DSPThreadPool(int thread_pool_size)
+{
+    fThreadPool = new DSPThread*[thread_pool_size];
+    for (int i = 0; i < thread_pool_size; i++) {
+        fThreadPool[i] = NULL;
+    }
+    fThreadCount = 0;
+    fCurThreadCount = 0;
+}
+
+DSPThreadPool::~DSPThreadPool()
+{
+    StopAll();
     
-    private:
+    for (int i = 0; i < fThreadCount; i++) {
+        delete(fThreadPool[i]);
+        fThreadPool[i] = NULL;
+    }
     
-        DSPThread** fThreadPool;
-        int fThreadCount; 
-      
-    public:
-        
-        DSPThreadPool(int thread_pool_size)
-        {
-            fThreadPool = new DSPThread*[thread_pool_size];
-            for (int i = 0; i < thread_pool_size; i++) {
-                fThreadPool[i] = NULL;
-            }
-            fThreadCount = 0;
+    fThreadCount = 0;
+    delete[] fThreadPool;
+}
+
+
+void DSPThreadPool::StartAll(int num_thread, bool realtime, void* dsp)
+{
+    if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
+        for (int i = 0; i < num_thread; i++) {
+            fThreadPool[i] = new DSPThread(i, this, dsp);
+            fThreadPool[i]->Start(realtime);
+            fThreadCount++;
         }
+    }
+}
 
-        ~DSPThreadPool()
-        {
-            StopAll();
-            
-            for (int i = 0; i < fThreadCount; i++) {
-                delete(fThreadPool[i]);
-                fThreadPool[i] = NULL;
-            }
-            
-            fThreadCount = 0;
-            delete[] fThreadPool;
-         }
+void DSPThreadPool::StopAll()
+{
+    for (int i = 0; i < fThreadCount; i++) {
+        fThreadPool[i]->Stop();
+    }
+}
 
-        void StartAll(int num_thread, bool realtime, void* dsp)
-        {
-            if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
-                for (int i = 0; i < num_thread; i++) {
-                    fThreadPool[i] = new DSPThread(i, dsp);
-                    fThreadPool[i]->Start(realtime);
-                    fThreadCount++;
-                }
-            }
-        }
-
-        void StopAll()
-        {
-            for (int i = 0; i < fThreadCount; i++) {
-                fThreadPool[i]->Stop();
-            }
-        }
-
-        void SignalAll(int num_thread)
-        {
-            for (int i = 0; i < num_thread; i++) {  // Important : use local num here...
-                fThreadPool[i]->Signal();
-            }
-        }
-
-};
+void DSPThreadPool::SignalAll(int num_thread)
+{
+    fCurThreadCount = num_thread;
+     
+    for (int i = 0; i < num_thread; i++) {  // Important : use local num here...
+        fThreadPool[i]->Signal();
+    }
+}
 
 /*
     Public C++ interface
@@ -1205,6 +1235,11 @@ class WorkStealingScheduler {
         {
             GetRealTime();
             fThreadPool->SignalAll(fDynamicNumThreads - 1);
+        }
+        
+        void SyncAll()
+        {
+            while (!fThreadPool->IsFinished()) {}
         }
         
         void PushHead(int cur_thread, int task_num)
@@ -1286,6 +1321,11 @@ void signalAll(void* scheduler)
     static_cast<WorkStealingScheduler*>(scheduler)->SignalAll();
 }
 
+void syncAll(void* scheduler)
+{
+    static_cast<WorkStealingScheduler*>(scheduler)->SyncAll();
+}
+
 void pushHead(void* scheduler, int cur_thread, int task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->PushHead(cur_thread, task_num);
@@ -1323,6 +1363,7 @@ void getReadyTask(void* scheduler, int cur_thread, int* task_num)
 
 void initTaskList(void* scheduler)
 {
+    //printf("initTaskList %x\n", pthread_self());
     static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList();
 }
 

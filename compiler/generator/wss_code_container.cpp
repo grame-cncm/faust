@@ -134,6 +134,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
 
 void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code)
 {
+ 
     // Last stage connected to end task
     if (dag[0].size() > 1) {
         list<ValueInst*> fun_args;
@@ -186,6 +187,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
     }
     fun_args2.push_back(InstBuilder::genIntNumInst(0));
     loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread", fun_args2));
+    
+    loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("syncAll", fun_args1));
 }
 
 void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop)
@@ -207,6 +210,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     pushGlobalDeclare(InstBuilder::genFunction1("stopAll", Typed::kVoid, "scheduler", Typed::kVoid_ptr));
     pushGlobalDeclare(InstBuilder::genFunction1("initAll", Typed::kVoid, "scheduler", Typed::kVoid_ptr));
     pushGlobalDeclare(InstBuilder::genFunction1("signalAll", Typed::kVoid, "scheduler", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction1("syncAll", Typed::kVoid, "scheduler", Typed::kVoid_ptr));
     pushGlobalDeclare(InstBuilder::genFunction3("pushHead", Typed::kVoid, "scheduler", Typed::kVoid_ptr, "cur_thread", Typed::kInt, "task", Typed::kInt));
     pushGlobalDeclare(InstBuilder::genFunction2("getNextTask", Typed::kInt, "scheduler", Typed::kVoid_ptr, "cur_thread", Typed::kInt));
     pushGlobalDeclare(InstBuilder::genFunction3("initTask", Typed::kVoid, "scheduler", Typed::kVoid_ptr, "task_num", Typed::kInt, "count", Typed::kInt));
@@ -279,11 +283,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
-
-    // Generate input/output access
-    generateLocalInputs(loop_code);
-    generateLocalOutputs(loop_code);
- 
+    
     // Work stealing task
     BlockInst* ws_block = InstBuilder::genBlockInst();
     ws_block->pushBackInst(InstBuilder::genLabelInst("/* Work Stealing task */"));
@@ -300,14 +300,25 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
                                 InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                                     gGlobal->gVecSize)));
-
+     
+    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+                                                InstBuilder::genLoadStructVar("fFullcount"));
+                                                
+  
+    BlockInst* then_block = InstBuilder::genBlockInst();
+     
     // Generate input/output access
-    generateLocalInputs(last_block);
-    generateLocalOutputs(last_block);
+    generateLocalInputs(then_block);
+    generateLocalOutputs(then_block);
    
     // Generates init DAG and ready tasks activations
-    generateDAGLoopWSSAux1(dag, last_block);
+    generateDAGLoopWSSAux1(dag, then_block);
+    last_block->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
+    
+    // Generates tasknum
     last_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(0)));
+    
+    // Push if block as last_task
     switch_block->addCase(LAST_TASK_INDEX, last_block);
   
     // Generates global "switch/case"
@@ -326,6 +337,11 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
     
     StoreVarInst* count_store = InstBuilder::genStoreStackVar("count", init3);
+    
+    // Generate input/output access
+    generateLocalInputs(switch_block_code);
+    generateLocalOutputs(switch_block_code);
+  
     switch_block_code->pushBackInst(count_store);
 
     for (int l = dag.size() - 1; l > 0; l--) {
