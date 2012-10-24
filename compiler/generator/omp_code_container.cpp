@@ -72,8 +72,8 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
     // Generate local input/output access
-    generateLocalInputs(loop_code);
-    generateLocalOutputs(loop_code);
+    generateLocalInputs(loop_code, index);
+    generateLocalOutputs(loop_code, index);
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);

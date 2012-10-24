@@ -72,7 +72,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     };
 
     // Move stack variable from "compute" to "computeThread"
-    struct Stack2StructAnalyser2 : public DispatchVisitor {
+    struct Compute2ComputeThread : public DispatchVisitor {
 
         WSSCodeContainer* fContainer;
         string fName;
@@ -94,7 +94,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
             }
         }
 
-        Stack2StructAnalyser2(WSSCodeContainer* container, const string& name)
+        Compute2ComputeThread(WSSCodeContainer* container, const string& name)
             :fContainer(container), fName(name)
         {}
     };
@@ -120,12 +120,12 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     VariableMover::Move(this, "Yec");
 
     // To move variable in "computeThread"
-    Stack2StructAnalyser2 analyser8(this, "Slow");
-    fComputeBlockInstructions->accept(&analyser8);
+    Compute2ComputeThread mover1(this, "Slow");
+    fComputeBlockInstructions->accept(&mover1);
 
     // To move variable in "computeThread"
-    Stack2StructAnalyser2 analyser9(this, "Vec");
-    fComputeBlockInstructions->accept(&analyser9);
+    Compute2ComputeThread mover2(this, "Vec");
+    fComputeBlockInstructions->accept(&mover2);
 
     // Remove marked variables from fComputeBlockInstructions
     RemoverCloneVisitor remover;
@@ -170,10 +170,11 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code)
 
 void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counter)
 {
+    string index = "fIndex";
     BlockInst* loop_code = fComputeBlockInstructions;
 
     loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar(counter)));
-    loop_code->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genIntNumInst(0)));
+    loop_code->pushBackInst(InstBuilder::genStoreVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genIntNumInst(0)));
     
     generateDAGLoopWSSAux1(dag, loop_code);
 
@@ -193,8 +194,10 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
 
 void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop)
 {
+    string index = "fIndex";
+    
     // Needed in the struct
-    pushDeclare(InstBuilder::genDecVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genBasicTyped(Typed::kInt)));
     pushDeclare(InstBuilder::genDecStructVar("fFullcount", InstBuilder::genBasicTyped(Typed::kInt)));
     pushDeclare(InstBuilder::genDecStructVar("fScheduler", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
   
@@ -251,30 +254,32 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     pushDestroyMethod(InstBuilder::genVoidFunCallInst("deleteScheduler", fun_args4));
 }
 
-void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code)
+void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index_string)
 {
     // Generates line like: fInput0 = &fInput0_ptr[index];
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 }
 
-void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code)
+void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index_string)
 {
     // Generates line like: fOutput0 = &fOutput0_ptr[index];
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 }
 
 StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 {
+    string index = "fIndex";
+    
     BlockInst* loop_code = fComputeThreadBlockInstructions;
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
     
@@ -297,19 +302,19 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Last task
     BlockInst* last_block = InstBuilder::genBlockInst();
     last_block->pushBackInst(InstBuilder::genLabelInst("/* Last task */"));
-    last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
-                                InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+    last_block->pushBackInst(InstBuilder::genStoreVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile),
+                                InstBuilder::genAdd(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                                     gGlobal->gVecSize)));
      
-    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                                 InstBuilder::genLoadStructVar("fFullcount"));
                                                 
   
     BlockInst* then_block = InstBuilder::genBlockInst();
      
     // Generate input/output access
-    generateLocalInputs(then_block);
-    generateLocalOutputs(then_block);
+    generateLocalInputs(then_block, index);
+    generateLocalOutputs(then_block, index);
    
     // Generates init DAG and ready tasks activations
     generateDAGLoopWSSAux1(dag, then_block);
@@ -324,13 +329,13 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Generates global "switch/case"
     int loop_num = START_TASK_MAX;  // First index to be used for remaining tasks
 
-    ValueInst* while_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+    ValueInst* while_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                 InstBuilder::genLoadStructVar("fFullcount"));
     BlockInst* switch_block_code = InstBuilder::genBlockInst();
 
     // Generates switch/case block "header"
     ValueInst* init1 = InstBuilder::genLoadStructVar("fFullcount");
-    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
@@ -339,8 +344,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     StoreVarInst* count_store = InstBuilder::genStoreStackVar("count", init3);
     
     // Generate input/output access
-    generateLocalInputs(switch_block_code);
-    generateLocalOutputs(switch_block_code);
+    generateLocalInputs(switch_block_code, index);
+    generateLocalOutputs(switch_block_code, index);
   
     switch_block_code->pushBackInst(count_store);
 

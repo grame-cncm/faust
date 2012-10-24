@@ -524,7 +524,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gGlobal->gVecSize + delay));
         pushComputeBlockMethod(table_inst1);
 
-        ValueInst* address_value = InstBuilder::genLoadArrayStackAddressVar(buf, InstBuilder::genIntNumInst(delay));
+        ValueInst* address_value = InstBuilder::genLoadArrayStackVarAddress(buf, InstBuilder::genIntNumInst(delay));
         DeclareVarInst* table_inst2 = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(typed, 0), address_value);
         pushComputeBlockMethod(table_inst2);
 

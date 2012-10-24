@@ -32,8 +32,8 @@ class WSSCodeContainer : public virtual CodeContainer {
    
         void moveCompute2ComputeThread();
 
-        void generateLocalInputs(BlockInst* loop_code);
-        void generateLocalOutputs(BlockInst* loop_code);
+        void generateLocalInputs(BlockInst* loop_code, const string& index_string);
+        void generateLocalOutputs(BlockInst* loop_code, const string& index_string);
 
         StatementInst* generateDAGLoopWSS(lclgraph dag);
         void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code);

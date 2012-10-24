@@ -1918,7 +1918,7 @@ struct InstBuilder
     {
         return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
     }
-
+  
     static StoreVarInst* genStoreStructVar(string vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
@@ -1990,9 +1990,9 @@ struct InstBuilder
     static LoadVarInst* genLoadArrayStackVar(string vname, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
-    }
-
-    static LoadVarAddressInst* genLoadArrayStackAddressVar(string vname, ValueInst* index)
+    }  
+      
+    static LoadVarAddressInst* genLoadArrayStackVarAddress(string vname, ValueInst* index)
     {
         return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
     }

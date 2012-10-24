@@ -173,8 +173,8 @@ class CodeContainer : public virtual Garbageable {
         void computeForwardDAG(lclgraph dag, int& loop_count, vector<int>& ready_loop);
         void sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
 
-        void generateLocalInputs(BlockInst* loop_code);
-        void generateLocalOutputs(BlockInst* loop_code);
+        void generateLocalInputs(BlockInst* loop_code, const string& index);
+        void generateLocalOutputs(BlockInst* loop_code, const string& index);
 
         DeclareFunInst* generateGetInputs(const string& name, bool isvirtual);
         DeclareFunInst* generateGetOutputs(const string& name, bool isvirtual);

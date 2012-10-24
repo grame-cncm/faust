@@ -106,8 +106,8 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
     // Generate local input/output access
-    generateLocalInputs(loop_code);
-    generateLocalOutputs(loop_code);
+    generateLocalInputs(loop_code, index);
+    generateLocalOutputs(loop_code, index);
 
     // Generate : int count = 32;
     DeclareVarInst* count_dec1 = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(gGlobal->gVecSize));
@@ -137,8 +137,8 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     BlockInst* then_block = InstBuilder::genBlockInst();
 
     // Generate local input/output access
-    generateLocalInputs(then_block);
-    generateLocalOutputs(then_block);
+    generateLocalInputs(then_block, index);
+    generateLocalOutputs(then_block, index);
 
     // Generate : int count = fullcount-index;
     DeclareVarInst* count_dec2 = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genBinopInst(kSub,
@@ -156,12 +156,13 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
 StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
 {
     string index = "index";
-
+    
+    
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
     // Generate local input/output access
-    generateLocalInputs(loop_code);
-    generateLocalOutputs(loop_code);
+    generateLocalInputs(loop_code, index);
+    generateLocalOutputs(loop_code, index);
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
