@@ -120,11 +120,6 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Function call creation
         list<ValueInst*> fArgsValueList;
         DropInst* fFunctionCall;
-        
-        bool findVar(const string& name)
-        {
-            return find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end();
-        }
 
         void createParameter(Address* address)
         {
@@ -135,10 +130,10 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                     string name = address->getName();
                     if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
 
-                        if (!findVar(name)) {  // First encounter
+                        if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
 
                             // Be sure variable is defined
-                            //cout << "createParameter kStack " << name << endl;
+                            //cerr << "createParameter kStack " << name << endl;
                             assert(DeclareVarInst::gVarTable.find(name) != DeclareVarInst::gVarTable.end());
 
                             // Local in the enclosing context, becomes a fun parameter
@@ -160,10 +155,10 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                 case Address::kFunArgs: {
                     string name = address->getName();
-                    if (!findVar(name)) {  // First encounter
+                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
 
                         // Be sure variable is defined
-                        //cout << "createParameter kFunArgs " << name << endl;
+                        cout << "createParameter kFunArgs " << name << endl;
                         assert(DeclareVarInst::gVarTable.find(name) != DeclareVarInst::gVarTable.end());
 
                         // Parameter in the enclosing function, becomes a fun parameter
@@ -179,9 +174,9 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                     break;
                 }
 
-                case Address::kGlobal:
                 case Address::kStruct:
                 case Address::kStaticStruct:
+                case Address::kGlobal:
                     // Nothing to do
                     break;
 
@@ -335,6 +330,7 @@ struct StackVariableRemover : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
             string name = inst->fAddress->getName();
+            
             if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
                 fLinkTable[name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
@@ -345,6 +341,7 @@ struct StackVariableRemover : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
             string name = inst->fAddress->getName();
+
             if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
                 fLinkTable[name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
@@ -479,6 +476,7 @@ struct SeqLoopBuilder : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
             string name = inst->fAddress->getName();
+
             if (name.find("output") != string::npos) {
                 string link_name = "link" + name.substr(strlen("output"), 0xFFFF);
                 fLinkTable[link_name] = inst->fValue;
@@ -501,6 +499,7 @@ struct SeqLoopBuilder : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
             string name = inst->fAddress->getName();
+            
             if (name.find("input") != string::npos) {
                 string link_name = "link" + name.substr(strlen("input"), 0xFFFF);
                 inst->fAddress->setAccess(Address::kLink);
@@ -687,7 +686,6 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     virtual StatementInst* visit(StoreVarInst* inst)
     {
         ValueInst* val1 = inst->fValue->clone(this);
-
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
         string name = inst->fAddress->getName();
