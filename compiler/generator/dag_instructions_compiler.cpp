@@ -50,7 +50,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             pushDeclare(InstBuilder::genDecStructVar(name1, type));
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
                 InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
-            pushDeclare(InstBuilder::genDecStructVar(name2, type));
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type));
         }
 
         // "output" and "outputs" used as a name convention
@@ -60,7 +60,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             pushDeclare(InstBuilder::genDecStructVar(name1, type));
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
                 InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
-            pushDeclare(InstBuilder::genDecStructVar(name2, type));
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type));
         }
     }
 
@@ -101,7 +101,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             // Cast to external float
             ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, getCurrentLoopIndex(), res));
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
 
             fContainer->closeLoop(sig);
         }
@@ -195,7 +195,7 @@ void DAGInstructionsCompiler::generateCodeRecursions(Tree sig)
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateCodeNonRec (Tree sig)
+ValueInst* DAGInstructionsCompiler::generateCodeNonRec(Tree sig)
 {
     ValueInst*  code;
     if (getCompiledExpression(sig, code)) {
@@ -277,7 +277,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
      } else {
         // "fInput" use as a name convention
         string name = subst("fInput$0", T(idx));
-        ValueInst* res = InstBuilder::genLoadArrayStructVar(name, getCurrentLoopIndex());
+        ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);

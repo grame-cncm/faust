@@ -185,9 +185,12 @@ class JAVAScriptInstVisitor : public InstVisitor {
         virtual void visit(RetInst* inst)
         {
             if (inst->fResult) {
-                *fOut << "return "; inst->fResult->accept(this); 
-                EndLine();
+                *fOut << "return ";
+                inst->fResult->accept(this); 
+            } else {
+                *fOut << "return";
             }
+            EndLine();
         }
 
         virtual void visit(DropInst* inst)

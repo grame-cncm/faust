@@ -85,9 +85,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
             if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
             
                 // For local thread access (in computeThread)
-                if (inst->fValue) {
-                    fContainer->fComputeThreadBlockInstructions->pushBackInst(inst->clone(&cloner));
-                }
+                fContainer->fComputeThreadBlockInstructions->pushBackInst(inst->clone(&cloner));
                 
                 // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
@@ -126,6 +124,14 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     // To move variable in "computeThread"
     Compute2ComputeThread mover2(this, "Vec");
     fComputeBlockInstructions->accept(&mover2);
+    
+    // To move variable in "computeThread"
+    Compute2ComputeThread mover3(this, "fInput");
+    fComputeBlockInstructions->accept(&mover3);
+    
+    // To move variable in "computeThread"
+    Compute2ComputeThread mover4(this, "fOutput");
+    fComputeBlockInstructions->accept(&mover4);
 
     // Remove marked variables from fComputeBlockInstructions
     RemoverCloneVisitor remover;
@@ -260,8 +266,9 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& i
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+        loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1,
                 InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+  
     }
 }
 
@@ -271,7 +278,7 @@ void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& 
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+        loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1,
                 InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 }
@@ -311,6 +318,9 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                                                 
   
     BlockInst* then_block = InstBuilder::genBlockInst();
+    BlockInst* else_block = InstBuilder::genBlockInst();
+    
+    else_block->pushBackInst(InstBuilder::genRetInst());
      
     // Generate input/output access
     generateLocalInputs(then_block, index);
@@ -318,7 +328,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
    
     // Generates init DAG and ready tasks activations
     generateDAGLoopWSSAux1(dag, then_block);
-    last_block->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
+    last_block->pushBackInst(InstBuilder::genIfInst(if_cond, then_block, else_block));
     
     // Generates tasknum
     last_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(0)));
