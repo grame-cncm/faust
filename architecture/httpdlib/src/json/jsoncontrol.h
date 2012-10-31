@@ -59,16 +59,13 @@ template <typename C> class jsoncontrol : public jsonnode
 		{
 			bool button = (fType == "button");
 			bool bargraph = (fType == "vbargraph") || (fType == "hbargraph");
-			const char * addrcomma = ",";
 
 			out << eol << "{"; eol++;
 			out << eol << "\"type\": \"" << fType << "\",";
 			out << eol << "\"label\": \"" << fName << "\",";
 			out << eol << "\"address\": \"" << getAddress() << "\"";
 			if (fMeta.size()) {
-				out << addrcomma << eol << "\"meta\": " << "[ "; eol++;
-				addrcomma = "";
-		//		for (TMetas::const_iterator i=fMeta.begin(); i!=fMeta.end();) {
+				out << "," << eol << "\"meta\": " << "[ "; eol++;
 				TMetas::const_iterator i=fMeta.begin();
 				while (true) {
 					out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
@@ -81,13 +78,12 @@ template <typename C> class jsoncontrol : public jsonnode
 			if (button) { out << --eol << "}"; return; }		// done for buttons
 
 			if (!bargraph) {
-				out << addrcomma << eol << "\"init\": \"" << fInit << "\",";
-				addrcomma = "";
+				out << "," << eol << "\"init\": \"" << fInit << "\"";
 			}
-			out << addrcomma << eol << "\"min\": \"" << fMin << "\",";
-			out << eol << "\"max\": \"" << fMax << "\",";
+			out << "," << eol << "\"min\": \"" << fMin << "\",";
+			out << eol << "\"max\": \"" << fMax << "\"";
 			if (!bargraph)
-				out << eol << "\"step\": \"" << fStep << "\"";
+				out << "," << eol << "\"step\": \"" << fStep << "\"";
 			out << --eol << "}";
 		}
 	
