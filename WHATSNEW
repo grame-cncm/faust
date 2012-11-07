@@ -1,6 +1,6 @@
 
 							================
-							| FAUST 0.9.54 |
+							| FAUST 0.9.58 |
 							================
 
 GRAME - Centre National de Creation Musicale - is happy to announce
@@ -28,7 +28,13 @@ The Faust distribution can be downloaded at:
 http://sourceforge.net/projects/faudiostream
 
 The GIT repository can be cloned with the following command :
-git clone git://faudiostream.git.sourceforge.net/gitroot/faudiostream/faudiostream faust
+git clone git://git.code.sf.net/p/faudiostream/code faust
+
+To compile faust :
+make httpd (only if you have GNU libmicrohttpd installed)
+make
+sudo make install
+
 
 Two mailing lists are available:
 https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
@@ -40,6 +46,21 @@ http://faust.grame.fr
 
 
 ======================== WHAT'S NEW ==============================
+
+------------
+HTTP       :
+------------
+A new -httpd option can be used to embbed a small web server to any Faust 
+application. This web server, based on GNU libmicrohttpd, allows to 
+remotely control the faust application using any HTML5 capable web browser.  
+
+The -httpd option can be used with the following scripts : faust2alqt, 
+faust2alsa, faust2caqt, faust2jack, faust2jackconsole, faust2jaqt, 
+faust2netjackqt. By default the resulting application will listen on 
+TCP port 5510. On the same machine the application can be controlled by 
+opening http://localhost:5510  
+
+
 ------------
 LV2        :
 ------------
@@ -48,14 +69,9 @@ and other Unix-like systems, successor of the LADSPA standard. The aim
 of this architecture is to provide an LV2 implementation which
 supports both audio (pure signal processing) and instrument (MIDI ->
 audio) plugins. Two scripts are provided faust2lv2 and
-faust2lv2plugin. The full faust-lv2 package by Albert Gräf is
+faust2lv2plugin. The full faust-lv2 package by Albert Gräf (U. of Mainz) is
 available here : http://code.google.com/p/faust-lv2/
 
-------------
-HTTP       :
-------------
-
-<< ... >>
 
 ------------
 iPad iPhone:
@@ -71,24 +87,25 @@ Once you have an application running on the device you can
 individually assign gyroscopes and compass to user interface widgets.
 If you keep your finger for 1 second on a slider, a popup window 
 appear allowing you to choose the sensor to use and control its
-sensibility.
+sensibility and direction.
+
 
 ------------
 Libraries  :
 ------------
-revised low/high shelf filters in filter.lib
-reduce start-up transients in examples by moving smooth to output of db2linear
-interpolate sawN delay in oscillator.lib / pulsetrainN
-extend filterbank (in filter.lib) down to two-band case; 
-revise proposal for FAUSTINC from environment variable; point to LAC-12 pap
-worked around compile failure in effect.lib for max when args not float; 
-added FAUST_LIB_PATH as last resort for FAUSTINC (such as w
-much revision for oscillator.lib, new virtual analog waveforms, new demonstration example
+Revised low/high shelf filters in filter.lib
+Reduce start-up transients in examples by moving smooth to output of db2linear
+Interpolate sawN delay in oscillator.lib / pulsetrainN
+Extend filterbank (in filter.lib) down to two-band case; 
+Much revision for oscillator.lib, new virtual analog waveforms, new 
+demonstration example. 
+The filter.lib, oscillator.lib and effect.lib are contributed by Julius 
+Smith (CCRMA/Stanford U.)
+
 
 -----------------
 New organisation:
 -----------------
-
 The architecture files are now more modular and the installation tree
 has been improved. Assuming Faust is installed with the default prefix
 '/usr/local' we now have  :
@@ -98,8 +115,8 @@ has been improved. Assuming Faust is installed with the default prefix
 - faust's libraries (*.lib) and
 - specific binary libraries (*.a) for OSC, HTTP, etc.
 
-'/usr/local/include/faust/' that contains all the *.h required by the various architecture
-files, organized in two main subfolders :
+'/usr/local/include/faust/' that contains all the *.h required by the 
+various architecture files, organized in two main subfolders :
 - 'gui/' contains all the user interface parts
 - 'audio/' contains all the audio driver parts
 
@@ -113,7 +130,6 @@ use a partial pathname starting with faust. For example
 ----------------
 Acknowledgments:
 ----------------
-
 Many persons have been contributing to the FAUST project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
@@ -125,9 +141,9 @@ Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu Leroi, Kjetil
 Matheussen, Hermann Meyer, Romain Michon, Remy Muller, Sampo
 Savolainen, Nicolas Scaringella, Stephen Sinclair, Travis Skare,
 Julius Smith, Michael Wilson, as well as my colleagues at GRAME, in
-particular : Dominique Fober, Stephane Letz and Karim Barkati, and
-from the ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi
-(IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
+particular : Dominique Fober, Stephane Letz, Olivier Guillerminet
+and Karim Barkati, and from the ASTREE project : Jerome Barthelemy (IRCAM), 
+Alain Bonardi (IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
 (Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 Yann Orlarey
