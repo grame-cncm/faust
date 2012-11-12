@@ -106,11 +106,11 @@ static bool         gDrawSVGSwitch 	= false;
 static bool         gPrintXMLSwitch = false;
 static bool         gPrintDocSwitch = false;
 static int          gBalancedSwitch = 0;
-static string       gArchFile;
+static const char*  gArchFile = 0;
 
 static int          gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
 static bool         gPrintFileListSwitch = false;
-static string       gOutputLang = "";
+static const char*  gOutputLang = 0;
 static bool         gLLVMOut = true;
 
 //-- command line tools
@@ -575,7 +575,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
 {
     // By default use "cpp" output
-    if (gOutputLang == "") {
+    if (!gOutputLang) {
         gOutputLang = "cpp";
     }
 
@@ -584,7 +584,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     startTiming("compilation");
 
-    if (gOutputLang == "llvm") {
+    if (strcmp(gOutputLang, "llvm") == 0) {
 
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
@@ -617,23 +617,23 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             dst = &cout;
         }
         
-        if (gOutputLang == "c") {
+        if (strcmp(gOutputLang, "c") == 0) {
 
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
-        } else if (gOutputLang == "cpp") {
+        } else if (strcmp(gOutputLang, "cpp") == 0) {
 
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
-        } else if (gOutputLang == "java") {
+        } else if (strcmp(gOutputLang, "java") == 0) {
 
             container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
             
-        } else if (gOutputLang == "js") {
+        } else if (strcmp(gOutputLang, "js") == 0) {
 
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
-        } else if (gOutputLang == "fir") {
+        } else if (strcmp(gOutputLang, "fir") == 0) {
         
             //cout << "FIR " << endl;
 
@@ -676,19 +676,19 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          ****************************************************************/
         ifstream* enrobage;
          
-        if (gArchFile != "") {
+        if (gArchFile) {
         
             // Keep current directory
             char current_directory[FAUST_PATH_MAX];
             getcwd(current_directory, FAUST_PATH_MAX);
             
-            if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
+            if ((enrobage = open_arch_stream(gArchFile))) {
                 
-                if (gOutputLang != "js") {
+                if (strcmp(gOutputLang, "js") != 0) {
                     printheader(*dst);
                 }
                 
-                if (gOutputLang == "c" || gOutputLang == "cpp") {
+                if ((strcmp(gOutputLang, "c") == 0) || (strcmp(gOutputLang, "cpp") == 0)) {
                     tab(0, *dst); *dst << "#ifndef  __" << gGlobal->gClassName << "_H__";
                     tab(0, *dst); *dst << "#define  __" << gGlobal->gClassName << "_H__" << std::endl;
                 }
@@ -704,11 +704,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     delete(thread_include);
                 }
 
-                if (gOutputLang != "java" && gOutputLang != "js") {
+                if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0)) {
                     printfloatdef(*dst, (gGlobal->gFloatSize == 3));
                 }
 
-                if (gOutputLang == "c") {
+                if (strcmp(gOutputLang, "c") == 0) {
                     *dst << "#include <stdlib.h>"<< std::endl;
                 }
 
@@ -722,7 +722,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                      delete(scheduler_include);
                 }
 
-                if (gOutputLang == "c" || gOutputLang == "cpp") {
+                if ((strcmp(gOutputLang, "c") == 0) || (strcmp(gOutputLang, "cpp") == 0)) {
                     tab(0, *dst); *dst << "#endif"<< std::endl;
                 }
                 
@@ -737,13 +737,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             
         } else {
-            if (gOutputLang != "js") {
+            if (strcmp(gOutputLang, "js") != 0) {
                 printheader(*dst);
             }
-            if (gOutputLang != "java" && gOutputLang != "js") {
+            if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0)) {
                 printfloatdef(*dst, (gGlobal->gFloatSize == 3));
             }
-            if (gOutputLang == "c") {
+            if (strcmp(gOutputLang, "c") == 0) {
                 *dst << "#include <stdlib.h>"<< std::endl;
             }
             container->produceClass();

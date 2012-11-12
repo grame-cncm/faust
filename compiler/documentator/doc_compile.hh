@@ -52,7 +52,6 @@ class DocCompiler : public virtual Garbageable
 	Lateq*			fLateq;
 	Description*	fDescription;
 
-	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
 	OccMarkup					fOccMarkup;
 	int							fPriority;	///< math priority context

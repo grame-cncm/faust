@@ -358,9 +358,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (gGlobalTable.find(inst->fAddress->getName()) == gGlobalTable.end()) {
+                    if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
                         // If global is not defined
-                        gGlobalTable[inst->fAddress->getName()] = 1;
+                        gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }
@@ -443,9 +443,9 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (gGlobalTable.find(inst->fAddress->getName()) == gGlobalTable.end()) {
+                    if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
                         // If global is not defined
-                        gGlobalTable[inst->fAddress->getName()] = 1;
+                        gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }

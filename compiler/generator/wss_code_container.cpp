@@ -49,9 +49,9 @@ void WSSCodeContainer::moveCompute2ComputeThread()
                 // Variable moved to the Struct
                 fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
 
-                // For local thread access (in computeThread), rewrite the Declare instruction by a Store
+                // For local access (in compute), rewrite the Declare instruction by a Store
                 if (inst->fValue) {
-                    fContainer->fComputeThreadBlockInstructions->pushBackInst(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                    fContainer->fComputeBlockInstructions->pushBackInst(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
                 }
                 
                 // Mark inst to be removed
@@ -140,7 +140,6 @@ void WSSCodeContainer::moveCompute2ComputeThread()
 
 void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code)
 {
- 
     // Last stage connected to end task
     if (dag[0].size() > 1) {
         list<ValueInst*> fun_args;
@@ -268,7 +267,6 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& i
         string name2 = subst("fInput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1,
                 InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
-  
     }
 }
 
@@ -328,7 +326,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
    
     // Generates init DAG and ready tasks activations
     generateDAGLoopWSSAux1(dag, then_block);
-    last_block->pushBackInst(InstBuilder::genIfInst(if_cond, then_block, else_block));
+    //last_block->pushBackInst(InstBuilder::genIfInst(if_cond, then_block, else_block));
+    last_block->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
     
     // Generates tasknum
     last_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(0)));

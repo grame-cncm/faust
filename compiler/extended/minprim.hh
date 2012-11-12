@@ -21,7 +21,7 @@
 
 #include "xtended.hh"
 #include "Text.hh"
-#include <math.h>vector<::Type>
+#include <math.h>
 #include "sigtyperules.hh"
 
 #include "floats.hh"

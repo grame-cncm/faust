@@ -22,7 +22,7 @@
 #include "xtended.hh"
 #include "Text.hh"
 #include <math.h>
-#include "sigtyperules.hh"vector<::Type>
+#include "sigtyperules.hh"
 
 #include "floats.hh"
 #include "code_container.hh"

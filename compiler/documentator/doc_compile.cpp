@@ -61,15 +61,13 @@ static const unsigned int MAX_SUB_EXPR		= 10;
 						getFreshID
 *****************************************************************************/
 
-map<string, int>	DocCompiler::fIDCounters;
-
 string DocCompiler::getFreshID(const string& prefix)
 {
-	if (fIDCounters.find(prefix) == fIDCounters.end()) {
-		fIDCounters[prefix] = 1;
+	if (gGlobal->gIDCounters.find(prefix) == gGlobal->gIDCounters.end()) {
+		gGlobal->gIDCounters[prefix] = 1;
 	}
-	int n = fIDCounters[prefix];
-	fIDCounters[prefix] = n+1;
+	int n = gGlobal->gIDCounters[prefix];
+	gGlobal->gIDCounters[prefix] = n+1;
 	
 	return subst("$0_{$1}", prefix, docT(n));
 }

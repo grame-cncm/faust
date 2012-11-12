@@ -88,12 +88,6 @@ using namespace std ;
 						Globals and prototyping
  *****************************************************************************/
 
-static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
-static string 					gCurrentDir;			///< Room to save current directory name.
-static const string				gLatexheaderfilename = "latexheader.tex";
-
-static struct tm				gCompilationDate;
-
 enum { langEN, langFR, langIT };
 
 /* Printing functions */
@@ -195,7 +189,7 @@ bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCMTD, x); 	}
  */
 void printDoc(const char* projname, const char* docdev, const char* faustversion)
 {
-	gDocDevSuffix = docdev;
+	gGlobal->gDocDevSuffix = docdev;
 	
 	/** File stuff : create doc directories and a tex file. */
 	//cerr << "Documentator : printDoc : gGlobal->gFaustDirectory = '" << gGlobal->gFaustDirectory << "'" << endl;
@@ -233,7 +227,7 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	
 	/** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
 	printfaustdocstamp(faustversion, docout);						///< Faust version and compilation date (comment).
-	istream* latexheader = openArchFile(gLatexheaderfilename);
+	istream* latexheader = openArchFile(gGlobal->gLatexheaderfilename);
 	printlatexheader(*latexheader, faustversion, docout);                               ///< Static LaTeX header (packages and setup).
 	printdoccontent(svgTopDir.c_str(), gGlobal->gDocVector, faustversion, docout);		///< Generate math contents (main stuff!).
 	printlatexfooter(docout);                                                           ///< Static LaTeX footer.
@@ -919,9 +913,9 @@ static bool doesFileBeginWithCode(const string& faustfile)
 static int makedir(const char* dirname)
 {
 	char	buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
+	gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
 	
-	if (gCurrentDir.c_str() != 0) {
+	if (gGlobal->gCurrentDir.c_str() != 0) {
 		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			return 0;
@@ -942,9 +936,9 @@ static int makedir(const char* dirname)
 static int mkchdir(const char* dirname)
 {
 	char buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
+	gGlobal->gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 
-	if (gCurrentDir.c_str() != 0) {
+	if (gGlobal->gCurrentDir.c_str() != 0) {
 		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			if (chdir(dirname) == 0) {
@@ -962,7 +956,7 @@ static int mkchdir(const char* dirname)
  */
 static int cholddir ()
 {
-	if (chdir(gCurrentDir.c_str()) == 0) {
+	if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
 		return 0;
 	} else {
         stringstream error;
@@ -977,7 +971,7 @@ static int cholddir ()
 static void getCurrentDir ()
 {
 	char buffer[FAUST_PATH_MAX];
-    gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
+    gGlobal->gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 }
 
 /**
@@ -1082,12 +1076,12 @@ static void initCompilationDate()
 	time_t now;
 	
 	time(&now);
-	gCompilationDate = *localtime(&now);
+	gGlobal->gCompilationDate = *localtime(&now);
 }
 
 static struct tm* getCompilationDate()
 {
 	initCompilationDate();
-	return &gCompilationDate;
+	return &gGlobal->gCompilationDate;
 }
 

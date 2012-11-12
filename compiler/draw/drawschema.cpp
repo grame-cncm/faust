@@ -123,16 +123,6 @@
 
 using namespace std;
 
-// internal state during drawing
-static Occurrences* 	gOccurrences;
-static bool				sFoldingFlag;		// true with complex block-diagrams
-static stack<Tree>		gPendingExp;		// Expressions that need to be drawn
-static set<Tree>		gDrawnExp;			// Expressions drawn or scheduled so far
-static const char* 		gDevSuffix;			// .svg or .ps used to choose output device
-static char 			gCurrentDir[512];	// room to save current directory name
-static string			gSchemaFileName;	// name of schema file beeing generated
-static map<Tree,string>	gBackLink;			// link to enclosing file for sub schema
-
 // prototypes of internal functions
 static void 	writeSchemaFile(Tree bd);
 static schema* 	generateDiagramSchema (Tree bd);
@@ -150,9 +140,6 @@ static int 		mkchdir(const char* dirname);
 static schema*  addSchemaInputs(int ins, schema* x);
 static schema*  addSchemaOutputs(int outs, schema* x);
 
-
-
-
 /**
  *The entry point to generate from a block diagram as a set of
  *svg files stored in the directory "<projname>-svg/" or
@@ -160,8 +147,8 @@ static schema*  addSchemaOutputs(int outs, schema* x);
  */
 void drawSchema(Tree bd, const char* projname, const char* dev)
 {
-	gDevSuffix 		= dev;
-	sFoldingFlag 	= boxComplexity(bd) > gGlobal->gFoldThreshold;
+	gGlobal->gDevSuffix 		= dev;
+	gGlobal->gFoldingFlag 	= boxComplexity(bd) > gGlobal->gFoldThreshold;
    
 	mkchdir(projname); 			// create a directory to store files
 
@@ -189,10 +176,10 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
  */
 static void scheduleDrawing(Tree t)
 {
-	if (gDrawnExp.find(t) == gDrawnExp.end()) {
-		gDrawnExp.insert(t);
-		gBackLink.insert(make_pair(t,gSchemaFileName));	// remember the enclosing filename
-		gPendingExp.push(t);
+	if (gGlobal->gDrawnExp.find(t) == gGlobal->gDrawnExp.end()) {
+		gGlobal->gDrawnExp.insert(t);
+		gGlobal->gBackLink.insert(make_pair(t,gGlobal->gSchemaFileName));	// remember the enclosing filename
+		gGlobal->gPendingExp.push(t);
 	}
 }
 
@@ -201,13 +188,11 @@ static void scheduleDrawing(Tree t)
  */
 static bool pendingDrawing(Tree& t)
 {
-	if (gPendingExp.empty()) return false;
-	t = gPendingExp.top();
-	gPendingExp.pop();
+	if (gGlobal->gPendingExp.empty()) return false;
+	t = gGlobal->gPendingExp.top();
+	gGlobal->gPendingExp.pop();
 	return true;
 }
-
-
 
 //------------------------ dealing with files -------------------------
 
@@ -224,7 +209,7 @@ static void writeSchemaFile(Tree bd)
 
 	char 			temp[1024];
 
-	gOccurrences = new Occurrences(bd);
+	gGlobal->gOccurrences = new Occurrences(bd);
     getBoxType (bd, &ins, &outs);
 
 	bool hasname = getDefNameProperty(bd, id); 
@@ -236,15 +221,15 @@ static void writeSchemaFile(Tree bd)
 	}
 
 	// generate legal file name for the schema
-	stringstream s1; s1 << legalFileName(bd, 1024, temp) << "." << gDevSuffix;
-	gSchemaFileName = s1.str();
+	stringstream s1; s1 << legalFileName(bd, 1024, temp) << "." << gGlobal->gDevSuffix;
+	gGlobal->gSchemaFileName = s1.str();
 
 	// generate the label of the schema
 	stringstream s2; s2 << tree2str(id);
-	string link = gBackLink[bd];
+	string link = gGlobal->gBackLink[bd];
     ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, s2.str(), link);
 	// draw to the device defined by gDevSuffix
-	if (strcmp(gDevSuffix, "svg") == 0) {
+	if (strcmp(gGlobal->gDevSuffix, "svg") == 0) {
 		SVGDev dev(s1.str().c_str(), ts->width(), ts->height());
 		ts->place(0,0, kLeftRight);
 		ts->draw(dev);
@@ -261,6 +246,16 @@ static void writeSchemaFile(Tree bd)
 	}
 }
 
+/**
+ * Get current directory and store it in gCurrentDir.
+ */
+static bool getCurrentDir()
+{
+	char buffer[FAUST_PATH_MAX];
+    char* res = getcwd (buffer, FAUST_PATH_MAX);
+    gGlobal->gCurrentDir = res;
+    return (res != 0);
+}
 
 
 /**
@@ -270,7 +265,7 @@ static void writeSchemaFile(Tree bd)
 static int mkchdir(const char* dirname)
 {
 	//cerr << "mkchdir of " << dirname << endl;
-	if (getcwd(gCurrentDir, 512) != 0) {
+	if (getCurrentDir()) {
 		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			if (chdir(dirname) == 0) {
@@ -289,7 +284,7 @@ static int mkchdir(const char* dirname)
  */
 static int cholddir ()
 {
-	if (chdir(gCurrentDir) == 0) {
+	if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
 		return 0;
 	} else {
         stringstream error;
@@ -404,13 +399,13 @@ static schema* generateDiagramSchema(Tree t)
 		//cerr << t << "\tNAMED : " << s.str() << endl;
 	}
 
-	if ( sFoldingFlag && /*(gOccurrences->getCount(t) > 0) &&*/
+	if (gGlobal->gFoldingFlag && /*(gOccurrences->getCount(t) > 0) &&*/
 			(boxComplexity(t) > 2) && getDefNameProperty(t, id)) {
 		char 	temp[1024];
 		getBoxType(t, &ins, &outs);
 		stringstream s, l;
 		s << tree2str(id);
-		l << legalFileName(t,1024,temp) << "." << gDevSuffix;
+		l << legalFileName(t,1024,temp) << "." << gGlobal->gDevSuffix;
 		scheduleDrawing(t);
 		return makeBlockSchema(ins, outs, s.str(), linkcolor, l.str());
 

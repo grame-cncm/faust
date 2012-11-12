@@ -28,8 +28,6 @@
 
 using namespace std;
 
-map <string, int> CPPInstVisitor::gGlobalTable;
-
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);

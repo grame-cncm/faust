@@ -28,8 +28,6 @@
 
 using namespace std;
 
-map <string, int> CInstVisitor::gGlobalTable;
-
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
@@ -131,8 +129,9 @@ void CCodeContainer::produceClass()
     int n = 0;
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    if (!fGeneratedSR)
+    if (!fGeneratedSR) {
         pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    }
     pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     // Libraries

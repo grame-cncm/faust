@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OCCURENCES__
-#define __OCCURENCES__
+#ifndef __OCCURRENCES__
+#define __OCCURRENCES__
 
 #include "tlib.hh"
 #include "garbageable.hh"

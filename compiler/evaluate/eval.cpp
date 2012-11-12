@@ -227,7 +227,6 @@ bool getArgName(Tree t, Tree& id)
  * @param localValEnv the local environment
  * @return a block diagram in normal form
  */
-static loopDetector LD(1024, 512);
 
 /**
  * set the value of box in the environment env

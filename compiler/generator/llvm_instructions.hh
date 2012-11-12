@@ -2036,11 +2036,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Create blocks for the then and else cases.  Insert the 'then' block at the end of the function
             BasicBlock* then_block = BasicBlock::Create(getGlobalContext(), "then_code", function);
             BasicBlock* else_block = BasicBlock::Create(getGlobalContext(), "else_code");
-            BasicBlock* merge_block = BasicBlock::Create(getGlobalContext(), "ifcont");
+            BasicBlock* merge_block = BasicBlock::Create(getGlobalContext(), "if_end_code");
 
             fBuilder->CreateCondBr(cond_value, then_block, else_block);
 
-            // Emit then value.
+            // Emit then block
             fBuilder->SetInsertPoint(then_block);
 
             // Compile then branch, result in fCurValue
@@ -2051,7 +2051,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Codegen of 'Then' can change the current block, update then_block for the PHI
             then_block = fBuilder->GetInsertBlock();
 
-            // Emit else block.
+            // Emit else block
             function->getBasicBlockList().push_back(else_block);
             fBuilder->SetInsertPoint(else_block);
 

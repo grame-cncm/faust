@@ -45,8 +45,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        static map <string, int> gGlobalTable;
-
+ 
     public:
 
         FIRInstVisitor(std::ostream* out, int tab = 0)
@@ -295,7 +294,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobalTable.find(inst->fName) != gGlobalTable.end())
+            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end())
                 return;  // already declared
 
             // Defined as macro in the architecture file...
@@ -327,7 +326,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                     tab(fTab, *fOut);
             }
 
-            gGlobalTable[inst->fName] = 1;
+            gGlobal->gGlobalTable[inst->fName] = 1;
         }
 
         virtual void visit(IndexedAddress* indexed)

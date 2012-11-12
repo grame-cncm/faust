@@ -38,6 +38,7 @@ using namespace std;
 #include <string.h>
 
 #include "instructions.hh"
+#include "global.hh"
 
 /*
     void compute(int count, float** inputs, float** ouputs)
@@ -134,11 +135,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                             // Be sure variable is defined
                             //cerr << "createParameter kStack " << name << endl;
-                            assert(DeclareVarInst::gVarTable.find(name) != DeclareVarInst::gVarTable.end());
+                            assert(gGlobal->gVarTable.find(name) != gGlobal->gVarTable.end());
 
                             // Local in the enclosing context, becomes a fun parameter
                             BasicCloneVisitor cloner;
-                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, DeclareVarInst::gVarTable[name]->clone(&cloner)));
+                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTable[name]->clone(&cloner)));
 
                             // It becomes a value in the fun-call argument list
                             fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
@@ -159,11 +160,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Be sure variable is defined
                         cout << "createParameter kFunArgs " << name << endl;
-                        assert(DeclareVarInst::gVarTable.find(name) != DeclareVarInst::gVarTable.end());
+                        assert(gGlobal->gVarTable.find(name) != gGlobal->gVarTable.end());
 
                         // Parameter in the enclosing function, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, DeclareVarInst::gVarTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                         fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
@@ -241,6 +242,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
             // Put loop in new function
             LoopCloneVisitor cloner(fAddedVarTable);
             BlockInst* function_code = dynamic_cast<BlockInst*>(block->clone(&cloner));
+            //BlockInst* function_code = InstBuilder::genBlockInst();
 
             // Add a Ret (void) instruction
             function_code->pushBackInst(InstBuilder::genRetInst());

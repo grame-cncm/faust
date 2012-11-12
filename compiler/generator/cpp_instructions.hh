@@ -33,6 +33,7 @@ using namespace std;
 #include "type_manager.hh"
 #include "binop.hh"
 #include "Text.hh"
+#include "global.hh"
 
 #include <iostream>
 #include <sstream>
@@ -51,8 +52,6 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             fout << '\n';
             while (n--) fout << '\t';
         }
-
-        static map <string, int> gGlobalTable;
 
     public:
 
@@ -159,9 +158,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DeclareVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobalTable.find(inst->fAddress->getName()) == gGlobalTable.end()) {
+                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
                     // If global is not defined
-                    gGlobalTable[inst->fAddress->getName()] = 1;
+                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
                 } else {
                     return;
                 }
@@ -205,7 +204,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobalTable.find(inst->fName) != gGlobalTable.end())
+            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end())
                 return;  // Already declared
 
             // Defined as macro in the architecture file...
@@ -249,8 +248,8 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << "}";
                 tab1(fTab, *fOut);
             }
-
-            gGlobalTable[inst->fName] = 1;
+            
+            gGlobal->gGlobalTable[inst->fName] = 1;
         }
 
         virtual void visit(IndexedAddress* indexed)
@@ -575,8 +574,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             fCurValue = inst->fAddress->getName();
             //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
             // Keep type
-            assert(DeclareVarInst::gVarTable.find(inst->fAddress->getName()) != DeclareVarInst::gVarTable.end());
-            fCurType = DeclareVarInst::gVarTable[inst->fAddress->getName()]->getType();
+            assert(gGlobal->gVarTable.find(inst->fAddress->getName()) != gGlobal->gVarTable.end());
+            fCurType = gGlobal->gVarTable[inst->fAddress->getName()]->getType();
         }
 
         virtual void visit(FloatNumInst* inst)
@@ -858,8 +857,8 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             // Struct type access
-            if (DeclareVarInst::gVarTable.find(indexed->getName()) != DeclareVarInst::gVarTable.end()) {
-                Typed* var_type = DeclareVarInst::gVarTable[indexed->getName()];
+            if (gGlobal->gVarTable.find(indexed->getName()) != gGlobal->gVarTable.end()) {
+                Typed* var_type = gGlobal->gVarTable[indexed->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
                 assert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);

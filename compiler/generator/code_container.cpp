@@ -32,12 +32,6 @@
 
 using namespace std;
 
-// Basic type creation
-map<Typed::VarType, BasicTyped*> BasicTyped::gTypeTable;
-
-// Table of all declared variables during one evaluation
-map<string, Typed*> DeclareVarInst::gVarTable;
-
 void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
 {
     fNumInputs = numInputs;

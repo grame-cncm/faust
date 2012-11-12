@@ -24,8 +24,6 @@
 
 using namespace std;
 
-map <string, int> FIRInstVisitor::gGlobalTable;
-
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new FirScalarCodeContainer(0, 1, sub_container_type, false);

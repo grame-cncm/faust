@@ -23,44 +23,85 @@
 #include "sigtype.hh"
 #include "global.hh"
 #include "floats.hh"
+#include "global.hh"
 
-map<Typed::VarType, int> Typed::gTypeSizeMap;
+void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
+void DeclareVarInst::cleanup() { gGlobal->gVarTable.clear(); }
 
-void BasicTyped::cleanup() { gTypeTable.clear(); }
-void DeclareVarInst::cleanup() { gVarTable.clear(); }
+
+DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
+    :fAddress(address), fType(typed), fValue(value)
+{
+    if (gGlobal->gVarTable.find(fAddress->getName()) == gGlobal->gVarTable.end()) {
+        gGlobal->gVarTable[fAddress->getName()] = typed;
+    }
+}
+
+DeclareVarInst::~DeclareVarInst()
+{
+    gGlobal->gVarTable.erase(fAddress->getName());
+}
+
+BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
+{
+    BasicTyped* result;
+    if (gGlobal->gTypeTable.find(type) != gGlobal->gTypeTable.end()) {
+        result = gGlobal->gTypeTable[type]; // Already allocated
+    } else {
+        result = new BasicTyped(type);
+        gGlobal->gTypeTable[type] = result;
+    }
+    return result;
+}
+
+int BasicTyped::getSize() { return gGlobal->gTypeSizeMap[fType]; }
+
+int FunTyped::getSize() { return gGlobal->gTypeSizeMap[Typed::kVoid_ptr]; }
+
+int ArrayTyped::getSize() 
+{ 
+    if (fSize == 0) {
+        // Array of zero size are treated as pointer in the corresponding type
+        return gGlobal->gTypeSizeMap[getType()];
+    } else {
+        return fType->getSize() * fSize; 
+    }
+}
+
+Typed* BasicCloneVisitor::visit(BasicTyped* typed) { return gGlobal->gTypeTable[typed->fType]; }
 
 void Typed::init()
 {
-    gTypeSizeMap.clear();
+    gGlobal->gTypeSizeMap.clear();
     
-    gTypeSizeMap[Typed::kFloat] = gGlobal->gMachineFloatSize;
-    gTypeSizeMap[Typed::kFloat_ptr] = gGlobal->gMachinePtrSize;
-    gTypeSizeMap[Typed::kFloat_vec] = gGlobal->gMachineFloatSize * gGlobal->gVecSize;
-    gTypeSizeMap[Typed::kFloat_vec_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kFloat] = gGlobal->gMachineFloatSize;
+    gGlobal->gTypeSizeMap[Typed::kFloat_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kFloat_vec] = gGlobal->gMachineFloatSize * gGlobal->gVecSize;
+    gGlobal->gTypeSizeMap[Typed::kFloat_vec_ptr] = gGlobal->gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kInt] = gGlobal->gMachineIntSize;
-    gTypeSizeMap[Typed::kInt_ptr] = gGlobal->gMachinePtrSize;
-    gTypeSizeMap[Typed::kInt_vec] = gGlobal->gMachineIntSize * gGlobal->gVecSize;
-    gTypeSizeMap[Typed::kInt_vec_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kInt] = gGlobal->gMachineIntSize;
+    gGlobal->gTypeSizeMap[Typed::kInt_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kInt_vec] = gGlobal->gMachineIntSize * gGlobal->gVecSize;
+    gGlobal->gTypeSizeMap[Typed::kInt_vec_ptr] = gGlobal->gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kDouble] = gGlobal->gMachineDoubleSize;
-    gTypeSizeMap[Typed::kDouble_ptr] = gGlobal->gMachinePtrSize;
-    gTypeSizeMap[Typed::kDouble_vec] = gGlobal->gMachineDoubleSize * gGlobal->gVecSize;
-    gTypeSizeMap[Typed::kDouble_vec_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kDouble] = gGlobal->gMachineDoubleSize;
+    gGlobal->gTypeSizeMap[Typed::kDouble_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kDouble_vec] = gGlobal->gMachineDoubleSize * gGlobal->gVecSize;
+    gGlobal->gTypeSizeMap[Typed::kDouble_vec_ptr] = gGlobal->gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kBool] = gGlobal->gMachineBoolSize;
-    gTypeSizeMap[Typed::kBool_ptr] = gGlobal->gMachinePtrSize;
-    gTypeSizeMap[Typed::kBool_vec] = gGlobal->gMachineBoolSize * gGlobal->gVecSize;
-    gTypeSizeMap[Typed::kBool_vec_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kBool] = gGlobal->gMachineBoolSize;
+    gGlobal->gTypeSizeMap[Typed::kBool_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kBool_vec] = gGlobal->gMachineBoolSize * gGlobal->gVecSize;
+    gGlobal->gTypeSizeMap[Typed::kBool_vec_ptr] = gGlobal->gMachinePtrSize;
 
     // Takes the type of internal real
-    gTypeSizeMap[Typed::kFloatMacro] = gTypeSizeMap[itfloat()];
-    gTypeSizeMap[Typed::kFloatMacro_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kFloatMacro] = gGlobal->gTypeSizeMap[itfloat()];
+    gGlobal->gTypeSizeMap[Typed::kFloatMacro_ptr] = gGlobal->gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kVoid_ptr] = gGlobal->gMachinePtrSize;
-    gTypeSizeMap[Typed::kVoid_ptr_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kVoid_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kVoid_ptr_ptr] = gGlobal->gMachinePtrSize;
     
-    gTypeSizeMap[Typed::kObj_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kObj_ptr] = gGlobal->gMachinePtrSize;
 }
 
 bool BlockInst::hasReturn()

@@ -22,8 +22,6 @@
 #ifndef _INSTRUCTIONS_H
 #define _INSTRUCTIONS_H
 
-using namespace std;
-
 #include <string>
 #include <list>
 #include <set>
@@ -302,8 +300,6 @@ struct Typed : public Printable
                 kQuad, kQuad_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
                 kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr};
-                
-    static map<Typed::VarType, int> gTypeSizeMap;
     
     static void init();
 
@@ -432,8 +428,6 @@ struct Typed : public Printable
 struct BasicTyped : public Typed {
 
     VarType fType;
-
-    static map<VarType, BasicTyped*> gTypeTable;
     
     static void cleanup();
 
@@ -443,7 +437,7 @@ struct BasicTyped : public Typed {
 
     VarType getType() { return fType; }
     
-    int getSize() { return gTypeSizeMap[fType]; }
+    int getSize(); // moved in "instructions.cpp"
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -487,7 +481,7 @@ struct FunTyped : public Typed {
 
     VarType getType() { assert(false); return fResult->getType(); }
     
-    int getSize() { return gTypeSizeMap[Typed::kVoid_ptr]; }
+    int getSize(); // moved in "instructions.cpp"
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -507,16 +501,8 @@ struct ArrayTyped : public Typed {
 
     VarType getType() { return getPtrFromType(fType->getType()); }
     
-    int getSize() 
-    { 
-        if (fSize == 0) {
-            // Array of zero size are treated as pointer in the corresponding type
-            return gTypeSizeMap[getType()];
-        } else {
-            return fType->getSize() * fSize; 
-        }
-    }
-
+    int getSize(); // moved in "instructions.cpp"
+  
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -803,23 +789,12 @@ struct DeclareVarInst : public StatementInst
     Typed* fType;
     ValueInst* fValue;
     
-    static map<string, Typed*> gVarTable;
-    
     static void cleanup();
 
-    DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
-        :fAddress(address), fType(typed), fValue(value)
-    {
-        if (gVarTable.find(fAddress->getName()) == gVarTable.end()) {
-            gVarTable[fAddress->getName()] = typed;
-        }
-    }
-
-    virtual ~DeclareVarInst()
-    {
-        gVarTable.erase(fAddress->getName());
-    }
-
+    DeclareVarInst(Address* address, Typed* typed, ValueInst* value);
+ 
+    virtual ~DeclareVarInst();
+ 
     void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
     Address::AccessType getAccess() { return fAddress->getAccess(); }
 
@@ -1365,7 +1340,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
         // Typed
-        virtual Typed* visit(BasicTyped* typed) { return typed->gTypeTable[typed->fType]; }
+        virtual Typed* visit(BasicTyped* typed); // moved in instructions.cpp
         virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
         virtual Typed* visit(FunTyped* typed)
         {
@@ -1816,18 +1791,8 @@ struct InstBuilder
         { return new BlockInst(); }
 
     // Types
-    static BasicTyped* genBasicTyped(Typed::VarType type)
-    {
-        BasicTyped* result;
-        if (BasicTyped::gTypeTable.find(type) != BasicTyped::gTypeTable.end()) {
-            result = BasicTyped::gTypeTable[type]; // Already allocated
-        } else {
-            result = new BasicTyped(type);
-            BasicTyped::gTypeTable[type] = result;
-        }
-        return result;
-    }
-
+    static BasicTyped* genBasicTyped(Typed::VarType type); // moved in instructions.cpp
+ 
     static NamedTyped* genNamedTyped(const string& name, Typed* type) { return new NamedTyped(name, type); }
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType  type) { return new NamedTyped(name, new BasicTyped(type)); }
 

@@ -38,8 +38,6 @@
 #include "exception.hh"
 #include "global.hh"
 
-static const string	gDocTextsDefaultFile = "mathdoctexts-default.txt";
-
 static void			importDocStrings(const string& filename);
 static void			getKey(string& s, string& key, size_t& pt1);
 static void			getText(string& s, size_t& pt1, string& text);
@@ -50,8 +48,6 @@ static void			printStringMapContent(map<string,string>& map, const string& name)
 static istream*		openArchFile (const string& filename);
 static void			getCurrentDir();
 static int			cholddir();
-
-static string 		gCurrentDir;	///< Room to save current directory name.
 
 /*****************************************************************************
 							Public functions
@@ -65,7 +61,7 @@ void loadTranslationFile(const string& lang)
 	initDocMetadatas();
 	
 	/** First ensure that the default file is loaded a least. */
-	importDocStrings(gDocTextsDefaultFile);
+	importDocStrings(gGlobal->gDocTextsDefaultFile);
 	
 	/** Then try and load the target file. */
 	if ( ! lang.empty() ) {
@@ -213,7 +209,7 @@ static istream* openArchFile (const string& filename)
  */
 static int cholddir ()
 {
-	if (chdir(gCurrentDir.c_str()) == 0) {
+	if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
 		return 0;
 	} else {
         stringstream error;
@@ -228,7 +224,7 @@ static int cholddir ()
 static void getCurrentDir ()
 {
 	char	buffer[FAUST_PATH_MAX];
-    gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
+    gGlobal->gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 }
 
 

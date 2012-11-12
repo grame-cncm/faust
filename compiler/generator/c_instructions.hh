@@ -45,8 +45,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        static map <string, int> gGlobalTable;
-
+   
     public:
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
@@ -154,9 +153,9 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DeclareVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobalTable.find(inst->fAddress->getName()) == gGlobalTable.end()) {
+                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
                     // If global is not defined
-                    gGlobalTable[inst->fAddress->getName()] = 1;
+                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
                 } else {
                     return;
                 }
@@ -199,7 +198,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobalTable.find(inst->fName) != gGlobalTable.end())
+            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end())
                 return;  // already declared
 
             // Defined as macro in the architecture file...
@@ -237,7 +236,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 tab(fTab, *fOut);
             }
 
-            gGlobalTable[inst->fName] = 1;
+            gGlobal->gGlobalTable[inst->fName] = 1;
         }
 
         virtual void visit(LoadVarInst* inst)

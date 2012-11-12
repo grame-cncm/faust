@@ -38,6 +38,8 @@
 #include "property.hh"
 #include "sigtype.hh"
 #include "loopDetector.hh"
+#include "occurrences.hh"
+#include "instructions.hh"
 
 class 	CTree;
 typedef CTree* Tree;
@@ -47,6 +49,8 @@ typedef Symbol* Sym;
 
 class xtended;
 class AudioType;
+
+class Garbageable;
 
 struct global {
 
@@ -347,7 +351,40 @@ struct global {
     int gMachinePtrSize;
     
     int gMachineMaxStackSize;
-  
+    
+    const char* 	gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
+    string 			gCurrentDir;			///< Room to save current directory name.
+    string          gLatexheaderfilename;
+
+    struct tm		gCompilationDate;
+    
+    map<string, int>    gIDCounters;
+
+    string        gDocTextsDefaultFile;
+
+    // internal state during drawing
+    Occurrences* 	gOccurrences;
+    bool			gFoldingFlag;		// true with complex block-diagrams
+    stack<Tree>		gPendingExp;		// Expressions that need to be drawn
+    set<Tree>		gDrawnExp;			// Expressions drawn or scheduled so far
+    const char* 	gDevSuffix;			// .svg or .ps used to choose output device
+    string			gSchemaFileName;	// name of schema file beeing generated
+    map<Tree, string>    gBackLink;		// link to enclosing file for sub schema
+    
+    // FIR 
+    map<Typed::VarType, BasicTyped*> gTypeTable;
+    map<string, Typed*> gVarTable;
+    map<Typed::VarType, int> gTypeSizeMap;
+    map <string, int> gGlobalTable;
+    
+    // colorize
+    map<Tree, int> gColorMap;
+	int gNextFreeColor;
+   
+    // GC
+    static list<Garbageable*> gObjectTable;
+    static bool gObjectCleanup;
+    
     global();
     ~global();
     

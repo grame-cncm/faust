@@ -22,7 +22,7 @@
 #include "xtended.hh"
 #include "compatibility.hh"
 #include "Text.hh"
-#include <math.h>vector<::Type>
+#include <math.h>
 
 #include "floats.hh"
 #include "code_container.hh"

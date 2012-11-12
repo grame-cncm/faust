@@ -59,15 +59,13 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
 						getFreshID
 *****************************************************************************/
 
-map<string, int> InstructionsCompiler::fIDCounters;
-
 string InstructionsCompiler::getFreshID(const string& prefix)
 {
-	if (fIDCounters.find(prefix) == fIDCounters.end()) {
-		fIDCounters[prefix] = 0;
+	if (gGlobal->gIDCounters.find(prefix) == gGlobal->gIDCounters.end()) {
+		gGlobal->gIDCounters[prefix] = 0;
 	}
-	int n = fIDCounters[prefix];
-	fIDCounters[prefix] = n+1;
+	int n = gGlobal->gIDCounters[prefix];
+	gGlobal->gIDCounters[prefix] = n+1;
 	return subst("$0$1", prefix, T(n));
 }
 

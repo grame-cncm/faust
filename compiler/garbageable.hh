@@ -39,10 +39,7 @@ class Garbageable {
         void operator delete[](void* ptr);
         
         static void cleanup();
-        
-        static std::list<Garbageable*> gObjectTable;
-        static bool gCleanup;
- 
+   
 };
 
 template<class P> class GarbageablePtr : public virtual Garbageable
