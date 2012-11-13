@@ -1,4 +1,4 @@
-version := 2.0.a4
+version := 2.0.a5
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -109,6 +109,6 @@ dist :
 
 
 log :
-	cvs2cl --fsf
-
+	git log --oneline --date-order --reverse --after={2011-01-07} master >log-$(version)
+	
 # DO NOT DELETE

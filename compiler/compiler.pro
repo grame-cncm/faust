@@ -8,7 +8,7 @@ TARGET = faust
 OBJECTS_DIR = binaries
 QT -= core \
     gui
-VERSION = -0.9.10.1
+VERSION = -0.9.58
 QMAKE_CXXFLAGS_WARN_ON += -Wno-parentheses \
     -Wno-unused-parameter
 DEPENDPATH += . \

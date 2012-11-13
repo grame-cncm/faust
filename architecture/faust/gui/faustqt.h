@@ -1338,7 +1338,7 @@ class QTGUI : public QObject, public GUI
 
   public:
 
-	QTGUI(int argc, char* argv[], QStyle* style = 0) : fAppl(argc, argv), fTimer(0), fStyle(style){
+	QTGUI(int& argc, char* argv[], QStyle* style = 0) : fAppl(argc, argv), fTimer(0), fStyle(style){
         //fGroupStack.push(new QMainWindow());
     }
 

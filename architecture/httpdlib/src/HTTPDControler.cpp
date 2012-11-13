@@ -190,7 +190,7 @@ void HTTPDControler::run ()
 
 			stringstream strhtml;
 			fHtml->root().setPort (fTCPPort);
-			fHtml->root().print(strhtml);
+			fHtml->root().print(strhtml, strjson.str());
 			if (rootnode) rootnode->setHtml (strhtml.str());
 			// and outputs a message
 			cout << "Faust httpd server version " << version() <<  " is running on UDP ports " << fTCPPort << endl;

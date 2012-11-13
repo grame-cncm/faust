@@ -49,6 +49,7 @@ class htmlpage : public std::stringstream
 				 htmlpage(const char *name, const char* address, int port);
 		virtual ~htmlpage() {}
 		
+		void	print(std::ostream& out, std::string s) const;
 		void	print(std::ostream& out) const;
 		void	setPort (int port)					{ fPort = port; }
 		void	setRoot (const std::string& root)	{ fRoot = root; }
