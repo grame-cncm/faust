@@ -1001,12 +1001,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             string name;
             switch (inst->fType) {
-                case AddSliderInst::kHorizontal:
+                case AddSliderInst::kHorizontal: {
                     name = "addHorizontalSlider"; break;
-                case AddSliderInst::kVertical:
+                }
+                case AddSliderInst::kVertical: {
                     name = "addVerticalSlider"; break;
-                case AddSliderInst::kNumEntry:
+                }
+                case AddSliderInst::kNumEntry: {
                     name = "addNumEntry"; break;
+                }
             }
             addGenericSlider(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, name);
         }
@@ -1048,10 +1051,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             string name;
             switch (inst->fType) {
-                case AddBargraphInst::kHorizontal:
+                case AddBargraphInst::kHorizontal: {
                     name = "addHorizontalBargraph"; break;
-                case AddBargraphInst::kVertical:
+                }
+                case AddBargraphInst::kVertical: {
                     name = "addVerticalBargraph"; break;
+                }
             }
             addGenericBargraph(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, name);
         }
@@ -2266,29 +2271,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Compile condition, result in fCurValue
             inst->fCond->accept(this);
-
+            
             list<pair<int, BlockInst*> >::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                if ((*it).first == -1) // Default case found
-                    break;
-            }
-
+     
             // Creates "default" block
             BasicBlock* default_block = BasicBlock::Create(getGlobalContext(), "default", function);
-
-            // Link init_block and default_block (that is switch block)
-            fBuilder->CreateBr(default_block);
-
-            // Move insertion in default_block
-            fBuilder->SetInsertPoint(default_block);
-
-            // Compiles "default" block
-            if (it != inst->fCode.end()) {
-                (*it).second->accept(this);
-                // Link init_block and exit_block
-                fBuilder->CreateBr(exit_block);
-            }
-
+       
             // Creates switch
             llvm::SwitchInst* switch_inst = fBuilder->CreateSwitch(fCurValue, default_block, inst->fCode.size());
 
@@ -2306,10 +2294,27 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     switch_inst->addCase(static_cast<ConstantInt*>(genInt32((*it).first)), case_block);
                 }
             }
+            
+            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+                if ((*it).first == -1)  { // Default case found 
+                    break;
+                }
+            }
+            
+            // Move insertion in default_block
+            fBuilder->SetInsertPoint(default_block);
 
+            // Compiles "default" block if one has been found
+            if (it != inst->fCode.end()) {
+                (*it).second->accept(this);
+            }
+            
+            // Link init_block and exit_block
+            fBuilder->CreateBr(exit_block);
+      
             // Move insertion in exit_block
             fBuilder->SetInsertPoint(exit_block);
-
+        
             // No result in fCurValue
             fCurValue = NULL;
         }

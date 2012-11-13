@@ -176,9 +176,11 @@ class CodeContainer : public virtual Garbageable {
         void generateLocalInputs(BlockInst* loop_code, const string& index);
         void generateLocalOutputs(BlockInst* loop_code, const string& index);
 
+        DeclareFunInst* generateGetIO(const string& name, int io, bool isvirtual);
         DeclareFunInst* generateGetInputs(const string& name, bool isvirtual);
         DeclareFunInst* generateGetOutputs(const string& name, bool isvirtual);
 
+        DeclareFunInst* generateGetIORate(const string& name, vector<int>& io, bool isvirtual);
         DeclareFunInst* generateGetInputRate(const string& name, bool isvirtual);
         DeclareFunInst* generateGetOutputRate(const string& name, bool isvirtual);
 

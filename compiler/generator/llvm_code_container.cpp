@@ -215,18 +215,17 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 }
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void LLVMCodeContainer::produceInfoFunctions(const string& classname, bool isvirtual)
+void LLVMCodeContainer::generateInfoFunctions(const string& classname, bool isvirtual)
 {
     // Input/Output method
     generateGetInputs(subst("getNumInputs$0", classname), isvirtual)->accept(fCodeProducer);
     generateGetOutputs(subst("getNumOutputs$0", classname), isvirtual)->accept(fCodeProducer);
 
-    //TODO
     // Input Rates
-    //generateGetInputRate(subst("getInputRate$0", classname), isvirtual)->accept(fCodeProducer);
+    generateGetInputRate(subst("getInputRate$0", classname), isvirtual)->accept(fCodeProducer);
 
     // Output Rates
-    //generateGetOutputRate(subst("getOutputRate$0", classname), isvirtual)->accept(fCodeProducer);
+    generateGetOutputRate(subst("getOutputRate$0", classname), isvirtual)->accept(fCodeProducer);
 }
 
 void LLVMCodeContainer::generateClassInitBegin()
@@ -490,12 +489,9 @@ void LLVMCodeContainer::produceInternal()
     // Now we can create the DSP type
     fStruct_DSP_ptr = fTypeBuilder.getDSPType(true, false);
 
-    //generateGetNumInputs(true);
-    //generateGetNumOutputs(true);
- 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
     
-    produceInfoFunctions(fKlassName, false);
+    generateInfoFunctions(fKlassName, false);
   
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);
@@ -542,12 +538,9 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
-    //generateGetNumInputs();
-    //generateGetNumOutputs();
- 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
     
-    produceInfoFunctions(fKlassName, true);
+    generateInfoFunctions(fKlassName, true);
   
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);

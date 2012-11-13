@@ -59,7 +59,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         void generateGetSampleRate(int field_index);
   
-        void produceInfoFunctions(const string& classname, bool isvirtual);
+        void generateInfoFunctions(const string& classname, bool isvirtual);
 
         void generateClassInitBegin();
         void generateClassInitEnd();
