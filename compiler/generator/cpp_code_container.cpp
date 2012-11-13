@@ -68,59 +68,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
     return container;
 }
 
-/*
-void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isVirtual)
-{
-    stringstream out;
-    string virtualPrefix;
-    if (isVirtual)
-        virtualPrefix = "virtual ";
-
-    // Input/Output method
-
-    out << virtualPrefix;
-    Loki::FPrintf(out, "int " + classname + "::getNumInputs() { return %d; }\n")(fNumInputs);
-    out << virtualPrefix;
-    Loki::FPrintf(out, "int " + classname + "::getNumOutputs() { return %d; }\n")(fNumOutputs);
-
-    // Input Rates
-    {
-        stringstream block1, block2;
-
-        out << endl << virtualPrefix;
-        Loki::FPrintf(out, "int " + classname + "::getInputRate(int channel) {\n");
-        block1 << "switch (channel) {" << endl;
-
-        for (int i = 0; i != fNumInputs; ++i)
-            Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fInputRates[i]);
-
-        block2 << "default: -1;\n";
-
-        block1 << indent(block2.str(), 1) << "}" << endl;
-        out << indent(block1.str(), 1) << "}" << endl;
-    }
-
-    // Output Rates
-    {
-        stringstream block1, block2;
-
-        out << endl << virtualPrefix;
-        Loki::FPrintf(out, "int " + classname + "::getOutputRate(int channel) {\n");
-        block1 << "switch (channel) {" << endl;
-
-        for (int i = 0; i != fNumOutputs; ++i)
-            Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fOutputRates[i]);
-
-        block2 << "default: -1;\n";
-
-        block1 << indent(block2.str(), 1) << "}" << endl;
-        out << indent(block1.str(), 1) << "}" << endl;
-    }
-    *fOut << endl << indent(out.str(), tabs);
-}
-*/
-
-//Not yet working because of gGlobalTable in CPPInstVisitor (so function can be declared only once...)
+// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
 {
     // Input/Output method

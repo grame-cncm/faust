@@ -92,28 +92,12 @@ void JAVACodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "[] dsp) { "
                               << "; }";
 
-        // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public int getNumInputs() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "public int getNumOutputs() { "
-                            << "return " << fNumOutputs
-                            << "; }";
-
-        // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public void init(int samplingFreq) {";
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
-            generateInit(&fCodeProducer);
-        tab(n+1, *fOut); *fOut << "}";
-
+        produceInfoFunctions(n+1, fKlassName, false);
+    
         // Fill
         string counter = "count";
-        tab(n+1, *fOut);
         if (fSubContainerType == kInt) {
             tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, int[] output) {", counter);
         } else {
@@ -175,18 +159,10 @@ void JAVACodeContainer::produceClass()
 
         tab(n+1, *fOut); *fOut << "}" << endl;
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "public int getNumInputs() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "public int getNumOutputs() { "
-                            << "return " << fNumOutputs
-                            << "; }";
-
-        // Inits
         tab(n+1, *fOut);
+        produceInfoFunctions(n+1, fKlassName, true);
+        
+        // Inits
         tab(n+1, *fOut); *fOut << "static public void classInit(int samplingFreq) {";
             if (fStaticInitInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
@@ -226,7 +202,23 @@ void JAVACodeContainer::produceClass()
         generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};\n" << endl;
+}
 
+// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
+void JAVACodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
+{
+    // Input/Output method
+    fCodeProducer.Tab(tabs);
+    generateGetInputs(subst("$0::getNumInputs", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("$0::getNumOutputs", classname), isvirtual)->accept(&fCodeProducer);
+
+    // Input Rates
+    fCodeProducer.Tab(tabs);
+    generateGetInputRate(subst("$0::getInputRate", classname), isvirtual)->accept(&fCodeProducer);
+
+    // Output Rates
+    fCodeProducer.Tab(tabs);
+    generateGetOutputRate(subst("$0::getOutputRate", classname), isvirtual)->accept(&fCodeProducer);
 }
 
 void JAVAScalarCodeContainer::generateCompute(int n)

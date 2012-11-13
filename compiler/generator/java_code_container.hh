@@ -37,6 +37,8 @@ class JAVACodeContainer : public virtual CodeContainer {
         JAVAInstVisitor fCodeProducer;
         std::ostream* fOut;
         string fSuperKlassName;
+        
+        void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
 

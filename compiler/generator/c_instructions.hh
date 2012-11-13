@@ -198,20 +198,23 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end())
-                return;  // already declared
+            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
+                return;  // already declare
+            }
 
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
-
+      
             // Prototype
-            if (inst->fType->fAttribute & FunTyped::kLocal)
-                 *fOut << "static ";
+            if (inst->fType->fAttribute & FunTyped::kLocal) {
+                *fOut << "static ";
+            }
 
-            if (inst->fType->fAttribute & FunTyped::kVirtual)
-                 *fOut << "virtual ";
+            if (inst->fType->fAttribute & FunTyped::kVirtual) {
+                *fOut << "virtual ";
+            }
 
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";

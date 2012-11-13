@@ -212,36 +212,21 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     
     verifyFunction(*sr_fun);
     fBuilder->ClearInsertionPoint();
- }
-
-void LLVMCodeContainer::generateGetNumInputs(bool internal)
-{
-    VECTOR_OF_TYPES llvm_getNumInputs_args;
-    llvm_getNumInputs_args.push_back(fStruct_DSP_ptr);
-    FunctionType* llvm_getNumInputs_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getNumInputs_args), false);
-
-    Function* input_fun = Function::Create(llvm_getNumInputs_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "getNumInputs" + fKlassName, fModule);
-    input_fun->setCallingConv(CallingConv::C);
-    BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", input_fun);
-    ReturnInst::Create(getGlobalContext(), genInt32(fNumInputs), block);
-
-    verifyFunction(*input_fun);
-    fBuilder->ClearInsertionPoint();
 }
 
-void LLVMCodeContainer::generateGetNumOutputs(bool internal)
+// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
+void LLVMCodeContainer::produceInfoFunctions(const string& classname, bool isvirtual)
 {
-    VECTOR_OF_TYPES llvm_getNumOutputs_args;
-    llvm_getNumOutputs_args.push_back(fStruct_DSP_ptr);
-    FunctionType* llvm_getNumOuputs_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getNumOutputs_args), false);
+    // Input/Output method
+    generateGetInputs(subst("getNumInputs$0", classname), isvirtual)->accept(fCodeProducer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), isvirtual)->accept(fCodeProducer);
 
-    Function* output_fun = Function::Create(llvm_getNumOuputs_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "getNumOutputs" + fKlassName, fModule);
-    output_fun->setCallingConv(CallingConv::C);
-    BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", output_fun);
-    ReturnInst::Create(getGlobalContext(), genInt32(fNumOutputs), block);
+    //TODO
+    // Input Rates
+    //generateGetInputRate(subst("getInputRate$0", classname), isvirtual)->accept(fCodeProducer);
 
-    verifyFunction(*output_fun);
-    fBuilder->ClearInsertionPoint();
+    // Output Rates
+    //generateGetOutputRate(subst("getOutputRate$0", classname), isvirtual)->accept(fCodeProducer);
 }
 
 void LLVMCodeContainer::generateClassInitBegin()
@@ -505,10 +490,12 @@ void LLVMCodeContainer::produceInternal()
     // Now we can create the DSP type
     fStruct_DSP_ptr = fTypeBuilder.getDSPType(true, false);
 
-    generateGetNumInputs(true);
-    generateGetNumOutputs(true);
-
+    //generateGetNumInputs(true);
+    //generateGetNumOutputs(true);
+ 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    
+    produceInfoFunctions(fKlassName, false);
   
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);
@@ -555,10 +542,12 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
-    generateGetNumInputs();
-    generateGetNumOutputs();
-
+    //generateGetNumInputs();
+    //generateGetNumOutputs();
+ 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    
+    produceInfoFunctions(fKlassName, true);
   
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);

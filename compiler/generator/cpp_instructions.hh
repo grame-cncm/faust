@@ -204,8 +204,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end())
+            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
                 return;  // Already declared
+            }
 
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
@@ -220,11 +221,13 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             // Prototype
-            if (inst->fType->fAttribute & FunTyped::kLocal)
-                 *fOut << " ";
+            if (inst->fType->fAttribute & FunTyped::kLocal) {
+                *fOut << " ";
+            }
 
-            if (inst->fType->fAttribute & FunTyped::kVirtual)
-                 *fOut << "virtual ";
+            if (inst->fType->fAttribute & FunTyped::kVirtual) {
+                *fOut << "virtual ";
+            }
 
             *fOut << generateType(inst->fType->fResult, fun_name);
             *fOut << "(";

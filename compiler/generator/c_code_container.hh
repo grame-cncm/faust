@@ -36,6 +36,8 @@ class CCodeContainer : public virtual CodeContainer {
 
         CInstVisitor fCodeProducer;
         std::ostream* fOut;
+        
+        void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
 

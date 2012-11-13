@@ -58,12 +58,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateFillEnd();
 
         void generateGetSampleRate(int field_index);
-
-        void generateGetNumInputs(bool internal = false);
-        void generateGetNumOutputs(bool internal = false);
-
-        //void generateGetInputRate();
-        //void generateGetOutputRate();
+  
+        void produceInfoFunctions(const string& classname, bool isvirtual);
 
         void generateClassInitBegin();
         void generateClassInitEnd();

@@ -184,8 +184,15 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+            string fun_name = inst->fName;
+            size_t pos;
+            if ((pos = inst->fName.find("::")) != string::npos) {
+                fun_name = inst->fName.substr(pos + 2); // After the "::"
+            }
+            
             // Prototype
-            *fOut << generateType(inst->fType->fResult, inst->fName);
+            *fOut << generateType(inst->fType->fResult, fun_name);
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;

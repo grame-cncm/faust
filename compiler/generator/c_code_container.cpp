@@ -58,6 +58,23 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     return container;
 }
 
+// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
+void CCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
+{
+    // Input/Output method
+    fCodeProducer.Tab(tabs);
+    generateGetInputs(subst("getNumInputs$0", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), isvirtual)->accept(&fCodeProducer);
+
+    // Input Rates
+    fCodeProducer.Tab(tabs);
+    generateGetInputRate(subst("getInputRate$0", classname), isvirtual)->accept(&fCodeProducer);
+
+    // Output Rates
+    fCodeProducer.Tab(tabs);
+    generateGetOutputRate(subst("getOutputRate$0", classname), isvirtual)->accept(&fCodeProducer);
+}
+
 void CCodeContainer::produceInternal()
 {
     int n = 0;
@@ -88,19 +105,12 @@ void CCodeContainer::produceInternal()
                         << "free(dsp)"
                         << "; }";
 
-    // Input method
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static int getNumInputs" << fKlassName << "(" << fKlassName << "* dsp) { "
-                        << "return " << fNumInputs
-                        << "; }";
-
-    // Output method
-    tab(n, *fOut); *fOut << "static int getNumOutputs" << fKlassName << "("  << fKlassName << "* dsp) { "
-                        << "return " << fNumOutputs
-                        << "; }";
-
+    tab(n, *fOut);
+    produceInfoFunctions(n, fKlassName, false);
+    
     // Init
-    tab(n, *fOut);
+    //tab(n, *fOut);
     tab(n, *fOut); *fOut << "static void " << "instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
@@ -223,38 +233,12 @@ void CCodeContainer::produceClass()
                         << "return dsp->fSamplingFreq"
                         << "; }";
 
-    // Input method
-    tab(n, *fOut); *fOut << "int " << "getNumInputs" << fKlassName << "(" << fKlassName << "* dsp) { "
-                        << "return " << fNumInputs
-                        << "; }";
-
-    // Output method
-    tab(n, *fOut); *fOut << "int " << "getNumOutputs" << fKlassName << "(" << fKlassName << "* dsp) { "
-                        << "return " << fNumOutputs
-                        << "; }";
-
-    // Input Rates
-    tab(n, *fOut); *fOut << "int " << "getInputRate" << fKlassName << "(" << fKlassName << "* dsp, int channel) { ";
-        tab(n+1, *fOut); *fOut << "switch (channel) {";
-            for (int i = 0; i != fNumInputs; ++i) {
-                tab(n+2, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
-            }
-            tab(n+2, *fOut); *fOut << "default: return -1;" << endl;
-        tab(n+1, *fOut); *fOut << "}";
-   tab(n, *fOut); *fOut << "}";
-
-     // Output Rates
-    tab(n, *fOut); *fOut << "int " << "getOutputRate" << fKlassName << "(" << fKlassName << "* dsp, int channel) { ";
-        tab(n+1, *fOut); *fOut << "switch (channel) {";
-            for (int i = 0; i != fNumOutputs; ++i) {
-                tab(n+2, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
-            }
-            tab(n+2, *fOut); *fOut << "default: return -1;" << endl;
-        tab(n+1, *fOut); *fOut << "}";
-    tab(n, *fOut); *fOut << "}";
+    tab(n, *fOut);
+    tab(n, *fOut);
+    produceInfoFunctions(n, fKlassName, true);
 
     // Inits
-    tab(n, *fOut);
+    //tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "classInit" << fKlassName << "(int samplingFreq) {";
         if (fStaticInitInstructions->fCode.size() > 0) {
             tab(n+1, *fOut);

@@ -294,8 +294,9 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end())
+            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
                 return;  // already declared
+            }
 
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
