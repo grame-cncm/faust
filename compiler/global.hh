@@ -379,7 +379,10 @@ struct global {
     
     // colorize
     map<Tree, int> gColorMap;
-	int gNextFreeColor;
+    int gNextFreeColor;
+     
+    // to keep track of already injected files
+    set<string> gAlreadyIncluded;
    
     // GC
     static list<Garbageable*> gObjectTable;

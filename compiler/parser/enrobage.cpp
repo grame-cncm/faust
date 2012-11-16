@@ -160,13 +160,10 @@ bool isFaustInclude(const string& s, string& fname)
  * Inject file fname into dst ostream if not already done
  */
 
-// to keep track of already injected files
-set<string> alreadyIncluded;
-
 void inject(ostream& dst, const string fname)
 {
-    if (alreadyIncluded.find(fname) == alreadyIncluded.end()) {
-        alreadyIncluded.insert(fname);
+    if (gGlobal->gAlreadyIncluded.find(fname) == gGlobal->gAlreadyIncluded.end()) {
+        gGlobal->gAlreadyIncluded.insert(fname);
         istream* src = open_arch_stream(fname.c_str());
         if (src) {
             streamCopy(*src, dst);

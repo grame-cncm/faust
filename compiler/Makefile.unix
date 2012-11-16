@@ -35,7 +35,7 @@ LIBFLAGS	:= --mode=link --tag=CXX
 endif
 
 #CXXFLAGS ?= -g -Wall -Wuninitialized 
-#CXX = clang++
+CXX = clang++
 CXXFLAGS ?= -O3 -Wall -Wuninitialized -Wexit-time-destructors -Wglobal-constructors 
 CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`llvm-config --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS

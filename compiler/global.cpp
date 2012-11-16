@@ -294,13 +294,13 @@ void global::init()
     TREC   = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
     
     // predefined symbols CONS and NIL
-    CONS = symbol ("cons");
-    NIL  = symbol ("nil");
+    CONS = symbol("cons");
+    NIL  = symbol("nil");
     
     // predefined nil tree
     nil = tree(NIL);
     
-    PROCESS = symbol ("process"); 
+    PROCESS = symbol("process"); 
       
     BOXTYPEPROP = tree(symbol("boxTypeProp"));
     NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));

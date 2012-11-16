@@ -477,7 +477,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                     if ((*it).first == -1) { // -1 used to code "default" case
                         *fOut << "default: {";
                     } else {
-                         *fOut << "case " << (*it).first << ": {";
+                        *fOut << "case " << (*it).first << ": {";
                     }
                         fTab++;
                         tab(fTab, *fOut);

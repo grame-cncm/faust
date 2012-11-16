@@ -383,6 +383,7 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>
     default_case_block->pushBackInst(InstBuilder::genStoreStackVar("rate", InstBuilder::genIntNumInst(-1)));
     switch_block->addCase(-1, default_case_block);
     
+    // Return "rate" result
     code->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStackVar("rate")));
 
     // Creates function
