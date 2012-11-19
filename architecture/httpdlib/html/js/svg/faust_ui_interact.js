@@ -130,10 +130,12 @@ _f4u$t.updateXY = function(e) {
 _f4u$t.moveActiveObject = function(e) {
   if (_f4u$t._I == 0) {
     _f4u$t.updateXY(e);
+    _f4u$t.BUSY = false;
     return true;
   }
 
   _f4u$t.clog_key_sink();
+  _f4u$t.BUSY = true;
 
   var hslider_token = "faust_hslider_knob";
   var vslider_token = "faust_vslider_knob";
@@ -274,6 +276,7 @@ _f4u$t.clearIdCache = function() {
   // that means that if someone forgets to set a setter, it will
   // point to its old value
   _f4u$t._I = 0;
+  _f4u$t.BUSY = false;
 }
 
 _f4u$t.initiate_slider = function(A, I, T, P, MN, MX, S, L, AD) {
@@ -420,14 +423,19 @@ _f4u$t.activate_rbutton = function(I) {
   _f4u$t._I = I;
 }
 
-_f4u$t.button_color_changer = function(I, F) {
-  var button = document.getElementById('faust_button_box_'+_f4u$t.unique(I));
-  button.style.fill = F;
+// BROKEN...
+_f4u$t.button_class_changer = function(I, down) {
+  if (down) {
+    $('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-up').addClass('faust-button-down');
+  }
+  else {
+    $('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-down').addClass('faust-button-up');
+  }
 }
 
 _f4u$t.button_up = function(I) {
   var id = _f4u$t.unique(I);
-  _f4u$t.button_color_changer(I, _f4u$t.IDS_TO_ATTRIBUTES[id]["UF"]);
+  _f4u$t.button_class_changer(I, false);
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["AD"], 0);
   _f4u$t.clearIdCache();
 }
@@ -435,7 +443,7 @@ _f4u$t.button_up = function(I) {
 _f4u$t.button_down = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.clog_key_sink();
-  _f4u$t.button_color_changer(I, _f4u$t.IDS_TO_ATTRIBUTES[id]["DF"]);
+  _f4u$t.button_class_changer(I, true);
   // UI2DSP
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["AD"], 1);
 }

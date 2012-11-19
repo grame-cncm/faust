@@ -6,6 +6,7 @@ _f4u$t.TEXT_PADDING = 10;
 _f4u$t.VALUE_BOX_W = 60;
 _f4u$t.VALUE_BOX_H = _f4u$t.TEXT_HEIGHT;
 _f4u$t.TEXT_BOX_PADDING = 3;
+_f4u$t.BUSY = false;
 
 // some convenience methods for inheritence
 
