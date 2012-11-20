@@ -341,13 +341,13 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, unsigned in
     sigoutlets = MIN(sigoutlets, MAX_CPP_MAX_DSP_SIGNALS);
     
     if (initialize) {
-        dsp_setup((t_pxobject *)this, siginlets);
+        dsp_setup((t_pxobject*)this, siginlets);
     }
     
     // detect inlet/outlet count change
 	if ((m_siginlets != siginlets) || (m_sigoutlets != sigoutlets)) {
    
-        t_object *b = NULL;
+        t_object* b = NULL;
         
         // start the transaction with our box
         object_obex_lookup(this, _sym_pound_B, (t_object **)&b);
@@ -367,9 +367,9 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, unsigned in
             }
         }
      
+        // end the transaction
         m_sigoutlets = sigoutlets;
         object_method(b, gensym("dynlet_end"));
-    
     }
  
 	// prevent recycling of inputs for outputs

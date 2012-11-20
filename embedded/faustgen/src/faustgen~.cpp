@@ -59,6 +59,7 @@ faustgen_factory::faustgen_factory(const string& name)
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     
+#ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
     CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.faustgen"));
     CFURLRef faustgen_ref = CFBundleCopyBundleURL(faustgen_bundle);
@@ -68,6 +69,11 @@ faustgen_factory::faustgen_factory(const string& name)
     
     // Built the complete resource path
     fLibraryPath = string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH);
+#endif
+
+#ifdef WIN32
+    // TODO
+#endif
  
     // Draw path in temporary folder
     fDrawPath = string(FAUST_DRAW_PATH);
