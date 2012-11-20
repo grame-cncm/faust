@@ -73,7 +73,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
     {
       id: 'faust_value_box_'+id,
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.box_padding)+')',
-      style: 'fill:white;stroke:black;',
+      'class': 'faust-vbox',
       onmousedown : mousedown
     }
   );
@@ -156,7 +156,7 @@ _f4u$t.RotatingButton = function(options) {
   this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
   this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
   this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.fill= options.fill || _f4u$t.PALEGREEN;
+  //this.fill= options.fill || _f4u$t.PALEGREEN;
   this.value_box_w = options.value_box_w || _f4u$t.VALUE_BOX_W;
   this.value_box_h = options.value_box_h || _f4u$t.VALUE_BOX_H;
   this.address = options.address || '';
@@ -233,8 +233,8 @@ _f4u$t.RotatingButton.prototype.make_joint = function(svg, parent, id) {
     parent,
     d,
     {
-      style : "fill:"+_f4u$t.color_to_rgb(this.fill)+";stroke:black;",
       id : 'faust_rbutton_joint_'+id,
+      'class' : 'faust-rbutton-joint',
       transform : 'translate('+xo+',0)'
     }
   );
@@ -267,7 +267,7 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
     parent,
     d,
     {
-      style : "fill:grey;stroke:black;",
+      'class' : 'faust-rbutton-knob',
       id : full_id,
       transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')',
       onmousedown : '_f4u$t.activate_rbutton("'+full_id+'")'
@@ -382,7 +382,7 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 _f4u$t.Slider = function(options) {
   _f4u$t.SlidingObject.call(this, options);
   this.sp = options.sp || 0.15;
-  this.fill = options.fill || _f4u$t.PINK;
+  //this.fill = options.fill || _f4u$t.PINK;
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
@@ -398,7 +398,7 @@ _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       id : 'faust_'+this.type+'_joint_'+id,
-      style : "fill:"+_f4u$t.color_to_rgb(this.fill)+";stroke:black;",
+      'class' : 'faust-slider-joint',
       transform : trans
     }
   );
@@ -415,7 +415,7 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var top = startp + half_slider_girth;
   var w = _f4u$t.xy(this.o, slider_girth, this.wa());
   var h = _f4u$t.xy(this.o, this.wa(), slider_girth);
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+  var xo = ((this.o == _f4u$t.Y_AXIS) ? (dims[0] - w) / 2.0 : 0.0);
   var x = _f4u$t.xy(this.o, bottom, xo);
   var y = _f4u$t.xy(this.o, 0, bottom);
   var full_id = 'faust_'+this.type+'_knob_'+id;
@@ -426,7 +426,7 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       id : full_id,
-      style : "fill:grey;stroke:black;",
+      'class' : 'faust-slider-knob',
       transform : 'translate('+x+','+y+')',
       onmousedown : '_f4u$t["'+activate_fn+'"]("'+full_id+'")'
     }
@@ -496,7 +496,7 @@ _f4u$t.extend(_f4u$t.Slider, _f4u$t.VerticalSlider);
 
 _f4u$t.BarGraph = function(options) {
   _f4u$t.SlidingObject.call(this, options);
-  this.fill = options.fill || _f4u$t.CYAN;
+  //this.fill = options.fill || _f4u$t.CYAN;
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
@@ -512,7 +512,7 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
     {
       id : 'faust_'+this.type+'_joint_'+id,
       transform : 'translate('+xo+',0)',
-      style : "fill:"+_f4u$t.color_to_rgb(this.fill)+";stroke:black;"
+      'class' : 'faust-bargraph-joint'
     }
   );
 
@@ -536,7 +536,7 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
     {
       id : full_id,
       transform : 'translate('+xo+',0)',
-      style : "fill:grey;stroke:black;"
+      'class' : 'faust-bargraph-meter'
     }
   );
 
@@ -597,7 +597,7 @@ _f4u$t.CheckBox = function(options) {
   this.d = options.d || 19;
   this.label = options.label || '';
   this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.fill = options.fill || _f4u$t.PINK;
+  //this.fill = options.fill || _f4u$t.PINK;
   this.def = options.def || false;
   this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
   this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
@@ -631,7 +631,7 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       id : full_id,
-      style : "fill:white;stroke:black;",
+      'class' : 'faust-checkbox-box',
       transform : 'translate('+xo+',0)',
       onmousedown : '_f4u$t.change_checkbox("'+full_id+'")'
     }
@@ -651,7 +651,9 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
     {
       id : full_id,
-      style : "stroke:black;opacity:"+(this.def == 1 ? 1.0 : 0.0)+";",
+      // CSS here instead of in style sheet becasue it only has relevence
+      // in terms of UI
+      style : "opacity:"+(this.def == 1 ? 1.0 : 0.0)+";",
       onmousedown : '_f4u$t.change_checkbox("'+full_id+'")',
       transform : 'translate('+xo+',0)'
     }
@@ -701,8 +703,8 @@ _f4u$t.Button = function(options) {
   this._w = this.iw;
   this._h = this.ih;
   this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.fillOn = options.fillOn || _f4u$t.PINK;
-  this.fillOff = options.fillOff || _f4u$t.GREEN;
+  //this.fillOn = options.fillOn || _f4u$t.PINK;
+  //this.fillOff = options.fillOff || _f4u$t.GREEN;
   this.baselineSkip = options.baselineSkip || 5;
   this.address = options.address || '';
 }
@@ -737,7 +739,7 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
     d,
     {
       id : full_id,
-      style : "fill:"+_f4u$t.color_to_rgb(this.fillOff)+";stroke:black;",
+      'class' : 'faust-button-up',
       onmousedown : '_f4u$t.button_down("'+full_id+'")',
       onmouseup : '_f4u$t.button_up("'+full_id+'")'
     }
@@ -799,7 +801,6 @@ _f4u$t.NumericalEntry = function(options) {
   this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
   this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
   this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.fill = options.fill || _f4u$t.CYAN;
   this.value_box_w = options.value_box_w || _f4u$t.VALUE_BOX_W;
   this.value_box_h = options.value_box_h || _f4u$t.VALUE_BOX_H;
   this.address = options.address || '';
@@ -852,7 +853,7 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
     {
       transform : 'translate('+xo+',0)',
       id : full_id,
-      style : "fill:grey;",
+      'class' : 'faust-nentry-button',
       onmousedown : '_f4u$t.activate_nentry("'+full_id+'", '+incr+')'
     }
   );
@@ -872,7 +873,7 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
     d,
     {
       id : full_id,
-      style: 'stroke:black;',
+      'class' : 'faust-nentry-operation',
       onmousedown : '_f4u$t.activate_nentry("'+full_id+'", false)'
     }
   );
@@ -897,7 +898,7 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
     {
       transform : 'translate('+(this.w() / 2.0 + this.padding)+',0)',
       id : full_id,
-      style: 'stroke:black;',
+      'class' : 'faust-nentry-operation',
       onmousedown : '_f4u$t.activate_nentry("'+full_id+'", true)'
     }
   );
@@ -1036,6 +1037,7 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
     d,
     {
       id : full_id,
+      // CSS
       style: 'fill:'+_f4u$t.color_to_rgb(this.fill)+';stroke:black;fill-opacity:0.2;'
     }
   );
@@ -1048,10 +1050,7 @@ _f4u$t.LayoutManager.prototype.make_dim_cross = function(svg, parent) {
   var dims = this.dims();
   svg.path(
     parent,
-    "M0 0L"+dims[0]+' '+dims[1],
-    {
-      style: 'stroke:black;'
-    }
+    "M0 0L"+dims[0]+' '+dims[1]
   );
 
   //return background;
@@ -1160,6 +1159,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       transform: 'translate('+x+','+y+')',
+      // CSS
       style: 'fill:'+_f4u$t.color_to_rgb(fill)+';stroke:black;',
       //onmousedown : '_f4u$t.shuffletabs('+this.x+','+(this.y + this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
       onmousedown : '_f4u$t.shuffletabs(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
