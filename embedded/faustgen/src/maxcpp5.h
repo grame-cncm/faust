@@ -227,6 +227,9 @@ public:
 	t_pxobject m_ob;
 	int m_siginlets, m_sigoutlets;
 	maxmethodperform m_perform;
+    
+    MspCpp5():m_siginlets(-1), m_sigoutlets(-1)
+    {}
 	
 	static t_class * makeMaxClass(const char * name);
 	static void * create(t_symbol * sym, long ac, t_atom * av);
@@ -326,33 +329,49 @@ template<typename T> void MspCpp5<T>::destroy(t_object * x) {
 template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, unsigned int siginlets, unsigned int sigoutlets, bool initialize) {
 	m_perform = meth;
     
-	m_siginlets = MIN(siginlets, MAX_CPP_MAX_DSP_SIGNALS);
-	m_sigoutlets = MIN(sigoutlets, MAX_CPP_MAX_DSP_SIGNALS);
+    if (siginlets > MAX_CPP_MAX_DSP_SIGNALS) {
+        post("Error : siginlets %d > MAX_CPP_MAX_DSP_SIGNALS", siginlets);
+    }
+    
+    if (sigoutlets > MAX_CPP_MAX_DSP_SIGNALS) {
+        post("Error : sigoutlets %d > MAX_CPP_MAX_DSP_SIGNALS", sigoutlets);
+    }
+    
+    siginlets = MIN(siginlets, MAX_CPP_MAX_DSP_SIGNALS);
+    sigoutlets = MIN(sigoutlets, MAX_CPP_MAX_DSP_SIGNALS);
     
     if (initialize) {
-        dsp_setup((t_pxobject *)this, m_siginlets);
+        dsp_setup((t_pxobject *)this, siginlets);
     }
     
-    t_object *b = NULL;
-    object_obex_lookup(this, _sym_pound_B, (t_object **)&b);
-    object_method(b, gensym("dynlet_begin"));
+    // detect inlet/outlet count change
+	if ((m_siginlets != siginlets) || (m_sigoutlets != sigoutlets)) {
+   
+        t_object *b = NULL;
+        
+        // start the transaction with our box
+        object_obex_lookup(this, _sym_pound_B, (t_object **)&b);
+        object_method(b, gensym("dynlet_begin"));
 
-    dsp_resize((t_pxobject*)this, m_siginlets);
-  
-    if (m_sigoutlets > outlet_count((t_object*)this)) {
-        for (int i = outlet_count((t_object*)this); i < m_sigoutlets; i++) {
-            outlet_append((t_object*)this, NULL, gensym("signal"));
+        // update our inlets (exported from z_dsp.h for dynamic inlet support)
+        dsp_resize((t_pxobject*)this, siginlets);
+        m_siginlets = siginlets;
+      
+        if (sigoutlets > m_sigoutlets) {
+            for (int i = m_sigoutlets; i < sigoutlets; i++) {
+                outlet_append((t_object*)this, NULL, gensym("signal"));
+            }
+        } else if (sigoutlets < m_sigoutlets) {
+            for (int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
+                outlet_delete(outlet_nth((t_object*)this, i-1));
+            }
         }
-    }
-
-    if (m_sigoutlets < outlet_count((t_object*)this)) {
-        for (int i = outlet_count((t_object*)this); i > m_sigoutlets; i--) {
-            outlet_delete(outlet_nth((t_object*)this, i-1));
-        }
+     
+        m_sigoutlets = sigoutlets;
+        object_method(b, gensym("dynlet_end"));
+    
     }
  
-    object_method(b, gensym("dynlet_end"));
-
 	// prevent recycling of inputs for outputs
 	m_ob.z_misc = Z_NO_INPLACE;
 }
