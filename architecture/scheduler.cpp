@@ -921,7 +921,7 @@ class TaskGraph
         {
             //assert(task < fTaskQueueSize);
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-                if (tasknum == WORK_STEALING_INDEX) {
+                if (*tasknum == WORK_STEALING_INDEX) {
                     *tasknum = task;
                 } else {
                     queue.PushHead(task);
