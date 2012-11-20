@@ -54,7 +54,7 @@
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
 
-#define FAUSTGEN_VERSION "0.79b"
+#define FAUSTGEN_VERSION "0.80b"
 
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 

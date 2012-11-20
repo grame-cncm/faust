@@ -841,9 +841,12 @@ void faustgen::dblclick(long inlet)
     jpopupmenu_additem(popup, 4, "View PDF documentation", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 5, "View libraries", NULL, 0, 0, NULL);
     
+    // Get mouse position
+    int x,y;
+    jmouse_getposition_global(&x, &y);
     t_pt coordinate;
-    coordinate.x = 100;
-    coordinate.y = 150;
+    coordinate.x = x;
+    coordinate.y = y;
     
     int choice = jpopupmenu_popup(popup, coordinate, 0);        
     
