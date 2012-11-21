@@ -154,6 +154,10 @@ _f4u$t.randString = function() {
   return result;
 }
 
+_f4u$t.initifnull = function(v,d) {
+  return (v == null ? d : v);
+}
+
 _f4u$t.find_all_90s = function(a0, sweep) {
   var total = 0;
   var out = [];

@@ -130,12 +130,12 @@ _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
 */
 
 _f4u$t.RotatingButton = function(options) {
-  this.mom = options.mom || null;
-  this.ir = options.ir || 50;
-  this.mr = options.mr || 25;
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.ir = _f4u$t.initifnull(options.ir, 50);
+  this.mr = _f4u$t.initifnull(options.mr, 25);
   this._r = this.ir;
-  var a0 = options.a0 || 180;
-  var sweep = options.sweep || 180;
+  var a0 = _f4u$t.initifnull(options.a0, 180);
+  var sweep = _f4u$t.initifnull(options.sweep, 180);
   if (sweep < 0) {
     a0 += sweep;
     sweep = Math.abs(sweep);
@@ -146,20 +146,20 @@ _f4u$t.RotatingButton = function(options) {
   }
   this.a0 = a0;
   this.sweep = sweep;
-  this.sp = options.sp || 0.1;
-  this.label = options.label || '';
-  this.unit = options.unit || null;
-  this.mn = options.mn || 0;
-  this.mx = options.mx || 100;
-  this.def = _f4u$t.bound(options.def || 50, this.mn, this.mx);
-  this.step = options.step || 1;
-  this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
-  this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  //this.fill= options.fill || _f4u$t.PALEGREEN;
-  this.value_box_w = options.value_box_w || _f4u$t.VALUE_BOX_W;
-  this.value_box_h = options.value_box_h || _f4u$t.VALUE_BOX_H;
-  this.address = options.address || '';
+  this.sp = _f4u$t.initifnull(options.sp, 0.1);
+  this.label = _f4u$t.initifnull(options.label, '');
+  this.unit = _f4u$t.initifnull(options.unit, null);
+  this.mn = _f4u$t.initifnull(options.mn, 0);
+  this.mx = _f4u$t.initifnull(options.mx, 100);
+  this.def = _f4u$t.bound(_f4u$t.initifnull(options.def, 50), this.mn, this.mx);
+  this.step = _f4u$t.initifnull(options.step, 1);
+  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
+  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  //this.fill= _f4u$t.initifnull(options.fill, _f4u$t.PALEGREEN);
+  this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
+  this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
+  this.address = _f4u$t.initifnull(options.address, '');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.RotatingButton);
@@ -329,27 +329,27 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
 */
 
 _f4u$t.SlidingObject = function(options) {
-  this.mom = options.mom || null;
-  this.o = options.o || _f4u$t.X_AXIS;
-  this.iwa = options.iwa || 40;
-  this.isa = options.isa || 200;
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.o = _f4u$t.initifnull(options.o, _f4u$t.X_AXIS);
+  this.iwa = _f4u$t.initifnull(options.iwa, 40);
+  this.isa = _f4u$t.initifnull(options.isa, 200);
   this._sa = this.isa;
   this._wa = this.iwa;
-  this.mwa = options.mwa || 20;
-  this.msa = options.msa || 100;
-  this.label = options.label || '';
-  this.unit = options.unit || null;
-  this.mn = options.mn || 0;
-  this.mx = options.mx || 100;
-  this.def = _f4u$t.bound(options.def || 50, this.mn, this.mx);
-  this.step = options.step || 1;
-  this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
-  this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.value_box_w = options.value_box_w || _f4u$t.VALUE_BOX_W;
-  this.value_box_h = options.value_box_h || _f4u$t.VALUE_BOX_H;
-  this.address = options.address || '';
-  this.type = options.type || '';
+  this.mwa = _f4u$t.initifnull(options.mwa, 20);
+  this.msa = _f4u$t.initifnull(options.msa, 100);
+  this.label = _f4u$t.initifnull(options.label, '');
+  this.unit = _f4u$t.initifnull(options.unit, null);
+  this.mn = _f4u$t.initifnull(options.mn, 0);
+  this.mx = _f4u$t.initifnull(options.mx, 100);
+  this.def = _f4u$t.bound(_f4u$t.initifnull(options.def, 50), this.mn, this.mx);
+  this.step = _f4u$t.initifnull(options.step, 1);
+  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
+  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
+  this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
+  this.address = _f4u$t.initifnull(options.address, '');
+  this.type = _f4u$t.initifnull(options.type, '');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.SlidingObject);
@@ -382,8 +382,8 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 
 _f4u$t.Slider = function(options) {
   _f4u$t.SlidingObject.call(this, options);
-  this.sp = options.sp || 0.15;
-  //this.fill = options.fill || _f4u$t.PINK;
+  this.sp = _f4u$t.initifnull(options.sp, 0.15);
+  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
@@ -498,7 +498,7 @@ _f4u$t.extend(_f4u$t.Slider, _f4u$t.VerticalSlider);
 
 _f4u$t.BarGraph = function(options) {
   _f4u$t.SlidingObject.call(this, options);
-  //this.fill = options.fill || _f4u$t.CYAN;
+  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.CYAN);
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
@@ -596,15 +596,15 @@ _f4u$t.VerticalBarGraph = function(options) {
 _f4u$t.extend(_f4u$t.BarGraph, _f4u$t.VerticalBarGraph);
 
 _f4u$t.CheckBox = function(options) {
-  this.mom = options.mom || null;
-  this.d = options.d || 19;
-  this.label = options.label || '';
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  //this.fill = options.fill || _f4u$t.PINK;
-  this.def = options.def || false;
-  this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
-  this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
-  this.address = options.address || '';
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.d = _f4u$t.initifnull(options.d, 19);
+  this.label = _f4u$t.initifnull(options.label, '');
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
+  this.def = _f4u$t.initifnull(options.def, false);
+  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
+  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
+  this.address = _f4u$t.initifnull(options.address, '');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.CheckBox);
@@ -697,19 +697,19 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
 */
 
 _f4u$t.Button = function(options) {
-  this.mom = options.mom || null;
-  this.label = options.label || '';
-  this.mw = options.mw || 40;
-  this.mh = options.mh || 20;
-  this.iw = options.iw || 80, this.mw;
-  this.ih = options.ih || 40;
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.label = _f4u$t.initifnull(options.label, '');
+  this.mw = _f4u$t.initifnull(options.mw, 40);
+  this.mh = _f4u$t.initifnull(options.mh, 20);
+  this.iw = _f4u$t.initifnull(options.iw, 80, this.mw);
+  this.ih = _f4u$t.initifnull(options.ih, 40);
   this._w = this.iw;
   this._h = this.ih;
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  //this.fillOn = options.fillOn || _f4u$t.PINK;
-  //this.fillOff = options.fillOff || _f4u$t.GREEN;
-  this.baselineSkip = options.baselineSkip || 5;
-  this.address = options.address || '';
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  //this.fillOn = _f4u$t.initifnull(options.fillOn, _f4u$t.PINK;
+  //this.fillOff = _f4u$t.initifnull(options.fillOff, _f4u$t.GREEN;
+  this.baselineSkip = _f4u$t.initifnull(options.baselineSkip, 5);
+  this.address = _f4u$t.initifnull(options.address, '');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.Button);
@@ -787,26 +787,26 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 }
 
 _f4u$t.NumericalEntry = function(options) {
-  this.mom = options.mom || null;
-  this.iw = options.iw || _f4u$t.VALUE_BOX_W;
-  this.ih = options.ih || _f4u$t.VALUE_BOX_H;
-  this.mw = options.mw || _f4u$t.VALUE_BOX_W;
-  this.mh = options.mh || _f4u$t.VALUE_BOX_H;
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.iw = _f4u$t.initifnull(options.iw, _f4u$t.VALUE_BOX_W);
+  this.ih = _f4u$t.initifnull(options.ih, _f4u$t.VALUE_BOX_H);
+  this.mw = _f4u$t.initifnull(options.mw, _f4u$t.VALUE_BOX_W);
+  this.mh = _f4u$t.initifnull(options.mh, _f4u$t.VALUE_BOX_H);
   this._w = this.iw;
   this._h = this.ih;
-  this.label = options.label || '';
-  this.unit = options.unit || null;
-  this.mn = options.mn || 0;
-  this.mx = options.mx || 100;
-  this.def = _f4u$t.bound(options.def || 50, this.mn, this.mx);
-  this.step = options.step || 1;
-  this.padding = options.padding || 1;
-  this.lpadding_y = options.lpadding_y || _f4u$t.TEXT_HEIGHT;
-  this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.value_box_w = options.value_box_w || _f4u$t.VALUE_BOX_W;
-  this.value_box_h = options.value_box_h || _f4u$t.VALUE_BOX_H;
-  this.address = options.address || '';
+  this.label = _f4u$t.initifnull(options.label, '');
+  this.unit = _f4u$t.initifnull(options.unit, null);
+  this.mn = _f4u$t.initifnull(options.mn, 0);
+  this.mx = _f4u$t.initifnull(options.mx, 100);
+  this.def = _f4u$t.bound(_f4u$t.initifnull(options.def, 50), this.mn, this.mx);
+  this.step = _f4u$t.initifnull(options.step, 1);
+  this.padding = _f4u$t.initifnull(options.padding, 1);
+  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
+  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
+  this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
+  this.address = _f4u$t.initifnull(options.address, '');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.NumericalEntry);
@@ -934,14 +934,14 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
 }
 
 _f4u$t.LayoutManager = function(options) {
-  this.mom = options.mom || null;
-  this.o = options.o || _f4u$t.X_AXIS;
-  this.padding = options.padding || 10;
-  this.objs = options.objs || [];
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.label = options.label || '';
-  this.lpadding_y = options.lpaddiny_y || (_f4u$t.TEXT_HEIGHT * 1.5);
-  this.box_padding = options.box_padding || _f4u$t.TEXT_BOX_PADDING;
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.o = _f4u$t.initifnull(options.o, _f4u$t.X_AXIS);
+  this.padding = _f4u$t.initifnull(options.padding, 10);
+  this.objs = _f4u$t.initifnull(options.objs, []);
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  this.label = _f4u$t.initifnull(options.label, '');
+  this.lpadding_y = _f4u$t.initifnull(options.lpaddiny_y, (_f4u$t.TEXT_HEIGHT * 1.5));
+  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.x = 0;
   this.y = 0;
   this.w = 0;
@@ -1082,15 +1082,15 @@ _f4u$t.LayoutManager.prototype.make = function(svg, parent) {
 }
 
 _f4u$t.TabGroup = function(options) {
-  this.mom = options.mom || null;
-  this.headroom = options.headroom || 40;
-  this.headpadding = options.headroom || 10;
-  this.x_padding = options.x_padding || 10;
-  this.x_width = options.x_width || 80;
-  this.objs= options.objs || [];
-  this.def = options.def || 0;
-  this.gravity = options.gravity || [_f4u$t.CENTER, _f4u$t.CENTER];
-  this.baselineSkip = options.baselineSkip || 5;
+  this.mom = _f4u$t.initifnull(options.mom, null);
+  this.headroom = _f4u$t.initifnull(options.headroom, 40);
+  this.headpadding = _f4u$t.initifnull(options.headroom, 10);
+  this.x_padding = _f4u$t.initifnull(options.x_padding, 10);
+  this.x_width = _f4u$t.initifnull(options.x_width, 80);
+  this.objs= _f4u$t.initifnull(options.objs, []);
+  this.def = _f4u$t.initifnull(options.def, 0);
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  this.baselineSkip = _f4u$t.initifnull(options.baselineSkip, 5);
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
@@ -1227,8 +1227,8 @@ _f4u$t.SVG = function(svg, w, h, options) {
   this.svg = svg;
   this.w = w;
   this.h = h;
-  this.lm = options.lm || null;
-  this.title = options.title || '';
+  this.lm = _f4u$t.initifnull(options.lm, null);
+  this.title = _f4u$t.initifnull(options.title, '');
   this.lm.mom = this;
 }
 
