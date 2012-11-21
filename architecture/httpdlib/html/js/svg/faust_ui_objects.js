@@ -656,7 +656,7 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       id : full_id,
       // CSS here instead of in style sheet becasue it only has relevence
       // in terms of UI
-      style : "opacity:"+(this.def == 1 ? 1.0 : 0.0)+";",
+      style : "opacity:"+(this.def == 1 ? 1.0 : 0.0)+";stroke:black;fill:black;",
       onmousedown : '_f4u$t.change_checkbox("'+full_id+'")',
       transform : 'translate('+xo+',0)'
     }
