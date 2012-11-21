@@ -29,7 +29,7 @@ _f4u$t.make_rbutton = function(dct) {
     mx : parseFloat(dct["max"]),
     step : parseFloat(dct["step"]),
     address : dct["address"],
-    def : parseFloat(dct["init"]),
+    init : parseFloat(dct["init"]),
     unit : _f4u$t.get_unit(dct)
   });
 }
@@ -52,7 +52,7 @@ _f4u$t.make_slider = function(kls, dct) {
     mx : parseFloat(dct["max"]),
     step : parseFloat(dct["step"]),
     address : dct["address"],
-    def : parseFloat(dct["init"]),
+    init : parseFloat(dct["init"]),
     unit : _f4u$t.get_unit(dct)
   });
 }
@@ -87,7 +87,7 @@ _f4u$t.make_checkbox = function(dct) {
   return new _f4u$t.CheckBox({
     label : dct["label"],
     address : dct["address"],
-    def : (dct["init"] == "1" ? true : false)
+    init : (dct["init"] == "1" ? true : false)
   });
 }
 
@@ -101,7 +101,7 @@ _f4u$t.make_nentry = function(dct) {
     mx : parseFloat(dct["max"]),
     step : parseFloat(dct["step"]),
     address : dct["address"],
-    def : parseFloat(dct["init"]),
+    init : parseFloat(dct["init"]),
     unit : _f4u$t.get_unit(dct)
   });
 }

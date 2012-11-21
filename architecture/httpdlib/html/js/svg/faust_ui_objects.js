@@ -88,7 +88,7 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
     parent,
     0,
     0,
-    this.def.toString(),
+    this.init.toString(),
     {
       id: 'faust_value_value_'+id,
       "text-anchor" : ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
@@ -151,7 +151,7 @@ _f4u$t.RotatingButton = function(options) {
   this.unit = _f4u$t.initifnull(options.unit, null);
   this.mn = _f4u$t.initifnull(options.mn, 0);
   this.mx = _f4u$t.initifnull(options.mx, 100);
-  this.def = _f4u$t.bound(_f4u$t.initifnull(options.def, 50), this.mn, this.mx);
+  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
   this.step = _f4u$t.initifnull(options.step, 1);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
@@ -246,7 +246,7 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
   var trans = this.get_translation();
   var slider_angle = this.sweep * this.sp;
   var half_slider_angle = slider_angle * 0.5;
-  var startp = _f4u$t.remap(this.def, this.mn, this.mx, this.a0 + half_slider_angle, this.a0 + this.sweep - half_slider_angle)
+  var startp = _f4u$t.remap(this.init, this.mn, this.mx, this.a0 + half_slider_angle, this.a0 + this.sweep - half_slider_angle)
   var start = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0)), trans);
   var end = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0 + slider_angle)), trans);
   var origin = _f4u$t.coord_sub([0,0], trans);
@@ -310,7 +310,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
-    this.def,
+    this.init,
     this.label,
     this.address
   );
@@ -342,7 +342,7 @@ _f4u$t.SlidingObject = function(options) {
   this.unit = _f4u$t.initifnull(options.unit, null);
   this.mn = _f4u$t.initifnull(options.mn, 0);
   this.mx = _f4u$t.initifnull(options.mx, 100);
-  this.def = _f4u$t.bound(_f4u$t.initifnull(options.def, 50), this.mn, this.mx);
+  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
   this.step = _f4u$t.initifnull(options.step, 1);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
@@ -412,7 +412,7 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var dims = this.dims();
   var slider_girth = this.sa()  * this.sp;
   var half_slider_girth = slider_girth * 0.5;
-  var startp = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.def, this.mn, this.mx, 0 + half_slider_girth, this.sa() - half_slider_girth);
+  var startp = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0 + half_slider_girth, this.sa() - half_slider_girth);
   var bottom = startp - half_slider_girth;
   var top = startp + half_slider_girth;
   var w = _f4u$t.xy(this.o, slider_girth, this.wa());
@@ -448,7 +448,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
-    this.def,
+    this.init,
     this.label,
     this.address
   );
@@ -524,7 +524,7 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
 
 _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var full_id = 'faust_'+this.type+'_meter_'+id;
-  var def = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.def, this.mn, this.mx, 0, this.sa());
+  var def = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0, this.sa());
   var dims = this.dims();
   var w = _f4u$t.xy(this.o, def, this.wa());
   var h = _f4u$t.xy(this.o, this.wa(), def);
@@ -556,7 +556,7 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
-    this.def,
+    this.init,
     this.label,
     this.address
   );
@@ -602,7 +602,7 @@ _f4u$t.CheckBox = function(options) {
   this.label = _f4u$t.initifnull(options.label, '');
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
-  this.def = _f4u$t.initifnull(options.def, false);
+  this.init = _f4u$t.initifnull(options.init, false);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.address = _f4u$t.initifnull(options.address, '');
@@ -657,7 +657,7 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       id : full_id,
       // CSS here instead of in style sheet becasue it only has relevence
       // in terms of UI
-      style : "opacity:"+(this.def == 1 ? 1.0 : 0.0)+";stroke:black;fill:black;",
+      style : "opacity:"+(this.init == 1 ? 1.0 : 0.0)+";stroke:black;fill:black;",
       onmousedown : '_f4u$t.change_checkbox("'+full_id+'")',
       transform : 'translate('+xo+',0)'
     }
@@ -799,7 +799,7 @@ _f4u$t.NumericalEntry = function(options) {
   this.unit = _f4u$t.initifnull(options.unit, null);
   this.mn = _f4u$t.initifnull(options.mn, 0);
   this.mx = _f4u$t.initifnull(options.mx, 100);
-  this.def = _f4u$t.bound(_f4u$t.initifnull(options.def, 50), this.mn, this.mx);
+  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
   this.step = _f4u$t.initifnull(options.step, 1);
   this.padding = _f4u$t.initifnull(options.padding, 1);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
@@ -918,7 +918,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
-    this.def,
+    this.init,
     this.label,
     this.address
   );
@@ -1089,7 +1089,7 @@ _f4u$t.TabGroup = function(options) {
   this.x_padding = _f4u$t.initifnull(options.x_padding, 10);
   this.x_width = _f4u$t.initifnull(options.x_width, 80);
   this.objs= _f4u$t.initifnull(options.objs, []);
-  this.def = _f4u$t.initifnull(options.def, 0);
+  this.init = _f4u$t.initifnull(options.init, 0);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.baselineSkip = _f4u$t.initifnull(options.baselineSkip, 5);
   this.x = 0;
@@ -1218,7 +1218,7 @@ _f4u$t.TabGroup.prototype.make = function(svg, parent) {
     this.objs[i].make(svg, g);
   }
   // call initiate_tab_group after objects are created
-  _f4u$t.initiate_tab_group(this.def, this.objs.map(function(obj) {return obj.id;}).join('#'));
+  _f4u$t.initiate_tab_group(this.init, this.objs.map(function(obj) {return obj.id;}).join('#'));
 
   return g;
 }

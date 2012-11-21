@@ -477,12 +477,12 @@ _f4u$t.change_checkbox = function(I) {
 */
 
 _f4u$t.generic_label_update = function(id, c, l, h) {
-  var now = _f4u$t.remap_and_bound(c, l, h, _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"]);
+  var now = _f4u$t.remap_and_quantize(c, l, h, _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["step"]);
   return _f4u$t.dumb_label_update(id, now);
 }
 
 _f4u$t.generic_flipped_label_update = function(id, c, l, h) {
-  var now = _f4u$t.remap_and_bound_and_flip(c, l, h, _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"]);
+  var now = _f4u$t.remap_and_quantize_and_flip(c, l, h, _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["step"]);
   return _f4u$t.dumb_label_update(id, now);
 }
 
