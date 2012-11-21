@@ -388,8 +388,8 @@ _f4u$t.moveActiveRotatingButton = function(e)
   var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
   var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
   var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
-  //var os = $(sliding_part).offset();
   var os = $(anchor).offset();
+  //console.log(anchor.getBoundingClientRect());
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
 

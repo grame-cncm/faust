@@ -286,9 +286,10 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
 
   var anchor = svg.path(
     parent,
-    "",
+    "M 0 0L0 1L1 1L1 0L0 0",
     {
       id : full_id,
+      style : 'opacity:0.0;',
       transform : 'translate('+(origin[0] + xo)+','+origin[1]+')',
     }
   );
