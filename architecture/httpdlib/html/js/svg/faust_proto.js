@@ -38,6 +38,33 @@ _f4u$t.GREEN = [173,255,47];
 _f4u$t.KERMIT = [47,243,160];
 _f4u$t.PALEGREEN = [152,251,152];
 
+// INTERACTION WITH THE UI
+_f4u$t._I = 0; // id of active object
+_f4u$t._N = 0; // id of the active key sink
+
+/*
+ * SERVER INTERACTION
+ */
+
+_f4u$t.PATHS_TO_IDS = {};
+
+/*
+ * OBJECT ORIENTED PROGRAMMING
+ * Rather than using lots of global variables (clutters namespace)
+ * or using this.attribute (dangerous depending on browser and libraries),
+ * we use _f4u$t.IDS_TO_ATTRIBUTES to hold all information for faust UI objects.
+ * That way, the impact on the namespace of the global session as well
+ * as the objects is minimal.
+ */
+
+_f4u$t.IDS_TO_ATTRIBUTES = {};
+
+// previous coordinate used
+
+_f4u$t.PREV = new Array();
+_f4u$t.PREV[_f4u$t.X_AXIS] = Number.NEGATIVE_INFINITY;
+_f4u$t.PREV[_f4u$t.Y_AXIS] = Number.NEGATIVE_INFINITY;
+
 _f4u$t.magic_color = function() {
   var r = Math.floor(Math.random() * 100) + 156;
   var g = Math.floor(Math.random() * 100) + 156;

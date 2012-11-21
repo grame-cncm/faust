@@ -309,6 +309,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
+    this.def,
     this.label,
     this.address
   );
@@ -446,6 +447,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
+    this.def,
     this.label,
     this.address
   );
@@ -553,6 +555,7 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
     this.mn,
     this.mx,
     this.step,
+    this.def,
     this.label,
     this.address
   );
@@ -909,7 +912,15 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   var id = _f4u$t.randString();
   var g = this.make_group(svg, parent, id);
-  _f4u$t.initiate_nentry(id, this.mn, this.mx, this.step, this.def, this.label, this.address);
+  _f4u$t.initiate_nentry(
+    id,
+    this.mn,
+    this.mx,
+    this.step,
+    this.def,
+    this.label,
+    this.address
+  );
 
   this.make_left_button(svg, g, id);
   this.make_right_button(svg, g, id);
@@ -1145,8 +1156,7 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
     {
       "text-anchor" : 'middle',
       transform : 'translate('+x+','+y+')',
-      //onmousedown : '_f4u$t.shuffletabs('+this.x+','+(this.y + this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
-      onmousedown : '_f4u$t.shuffletabs(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
+      onmousedown : '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
     }
   );
 
@@ -1161,8 +1171,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
       transform: 'translate('+x+','+y+')',
       // CSS
       style: 'fill:'+_f4u$t.color_to_rgb(fill)+';stroke:black;',
-      //onmousedown : '_f4u$t.shuffletabs('+this.x+','+(this.y + this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
-      onmousedown : '_f4u$t.shuffletabs(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
+      onmousedown : '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
     }
   );
 
