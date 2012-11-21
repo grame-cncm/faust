@@ -49,8 +49,8 @@ _f4u$t.update_nentry_value = function(address, value) {
 _f4u$t.update_checkbox_value = function(address, value) {
   // perhaps too much UI here?
   var id = _f4u$t.PATHS_TO_IDS[address];
-  var check = document.getElementById('faust_checkbox_check_'+id);console.log(check);console.log(check.style.opacity);
-  check.style.opacity = value;console.log(check.style.opacity);
+  var check = document.getElementById('faust_checkbox_check_'+id);
+  check.style.opacity = value;
 }
 
 _f4u$t.update_button_value = function(address, value) {
