@@ -153,6 +153,8 @@ _f4u$t.RotatingButton = function(options) {
   this.mx = _f4u$t.initifnull(options.mx, 100);
   this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
   this.step = _f4u$t.initifnull(options.step, 1);
+  this.integer = _f4u$t.initifnull(options.integer, false);
+  this.ndec = _f4u$t.initifnull(options.ndec, 0);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
@@ -311,6 +313,8 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.mx,
     this.step,
     this.init,
+    this.integer,
+    this.ndec,
     this.label,
     this.address
   );
@@ -344,6 +348,8 @@ _f4u$t.SlidingObject = function(options) {
   this.mx = _f4u$t.initifnull(options.mx, 100);
   this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
   this.step = _f4u$t.initifnull(options.step, 1);
+  this.integer = _f4u$t.initifnull(options.integer, false);
+  this.ndec = _f4u$t.initifnull(options.ndec, 0);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
@@ -449,6 +455,8 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.mx,
     this.step,
     this.init,
+    this.integer,
+    this.ndec,
     this.label,
     this.address
   );
@@ -801,6 +809,8 @@ _f4u$t.NumericalEntry = function(options) {
   this.mx = _f4u$t.initifnull(options.mx, 100);
   this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
   this.step = _f4u$t.initifnull(options.step, 1);
+  this.integer = _f4u$t.initifnull(options.integer, false);
+  this.ndec = _f4u$t.initifnull(options.ndec, 0);
   this.padding = _f4u$t.initifnull(options.padding, 1);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
@@ -919,6 +929,8 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
     this.mx,
     this.step,
     this.init,
+    this.integer,
+    this.ndec,
     this.label,
     this.address
   );
