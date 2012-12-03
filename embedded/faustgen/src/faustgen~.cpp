@@ -414,11 +414,23 @@ bool faustgen_factory::try_open_svg()
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
-	sprintf(command, "start /b file:///%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+	sprintf(command, "type file:///%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
 #else
 	sprintf(command, "open -a Safari file://%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
 #endif
 	return (system(command) == 0);
+}
+
+void faustgen_factory::open_svg()
+{
+    // Open the svg diagram file inside a web browser
+    char command[512];
+#ifdef WIN32
+	sprintf(command, "start /b file:///%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+#else
+	sprintf(command, "open -a Safari file://%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+#endif
+	system(command);
 }
 
 void faustgen_factory::display_svg()
@@ -433,7 +445,7 @@ void faustgen_factory::display_svg()
         deleteDSPFactory(factory);
      
         // Open the SVG diagram file inside a web browser
-        try_open_svg();
+        open_svg();
     }
 }
 
