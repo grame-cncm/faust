@@ -58,7 +58,7 @@
 using namespace std;
 
 #ifndef int64_t
-typedef __int64 int64_t;
+typedef long long int64_t;
 #endif
 
 /**
