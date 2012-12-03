@@ -53,6 +53,7 @@
 #include <iostream>
 #include "symbol.hh"
 #include "garbageable.hh"
+#include "compatibility.hh"
 #include <sys/types.h>
 
 using namespace std;
@@ -74,8 +75,7 @@ class Node : public virtual Garbageable
 		double 	f;
 		Sym 	s;
 		void* 	p;
-        	//int64_t v;
-		__int64 v;
+        int64_t v;
 	} fData;
 
  public:
