@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _EXCEPTION_
-#define _EXCEPTION_
+#ifndef _FAUST_EXCEPTION_
+#define _FAUST_EXCEPTION_
 
 #include <stdexcept>
 

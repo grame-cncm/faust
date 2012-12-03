@@ -33,7 +33,8 @@ int main(int argc, char* argv[])
         
         // Add time-out argument
         int argc1 = argc + 2;
-        const char* argv1[argc1];
+        const char* argv1[32];
+		assert(argc1 < 32);
         int i;
         for (i = 0; i < argc; i++) {
             argv1[i] = argv[i];

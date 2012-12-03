@@ -39,7 +39,7 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
 
 DeclareVarInst::~DeclareVarInst()
 {
-    gGlobal->gVarTable.erase(fAddress->getName());
+    //gGlobal->gVarTable.erase(fAddress->getName());
 }
 
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)

@@ -160,7 +160,7 @@ bool isExpPower (double n, string& s)
     assert(n>0);
     stringstream ss (stringstream::out|stringstream::in);
     int k = floor(log(n));
-    if ( AlmostEqual(n, exp(k)) && (k!=0) && (abs(k)<5.0) ) {
+    if ( AlmostEqual(n, exp(float(k))) && (k!=0) && (abs(k)<5.0) ) {
         ss << "e";
         if (k!=1)  ss << "^{"<< k <<"}";
         s = ss.str();

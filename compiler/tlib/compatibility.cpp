@@ -18,7 +18,10 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+#include <stdio.h>
+
+#define EEXIST 17
+
 #if defined( __MINGW32__) || defined (WIN32)
 	// Simulate some Unix fonctions on Windows
 
@@ -33,7 +36,12 @@
 
 	int mkdir(const char* path, unsigned int attribute)
 	{
-		return CreateDirectory(path,NULL);
+		if (CreateDirectory(path, NULL) != 0) {
+			return 0;
+		} else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			errno = EEXIST;
+			return -1;
+		} 	
 	}
 
 	char* getcwd(char* str, unsigned int size)
@@ -50,14 +58,20 @@
 	{
 		wchar_t	wstr[2048];
 		mbstowcs(wstr,path,2048);
-		return !SetCurrentDirectory(wstr);
+		return (SetCurrentDirectory(wstr) != 0) ? 0 : -1;
 	}
 
 	int mkdir(const char* path, unsigned int attribute)
 	{
 		wchar_t	wstr[2048];
 		mbstowcs(wstr,path,2048);
-		return CreateDirectory(wstr,NULL);
+	
+		if (CreateDirectory(wstr, NULL) != 0) {
+			return 0;
+		} else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			errno = EEXIST;
+		} 
+		return -1;
 	}
 
 	char* getcwd(char* str, unsigned int size)

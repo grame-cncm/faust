@@ -22,11 +22,13 @@
 //------------------------------------
 // generation of an xml description
 //------------------------------------
+
 #include <map>
 #include <set>
 #include <string>
 
 #include "description.hh"
+#include "compatibility.hh"
 #include "Text.hh"
 #include "exception.hh"
 #include "global.hh"
@@ -123,8 +125,9 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
                 }
                 break;
 
-            default :
+			default : {
                 snprintf(gGlobal->gErrorMsg, 256, "ERROR unrecognized state %d", state);
+			}
         }
     }
     label = rmWhiteSpaces(label);

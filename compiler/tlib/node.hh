@@ -74,7 +74,8 @@ class Node : public virtual Garbageable
 		double 	f;
 		Sym 	s;
 		void* 	p;
-        int64_t v;
+        	//int64_t v;
+		__int64 v;
 	} fData;
 
  public:

@@ -69,15 +69,32 @@ faustgen_factory::faustgen_factory(const string& name)
     
     // Built the complete resource path
     fLibraryPath = string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH);
+
+	// Draw path in temporary folder
+    fDrawPath = string(FAUST_DRAW_PATH);
 #endif
 
 #ifdef WIN32
-    // TODO
-#endif
- 
-    // Draw path in temporary folder
-    fDrawPath = string(FAUST_DRAW_PATH);
-    
+
+	HMODULE handle = LoadLibrary("faustgen~.mxe");
+	if (handle) {
+		// Get faustgen~.mxe path
+		char name[512];
+		GetModuleFileName(handle, name, 512);
+		string str_name = string(name);
+		str_name = str_name.substr(0, str_name.find_last_of("\\"));
+		// Built the complete resource path
+		fLibraryPath = string(str_name) + string(FAUST_LIBRARY_PATH);
+		// Draw path in temporary folder
+		fDrawPath = string(str_name) + string(FAUST_DRAW_PATH);
+		FreeLibrary(handle);
+	} else {
+		post("error : cannot locate faustgen~.mxe...");
+		fLibraryPath = "";
+		fDrawPath = "";
+	}
+ #endif
+
     t_max_err err = systhread_mutex_new(&fDSPMutex, SYSTHREAD_MUTEX_NORMAL);
     if (err != MAX_ERR_NONE) {
         post("Cannot allocate mutex...");
@@ -89,12 +106,15 @@ faustgen_factory::~faustgen_factory()
     free_dsp_factory();
     free_sourcecode();
     free_bitcode();
-    
+   
     // Possibly done by "compileoptions" or display_svg
     char command[512];
-    sprintf(command, "rm -r %sfaustgen-%d-svg", fDrawPath.c_str(), fFaustNumber);
-    system(command);
-    
+#ifdef WIN32
+    sprintf(command, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+#else
+	sprintf(command, "rmd -r %sfaustgen-%d-svg", fDrawPath.c_str(), fFaustNumber);
+#endif
+    system(command);   
     systhread_mutex_free(fDSPMutex);
 }
 
@@ -153,7 +173,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     
     // Prepare compile options
     char error[256];
-    const char* argv[fCompileOptions.size()];
+ 	const char* argv[32];
+	assert(fCompileOptions.size() < 32);
     vector<string>::const_iterator it;
     int i = 0;
     for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++, i++) {
@@ -168,7 +189,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         if (fUpdateInstance == instance) {
             instance->hilight_on(error);
         }
-        post("Invalid Faust code or compile options %s", error);
+		post("Invalid Faust code or compile options : %s", error);
         return 0;
     }
 }
@@ -290,7 +311,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     if (err == MAX_ERR_NONE) {
         t_atom* ap = argv;
         for (int i = 0; i < argc; i++, ap++) {
-            fCompileOptions.push_back(atom_getsym(ap)->s_name);
+			fCompileOptions.push_back(atom_getsym(ap)->s_name);
         }
     } else {
         // If not found, use default option
@@ -392,8 +413,12 @@ bool faustgen_factory::try_open_svg()
 {
     // Open the svg diagram file inside a web browser
     char command[512];
-    sprintf(command, "open -a Safari file://%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
-    return (system(command) == 0);
+#ifdef WIN32
+	sprintf(command, "start /b file:///%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+#else
+	sprintf(command, "open -a Safari file://%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+#endif
+	return (system(command) == 0);
 }
 
 void faustgen_factory::display_svg()
@@ -415,16 +440,24 @@ void faustgen_factory::display_svg()
 bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
-    sprintf(command, "open \"%s%s\"", fLibraryPath.c_str(), file);
-    printf("command %s\n", command);
+#ifdef WIN32
+    //sprintf(command, "start /b \"%s%s\"", fLibraryPath.c_str(), file);
+	sprintf(command, "start /b %s%s", fLibraryPath.c_str(), file);
+#else
+	sprintf(command, "open \"%s%s\"", fLibraryPath.c_str(), file);
+#endif
     return (system(command) == 0);
 }
 
 bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
-    sprintf(command, "open -a %s \"%s%s\"", appl, fLibraryPath.c_str(), file);
-    printf("command %s\n", command);
+#ifdef WIN32
+    //sprintf(command, "start /b %s \"%s%s\"", appl, fLibraryPath.c_str(), file);	
+	sprintf(command, "start /b %s %s%s", appl, fLibraryPath.c_str(), file);	
+#else
+	sprintf(command, "open -a %s \"%s%s\"", appl, fLibraryPath.c_str(), file);
+#endif
     return (system(command) == 0);
 }
 
@@ -448,7 +481,16 @@ void faustgen_factory::display_libraries_aux(const char* lib)
 
 void faustgen_factory::display_libraries()
 {
-    // Open the libraries
+	// Open the libraries
+#ifdef WIN32
+	open_file("effect.lib");
+    open_file("filter.lib");
+    open_file("math.lib");
+    open_file("maxmsp.lib");
+    open_file("music.lib");
+    open_file("oscillator.lib");
+    open_file("reduce.lib");
+#else
     display_libraries_aux("effect.lib");
     display_libraries_aux("filter.lib");
     display_libraries_aux("math.lib");
@@ -456,6 +498,7 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("music.lib");
     display_libraries_aux("oscillator.lib");
     display_libraries_aux("reduce.lib");
+#endif
 }
 
 void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* instance)
@@ -556,10 +599,10 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         switch (atom_gettype(ap)) {
             case A_LONG: {
                 std::stringstream num;
-                num << atom_getlong(ap);
-                char* num_str = (char*)num.str().c_str();
-                fCompileOptions.push_back(num_str);
-                break;
+				num << atom_getlong(ap);
+				string res = num.str();
+				fCompileOptions.push_back(res.c_str());
+				break;
             }
             case A_FLOAT:
                 post("Invalid compiler option argument - float");
@@ -571,7 +614,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 } else {
                     fCompileOptions.push_back(atom_getsym(ap)->s_name);
                 }
-                break;
+				break;
             default:
                 post("Invalid compiler option argument - unknown");
                 break;
@@ -581,9 +624,11 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     if (optimize) {
  
         post("Start looking for optimal compilation options...");
-         
+        
+	#ifndef WIN32
         FaustLLVMOptimizer optimizer(string(*fSourceCode), fLibraryPath, LLVM_MACHINE_TARGET, 2000, sys_getblksize());
         fCompileOptions = optimizer.findOptimize();
+	#endif
         
         if (sizeof(FAUSTFLOAT) == 8) {
             fCompileOptions.push_back("-double");
@@ -591,7 +636,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     
         // Add -svg to current compile options
         fCompileOptions.push_back("-svg");
-        
+   
         post("Optimal compilation options found");
     }
     
@@ -1074,7 +1119,11 @@ void faustgen::mute(long inlet, long mute)
     fMute = mute;
 }
 
+#ifdef WIN32
+extern "C" int main(void)
+#else
 int main(void)
+#endif
 {
     // Creates an instance of Faustgen
     faustgen::makeMaxClass("faustgen~");

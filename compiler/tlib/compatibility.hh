@@ -25,6 +25,7 @@
 #if defined (WIN32)
 
 #include <windows.h>
+#define snprintf _snprintf
 
 #ifdef WIN32
 	#undef min

@@ -386,7 +386,7 @@ struct global {
    
     // GC
     static list<Garbageable*> gObjectTable;
-    static bool gObjectCleanup;
+	static bool gHeapCleanup;
     
     global();
     ~global();

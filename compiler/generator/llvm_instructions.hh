@@ -486,8 +486,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             Function::arg_iterator func_llvm_buildUserInterface_args_it = llvm_buildUserInterface->arg_begin();
             Value* dsp = func_llvm_buildUserInterface_args_it++;
             dsp->setName("dsp");
-            Value* interface = func_llvm_buildUserInterface_args_it++;
-            interface->setName("interface");
+            Value* interface1 = func_llvm_buildUserInterface_args_it++;
+            interface1->setName("interface");
 
             // Create init block
             BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init", llvm_buildUserInterface);
@@ -497,7 +497,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = genInt32(0);
-            Value* ui_ptr = fBuilder->CreateInBoundsGEP(interface, MAKE_IXD(idx, idx+2));
+            Value* ui_ptr = fBuilder->CreateInBoundsGEP(interface1, MAKE_IXD(idx, idx+2));
             fUIInterface_ptr = fBuilder->CreateLoad(ui_ptr);
 
             //fStruct_UI_ptr->dump();

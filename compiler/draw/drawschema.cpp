@@ -147,7 +147,7 @@ static schema*  addSchemaOutputs(int outs, schema* x);
  */
 void drawSchema(Tree bd, const char* projname, const char* dev)
 {
-	gGlobal->gDevSuffix 		= dev;
+	gGlobal->gDevSuffix 	= dev;
 	gGlobal->gFoldingFlag 	= boxComplexity(bd) > gGlobal->gFoldThreshold;
    
 	mkchdir(projname); 			// create a directory to store files
@@ -210,7 +210,7 @@ static void writeSchemaFile(Tree bd)
 	char 			temp[1024];
 
 	gGlobal->gOccurrences = new Occurrences(bd);
-    getBoxType (bd, &ins, &outs);
+    getBoxType(bd, &ins, &outs);
 
 	bool hasname = getDefNameProperty(bd, id); 
 

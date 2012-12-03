@@ -12,6 +12,11 @@
 #include <string>
 #include <map>
 
+#ifdef WIN32
+#include <stdio.h>
+#define snprintf _snprintf
+#endif
+
 using namespace std;
 
 /*--------------------------------------------------------------------------*/
@@ -117,7 +122,7 @@ class mspUI : public UI
             map<const char*, const char*>::reverse_iterator it;
             
             if (fDeclareTable.size() > 0) {
-                int i = 0;
+                unsigned int i = 0;
                 string res = string(label) + "[";
                 for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
                     res = res + (*it).first + ":" + (*it).second;

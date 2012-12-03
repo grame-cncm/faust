@@ -53,8 +53,8 @@ extern FILE* yyin;
 extern const char * yyfilename;
 
 list<Garbageable*> global::gObjectTable;
-bool global::gObjectCleanup;
-    
+bool global::gHeapCleanup = false;
+
 global::global():TABBER(1), gLoopDetector(1024, 512), gNextFreeColor(1)
 {
     CTree::init();
@@ -125,6 +125,10 @@ global::global():TABBER(1), gLoopDetector(1024, 512), gNextFreeColor(1)
     gDummyInput = 10000;
     
     gBoxSlotNumber = 0;
+
+	gOccurrences = 0;
+	gFoldingFlag = false;
+	gDevSuffix = 0;
     
     gAbsPrim = new AbsPrim();
     gAcosPrim = new AcosPrim();
@@ -356,20 +360,25 @@ void Garbageable::cleanup()
 {
     std::list<Garbageable*>::iterator it;
     /*
-    Here removing the deleted pointer from the list is pointless and takes time,
-    thus we don't do it.
+    Here removing the deleted pointer from the list is pointless 
+	and takes time, thus we don't do it.
     */
-    global::gObjectCleanup = true;
+    global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
-        delete(*it);
+	#ifdef WIN32
+		// Hack : "this" and actual pointer are not the same: destructor cannot be called...
+		Garbageable::operator delete(*it);
+	#else
+		delete(*it);
+	#endif
     }
     global::gObjectTable.clear();
 }
 
 void* Garbageable::operator new(size_t size)
 {
-    void* res = calloc(1, size);
-    global::gObjectTable.push_front(static_cast<Garbageable*>(res));
+	Garbageable* res = (Garbageable*)::operator new(size);
+  	global::gObjectTable.push_front(res);
     return res;
 }
 
@@ -379,22 +388,22 @@ void Garbageable::operator delete(void* ptr)
     We may have cases when a pointer will be deleted during a compilation, 
     thus the pointer has to be removed from the list.
     */
-    if (!global::gObjectCleanup) {
+    if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
+   }
     free(ptr);
 }
 
 void* Garbageable::operator new[](size_t size)
 {
-    void* res = calloc(1, size);
-    global::gObjectTable.push_front(static_cast<Garbageable*>(res));
+  	Garbageable* res = (Garbageable*)::operator new[](size);
+ 	global::gObjectTable.push_front(res);
     return res;
 }
 
 void Garbageable::operator delete[](void* ptr)
 {
-    if (!global::gObjectCleanup) {
+    if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
     free(ptr);

@@ -225,10 +225,10 @@ public:
 	typedef void (T::*maxmethodperform)(int vs, t_sample ** inputs, long numins, t_sample ** outputs, long numouts);
 	
 	t_pxobject m_ob;
-	int m_siginlets, m_sigoutlets;
+	unsigned int m_siginlets, m_sigoutlets;
 	maxmethodperform m_perform;
     
-    MspCpp5():m_siginlets(-1), m_sigoutlets(-1)
+    MspCpp5():m_siginlets(0), m_sigoutlets(0)
     {}
 	
 	static t_class * makeMaxClass(const char * name);
@@ -358,11 +358,11 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, unsigned in
         m_siginlets = siginlets;
       
         if (sigoutlets > m_sigoutlets) {
-            for (int i = m_sigoutlets; i < sigoutlets; i++) {
+            for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
                 outlet_append((t_object*)this, NULL, gensym("signal"));
             }
         } else if (sigoutlets < m_sigoutlets) {
-            for (int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
+            for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
                 outlet_delete(outlet_nth((t_object*)this, i-1));
             }
         }
