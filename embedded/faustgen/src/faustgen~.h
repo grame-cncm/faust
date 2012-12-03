@@ -39,7 +39,6 @@
 #include <vector> 
 #include <map> 
 
-//#include "bench-llvm.cpp"
 #include "faust/llvm-dsp.h"
 #include "maxcpp5.h"
 
@@ -57,19 +56,16 @@
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
-
-#define FAUST_LIBRARY_PATH "/Contents/Resources/"
-#define FAUST_DRAW_PATH "/var/tmp/"
-#define LLVM_MACHINE_TARGET "i386-apple-darwin10.6.0"
-
+    #include "bench-llvm.cpp"
+    #define FAUST_LIBRARY_PATH "/Contents/Resources/"
+    #define FAUST_DRAW_PATH "/var/tmp/"
+    #define LLVM_MACHINE_TARGET "i386-apple-darwin10.6.0"
 #endif
 
 #ifdef WIN32
-
-#define FAUST_LIBRARY_PATH "\\faustgen-resources\\"
-#define FAUST_DRAW_PATH "\\faustgen-resources\\"
-#define LLVM_MACHINE_TARGET ""
-
+    #define FAUST_LIBRARY_PATH "\\faustgen-resources\\"
+    #define FAUST_DRAW_PATH "\\faustgen-resources\\"
+    #define LLVM_MACHINE_TARGET ""
 #endif
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
