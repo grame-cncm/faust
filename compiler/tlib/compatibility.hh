@@ -27,10 +27,6 @@
 #include <windows.h>
 #define snprintf _snprintf
 
-#ifndef int64_t
-typedef __int64 int64_t;
-#endif
-
 #ifdef WIN32
 	#undef min
 	#undef max

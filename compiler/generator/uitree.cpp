@@ -32,7 +32,7 @@ static void error(const char * s, Tree t)
 	fprintf(stderr, "ERROR : %s (%p)\n", s, t);
 }
 
-#define ERROR(s,t) { error(s,t); throw faustexception(s); }
+#define FAUST_ERROR(s,t) { error(s,t); throw faustexception(s); }
 
 //------------------------------------------------------------------------------
 // Property list
@@ -74,10 +74,10 @@ static bool isBefore(Tree k1, Tree k2)
 	//fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n"); 
 	Sym s1, s2;
 	if (!isSym(k1->node(), &s1)) {
-		ERROR("the node of the tree is not a symbol", k1);
+		FAUST_ERROR("the node of the tree is not a symbol", k1);
 	}
 	if (!isSym(k2->node(), &s2)) {
-		ERROR("the node of the tree is not a symbol", k2);
+		FAUST_ERROR("the node of the tree is not a symbol", k2);
 	}
 	
 	//fprintf (stderr, "strcmp(\"%s\", \"%s\") = %d\n", name(s1), name(s2), strcmp(name(s1), name(s2)));

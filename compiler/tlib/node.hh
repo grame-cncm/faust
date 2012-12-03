@@ -53,10 +53,13 @@
 #include <iostream>
 #include "symbol.hh"
 #include "garbageable.hh"
-#include "compatibility.hh"
 #include <sys/types.h>
 
 using namespace std;
+
+#ifndef int64_t
+typedef __int64 int64_t;
+#endif
 
 /**
  * Tags used to define the type of a Node
