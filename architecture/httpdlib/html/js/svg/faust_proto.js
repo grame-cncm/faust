@@ -91,6 +91,14 @@ _f4u$t.bound = function(v,m,n) {
   return v;
 }
 
+_f4u$t.quantize = function(ov,m,n,s) {
+  var v = _f4u$t.bound(ov, m, n);
+  var mn = Math.min(m,n);
+  var mx = Math.max(m,n);
+  out = Math.floor((v - mn) / s + 0.5) * s + mn;
+  return _f4u$t.bound(out, m, n);
+}
+
 _f4u$t.flip = function(v,m,n) {
   var mn = Math.min(m,n);
   var mx = Math.max(m,n);
@@ -102,8 +110,16 @@ _f4u$t.remap_and_bound = function(v, mn0, mx0, mn1, mx1) {
   return _f4u$t.bound(_f4u$t.remap(v, mn0, mx0, mn1, mx1), mn1, mx1);
 }
 
+_f4u$t.remap_and_quantize = function(v, mn0, mx0, mn1, mx1, s) {
+  return _f4u$t.quantize(_f4u$t.remap(v, mn0, mx0, mn1, mx1), mn1, mx1, s);
+}
+
 _f4u$t.remap_and_bound_and_flip = function(v, mn0, mx0, mn1, mx1) {
   return _f4u$t.flip(_f4u$t.bound(_f4u$t.remap(v, mn0, mx0, mn1, mx1), mn1, mx1), mn1, mx1);
+}
+
+_f4u$t.remap_and_quantize_and_flip = function(v, mn0, mx0, mn1, mx1, s) {
+  return _f4u$t.flip(_f4u$t.quantize(_f4u$t.remap(v, mn0, mx0, mn1, mx1), mn1, mx1, s), mn1, mx1);
 }
 
 _f4u$t.remap_and_flip = function(v, mn0, mx0, mn1, mx1) {

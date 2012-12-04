@@ -22,14 +22,48 @@ _f4u$t.get_unit = function(dct) {
   return '';
 }
 
+_f4u$t.getnumspecs = function(dct) {
+  var integer = false;
+  if((parseFloat(dct["max"]) == parseInt(dct["max"]))
+     && (parseFloat(dct["min"]) == parseInt(dct["min"]))
+     && (parseFloat(dct["step"]) == parseInt(dct["step"]))
+     && (parseFloat(dct["init"]) == parseInt(dct["init"]))
+     && !isNaN(dct["max"])
+     && !isNaN(dct["min"])
+     && !isNaN(dct["step"])
+     && !isNaN(dct["init"])) {
+    integer = true;
+  }
+  var maxsplit = dct["max"].split('.');
+  var minsplit = dct["min"].split('.');
+  var stepsplit = dct["step"].split('.');
+  var initsplit = dct["init"].split('.');
+  maxsplit[1] = maxsplit[1] || '';
+  minsplit[1] = minsplit[1] || '';
+  stepsplit[1] = stepsplit[1] || '';
+  initsplit[1] = initsplit[1] || '';
+  parser = integer ? parseInt : parseFloat;
+  return {
+    mn : parser(dct["min"]),
+    mx : parser(dct["max"]),
+    step : parser(dct["step"]),
+    init : parser(dct["init"]),
+    isint : integer,
+    ndec : Math.max(maxsplit[1].length, minsplit[1].length, stepsplit[1].length, initsplit[1].length)
+  };
+}
+
 _f4u$t.make_rbutton = function(dct) {
+  var numspecs = _f4u$t.getnumspecs(dct);
   return new _f4u$t.RotatingButton({
     label : dct["label"],
-    mn : parseFloat(dct["min"]),
-    mx : parseFloat(dct["max"]),
-    step : parseFloat(dct["step"]),
+    mn : numspecs["mn"],
+    mx : numspecs["mx"],
+    step : numspecs["step"],
+    init : numspecs["init"],
+    integer : numspecs["integer"],
+    ndec : numspecs["ndec"],
     address : dct["address"],
-    def : parseFloat(dct["init"]),
     unit : _f4u$t.get_unit(dct)
   });
 }
@@ -46,13 +80,16 @@ _f4u$t.make_slider = function(kls, dct) {
   if (_f4u$t.has_knob(dct)) {
     return _f4u$t.make_rbutton(dct);
   }
+  var numspecs = _f4u$t.getnumspecs(dct);
   return new kls({
     label : dct["label"],
-    mn : parseFloat(dct["min"]),
-    mx : parseFloat(dct["max"]),
-    step : parseFloat(dct["step"]),
+    mn : numspecs["mn"],
+    mx : numspecs["mx"],
+    step : numspecs["step"],
+    init : numspecs["init"],
+    integer : numspecs["integer"],
+    ndec : numspecs["ndec"],
     address : dct["address"],
-    def : parseFloat(dct["init"]),
     unit : _f4u$t.get_unit(dct)
   });
 }
@@ -66,6 +103,7 @@ _f4u$t.make_vbargraph = function(dct) {
 }
 
 _f4u$t.make_bargraph = function(kls, dct) {
+  var numspecs = _f4u$t.getnumspecs(dct);
   return new kls({
     label : dct["label"],
     mn : parseFloat(dct["min"]),
@@ -87,7 +125,7 @@ _f4u$t.make_checkbox = function(dct) {
   return new _f4u$t.CheckBox({
     label : dct["label"],
     address : dct["address"],
-    def : (dct["init"] == "1" ? true : false)
+    init : (dct["init"] == "1" ? true : false)
   });
 }
 
@@ -95,13 +133,16 @@ _f4u$t.make_nentry = function(dct) {
   if (_f4u$t.has_knob(dct)) {
     return _f4u$t.make_rbutton(dct);
   }
+  var numspecs = _f4u$t.getnumspecs(dct);
   return new _f4u$t.NumericalEntry({
     label : dct["label"],
-    mn : parseFloat(dct["min"]),
-    mx : parseFloat(dct["max"]),
-    step : parseFloat(dct["step"]),
+    mn : numspecs["mn"],
+    mx : numspecs["mx"],
+    step : numspecs["step"],
+    init : numspecs["init"],
+    integer : numspecs["integer"],
+    ndec : numspecs["ndec"],
     address : dct["address"],
-    def : parseFloat(dct["init"]),
     unit : _f4u$t.get_unit(dct)
   });
 }
