@@ -75,7 +75,6 @@ faustgen_factory::faustgen_factory(const string& name)
 #endif
 
 #ifdef WIN32
-
 	HMODULE handle = LoadLibrary("faustgen~.mxe");
 	if (handle) {
 		// Get faustgen~.mxe path
@@ -89,7 +88,7 @@ faustgen_factory::faustgen_factory(const string& name)
 		fDrawPath = string(str_name) + string(FAUST_DRAW_PATH);
 		FreeLibrary(handle);
 	} else {
-		post("error : cannot locate faustgen~.mxe...");
+		post("Error : cannot locate faustgen~.mxe...");
 		fLibraryPath = "";
 		fDrawPath = "";
 	}
@@ -441,7 +440,6 @@ bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
 #ifdef WIN32
-    //sprintf(command, "start /b \"%s%s\"", fLibraryPath.c_str(), file);
 	sprintf(command, "start /b %s%s", fLibraryPath.c_str(), file);
 #else
 	sprintf(command, "open \"%s%s\"", fLibraryPath.c_str(), file);
@@ -453,8 +451,7 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
 #ifdef WIN32
-    //sprintf(command, "start /b %s \"%s%s\"", appl, fLibraryPath.c_str(), file);	
-	sprintf(command, "start /b %s %s%s", appl, fLibraryPath.c_str(), file);	
+  	sprintf(command, "start /b %s %s%s", appl, fLibraryPath.c_str(), file);	
 #else
 	sprintf(command, "open -a %s \"%s%s\"", appl, fLibraryPath.c_str(), file);
 #endif

@@ -18,6 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+ 
 #include <stdio.h>
 
 #define EEXIST 17
@@ -70,8 +71,8 @@
 			return 0;
 		} else if (GetLastError() == ERROR_ALREADY_EXISTS) {
 			errno = EEXIST;
+            return -1;
 		} 
-		return -1;
 	}
 
 	char* getcwd(char* str, unsigned int size)
@@ -110,37 +111,37 @@
 
 
 #define EXTRACT_WORDS(ix0,ix1,d)				\
-	do {								\
-	ieee_double_shape_type ew_u;					\
-	ew_u.value = (d);						\
-	(ix0) = ew_u.parts.msw;					\
-	(ix1) = ew_u.parts.lsw;					\
+	do {                                        \
+        ieee_double_shape_type ew_u;			\
+        ew_u.value = (d);						\
+        (ix0) = ew_u.parts.msw;					\
+        (ix1) = ew_u.parts.lsw;					\
 	} while (0)
 
 	/* Get the more significant 32 bit int from a double.  */
 
 #define GET_HIGH_WORD(i,d)					\
-	do {								\
-	ieee_double_shape_type gh_u;					\
-	gh_u.value = (d);						\
-	(i) = gh_u.parts.msw;						\
+	do {                                    \
+        ieee_double_shape_type gh_u;		\
+        gh_u.value = (d);					\
+        (i) = gh_u.parts.msw;				\
 	} while (0)
 
 	/* Get the less significant 32 bit int from a double.  */
 
 #define GET_LOW_WORD(i,d)					\
-	do {								\
-	ieee_double_shape_type gl_u;					\
-	gl_u.value = (d);						\
-	(i) = gl_u.parts.lsw;						\
+	do {                                    \
+        ieee_double_shape_type gl_u;		\
+        gl_u.value = (d);					\
+        (i) = gl_u.parts.lsw;				\
 	} while (0)
 
 #define SET_HIGH_WORD(d,v)					\
-	do {								\
-	ieee_double_shape_type sh_u;					\
-	sh_u.value = (d);						\
-	sh_u.parts.msw = (v);						\
-	(d) = sh_u.value;						\
+	do {                                    \
+        ieee_double_shape_type sh_u;		\
+        sh_u.value = (d);					\
+        sh_u.parts.msw = (v);				\
+        (d) = sh_u.value;					\
 	} while (0)
 
 	double remainder(double x, double p)
@@ -156,8 +157,8 @@
 		hx &= 0x7fffffff;
 
 		/* purge off exception values */
-		if((hp|lp)==0) return (x*p)/(x*p); 	/* p = 0 */
-		if((hx>=0x7ff00000)||			/* x not finite */
+		if ((hp|lp)==0) return (x*p)/(x*p); 	/* p = 0 */
+		if ((hx>=0x7ff00000)||			/* x not finite */
 			((hp>=0x7ff00000)&&			/* p is NaN */
 			(((hp-0x7ff00000)|lp)!=0)))
 			return (x*p)/(x*p);
