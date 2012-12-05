@@ -387,7 +387,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.81b;
+				PRODUCT_VERSION = 0.82b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -536,7 +536,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.81b;
+				PRODUCT_VERSION = 0.82b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
