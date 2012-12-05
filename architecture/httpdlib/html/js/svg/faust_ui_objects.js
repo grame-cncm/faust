@@ -74,7 +74,8 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
       id: 'faust_value_box_'+id,
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.box_padding)+')',
       'class': 'faust-vbox',
-      onmousedown : mousedown
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -84,6 +85,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
 _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, mousedown) {
   var dims = this.dims();
   var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] / 2.0) : this.box_padding);
+  var mymousedown = (mousedown ? mousedown : '_f4u$t.devnull()');
   var vv = svg.text(
     parent,
     0,
@@ -93,7 +95,8 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
       id: 'faust_value_value_'+id,
       "text-anchor" : ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y)+')',
-      onmousedown : (mousedown ? mousedown : '_f4u$t.devnull()')
+      onmousedown : mymousedown,
+      ontouchstart : mymousedown
     }
   );
   return vv;
@@ -265,6 +268,8 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
     end[0], end[1]
   ]);
 
+
+  var mousedown = '_f4u$t.activate_rbutton("'+full_id+'")';
   var knob = svg.path(
     parent,
     d,
@@ -272,7 +277,8 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
       'class' : 'faust-rbutton-knob',
       id : full_id,
       transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')',
-      onmousedown : '_f4u$t.activate_rbutton("'+full_id+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -428,6 +434,7 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var y = _f4u$t.xy(this.o, 0, bottom);
   var full_id = 'faust_'+this.type+'_knob_'+id;
   var activate_fn = "activate_"+this.type;
+  var mousedown = '_f4u$t["'+activate_fn+'"]("'+full_id+'")';
 
   var knob = svg.path(
     parent,
@@ -436,7 +443,8 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
       id : full_id,
       'class' : 'faust-slider-knob',
       transform : 'translate('+x+','+y+')',
-      onmousedown : '_f4u$t["'+activate_fn+'"]("'+full_id+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -637,6 +645,7 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
   var h = this.d;
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
+  var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
 
   var box = svg.path(
     parent,
@@ -645,7 +654,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
       id : full_id,
       'class' : 'faust-checkbox-box',
       transform : 'translate('+xo+',0)',
-      onmousedown : '_f4u$t.change_checkbox("'+full_id+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -658,6 +668,7 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   var h = this.d;
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
+  var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
   var box = svg.path(
     parent,
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
@@ -666,7 +677,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       // CSS here instead of in style sheet becasue it only has relevence
       // in terms of UI
       style : "opacity:"+(this.init == 1 ? 1.0 : 0.0)+";stroke:black;fill:black;",
-      onmousedown : '_f4u$t.change_checkbox("'+full_id+'")',
+      onmousedown : mousedown,
+      ontouchstart : mousedown,
       transform : 'translate('+xo+',0)'
     }
   );
@@ -745,6 +757,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   var rf = 10;
   var d = "M{0} 0L{1} 0C{2} 0 {2} 0 {2} {3}L{2} {4}C{2} {5} {2} {5} {1} {5}L{0} {5}C0 {5} 0 {5} 0 {4}L0 {3}C0 0 0 0 {0} 0";
   d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
+  var mousedown = '_f4u$t.button_down("'+full_id+'")';
+  var mouseup = '_f4u$t.button_up("'+full_id+'")';
 
   var button = svg.path(
     parent,
@@ -752,8 +766,10 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
     {
       id : full_id,
       'class' : 'faust-button-up',
-      onmousedown : '_f4u$t.button_down("'+full_id+'")',
-      onmouseup : '_f4u$t.button_up("'+full_id+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown,
+      onmouseup : mouseup,
+      ontouchend : mouseup
     }
   );
 
@@ -762,6 +778,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
 
 _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
   var full_id = 'faust_button_box_'+id;
+  var mousedown = '_f4u$t.button_down("'+full_id+'")';
+  var mouseup = '_f4u$t.button_up("'+full_id+'")';
   var vl = svg.text(
     parent,
     0,
@@ -771,8 +789,10 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
       "text-anchor" : 'middle',
       id: 'faust_label_'+id,
       transform: 'translate('+(this.w() / 2.0)+','+(this.h() / 2.0 + this.baselineSkip)+')',
-      onmousedown : '_f4u$t.button_down("'+full_id+'")',
-      onmouseup : '_f4u$t.button_up("'+full_id+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown,
+      onmouseup : mouseup,
+      ontouchend : mouseup
     }
   );
 
@@ -861,6 +881,7 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
   var h = this.h();
 
   var d = "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0";
+  var mousedown = '_f4u$t.activate_nentry("'+full_id+'", '+incr+')';
   var button = svg.path(
     parent,
     d,
@@ -868,7 +889,8 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       transform : 'translate('+xo+',0)',
       id : full_id,
       'class' : 'faust-nentry-button',
-      onmousedown : '_f4u$t.activate_nentry("'+full_id+'", '+incr+')'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -880,6 +902,7 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
   var x0 = (this.w() / 2.0 - this.padding) / 4.0;
   var y = this.h() / 2.0;
   var x1 = (this.w() / 2.0 - this.padding) * 3.0 / 4.0;
+  var mousedown = '_f4u$t.activate_nentry("'+full_id+'", false)';
 
   var d = "M"+x0+" "+y+"L"+x1+" "+y;
   var minus = svg.path(
@@ -888,7 +911,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
     {
       id : full_id,
       'class' : 'faust-nentry-operation',
-      onmousedown : '_f4u$t.activate_nentry("'+full_id+'", false)'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -906,6 +930,7 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 
   var d = "M{0} {1}L{2} {1}M{3} {4}L{3} {5}";
   d = d.format([x00, y0, x01, x1, y10, y11]);
+  var mousedown = '_f4u$t.activate_nentry("'+full_id+'", true)';
   var plus = svg.path(
     parent,
     d,
@@ -913,7 +938,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
       transform : 'translate('+(this.w() / 2.0 + this.padding)+',0)',
       id : full_id,
       'class' : 'faust-nentry-operation',
-      onmousedown : '_f4u$t.activate_nentry("'+full_id+'", true)'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -1161,6 +1187,7 @@ _f4u$t.TabGroup.prototype.do_spacing = function() {
 }
 
 _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, badidstr) {
+  var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
   var vl = svg.text(
     parent,
     0,
@@ -1169,7 +1196,8 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
     {
       "text-anchor" : 'middle',
       transform : 'translate('+x+','+y+')',
-      onmousedown : '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 
@@ -1177,6 +1205,7 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
 }
 
 _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill) {
+  var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")';
   var tab = svg.path(
     parent,
     "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
@@ -1184,7 +1213,8 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
       transform: 'translate('+x+','+y+')',
       // CSS
       style: 'fill:'+_f4u$t.color_to_rgb(fill)+';stroke:black;',
-      onmousedown : '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
 

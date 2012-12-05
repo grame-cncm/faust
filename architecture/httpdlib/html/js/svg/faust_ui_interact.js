@@ -297,7 +297,9 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
 */
 
 // main function to move currently-selected slider
-_f4u$t.moveActiveObject = function(e) {
+_f4u$t.moveActiveObject = function(ee) {
+  // for mobile devices
+  var e = ee.touches ? ee.touches[0] : ee;
   if (_f4u$t._I == 0) {
     _f4u$t.updateXY(e);
     _f4u$t.BUSY = false;
@@ -432,13 +434,17 @@ _f4u$t.clearIdCache = function() {
   _f4u$t.BUSY = false;
 }
 
-// BROKEN...
+// CLASS STUFF BROKEN...
+// for now, hardcoded colors
 _f4u$t.button_class_changer = function(I, down) {
+  var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(I));
   if (down) {
-    $('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-up').addClass('faust-button-down');
+    //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-up').addClass('faust-button-down');
+    mybutton.style.fill = 'rgb(233,150,122)';
   }
   else {
-    $('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-down').addClass('faust-button-up');
+    //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-down').addClass('faust-button-up');
+    mybutton.style.fill = 'rgb(173,255,47)';
   }
 }
 
@@ -668,8 +674,12 @@ _f4u$t.actualize_incremental_object = function(id) {
 /*
  DOCUMENT-WIDE DECLARATIONS
 */
-
+_f4u$t.alert = function () { alert("moved"); }
 document.onkeypress = _f4u$t.keys_to_sink;
 document.onkeydown = _f4u$t.make_delete_key_work;
 document.onmouseup = _f4u$t.clearIdCache;
 document.onmousemove = _f4u$t.moveActiveObject;
+document.ontouchend = _f4u$t.clearIdCache;
+document.ontouchmove = _f4u$t.moveActiveObject;
+// make the entire document clickable for mobile devices
+document.onclick = _f4u$t.devnull;
