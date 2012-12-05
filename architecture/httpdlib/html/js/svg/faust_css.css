@@ -66,3 +66,5 @@ path.faust-button-up {
   stroke : black;
 }
 
+// hack for mobile devices
+input[type='text'],input[type='number'],textarea {font-size:16px;}

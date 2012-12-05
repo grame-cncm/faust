@@ -300,9 +300,15 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
 _f4u$t.moveActiveObject = function(ee) {
   // for mobile devices
   var e = ee.touches ? ee.touches[0] : ee;
+  if (ee.touches) {
+    if (ee.touches.length > 1) {
+      _f4u$t.updateXY(e);
+      _f4u$t.BUSY = false;
+      return true;
+    }
+  }
   if (_f4u$t._I == 0) {
     _f4u$t.updateXY(e);
-    _f4u$t.BUSY = false;
     return true;
   }
 
@@ -431,7 +437,9 @@ _f4u$t.clearIdCache = function() {
   // that means that if someone forgets to set a setter, it will
   // point to its old value
   _f4u$t._I = 0;
-  _f4u$t.BUSY = false;
+  if (!_f4u$t._N) {
+    _f4u$t.BUSY = false;
+  }
 }
 
 // CLASS STUFF BROKEN...
@@ -516,6 +524,7 @@ _f4u$t.clog_key_sink = function() {
   if (_f4u$t._N != 0) {
     var box = document.getElementById("faust_value_box_"+_f4u$t.unique(_f4u$t._N));
     box.style.stroke = "black";
+    _f4u$t.BUSY = false;
   }
   _f4u$t._N = 0;
 }
@@ -578,10 +587,18 @@ _f4u$t.keys_to_sink = function(e) {
 }
 
 _f4u$t.make_key_sink = function(I) {
+  if (_f4u$t.BUSY) {
+    return false;
+  }
   _f4u$t._N = 'faust_value_value_'+I;
   _f4u$t.IDS_TO_ATTRIBUTES[I]["buffer"] = "";
   var box = document.getElementById("faust_value_box_"+I);
   box.style.stroke = "red";
+  _f4u$t.BUSY = true;
+  // below is a hack for text inputs that should only be activated
+  // after some work is done to figure out how to prevent auto zooming
+  // in mobile devices
+  //document.getElementById('faust-text-input-dummy').focus();
 }
 
 _f4u$t.generic_key_sink = function(I) {
@@ -601,8 +618,6 @@ _f4u$t.vslider_key_sink = function(I) {
 _f4u$t.rotating_button_key_sink = function(I) {
   _f4u$t.generic_key_sink(I);
 }
-
-
 
 // if a numerical entry is linked to an incremental object,
 // actualize it
