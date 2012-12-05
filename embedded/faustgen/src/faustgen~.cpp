@@ -425,9 +425,9 @@ void faustgen_factory::open_svg()
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
-	sprintf(command, "start /b file:///%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+	sprintf(command, "start \"\" \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-	sprintf(command, "open -a Safari file://%sfaustgen-%d-svg/process.svg", fDrawPath.c_str(), fFaustNumber);
+	sprintf(command, "open -a Safari \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
 	system(command);
 }
@@ -452,10 +452,11 @@ bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
 #ifdef WIN32
-	sprintf(command, "start /b \"%s%s\"", fLibraryPath.c_str(), file);
+	sprintf(command, "start \"\" \"%s%s\"", fLibraryPath.c_str(), file);
 #else
 	sprintf(command, "open \"%s%s\"", fLibraryPath.c_str(), file);
 #endif
+	post(command);
     return (system(command) == 0);
 }
 
@@ -463,7 +464,7 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
 #ifdef WIN32
-  	sprintf(command, "start /b %s \"%s%s\"", appl, fLibraryPath.c_str(), file);	
+  	sprintf(command, "start \"\" %s \"%s%s\"", appl, fLibraryPath.c_str(), file);	
 #else
 	sprintf(command, "open -a %s \"%s%s\"", appl, fLibraryPath.c_str(), file);
 #endif
