@@ -8,7 +8,7 @@ _f4u$t.fausthandler = function(dest, value) {
     var msg = "$.get( " + dest +"?value=" + value + ");";
     console.log(msg);
   }
-  $.get("http://localhost:5510"+dest +"?value=" + value);
+  $.get(dest +"?value=" + value);
 }
 
 //-----------------------------------------------------------------------------
