@@ -749,7 +749,7 @@ struct AddSliderInst : public StatementInst
 
 struct AddBargraphInst : public StatementInst
 {
-     enum BargraphType {kHorizontal, kVertical};
+    enum BargraphType {kHorizontal, kVertical};
 
     string fLabel;
     string fZone;

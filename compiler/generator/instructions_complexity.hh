@@ -122,7 +122,7 @@ class InstComplexityVisitor : public InstVisitor {
 
         int cost()
         {
-            // Un polynome basé sur toutes les les valeurs mesurées
+            // Un polynome basé sur toutes les valeurs mesurées
             return 0;
         }
 

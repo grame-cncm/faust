@@ -130,6 +130,7 @@ void FirCodeContainer::dumpFlatten(ostream* dst)
     *dst << std::endl;
     FIRInstVisitor firvisitor(dst);
     flattenFIR()->accept(&firvisitor);
+    *dst << std::endl;
 }
 
 void FirCodeContainer::dumpMemory(ostream* dst)
@@ -157,6 +158,7 @@ void FirCodeContainer::dumpMemory(ostream* dst)
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes" << "\n\n";
     }
 }
+
 void FirCodeContainer::dump(ostream* dst)
 {
     FIRInstVisitor firvisitor(dst);

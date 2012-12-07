@@ -273,7 +273,7 @@ list<GUI*> GUI::fGuiList;
 const char* sopt(int argc, char *argv[], const char* longname, const char* shortname, const char* def) 
 {
 	for (int i=2; i<argc; i++) 
-		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) 
+    if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) 
 			return argv[i];
 	return def;
 }
@@ -282,7 +282,7 @@ const char* sopt(int argc, char *argv[], const char* longname, const char* short
 bool fopt(int argc, char *argv[], const char* longname, const char* shortname) 
 {
 	for (int i=1; i<argc; i++) 
-		if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0) 
+    if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0) 
 			return true;
 	return false;
 }

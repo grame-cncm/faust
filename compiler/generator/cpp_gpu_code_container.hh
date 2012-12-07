@@ -399,7 +399,6 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         virtual ~CPPOpenCLCodeContainer()
         {
             delete fGPUOut;
-            delete fKernelCodeProducer;
         }
 
         void produceClass();
@@ -488,7 +487,6 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         virtual ~CPPCUDACodeContainer()
         {
             delete fGPUOut;
-            delete fKernelCodeProducer;
         }
 
         void produceClass();

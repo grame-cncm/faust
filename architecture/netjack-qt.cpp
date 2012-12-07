@@ -63,7 +63,6 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
@@ -102,7 +101,7 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
 	DSP->buildUserInterface(httpdinterface);
 #endif
 

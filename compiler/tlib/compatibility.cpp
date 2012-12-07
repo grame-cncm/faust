@@ -170,13 +170,13 @@
 		x  = fabs(x);
 		p  = fabs(p);
 		if (hp<0x00200000) {
-			if(x+x>p) {
+			if (x+x>p) {
 				x-=p;
 				if(x+x>=p) x -= p;
 			}
 		} else {
 			p_half = 0.5*p;
-			if(x>p_half) {
+			if (x>p_half) {
 				x-=p;
 				if(x>=p_half) x -= p;
 			}
