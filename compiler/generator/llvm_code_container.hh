@@ -30,9 +30,7 @@
 
 #ifdef LLVM_28
 #include <llvm/System/Host.h>
-#endif
-
-#ifdef LLVM_29
+#else
 #include <llvm/Support/Host.h>
 #endif
 

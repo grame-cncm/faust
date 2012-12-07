@@ -1,7 +1,5 @@
 subprojects := . boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils ../libraries
 
-#CXX=clang++
-
 sources =  $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
 
 objects = $(sources:.cpp=.o)
@@ -11,7 +9,23 @@ VPATH = $(subprojects)
 
 system	?= $(shell uname -s)
 
+## On Darwin build both 32 and 64-bits intel versions
+ifeq ($(system), Darwin)
+ARCHFLAGS 	:=  -arch i386 -arch x86_64
+LIBFLAGS	:=
+CXX 		= clang++
+LLVM_CONFIG = llvm-config
+else 
+ARCHFLAGS 	:= 
+LIBFLAGS	:= --mode=link --tag=CXX
+LLVM_CONFIG 	= $(word 1,$(wildcard /usr/bin/llvm-config*))
+endif
+
 LLVM_VERSION = $(shell llvm-config --version)
+
+ifeq ($(LLVM_VERSION), 2.8)
+LLVM_VERSION  = LLVM_28
+endif
 
 ifeq ($(LLVM_VERSION), 2.9)
 LLVM_VERSION  = LLVM_29
@@ -25,20 +39,12 @@ ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
 endif
 
-## On darwin build both 32 and 64-bits intel versions
-ifeq ($(system), Darwin)
-ARCHFLAGS 	:=  -arch i386 -arch x86_64
-LIBFLAGS	:=
-else 
-ARCHFLAGS 	:= 
-LIBFLAGS	:= --mode=link --tag=CXX
-endif
 
-#CXXFLAGS ?= -g -Wall -Wuninitialized 
-CXX = clang++
+#CXXFLAGS ?= -g -Wall -Wuninitialized -Wexit-time-destructors -Wglobal-constructors
+
 CXXFLAGS ?= -O3 -Wall -Wuninitialized -Wexit-time-destructors -Wglobal-constructors 
 CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
-CXXFLAGS += -I`llvm-config --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
 all : faust libfaust.a
@@ -52,9 +58,8 @@ global.o : global.cpp
 main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
-
 faust : $(objects) main.o libmain.o global.o
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `llvm-config --ldflags --libs all` -ldl -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags --libs all` -ldl -o faust
 
 libfaust.a : $(objects) libmain.o global.o
 	libtool $(objects) libmain.o global.o -static -o libfaust.a
@@ -256,9 +261,10 @@ generator/dag_instructions_compiler.o: extended/xtended.hh signals/sigvisitor.hh
 generator/dag_instructions_compiler.o: errors/exception.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 generator/description.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
-generator/description.o: tlib/smartpointer.hh generator/uitree.hh generator/Text.hh errors/exception.hh global.hh
-generator/description.o: parser/sourcereader.hh boxes/boxes.hh tlib/property.hh signals/sigtype.hh signals/interval.hh
-generator/description.o: generator/instructions.hh evaluate/loopDetector.hh tlib/occurrences.hh
+generator/description.o: tlib/smartpointer.hh generator/uitree.hh tlib/compatibility.hh generator/Text.hh
+generator/description.o: errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/property.hh
+generator/description.o: signals/sigtype.hh signals/interval.hh generator/instructions.hh evaluate/loopDetector.hh
+generator/description.o: tlib/occurrences.hh
 generator/fir_code_container.o: generator/fir_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/fir_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh
 generator/fir_code_container.o: tlib/tree.hh generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh

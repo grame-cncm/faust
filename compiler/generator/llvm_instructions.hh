@@ -48,7 +48,11 @@ using namespace std;
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Target/TargetData.h>
+#ifdef LLVM_28
+#include <llvm/System/Host.h>
+#else
 #include <llvm/Support/Host.h>
+#endif
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm-c/BitWriter.h>
@@ -63,7 +67,7 @@ typedef llvm::Value* LlvmValue;
 
 #define VECTOR_ALIGN 0
 
-#ifdef LLVM_29
+#if defined(LLVM_29) || defined(LLVM_28)
 #include <llvm/Target/TargetSelect.h>
    #define VECTOR_OF_TYPES vector<const llvm::Type*>
    #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
@@ -234,7 +238,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
         {
-        #ifdef LLVM_29
+        #if defined(LLVM_29) || defined(LLVM_28)
             StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
             fModule->addTypeName(name, struct_type);
         #endif
@@ -1279,7 +1283,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 Value* idx = genInt32(0);
                 //vector->dump();
                 vector = fBuilder->CreateInsertElement(vector, load, idx);
-                SmallVector<Constant*, 16> args;
+                #ifdef LLVM_28
+                    std::vector<Constant*> args(16);
+                #else
+                    SmallVector<Constant*, 16> args;
+                #endif
                 for (int i = 0; i < size; i++) {
                     args.push_back(static_cast<Constant*>(genInt32(0)));
                 }

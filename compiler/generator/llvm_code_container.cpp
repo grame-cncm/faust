@@ -25,7 +25,7 @@
 
 using namespace std;
 
-#ifdef LLVM_29
+#if defined(LLVM_29) || defined(LLVM_28)
     #include <llvm/Support/StandardPasses.h>
     #define VECTOR_OF_TYPES vector<const llvm::Type*>
     #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
