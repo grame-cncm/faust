@@ -31,7 +31,11 @@
 #include "garbageable.hh"
 
 #include <llvm/Value.h>
+#if LLVM_32
+#include <llvm/IRBuilder.h>
+#else
 #include <llvm/Support/IRBuilder.h>
+#endif
 
 typedef llvm::Value* LlvmValue;
 

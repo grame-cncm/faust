@@ -44,7 +44,7 @@ static Module* LoadModule(const std::string filename)
     SMDiagnostic err;
     Module* res = ParseIRFile(filename, err, getGlobalContext());
     if (!res) {
-    #if defined(LLVM_31) 
+    #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("LoadModule", errs());
     #endif
     #if defined(LLVM_30) 
@@ -171,7 +171,7 @@ bool llvm_dsp_factory::initJIT()
     if (fTarget != "") {
          fModule->setTargetTriple(fTarget);
     } else {
-    #if defined(LLVM_31)
+    #if defined(LLVM_31) || defined(LLVM_32)
         fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     #else
         fModule->setTargetTriple(llvm::sys::getHostTriple());
@@ -204,17 +204,23 @@ bool llvm_dsp_factory::initJIT()
     fJIT->runStaticConstructorsDestructors(false);
     
     fJIT->DisableLazyCompilation(true);
+#ifdef LLVM_32
+    fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
+#else
     fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
+#endif
     //fModule->dump();
 
     // Set up the optimizer pipeline. Start with registering info about how the
     // target lays out data structures.
     PassManager pm;
-    pm.add(new TargetData(*fJIT->getTargetData()));
-    
     FunctionPassManager fpm(fModule);
+#ifdef LLVM_32    
+    // TODO
+#else
+    pm.add(new TargetData(*fJIT->getTargetData()));
     fpm.add(new TargetData(*fJIT->getTargetData()));
-    
+#endif
     // Link with "scheduler" code
     if (fScheduler) {
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll");
@@ -244,7 +250,7 @@ bool llvm_dsp_factory::initJIT()
     }
     
     // We use '4' to activate de auto-vectorizer
-#if defined(LLVM_31)
+#if defined(LLVM_31) || defined(LLVM_32)
     if (fOptLevel > 3) {
         Builder.Vectorize = true;
     }
@@ -427,7 +433,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
     } else {
-    #if defined(LLVM_31) 
+    #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("readDSPFactoryFromIR failed :", errs());
     #endif
     #if defined(LLVM_30) 
@@ -451,7 +457,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
     } else {
-    #if defined(LLVM_31) 
+    #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("readDSPFactoryFromIR failed :", errs());
     #endif
     #if defined(LLVM_30) 

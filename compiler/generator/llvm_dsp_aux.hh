@@ -35,7 +35,11 @@
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
+#if LLVM_32
+#include <llvm/DataLayout.h>
+#else
 #include <llvm/Target/TargetData.h>
+#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
@@ -50,7 +54,7 @@
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
-#if defined(LLVM_30) || defined(LLVM_31)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32)
 #include <llvm/Support/TargetSelect.h>
 #endif
 

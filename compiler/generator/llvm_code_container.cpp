@@ -37,7 +37,7 @@ using namespace std;
     #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
 #endif
 
-#if defined(LLVM_30) || defined(LLVM_31)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32)
     #define VECTOR_OF_TYPES vector<llvm::Type*>
     #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
     #define LLVM_TYPE llvm::Type*
@@ -149,13 +149,27 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
+
+#if defined(LLVM_32)
+    // TODO
+    /*
+    SmallVector<AttributeWithIndex, 4> attributes;
+    AttributeWithIndex PAWI;
+    PAWI.Index = 3U; PAWI.Attrs = Attributes::NoAlias;
+    attributes.push_back(PAWI);
+    PAWI.Index = 4U; PAWI.Attrs = Attributes::NoAlias;
+    attributes.push_back(PAWI);
+    llvm_compute->setAttributes(AttrListPtr::get(attributes.begin(), attributes.end()));
+    */
+#else
     SmallVector<AttributeWithIndex, 4> attributes;
     AttributeWithIndex PAWI;
     PAWI.Index = 3U; PAWI.Attrs = Attribute::NoAlias;
     attributes.push_back(PAWI);
     PAWI.Index = 4U; PAWI.Attrs = Attribute::NoAlias;
     attributes.push_back(PAWI);
-    llvm_compute->setAttributes( AttrListPtr::get(attributes.begin(), attributes.end()));
+    llvm_compute->setAttributes(AttrListPtr::get(attributes.begin(), attributes.end()));
+#endif
 
     Function::arg_iterator llvm_compute_args_it = llvm_compute->arg_begin();
     Value* arg1 = llvm_compute_args_it++;

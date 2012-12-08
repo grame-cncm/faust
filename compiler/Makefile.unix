@@ -39,6 +39,9 @@ ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
 endif
 
+ifeq ($(LLVM_VERSION), 3.2svn)
+LLVM_VERSION  = LLVM_32
+endif
 
 #CXXFLAGS ?= -g -Wall -Wuninitialized -Wexit-time-destructors -Wglobal-constructors
 

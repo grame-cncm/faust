@@ -39,6 +39,7 @@ using namespace std;
 #include "instructions.hh"
 #include "binop.hh"
 #include "exception.hh"
+#include "global.hh"
 
 #include <llvm/DerivedTypes.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -46,26 +47,24 @@ using namespace std;
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
 #include <llvm/PassManager.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm-c/BitWriter.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/Analysis/Verifier.h>
+
+#if LLVM_32
+#include <llvm/IRBuilder.h>
+#else
 #include <llvm/Target/TargetData.h>
+#include <llvm/Support/IRBuilder.h>
+#endif
+
 #ifdef LLVM_28
 #include <llvm/System/Host.h>
 #else
 #include <llvm/Support/Host.h>
 #endif
-#include <llvm/Transforms/Scalar.h>
-#include <llvm/Support/IRBuilder.h>
-#include <llvm-c/BitWriter.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-#include <llvm/Support/raw_ostream.h>
-
-#include "global.hh"
-
-using namespace llvm;
-
-typedef llvm::Value* LlvmValue;
-
-#define VECTOR_ALIGN 0
 
 #if defined(LLVM_29) || defined(LLVM_28)
 #include <llvm/Target/TargetSelect.h>
@@ -79,7 +78,7 @@ typedef llvm::Value* LlvmValue;
    #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, name);
 #endif
 
-#if defined(LLVM_30) || defined(LLVM_31)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32)
 #include <llvm/Support/TargetSelect.h>
    #define VECTOR_OF_TYPES vector<llvm::Type*>
    #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
@@ -90,6 +89,12 @@ typedef llvm::Value* LlvmValue;
    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
    #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
 #endif
+
+#define VECTOR_ALIGN 0
+
+using namespace llvm;
+
+typedef llvm::Value* LlvmValue;
 
 // Helper class
 
@@ -242,7 +247,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
             fModule->addTypeName(name, struct_type);
         #endif
-        #if defined(LLVM_30) || defined(LLVM_31)
+        #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32)
             StructType* struct_type = StructType::create(fModule->getContext(), name);
             struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
         #endif
@@ -808,7 +813,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
                 GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::PrivateLinkage, 0, str);
-            #if defined(LLVM_31)
+            #if defined(LLVM_31) || defined(LLVM_32)
                 gvar_array_string0->setInitializer(ConstantDataArray::getString(getGlobalContext(), str, true));
             #else
                 gvar_array_string0->setInitializer(ConstantArray::get(getGlobalContext(), str, true));

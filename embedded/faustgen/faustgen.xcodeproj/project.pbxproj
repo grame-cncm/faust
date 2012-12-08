@@ -47,8 +47,6 @@
 		4B5A392915F3B05B007317F4 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4B5A3C4A15F4042D007317F4 /* maxcpp5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxcpp5.h; path = src/maxcpp5.h; sourceTree = "<group>"; };
 		4B5A3C4B15F4042D007317F4 /* mspUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mspUI.h; path = src/mspUI.h; sourceTree = "<group>"; };
-		4B732F6515FC8C14004817D9 /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "../../../../Applications/Max6/MaxSDK-6.0.4/c74support/max-includes/MaxAPI.framework"; sourceTree = SOURCE_ROOT; };
-		4B732F6715FC8C1F004817D9 /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../Applications/Max6/MaxSDK-6.0.4/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = SOURCE_ROOT; };
 		4B732F7915FC8C41004817D9 /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../Applications/Max6/MaxSDK-6.0.4/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = SOURCE_ROOT; };
 		4B732F7B15FC8C4D004817D9 /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "../../../../Applications/Max6/MaxSDK-6.0.4/c74support/max-includes/MaxAPI.framework"; sourceTree = SOURCE_ROOT; };
 		4BE5E41415F1569F00AFD014 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = src/base64.cpp; sourceTree = "<group>"; };
@@ -95,8 +93,6 @@
 			children = (
 				4B732F7B15FC8C4D004817D9 /* MaxAPI.framework */,
 				4B732F7915FC8C41004817D9 /* MaxAudioAPI.framework */,
-				4B732F6715FC8C1F004817D9 /* MaxAudioAPI.framework */,
-				4B732F6515FC8C14004817D9 /* MaxAPI.framework */,
 				4B5A392915F3B05B007317F4 /* CoreFoundation.framework */,
 			);
 			name = "External Frameworks and Libraries";
