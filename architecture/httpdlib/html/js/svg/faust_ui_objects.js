@@ -341,12 +341,8 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
 _f4u$t.SlidingObject = function(options) {
   this.mom = _f4u$t.initifnull(options.mom, null);
   this.o = _f4u$t.initifnull(options.o, _f4u$t.X_AXIS);
-  this.iwa = _f4u$t.initifnull(options.iwa, 40);
-  this.isa = _f4u$t.initifnull(options.isa, 200);
-  this._sa = this.isa;
-  this._wa = this.iwa;
-  this.mwa = _f4u$t.initifnull(options.mwa, 20);
-  this.msa = _f4u$t.initifnull(options.msa, 100);
+  this.wa = _f4u$t.initifnull(options.wa, 40);
+  this.sa = _f4u$t.initifnull(options.sa, 200);
   this.label = _f4u$t.initifnull(options.label, '');
   this.unit = _f4u$t.initifnull(options.unit, null);
   this.mn = _f4u$t.initifnull(options.mn, 0);
@@ -366,17 +362,9 @@ _f4u$t.SlidingObject = function(options) {
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.SlidingObject);
 
-_f4u$t.SlidingObject.prototype.wa = function() {
-  return this._wa;
-}
-
-_f4u$t.SlidingObject.prototype.sa = function() {
-  return this._sa;
-}
-
 _f4u$t.SlidingObject.prototype.internal_dims = function() {
-  var x = _f4u$t.xy(this.o, this.sa(), this.wa());
-  var y = _f4u$t.xy(this.o, this.wa(), this.sa());
+  var x = _f4u$t.xy(this.o, this.sa, this.wa);
+  var y = _f4u$t.xy(this.o, this.wa, this.sa);
   return [x,y];
 }
 
@@ -400,10 +388,10 @@ _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
 
 _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
   var dims = this.dims();
-  var w = _f4u$t.xy(this.o, this.sa(), this.wa() / 3.0);
-  var h = _f4u$t.xy(this.o, this.wa() / 3.0, this.sa());
+  var w = _f4u$t.xy(this.o, this.sa, this.wa / 3.0);
+  var h = _f4u$t.xy(this.o, this.wa / 3.0, this.sa);
   var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var trans = _f4u$t.xy(this.o, 'translate(0,'+(this.wa() / 3.0)+')', 'translate('+xo+',0)');
+  var trans = _f4u$t.xy(this.o, 'translate(0,'+(this.wa / 3.0)+')', 'translate('+xo+',0)');
   var joint = svg.path(
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
@@ -421,13 +409,13 @@ _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
 
 _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var dims = this.dims();
-  var slider_girth = this.sa()  * this.sp;
+  var slider_girth = this.sa  * this.sp;
   var half_slider_girth = slider_girth * 0.5;
-  var startp = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0 + half_slider_girth, this.sa() - half_slider_girth);
+  var startp = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0 + half_slider_girth, this.sa - half_slider_girth);
   var bottom = startp - half_slider_girth;
   var top = startp + half_slider_girth;
-  var w = _f4u$t.xy(this.o, slider_girth, this.wa());
-  var h = _f4u$t.xy(this.o, this.wa(), slider_girth);
+  var w = _f4u$t.xy(this.o, slider_girth, this.wa);
+  var h = _f4u$t.xy(this.o, this.wa, slider_girth);
   var xo = ((this.o == _f4u$t.Y_AXIS) ? (dims[0] - w) / 2.0 : 0.0);
   var x = _f4u$t.xy(this.o, bottom, xo);
   var y = _f4u$t.xy(this.o, 0, bottom);
@@ -458,7 +446,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
 
   _f4u$t["initiate_"+this.type](
     id,
-    this.sa(),
+    this.sa,
     this.sp,
     this.mn,
     this.mx,
@@ -526,8 +514,8 @@ _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
 
 _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
   var dims = this.dims();
-  var w = _f4u$t.xy(this.o, this.sa(), this.wa());
-  var h = _f4u$t.xy(this.o, this.wa(), this.sa());
+  var w = _f4u$t.xy(this.o, this.sa, this.wa);
+  var h = _f4u$t.xy(this.o, this.wa, this.sa);
   var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var joint = svg.path(
     parent,
@@ -546,17 +534,17 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
 
 _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var full_id = 'faust_'+this.type+'_meter_'+id;
-  var def = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0, this.sa());
+  var def = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0, this.sa);
   var dims = this.dims();
-  var w = _f4u$t.xy(this.o, def, this.wa());
-  var h = _f4u$t.xy(this.o, this.wa(), def);
+  var w = _f4u$t.xy(this.o, def, this.wa);
+  var h = _f4u$t.xy(this.o, this.wa, def);
   var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var meter = svg.path(
     parent,
     _f4u$t.xy(
       this.o,
       "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
-      "M0 "+this.sa()+"L"+w+" "+this.sa()+"L"+w+" "+h+"L0 "+h+"L0 "+this.sa()
+      "M0 "+this.sa+"L"+w+" "+this.sa+"L"+w+" "+h+"L0 "+h+"L0 "+this.sa
     ),
     {
       fill : _f4u$t.color_to_rgb(this.meter_fill),
@@ -575,8 +563,8 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, id);
   _f4u$t['initiate_'+this.type](
     id,
-    this.wa(),
-    this.sa(),
+    this.wa,
+    this.sa,
     this.mn,
     this.mx,
     this.step,
