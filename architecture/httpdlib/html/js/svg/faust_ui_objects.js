@@ -52,10 +52,6 @@ _f4u$t.UIObject.prototype.get_root_svg = function() {
   return (this.mom.svg ? this.mom.svg : this.mom.get_root_svg());
 }
 
-_f4u$t.UIObject.prototype.compress = function() {
-  // does nothing
-}
-
 /*
   DEFINES THE FAUST INCREMENTAL OBJECT CLASS.
   All objects that go up in increments inherit from this.
@@ -171,10 +167,6 @@ _f4u$t.RotatingButton = function(options) {
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.RotatingButton);
-
-_f4u$t.RotatingButton.prototype.compress = function(coef) {
-  this._r = Math.max(this.mr, this._r * coef);
-}
 
 _f4u$t.RotatingButton.prototype.r = function() {
   return this._r;
@@ -373,11 +365,6 @@ _f4u$t.SlidingObject = function(options) {
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.SlidingObject);
-
-_f4u$t.SlidingObject.prototype.compress = function(coef) {
-  this._wa = Math.max(this.mwa, this._wa * coef);
-  this._sa = Math.max(this.msa, this._sa * coef);
-}
 
 _f4u$t.SlidingObject.prototype.wa = function() {
   return this._wa;
@@ -650,8 +637,6 @@ _f4u$t.CheckBox = function(options) {
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.CheckBox);
 
-_f4u$t.CheckBox.prototype.compress = function() {}
-
 _f4u$t.CheckBox.prototype.internal_dims = function() {
   return [this.d, this.d];
 }
@@ -770,11 +755,6 @@ _f4u$t.Button.prototype.h = function() {
   return this._h;
 }
 
-_f4u$t.Button.prototype.compress = function(coef) {
-  this._w = Math.max(this.mw, this._w * coef);
-  this._h = Math.max(this.mh, this._h * coef);
-}
-
 _f4u$t.Button.prototype.dims = function(coef) {
   return [this.w(), this.h()];
 }
@@ -881,11 +861,6 @@ _f4u$t.NumericalEntry.prototype.w = function() {
 
 _f4u$t.NumericalEntry.prototype.h = function() {
   return this._h;
-}
-
-_f4u$t.NumericalEntry.prototype.compress = function(coef) {
-  this._w = Math.max(this.mw, this._w * coef);
-  this._h = Math.max(this.mh, this._h * coef);
 }
 
 _f4u$t.NumericalEntry.prototype.internal_dims = function() {
@@ -1070,12 +1045,6 @@ _f4u$t.LayoutManager.prototype.dims = function() {
   return out;
 }
 
-_f4u$t.LayoutManager.prototype.compress = function(coef) {
-  for (var i = 0; i < this.objs.length; i++) {
-    this.objs[i].compress(coef);
-  }
-}
-
 _f4u$t.LayoutManager.prototype.do_spacing = function() {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
@@ -1179,12 +1148,6 @@ _f4u$t.TabGroup = function(options) {
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.TabGroup);
-
-_f4u$t.TabGroup.prototype.compress = function(coef) {
-  for (var i = 0; i < this.objs.length; i++) {
-    this.objs[i].compress(coef);
-  }
-}
 
 _f4u$t.TabGroup.prototype.setX = function(x) {
   this.x = x;
