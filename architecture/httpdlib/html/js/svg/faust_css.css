@@ -1,7 +1,7 @@
 body {
   background-image : url(background.svg);
 }
-
+/*
 path.faust-vbox {
   fill : white;
   stroke : black;
@@ -65,6 +65,7 @@ path.faust-button-up {
   fill : rgb(173,255,47);
   stroke : black;
 }
+*/
 
 // hack for mobile devices
 input[type='text'],input[type='number'],textarea {font-size:16px;}

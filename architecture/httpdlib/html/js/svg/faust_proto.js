@@ -30,7 +30,9 @@ _f4u$t.UP = -1;
 _f4u$t.DOWN = 1;
 _f4u$t.CENTER = 0;
 
+_f4u$t.NONE = null;
 _f4u$t.BLACK = [0,0,0];
+_f4u$t.WHITE = [255,255,255];
 _f4u$t.CYAN = [0,255,255];
 _f4u$t.GREY = [100,100,100];
 _f4u$t.PINK = [233,150,122];

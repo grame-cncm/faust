@@ -161,7 +161,10 @@ _f4u$t.RotatingButton = function(options) {
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  //this.fill= _f4u$t.initifnull(options.fill, _f4u$t.PALEGREEN);
+  this.joint_fill= _f4u$t.initifnull(options.joint_fill, _f4u$t.PALEGREEN);
+  this.knob_fill= _f4u$t.initifnull(options.knob_fill, _f4u$t.GREY);
+  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.BLACK);
+  this.knob_stroke = _f4u$t.initifnull(options.knob_stroke, _f4u$t.BLACK);
   this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
   this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
   this.address = _f4u$t.initifnull(options.address, '');
@@ -238,6 +241,8 @@ _f4u$t.RotatingButton.prototype.make_joint = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.joint_fill),
+      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_rbutton_joint_'+id,
       'class' : 'faust-rbutton-joint',
       transform : 'translate('+xo+',0)'
@@ -274,6 +279,8 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.knob_fill),
+      stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       'class' : 'faust-rbutton-knob',
       id : full_id,
       transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')',
@@ -396,7 +403,10 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 _f4u$t.Slider = function(options) {
   _f4u$t.SlidingObject.call(this, options);
   this.sp = _f4u$t.initifnull(options.sp, 0.15);
-  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
+  this.joint_fill = _f4u$t.initifnull(options.joint_fill, _f4u$t.PINK);
+  this.knob_fill = _f4u$t.initifnull(options.knob_fill, _f4u$t.GREY);
+  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.BLACK);
+  this.knob_stroke = _f4u$t.initifnull(options.knob_stroke, _f4u$t.BLACK);
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
@@ -411,6 +421,8 @@ _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.joint_fill),
+      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
       'class' : 'faust-slider-joint',
       transform : trans
@@ -440,6 +452,8 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.knob_fill),
+      stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       id : full_id,
       'class' : 'faust-slider-knob',
       transform : 'translate('+x+','+y+')',
@@ -515,7 +529,10 @@ _f4u$t.extend(_f4u$t.Slider, _f4u$t.VerticalSlider);
 
 _f4u$t.BarGraph = function(options) {
   _f4u$t.SlidingObject.call(this, options);
-  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.CYAN);
+  this.joint_fill = _f4u$t.initifnull(options.joint_fill, _f4u$t.CYAN);
+  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.CYAN);
+  this.meter_fill = _f4u$t.initifnull(options.meter_fill, _f4u$t.CYAN);
+  this.meter_stroke = _f4u$t.initifnull(options.meter_stroke, _f4u$t.CYAN);
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
@@ -529,6 +546,8 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.joint_fill),
+      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
       transform : 'translate('+xo+',0)',
       'class' : 'faust-bargraph-joint'
@@ -553,6 +572,8 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
       "M0 "+this.sa()+"L"+w+" "+this.sa()+"L"+w+" "+h+"L0 "+h+"L0 "+this.sa()
     ),
     {
+      fill : _f4u$t.color_to_rgb(this.meter_fill),
+      stroke : _f4u$t.color_to_rgb(this.meter_stroke),
       id : full_id,
       transform : 'translate('+xo+',0)',
       'class' : 'faust-bargraph-meter'
@@ -617,7 +638,10 @@ _f4u$t.CheckBox = function(options) {
   this.d = _f4u$t.initifnull(options.d, 19);
   this.label = _f4u$t.initifnull(options.label, '');
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
+  this.check_fill = _f4u$t.initifnull(options.check_fill, _f4u$t.PINK);
+  this.check_stroke = _f4u$t.initifnull(options.check_stroke, _f4u$t.NONE);
+  this.box_fill = _f4u$t.initifnull(options.box_fill, _f4u$t.WHITE);
+  this.box_stroke = _f4u$t.initifnull(options.box_stroke, _f4u$t.BLACK);
   this.init = _f4u$t.initifnull(options.init, false);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
@@ -651,6 +675,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.box_fill),
+      stroke : _f4u$t.color_to_rgb(this.box_stroke),
       id : full_id,
       'class' : 'faust-checkbox-box',
       transform : 'translate('+xo+',0)',
@@ -674,9 +700,9 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
     {
       id : full_id,
-      // CSS here instead of in style sheet becasue it only has relevence
-      // in terms of UI
-      style : "opacity:"+(this.init == 1 ? 1.0 : 0.0)+";stroke:black;fill:black;",
+      fill : _f4u$t.color_to_rgb(this.check_fill),
+      stroke : _f4u$t.color_to_rgb(this.check_stroke),
+      style : "opacity:"+(this.init == 1 ? 1.0 : 0.0),
       onmousedown : mousedown,
       ontouchstart : mousedown,
       transform : 'translate('+xo+',0)'
@@ -727,8 +753,9 @@ _f4u$t.Button = function(options) {
   this._w = this.iw;
   this._h = this.ih;
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  //this.fillOn = _f4u$t.initifnull(options.fillOn, _f4u$t.PINK;
-  //this.fillOff = _f4u$t.initifnull(options.fillOff, _f4u$t.GREEN;
+  this.fill_on = _f4u$t.initifnull(options.fill_on, _f4u$t.PINK);
+  this.fill_off = _f4u$t.initifnull(options.fill_off, _f4u$t.GREEN);
+  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
   this.baselineSkip = _f4u$t.initifnull(options.baselineSkip, 5);
   this.address = _f4u$t.initifnull(options.address, '');
 }
@@ -765,6 +792,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
     d,
     {
       id : full_id,
+      fill : _f4u$t.color_to_rgb(this.fill_off),
+      stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-up',
       onmousedown : mousedown,
       ontouchstart : mousedown,
@@ -804,8 +833,8 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, id);
   _f4u$t.initiate_button(
     id,
-    _f4u$t.color_to_rgb(this.fillOff),
-    _f4u$t.color_to_rgb(this.fillOn),
+    _f4u$t.color_to_rgb(this.fill_off),
+    _f4u$t.color_to_rgb(this.fill_on),
     this.address
   );
 
@@ -831,6 +860,10 @@ _f4u$t.NumericalEntry = function(options) {
   this.step = _f4u$t.initifnull(options.step, 1);
   this.integer = _f4u$t.initifnull(options.integer, false);
   this.ndec = _f4u$t.initifnull(options.ndec, 0);
+  this.button_fill= _f4u$t.initifnull(options.button_fill, _f4u$t.GREY);
+  this.operation_fill= _f4u$t.initifnull(options.operation_fill, _f4u$t.BLACK);
+  this.button_stroke = _f4u$t.initifnull(options.button_stroke, _f4u$t.BLACK);
+  this.operation_stroke = _f4u$t.initifnull(options.operation_stroke, _f4u$t.BLACK);
   this.padding = _f4u$t.initifnull(options.padding, 1);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
@@ -886,6 +919,9 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
     parent,
     d,
     {
+      
+      fill : _f4u$t.color_to_rgb(this.button_fill),
+      stroke : _f4u$t.color_to_rgb(this.button_stroke),
       transform : 'translate('+xo+',0)',
       id : full_id,
       'class' : 'faust-nentry-button',
@@ -909,6 +945,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.operation_fill),
+      stroke : _f4u$t.color_to_rgb(this.operation_stroke),
       id : full_id,
       'class' : 'faust-nentry-operation',
       onmousedown : mousedown,
@@ -935,6 +973,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.operation_fill),
+      stroke : _f4u$t.color_to_rgb(this.operation_stroke),
       transform : 'translate('+(this.w() / 2.0 + this.padding)+',0)',
       id : full_id,
       'class' : 'faust-nentry-operation',
@@ -987,6 +1027,7 @@ _f4u$t.LayoutManager = function(options) {
   this.h = 0;
   this.id = _f4u$t.randString();
   this.fill = _f4u$t.magic_color();
+  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.LayoutManager);
@@ -1086,9 +1127,10 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.fill),
+      stroke : _f4u$t.color_to_rgb(this.stroke),
       id : full_id,
-      // CSS
-      style: 'fill:'+_f4u$t.color_to_rgb(this.fill)+';stroke:black;fill-opacity:0.2;'
+      style: +'fill-opacity:0.2;'
     }
   );
 
@@ -1133,6 +1175,7 @@ _f4u$t.TabGroup = function(options) {
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
+  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.TabGroup);
@@ -1211,8 +1254,8 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       transform: 'translate('+x+','+y+')',
-      // CSS
-      style: 'fill:'+_f4u$t.color_to_rgb(fill)+';stroke:black;',
+      fill : _f4u$t.color_to_rgb(fill),
+      stroke : _f4u$t.color_to_rgb(this.stroke),
       onmousedown : mousedown,
       ontouchstart : mousedown
     }

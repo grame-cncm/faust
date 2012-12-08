@@ -444,29 +444,29 @@ _f4u$t.clearIdCache = function() {
 
 // CLASS STUFF BROKEN...
 // for now, hardcoded colors
-_f4u$t.button_class_changer = function(I, down) {
-  var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(I));
+_f4u$t.button_class_changer = function(id, down) {
+  var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(id));
   if (down) {
     //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-up').addClass('faust-button-down');
-    mybutton.style.fill = 'rgb(233,150,122)';
+    mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
   }
   else {
     //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-down').addClass('faust-button-up');
-    mybutton.style.fill = 'rgb(173,255,47)';
+    mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
   }
 }
 
 _f4u$t.button_up = function(I) {
   var id = _f4u$t.unique(I);
-  _f4u$t.button_class_changer(I, false);
-  _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 0);
+  _f4u$t.button_class_changer(id, false);
+  _f4u$t.fausthandler(id, 0);
   _f4u$t.clearIdCache();
 }
 
 _f4u$t.button_down = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.clog_key_sink();
-  _f4u$t.button_class_changer(I, true);
+  _f4u$t.button_class_changer(id, true);
   // UI2DSP
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
 }

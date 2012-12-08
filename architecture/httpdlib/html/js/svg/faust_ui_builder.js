@@ -34,10 +34,11 @@ _f4u$t.getnumspecs = function(dct) {
      && !isNaN(dct["init"])) {
     integer = true;
   }
-  var maxsplit = dct["max"].split('.');
-  var minsplit = dct["min"].split('.');
-  var stepsplit = dct["step"].split('.');
-  var initsplit = dct["init"].split('.');
+console.log(dct["max"], dct["min"], dct["step"], dct["init"]);
+  var maxsplit = dct["max"] ? dct["max"].split('.') : ['',''];
+  var minsplit = dct["min"] ? dct["min"].split('.') : ['',''];
+  var stepsplit = dct["step"] ? dct["step"].split('.') : ['',''];
+  var initsplit = dct["init"] ? dct["init"].split('.') : ['',''];
   maxsplit[1] = maxsplit[1] || '';
   minsplit[1] = minsplit[1] || '';
   stepsplit[1] = stepsplit[1] || '';
