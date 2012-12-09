@@ -23,12 +23,3 @@ _f4u$t.parseURLParams = function(url) {
   }
   return params;
 }
-
-_f4u$t.URLParams = _f4u$t.parseURLParams(document.URL);
-if (_f4u$t.URLParams) {
-  if (_f4u$t.URLParams.js) {
-    for (var i = 0; i < _f4u$t.URLParams.js.length; i++) {
-      $.getScript(_f4u$t.URLParams.js[i]);
-    }
-  }
-}

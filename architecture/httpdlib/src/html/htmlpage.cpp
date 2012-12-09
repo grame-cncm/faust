@@ -130,7 +130,7 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    </div>" << endl;
 	out << "    <script type=\"text/javascript\">" << endl;
 	out << "      $('#faustsvg').svg({onLoad: function (svg) {" << endl;
-	out << "        _f4u$t.make_ui(svg, '";
+	out << "        _f4u$t.main(svg, '";
 	out << s;
 	out << "');" << endl;
 	out << "      }});" << endl;
