@@ -34,7 +34,7 @@ _f4u$t.getnumspecs = function(dct) {
      && !isNaN(dct["init"])) {
     integer = true;
   }
-console.log(dct["max"], dct["min"], dct["step"], dct["init"]);
+
   var maxsplit = dct["max"] ? dct["max"].split('.') : ['',''];
   var minsplit = dct["min"] ? dct["min"].split('.') : ['',''];
   var stepsplit = dct["step"] ? dct["step"].split('.') : ['',''];
@@ -45,8 +45,8 @@ console.log(dct["max"], dct["min"], dct["step"], dct["init"]);
   initsplit[1] = initsplit[1] || '';
   parser = integer ? parseInt : parseFloat;
   return {
-    mn : parser(dct["min"]),
-    mx : parser(dct["max"]),
+    min : parser(dct["min"]),
+    max : parser(dct["max"]),
     step : parser(dct["step"]),
     init : parser(dct["init"]),
     isint : integer,
@@ -58,8 +58,8 @@ _f4u$t.make_rbutton = function(dct) {
   var numspecs = _f4u$t.getnumspecs(dct);
   return new _f4u$t.RotatingButton({
     label : dct["label"],
-    mn : numspecs["mn"],
-    mx : numspecs["mx"],
+    min : numspecs["min"],
+    max : numspecs["max"],
     step : numspecs["step"],
     init : numspecs["init"],
     integer : numspecs["integer"],
@@ -82,17 +82,17 @@ _f4u$t.make_slider = function(kls, dct) {
     return _f4u$t.make_rbutton(dct);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
-  return new kls({
-    label : dct["label"],
-    mn : numspecs["mn"],
-    mx : numspecs["mx"],
-    step : numspecs["step"],
-    init : numspecs["init"],
-    integer : numspecs["integer"],
-    ndec : numspecs["ndec"],
-    address : dct["address"],
-    unit : _f4u$t.get_unit(dct)
-  });
+  var options = $.extend(true, {}, _f4u$t[kls == _f4u$t.HorizontalSlider ? 'hslider_inits' : 'vslider_inits']);
+  options.label = dct["label"];
+  options.min = numspecs["min"];
+  options.max = numspecs["max"];
+  options.step = numspecs["step"];
+  options.init = numspecs["init"];
+  options.integer = numspecs["integer"];
+  options.ndec = numspecs["ndec"];
+  options.address = dct["address"];
+  options.unit = _f4u$t.get_unit(dct);
+  return new kls(options);
 }
 
 _f4u$t.make_hbargraph = function(dct) {
@@ -104,30 +104,30 @@ _f4u$t.make_vbargraph = function(dct) {
 }
 
 _f4u$t.make_bargraph = function(kls, dct) {
-  var numspecs = _f4u$t.getnumspecs(dct);
-  return new kls({
-    label : dct["label"],
-    mn : parseFloat(dct["min"]),
-    mx : parseFloat(dct["max"]),
-    address : dct["address"],
-    unit : _f4u$t.get_unit(dct)
-  });
+  var options = $.extend(true, {}, _f4u$t[kls == _f4u$t.HorizontalBarGraph ? 'hbargraph_inits' : 'vbargraph_inits']);
+  //var numspecs = _f4u$t.getnumspecs(dct);
+  options.label = dct["label"];
+  options.min = parseFloat(dct["min"]);
+  options.max = parseFloat(dct["max"]);
+  options.address = dct["address"];
+  options.unit = _f4u$t.get_unit(dct);
+  return new kls(options);
 }
 
 
 _f4u$t.make_button = function(dct) {
-  return new _f4u$t.Button({
-    label : dct["label"],
-    address : dct["address"]
-  });
+  var options = $.extend(true, {}, _f4u$t.button_inits);
+  options.label = dct.label;
+  options.address = dct.address;
+  return new _f4u$t.Button(options);
 }
 
 _f4u$t.make_checkbox = function(dct) {
-  return new _f4u$t.CheckBox({
-    label : dct["label"],
-    address : dct["address"],
-    init : (dct["init"] == "1" ? true : false)
-  });
+  var options = $.extend(true, {}, _f4u$t.checkbox_inits);
+  options.label  = dct.label;
+  options.address = dct.address;
+  options.init = (dct.init == "1" ? true : false);
+  return new _f4u$t.CheckBox(options);
 }
 
 _f4u$t.make_nentry = function(dct) {
@@ -137,8 +137,8 @@ _f4u$t.make_nentry = function(dct) {
   var numspecs = _f4u$t.getnumspecs(dct);
   return new _f4u$t.NumericalEntry({
     label : dct["label"],
-    mn : numspecs["mn"],
-    mx : numspecs["mx"],
+    min : numspecs["min"],
+    max : numspecs["max"],
     step : numspecs["step"],
     init : numspecs["init"],
     integer : numspecs["integer"],
@@ -157,8 +157,9 @@ _f4u$t.make_vgroup = function(dct) {
 }
 
 _f4u$t.make_group = function(axis, dct) {
+
   var lm = new _f4u$t.LayoutManager({
-    o : axis,
+    axis : axis,
     label : dct["label"]
   });
 

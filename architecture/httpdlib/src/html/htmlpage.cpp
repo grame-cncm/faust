@@ -117,6 +117,8 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_inits.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_load_external_file.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_objects.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_builder.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_interact.js\"></script>" << endl;
@@ -124,7 +126,6 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.mikesolomon.org/faust/svg/faust_css.css\"></link>" << endl;
 	out << "  </head>" << endl;
 	out << "  <body>" << endl;
-	out << "    <input style='position:absolute;left:-1000;top:-1000;' type='text' id='faust-text-input-dummy'>" << endl;
 	out << "    <div id=\"faustsvg\">" << endl;
 	out << "    </div>" << endl;
 	out << "    <script type=\"text/javascript\">" << endl;

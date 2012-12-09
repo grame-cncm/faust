@@ -459,7 +459,7 @@ _f4u$t.button_class_changer = function(id, down) {
 _f4u$t.button_up = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.button_class_changer(id, false);
-  _f4u$t.fausthandler(id, 0);
+  _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 0);
   _f4u$t.clearIdCache();
 }
 
