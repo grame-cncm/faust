@@ -46,8 +46,7 @@ static Module* LoadModule(const std::string filename)
     if (!res) {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("LoadModule", errs());
-    #endif
-    #if defined(LLVM_30) 
+    #else
         err.Print("LoadModule", errs());
     #endif
     }
@@ -250,11 +249,14 @@ bool llvm_dsp_factory::initJIT()
     }
     
     // We use '4' to activate de auto-vectorizer
-#if defined(LLVM_31) || defined(LLVM_32)
     if (fOptLevel > 3) {
+    #if defined(LLVM_32) 
+        Builder.LoopVectorize = true;
+        //Builder.Vectorize = true;
+    #elif defined(LLVM_31)
         Builder.Vectorize = true;
+    #endif
     }
-#endif
       
     Builder.DisableUnrollLoops = (fOptLevel == 0);
     Builder.populateFunctionPassManager(fpm);
@@ -435,8 +437,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("readDSPFactoryFromIR failed :", errs());
-    #endif
-    #if defined(LLVM_30) 
+    #else
         err.Print("readDSPFactoryFromIR failed :", errs());
     #endif
         return 0;
@@ -459,8 +460,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("readDSPFactoryFromIR failed :", errs());
-    #endif
-    #if defined(LLVM_30) 
+    #else
         err.Print("readDSPFactoryFromIR failed :", errs());
     #endif
         return 0;

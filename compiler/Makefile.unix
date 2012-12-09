@@ -14,6 +14,7 @@ ifeq ($(system), Darwin)
 ARCHFLAGS 	:=  -arch i386 -arch x86_64
 LIBFLAGS	:=
 CXX 		= clang++
+CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors
 LLVM_CONFIG = llvm-config
 else 
 ARCHFLAGS 	:= 
@@ -21,7 +22,7 @@ LIBFLAGS	:= --mode=link --tag=CXX
 LLVM_CONFIG 	= $(word 1,$(wildcard /usr/bin/llvm-config*))
 endif
 
-LLVM_VERSION = $(shell llvm-config --version)
+LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ifeq ($(LLVM_VERSION), 2.8)
 LLVM_VERSION  = LLVM_28
@@ -43,9 +44,7 @@ ifeq ($(LLVM_VERSION), 3.2svn)
 LLVM_VERSION  = LLVM_32
 endif
 
-#CXXFLAGS ?= -g -Wall -Wuninitialized -Wexit-time-destructors -Wglobal-constructors
-
-CXXFLAGS ?= -O3 -Wall -Wuninitialized -Wexit-time-destructors -Wglobal-constructors 
+CXXFLAGS += -O3 -Wall -Wuninitialized 
 CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
@@ -65,7 +64,7 @@ faust : $(objects) main.o libmain.o global.o
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags --libs all` -ldl -o faust
 
 libfaust.a : $(objects) libmain.o global.o
-	libtool $(objects) libmain.o global.o -static -o libfaust.a
+	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o libfaust.a
 
 
 .PHONY: clean depend ctags parser

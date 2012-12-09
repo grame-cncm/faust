@@ -54,12 +54,9 @@
 #include "symbol.hh"
 #include "garbageable.hh"
 #include <sys/types.h>
+#include <stdint.h>
 
 using namespace std;
-
-#ifndef int64_t
-typedef long long int64_t;
-#endif
 
 /**
  * Tags used to define the type of a Node
