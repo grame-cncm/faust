@@ -15,7 +15,7 @@ ARCHFLAGS 	:=  -arch i386 -arch x86_64
 LIBFLAGS	:=
 CXX 		= clang++
 CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors
-LLVM_CONFIG = llvm-config
+LLVM_CONFIG 	= llvm-config
 else 
 ARCHFLAGS 	:= 
 LIBFLAGS	:= --mode=link --tag=CXX
