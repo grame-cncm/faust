@@ -68,6 +68,8 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
     "M0 0L"+this.value_box_w+" 0L"+this.value_box_w+" "+this.value_box_h+"L0 "+this.value_box_h+"L0 0",
     {
       id: 'faust_value_box_'+id,
+      fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
+      stroke : _f4u$t.color_to_rgb(_f4u$t.BLACK),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.box_padding)+')',
       'class': 'faust-vbox',
       onmousedown : mousedown,
@@ -752,7 +754,7 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
   var mousedown = '_f4u$t.button_down("'+full_id+'")';
   var mouseup = '_f4u$t.button_up("'+full_id+'")';
-
+console.log(this.fill_off);
   var button = svg.path(
     parent,
     d,
