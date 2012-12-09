@@ -327,6 +327,17 @@ _f4u$t.main = function(svg, raw_json) {
   // make sure that loading of files is synchronous...
   var URLParams = _f4u$t.parseURLParams(document.URL);
   if (URLParams) {
+    for (var index in URLParams) {
+      var split_index = index.split('.');
+      if (split_index.length != 2) {
+        continue;
+      }
+      if (_f4u$t[split_index[0]]) {
+        if (_f4u$t[split_index[0]][split_index[1]]) {
+          _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
+        }
+      }
+    }
     if (URLParams.js) {
       for (var i = 0; i < URLParams.js.length; i++) {
         if (i != URLParams.js.length - 1) {
