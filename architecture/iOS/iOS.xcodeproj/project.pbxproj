@@ -85,8 +85,8 @@
 		65E5EDA014DB037D00136CFC /* iOS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "iOS-Prefix.pch"; sourceTree = "<group>"; };
 		65E5EDA114DB037D00136CFC /* FIAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FIAppDelegate.h; sourceTree = "<group>"; };
 		65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FIAppDelegate.mm; sourceTree = "<group>"; };
-		65E5EDA514DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
-		65E5EDA814DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		65E5EDA514DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		65E5EDA814DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		65E5EDAA14DB037D00136CFC /* FIMainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FIMainViewController.h; sourceTree = "<group>"; };
 		65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FIMainViewController.mm; sourceTree = "<group>"; };
 		65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FIFlipsideViewController.h; sourceTree = "<group>"; };

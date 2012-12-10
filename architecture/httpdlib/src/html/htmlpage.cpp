@@ -117,6 +117,8 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_inits.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_load_external_file.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_objects.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_builder.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_interact.js\"></script>" << endl;
@@ -128,7 +130,7 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    </div>" << endl;
 	out << "    <script type=\"text/javascript\">" << endl;
 	out << "      $('#faustsvg').svg({onLoad: function (svg) {" << endl;
-	out << "        _f4u$t.make_ui(svg, '";
+	out << "        _f4u$t.main(svg, '";
 	out << s;
 	out << "');" << endl;
 	out << "      }});" << endl;

@@ -30,7 +30,9 @@ _f4u$t.UP = -1;
 _f4u$t.DOWN = 1;
 _f4u$t.CENTER = 0;
 
+_f4u$t.NONE = null;
 _f4u$t.BLACK = [0,0,0];
+_f4u$t.WHITE = [255,255,255];
 _f4u$t.CYAN = [0,255,255];
 _f4u$t.GREY = [100,100,100];
 _f4u$t.PINK = [233,150,122];
@@ -301,9 +303,9 @@ _f4u$t.get_text_bbox = function(svg, text) {
   return bbox;
 }
 
-// main
 _f4u$t.make_ui = function(svg, raw_json) {
   var json = eval ("(" + raw_json + ")");
+
   var faust_svg = new _f4u$t.SVG(
     svg,
     // kludge to prevent scroll bars...
@@ -319,6 +321,40 @@ _f4u$t.make_ui = function(svg, raw_json) {
 
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
+}
+
+_f4u$t.main = function(svg, raw_json) {
+  // make sure that loading of files is synchronous...
+  var URLParams = _f4u$t.parseURLParams(document.URL);
+  if (URLParams) {
+    for (var index in URLParams) {
+      var split_index = index.split('.');
+      if (split_index.length != 2) {
+        continue;
+      }
+      if (_f4u$t[split_index[0]]) {
+        if (_f4u$t[split_index[0]][split_index[1]]) {
+          _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
+        }
+      }
+    }
+    if (URLParams.js) {
+      for (var i = 0; i < URLParams.js.length; i++) {
+        if (i != URLParams.js.length - 1) {
+          $.getScript(URLParams.js[i]);
+        }
+        else {
+          $.getScript(URLParams.js[i], function () { _f4u$t.make_ui(svg, raw_json); } );
+        }
+      }
+    }
+    else {
+      _f4u$t.make_ui(svg, raw_json);
+    }
+  }
+  else {
+    _f4u$t.make_ui(svg, raw_json);
+  }
 }
 
 _f4u$t.make_audio_ui = function(dsp, svg) {
@@ -353,3 +389,4 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
 }
+

@@ -52,10 +52,6 @@ _f4u$t.UIObject.prototype.get_root_svg = function() {
   return (this.mom.svg ? this.mom.svg : this.mom.get_root_svg());
 }
 
-_f4u$t.UIObject.prototype.compress = function() {
-  // does nothing
-}
-
 /*
   DEFINES THE FAUST INCREMENTAL OBJECT CLASS.
   All objects that go up in increments inherit from this.
@@ -66,12 +62,14 @@ _f4u$t.extend(_f4u$t.UIObject, _f4u$t.IncrementalObject);
 
 _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mousedown) {
   var dims = this.dims();
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - this.value_box_w) / 2.0 : 0.0);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - this.value_box_w) / 2.0 : 0.0);
   var vb = svg.path(
     parent,
     "M0 0L"+this.value_box_w+" 0L"+this.value_box_w+" "+this.value_box_h+"L0 "+this.value_box_h+"L0 0",
     {
       id: 'faust_value_box_'+id,
+      fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
+      stroke : _f4u$t.color_to_rgb(_f4u$t.BLACK),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.box_padding)+')',
       'class': 'faust-vbox',
       onmousedown : mousedown,
@@ -84,7 +82,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
 
 _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, mousedown) {
   var dims = this.dims();
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] / 2.0) : this.box_padding);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] / 2.0) : this.box_padding);
   var mymousedown = (mousedown ? mousedown : '_f4u$t.devnull()');
   var vv = svg.text(
     parent,
@@ -93,7 +91,7 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
     this.init.toString(),
     {
       id: 'faust_value_value_'+id,
-      "text-anchor" : ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
+      "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y)+')',
       onmousedown : mymousedown,
       ontouchstart : mymousedown
@@ -111,7 +109,7 @@ _f4u$t.IncrementalObject.prototype.label_text = function() {
 }
 _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
   var dims = this.dims();
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? dims[0] / 2.0 : 0.0);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? dims[0] / 2.0 : 0.0);
   var label = this.label_text();
   var vl = svg.text(
     parent,
@@ -120,7 +118,7 @@ _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
     label,
     {
       id: 'faust_label_'+id,
-      "text-anchor" : ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
+      "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y + this.lpadding_y)+')'
     }
   );
@@ -152,26 +150,25 @@ _f4u$t.RotatingButton = function(options) {
   this.sp = _f4u$t.initifnull(options.sp, 0.1);
   this.label = _f4u$t.initifnull(options.label, '');
   this.unit = _f4u$t.initifnull(options.unit, null);
-  this.mn = _f4u$t.initifnull(options.mn, 0);
-  this.mx = _f4u$t.initifnull(options.mx, 100);
-  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
+  this.min = _f4u$t.initifnull(options.min, 0);
+  this.max = _f4u$t.initifnull(options.max, 100);
+  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.min, this.max);
   this.step = _f4u$t.initifnull(options.step, 1);
   this.integer = _f4u$t.initifnull(options.integer, false);
   this.ndec = _f4u$t.initifnull(options.ndec, 0);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  //this.fill= _f4u$t.initifnull(options.fill, _f4u$t.PALEGREEN);
+  this.joint_fill= _f4u$t.initifnull(options.joint_fill, _f4u$t.PALEGREEN);
+  this.knob_fill= _f4u$t.initifnull(options.knob_fill, _f4u$t.GREY);
+  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.BLACK);
+  this.knob_stroke = _f4u$t.initifnull(options.knob_stroke, _f4u$t.BLACK);
   this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
   this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
   this.address = _f4u$t.initifnull(options.address, '');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.RotatingButton);
-
-_f4u$t.RotatingButton.prototype.compress = function(coef) {
-  this._r = Math.max(this.mr, this._r * coef);
-}
 
 _f4u$t.RotatingButton.prototype.r = function() {
   return this._r;
@@ -238,6 +235,8 @@ _f4u$t.RotatingButton.prototype.make_joint = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.joint_fill),
+      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_rbutton_joint_'+id,
       'class' : 'faust-rbutton-joint',
       transform : 'translate('+xo+',0)'
@@ -251,7 +250,7 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
   var trans = this.get_translation();
   var slider_angle = this.sweep * this.sp;
   var half_slider_angle = slider_angle * 0.5;
-  var startp = _f4u$t.remap(this.init, this.mn, this.mx, this.a0 + half_slider_angle, this.a0 + this.sweep - half_slider_angle)
+  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0 + half_slider_angle, this.a0 + this.sweep - half_slider_angle)
   var start = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0)), trans);
   var end = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0 + slider_angle)), trans);
   var origin = _f4u$t.coord_sub([0,0], trans);
@@ -274,6 +273,8 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.knob_fill),
+      stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       'class' : 'faust-rbutton-knob',
       id : full_id,
       transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')',
@@ -315,8 +316,8 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.a0 + 180,
     this.sweep,
     this.sp,
-    this.mn,
-    this.mx,
+    this.min,
+    this.max,
     this.step,
     this.init,
     this.integer,
@@ -339,50 +340,33 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   DEFINES A SLIDER.
 */
 
-_f4u$t.SlidingObject = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.o = _f4u$t.initifnull(options.o, _f4u$t.X_AXIS);
-  this.iwa = _f4u$t.initifnull(options.iwa, 40);
-  this.isa = _f4u$t.initifnull(options.isa, 200);
-  this._sa = this.isa;
-  this._wa = this.iwa;
-  this.mwa = _f4u$t.initifnull(options.mwa, 20);
-  this.msa = _f4u$t.initifnull(options.msa, 100);
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.unit = _f4u$t.initifnull(options.unit, null);
-  this.mn = _f4u$t.initifnull(options.mn, 0);
-  this.mx = _f4u$t.initifnull(options.mx, 100);
-  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
-  this.step = _f4u$t.initifnull(options.step, 1);
-  this.integer = _f4u$t.initifnull(options.integer, false);
-  this.ndec = _f4u$t.initifnull(options.ndec, 0);
-  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
-  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
-  this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
-  this.address = _f4u$t.initifnull(options.address, '');
-  this.type = _f4u$t.initifnull(options.type, '');
+_f4u$t.SlidingObject = function(options, type) {
+  _f4u$t.init_prop(this, options, type, 'mom');
+  _f4u$t.init_prop(this, options, type, 'axis');
+  _f4u$t.init_prop(this, options, type, 'girth');
+  _f4u$t.init_prop(this, options, type, 'length');
+  _f4u$t.init_prop(this, options, type, 'label');
+  _f4u$t.init_prop(this, options, type, 'unit');
+  _f4u$t.init_prop(this, options, type, 'min');
+  _f4u$t.init_prop(this, options, type, 'max');
+  _f4u$t.init_prop(this, options, type, 'init');
+  _f4u$t.init_prop(this, options, type, 'step');
+  _f4u$t.init_prop(this, options, type, 'integer');
+  _f4u$t.init_prop(this, options, type, 'ndec');
+  _f4u$t.init_prop(this, options, type, 'lpadding_y');
+  _f4u$t.init_prop(this, options, type, 'box_padding');
+  _f4u$t.init_prop(this, options, type, 'gravity');
+  _f4u$t.init_prop(this, options, type, 'value_box_w');
+  _f4u$t.init_prop(this, options, type, 'value_box_h');
+  _f4u$t.init_prop(this, options, type, 'address');
+  _f4u$t.init_prop(this, options, type, 'type');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.SlidingObject);
 
-_f4u$t.SlidingObject.prototype.compress = function(coef) {
-  this._wa = Math.max(this.mwa, this._wa * coef);
-  this._sa = Math.max(this.msa, this._sa * coef);
-}
-
-_f4u$t.SlidingObject.prototype.wa = function() {
-  return this._wa;
-}
-
-_f4u$t.SlidingObject.prototype.sa = function() {
-  return this._sa;
-}
-
 _f4u$t.SlidingObject.prototype.internal_dims = function() {
-  var x = _f4u$t.xy(this.o, this.sa(), this.wa());
-  var y = _f4u$t.xy(this.o, this.wa(), this.sa());
+  var x = _f4u$t.xy(this.axis, this.length, this.girth);
+  var y = _f4u$t.xy(this.axis, this.girth, this.length);
   return [x,y];
 }
 
@@ -393,24 +377,29 @@ _f4u$t.SlidingObject.prototype.dims = function() {
   return ugh;
 }
 
-_f4u$t.Slider = function(options) {
-  _f4u$t.SlidingObject.call(this, options);
-  this.sp = _f4u$t.initifnull(options.sp, 0.15);
-  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
+_f4u$t.Slider = function(options, type) {
+  _f4u$t.SlidingObject.call(this, options, type);
+  _f4u$t.init_prop(this, options, 'button','sp');
+  _f4u$t.init_prop(this, options, 'button','joint_fill');
+  _f4u$t.init_prop(this, options, 'button','joint_stroke');
+  _f4u$t.init_prop(this, options, 'button','knob_fill');
+  _f4u$t.init_prop(this, options, 'button','knob_stroke');
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
 
 _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
   var dims = this.dims();
-  var w = _f4u$t.xy(this.o, this.sa(), this.wa() / 3.0);
-  var h = _f4u$t.xy(this.o, this.wa() / 3.0, this.sa());
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var trans = _f4u$t.xy(this.o, 'translate(0,'+(this.wa() / 3.0)+')', 'translate('+xo+',0)');
+  var w = _f4u$t.xy(this.axis, this.length, this.girth / 3.0);
+  var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+  var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
   var joint = svg.path(
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.joint_fill),
+      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
       'class' : 'faust-slider-joint',
       transform : trans
@@ -422,16 +411,16 @@ _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
 
 _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var dims = this.dims();
-  var slider_girth = this.sa()  * this.sp;
+  var slider_girth = this.length  * this.sp;
   var half_slider_girth = slider_girth * 0.5;
-  var startp = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0 + half_slider_girth, this.sa() - half_slider_girth);
+  var startp = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0 + half_slider_girth, this.length - half_slider_girth);
   var bottom = startp - half_slider_girth;
   var top = startp + half_slider_girth;
-  var w = _f4u$t.xy(this.o, slider_girth, this.wa());
-  var h = _f4u$t.xy(this.o, this.wa(), slider_girth);
-  var xo = ((this.o == _f4u$t.Y_AXIS) ? (dims[0] - w) / 2.0 : 0.0);
-  var x = _f4u$t.xy(this.o, bottom, xo);
-  var y = _f4u$t.xy(this.o, 0, bottom);
+  var w = _f4u$t.xy(this.axis, slider_girth, this.girth);
+  var h = _f4u$t.xy(this.axis, this.girth, slider_girth);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) ? (dims[0] - w) / 2.0 : 0.0);
+  var x = _f4u$t.xy(this.axis, bottom, xo);
+  var y = _f4u$t.xy(this.axis, 0, bottom);
   var full_id = 'faust_'+this.type+'_knob_'+id;
   var activate_fn = "activate_"+this.type;
   var mousedown = '_f4u$t["'+activate_fn+'"]("'+full_id+'")';
@@ -440,6 +429,8 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.knob_fill),
+      stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       id : full_id,
       'class' : 'faust-slider-knob',
       transform : 'translate('+x+','+y+')',
@@ -457,10 +448,10 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
 
   _f4u$t["initiate_"+this.type](
     id,
-    this.sa(),
+    this.length,
     this.sp,
-    this.mn,
-    this.mx,
+    this.min,
+    this.max,
     this.step,
     this.init,
     this.integer,
@@ -493,9 +484,9 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
 
 _f4u$t.HorizontalSlider = function(options) {
   options = options || {};
-  options["o"] = _f4u$t.X_AXIS;
+  options["axis"] = _f4u$t.X_AXIS;
   options["type"] = 'hslider';
-  _f4u$t.Slider.call(this, options);
+  _f4u$t.Slider.call(this, options, options["type"]);
 }
 
 _f4u$t.extend(_f4u$t.Slider, _f4u$t.HorizontalSlider);
@@ -506,29 +497,34 @@ _f4u$t.extend(_f4u$t.Slider, _f4u$t.HorizontalSlider);
 
 _f4u$t.VerticalSlider = function(options) {
   options = options || {};
-  options["o"] = _f4u$t.Y_AXIS;
+  options["axis"] = _f4u$t.Y_AXIS;
   options["type"] = 'vslider';
-  _f4u$t.Slider.call(this, options);
+  _f4u$t.Slider.call(this, options, options["type"]);
 }
 
 _f4u$t.extend(_f4u$t.Slider, _f4u$t.VerticalSlider);
 
-_f4u$t.BarGraph = function(options) {
-  _f4u$t.SlidingObject.call(this, options);
-  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.CYAN);
+_f4u$t.BarGraph = function(options, type) {
+  _f4u$t.SlidingObject.call(this, options, type);
+  this.joint_fill = _f4u$t.initifnull(options.joint_fill, _f4u$t.CYAN);
+  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.CYAN);
+  this.meter_fill = _f4u$t.initifnull(options.meter_fill, _f4u$t.CYAN);
+  this.meter_stroke = _f4u$t.initifnull(options.meter_stroke, _f4u$t.CYAN);
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
 
 _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
   var dims = this.dims();
-  var w = _f4u$t.xy(this.o, this.sa(), this.wa());
-  var h = _f4u$t.xy(this.o, this.wa(), this.sa());
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+  var w = _f4u$t.xy(this.axis, this.length, this.girth);
+  var h = _f4u$t.xy(this.axis, this.girth, this.length);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var joint = svg.path(
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.joint_fill),
+      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
       transform : 'translate('+xo+',0)',
       'class' : 'faust-bargraph-joint'
@@ -540,19 +536,21 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
 
 _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var full_id = 'faust_'+this.type+'_meter_'+id;
-  var def = _f4u$t.xy(this.o, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.mn, this.mx, 0, this.sa());
+  var def = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0, this.length);
   var dims = this.dims();
-  var w = _f4u$t.xy(this.o, def, this.wa());
-  var h = _f4u$t.xy(this.o, this.wa(), def);
-  var xo = ((this.o == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+  var w = _f4u$t.xy(this.axis, def, this.girth);
+  var h = _f4u$t.xy(this.axis, this.girth, def);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var meter = svg.path(
     parent,
     _f4u$t.xy(
-      this.o,
+      this.axis,
       "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
-      "M0 "+this.sa()+"L"+w+" "+this.sa()+"L"+w+" "+h+"L0 "+h+"L0 "+this.sa()
+      "M0 "+this.length+"L"+w+" "+this.length+"L"+w+" "+h+"L0 "+h+"L0 "+this.length
     ),
     {
+      fill : _f4u$t.color_to_rgb(this.meter_fill),
+      stroke : _f4u$t.color_to_rgb(this.meter_stroke),
       id : full_id,
       transform : 'translate('+xo+',0)',
       'class' : 'faust-bargraph-meter'
@@ -567,10 +565,10 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, id);
   _f4u$t['initiate_'+this.type](
     id,
-    this.wa(),
-    this.sa(),
-    this.mn,
-    this.mx,
+    this.girth,
+    this.length,
+    this.min,
+    this.max,
     this.step,
     this.init,
     this.label,
@@ -592,9 +590,9 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
 
 _f4u$t.HorizontalBarGraph = function(options) {
   options = options || {};
-  options["o"] = _f4u$t.X_AXIS;
+  options["axis"] = _f4u$t.X_AXIS;
   options["type"] = 'hbargraph';
-  _f4u$t.BarGraph.call(this, options);
+  _f4u$t.BarGraph.call(this, options, options["type"]);
 }
 
 _f4u$t.extend(_f4u$t.BarGraph, _f4u$t.HorizontalBarGraph);
@@ -605,28 +603,29 @@ _f4u$t.extend(_f4u$t.BarGraph, _f4u$t.HorizontalBarGraph);
 
 _f4u$t.VerticalBarGraph = function(options) {
   options = options || {};
-  options["o"] = _f4u$t.Y_AXIS;
+  options["axis"] = _f4u$t.Y_AXIS;
   options["type"] = 'vbargraph';
-  _f4u$t.BarGraph.call(this, options);
+  _f4u$t.BarGraph.call(this, options, options["type"]);
 }
 
 _f4u$t.extend(_f4u$t.BarGraph, _f4u$t.VerticalBarGraph);
 
 _f4u$t.CheckBox = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.d = _f4u$t.initifnull(options.d, 19);
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  //this.fill = _f4u$t.initifnull(options.fill, _f4u$t.PINK);
-  this.init = _f4u$t.initifnull(options.init, false);
-  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
-  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
-  this.address = _f4u$t.initifnull(options.address, '');
+  _f4u$t.init_prop(this, options, 'checkbox','mom');
+  _f4u$t.init_prop(this, options, 'checkbox','d');
+  _f4u$t.init_prop(this, options, 'checkbox','label');
+  _f4u$t.init_prop(this, options, 'checkbox','gravity');
+  _f4u$t.init_prop(this, options, 'checkbox','check_fill');
+  _f4u$t.init_prop(this, options, 'checkbox','check_stroke');
+  _f4u$t.init_prop(this, options, 'checkbox','box_fill');
+  _f4u$t.init_prop(this, options, 'checkbox','box_stroke');
+  _f4u$t.init_prop(this, options, 'checkbox','init');
+  _f4u$t.init_prop(this, options, 'checkbox','lpadding_y');
+  _f4u$t.init_prop(this, options, 'checkbox','box_padding');
+  _f4u$t.init_prop(this, options, 'checkbox','address');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.CheckBox);
-
-_f4u$t.CheckBox.prototype.compress = function() {}
 
 _f4u$t.CheckBox.prototype.internal_dims = function() {
   return [this.d, this.d];
@@ -651,6 +650,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
     parent,
     "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
+      fill : _f4u$t.color_to_rgb(this.box_fill),
+      stroke : _f4u$t.color_to_rgb(this.box_stroke),
       id : full_id,
       'class' : 'faust-checkbox-box',
       transform : 'translate('+xo+',0)',
@@ -674,9 +675,9 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
     {
       id : full_id,
-      // CSS here instead of in style sheet becasue it only has relevence
-      // in terms of UI
-      style : "opacity:"+(this.init == 1 ? 1.0 : 0.0)+";stroke:black;fill:black;",
+      fill : _f4u$t.color_to_rgb(this.check_fill),
+      stroke : _f4u$t.color_to_rgb(this.check_stroke),
+      style : "opacity:"+(this.init == 1 ? 1.0 : 0.0),
       onmousedown : mousedown,
       ontouchstart : mousedown,
       transform : 'translate('+xo+',0)'
@@ -718,19 +719,18 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
 */
 
 _f4u$t.Button = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.mw = _f4u$t.initifnull(options.mw, 40);
-  this.mh = _f4u$t.initifnull(options.mh, 20);
-  this.iw = _f4u$t.initifnull(options.iw, 80, this.mw);
-  this.ih = _f4u$t.initifnull(options.ih, 40);
-  this._w = this.iw;
-  this._h = this.ih;
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  //this.fillOn = _f4u$t.initifnull(options.fillOn, _f4u$t.PINK;
-  //this.fillOff = _f4u$t.initifnull(options.fillOff, _f4u$t.GREEN;
-  this.baselineSkip = _f4u$t.initifnull(options.baselineSkip, 5);
-  this.address = _f4u$t.initifnull(options.address, '');
+  _f4u$t.init_prop(this, options, 'button','mom');
+  _f4u$t.init_prop(this, options, 'button','label');
+  _f4u$t.init_prop(this, options, 'button','ideal_width');
+  _f4u$t.init_prop(this, options, 'button','ideal_height');
+  this._w = this.ideal_width;
+  this._h = this.ideal_height;
+  _f4u$t.init_prop(this, options, 'button','gravity');
+  _f4u$t.init_prop(this, options, 'button','fill_on');
+  _f4u$t.init_prop(this, options, 'button','fill_off');
+  _f4u$t.init_prop(this, options, 'button','stroke');
+  _f4u$t.init_prop(this, options, 'button','baseline_skip');
+  _f4u$t.init_prop(this, options, 'button','address');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.Button);
@@ -741,11 +741,6 @@ _f4u$t.Button.prototype.w = function() {
 
 _f4u$t.Button.prototype.h = function() {
   return this._h;
-}
-
-_f4u$t.Button.prototype.compress = function(coef) {
-  this._w = Math.max(this.mw, this._w * coef);
-  this._h = Math.max(this.mh, this._h * coef);
 }
 
 _f4u$t.Button.prototype.dims = function(coef) {
@@ -759,12 +754,14 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
   var mousedown = '_f4u$t.button_down("'+full_id+'")';
   var mouseup = '_f4u$t.button_up("'+full_id+'")';
-
+console.log(this.fill_off);
   var button = svg.path(
     parent,
     d,
     {
       id : full_id,
+      fill : _f4u$t.color_to_rgb(this.fill_off),
+      stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-up',
       onmousedown : mousedown,
       ontouchstart : mousedown,
@@ -788,7 +785,7 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
     {
       "text-anchor" : 'middle',
       id: 'faust_label_'+id,
-      transform: 'translate('+(this.w() / 2.0)+','+(this.h() / 2.0 + this.baselineSkip)+')',
+      transform: 'translate('+(this.w() / 2.0)+','+(this.h() / 2.0 + this.baseline_skip)+')',
       onmousedown : mousedown,
       ontouchstart : mousedown,
       onmouseup : mouseup,
@@ -804,8 +801,8 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, id);
   _f4u$t.initiate_button(
     id,
-    _f4u$t.color_to_rgb(this.fillOff),
-    _f4u$t.color_to_rgb(this.fillOn),
+    _f4u$t.color_to_rgb(this.fill_off),
+    _f4u$t.color_to_rgb(this.fill_on),
     this.address
   );
 
@@ -817,20 +814,22 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 
 _f4u$t.NumericalEntry = function(options) {
   this.mom = _f4u$t.initifnull(options.mom, null);
-  this.iw = _f4u$t.initifnull(options.iw, _f4u$t.VALUE_BOX_W);
-  this.ih = _f4u$t.initifnull(options.ih, _f4u$t.VALUE_BOX_H);
-  this.mw = _f4u$t.initifnull(options.mw, _f4u$t.VALUE_BOX_W);
-  this.mh = _f4u$t.initifnull(options.mh, _f4u$t.VALUE_BOX_H);
-  this._w = this.iw;
-  this._h = this.ih;
+  this.ideal_width = _f4u$t.initifnull(options.ideal_width, _f4u$t.VALUE_BOX_W);
+  this.ideal_height = _f4u$t.initifnull(options.ideal_height, _f4u$t.VALUE_BOX_H);
+  this._w = this.ideal_width;
+  this._h = this.ideal_height;
   this.label = _f4u$t.initifnull(options.label, '');
   this.unit = _f4u$t.initifnull(options.unit, null);
-  this.mn = _f4u$t.initifnull(options.mn, 0);
-  this.mx = _f4u$t.initifnull(options.mx, 100);
-  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.mn, this.mx);
+  this.min = _f4u$t.initifnull(options.min, 0);
+  this.max = _f4u$t.initifnull(options.max, 100);
+  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.min, this.max);
   this.step = _f4u$t.initifnull(options.step, 1);
   this.integer = _f4u$t.initifnull(options.integer, false);
   this.ndec = _f4u$t.initifnull(options.ndec, 0);
+  this.button_fill= _f4u$t.initifnull(options.button_fill, _f4u$t.GREY);
+  this.operation_fill= _f4u$t.initifnull(options.operation_fill, _f4u$t.BLACK);
+  this.button_stroke = _f4u$t.initifnull(options.button_stroke, _f4u$t.BLACK);
+  this.operation_stroke = _f4u$t.initifnull(options.operation_stroke, _f4u$t.BLACK);
   this.padding = _f4u$t.initifnull(options.padding, 1);
   this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
@@ -848,11 +847,6 @@ _f4u$t.NumericalEntry.prototype.w = function() {
 
 _f4u$t.NumericalEntry.prototype.h = function() {
   return this._h;
-}
-
-_f4u$t.NumericalEntry.prototype.compress = function(coef) {
-  this._w = Math.max(this.mw, this._w * coef);
-  this._h = Math.max(this.mh, this._h * coef);
 }
 
 _f4u$t.NumericalEntry.prototype.internal_dims = function() {
@@ -886,6 +880,9 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
     parent,
     d,
     {
+      
+      fill : _f4u$t.color_to_rgb(this.button_fill),
+      stroke : _f4u$t.color_to_rgb(this.button_stroke),
       transform : 'translate('+xo+',0)',
       id : full_id,
       'class' : 'faust-nentry-button',
@@ -909,6 +906,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.operation_fill),
+      stroke : _f4u$t.color_to_rgb(this.operation_stroke),
       id : full_id,
       'class' : 'faust-nentry-operation',
       onmousedown : mousedown,
@@ -935,6 +934,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.operation_fill),
+      stroke : _f4u$t.color_to_rgb(this.operation_stroke),
       transform : 'translate('+(this.w() / 2.0 + this.padding)+',0)',
       id : full_id,
       'class' : 'faust-nentry-operation',
@@ -951,8 +952,8 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, id);
   _f4u$t.initiate_nentry(
     id,
-    this.mn,
-    this.mx,
+    this.min,
+    this.max,
     this.step,
     this.init,
     this.integer,
@@ -974,7 +975,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
 
 _f4u$t.LayoutManager = function(options) {
   this.mom = _f4u$t.initifnull(options.mom, null);
-  this.o = _f4u$t.initifnull(options.o, _f4u$t.X_AXIS);
+  this.axis = _f4u$t.initifnull(options.axis, _f4u$t.X_AXIS);
   this.padding = _f4u$t.initifnull(options.padding, 10);
   this.objs = _f4u$t.initifnull(options.objs, []);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
@@ -987,6 +988,7 @@ _f4u$t.LayoutManager = function(options) {
   this.h = 0;
   this.id = _f4u$t.randString();
   this.fill = _f4u$t.magic_color();
+  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.LayoutManager);
@@ -1003,12 +1005,10 @@ _f4u$t.LayoutManager.prototype.internal_dims = function() {
   var out = [outx,outy];
 
   for (var i = _f4u$t.X_AXIS; i < _f4u$t.NO_AXES; i++) {
-    out[i] = (i == this.o ? out[i].sum() : out[i].max());
+    out[i] = (i == this.axis ? out[i].sum() : out[i].max());
   }
 
-  //out[_f4u$t.other_axis(this.o)] += this.padding * 2;
-  //out[this.o] += this.padding * (this.objs.length + 1);
-  out[this.o] += (this.padding * (this.objs.length - 1));
+  out[this.axis] += (this.padding * (this.objs.length - 1));
   return out;
 }
 
@@ -1029,12 +1029,6 @@ _f4u$t.LayoutManager.prototype.dims = function() {
   return out;
 }
 
-_f4u$t.LayoutManager.prototype.compress = function(coef) {
-  for (var i = 0; i < this.objs.length; i++) {
-    this.objs[i].compress(coef);
-  }
-}
-
 _f4u$t.LayoutManager.prototype.do_spacing = function() {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
@@ -1049,14 +1043,14 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
   for (var i = 0; i < this.objs.length; i++) {
     var obj = this.objs[i];
     var dim = obj.dims();
-    var xv1 = _f4u$t.xy(this.o, running_count, 0);
-    var xv2 = _f4u$t.xy(this.o, running_count, x - dim[_f4u$t.X_AXIS]);
+    var xv1 = _f4u$t.xy(this.axis, running_count, 0);
+    var xv2 = _f4u$t.xy(this.axis, running_count, x - dim[_f4u$t.X_AXIS]);
     obj.setX(_f4u$t.linear_combination(obj.gravity[_f4u$t.X_AXIS], xv1, xv2));
-    var yv1 = _f4u$t.xy(this.o, 0, running_count);
-    var yv2 = _f4u$t.xy(this.o, y - dim[_f4u$t.Y_AXIS], running_count);
+    var yv1 = _f4u$t.xy(this.axis, 0, running_count);
+    var yv2 = _f4u$t.xy(this.axis, y - dim[_f4u$t.Y_AXIS], running_count);
     obj.setY(_f4u$t.linear_combination(obj.gravity[_f4u$t.Y_AXIS], yv1, yv2));
     obj.do_spacing();
-    running_count += padding + _f4u$t.xy(this.o, dim[_f4u$t.X_AXIS], dim[_f4u$t.Y_AXIS]);
+    running_count += padding + _f4u$t.xy(this.axis, dim[_f4u$t.X_AXIS], dim[_f4u$t.Y_AXIS]);
   }
 }
 
@@ -1086,9 +1080,10 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
     parent,
     d,
     {
+      fill : _f4u$t.color_to_rgb(this.fill),
+      stroke : _f4u$t.color_to_rgb(this.stroke),
       id : full_id,
-      // CSS
-      style: 'fill:'+_f4u$t.color_to_rgb(this.fill)+';stroke:black;fill-opacity:0.2;'
+      style: +'fill-opacity:0.2;'
     }
   );
 
@@ -1129,19 +1124,14 @@ _f4u$t.TabGroup = function(options) {
   this.objs= _f4u$t.initifnull(options.objs, []);
   this.init = _f4u$t.initifnull(options.init, 0);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  this.baselineSkip = _f4u$t.initifnull(options.baselineSkip, 5);
+  this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
+  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.TabGroup);
-
-_f4u$t.TabGroup.prototype.compress = function(coef) {
-  for (var i = 0; i < this.objs.length; i++) {
-    this.objs[i].compress(coef);
-  }
-}
 
 _f4u$t.TabGroup.prototype.setX = function(x) {
   this.x = x;
@@ -1211,8 +1201,8 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       transform: 'translate('+x+','+y+')',
-      // CSS
-      style: 'fill:'+_f4u$t.color_to_rgb(fill)+';stroke:black;',
+      fill : _f4u$t.color_to_rgb(fill),
+      stroke : _f4u$t.color_to_rgb(this.stroke),
       onmousedown : mousedown,
       ontouchstart : mousedown
     }
@@ -1243,7 +1233,7 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
       svg,
       parent,
       running_count + this.x_width / 2.0,
-      this.headroom / 2.0 + this.baselineSkip,
+      this.headroom / 2.0 + this.baseline_skip,
       curobj.label,
       curobj.id,
       badidstr);
@@ -1289,7 +1279,7 @@ _f4u$t.SVG.prototype.make = function() {
   this.svg.configure(
     {
       width : this.w+'px',
-      height: this.h+'px'
+      height : this.h+'px'
     },
     true);
   _f4u$t.ROOT = this.title;
