@@ -230,7 +230,7 @@ _f4u$t.initiate_button = function(fullid, upfill, downfill, address) {
   _f4u$t.IDS_TO_ATTRIBUTES[id]["upfill"] = upfill;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["downfill"] = downfill;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
-  _f4u$t.path_to_id(address, fullid);console.log(upfill, downfill);
+  _f4u$t.path_to_id(address, fullid);
 }
 
 _f4u$t.initiate_tab_group = function(index, ids) {

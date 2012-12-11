@@ -327,6 +327,8 @@ _f4u$t.main = function(svg, raw_json) {
   // make sure that loading of files is synchronous...
   var URLParams = _f4u$t.parseURLParams(document.URL);
   if (URLParams) {
+    URLParams.js = URLParams.js || [];
+    URLParams.css = URLParams.css || [];
     for (var index in URLParams) {
       var split_index = index.split('.');
       if (split_index.length != 2) {
@@ -338,19 +340,7 @@ _f4u$t.main = function(svg, raw_json) {
         }
       }
     }
-    if (URLParams.js) {
-      for (var i = 0; i < URLParams.js.length; i++) {
-        if (i != URLParams.js.length - 1) {
-          $.getScript(URLParams.js[i]);
-        }
-        else {
-          $.getScript(URLParams.js[i], function () { _f4u$t.make_ui(svg, raw_json); } );
-        }
-      }
-    }
-    else {
-      _f4u$t.make_ui(svg, raw_json);
-    }
+    _f4u$t.load_css_and_then_js_and_then_build_ui(URLParams.css, URLParams.js, svg, raw_json);
   }
   else {
     _f4u$t.make_ui(svg, raw_json);

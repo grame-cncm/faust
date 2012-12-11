@@ -754,7 +754,7 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
   var mousedown = '_f4u$t.button_down("'+full_id+'")';
   var mouseup = '_f4u$t.button_up("'+full_id+'")';
-console.log(this.fill_off);
+
   var button = svg.path(
     parent,
     d,
