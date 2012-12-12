@@ -1,12 +1,3 @@
-/************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
-	each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
     FAUST Architecture File
@@ -30,10 +21,7 @@
 	that work under terms of your choice, so long as this FAUST 
 	architecture section is not modified. 
 
-
- ************************************************************************
  ************************************************************************/
-
 
 #include <stdlib.h>
 #include <stdlib.h>

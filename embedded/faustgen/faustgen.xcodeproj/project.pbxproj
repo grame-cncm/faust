@@ -271,6 +271,7 @@
 				"GCC_VERSION[arch=i386]" = com.apple.compilers.llvmgcc42;
 				"GCC_VERSION[arch=ppc]" = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
+					../../architecture,
 					/usr/local/include/,
 					usr/local/include/faust/audio/,
 					"/usr/local/include/c74support/max-includes",
@@ -419,6 +420,7 @@
 				"GCC_VERSION[arch=i386]" = com.apple.compilers.llvmgcc42;
 				"GCC_VERSION[arch=ppc]" = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
+					../../architecture,
 					/usr/local/include/,
 					usr/local/include/faust/audio/,
 					"/usr/local/include/c74support/max-includes",
