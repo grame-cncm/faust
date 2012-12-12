@@ -42,6 +42,7 @@
 #include <list>
 
 #include <iostream>
+#include <sstream>
 
 #include "faust/llvm-dsp.h"
 #include "faust/misc.h"
@@ -211,8 +212,6 @@ class FaustLLVMOptimizer {
         double megapersec(int frames, int chans, uint64 clk)
         {
             return (double(frames) * double(chans) * 4) / (double(1024 * 1024) * rdtsc2sec(clk));
-            //return double(frames * chans * 4)/double(1024 * 1024 * rdtsc2sec(clk));
-            //return (double(frames) * double(chans) * 4) / double(1024 * 1024) * double(clk);
         }
 
         /**
@@ -310,7 +309,7 @@ class FaustLLVMOptimizer {
             // allocate input buffers (initialized with white noise)
             allocBuffers(numOutChan, outChannel);
             
-            // init the dsp with a resoneable sampling rate
+            // init the dsp with a reasonable sampling rate
             fDSP->init(48000);
        
             AVOIDDENORMALS;
@@ -338,9 +337,6 @@ class FaustLLVMOptimizer {
     
         void init()
         {
-            //cout << "COUNT = " << COUNT << endl;
-            //cout << "VSIZE = " << VSIZE << endl;
-         
             // Scalar mode
             vector <string> t0;
             fOptionsTable.push_back(t0);
@@ -549,14 +545,9 @@ void setStackSize(size_t size)
     printf("setStackSize size = %d\n", size);
 }
 
-/*
+#ifdef MAIN_LLVM
 int main(int argc, char* argv[])
 {
-    char appname[256];
-    char filename[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
-    
     int COUNT = lopt(argv, "-count", 2000);
     int VSIZE = lopt(argv, "-vec",  512);
     
@@ -569,9 +560,10 @@ int main(int argc, char* argv[])
     for (int i = 0; i < options.size(); i++) {
         cout << options[i] << " ";
     }
-       
+    
+    cout  << endl;
   	return 0;
 }
-*/
+#endif 
 
 
