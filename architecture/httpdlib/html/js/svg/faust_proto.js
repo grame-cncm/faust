@@ -324,6 +324,12 @@ _f4u$t.make_ui = function(svg, raw_json) {
 }
 
 _f4u$t.main = function(svg, raw_json) {
+  /*
+  // bad idea...disactivates all zoom...
+  if (_f4u$t.detect_mobile_device.any()) {
+    _f4u$t.disable_zoom();
+  }
+  */
   // make sure that loading of files is synchronous...
   var URLParams = _f4u$t.parseURLParams(document.URL);
   if (URLParams) {

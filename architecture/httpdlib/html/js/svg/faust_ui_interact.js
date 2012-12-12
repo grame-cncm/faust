@@ -250,7 +250,8 @@ _f4u$t.initiate_tab_group = function(index, ids) {
 
 _f4u$t.activate_slider = function(I) {
   _f4u$t._I = I;
-
+  // turns off zoom for mobile devices
+  $('body').bind('touchmove', function(event) { event.preventDefault() });
 }
 
 _f4u$t.activate_nentry = function(I, dir) {
@@ -281,6 +282,7 @@ _f4u$t.activate_vslider = function(I) {
 
 _f4u$t.activate_rbutton = function(I) {
   _f4u$t._I = I;
+  $('body').bind('touchmove', function(event) { event.preventDefault() });
 }
 
 _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
@@ -440,6 +442,7 @@ _f4u$t.clearIdCache = function() {
   if (!_f4u$t._N) {
     _f4u$t.BUSY = false;
   }
+  $('body').unbind('touchmove'); // turns on zooming for mobile devices
 }
 
 // CLASS STUFF BROKEN...
