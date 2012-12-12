@@ -117,6 +117,7 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_mobile.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_inits.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_load_external_file.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_objects.js\"></script>" << endl;

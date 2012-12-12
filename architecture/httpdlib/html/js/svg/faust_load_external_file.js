@@ -23,3 +23,42 @@ _f4u$t.parseURLParams = function(url) {
   }
   return params;
 }
+
+_f4u$t.load_css_and_then_js_and_then_build_ui = function(css, js, svg, raw_json) {
+  if (css.length == 0) {
+    _f4u$t.load_js_and_then_build_ui(js, svg, raw_json);
+  }
+  else {
+/*
+    // this causes cross domain problems
+    $.ajax({
+      url: css[0],
+      dataType: 'css',
+      success: function() {
+        $('<link rel="stylesheet" type="text/css" href="'+css[0]+'" />').appendTo("head");
+        _f4u$t.load_css_and_then_js_and_then_build_ui(css.slice(1), js, svg, raw_json);
+      }
+    });
+*/
+    // this is asynchronous...
+    var headID = document.getElementsByTagName("head")[0];
+    var cssNode = document.createElement('link');
+    cssNode.type = 'text/css';
+    cssNode.rel = 'stylesheet';
+    cssNode.href = css[0];
+    cssNode.media = 'screen';
+    headID.appendChild(cssNode);
+    _f4u$t.load_css_and_then_js_and_then_build_ui(css.slice(1), js, svg, raw_json);
+  }
+}
+
+_f4u$t.load_js_and_then_build_ui = function(js, svg, raw_json) {
+  if (js.length == 0) {
+    _f4u$t.make_ui(svg, raw_json);
+  }
+  else {
+    $.getScript(js[0], function () {
+      _f4u$t.load_js_and_then_build_ui(js.slice(1), svg, raw_json);
+    });
+  }
+}
