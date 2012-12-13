@@ -241,7 +241,7 @@ public:
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					printhelp();
+					printhelp_command();
 					exit(1);
 				}
 				char* end;
@@ -273,6 +273,7 @@ public:
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+                    printhelp_init();
 					exit(1);
 				}
 				char* end;
