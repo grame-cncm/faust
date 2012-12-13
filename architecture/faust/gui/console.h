@@ -43,6 +43,7 @@
 #include <stack>
 #include <string>
 #include <map>
+#include <vector>
 #include <iostream>
 
 #include "faust/gui/GUI.h"
@@ -195,7 +196,14 @@ public:
 	virtual void closeBox() 							{ fPrefix.pop(); }
 
 	virtual void show() {}
-	virtual void run() 	{}
+	virtual void run()
+	{
+		char c;
+		printf("Type 'q' to quit\n");
+		while ((c = getchar()) != 'q') {
+			sleep(1);
+		}
+	}
 
 	void printhelp()
 	{
@@ -213,9 +221,9 @@ public:
 		map<string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
-				if (	(strcmp(fArgv[i], "-help") == 0)
-					 || (strcmp(fArgv[i], "-h") == 0)
-					 || (strcmp(fArgv[i], "--help") == 0) ) 	{
+				if ((strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0)) 	{
 					printhelp();
 					exit(1);
 				}
@@ -225,7 +233,7 @@ public:
 					printhelp();
 					exit(1);
 				}
-				char*	end;
+				char* end;
 				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			} else {
@@ -250,7 +258,7 @@ public:
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
 					exit(1);
 				}
-				char*	end;
+				char* end;
 				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			}
