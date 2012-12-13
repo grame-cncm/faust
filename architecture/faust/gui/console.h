@@ -205,7 +205,7 @@ public:
 		}
 	}
 
-	void printhelp()
+	void printhelp_command()
 	{
 		map<string, param>::iterator i;
 		cout << fArgc << "\n";
@@ -214,6 +214,17 @@ public:
 			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
 		}
 		cout << " infile outfile\n";
+	}
+    
+    void printhelp_init()
+	{
+		map<string, param>::iterator i;
+		cout << fArgc << "\n";
+		cout << fArgv[0] << " option list : ";
+		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
+			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+		}
+		cout << endl;
 	}
 
 	void process_command()
@@ -224,7 +235,7 @@ public:
 				if ((strcmp(fArgv[i], "-help") == 0)
                     || (strcmp(fArgv[i], "-h") == 0)
                     || (strcmp(fArgv[i], "--help") == 0)) 	{
-					printhelp();
+					printhelp_command();
 					exit(1);
 				}
 				p = fKeyParam.find(fArgv[i]);
@@ -253,6 +264,12 @@ public:
 		map<string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
+                if ((strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0)) 	{
+					printhelp_init();
+					exit(1);
+				}
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
