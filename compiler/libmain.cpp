@@ -650,7 +650,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
             comp->compileMultiSignal(signals);
             container->dump(dst);
-            exit(0);
+            throw faustexception("");
         }
         if (!container) {
             stringstream error;
@@ -843,8 +843,15 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
     }
     */
 
-    if (gHelpSwitch) 		{ printhelp(); exit(0); }
-    if (gVersionSwitch) 	{ printversion(); exit(0); }
+    if (gHelpSwitch) 		{ 
+        printhelp(); 
+        throw faustexception("");
+    }
+    if (gVersionSwitch) 	{ 
+        printversion(); 
+        printhelp(); 
+        throw faustexception(""); 
+    }
 
     initFaustDirectories();
 #ifndef WIN32
