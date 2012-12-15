@@ -290,6 +290,14 @@ _f4u$t.activate_vslider = function(ee) {
 }
 
 _f4u$t.activate_slider = function(ee) {
+  _f4u$t.activate_moving_object(ee);
+}
+
+_f4u$t.activate_rbutton = function(ee) {
+  _f4u$t.activate_moving_object(ee);
+}
+
+_f4u$t.activate_moving_object = function(ee) {
   var touches = ee.changedTouches || [ee];
   if (ee.originalEvent) {
     touches = ee.originalEvent.changedTouches || [ee];
@@ -298,13 +306,6 @@ _f4u$t.activate_slider = function(ee) {
   _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false};
   _f4u$t.updateXY(touches);
   // turns off zoom for mobile devices
-  $('body').bind('touchmove', function(event) { event.preventDefault() });
-}
-
-_f4u$t.activate_rbutton = function(ee) {
-  var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
-  _f4u$t._I[identifier] = {id : ee.target.id, moved : false};
-  _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
   $('body').bind('touchmove', function(event) { event.preventDefault() });
 }
 

@@ -131,41 +131,39 @@ _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
 */
 
 _f4u$t.RotatingButton = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.ir = _f4u$t.initifnull(options.ir, 50);
-  this.mr = _f4u$t.initifnull(options.mr, 25);
+  _f4u$t.init_prop(this, options, 'rbutton', 'mom');
+  _f4u$t.init_prop(this, options, 'rbutton', 'ir');
+  _f4u$t.init_prop(this, options, 'rbutton', 'mr');
   this._r = this.ir;
-  var a0 = _f4u$t.initifnull(options.a0, 180);
-  var sweep = _f4u$t.initifnull(options.sweep, 180);
-  if (sweep < 0) {
-    a0 += sweep;
-    sweep = Math.abs(sweep);
+  _f4u$t.init_prop(this, options, 'rbutton', 'a0');
+  _f4u$t.init_prop(this, options, 'rbutton', 'sweep');
+  if (this.sweep < 0) {
+    this.a0 += this.sweep;
+    this.sweep = Math.abs(this.sweep);
   }
-  sweep = sweep % 360;
-  if (sweep == 0) {
-    sweep = 360;
+  this.sweep = this.sweep % 360;
+  if (this.sweep == 0) {
+    this.sweep = 360;
   }
-  this.a0 = a0;
-  this.sweep = sweep;
-  this.sp = _f4u$t.initifnull(options.sp, 0.1);
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.unit = _f4u$t.initifnull(options.unit, null);
-  this.min = _f4u$t.initifnull(options.min, 0);
-  this.max = _f4u$t.initifnull(options.max, 100);
-  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.min, this.max);
-  this.step = _f4u$t.initifnull(options.step, 1);
-  this.integer = _f4u$t.initifnull(options.integer, false);
-  this.ndec = _f4u$t.initifnull(options.ndec, 0);
-  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
-  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  this.joint_fill= _f4u$t.initifnull(options.joint_fill, _f4u$t.PALEGREEN);
-  this.knob_fill= _f4u$t.initifnull(options.knob_fill, _f4u$t.GREY);
-  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.BLACK);
-  this.knob_stroke = _f4u$t.initifnull(options.knob_stroke, _f4u$t.BLACK);
-  this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
-  this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
-  this.address = _f4u$t.initifnull(options.address, '');
+  _f4u$t.init_prop(this, options, 'rbutton', 'sp');
+  _f4u$t.init_prop(this, options, 'rbutton', 'label');
+  _f4u$t.init_prop(this, options, 'rbutton', 'unit');
+  _f4u$t.init_prop(this, options, 'rbutton', 'min');
+  _f4u$t.init_prop(this, options, 'rbutton', 'max');
+  _f4u$t.init_prop(this, options, 'rbutton', 'init');
+  _f4u$t.init_prop(this, options, 'rbutton', 'step');
+  _f4u$t.init_prop(this, options, 'rbutton', 'integer');
+  _f4u$t.init_prop(this, options, 'rbutton', 'ndec');
+  _f4u$t.init_prop(this, options, 'rbutton', 'lpadding_y');
+  _f4u$t.init_prop(this, options, 'rbutton', 'box_padding');
+  _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
+  _f4u$t.init_prop(this, options, 'rbutton', 'joint_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'knob_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'joint_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'knob_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'value_box_w');
+  _f4u$t.init_prop(this, options, 'rbutton', 'value_box_h');
+  _f4u$t.init_prop(this, options, 'rbutton', 'address');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.RotatingButton);
@@ -268,7 +266,7 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
   ]);
 
 
-  var mousedown = '_f4u$t.activate_rbutton("'+full_id+'")';
+  var mousedown = _f4u$t.activate_rbutton;
   var knob = svg.path(
     parent,
     d,
@@ -277,12 +275,12 @@ _f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
       stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       'class' : 'faust-rbutton-knob',
       id : full_id,
-      transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')',
-      onmousedown : mousedown,
-      ontouchstart : mousedown
+      transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')'
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return knob;
 }
 

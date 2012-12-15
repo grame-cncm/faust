@@ -26,6 +26,33 @@ _f4u$t.button_inits = {
   address : ''
 };
 
+_f4u$t.rbutton_inits = {
+  mom : null,
+  ir : 50,
+  mr : 25,
+  a0 : 180,
+  sweep : 180,
+  sp : 0.1,
+  label : '',
+  unit : null,
+  min : 0,
+  max : 100,
+  init : 50,
+  step : 1,
+  integer : false,
+  ndec : 0,
+  lpadding_y : _f4u$t.TEXT_HEIGHT,
+  box_padding : _f4u$t.TEXT_BOX_PADDING,
+  gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
+  joint_fill : _f4u$t.PALEGREEN,
+  knob_fill : _f4u$t.GREY,
+  joint_stroke : _f4u$t.BLACK,
+  knob_stroke : _f4u$t.BLACK,
+  value_box_w : _f4u$t.VALUE_BOX_W,
+  value_box_h : _f4u$t.VALUE_BOX_H,
+  address : ''
+}
+
 _f4u$t.slidingobject_inits = {
   mom : null,
   axis : _f4u$t.X_AXIS,
