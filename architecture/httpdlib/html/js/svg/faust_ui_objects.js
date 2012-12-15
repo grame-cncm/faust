@@ -423,7 +423,7 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var y = _f4u$t.xy(this.axis, 0, bottom);
   var full_id = 'faust_'+this.type+'_knob_'+id;
   var activate_fn = "activate_"+this.type;
-  var mousedown = '_f4u$t["'+activate_fn+'"]("'+full_id+'")';
+  var mousedown = _f4u$t[activate_fn];
 
   var knob = svg.path(
     parent,
@@ -433,12 +433,11 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
       stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       id : full_id,
       'class' : 'faust-slider-knob',
-      transform : 'translate('+x+','+y+')',
-      onmousedown : mousedown,
-      ontouchstart : mousedown
+      transform : 'translate('+x+','+y+')'
     }
   );
-
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return knob;
 }
 
@@ -752,9 +751,6 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   var rf = 10;
   var d = "M{0} 0L{1} 0C{2} 0 {2} 0 {2} {3}L{2} {4}C{2} {5} {2} {5} {1} {5}L{0} {5}C0 {5} 0 {5} 0 {4}L0 {3}C0 0 0 0 {0} 0";
   d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
-  var mousedown = '_f4u$t.button_down("'+full_id+'")';
-  var mouseup = '_f4u$t.button_up("'+full_id+'")';
-
   var button = svg.path(
     parent,
     d,
@@ -763,10 +759,6 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.fill_off),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-up',
-      onmousedown : mousedown,
-      ontouchstart : mousedown,
-      onmouseup : mouseup,
-      ontouchend : mouseup
     }
   );
 
@@ -774,9 +766,6 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
 }
 
 _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
-  var full_id = 'faust_button_box_'+id;
-  var mousedown = '_f4u$t.button_down("'+full_id+'")';
-  var mouseup = '_f4u$t.button_up("'+full_id+'")';
   var vl = svg.text(
     parent,
     0,
@@ -786,10 +775,6 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
       "text-anchor" : 'middle',
       id: 'faust_label_'+id,
       transform: 'translate('+(this.w() / 2.0)+','+(this.h() / 2.0 + this.baseline_skip)+')',
-      onmousedown : mousedown,
-      ontouchstart : mousedown,
-      onmouseup : mouseup,
-      ontouchend : mouseup
     }
   );
 
@@ -798,7 +783,18 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
 
 _f4u$t.Button.prototype.make = function(svg, parent) {
   var id = _f4u$t.randString();
+  var full_id = 'faust_button_box_'+id;
+  var mousedown = '_f4u$t.button_down("'+full_id+'")';
+  var mouseup = '_f4u$t.button_up("'+full_id+'")';
   var g = this.make_group(svg, parent, id);
+  svg.configure(g,
+  {
+    onmousedown : mousedown,
+    ontouchstart : mousedown,
+    onmouseup : mouseup,
+    ontouchend : mouseup
+  },
+  false);
   _f4u$t.initiate_button(
     id,
     _f4u$t.color_to_rgb(this.fill_off),
@@ -870,12 +866,13 @@ _f4u$t.NumericalEntry.prototype.make_right_button = function(svg, parent, id) {
 
 _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr) {
   var identifier = incr ? 'rbutton' : 'lbutton';
+  var tag = incr ? 'plus' : 'minus';
   var full_id = 'faust_nentry_'+identifier+'_'+id;
   var w = this.w() / 2.0 - this.padding;
   var h = this.h();
 
   var d = "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0";
-  var mousedown = '_f4u$t.activate_nentry("'+full_id+'", '+incr+')';
+  var mousedown = _f4u$t['activate_nentry'+tag]
   var button = svg.path(
     parent,
     d,
@@ -885,12 +882,11 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       stroke : _f4u$t.color_to_rgb(this.button_stroke),
       transform : 'translate('+xo+',0)',
       id : full_id,
-      'class' : 'faust-nentry-button',
-      onmousedown : mousedown,
-      ontouchstart : mousedown
+      'class' : 'faust-nentry-button'
     }
   );
-
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return button;
 }
 
@@ -899,7 +895,7 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
   var x0 = (this.w() / 2.0 - this.padding) / 4.0;
   var y = this.h() / 2.0;
   var x1 = (this.w() / 2.0 - this.padding) * 3.0 / 4.0;
-  var mousedown = '_f4u$t.activate_nentry("'+full_id+'", false)';
+  var mousedown = _f4u$t.activate_nentryminus;
 
   var d = "M"+x0+" "+y+"L"+x1+" "+y;
   var minus = svg.path(
@@ -910,11 +906,11 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
       stroke : _f4u$t.color_to_rgb(this.operation_stroke),
       id : full_id,
       'class' : 'faust-nentry-operation',
-      onmousedown : mousedown,
-      ontouchstart : mousedown
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return minus;
 }
 
@@ -929,7 +925,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 
   var d = "M{0} {1}L{2} {1}M{3} {4}L{3} {5}";
   d = d.format([x00, y0, x01, x1, y10, y11]);
-  var mousedown = '_f4u$t.activate_nentry("'+full_id+'", true)';
+  var mousedown = _f4u$t.activate_nentryplus;
+
   var plus = svg.path(
     parent,
     d,
@@ -944,6 +941,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return plus;
 }
 

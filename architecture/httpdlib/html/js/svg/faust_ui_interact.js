@@ -122,9 +122,11 @@ _f4u$t.arrayToTransform = function(array) {
   return out;
 }
 
-_f4u$t.updateXY = function(e) {
-  _f4u$t.PREV[_f4u$t.X_AXIS] = _f4u$t.getClientX(e);
-  _f4u$t.PREV[_f4u$t.Y_AXIS] = _f4u$t.getClientY(e);
+_f4u$t.updateXY = function(ee) {
+  for (var i = 0; i < ee.length; i++) {
+    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = _f4u$t.getClientX(ee[i]);
+    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = _f4u$t.getClientY(ee[i]);
+  }
 }
 
 /*
@@ -248,16 +250,23 @@ _f4u$t.initiate_tab_group = function(index, ids) {
   Activates UI objects as being in focus
 */
 
-_f4u$t.activate_slider = function(I) {
-  _f4u$t._I = I;
-  // turns off zoom for mobile devices
-  $('body').bind('touchmove', function(event) { event.preventDefault() });
+_f4u$t.activate_nentryminus = function(ee) {
+  _f4u$t.activate_nentry(ee, -1);
 }
 
-_f4u$t.activate_nentry = function(I, dir) {
+_f4u$t.activate_nentryplus = function(ee) {
+  _f4u$t.activate_nentry(ee, 1);
+}
 
-  _f4u$t._I = I;
-  var id = _f4u$t.unique(_f4u$t._I);
+_f4u$t.activate_nentry = function(ee, dir) {
+  // it is possible that an object is touched by multiple fingers at the
+  // same time
+  // if the id is already being used, we ignore
+  // otherwise, use the first in the array...
+  var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
+  _f4u$t._I[identifier] = {id : ee.target.id, moved : false};
+  var id = _f4u$t.unique(_f4u$t._I[identifier].id);
+  _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
 
   var now = parseFloat(_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]);
   if (dir == 1) {
@@ -268,20 +277,34 @@ _f4u$t.activate_nentry = function(I, dir) {
   }
 
   now = _f4u$t.quantize(now, _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["step"]);
-  now = _f4u$t.dumb_label_update(_f4u$t.unique(_f4u$t._I), now);
+  now = _f4u$t.dumb_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), now);
   return now;
 }
 
-_f4u$t.activate_hslider = function(I) {
-  _f4u$t.activate_slider(I);
+_f4u$t.activate_hslider = function(ee) {
+  _f4u$t.activate_slider(ee);
 }
 
-_f4u$t.activate_vslider = function(I) {
-  _f4u$t.activate_slider(I);
+_f4u$t.activate_vslider = function(ee) {
+  _f4u$t.activate_slider(ee);
 }
 
-_f4u$t.activate_rbutton = function(I) {
-  _f4u$t._I = I;
+_f4u$t.activate_slider = function(ee) {
+  var touches = ee.changedTouches || [ee];
+  if (ee.originalEvent) {
+    touches = ee.originalEvent.changedTouches || [ee];
+  }
+  var identifier = touches[0].identifier || 0;
+  _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false};
+  _f4u$t.updateXY(touches);
+  // turns off zoom for mobile devices
+  $('body').bind('touchmove', function(event) { event.preventDefault() });
+}
+
+_f4u$t.activate_rbutton = function(ee) {
+  var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
+  _f4u$t._I[identifier] = {id : ee.target.id, moved : false};
+  _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
   $('body').bind('touchmove', function(event) { event.preventDefault() });
 }
 
@@ -300,20 +323,24 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
 
 // main function to move currently-selected slider
 _f4u$t.moveActiveObject = function(ee) {
-  // for mobile devices
-  var e = ee.touches ? ee.touches[0] : ee;
-  if (ee.touches) {
-    if (ee.touches.length > 1) {
-      _f4u$t.updateXY(e);
-      _f4u$t.BUSY = false;
+  for (var elt in _f4u$t._I) {
+    if (_f4u$t._I[elt]) {
+      var touches = ee.touches || [ee];
+      if (ee.originalEvent) {
+        touches = ee.originalEvent.touches || [ee];
+      }
+      for (var i = 0; i < touches.length; i++) {
+        _f4u$t.internalMoveActiveObject(touches[i], ee.touches ? touches[i].identifier : 0);
+      }
+      // breaks loop, as we just need one active element for this to work
       return true;
     }
   }
-  if (_f4u$t._I == 0) {
-    _f4u$t.updateXY(e);
-    return true;
-  }
+  _f4u$t.updateXY(ee.touches ? ee.touches[0] : [ee]);
+  return true;
+}
 
+_f4u$t.internalMoveActiveObject = function(e, identifier) {
   _f4u$t.clog_key_sink();
   _f4u$t.BUSY = true;
 
@@ -321,19 +348,19 @@ _f4u$t.moveActiveObject = function(ee) {
   var vslider_token = "faust_vslider_knob";
   var rotating_button_token = "faust_rbutton_knob"
   var now = null;
-  if (_f4u$t._I.substring(0, hslider_token.length) == hslider_token) {
-    now = _f4u$t.moveActiveSlider(e);
+  if (_f4u$t._I[identifier]['id'].substring(0, hslider_token.length) == hslider_token) {
+    now = _f4u$t.moveActiveSlider(e, identifier);
   }
-  else if (_f4u$t._I.substring(0, vslider_token.length) == vslider_token) {
-    now = _f4u$t.moveActiveSlider(e);
+  else if (_f4u$t._I[identifier]['id'].substring(0, vslider_token.length) == vslider_token) {
+    now = _f4u$t.moveActiveSlider(e, identifier);
   }
-  else if (_f4u$t._I.substring(0, rotating_button_token.length) == rotating_button_token) {
-    now = _f4u$t.moveActiveRotatingButton(e);
+  else if (_f4u$t._I[identifier]['id'].substring(0, rotating_button_token.length) == rotating_button_token) {
+    now = _f4u$t.moveActiveRotatingButton(e, identifier);
   }
 
   // UI2DSP
   if (now != null) {
-    var id = _f4u$t.unique(_f4u$t._I);
+    var id = _f4u$t.unique(_f4u$t._I[identifier]['id']);
     _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], now);
   }
 
@@ -363,10 +390,10 @@ _f4u$t.genericMovingPartUpdate = function(aval, pval, l, h) {
   return pval;
 }
 
-_f4u$t.moveActiveSlider = function(e)
+_f4u$t.moveActiveSlider = function(e,identifier)
 {
-  var sliding_part = document.getElementById(_f4u$t._I);
-  var id = _f4u$t.unique(_f4u$t._I);
+  var sliding_part = document.getElementById(_f4u$t._I[identifier].id);
+  var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
   var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
@@ -379,7 +406,7 @@ _f4u$t.moveActiveSlider = function(e)
     pos = _f4u$t.getClientY(e);
   }
 
-  var diff = pos - _f4u$t.PREV[axis];
+  var diff = pos - _f4u$t.PREV[axis][identifier];
   var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
@@ -392,15 +419,15 @@ _f4u$t.moveActiveSlider = function(e)
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
-  _f4u$t.updateXY(e);
+  _f4u$t.updateXY([e]);
   return now;
 }
 
-_f4u$t.moveActiveRotatingButton = function(e)
+_f4u$t.moveActiveRotatingButton = function(e, identifier)
 {
-  var sliding_part = document.getElementById(_f4u$t._I);
-  var anchor = document.getElementById('faust_rbutton_anchor_'+_f4u$t.unique(_f4u$t._I));
-  var id = _f4u$t.unique(_f4u$t._I);
+  var sliding_part = document.getElementById(_f4u$t._I[identifier].id);
+  var anchor = document.getElementById('faust_rbutton_anchor_'+_f4u$t.unique(_f4u$t._I[identifier].id));
+  var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
   var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
   var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
@@ -409,7 +436,7 @@ _f4u$t.moveActiveRotatingButton = function(e)
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
 
-  var diff = 180. * (Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) - Math.atan2(_f4u$t.PREV[_f4u$t.Y_AXIS] - my_y, _f4u$t.PREV[_f4u$t.X_AXIS] - my_x)) / Math.PI;
+  var diff = 180. * (Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) - Math.atan2(_f4u$t.PREV[_f4u$t.Y_AXIS][identifier] - my_y, _f4u$t.PREV[_f4u$t.X_AXIS][identifier] - my_x)) / Math.PI;
   // if diff is to great, the browser is going berzerk...
   if (-180 > diff) {
     diff += 360;
@@ -426,27 +453,42 @@ _f4u$t.moveActiveRotatingButton = function(e)
   var aval = transform[2][1] + diff;
 
   transform[2][1] = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle - (sweepangle * pctsliding));
-  var now = _f4u$t.generic_label_update(_f4u$t.unique(_f4u$t._I), aval, initangle, initangle + sweepangle - (sweepangle * pctsliding));
+  var now = _f4u$t.generic_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), aval, initangle, initangle + sweepangle - (sweepangle * pctsliding));
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
-  _f4u$t.updateXY(e);
+  _f4u$t.updateXY([e]);
   return now;
 }
 
 // gets rid of the current thing being dragged
-_f4u$t.clearIdCache = function() {
-  // we only clear the id and let other variables hold cruft
-  // that means that if someone forgets to set a setter, it will
-  // point to its old value
-  _f4u$t._I = 0;
-  if (!_f4u$t._N) {
-    _f4u$t.BUSY = false;
+_f4u$t.clearIdCache = function(ee) {
+  if (ee) {
+    // sometimes, there will be no event passed in (i.e. a button)
+    // if so, we can skip everything below
+    var touches = ee.changedTouches || [ee];
+    if (ee.originalEvent) {
+      touches = ee.originalEvent.changedTouches || ee;
+    }
+    for (var i = 0; i < touches.length; i++) {
+      delete _f4u$t._I[touches[i].identifier || 0];
+    }
+    if (!_f4u$t._N) {
+      _f4u$t.BUSY = false;
+    }
+    // exit function before unbinding if there are still active elements
+    for (var elt in _f4u$t._I) {
+      if (_f4u$t._I[elt]) {
+        return true;
+      }
+    }
   }
+  // clear gunk out of cache
+  _f4u$t._I = {};
+  _f4u$t.PREV[_f4u$t.X_AXIS] = {};
+  _f4u$t.PREV[_f4u$t.Y_AXIS] = {};
   $('body').unbind('touchmove'); // turns on zooming for mobile devices
 }
 
-// CLASS STUFF BROKEN...
-// for now, hardcoded colors
 _f4u$t.button_class_changer = function(id, down) {
   var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(id));
   if (down) {
@@ -607,7 +649,9 @@ _f4u$t.make_key_sink = function(I) {
 _f4u$t.generic_key_sink = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.make_key_sink(id);
-  _f4u$t._I = 0;
+  _f4u$t._I = {};
+  _f4u$t.PREV[_f4u$t.X_AXIS] = {};
+  _f4u$t.PREV[_f4u$t.Y_AXIS] = {};
 }
 
 _f4u$t.hslider_key_sink = function(I) {
