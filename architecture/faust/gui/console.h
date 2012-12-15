@@ -43,6 +43,7 @@
 #include <stack>
 #include <string>
 #include <map>
+#include <vector>
 #include <iostream>
 
 #include "faust/gui/GUI.h"
@@ -195,9 +196,16 @@ public:
 	virtual void closeBox() 							{ fPrefix.pop(); }
 
 	virtual void show() {}
-	virtual void run() 	{}
+	virtual void run()
+	{
+		char c;
+		printf("Type 'q' to quit\n");
+		while ((c = getchar()) != 'q') {
+			sleep(1);
+		}
+	}
 
-	void printhelp()
+	void printhelp_command()
 	{
 		map<string, param>::iterator i;
 		cout << fArgc << "\n";
@@ -207,25 +215,36 @@ public:
 		}
 		cout << " infile outfile\n";
 	}
+    
+    void printhelp_init()
+	{
+		map<string, param>::iterator i;
+		cout << fArgc << "\n";
+		cout << fArgv[0] << " option list : ";
+		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
+			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+		}
+		cout << endl;
+	}
 
 	void process_command()
 	{
 		map<string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
-				if (	(strcmp(fArgv[i], "-help") == 0)
-					 || (strcmp(fArgv[i], "-h") == 0)
-					 || (strcmp(fArgv[i], "--help") == 0) ) 	{
-					printhelp();
+				if ((strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0)) 	{
+					printhelp_command();
 					exit(1);
 				}
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					printhelp();
+					printhelp_command();
 					exit(1);
 				}
-				char*	end;
+				char* end;
 				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			} else {
@@ -245,12 +264,19 @@ public:
 		map<string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
+                if ((strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0)) 	{
+					printhelp_init();
+					exit(1);
+				}
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+                    printhelp_init();
 					exit(1);
 				}
-				char*	end;
+				char* end;
 				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			}

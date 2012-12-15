@@ -41,6 +41,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <limits.h>
 
 #include <alsa/asoundlib.h>
 #include "faust/audio/audio.h"
