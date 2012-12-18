@@ -513,7 +513,7 @@ void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, l
 }
 
 /*--------------------------------------------------------------------------*/
-int main()
+extern "C" int main(void)
 {
 	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
