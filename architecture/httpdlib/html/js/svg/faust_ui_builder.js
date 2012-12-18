@@ -56,17 +56,17 @@ _f4u$t.getnumspecs = function(dct) {
 
 _f4u$t.make_rbutton = function(dct) {
   var numspecs = _f4u$t.getnumspecs(dct);
-  return new _f4u$t.RotatingButton({
-    label : dct["label"],
-    min : numspecs["min"],
-    max : numspecs["max"],
-    step : numspecs["step"],
-    init : numspecs["init"],
-    integer : numspecs["integer"],
-    ndec : numspecs["ndec"],
-    address : dct["address"],
-    unit : _f4u$t.get_unit(dct)
-  });
+  var options = $.extend(true, {}, _f4u$t.rbutton_inits);
+  options.label = dct["label"];
+  options.min = numspecs["min"];
+  options.max = numspecs["max"];
+  options.step = numspecs["step"];
+  options.init = numspecs["init"];
+  options.integer = numspecs["integer"];
+  options.ndec = numspecs["ndec"];
+  options.address = dct["address"];
+  options.unit = _f4u$t.get_unit(dct)
+  return new _f4u$t.RotatingButton(options);
 }
 
 _f4u$t.make_hslider = function(dct) {
