@@ -41,7 +41,7 @@ _f4u$t.KERMIT = [47,243,160];
 _f4u$t.PALEGREEN = [152,251,152];
 
 // INTERACTION WITH THE UI
-_f4u$t._I = 0; // id of active object
+_f4u$t._I = {}; // id of active object
 _f4u$t._N = 0; // id of the active key sink
 
 /*
@@ -64,8 +64,8 @@ _f4u$t.IDS_TO_ATTRIBUTES = {};
 // previous coordinate used
 
 _f4u$t.PREV = new Array();
-_f4u$t.PREV[_f4u$t.X_AXIS] = Number.NEGATIVE_INFINITY;
-_f4u$t.PREV[_f4u$t.Y_AXIS] = Number.NEGATIVE_INFINITY;
+_f4u$t.PREV[_f4u$t.X_AXIS] = {}
+_f4u$t.PREV[_f4u$t.Y_AXIS] = {}
 
 _f4u$t.magic_color = function() {
   var r = Math.floor(Math.random() * 100) + 156;

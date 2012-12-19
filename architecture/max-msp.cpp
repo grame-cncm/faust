@@ -520,7 +520,7 @@ void  faust_dsp(t_faust* x, t_signal **sp, short* count)
 }
 
 /*--------------------------------------------------------------------------*/
-int main()
+extern "C" int main(void)
 {
 	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
