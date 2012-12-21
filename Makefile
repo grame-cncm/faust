@@ -105,7 +105,7 @@ uninstall :
 
 # make a faust distribution .zip file
 dist :
-	git archive -o faust-$(version).zip HEAD
+	git archive -o faust-$(version).zip --prefix=faust-$(version)/ HEAD
 
 
 log :

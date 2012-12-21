@@ -97,13 +97,6 @@
 
 using namespace std ;
 
-// There is a bug with powf() when cross compiling with mingw
-// the following macro avoid the problem
-#ifdef WIN32
-#define powf(x,y) pow(x,y)
-#define expf(x) exp(x)
-#endif
-
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__
