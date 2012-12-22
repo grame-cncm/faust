@@ -24,6 +24,8 @@
 #include <sstream>
 #include "deelx.h"
 #include "htmlpage.h"
+#include "jsscripts.h"
+#include "stylesheet.h"
 
 using namespace std;
 
@@ -114,6 +116,8 @@ void htmlpage::print(std::ostream& out, string s) const
 	(void) find_and_replace(s, "'", "&rsquo;");
 	out << "<html>" << endl;
 	out << "  <head>" << endl;
+    
+#ifdef LOADSCRIPTS
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>" << endl;
@@ -125,6 +129,16 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_interact.js\"></script>" << endl;
 	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_server_communication.js\"></script>" << endl;
 	out << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.mikesolomon.org/faust/svg/faust_css.css\"></link>" << endl;
+#else
+	out << "<style type=\"text/css\">" << endl;
+        for (unsigned int i=0; i < stylesheet_len; i++) { out << stylesheet[i]; } out << endl;
+    out << "</style>" << endl;
+
+    out << "    <script type=\"text/javascript\" >" << endl;
+        for (unsigned int i=0; i < jsscripts_len; i++) { out << jsscripts[i]; } out << endl;
+    out << "    </script>" << endl;
+#endif
+
 	out << "  </head>" << endl;
 	out << "  <body>" << endl;
 	out << "    <div id=\"faustsvg\">" << endl;

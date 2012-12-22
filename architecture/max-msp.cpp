@@ -312,16 +312,6 @@ static int count_digit(const string& name)
 
 void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
-    /*
-	if (ac < 0) return;
-    if (at[0].a_type != A_FLOAT) return;
-
-    string name = string((s)->s_name);
-    float value = at[0].a_w.w_float;
-
-  	obj->dspUI->SetValue(name, value); // doesn't have any effect if name is unknown
-    */
-    
     bool res = false;
     
     if (ac < 0) return;
