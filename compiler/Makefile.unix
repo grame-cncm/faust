@@ -75,6 +75,16 @@ boxes/ppbox.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.h
 boxes/ppbox.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
 boxes/ppbox.o: tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh
 boxes/ppbox.o: documentator/lateq.hh
+documentator/doc.o: boxes/ppbox.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+documentator/doc.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
+documentator/doc.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh documentator/doc.hh evaluate/eval.hh
+documentator/doc.o: parser/sourcereader.hh evaluate/environment.hh errors/errormsg.hh documentator/doc_Text.hh
+documentator/doc.o: signals/sigprint.hh propagate/propagate.hh parser/enrobage.hh draw/drawschema.hh utils/names.hh
+documentator/doc.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh documentator/lateq.hh
+documentator/doc.o: documentator/doc_compile.hh signals/sigtyperules.hh generator/occurences.hh tlib/property.hh
+documentator/doc.o: generator/Text.hh generator/description.hh generator/uitree.hh documentator/doc_lang.hh
+documentator/doc.o: documentator/doc_notice.hh documentator/doc_autodoc.hh tlib/compatibility.hh
+documentator/doc_Text.o: documentator/doc_Text.hh tlib/compatibility.hh generator/floats.hh
 documentator/doc_autodoc.o: documentator/doc_autodoc.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 documentator/doc_autodoc.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 documentator/doc_autodoc.o: documentator/doc.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
@@ -88,15 +98,6 @@ documentator/doc_compile.o: signals/prim2.hh extended/xtended.hh generator/klass
 documentator/doc_compile.o: parallelize/graphSorting.hh signals/sigvisitor.hh tlib/compatibility.hh signals/ppsig.hh
 documentator/doc_compile.o: utils/names.hh propagate/propagate.hh boxes/boxes.hh documentator/doc.hh evaluate/eval.hh
 documentator/doc_compile.o: parser/sourcereader.hh evaluate/environment.hh documentator/doc_notice.hh
-documentator/doc.o: boxes/ppbox.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-documentator/doc.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
-documentator/doc.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh documentator/doc.hh evaluate/eval.hh
-documentator/doc.o: parser/sourcereader.hh evaluate/environment.hh errors/errormsg.hh documentator/doc_Text.hh
-documentator/doc.o: signals/sigprint.hh propagate/propagate.hh parser/enrobage.hh draw/drawschema.hh utils/names.hh
-documentator/doc.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh documentator/lateq.hh
-documentator/doc.o: documentator/doc_compile.hh signals/sigtyperules.hh generator/occurences.hh tlib/property.hh
-documentator/doc.o: generator/Text.hh generator/description.hh generator/uitree.hh documentator/doc_lang.hh
-documentator/doc.o: documentator/doc_notice.hh documentator/doc_autodoc.hh tlib/compatibility.hh
 documentator/doc_lang.o: documentator/doc_lang.hh documentator/doc_notice.hh documentator/doc_autodoc.hh
 documentator/doc_lang.o: documentator/doc_metadatas.hh documentator/lateq.hh parser/enrobage.hh tlib/compatibility.hh
 documentator/doc_metadatas.o: documentator/doc_metadatas.hh documentator/doc.hh tlib/tlib.hh tlib/symbol.hh
@@ -109,7 +110,6 @@ documentator/doc_sharing.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 documentator/doc_sharing.o: signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 documentator/doc_sharing.o: generator/occurences.hh tlib/property.hh documentator/lateq.hh generator/Text.hh
 documentator/doc_sharing.o: documentator/doc_Text.hh generator/description.hh generator/uitree.hh signals/sigprint.hh
-documentator/doc_Text.o: documentator/doc_Text.hh tlib/compatibility.hh generator/floats.hh
 documentator/lateq.o: documentator/lateq.hh generator/Text.hh
 draw/drawschema.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/drawschema.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
@@ -240,6 +240,7 @@ extended/tanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh sign
 extended/tanprim.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 extended/tanprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh generator/Text.hh
 extended/tanprim.o: generator/floats.hh
+generator/Text.o: generator/Text.hh tlib/compatibility.hh generator/floats.hh
 generator/compile.o: errors/timing.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/compile.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
 generator/compile.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh tlib/property.hh
@@ -286,7 +287,6 @@ generator/sharing.o: signals/binop.hh generator/klass.hh signals/sigtype.hh tlib
 generator/sharing.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 generator/sharing.o: generator/Text.hh generator/description.hh signals/sigtyperules.hh generator/occurences.hh
 generator/sharing.o: signals/sigprint.hh
-generator/Text.o: generator/Text.hh tlib/compatibility.hh generator/floats.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
 normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
