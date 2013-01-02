@@ -151,16 +151,11 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
 
 
 #if defined(LLVM_32)
-    // TODO
-    /*
-    SmallVector<AttributeWithIndex, 4> attributes;
-    AttributeWithIndex PAWI;
-    PAWI.Index = 3U; PAWI.Attrs = Attributes::NoAlias;
-    attributes.push_back(PAWI);
-    PAWI.Index = 4U; PAWI.Attrs = Attributes::NoAlias;
-    attributes.push_back(PAWI);
-    llvm_compute->setAttributes(AttrListPtr::get(attributes.begin(), attributes.end()));
-    */
+    AttrBuilder attr_builder;
+    attr_builder.addAttribute(Attributes::NoAlias);
+    Attributes attribute = Attributes::get(fModule->getContext(), attr_builder);
+    llvm_compute->addAttribute(3U, attribute);
+    llvm_compute->addAttribute(4U, attribute);
 #else
     SmallVector<AttributeWithIndex, 4> attributes;
     AttributeWithIndex PAWI;
