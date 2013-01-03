@@ -71,7 +71,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
       fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
       stroke : _f4u$t.color_to_rgb(_f4u$t.BLACK),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.box_padding)+')',
-      'class': 'faust-vbox',
+      'class': 'faust-vbox-box',
       onmousedown : mousedown,
       ontouchstart : mousedown
     }
@@ -93,6 +93,7 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
       id: 'faust_value_value_'+id,
       "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y)+')',
+      'class': 'faust-vbox-text',
       onmousedown : mymousedown,
       ontouchstart : mymousedown
     }
@@ -133,7 +134,6 @@ _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
 _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'mom');
   _f4u$t.init_prop(this, options, 'rbutton', 'ir');
-  _f4u$t.init_prop(this, options, 'rbutton', 'mr');
   this._r = this.ir;
   _f4u$t.init_prop(this, options, 'rbutton', 'a0');
   _f4u$t.init_prop(this, options, 'rbutton', 'sweep');
@@ -677,6 +677,7 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       style : "opacity:"+(this.init == 1 ? 1.0 : 0.0),
       onmousedown : mousedown,
       ontouchstart : mousedown,
+      'class' : 'faust-chekbox-check',
       transform : 'translate('+xo+',0)'
     }
   );
@@ -756,7 +757,7 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
       id : full_id,
       fill : _f4u$t.color_to_rgb(this.fill_off),
       stroke : _f4u$t.color_to_rgb(this.stroke),
-      'class' : 'faust-button-up',
+      'class' : 'faust-button-box',
     }
   );
 
@@ -772,6 +773,7 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
     {
       "text-anchor" : 'middle',
       id: 'faust_label_'+id,
+      class: 'faust-button-label',
       transform: 'translate('+(this.w() / 2.0)+','+(this.h() / 2.0 + this.baseline_skip)+')',
     }
   );
@@ -807,30 +809,31 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 }
 
 _f4u$t.NumericalEntry = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.ideal_width = _f4u$t.initifnull(options.ideal_width, _f4u$t.VALUE_BOX_W);
-  this.ideal_height = _f4u$t.initifnull(options.ideal_height, _f4u$t.VALUE_BOX_H);
+  _f4u$t.init_prop(this, options, 'nentry', 'mom');
+  _f4u$t.init_prop(this, options, 'nentry', 'label');
+  _f4u$t.init_prop(this, options, 'nentry', 'unit');
+  _f4u$t.init_prop(this, options, 'nentry', 'ideal_width');
+  _f4u$t.init_prop(this, options, 'nentry', 'ideal_height');
   this._w = this.ideal_width;
   this._h = this.ideal_height;
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.unit = _f4u$t.initifnull(options.unit, null);
-  this.min = _f4u$t.initifnull(options.min, 0);
-  this.max = _f4u$t.initifnull(options.max, 100);
-  this.init = _f4u$t.bound(_f4u$t.initifnull(options.init, 50), this.min, this.max);
-  this.step = _f4u$t.initifnull(options.step, 1);
-  this.integer = _f4u$t.initifnull(options.integer, false);
-  this.ndec = _f4u$t.initifnull(options.ndec, 0);
-  this.button_fill= _f4u$t.initifnull(options.button_fill, _f4u$t.GREY);
-  this.operation_fill= _f4u$t.initifnull(options.operation_fill, _f4u$t.BLACK);
-  this.button_stroke = _f4u$t.initifnull(options.button_stroke, _f4u$t.BLACK);
-  this.operation_stroke = _f4u$t.initifnull(options.operation_stroke, _f4u$t.BLACK);
-  this.padding = _f4u$t.initifnull(options.padding, 1);
-  this.lpadding_y = _f4u$t.initifnull(options.lpadding_y, _f4u$t.TEXT_HEIGHT);
-  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  this.value_box_w = _f4u$t.initifnull(options.value_box_w, _f4u$t.VALUE_BOX_W);
-  this.value_box_h = _f4u$t.initifnull(options.value_box_h, _f4u$t.VALUE_BOX_H);
-  this.address = _f4u$t.initifnull(options.address, '');
+  _f4u$t.init_prop(this, options, 'nentry', 'min');
+  _f4u$t.init_prop(this, options, 'nentry', 'max');
+  _f4u$t.init_prop(this, options, 'nentry', 'init');
+  _f4u$t.init_prop(this, options, 'nentry', 'step');
+  _f4u$t.init_prop(this, options, 'nentry', 'integer');
+  _f4u$t.init_prop(this, options, 'nentry', 'ndec');
+  _f4u$t.init_prop(this, options, 'nentry', 'lpadding_y');
+  _f4u$t.init_prop(this, options, 'nentry', 'box_padding');
+  _f4u$t.init_prop(this, options, 'nentry', 'gravity');
+  _f4u$t.init_prop(this, options, 'nentry', 'value_box_w');
+  _f4u$t.init_prop(this, options, 'nentry', 'value_box_h');
+  _f4u$t.init_prop(this, options, 'nentry', 'address');
+  _f4u$t.init_prop(this, options, 'nentry', 'type');
+  _f4u$t.init_prop(this, options, 'nentry', 'button_fill');
+  _f4u$t.init_prop(this, options, 'nentry', 'operation_fill');
+  _f4u$t.init_prop(this, options, 'nentry', 'button_stroke');
+  _f4u$t.init_prop(this, options, 'nentry', 'operation_stroke');
+  _f4u$t.init_prop(this, options, 'nentry', 'padding');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.NumericalEntry);
@@ -1060,6 +1063,7 @@ _f4u$t.LayoutManager.prototype.make_label = function(svg, parent) {
     this.label,
     {
       id : full_id,
+      'class' : 'faust-group-label',
       transform: 'translate(2,'+(this.dims()[1] - 3)+')'
     }
   );
@@ -1079,6 +1083,7 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
     {
       fill : _f4u$t.color_to_rgb(this.fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
+      'class' : 'faust-group-background',
       id : full_id,
       style: +'fill-opacity:0.2;'
     }
@@ -1182,6 +1187,7 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
     l,
     {
       "text-anchor" : 'middle',
+      'class' : 'faust-tgroup-label',
       transform : 'translate('+x+','+y+')',
       onmousedown : mousedown,
       ontouchstart : mousedown
@@ -1198,6 +1204,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
     {
       transform: 'translate('+x+','+y+')',
+      'class' : 'faust-tgroup-tab',
       fill : _f4u$t.color_to_rgb(fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       onmousedown : mousedown,
