@@ -336,9 +336,12 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& ind
     }
 }
 
-DeclareFunInst* CodeContainer::generateGetIO(const string& name, int io, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetIO(const string& name, int io, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kVoid_ptr));
+    }
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(io)));
 
@@ -347,19 +350,22 @@ DeclareFunInst* CodeContainer::generateGetIO(const string& name, int io, bool is
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputs(const string& name, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetInputs(const string& name, bool ismethod, bool isvirtual)
 {
-    return generateGetIO(name, fNumInputs, isvirtual);
+    return generateGetIO(name, fNumInputs, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, bool ismethod, bool isvirtual)
 {
-    return generateGetIO(name, fNumOutputs, isvirtual);
+    return generateGetIO(name, fNumOutputs, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>& io, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>& io, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kVoid_ptr));
+    }
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
 
     BlockInst* code = InstBuilder::genBlockInst();
@@ -391,14 +397,14 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, bool ismethod, bool isvirtual)
 {
-    return generateGetIORate(name, fInputRates, isvirtual);
+    return generateGetIORate(name, fInputRates, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool ismethod, bool isvirtual)
 {
-    return generateGetIORate(name, fOutputRates, isvirtual);
+    return generateGetIORate(name, fOutputRates, ismethod, isvirtual);
 }
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)

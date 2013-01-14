@@ -73,16 +73,16 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, b
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("$0::getNumInputs", classname), isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("$0::getNumOutputs", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetInputs(subst("$0::getNumInputs", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("$0::getNumOutputs", classname), true, isvirtual)->accept(&fCodeProducer);
 
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("$0::getInputRate", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetInputRate(subst("$0::getInputRate", classname), true, isvirtual)->accept(&fCodeProducer);
 
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("$0::getOutputRate", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetOutputRate(subst("$0::getOutputRate", classname), true, isvirtual)->accept(&fCodeProducer);
 }
 
 void CPPCodeContainer::produceMetadata(int tabs)

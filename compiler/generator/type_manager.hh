@@ -39,21 +39,21 @@ class StringTypeManager {
         map <Typed::VarType, string> fTypeDirectTable;
         map <string, Typed::VarType> fInvertTypeTable;
 
-        string ptr_postfix;
+        string fPtrPosfix;
 
     public:
 
         // Default values for C and C++.
         StringTypeManager()
         {
-            ptr_postfix = "*";
-            fillTypeDirectTable(FLOATMACRO,FLOATMACROPTR);
+            fPtrPosfix = "*";
+            fillTypeDirectTable(FLOATMACRO, FLOATMACROPTR);
         }
 
-        StringTypeManager(string kFloatMacroName,string ptr_postfix)
+        StringTypeManager(string kFloatMacroName, string fPtrPosfix)
         {
-            this->ptr_postfix = ptr_postfix;
-            fillTypeDirectTable(kFloatMacroName, kFloatMacroName+ptr_postfix);
+            this->fPtrPosfix = fPtrPosfix;
+            fillTypeDirectTable(kFloatMacroName, kFloatMacroName + fPtrPosfix);
         }
 
         void fillTypeDirectTable(string kFloatMacroName, string kFloatMacroNamePtr)
@@ -62,54 +62,54 @@ class StringTypeManager {
             fTypeDirectTable[Typed::kFloatMacro_ptr] = kFloatMacroNamePtr;
 
             fTypeDirectTable[Typed::kFloat] = "float";
-            fTypeDirectTable[Typed::kFloat_ptr] = "float" + ptr_postfix;
+            fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
 
             fTypeDirectTable[Typed::kInt] = "int";
-            fTypeDirectTable[Typed::kInt_ptr] = "int" + ptr_postfix;
+            fTypeDirectTable[Typed::kInt_ptr] = "int" + fPtrPosfix;
             fTypeDirectTable[Typed::kInt_vec] = "vector<int>";
 
             fTypeDirectTable[Typed::kDouble] = "double";
-            fTypeDirectTable[Typed::kDouble_ptr] = "double" + ptr_postfix;
+            fTypeDirectTable[Typed::kDouble_ptr] = "double" + fPtrPosfix;
             fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
 
             fTypeDirectTable[Typed::kQuad] = "quad";
-            fTypeDirectTable[Typed::kQuad_ptr] = "quad" + ptr_postfix;
+            fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrPosfix;
 
             fTypeDirectTable[Typed::kBool] = "bool";
-            fTypeDirectTable[Typed::kBool_ptr] = "bool" + ptr_postfix;
+            fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrPosfix;
             fTypeDirectTable[Typed::kBool_vec] = "vector<bool>";
 
             fTypeDirectTable[Typed::kVoid] = "void";
-            fTypeDirectTable[Typed::kVoid_ptr] = "void" + ptr_postfix;
+            fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
 
             fTypeDirectTable[Typed::kObj] = "";
-            fTypeDirectTable[Typed::kObj_ptr] = ptr_postfix;
+            fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
 
             fInvertTypeTable[FLOATMACRO] = Typed::kFloatMacro;
             fInvertTypeTable[FLOATMACROPTR] = Typed::kFloatMacro_ptr;
 
             fInvertTypeTable["float"] = Typed::kFloat;
-            fInvertTypeTable["float" + ptr_postfix] = Typed::kFloat_ptr;
+            fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
             fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
 
             fInvertTypeTable["int"] =  Typed::kInt;
-            fInvertTypeTable["int" + ptr_postfix] = Typed::kInt_ptr;
+            fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt_ptr;
             fInvertTypeTable["vector<int>"] = Typed::kInt_vec;
 
             fInvertTypeTable["double"] = Typed::kDouble;
-            fInvertTypeTable["double" + ptr_postfix] = Typed::kDouble_ptr;
+            fInvertTypeTable["double" + fPtrPosfix] = Typed::kDouble_ptr;
             fInvertTypeTable["vector<double>"] = Typed::kDouble_vec;
 
             fInvertTypeTable["quad"] = Typed::kQuad;
-            fInvertTypeTable["quad" + ptr_postfix] = Typed::kQuad_ptr;
+            fInvertTypeTable["quad" + fPtrPosfix] = Typed::kQuad_ptr;
 
             fInvertTypeTable["bool"] = Typed::kBool;
-            fInvertTypeTable["bool" + ptr_postfix] = Typed::kBool_ptr;
+            fInvertTypeTable["bool" + fPtrPosfix] = Typed::kBool_ptr;
             fInvertTypeTable["vector<bool>"] = Typed::kBool_vec;
 
             fInvertTypeTable["void"] = Typed::kVoid;
-            fInvertTypeTable["void" + ptr_postfix] = Typed::kVoid_ptr;
+            fInvertTypeTable["void" + fPtrPosfix] = Typed::kVoid_ptr;
         }
 
         /*
@@ -185,7 +185,7 @@ class StringTypeManager {
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
                     return (array_typed->fSize == 0)
-                        ? generateType(array_typed->fType) + ptr_postfix + " " + name
+                        ? generateType(array_typed->fType) + fPtrPosfix + " " + name
                         : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
                         //: generateType(array_typed->fType) + "[" + num_str.str() + "] " + name;
                 } else if (array_typed1) {
@@ -257,7 +257,7 @@ class StringTypeManager {
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
                 return (array_typed->fSize == 0)
-                    ? generateType(array_typed->fType) + ptr_postfix + " " + name
+                    ? generateType(array_typed->fType) + fPtrPosfix + " " + name
                     : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
             } else if (vector_typed) {
                 std::ostringstream num_str;
