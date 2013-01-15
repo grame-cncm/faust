@@ -54,14 +54,14 @@ void jsonroot::print(std::ostream& out) const
 	if (fOutputs)	out << "\"outputs\": \"" << fOutputs << "\"," << eol;
 
 	if (fMeta.size()) {
-		out << "\"meta\": \"" << "[ "; eol++;
+		out << "\"meta\": [ "; eol++;
 		map<string, string>::const_iterator i=fMeta.begin();
 		while (true) {
 			out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
 			if (++i == fMeta.end()) break;
 			out << ",";			
 		}
-		out << --eol << "]\"," << eol;
+		out << --eol << "]," << eol;
 	}
 
 	out << "\"ui\": ["; eol++;
