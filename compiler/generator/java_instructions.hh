@@ -42,12 +42,35 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
         bool fInsideBinOp;
+        map <string, string> fMathLibTable;
 
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fInsideBinOp(false)
-        {}
+        {
+            fMathLibTable["abs"] = "Math.abs";
+            fMathLibTable["absf"] = "Math.abs";
+            fMathLibTable["fabsf"] = "Math.abs";
+            fMathLibTable["acosf"] = "Math.acos";
+            fMathLibTable["asinf"] = "Math.asin";
+            fMathLibTable["atanf"] = "Math.atan";
+            fMathLibTable["atan2f"] = "Math.atan2";
+            fMathLibTable["ceilf"] = "Math.ceil";
+            fMathLibTable["cosf"] = "Math.cos";
+            fMathLibTable["expf"] = "Math.exp";
+            fMathLibTable["floorf"] = "Math.floor";
+            fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
+            fMathLibTable["logf"] = "Math.log";
+            fMathLibTable["log10f"] = "Math.log";
+            fMathLibTable["max"] = "Math.max";
+            fMathLibTable["min"] = "Math.min";
+            fMathLibTable["powf"] = "Math.pow";
+            fMathLibTable["roundf"] = "Math.round";
+            fMathLibTable["sinf"] = "Math.sin";
+            fMathLibTable["sqrtf"] = "Math.sqrt";
+            fMathLibTable["tanf"] = "Math.tan";
+        }
 
         virtual ~JAVAInstVisitor()
         {}
@@ -155,9 +178,11 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = fTypeDirectTable[array_typed->fType->getType()];
-                    *fOut << "private " << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
+                    //*fOut << "private " << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
+                    *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                 } else {
-                    *fOut << "private " << generateType(inst->fType, inst->fAddress->getName());
+                    //*fOut << "private " << generateType(inst->fType, inst->fAddress->getName());
+                    *fOut  << generateType(inst->fType, inst->fAddress->getName());
                 }
                 EndLine();
             }
@@ -184,6 +209,11 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
+            // Do not declare Math library functions
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                return;
+            }
+            
             // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
             string fun_name = inst->fName;
             size_t pos;
@@ -318,6 +348,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(FunCallInst* inst)
         {
+            /*
             *fOut << inst->fName << "(";
             list<ValueInst*>::const_iterator it;
 
@@ -328,6 +359,38 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 if (i < size - 1) *fOut << ", ";
             }
             *fOut << ")";
+            */
+            
+            string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            
+            if (inst->fMethod) {
+                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+                // Compile object arg
+                (*it)->accept(this);
+                *fOut << "." << js_name << "(";
+                list<ValueInst*>::const_iterator it1;
+                int size = inst->fArgs.size() - 1, i = 0;
+                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                    // Compile argument
+                    (*it1)->accept(this);
+                    if (i < size - 1) *fOut << ", ";
+                }
+            } else {
+                *fOut << js_name << "(";
+                list<ValueInst*>::const_iterator it;
+                int size = inst->fArgs.size(), i = 0;
+                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                    // Compile argument
+                    (*it)->accept(this);
+                    if (i < size - 1) *fOut << ", ";
+                }
+                
+            }
+            *fOut << ")";
+            // Special case
+            if (inst->fName == "log10f") {
+                *fOut << "/Math.log(10)";
+            }
         }
 
         virtual void visit(Select2Inst* inst)

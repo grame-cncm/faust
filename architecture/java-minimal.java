@@ -28,12 +28,12 @@
     This architecture file needs more work.
  ***/
 
-
 <<includeIntrinsic>>
 
+import java.lang.Math;
+
 class Meta {
-    void declare(String name, String value){
-    }
+    void declare(String name, String value) {}
 }
 
 interface FaustVarAccess {
@@ -44,33 +44,34 @@ interface FaustVarAccess {
 
 class UI {
 
-    public void declare(String id, String key, String value){}
+    public void declare(String id, String key, String value) {}
 
     // -- layout groups
 
-    public void openTabBox(String label){}
-    public void openHorizontalBox(String label){}
-    public void openVerticalBox(String label){}
-    public void closeBox(){}
+    public void openTabBox(String label) {}
+    public void openHorizontalBox(String label) {}
+    public void openVerticalBox(String label) {}
+    public void closeBox() {}
 
     // -- active widgets
 
-    public void addButton(String label, FaustVarAccess varAccess){}
-    public void addCheckButton(String label, FaustVarAccess varAccess){}
-    public void addVerticalSlider(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
-    public void addHorizontalSlider(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
-    public void addNumEntry(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
+    public void addButton(String label, FaustVarAccess varAccess) {}
+    public void addCheckButton(String label, FaustVarAccess varAccess) {}
+    public void addVerticalSlider(String label, FaustVarAccess varAccess, float init, float min, float max, float step) {}
+    public void addHorizontalSlider(String label, FaustVarAccess varAccess, float init, float min, float max, float step) {}
+    public void addNumEntry(String label, FaustVarAccess varAccess, float init, float min, float max, float step) {}
 
     // -- passive display widgets
 
-    public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max){}
-    public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max){}
+    public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max) {}
+    public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max) {}
 
 }
 
 class dsp {
-}
 
+    public int fSamplingFreq;
+}
 
 <<includeclass>>
 

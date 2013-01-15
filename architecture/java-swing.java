@@ -66,8 +66,8 @@ import  sun.audio.*;
 import  java.io.*;
 import javax.sound.sampled.*;
 
-
 class Sound {
+
     mydsp my_mydsp;
 
     final int nFrames = 1024;
@@ -164,8 +164,7 @@ class Sound {
 <<includeIntrinsic>>
 
 class Meta {
-    void declare(String name, String value)
-    {}
+    void declare(String name, String value) {}
 }
 
 interface FaustVarAccess {
@@ -173,7 +172,6 @@ interface FaustVarAccess {
     public void set(float val);
     public float get();
 }
-
 
 class UI {
     JFrame jframe;
@@ -195,24 +193,24 @@ class UI {
 
     }
 
-    public void declare(String id, String key, String value){}
+    public void declare(String id, String key, String value) {}
 
     // -- layout groups
     
-    public void openTabBox(String label){}
-    public void openHorizontalBox(String label){}
-    public void openVerticalBox(String label){}
-    public void closeBox(){}
+    public void openTabBox(String label) {}
+    public void openHorizontalBox(String label) {}
+    public void openVerticalBox(String label) {}
+    public void closeBox() {}
 
     // -- active widgets
     
-    public void addButton(String label, final FaustVarAccess varAccess){
+    public void addButton(String label, final FaustVarAccess varAccess) {
  	final JButton b = new JButton(label);
 
         b.addMouseListener(new MouseListener(){
-                public void mouseClicked(MouseEvent e){}
-                public void mouseEntered(MouseEvent e) {}
-                public void mouseExited(MouseEvent e){}
+                public void mouseClicked(MouseEvent e) {}
+                public void mouseEntered(MouseEvent e)  {}
+                public void mouseExited(MouseEvent e) {}
                 public void mousePressed(MouseEvent e){
                     varAccess.set(1);
                 }
@@ -290,30 +288,31 @@ class UI {
     
     // -- passive display widgets
     
-    public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max){}
-    public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max){}
+    public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max) {}
+    public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max) {}
 
 }
 
 class dsp {
 
-    public float fSamplingFreq;
+    public int fSamplingFreq;
 
-    float powf(float a,float b)
+    /*
+    float powf(float a, float b)
     {
-        return (float)java.lang.Math.pow(a,b);
+        return (float)java.lang.Math.pow(a, b);
     }
-    double pow(double a,float b)
+    double pow(double a, float b)
     {
-        return java.lang.Math.pow(a,b);
+        return java.lang.Math.pow(a, b);
     }
-    int max(int a,int b)
+    int max(int a, int b)
     {
-        return java.lang.Math.max(a,b);
+        return java.lang.Math.max(a, b);
     }
-    int min(int a,int b)
+    int min(int a, int b)
     {
-        return java.lang.Math.min(a,b);
+        return java.lang.Math.min(a, b);
     }
     float floorf(float a)
     {
@@ -331,6 +330,7 @@ class dsp {
     {
         return java.lang.Math.sin(a);
     }
+    */
 
     public static void main(String... aArgs)
     {
@@ -348,6 +348,5 @@ class dsp {
     }
   
 }
-
 
 <<includeclass>>

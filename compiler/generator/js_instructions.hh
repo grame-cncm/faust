@@ -58,9 +58,9 @@ class JAVAScriptInstVisitor : public InstVisitor {
             fMathLibTable["cosf"] = "Math.cos";
             fMathLibTable["expf"] = "Math.exp";
             fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
+            //fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
             fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "Math.log";
+            fMathLibTable["log10f"] = "Math.log10";
             fMathLibTable["max"] = "Math.max";
             fMathLibTable["min"] = "Math.min";
             fMathLibTable["powf"] = "Math.pow";
@@ -353,10 +353,6 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 
             }
             *fOut << ")";
-            // Special case
-            if (inst->fName == "log10f") {
-                *fOut << "/Math.log(10)";
-            }
         }
 
         virtual void visit(Select2Inst* inst)
