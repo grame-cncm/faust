@@ -235,7 +235,7 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, true);
+    produceInfoFunctions(n, fKlassName, false);
 
     // Inits
     //tab(n, *fOut);

@@ -340,7 +340,7 @@ DeclareFunInst* CodeContainer::generateGetIO(const string& name, int io, bool is
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kVoid_ptr));
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     }
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(io)));
@@ -364,7 +364,7 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kVoid_ptr));
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
 
