@@ -60,7 +60,7 @@ file (GLOB HEADERFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${HEADERS})
 foreach(folder ${SRCFOLDERS})
 	set(INCL ${INCL} "${ROOT}/${folder}")			# add include folders
 endforeach(folder)
-set(INCL ${INCL} "${ROOT}/threads" "/usr/local/include")	# add other include folders
+set(INCL ${INCL} "${LIBDIR}" "${ROOT}/threads" "/usr/local/include")	# add other include folders
 
 #######################################
 # set targets
