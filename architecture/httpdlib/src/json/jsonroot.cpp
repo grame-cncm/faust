@@ -61,7 +61,7 @@ void jsonroot::print(std::ostream& out) const
 			if (++i == fMeta.end()) break;
 			out << ",";			
 		}
-		out << --eol << "]," << eol;
+		out << --eol << "]\"," << eol;
 	}
 
 	out << "\"ui\": ["; eol++;
