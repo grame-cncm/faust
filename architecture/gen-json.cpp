@@ -53,5 +53,7 @@ int main(int argc, char *argv[])
 {
     httpdfaust::jsonfaustui json("", "", 0);
     DSP.buildUserInterface(&json);
+	json.numInput (DSP.getNumInputs());
+	json.numOutput (DSP.getNumOutputs());
     printf("JSON %s\n", json.json());
 }
