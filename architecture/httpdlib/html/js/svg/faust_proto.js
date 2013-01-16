@@ -354,23 +354,7 @@ _f4u$t.main = function(svg, raw_json) {
 }
 
 _f4u$t.make_audio_ui = function(dsp, svg) {
-//console.log(dsp.json);
-//console.log("OK0");
-  //var json = eval ("(" + dsp.json + ")");
-//var json = eval ("(" + '{  "name": "",  "address": "",  "port": "0",  "intputs": "1",  "outputs": "2",  "ui": [   {    "type": "verticalbox",    "label": "faustfx",    "items": [     {      "type": "numentry",      "label": "pan",      "address": "/faustfx/pan",      "meta": [        { "1": ""},       { "style": "knob"}      ]      "init": "0",      "min": "-90",      "max": "90",      "step": "1"     }    ]   }  ] }' + ")");
-var json = { 
-"name": "", 
-"address": "", 
-"port": "0", 
-"intputs": "1", 
-"outputs": "2", 
-"ui": [   {    "type": "vgroup",
-"label": "faustfx", 
-"items": [     {      "type": "nentry", 
-"label": "pan", 
-"address": "/faustfx/pan", 
-"meta": [        { "1": ""},       { "style": "knob"}      ],
-"init": "0",      "min": "-90",      "max": "90",      "step": "1"     }    ]   }  ] };
+  var json = eval ("(" + dsp.json + ")");
   var faust_svg = new _f4u$t.SVG(
     svg,
     // kludge to prevent scroll bars...
@@ -381,14 +365,16 @@ var json = {
       constrain : false,
       title : json["ui"][0].label,
       lm : _f4u$t.json_to_ui(json)
-    });
+    }
+  );
+  
   // Keep audio params in a table 
   _f4u$t.controls = new Array();
   for (var i = 0; i < dsp.numberOfAudioParams(); i++) {
     var ctrl = dsp.getAudioParam(i);
     _f4u$t.controls[ctrl.name] = ctrl;
   }
-console.log("OK2");
+    
   // Change value of the given audio param
   _f4u$t.fausthandler = function(dest, value) {
     _f4u$t.controls[dest].value = value; 
