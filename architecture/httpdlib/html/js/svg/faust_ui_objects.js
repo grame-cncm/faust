@@ -132,6 +132,8 @@ _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
 */
 
 _f4u$t.RotatingButton = function(options) {
+console.log("INITIALIZING");
+console.log(_f4u$t.init_prop);
   _f4u$t.init_prop(this, options, 'rbutton', 'mom');
   _f4u$t.init_prop(this, options, 'rbutton', 'ir');
   this._r = this.ir;
