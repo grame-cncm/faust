@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /*******************************************************************************
- * CUI : Faust User Interface for C generated code.
+ * CUI : Faust User Interface for C or LLVM generated code.
  ******************************************************************************/
 
 /* -- layout groups */
@@ -189,6 +189,23 @@ void buildMetaGlue(MetaGlue* glue, Meta* meta)
     glue->mInterface = meta;
     glue->declare = declareMetaGlue;
 }
+
+/***************************************
+ *  Interface for the DSP object
+ ***************************************/
+
+struct llvm_dsp_imp {};
+
+typedef llvm_dsp_imp* (* newDspFun) ();
+typedef void (* deleteDspFun) (llvm_dsp_imp* dsp);
+typedef int (* getNumInputsFun) (llvm_dsp_imp* dsp);
+typedef int (* getNumOutputsFun) (llvm_dsp_imp* dsp);
+typedef void (* buildUserInterfaceFun) (llvm_dsp_imp* dsp, UIGlue* ui);
+typedef void (* initFun) (llvm_dsp_imp* dsp, int freq);
+typedef void (* classInitFun) (int freq);
+typedef void (* instanceInitFun) (llvm_dsp_imp* dsp, int freq);
+typedef void (* computeFun) (llvm_dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef void (* metadataFun) (MetaGlue* meta);
 
 #ifdef __cplusplus
 }

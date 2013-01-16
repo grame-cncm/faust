@@ -77,19 +77,6 @@ extern "C"
 using namespace std;
 using namespace llvm;
 
-struct llvm_dsp_imp {};
-
-typedef llvm_dsp_imp* (* newDspFun) ();
-typedef void (* deleteDspFun) (llvm_dsp_imp* self);
-typedef int (* getNumInputsFun) (llvm_dsp_imp* self);
-typedef int (* getNumOutputsFun) (llvm_dsp_imp* self);
-typedef void (* buildUserInterfaceFun) (llvm_dsp_imp* self, UIGlue* ui);
-typedef void (* initFun) (llvm_dsp_imp* self, int freq);
-typedef void (* classInitFun) (int freq);
-typedef void (* instanceInitFun) (llvm_dsp_imp* self, int freq);
-typedef void (* computeFun) (llvm_dsp_imp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
-typedef void (* metadataFun) (MetaGlue* meta);
-
 class llvm_dsp_aux;
 
 class llvm_dsp_factory {

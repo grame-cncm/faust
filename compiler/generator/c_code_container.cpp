@@ -63,16 +63,16 @@ void CCodeContainer::produceInfoFunctions(int tabs, const string& classname, boo
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetInputs(subst("getNumInputs$0", classname), false, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), false, isvirtual)->accept(&fCodeProducer);
 
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("getInputRate$0", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetInputRate(subst("getInputRate$0", classname), false, isvirtual)->accept(&fCodeProducer);
 
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("getOutputRate$0", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetOutputRate(subst("getOutputRate$0", classname), false, isvirtual)->accept(&fCodeProducer);
 }
 
 void CCodeContainer::produceInternal()
@@ -235,7 +235,7 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, true);
+    produceInfoFunctions(n, fKlassName, false);
 
     // Inits
     //tab(n, *fOut);

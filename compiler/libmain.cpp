@@ -849,7 +849,6 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
     }
     if (gVersionSwitch) 	{ 
         printversion(); 
-        printhelp(); 
         throw faustexception(""); 
     }
 
