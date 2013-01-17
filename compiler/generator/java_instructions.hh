@@ -82,7 +82,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             fMathLibTable["floor"] = "java.lang.Math.floor";
             fMathLibTable["floorf"] = "(float)java.lang.Math.floor";
             
-            fMathLibTable["fmod"] = "(float)java.lang.Math.IEEEremainder";
+            fMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
             fMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
             
             fMathLibTable["log"] = "java.lang.Math.log";

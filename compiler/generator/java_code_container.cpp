@@ -149,22 +149,24 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut);
         
         // Generate polymorphic cast
-        *fOut << "final float castFloat(float val) { return val; }" << endl;
+        *fOut << "private final float castFloat(float val) { return val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "final float castFloat(int val) { return (float)val; }" << endl;
+        *fOut << "private final float castFloat(int val) { return (float)val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "final int castInt(float val) { return (int)val; }" << endl;
+        //*fOut << "private final float castFloat(boolean val) { return (float)((int)val); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "final int castInt(int val) { return val; }" << endl;
+        *fOut << "private final int castInt(float val) { return (int)val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "final int castInt(boolean val) { return (val) ? 1 : 0; }" << endl;
+        *fOut << "private final int castInt(int val) { return val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "final boolean castBoolean(int val) { return (val == 0) ? true : false; }" << endl;
+        *fOut << "private final int castInt(boolean val) { return (val) ? 1 : 0; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "final boolean castBoolean(float val) { return (val == 0.f) ? true : false; }" << endl;
-        
-        // Generate polymorphic mathematical functions
-
+        *fOut << "private final boolean castBoolean(int val) { return (val == 0) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean castBoolean(float val) { return (val == 0.f) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean castBoolean(boolean val) { return val; }" << endl;
+       
         // Sub containers
         generateSubContainers();
 
