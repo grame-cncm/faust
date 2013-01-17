@@ -60,7 +60,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             fMathLibTable["cosf"] = "Math.cos";
             fMathLibTable["expf"] = "Math.exp";
             fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
+            //fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
             fMathLibTable["logf"] = "Math.log";
             fMathLibTable["log10f"] = "Math.log";
             fMathLibTable["max"] = "Math.max";
@@ -348,7 +348,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(FunCallInst* inst)
         {
-            /*
+            
             *fOut << inst->fName << "(";
             list<ValueInst*>::const_iterator it;
 
@@ -359,15 +359,15 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 if (i < size - 1) *fOut << ", ";
             }
             *fOut << ")";
-            */
             
-            string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            /*
+            string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
             
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
-                *fOut << "." << js_name << "(";
+                *fOut << "." << java_name << "(";
                 list<ValueInst*>::const_iterator it1;
                 int size = inst->fArgs.size() - 1, i = 0;
                 for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
@@ -376,7 +376,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                     if (i < size - 1) *fOut << ", ";
                 }
             } else {
-                *fOut << js_name << "(";
+                *fOut << java_name << "(";
                 list<ValueInst*>::const_iterator it;
                 int size = inst->fArgs.size(), i = 0;
                 for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
@@ -391,6 +391,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             if (inst->fName == "log10f") {
                 *fOut << "/Math.log(10)";
             }
+            */
         }
 
         virtual void visit(Select2Inst* inst)

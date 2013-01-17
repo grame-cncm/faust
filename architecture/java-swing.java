@@ -1,6 +1,7 @@
 /************************************************************************
     FAUST Architecture File
 	Copyright (C) 2011 Kjetil Matheussen
+    Copyright (C) 2013 Grame
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
@@ -51,6 +52,8 @@ import java.util.*;
 import java.io.*; 
 import java.applet.*; 
 import java.net.*; 
+import java.nio.Buffer.*;
+import java.nio.FloatBuffer;
   
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -62,23 +65,40 @@ import javax.swing.JOptionPane;
 
 import java.lang.Math;
 
-import  sun.audio.*;
-import  java.io.*;
+import sun.audio.*;
+import java.io.*;
 import javax.sound.sampled.*;
 
 class Sound {
 
     mydsp my_mydsp;
 
-    final int nFrames = 1024;
+    final int nFrames = 128;
+    
+    SourceDataLine sourceDataLine;
+    TargetDataLine targetDataLine;
 
-    AudioFormat getAudioFormat()
+    AudioFormat getOutputAudioFormat()
     { 
         float sampleRate = my_mydsp.fSamplingFreq;
         int sampleSizeInBits = 16; 
         int channels = my_mydsp.getNumOutputs();
         boolean signed = true; 
-        boolean bigEndian = false; 
+        boolean bigEndian = true;  // Using 'false' here is falling on OSX...
+        return new AudioFormat(sampleRate, 
+                               sampleSizeInBits, 
+                               channels, 
+                               signed, 
+                               bigEndian); 
+    }
+    
+    AudioFormat getInputAudioFormat()
+    { 
+        float sampleRate = my_mydsp.fSamplingFreq;
+        int sampleSizeInBits = 16; 
+        int channels = my_mydsp.getNumInputs();
+        boolean signed = true; 
+        boolean bigEndian = true; // Using 'false' here is falling on OSX...
         return new AudioFormat(sampleRate, 
                                sampleSizeInBits, 
                                channels, 
@@ -86,59 +106,60 @@ class Sound {
                                bigEndian); 
     }
   
-    AudioInputStream audioInputStream;
-    SourceDataLine sourceDataLine;
-
     class PlayThread extends Thread { 
     
-        void floatToBytes(float in, byte[] out)
-        {
-            short s = (short)(in * 32767);
-            out[0] = (byte) (( s >>> 0) & 0xff);
-            out[1] = (byte) (( s >>> 8) & 0xff);        
-        }
+        float inverse_gain = 1.f / 32767.f;
         
-        byte[] s=new byte[2];
-        void floatsToBytes(float[] in, byte[] out, int len)
-        {
-            for (int i=0;i<len;i++){
-                floatToBytes(in[i],s);
-                out[i*2]   = s[0];
-                out[i*2+1] = s[1];
-            }
-        }
+        float[][] output_buffer = new float[my_mydsp.getNumOutputs()][nFrames];
+        byte[] output_interleaved = new byte[my_mydsp.getNumOutputs() * nFrames * 2];
+        java.nio.ShortBuffer output_wrapped = java.nio.ByteBuffer.wrap(output_interleaved).asShortBuffer();
         
-        float[][] buf = new float[my_mydsp.getNumOutputs()][nFrames];
-        byte[][] bytebuf = new byte[my_mydsp.getNumOutputs()][nFrames*2];
-        byte[] interleaved = new byte[my_mydsp.getNumOutputs() * nFrames * 2];
+        float[][] input_buffer = new float[my_mydsp.getNumInputs()][nFrames];
+        byte[] input_interleaved = new byte[my_mydsp.getNumInputs() * nFrames * 2];
+        java.nio.ShortBuffer input_wrapped = java.nio.ByteBuffer.wrap(input_interleaved).asShortBuffer();
         
-        public byte[] read()
+        public void process()
         {
-            my_mydsp.compute(nFrames,null,buf);
-            for (int ch=0;ch<my_mydsp.getNumOutputs();ch++){
-                floatsToBytes(buf[ch],bytebuf[ch],nFrames);
-            }
-            int ipos=0;
-            for (int i=0;i<nFrames;i++){
-                for(int ch=0;ch<my_mydsp.getNumOutputs();ch++){
-                    interleaved[ipos++] = bytebuf[ch][i*2];
-                    interleaved[ipos++] = bytebuf[ch][i*2+1];
+            // Deinterleave and convert inputs
+            int ipos = 0;
+            for (int i = 0; i < nFrames; i++) {
+                for(int ch = 0; ch < my_mydsp.getNumInputs(); ch++) {
+                    input_buffer[ch][i] = (float)input_wrapped.get(ipos++) * inverse_gain;
                 }
             }
-            return interleaved;
+            
+            // Compute Faust effect
+            my_mydsp.compute(nFrames, input_buffer, output_buffer);
+            
+            // Convert and interleave outputs
+            ipos = 0;
+            for (int i = 0; i < nFrames; i++){
+                for(int ch = 0; ch < my_mydsp.getNumOutputs(); ch++) {
+                    output_wrapped.put(ipos++, (short)(output_buffer[ch][i] * 32767.f));
+                }
+            }
         }
 
         public void run() 
         { 
             try { 
                 while (true) {
-                    byte[] data=read();
-                    sourceDataLine.write(data,0,nFrames*2*my_mydsp.getNumOutputs());
+                    
+                    if (my_mydsp.getNumInputs() > 0) {
+                        targetDataLine.read(input_interleaved, 0, nFrames * 2 * my_mydsp.getNumInputs());
+                    }
+                    
+                    process();
+                    
+                    if (my_mydsp.getNumOutputs() > 0) {
+                        sourceDataLine.write(output_interleaved, 0, nFrames * 2 * my_mydsp.getNumOutputs());
+                    }
                 }
             } catch (Exception e) { 
                 System.out.println(e); 
                 System.exit(0); 
             }
+            
         }
     }
     
@@ -146,15 +167,26 @@ class Sound {
         this.my_mydsp = my_mydsp;
 
         try { 
-            AudioFormat audioFormat = getAudioFormat(); 
-
-            DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
-            sourceDataLine = (SourceDataLine) AudioSystem.getLine(dataLineInfo); 
-            sourceDataLine.open(audioFormat,nFrames); 
-            sourceDataLine.start(); 
+        
+            if (my_mydsp.getNumInputs() > 0) {
+                AudioFormat audioInputFormat = getInputAudioFormat(); 
+                DataLine.Info input_dataLineInfo = new DataLine.Info(TargetDataLine.class, audioInputFormat);
+                targetDataLine = (TargetDataLine)AudioSystem.getLine(input_dataLineInfo); 
+                targetDataLine.open(audioInputFormat); 
+                targetDataLine.start(); 
+            }
             
+            if (my_mydsp.getNumOutputs() > 0) {
+                AudioFormat audioOutputFormat = getOutputAudioFormat(); 
+                DataLine.Info output_dataLineInfo = new DataLine.Info(SourceDataLine.class, audioOutputFormat);
+                sourceDataLine = (SourceDataLine)AudioSystem.getLine(output_dataLineInfo); 
+                sourceDataLine.open(audioOutputFormat); 
+                sourceDataLine.start(); 
+            }
+             
             Thread playThread = new Thread(new PlayThread()); 
             playThread.start(); 
+            
         } catch (Exception e) { 
             e.printStackTrace();
         }
@@ -177,10 +209,10 @@ class UI {
     JFrame jframe;
     JPanel jpanel;
 
-    public static Dimension HGAP2 = new Dimension(2,1);
-    public static Dimension HGAP10 = new Dimension(10,1);
-    public static Dimension VGAP5 = new Dimension(1,5);
-    public static Dimension VGAP10 = new Dimension(1,10);
+    public static Dimension HGAP2 = new Dimension(2, 1);
+    public static Dimension HGAP10 = new Dimension(10, 1);
+    public static Dimension VGAP5 = new Dimension(1, 5);
+    public static Dimension VGAP10 = new Dimension(1, 10);
 
     UI() {
         jframe = new JFrame("Test Frame"); 
@@ -190,7 +222,6 @@ class UI {
         jframe.setVisible(true);
         jframe.getContentPane().add(jpanel);
         //UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-
     }
 
     public void declare(String id, String key, String value) {}
@@ -205,22 +236,22 @@ class UI {
     // -- active widgets
     
     public void addButton(String label, final FaustVarAccess varAccess) {
- 	final JButton b = new JButton(label);
+        final JButton b = new JButton(label);
 
         b.addMouseListener(new MouseListener(){
                 public void mouseClicked(MouseEvent e) {}
                 public void mouseEntered(MouseEvent e)  {}
                 public void mouseExited(MouseEvent e) {}
-                public void mousePressed(MouseEvent e){
+                public void mousePressed(MouseEvent e) {
                     varAccess.set(1);
                 }
-                public void mouseReleased(MouseEvent e){
+                public void mouseReleased(MouseEvent e) {
                     varAccess.set(0);
                 }
             });
 
- 	jpanel.add(b);
- 	jpanel.add(Box.createRigidArea(HGAP10)); 
+        jpanel.add(b);
+        jpanel.add(Box.createRigidArea(HGAP10)); 
         jframe.pack();
     }
     public void addCheckButton(String label, FaustVarAccess varAccess)
@@ -236,14 +267,14 @@ class UI {
         JPanel p = new JPanel(); 
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS)); 
         p.setBorder(new TitledBorder(label+"*1000"));
-        final JSlider s = new JSlider(JSlider.VERTICAL, (int)(min*1000), (int)(max*1000), (int)(init*1000));
-            s.setPaintLabels(true);
+        final JSlider s = new JSlider(JSlider.VERTICAL, (int)(min * 1000), (int)(max * 1000), (int)(init * 1000));
+        s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
         s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e){
                     //System.out.println(s.getValue()/1000.0);
-                    varAccess.set(s.getValue()/1000.0f);
+                    varAccess.set(s.getValue() / 1000.0f);
                 }
             });
         p.add(Box.createRigidArea(HGAP10)); 
@@ -259,15 +290,15 @@ class UI {
         JPanel p = new JPanel(); 
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS)); 
         p.setBorder(new TitledBorder(label+"*1000"));
-        final JSlider s = new JSlider(JSlider.HORIZONTAL, (int)(min*1000), (int)(max*1000), (int)(init*1000));
-            s.setPaintLabels(true);
+        final JSlider s = new JSlider(JSlider.HORIZONTAL, (int)(min * 1000), (int)(max * 1000), (int)(init * 1000));
+        s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
         s.addChangeListener(new ChangeListener(){
-                    public void stateChanged(ChangeEvent e){
+                    public void stateChanged(ChangeEvent e) {
                         JSlider slider = (JSlider)e.getSource(); 
                         //System.out.println(s.getValue()/1000.0);
-                        varAccess.set(s.getValue()/1000.0f);
+                        varAccess.set(s.getValue() / 1000.0f);
                 }
             });
 
@@ -297,7 +328,6 @@ class dsp {
 
     public int fSamplingFreq;
 
-    /*
     float powf(float a, float b)
     {
         return (float)java.lang.Math.pow(a, b);
@@ -330,8 +360,15 @@ class dsp {
     {
         return java.lang.Math.sin(a);
     }
-    */
-
+    double sqrt(double a)
+    {
+        return java.lang.Math.sqrt(a);
+    }
+    float sqrtf(float a)
+    {
+        return (float)java.lang.Math.sqrt(a);
+    }
+    
     public static void main(String... aArgs)
     {
         try {

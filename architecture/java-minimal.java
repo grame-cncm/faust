@@ -1,6 +1,7 @@
 /************************************************************************
     FAUST Architecture File
 	Copyright (C) 2011 Kjetil Matheussen
+    Copyright (C) 2013 Grame
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
