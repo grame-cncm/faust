@@ -235,7 +235,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 {
     BasicTyped* result_type = InstBuilder::genBasicTyped(result);
 
-    // Special case for "faustpower", generates sequence of multiplications
+    // Special case for "faustpower", generates sequence of multiplication
     if (name == "faustpower") {
 
         list<NamedTyped*> named_args;

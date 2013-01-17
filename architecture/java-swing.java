@@ -327,48 +327,7 @@ class UI {
 class dsp {
 
     public int fSamplingFreq;
-
-    float powf(float a, float b)
-    {
-        return (float)java.lang.Math.pow(a, b);
-    }
-    double pow(double a, float b)
-    {
-        return java.lang.Math.pow(a, b);
-    }
-    int max(int a, int b)
-    {
-        return java.lang.Math.max(a, b);
-    }
-    int min(int a, int b)
-    {
-        return java.lang.Math.min(a, b);
-    }
-    float floorf(float a)
-    {
-        return (float)java.lang.Math.floor(a);
-    }
-    double floor(double a)
-    {
-        return java.lang.Math.floor(a);
-    }
-    float sinf(float a)
-    {
-        return (float)java.lang.Math.sin(a);
-    }
-    double sin(double a)
-    {
-        return java.lang.Math.sin(a);
-    }
-    double sqrt(double a)
-    {
-        return java.lang.Math.sqrt(a);
-    }
-    float sqrtf(float a)
-    {
-        return (float)java.lang.Math.sqrt(a);
-    }
-    
+     
     public static void main(String... aArgs)
     {
         try {

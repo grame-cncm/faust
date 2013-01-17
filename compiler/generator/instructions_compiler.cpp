@@ -1204,8 +1204,9 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     fContainer->addIncludeFile(file);
 
     // Keep SR generation state
-    if (name == "fSamplingFreq")
+    if (name == "fSamplingFreq") {
         fContainer->setGeneratedSR();
+    }
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {

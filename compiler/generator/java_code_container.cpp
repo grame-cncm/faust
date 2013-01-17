@@ -85,16 +85,31 @@ void JAVACodeContainer::produceInternal()
         generateDeclarations(&fCodeProducer);
 
          // Memory methods
+         /*
         tab(n+1, *fOut); *fOut << fKlassName << "[] " << "new" <<  fKlassName << "() { "
                             << "return (" << fKlassName << "[]) new "<< fKlassName << "()"
                             << "; }";
-
+        */
+        
+        tab(n+1, *fOut); *fOut << fKlassName << " new" <<  fKlassName << "() { "
+                            << "return new "<< fKlassName << "()"
+                            << "; }";
+                            
+        /*
         tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "[] dsp) { "
                               << "; }";
+        */
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
+        
+        // Inits
+        tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
     
         // Fill
         string counter = "count";
@@ -122,15 +137,33 @@ void JAVACodeContainer::produceClass()
 
     // Libraries
     printLibrary(*fOut);
- 
-    // Global declarations
-    tab(n, *fOut);
-    fCodeProducer.Tab(n);
-    //generateGlobalDeclarations(&fCodeProducer);
-
+   
     tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
 
         tab(n+1, *fOut);
+        
+        // Global declarations
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateGlobalDeclarations(&fCodeProducer);
+        tab(n+1, *fOut);
+        
+        // Generate polymorphic cast
+        *fOut << "final float castFloat(float val) { return val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "final float castFloat(int val) { return (float)val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "final int castInt(float val) { return (int)val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "final int castInt(int val) { return val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "final int castInt(boolean val) { return (val) ? 1 : 0; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "final boolean castBoolean(int val) { return (val == 0) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "final boolean castBoolean(float val) { return (val == 0.f) ? true : false; }" << endl;
+        
+        // Generate polymorphic mathematical functions
 
         // Sub containers
         generateSubContainers();
@@ -139,6 +172,24 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
+        
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n+1, *fOut); *fOut << "void allocate() {";
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                generateAllocate(&fCodeProducer);
+            tab(n+1, *fOut);  *fOut << "}";
+            tab(n+1, *fOut);
+        }
+
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n+1, *fOut); *fOut << "void destroy() {";
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                generateDestroy(&fCodeProducer);
+            tab(n+1, *fOut);  *fOut << "}";
+            tab(n+1, *fOut);
+        }
 
         // Print metadata declaration
         tab(n+1, *fOut); *fOut   << "public void metadata(Meta m) { ";

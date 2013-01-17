@@ -41,35 +41,79 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        bool fInsideBinOp;
+        bool fBooleanValue;
         map <string, string> fMathLibTable;
 
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fInsideBinOp(false)
+          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fBooleanValue(false)
         {
-            fMathLibTable["abs"] = "Math.abs";
-            fMathLibTable["absf"] = "Math.abs";
-            fMathLibTable["fabsf"] = "Math.abs";
-            fMathLibTable["acosf"] = "Math.acos";
-            fMathLibTable["asinf"] = "Math.asin";
-            fMathLibTable["atanf"] = "Math.atan";
-            fMathLibTable["atan2f"] = "Math.atan2";
-            fMathLibTable["ceilf"] = "Math.ceil";
-            fMathLibTable["cosf"] = "Math.cos";
-            fMathLibTable["expf"] = "Math.exp";
-            fMathLibTable["floorf"] = "Math.floor";
-            //fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
-            fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "Math.log";
-            fMathLibTable["max"] = "Math.max";
-            fMathLibTable["min"] = "Math.min";
-            fMathLibTable["powf"] = "Math.pow";
-            fMathLibTable["roundf"] = "Math.round";
-            fMathLibTable["sinf"] = "Math.sin";
-            fMathLibTable["sqrtf"] = "Math.sqrt";
-            fMathLibTable["tanf"] = "Math.tan";
+            fMathLibTable["abs"] = "java.lang.Math.abs";
+            fMathLibTable["absf"] = "(float)java.lang.Math.abs";
+            
+            fMathLibTable["fabs"] = "java.lang.Math.abs";
+            fMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
+            
+            fMathLibTable["acos"] = "java.lang.Math.acos";
+            fMathLibTable["acosf"] = "(float)java.lang.Math.acos";
+            
+            fMathLibTable["asin"] = "java.lang.Math.asin";
+            fMathLibTable["asinf"] = "(cloat)java.lang.Math.asin";
+            
+            fMathLibTable["atan"] = "java.lang.Math.atan";
+            fMathLibTable["atanf"] = "(float)java.lang.Math.atan";
+            
+            fMathLibTable["atan2"] = "java.lang.Math.atan2";
+            fMathLibTable["atan2f"] = "(float)java.lang.Math.atan2";
+            
+            fMathLibTable["ceil"] = "java.lang.Math.ceil";
+            fMathLibTable["ceilf"] = "(float)java.lang.Math.ceil";
+            
+            fMathLibTable["cos"] = "java.lang.Math.cos";
+            fMathLibTable["cosf"] = "(float)java.lang.Math.cos";
+            
+            fMathLibTable["cosh"] = "java.lang.Math.cosh";
+            fMathLibTable["coshf"] = "(float)java.lang.Math.cosh";
+            
+            fMathLibTable["exp"] = "java.lang.Math.exp";
+            fMathLibTable["expf"] = "(float)java.lang.Math.exp";
+            
+            fMathLibTable["floor"] = "java.lang.Math.floor";
+            fMathLibTable["floorf"] = "(float)java.lang.Math.floor";
+            
+            fMathLibTable["fmod"] = "(float)java.lang.Math.IEEEremainder";
+            fMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
+            
+            fMathLibTable["log"] = "java.lang.Math.log";
+            fMathLibTable["logf"] = "(float)java.lang.Math.log";
+            
+            fMathLibTable["log10"] = "java.lang.Math.log10";
+            fMathLibTable["log10f"] = "(float)java.lang.Math.log10";
+            
+            fMathLibTable["max"] = "java.lang.Math.max";
+            fMathLibTable["min"] = "java.lang.Math.min";
+            
+            fMathLibTable["pow"] = "java.lang.Math.pow";
+            fMathLibTable["powf"] = "(float)java.lang.Math.pow";
+            
+            fMathLibTable["round"] = "java.lang.Math.round";
+            fMathLibTable["roundf"] = "(float)java.lang.Math.round";
+             
+            fMathLibTable["sin"] = "java.lang.Math.sin";
+            fMathLibTable["sinf"] = "(float)java.lang.Math.sin";
+            
+            fMathLibTable["sinh"] = "java.lang.Math.sinh";
+            fMathLibTable["sinhf"] = "(float)java.lang.Math.sinh";
+             
+            fMathLibTable["sqrt"] = "java.lang.Math.sqrt";
+            fMathLibTable["sqrtf"] = "(float)java.lang.Math.sqrt";
+            
+            fMathLibTable["tan"] = "java.lang.Math.tan";
+            fMathLibTable["tanf"] = "(float)java.lang.Math.tan";
+            
+            fMathLibTable["tanh"] = "java.lang.Math.tanh";
+            fMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
         }
 
         virtual ~JAVAInstVisitor()
@@ -160,8 +204,11 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(LabelInst* inst)
         {
+            // Empty
+            /*
             *fOut << inst->fLabel;
             tab(fTab, *fOut);
+            */
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -209,7 +256,9 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            // Do not declare Math library functions
+            /*
+                Do not declare Math library functions, the architecture file has to define them in a polymorphic way.
+            */
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
@@ -319,6 +368,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(BinopInst* inst)
         {
             // A bool binop operation result has to be typed as "int" when used *inside* another BinopInst
+            /*
             if (isBoolOpcode(inst->fOpcode) && fInsideBinOp) {
                 *fOut << "((";
                 inst->fInst1->accept(this);
@@ -338,18 +388,56 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << ")";
                 fInsideBinOp = false;
             }
+            */
+            
+            /*
+            *fOut << "((";
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            inst->fInst2->accept(this);
+            *fOut << ") ? 1 : 0)";
+            */
+            fBooleanValue = false;
+            
+            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+                *fOut << "((";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ") ? true : false)";
+                fBooleanValue = true;
+            } else {
+                *fOut << "(";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+            }
+
         }
 
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << "(" << generateType(inst->fType) << ")";
-            inst->fInst->accept(this);
+            // Generate a call to a polymophic cast
+            string cast_type = generateType(inst->fType);
+            if (cast_type == "int") {
+                *fOut << "castInt("; inst->fInst->accept(this); *fOut << ")";
+            } else {
+                *fOut << "castFloat("; inst->fInst->accept(this); *fOut << ")";
+            }
         }
 
         virtual void visit(FunCallInst* inst)
         {
+            string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
             
-            *fOut << inst->fName << "(";
+            *fOut << java_name << "(";
             list<ValueInst*>::const_iterator it;
 
             int size = inst->fArgs.size(), i = 0;
@@ -396,9 +484,9 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(Select2Inst* inst)
         {
-            *fOut << "(";
+            *fOut << "(castBoolean(";
             inst->fCond->accept(this);
-            *fOut << "?";
+            *fOut << ")?";
             inst->fThen->accept(this);
             *fOut << ":";
             inst->fElse->accept(this);
