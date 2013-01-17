@@ -151,9 +151,13 @@ void JAVACodeContainer::produceClass()
         // Generate polymorphic cast
         *fOut << "private final float castFloat(float val) { return val; }" << endl;
         tab(n+1, *fOut);
+        *fOut << "private final float castFloat(double val) { return (float)val; }" << endl;
+        tab(n+1, *fOut);
         *fOut << "private final float castFloat(int val) { return (float)val; }" << endl;
         tab(n+1, *fOut);
         //*fOut << "private final float castFloat(boolean val) { return (float)((int)val); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int castInt(double val) { return (int)val; }" << endl;
         tab(n+1, *fOut);
         *fOut << "private final int castInt(float val) { return (int)val; }" << endl;
         tab(n+1, *fOut);
@@ -164,6 +168,8 @@ void JAVACodeContainer::produceClass()
         *fOut << "private final boolean castBoolean(int val) { return (val == 0) ? true : false; }" << endl;
         tab(n+1, *fOut);
         *fOut << "private final boolean castBoolean(float val) { return (val == 0.f) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean castBoolean(double val) { return (val == 0) ? true : false; }" << endl;
         tab(n+1, *fOut);
         *fOut << "private final boolean castBoolean(boolean val) { return val; }" << endl;
        

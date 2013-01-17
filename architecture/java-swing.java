@@ -109,36 +109,63 @@ class Sound {
     class PlayThread extends Thread { 
     
         float inverse_gain = 1.f / 32767.f;
+        float inverse_gain_double = 1 / 32767;
         
-        float[][] output_buffer = new float[my_mydsp.getNumOutputs()][nFrames];
+        float[][] output_float_buffer = new float[my_mydsp.getNumOutputs()][nFrames];
+        double[][] output_double_buffer = new double[my_mydsp.getNumOutputs()][nFrames];
         byte[] output_interleaved = new byte[my_mydsp.getNumOutputs() * nFrames * 2];
         java.nio.ShortBuffer output_wrapped = java.nio.ByteBuffer.wrap(output_interleaved).asShortBuffer();
         
-        float[][] input_buffer = new float[my_mydsp.getNumInputs()][nFrames];
+        float[][] input_float_buffer = new float[my_mydsp.getNumInputs()][nFrames];
+        double[][] input_double_buffer = new double[my_mydsp.getNumInputs()][nFrames];
         byte[] input_interleaved = new byte[my_mydsp.getNumInputs() * nFrames * 2];
         java.nio.ShortBuffer input_wrapped = java.nio.ByteBuffer.wrap(input_interleaved).asShortBuffer();
         
-        public void process()
+        public void process_float()
         {
             // Deinterleave and convert inputs
             int ipos = 0;
             for (int i = 0; i < nFrames; i++) {
                 for(int ch = 0; ch < my_mydsp.getNumInputs(); ch++) {
-                    input_buffer[ch][i] = (float)input_wrapped.get(ipos++) * inverse_gain;
+                    input_float_buffer[ch][i] = (float)input_wrapped.get(ipos++) * inverse_gain;
                 }
             }
             
             // Compute Faust effect
-            my_mydsp.compute(nFrames, input_buffer, output_buffer);
+            my_mydsp.compute(nFrames, input_float_buffer, output_float_buffer);
             
             // Convert and interleave outputs
             ipos = 0;
             for (int i = 0; i < nFrames; i++){
                 for(int ch = 0; ch < my_mydsp.getNumOutputs(); ch++) {
-                    output_wrapped.put(ipos++, (short)(output_buffer[ch][i] * 32767.f));
+                    output_wrapped.put(ipos++, (short)(output_float_buffer[ch][i] * 32767.f));
                 }
             }
         }
+        
+        /*
+        public void process_double()
+        {
+            // Deinterleave and convert inputs
+            int ipos = 0;
+            for (int i = 0; i < nFrames; i++) {
+                for(int ch = 0; ch < my_mydsp.getNumInputs(); ch++) {
+                    input_double_buffer[ch][i] = (double)input_wrapped.get(ipos++) * inverse_gain_double;
+                }
+            }
+            
+            // Compute Faust effect
+            my_mydsp.compute(nFrames, input_double_buffer, output_double_buffer);
+            
+            // Convert and interleave outputs
+            ipos = 0;
+            for (int i = 0; i < nFrames; i++){
+                for(int ch = 0; ch < my_mydsp.getNumOutputs(); ch++) {
+                    output_wrapped.put(ipos++, (short)(output_double_buffer[ch][i] * 32767));
+                }
+            }
+        }
+        */
 
         public void run() 
         { 
@@ -149,7 +176,7 @@ class Sound {
                         targetDataLine.read(input_interleaved, 0, nFrames * 2 * my_mydsp.getNumInputs());
                     }
                     
-                    process();
+                    process_float();
                     
                     if (my_mydsp.getNumOutputs() > 0) {
                         sourceDataLine.write(output_interleaved, 0, nFrames * 2 * my_mydsp.getNumOutputs());
