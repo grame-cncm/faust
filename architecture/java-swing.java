@@ -307,8 +307,8 @@ class UI {
         }
         
         s = new JSlider(JSlider.VERTICAL, (int)(min * factor), (int)(max * factor), (int)(init * factor));
-        s.setMajorTickSpacing((int)((max - min)/4) * factor);
-        s.setMinorTickSpacing((int)((max - min)/8) * factor);
+        s.setMajorTickSpacing((int)((max - min) * factor / 4));
+        s.setMinorTickSpacing((int)((max - min) * factor / 8));
         s.setPaintTicks(true);
         s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
@@ -316,19 +316,19 @@ class UI {
         if (factor == 100) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    varAccess.set(s.getValue()/100);
+                    varAccess.set((float)s.getValue()/100.f);
                 }
             });
         } else if (factor == 10) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    varAccess.set(s.getValue()/10);
+                    varAccess.set((float)s.getValue()/10.f);
                 }
             });
         } else {
             s.addChangeListener(new ChangeListener() {
                     public void stateChanged(ChangeEvent e) {
-                    varAccess.set(s.getValue());
+                    varAccess.set((float)s.getValue());
                 }
             });
         }
@@ -360,8 +360,8 @@ class UI {
         }
         
         s = new JSlider(JSlider.HORIZONTAL, (int)(min * factor), (int)(max * factor), (int)(init * factor));
-        s.setMajorTickSpacing((int)((max - min)/4) * factor);
-        s.setMinorTickSpacing((int)((max - min)/8) * factor);
+        s.setMajorTickSpacing((int)((max - min) * factor / 4));
+        s.setMinorTickSpacing((int)((max - min) * factor / 8));
         s.setPaintTicks(true);
         s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
@@ -369,19 +369,19 @@ class UI {
         if (factor == 100) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    varAccess.set(s.getValue()/100);
+                    varAccess.set((float)s.getValue()/100.f);
                 }
             });
         } else if (factor == 10) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    varAccess.set(s.getValue()/10);
+                    varAccess.set((float)s.getValue()/10.f);
                 }
             });
         } else {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    varAccess.set(s.getValue());
+                    varAccess.set((float)s.getValue());
                 }
             });
         }
