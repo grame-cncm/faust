@@ -50,7 +50,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fCurType(Typed::kNoType)
         {
-            // Polumorphic arithmetic operations
+            // Polymorphic arithmetic operations
             fPolyBinOpTable[kAdd] = "java_add";
             fPolyBinOpTable[kSub] = "java_sub";
             fPolyBinOpTable[kMul] = "java_mult";
@@ -424,7 +424,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << ")";
                 
                 /*
-                // Using explicit type ofr the current value
+                // Using explicit type of the current value
                 stringstream str;
                 JAVAInstVisitor temp_visitor1(&str, 0);
                 inst->fInst1->accept(&temp_visitor1);
@@ -516,7 +516,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CastNumInst* inst)
         {
-            // Generate a call to a polymophic cast
+            // Generate a call to a polymorphic cast
             string cast_type = generateType(inst->fType);
             if (cast_type == "int") {
                 *fOut << "cast_int("; inst->fInst->accept(this); *fOut << ")";

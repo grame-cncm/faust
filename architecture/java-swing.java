@@ -26,9 +26,7 @@
  ************************************************************************/
 
 /***
-    This architechture file needs more work.
-
-    Only playback is supported.
+    Duplex is supported.
 
     Example on how to use it:
     faust -lang java -a java-swing.java noise.dsp > mydsp.java && javac mydsp.java && java mydsp
@@ -73,7 +71,7 @@ class Sound {
 
     mydsp my_mydsp;
 
-    final int nFrames = 128;
+    final int nFrames = 1024;
     
     SourceDataLine sourceDataLine;
     TargetDataLine targetDataLine;
