@@ -253,9 +253,11 @@ class JAVAScriptInstVisitor : public InstVisitor {
             }
         }
 
-        // TODO : this does not work in javascript.
+        // TODO : this does not work in JavaScript.
         virtual void visit(LoadVarAddressInst* inst)
         {
+            assert(false);
+            /*
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
 
@@ -266,6 +268,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             }
+            */
         }
 
         virtual void visit(StoreVarInst* inst)

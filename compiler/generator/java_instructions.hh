@@ -340,7 +340,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        // TODO. This does not work in java.
+        // TODO. This does not work in JAVA.
         virtual void visit(LoadVarAddressInst* inst)
         {
             assert(false);
@@ -406,6 +406,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(BinopInst* inst)
         {
             if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+                /*
                 *fOut << "((";
                 inst->fInst1->accept(this);
                 *fOut << " ";
@@ -414,6 +415,14 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 inst->fInst2->accept(this);
                 *fOut << ")?true:false)";
                 fCurType = Typed::kBool;
+                */
+                *fOut << "(";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
             } else {
                 
                 // Polymorphic
