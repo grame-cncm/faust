@@ -184,7 +184,9 @@ bool llvm_dsp_factory::initJIT()
     builder.setUseMCJIT(true);
     builder.setMCPU(llvm::sys::getHostCPUName());
     
+#ifndef LLVM_30
     TargetMachine* tm = builder.selectTarget();
+#endif
     //tm->Options.PrintMachineCode = 1;
     /*
     SmallVector<std::string, 4> attrs;
@@ -194,7 +196,11 @@ bool llvm_dsp_factory::initJIT()
     attrs.push_back("enable-unsafe-fp-math");
     builder.setMAttrs(attrs);
     */
+#ifdef LLVM_30
+    fJIT = builder.create();
+#else
     fJIT = builder.create(tm);
+#endif
     if (!fJIT) {
         return false;
     }
