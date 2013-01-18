@@ -37,18 +37,18 @@ using namespace std;
 class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
     private:
-
+ 
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        bool fBooleanValue;
         map <string, string> fMathLibTable;
         map<int, string> fPolyBinOpTable;
+        Typed::VarType fCurType;
 
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fBooleanValue(false)
+          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fCurType(Typed::kNoType)
         {
             fPolyBinOpTable[kAdd] = "java_add";
             fPolyBinOpTable[kSub] = "java_sub";
@@ -322,16 +322,29 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
             if (named) {
                 *fOut << named->getName();
+                
+                /*
+                printf("LoadVarInst name %s\n", named->getName().c_str());
+                assert(gGlobal->gVarTable.find(named->getName()) != gGlobal->gVarTable.end());
+                fCurType = gGlobal->gVarTable[named->getName()]->getType();
+                */
             } else {
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "]";
+                /*
+                printf("LoadVarInst indexed name %s\n", indexed->getName().c_str());
+                assert(gGlobal->gVarTable.find(indexed->getName()) != gGlobal->gVarTable.end());
+                fCurType = gGlobal->gVarTable[indexed->getName()]->getType();
+                */
             }
         }
 
         // TODO. This does not work in java.
         virtual void visit(LoadVarAddressInst* inst)
         {
+            assert(false);
+            /*
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
 
@@ -342,6 +355,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             }
+            */
         }
 
         virtual void visit(StoreVarInst* inst)
@@ -363,21 +377,25 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(FloatNumInst* inst)
         {
             *fOut << checkFloat(inst->fNum);
+            fCurType = Typed::kFloat;
         }
 
         virtual void visit(IntNumInst* inst)
         {
             *fOut << inst->fNum;
+            fCurType = Typed::kInt;
         }
 
         virtual void visit(BoolNumInst* inst)
         {
             *fOut << inst->fNum;
+            fCurType = Typed::kBool;
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
             *fOut << T(inst->fNum);
+            fCurType = Typed::kDouble;
         }
 
         bool isBoolOpcode(int o)
@@ -387,40 +405,6 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(BinopInst* inst)
         {
-            // A bool binop operation result has to be typed as "int" when used *inside* another BinopInst
-            /*
-            if (isBoolOpcode(inst->fOpcode) && fInsideBinOp) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ") ? 1 : 0)";
-            } else {
-                fInsideBinOp = true;
-                *fOut << "(";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ")";
-                fInsideBinOp = false;
-            }
-            */
-            
-            /*
-            *fOut << "((";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ") ? 1 : 0)";
-            */
-            fBooleanValue = false;
-            
             if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
                 *fOut << "((";
                 inst->fInst1->accept(this);
@@ -428,23 +412,104 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << ") ? true : false)";
-                fBooleanValue = true;
+                *fOut << ")?true:false)";
+                fCurType = Typed::kBool;
             } else {
-                /*
-                *fOut << "(";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ")";
-                */
+                
+                // Polymorphic
                 *fOut << fPolyBinOpTable[inst->fOpcode] << "(";
                 inst->fInst1->accept(this);
                 *fOut << ", ";
                 inst->fInst2->accept(this);
                 *fOut << ")";
+                
+                /*
+                stringstream str;
+                JAVAInstVisitor temp_visitor1(&str, 0);
+                inst->fInst1->accept(&temp_visitor1);
+                Typed::VarType type1 = temp_visitor1.fCurType;
+                //assert(type1 != Typed::kNoType);
+                
+                JAVAInstVisitor temp_visitor2(&str, 0);
+                inst->fInst2->accept(&temp_visitor2);
+                Typed::VarType type2 = temp_visitor2.fCurType;
+                //assert(type2 != Typed::kNoType);
+                
+                *fOut << "(";
+                
+                if (type1 == Typed::kFloat) {
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    if (type2 == Typed::kBool) {
+                        *fOut << " ((";
+                        inst->fInst2->accept(this);
+                        *fOut << ")?1.f:0f)";
+                    } else {
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                    }
+                    fCurType = Typed::kFloat;
+                } else if (type1 == Typed::kInt) { 
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    if (type2 == Typed::kBool) {
+                        *fOut << " ((";
+                        inst->fInst2->accept(this);
+                        *fOut << ")?1:0)";
+                    } else {
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                    }
+                    fCurType = Typed::kInt;
+                } else if (type1 == Typed::kDouble) { 
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    if (type2 == Typed::kBool) {
+                        *fOut << " ((";
+                        inst->fInst2->accept(this);
+                        *fOut << ")?1:0)";
+                    } else {
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                    }
+                    fCurType = Typed::kDouble;
+                } else if (type1 == Typed::kBool) { 
+                    if (type2 == Typed::kBool) {
+                        inst->fInst1->accept(this);
+                        fCurType = Typed::kBool;
+                    } else if (type2 == Typed::kFloat) { 
+                        *fOut << "((";
+                        inst->fInst1->accept(this);
+                        *fOut << ")?1.f:0.f)";
+                        fCurType = Typed::kFloat;
+                    } else if (type2 == Typed::kInt) { 
+                        *fOut << "((";
+                        inst->fInst1->accept(this);
+                        *fOut << ")?1:0)";
+                        fCurType = Typed::kInt;
+                    } else if (type2 == Typed::kDouble) { 
+                        *fOut << "((";
+                        inst->fInst1->accept(this);
+                        *fOut << ")?1:0)";
+                        fCurType = Typed::kDouble;
+                    }
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                } else {   // Typed::kNoType
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                }
+                                                
+                *fOut << ")";
+                */
             }
         }
 
@@ -454,8 +519,10 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             string cast_type = generateType(inst->fType);
             if (cast_type == "int") {
                 *fOut << "cast_int("; inst->fInst->accept(this); *fOut << ")";
+                fCurType = Typed::kInt;
             } else {
                 *fOut << "cast_float("; inst->fInst->accept(this); *fOut << ")";
+                fCurType = Typed::kFloat;
             }
         }
 

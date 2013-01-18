@@ -527,7 +527,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
     public:
 
         CPPVecAccelerateInstVisitor(std::ostream* out, int tab = 0)
-            :CPPVecInstVisitor(out, tab)
+            :CPPVecInstVisitor(out, tab), fCurType(Typed::kNoType)
         {
             fVecBinOpTable[kAdd] = "vDSP_vadd";
             fVecBinOpTable[kSub] = "vDSP_vsub";
@@ -595,13 +595,13 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
         virtual void visit(BoolNumInst* inst)
         {
             fCurValue = T(inst->fNum);
-            fCurType = Typed::kDouble;
+            fCurType = Typed::kBool;
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
             fCurValue = T(inst->fNum);
-            fCurType = Typed::kBool;
+            fCurType = Typed::kDouble;
         }
 
         virtual void visit(BinopInst* inst)

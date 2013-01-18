@@ -299,7 +299,7 @@ struct Typed : public Printable
                 kDouble, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
                 kQuad, kQuad_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
-                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr};
+                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr, kNoType};
     
     static void init();
 
