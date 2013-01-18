@@ -50,6 +50,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fCurType(Typed::kNoType)
         {
+            // Polumorphic arithmetic operations
             fPolyBinOpTable[kAdd] = "java_add";
             fPolyBinOpTable[kSub] = "java_sub";
             fPolyBinOpTable[kMul] = "java_mult";
@@ -127,7 +128,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             fMathLibTable["tanh"] = "java.lang.Math.tanh";
             fMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
             
-            // Pointer to JAVA okbecjt is actually the object itself...
+            // Pointer to JAVA object is actually the object itself...
             fTypeDirectTable[Typed::kObj_ptr] = "";
         }
 
@@ -322,7 +323,6 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
             if (named) {
                 *fOut << named->getName();
-                
                 /*
                 printf("LoadVarInst name %s\n", named->getName().c_str());
                 assert(gGlobal->gVarTable.find(named->getName()) != gGlobal->gVarTable.end());
@@ -424,6 +424,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << ")";
                 
                 /*
+                // Using explicit type ofr the current value
                 stringstream str;
                 JAVAInstVisitor temp_visitor1(&str, 0);
                 inst->fInst1->accept(&temp_visitor1);

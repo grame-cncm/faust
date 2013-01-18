@@ -164,7 +164,7 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut);
         *fOut << "private final boolean cast_boolean(boolean val) { return val; }" << endl;
         
-        // Generate polymorphic arithemic operations
+        // Generate polymorphic arithmetic operations
         tab(n+1, *fOut);
         *fOut << "private final int java_add(int a, int b) { return a + b; }" << endl;
         tab(n+1, *fOut);
@@ -318,8 +318,7 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut);
         *fOut << "private final float java_add(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
         */
-
-       
+  
         // Sub containers
         generateSubContainers();
 
