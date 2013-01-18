@@ -44,5 +44,8 @@ done
 for f in $FILES; do
     faust -lang java -cn ${f%.dsp} -a java-swing.java $OPTIONS $f -o ${f%.dsp}.java
     javac ${f%.dsp}.java
+    jar cvfe ${f%.dsp}.jar ${f%.dsp} *.class
+    rm ${f%.dsp}*.class UI*.class Meta.class FaustVarAccess.class Sound*PlayThread.class Sound.class dsp.class
+    
     #rm ${f%.dsp}.java
 done

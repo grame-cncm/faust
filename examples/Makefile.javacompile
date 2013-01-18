@@ -1,0 +1,16 @@
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+
+
+all :  $(appl)
+
+
+$(DEST)%$(EXT) : %.dsp 
+	$(eval class_name := $(shell basename $@))
+	faust -lang java -a $(ARCH) -cn $(class_name) $< -o $@.java
+	javac $@.java
+	cd $(DEST) && jar cvfe $(class_name).jar $(class_name) *.class && rm *.class	
+
+clean :
+	rm -f $(DEST)
