@@ -140,68 +140,68 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut);
         
         // Generate polymorphic cast
-        *fOut << "private final float castFloat(float val) { return val; }" << endl;
+        *fOut << "private final float cast_float(float val) { return val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float castFloat(double val) { return (float)val; }" << endl;
+        *fOut << "private final float cast_float(double val) { return (float)val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float castFloat(int val) { return (float)val; }" << endl;
+        *fOut << "private final float cast_float(int val) { return (float)val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float castFloat(boolean val) { return (float)((val)?1:0); }" << endl;
+        *fOut << "private final float cast_float(boolean val) { return (float)((val)?1:0); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int castInt(double val) { return (int)val; }" << endl;
+        *fOut << "private final int cast_int(double val) { return (int)val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int castInt(float val) { return (int)val; }" << endl;
+        *fOut << "private final int cast_int(float val) { return (int)val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int castInt(int val) { return val; }" << endl;
+        *fOut << "private final int cast_int(int val) { return val; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int castInt(boolean val) { return (val) ? 1 : 0; }" << endl;
+        *fOut << "private final int cast_int(boolean val) { return (val)?1:0; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final boolean castBoolean(int val) { return (val == 0) ? true : false; }" << endl;
+        *fOut << "private final boolean cast_boolean(int val) { return (val == 0) ? true : false; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final boolean castBoolean(float val) { return (val == 0.f) ? true : false; }" << endl;
+        *fOut << "private final boolean cast_boolean(float val) { return (val == 0.f) ? true : false; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final boolean castBoolean(double val) { return (val == 0) ? true : false; }" << endl;
+        *fOut << "private final boolean cast_boolean(double val) { return (val == 0) ? true : false; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final boolean castBoolean(boolean val) { return val; }" << endl;
+        *fOut << "private final boolean cast_boolean(boolean val) { return val; }" << endl;
         
         // Generate polymorphic arithemic operations
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(int a, int b) { return a + b; }" << endl;
+        *fOut << "private final int java_add(int a, int b) { return a + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(int a, float b) { return (float)a + b; }" << endl;
+        *fOut << "private final float java_add(int a, float b) { return (float)a + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(float a, int b) { return a + (float)b; }" << endl;
+        *fOut << "private final float java_add(float a, int b) { return a + (float)b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(float a, float b) { return a + b; }" << endl;
+        *fOut << "private final float java_add(float a, float b) { return a + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(int a, boolean b) { return a + ((b)?1:0); }" << endl;
+        *fOut << "private final int java_add(int a, boolean b) { return a + ((b)?1:0); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(boolean a, int b) { return ((a)?1:0) + b; }" << endl;
+        *fOut << "private final int java_add(boolean a, int b) { return ((a)?1:0) + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(boolean a, boolean b) { return ((a)?1:0) + ((b)?1:0); }" << endl;
+        *fOut << "private final int java_add(boolean a, boolean b) { return ((a)?1:0) + ((b)?1:0); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(float a, boolean b) { return a + ((b)?1.f:0.f); }" << endl;
+        *fOut << "private final float java_add(float a, boolean b) { return a + ((b)?1.f:0.f); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
+        *fOut << "private final float java_add(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
         
         tab(n+1, *fOut);
-        *fOut << "private final int java_minus(int a, int b) { return a - b; }" << endl;
+        *fOut << "private final int java_sub(int a, int b) { return a - b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_minus(int a, float b) { return (float)a - b; }" << endl;
+        *fOut << "private final float java_sub(int a, float b) { return (float)a - b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_minus(float a, int b) { return a - (float)b; }" << endl;
+        *fOut << "private final float java_sub(float a, int b) { return a - (float)b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_minus(float a, float b) { return a - b; }" << endl;
+        *fOut << "private final float java_sub(float a, float b) { return a - b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_minus(int a, boolean b) { return a - ((b)?1:0); }" << endl;
+        *fOut << "private final int java_sub(int a, boolean b) { return a - ((b)?1:0); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_minus(boolean a, int b) { return ((a)?1:0) - b; }" << endl;
+        *fOut << "private final int java_sub(boolean a, int b) { return ((a)?1:0) - b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_minus(boolean a, boolean b) { return ((a)?1:0) - ((b)?1:0); }" << endl;
+        *fOut << "private final int java_sub(boolean a, boolean b) { return ((a)?1:0) - ((b)?1:0); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_minus(float a, boolean b) { return a - ((b)?1.f:0.f); }" << endl;
+        *fOut << "private final float java_sub(float a, boolean b) { return a - ((b)?1.f:0.f); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_minus(boolean a, float b) { return ((a)?1.f:0.f) - b; }" << endl;
+        *fOut << "private final float java_sub(boolean a, float b) { return ((a)?1.f:0.f) - b; }" << endl;
         
         tab(n+1, *fOut);
         *fOut << "private final int java_mult(int a, int b) { return a * b; }" << endl;
@@ -304,19 +304,19 @@ void JAVACodeContainer::produceClass()
         *fOut << "private final float java_<<<(boolean a, float b) { return ((a)?1.f:0.f) / b; }" << endl;
        
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(int a, int b) { return a + b; }" << endl;
+        *fOut << "private final int java_add(int a, int b) { return a + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(int a, float b) { return (float)a + b; }" << endl;
+        *fOut << "private final float java_add(int a, float b) { return (float)a + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(float a, int b) { return a + (float)b; }" << endl;
+        *fOut << "private final float java_add(float a, int b) { return a + (float)b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(int a, boolean b) { return a + ((b)?1:0); }" << endl;
+        *fOut << "private final int java_add(int a, boolean b) { return a + ((b)?1:0); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final int java_plus(boolean a, int b) { return ((a)?1:0) + b; }" << endl;
+        *fOut << "private final int java_add(boolean a, int b) { return ((a)?1:0) + b; }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(float a, boolean b) { return a + ((b)?1.f:0.f); }" << endl;
+        *fOut << "private final float java_add(float a, boolean b) { return a + ((b)?1.f:0.f); }" << endl;
         tab(n+1, *fOut);
-        *fOut << "private final float java_plus(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
+        *fOut << "private final float java_add(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
         */
 
        

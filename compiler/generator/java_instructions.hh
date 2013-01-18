@@ -50,8 +50,8 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fBooleanValue(false)
         {
-            fPolyBinOpTable[kAdd] = "java_plus";
-            fPolyBinOpTable[kSub] = "java_minus";
+            fPolyBinOpTable[kAdd] = "java_add";
+            fPolyBinOpTable[kSub] = "java_sub";
             fPolyBinOpTable[kMul] = "java_mult";
             fPolyBinOpTable[kDiv] = "java_div";
             fPolyBinOpTable[kRem] = "java_rem";
@@ -453,9 +453,9 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             // Generate a call to a polymophic cast
             string cast_type = generateType(inst->fType);
             if (cast_type == "int") {
-                *fOut << "castInt("; inst->fInst->accept(this); *fOut << ")";
+                *fOut << "cast_int("; inst->fInst->accept(this); *fOut << ")";
             } else {
-                *fOut << "castFloat("; inst->fInst->accept(this); *fOut << ")";
+                *fOut << "cast_float("; inst->fInst->accept(this); *fOut << ")";
             }
         }
 
@@ -490,7 +490,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(Select2Inst* inst)
         {
-            *fOut << "(castBoolean(";
+            *fOut << "(cast_boolean(";
             inst->fCond->accept(this);
             *fOut << ")?";
             inst->fThen->accept(this);
