@@ -72,7 +72,6 @@ javaswing :
 	install -d javaswingdir
 	$(MAKE) DEST='javaswingdir/' ARCH='java-swing.java' -f Makefile.javacompile
 
-
 json :
 	install -d jsondir
 	$(MAKE) DEST='jsondir/' ARCH='gen-json.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-L$(LIB)/faust/ -lHTTPDFaust' -f Makefile.compile

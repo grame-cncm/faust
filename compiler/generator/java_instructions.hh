@@ -43,12 +43,24 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         bool fFinishLine;
         bool fBooleanValue;
         map <string, string> fMathLibTable;
+        map<int, string> fPolyBinOpTable;
 
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fBooleanValue(false)
         {
+            fPolyBinOpTable[kAdd] = "java_plus";
+            fPolyBinOpTable[kSub] = "java_minus";
+            fPolyBinOpTable[kMul] = "java_mult";
+            fPolyBinOpTable[kDiv] = "java_div";
+            fPolyBinOpTable[kRem] = "java_rem";
+            fPolyBinOpTable[kLsh] = "java_<<<";
+            fPolyBinOpTable[kRsh] = "java_>>>";
+            fPolyBinOpTable[kAND] = "java_and";
+            fPolyBinOpTable[kOR] = "java_or";
+            fPolyBinOpTable[kXOR] = "java_xor";
+
             fMathLibTable["abs"] = "java.lang.Math.abs";
             fMathLibTable["absf"] = "(float)java.lang.Math.abs";
             
@@ -419,11 +431,18 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << ") ? true : false)";
                 fBooleanValue = true;
             } else {
+                /*
                 *fOut << "(";
                 inst->fInst1->accept(this);
                 *fOut << " ";
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+                */
+                *fOut << fPolyBinOpTable[inst->fOpcode] << "(";
+                inst->fInst1->accept(this);
+                *fOut << ", ";
                 inst->fInst2->accept(this);
                 *fOut << ")";
             }

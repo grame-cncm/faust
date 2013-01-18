@@ -179,7 +179,6 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 *fOut << generateType(inst->fType, inst->fAddress->getName()); 
             }
-            
             EndLine();
         }
 
