@@ -468,14 +468,6 @@ void JAVAVectorCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << "}";
 }
 
-// OpenMP
-JAVAOpenMPCodeContainer::JAVAOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :OpenMPCodeContainer( numInputs, numOutputs), JAVACodeContainer(name, super, numInputs, numOutputs, out)
-{}
-
-JAVAOpenMPCodeContainer::~JAVAOpenMPCodeContainer()
-{}
-
 // Works stealing scheduler
 JAVAWorkStealingCodeContainer::JAVAWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
     :JAVACodeContainer(name, super, numInputs, numOutputs, out)

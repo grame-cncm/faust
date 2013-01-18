@@ -156,7 +156,8 @@ void CCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "#ifndef FAUSTCLASS " << endl;
+    tab(n, *fOut); 
+    *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
     *fOut << "#endif" << endl;
 
@@ -397,7 +398,6 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     tab(n, *fOut); *fOut << "}" << endl;
 
     // Compute "compute" declaration
-
     tab(n, *fOut); *fOut << "void " << "compute" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);

@@ -278,7 +278,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DeclareFunInst* inst)
         {
             /*
-                Do not declare Math library functions, the architecture file has to define them in a polymorphic way.
+                Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
             */
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
