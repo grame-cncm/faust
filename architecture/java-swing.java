@@ -293,17 +293,46 @@ class UI {
         //ChangeListener listener = new SliderListener(tf,label);
         JPanel p = new JPanel(); 
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS)); 
-        p.setBorder(new TitledBorder(label+"*1000"));
-        final JSlider s = new JSlider(JSlider.VERTICAL, (int)(min * 1000), (int)(max * 1000), (int)(init * 1000));
+        final JSlider s;
+        
+        if (java.lang.Math.abs(max - min) <= 1) {
+            p.setBorder(new TitledBorder(label+"*100"));
+            s = new JSlider(JSlider.VERTICAL, (int)(min * 100), (int)(max * 100), (int)(init * 100));
+        } else if (java.lang.Math.abs(max - min) <= 10) {
+            p.setBorder(new TitledBorder(label+"*10"));
+            s = new JSlider(JSlider.VERTICAL, (int)(min * 10), (int)(max * 10), (int)(init * 10));
+        } else {
+            p.setBorder(new TitledBorder(label));
+            s = new JSlider(JSlider.VERTICAL, (int)(min), (int)(max), (int)(init));
+        }
+        
+        s.setMajorTickSpacing((int)((max - min)/4));
+        s.setMinorTickSpacing((int)((max - min)/8));
+        s.setPaintTicks(true);
         s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
-        s.addChangeListener(new ChangeListener(){
-                    public void stateChanged(ChangeEvent e){
-                    //System.out.println(s.getValue()/1000.0);
-                    varAccess.set(s.getValue() / 1000.0f);
+        
+        if (java.lang.Math.abs(max - min) <= 1) {
+            s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    varAccess.set(s.getValue()/100);
                 }
             });
+        } else if (java.lang.Math.abs(max - min) <= 10) {
+             s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    varAccess.set(s.getValue()/10);
+                }
+            });
+        } else {
+             s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    varAccess.set(s.getValue());
+                }
+            });
+        }
+
         p.add(Box.createRigidArea(HGAP10)); 
         p.add(s); 
         p.add(Box.createRigidArea(HGAP10)); 
@@ -316,19 +345,50 @@ class UI {
         //ChangeListener listener = new SliderListener(tf,label);
         JPanel p = new JPanel(); 
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS)); 
-        p.setBorder(new TitledBorder(label+"*1000"));
-        final JSlider s = new JSlider(JSlider.HORIZONTAL, (int)(min * 1000), (int)(max * 1000), (int)(init * 1000));
+        p.setBorder(new TitledBorder(label));
+        final JSlider s;
+        
+        if (java.lang.Math.abs(max - min) <= 1) {
+            p.setBorder(new TitledBorder(label+"*100"));
+            s = new JSlider(JSlider.HORIZONTAL, (int)(min * 100), (int)(max * 100), (int)(init * 100));
+        } else if (java.lang.Math.abs(max - min) <= 10) {
+            p.setBorder(new TitledBorder(label+"*10"));
+            s = new JSlider(JSlider.HORIZONTAL, (int)(min * 10), (int)(max * 10), (int)(init * 10));
+        } else {
+            p.setBorder(new TitledBorder(label));
+            s = new JSlider(JSlider.HORIZONTAL, (int)(min), (int)(max), (int)(init));
+        }
+        
+        s.setMajorTickSpacing((int)((max - min)/4));
+        s.setMinorTickSpacing((int)((max - min)/8));
         s.setPaintLabels(true);
+        s.setPaintTicks(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
-        s.addChangeListener(new ChangeListener(){
+          
+        if (java.lang.Math.abs(max - min) <= 1) {
+            s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                        JSlider slider = (JSlider)e.getSource(); 
-                        //System.out.println(s.getValue()/1000.0);
-                        varAccess.set(s.getValue() / 1000.0f);
+                    //System.out.println(s.getValue()/1000.0);
+                    varAccess.set(s.getValue()/100);
                 }
             });
-
+        } else if (java.lang.Math.abs(max - min) <= 10) {
+             s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    //System.out.println(s.getValue()/1000.0);
+                    varAccess.set(s.getValue()/10);
+                }
+            });
+        } else {
+             s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    //System.out.println(s.getValue()/1000.0);
+                    varAccess.set(s.getValue());
+                }
+            });
+        }
+        
         p.add(Box.createRigidArea(VGAP5));
         p.add(s);
         p.add(Box.createRigidArea(VGAP5));
@@ -341,13 +401,19 @@ class UI {
     public void addNumEntry(String label, FaustVarAccess varAccess, float init, float min, float max, float step)
     {
         System.out.println("TODO");
-        addHorizontalSlider(label,varAccess,init,min,max,step);
+        addHorizontalSlider(label, varAccess, init, min, max, step);
     }
     
     // -- passive display widgets
     
-    public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max) {}
-    public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max) {}
+    public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max) 
+    {
+        System.out.println("TODO");
+    }
+    public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max)
+    {
+        System.out.println("TODO");
+    }
 
 }
 
