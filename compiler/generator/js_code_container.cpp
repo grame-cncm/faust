@@ -113,7 +113,7 @@ void JAVAScriptCodeContainer::produceInternal()
             loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
-    tab(n, *fOut); *fOut << "}\n" << endl;
+    tab(n, *fOut); *fOut << "}" << endl;
     
     // Memory methods (as globals)
     tab(n, *fOut); *fOut << "new" << fKlassName << " = function() { "

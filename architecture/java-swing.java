@@ -108,7 +108,7 @@ class Sound {
   
     class PlayThread extends Thread { 
     
-        float inverse_gain = 1.f / 32767.f;
+        float inverse_gain_float = 1.f / 32767.f;
         float inverse_gain_double = 1 / 32767;
         
         float[][] output_float_buffer = new float[my_mydsp.getNumOutputs()][nFrames];
@@ -127,7 +127,7 @@ class Sound {
             int ipos = 0;
             for (int i = 0; i < nFrames; i++) {
                 for(int ch = 0; ch < my_mydsp.getNumInputs(); ch++) {
-                    input_float_buffer[ch][i] = (float)input_wrapped.get(ipos++) * inverse_gain;
+                    input_float_buffer[ch][i] = (float)input_wrapped.get(ipos++) * inverse_gain_float;
                 }
             }
             

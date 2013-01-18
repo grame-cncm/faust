@@ -114,12 +114,15 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             
             fMathLibTable["tanh"] = "java.lang.Math.tanh";
             fMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
+            
+            // Pointer to JAVA okbecjt is actually the object itself...
+            fTypeDirectTable[Typed::kObj_ptr] = "";
         }
 
         virtual ~JAVAInstVisitor()
         {}
 
-        void Tab(int n) {fTab = n;}
+        void Tab(int n) { fTab = n; }
 
         void EndLine()
         {
@@ -132,9 +135,9 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         string createVarAccess(string varname)
         {
             return "new FaustVarAccess() {\n"
-                "\t\t\t\tpublic String getId()       { return \"" + varname + "\"; }\n"
-                "\t\t\t\tpublic void   set(float val){ " + varname + " = val; }\n"
-                "\t\t\t\tpublic float  get()         { return (float)" + varname + "; }\n"
+                "\t\t\t\tpublic String getId() { return \"" + varname + "\"; }\n"
+                "\t\t\t\tpublic void set(float val) { " + varname + " = val; }\n"
+                "\t\t\t\tpublic float get() { return (float)" + varname + "; }\n"
                 "\t\t\t}\n"
                 "\t\t\t";
         }
@@ -213,26 +216,31 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
-                 *fOut << "volatile ";
+            if (inst->fAddress->getAccess() & Address::kGlobal) {
+                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
+                    // If global is not defined
+                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
+                } else {
+                    return;
+                }
             }
 
+            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+                 *fOut << "static ";
+            }
+            
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = ";
-                inst->fValue->accept(this);
-                EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this);
             } else {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = fTypeDirectTable[array_typed->fType->getType()];
-                    //*fOut << "private " << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                     *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                 } else {
-                    //*fOut << "private " << generateType(inst->fType, inst->fAddress->getName());
-                    *fOut  << generateType(inst->fType, inst->fAddress->getName());
+                    *fOut << generateType(inst->fType, inst->fAddress->getName());
                 }
-                EndLine();
             }
+            EndLine();
         }
 
         virtual void visit(RetInst* inst)
@@ -419,7 +427,6 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 inst->fInst2->accept(this);
                 *fOut << ")";
             }
-
         }
 
         virtual void visit(CastNumInst* inst)
@@ -435,20 +442,6 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(FunCallInst* inst)
         {
-            string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            
-            *fOut << java_name << "(";
-            list<ValueInst*>::const_iterator it;
-
-            int size = inst->fArgs.size(), i = 0;
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                // Compile argument
-                (*it)->accept(this);
-                if (i < size - 1) *fOut << ", ";
-            }
-            *fOut << ")";
-            
-            /*
             string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
             
             if (inst->fMethod) {
@@ -472,14 +465,8 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                     (*it)->accept(this);
                     if (i < size - 1) *fOut << ", ";
                 }
-                
             }
             *fOut << ")";
-            // Special case
-            if (inst->fName == "log10f") {
-                *fOut << "/Math.log(10)";
-            }
-            */
         }
 
         virtual void visit(Select2Inst* inst)

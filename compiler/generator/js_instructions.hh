@@ -160,16 +160,19 @@ class JAVAScriptInstVisitor : public InstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
-                 *fOut << "volatile ";
+            if (inst->fAddress->getAccess() & Address::kGlobal) {
+                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
+                    // If global is not defined
+                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
+                } else {
+                    return;
+                }
             }
-            
+   
             string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
 
             if (inst->fValue) {
-                *fOut << prefix << inst->fAddress->getName() << " = ";
-                inst->fValue->accept(this);
-                EndLine();
+                *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
             } else {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
@@ -178,8 +181,8 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 } else {
                     *fOut << prefix << inst->fAddress->getName();
                 }
-                EndLine();
             }
+            EndLine();
         }
 
         virtual void visit(RetInst* inst)

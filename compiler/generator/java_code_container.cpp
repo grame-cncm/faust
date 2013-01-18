@@ -48,7 +48,8 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Java\n");
     } else if (gGlobal->gVectorSwitch) {
-        container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
+        //container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
+        throw faustexception("Vector mode not supported for Java\n");
     } else {
         container = new JAVAScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
@@ -74,7 +75,7 @@ void JAVACodeContainer::produceInternal()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     //generateGlobalDeclarations(&fCodeProducer);
-
+    
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
         tab(n+1, *fOut);
@@ -83,22 +84,6 @@ void JAVACodeContainer::produceInternal()
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
-
-         // Memory methods
-         /*
-        tab(n+1, *fOut); *fOut << fKlassName << "[] " << "new" <<  fKlassName << "() { "
-                            << "return (" << fKlassName << "[]) new "<< fKlassName << "()"
-                            << "; }";
-        */
-        
-        tab(n+1, *fOut); *fOut << fKlassName << " new" <<  fKlassName << "() { "
-                            << "return new "<< fKlassName << "()"
-                            << "; }";
-                            
-        /*
-        tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "[] dsp) { "
-                              << "; }";
-        */
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -118,14 +103,20 @@ void JAVACodeContainer::produceInternal()
         } else {
             tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1[] output) {", counter, ifloat());
         }
-        tab(n+2, *fOut);
-        fCodeProducer.Tab(n+2);
-        generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-        loop->accept(&fCodeProducer);
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateComputeBlock(&fCodeProducer);
+            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+            loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
-    tab(n, *fOut); *fOut << "};\n" << endl;
+    tab(n, *fOut); *fOut << "};" << endl;
+    
+     // Memory methods (as globals)
+    tab(n, *fOut); *fOut << fKlassName << " new" <<  fKlassName << "() { "
+                        << "return new "<< fKlassName << "()"
+                        << "; }";
+    tab(n, *fOut);
 }
 
 void JAVACodeContainer::produceClass()
@@ -222,7 +213,7 @@ void JAVACodeContainer::produceClass()
         produceInfoFunctions(n+1, fKlassName, true);
         
         // Inits
-        tab(n+1, *fOut); *fOut << "static public void classInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "public void classInit(int samplingFreq) {";
             if (fStaticInitInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
