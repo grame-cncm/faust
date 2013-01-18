@@ -294,45 +294,45 @@ class UI {
         JPanel p = new JPanel(); 
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS)); 
         final JSlider s;
+        int factor = 1;
         
         if (java.lang.Math.abs(max - min) <= 1) {
             p.setBorder(new TitledBorder(label+"*100"));
-            s = new JSlider(JSlider.VERTICAL, (int)(min * 100), (int)(max * 100), (int)(init * 100));
+            factor = 100;
         } else if (java.lang.Math.abs(max - min) <= 10) {
             p.setBorder(new TitledBorder(label+"*10"));
-            s = new JSlider(JSlider.VERTICAL, (int)(min * 10), (int)(max * 10), (int)(init * 10));
+            factor = 10;
         } else {
             p.setBorder(new TitledBorder(label));
-            s = new JSlider(JSlider.VERTICAL, (int)(min), (int)(max), (int)(init));
         }
         
-        s.setMajorTickSpacing((int)((max - min)/4));
-        s.setMinorTickSpacing((int)((max - min)/8));
+        s = new JSlider(JSlider.VERTICAL, (int)(min * factor), (int)(max * factor), (int)(init * factor));
+        s.setMajorTickSpacing((int)((max - min)/4) * factor);
+        s.setMinorTickSpacing((int)((max - min)/8) * factor);
         s.setPaintTicks(true);
         s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
-        
-        if (java.lang.Math.abs(max - min) <= 1) {
+        if (factor == 100) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
                     varAccess.set(s.getValue()/100);
                 }
             });
-        } else if (java.lang.Math.abs(max - min) <= 10) {
-             s.addChangeListener(new ChangeListener(){
+        } else if (factor == 10) {
+            s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
                     varAccess.set(s.getValue()/10);
                 }
             });
         } else {
-             s.addChangeListener(new ChangeListener(){
+            s.addChangeListener(new ChangeListener() {
                     public void stateChanged(ChangeEvent e) {
                     varAccess.set(s.getValue());
                 }
             });
         }
-
+     
         p.add(Box.createRigidArea(HGAP10)); 
         p.add(s); 
         p.add(Box.createRigidArea(HGAP10)); 
@@ -347,43 +347,40 @@ class UI {
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS)); 
         p.setBorder(new TitledBorder(label));
         final JSlider s;
+        int factor = 1;
         
         if (java.lang.Math.abs(max - min) <= 1) {
             p.setBorder(new TitledBorder(label+"*100"));
-            s = new JSlider(JSlider.HORIZONTAL, (int)(min * 100), (int)(max * 100), (int)(init * 100));
+            factor = 100;
         } else if (java.lang.Math.abs(max - min) <= 10) {
             p.setBorder(new TitledBorder(label+"*10"));
-            s = new JSlider(JSlider.HORIZONTAL, (int)(min * 10), (int)(max * 10), (int)(init * 10));
+            factor = 10;
         } else {
             p.setBorder(new TitledBorder(label));
-            s = new JSlider(JSlider.HORIZONTAL, (int)(min), (int)(max), (int)(init));
         }
         
-        s.setMajorTickSpacing((int)((max - min)/4));
-        s.setMinorTickSpacing((int)((max - min)/8));
-        s.setPaintLabels(true);
+        s = new JSlider(JSlider.HORIZONTAL, (int)(min * factor), (int)(max * factor), (int)(init * factor));
+        s.setMajorTickSpacing((int)((max - min)/4) * factor);
+        s.setMinorTickSpacing((int)((max - min)/8) * factor);
         s.setPaintTicks(true);
+        s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
-          
-        if (java.lang.Math.abs(max - min) <= 1) {
+        if (factor == 100) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    //System.out.println(s.getValue()/1000.0);
                     varAccess.set(s.getValue()/100);
                 }
             });
-        } else if (java.lang.Math.abs(max - min) <= 10) {
-             s.addChangeListener(new ChangeListener(){
+        } else if (factor == 10) {
+            s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    //System.out.println(s.getValue()/1000.0);
                     varAccess.set(s.getValue()/10);
                 }
             });
         } else {
-             s.addChangeListener(new ChangeListener(){
+            s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
-                    //System.out.println(s.getValue()/1000.0);
                     varAccess.set(s.getValue());
                 }
             });
