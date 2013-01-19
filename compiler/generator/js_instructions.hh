@@ -234,60 +234,39 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 tab(fTab, *fOut);
             }
         }
+        
+        virtual void visit(NamedAddress* named)
+        {
+            *fOut << named->fName;
+        }
+
+        virtual void visit(IndexedAddress* indexed)
+        {
+            indexed->fAddress->accept(this);
+            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
+        }
 
         virtual void visit(LoadVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            string access = "";
-            
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access = "this.";
-
-            if (named) {
-                *fOut << access << named->getName();
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
+            if (inst->fAddress->getAccess() & Address::kStruct) {
+                *fOut << "this.";
             }
+            inst->fAddress->accept(this);
         }
-
-        // TODO : this does not work in JavaScript.
+        
         virtual void visit(LoadVarAddressInst* inst)
         {
+           // Not implemented in JavaScript
             assert(false);
-            /*
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << "&" << named->getName();
-            } else {
-                *fOut << "&" << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
-            */
         }
-
+        
         virtual void visit(StoreVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            string access = "";
-
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access = "this.";
-
-            if (named) {
-                *fOut << access << named->getName() << " = ";
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "] = ";
+            if (inst->fAddress->getAccess() & Address::kStruct) {
+                *fOut << "this.";
             }
-            assert(inst->fValue);
+            inst->fAddress->accept(this);
+            *fOut << " = ";
             inst->fValue->accept(this);
             EndLine();
         }

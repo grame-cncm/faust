@@ -857,8 +857,8 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     assert(load_value1);
 
-    LoadVarInst* load_value2 = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
-        InstBuilder::genNamedAddress(load_value1->fAddress->getName(), access), CS(idx)));
+    LoadVarInst* load_value2 
+        = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(load_value1->fAddress->getName(), access), CS(idx)));
 
     return generateCacheCode(sig, load_value2);
 }

@@ -316,60 +316,32 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
+        virtual void visit(NamedAddress* named)
+        {
+            *fOut << named->fName;
+        }
+
+        virtual void visit(IndexedAddress* indexed)
+        {
+            indexed->fAddress->accept(this);
+            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
+        }
+        
         virtual void visit(LoadVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << named->getName();
-                /*
-                printf("LoadVarInst name %s\n", named->getName().c_str());
-                assert(gGlobal->gVarTable.find(named->getName()) != gGlobal->gVarTable.end());
-                fCurType = gGlobal->gVarTable[named->getName()]->getType();
-                */
-            } else {
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-                /*
-                printf("LoadVarInst indexed name %s\n", indexed->getName().c_str());
-                assert(gGlobal->gVarTable.find(indexed->getName()) != gGlobal->gVarTable.end());
-                fCurType = gGlobal->gVarTable[indexed->getName()]->getType();
-                */
-            }
+            inst->fAddress->accept(this);
         }
-
-        // TODO. This does not work in JAVA.
+     
         virtual void visit(LoadVarAddressInst* inst)
-        {
+        {   
+            // Not implemented in JAVA
             assert(false);
-            /*
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << "&" << named->getName();
-            } else {
-                *fOut << "&" << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
-            */
         }
-
+       
         virtual void visit(StoreVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << named->getName() << " = ";
-            } else {
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "] = ";
-            }
+            inst->fAddress->accept(this);
+            *fOut << " = ";
             inst->fValue->accept(this);
             EndLine();
         }

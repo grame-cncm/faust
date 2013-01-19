@@ -169,10 +169,9 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                  *fOut << "volatile ";
             }
 
+            *fOut << generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); 
-            } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()); 
+                *fOut << " = "; inst->fValue->accept(this); 
             }
             EndLine();
         }
@@ -241,60 +240,42 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
             gGlobal->gGlobalTable[inst->fName] = 1;
         }
+        
+        virtual void visit(NamedAddress* named)
+        {
+            *fOut << named->fName;
+        }
+
+        virtual void visit(IndexedAddress* indexed)
+        {
+            indexed->fAddress->accept(this);
+            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
+        }
 
         virtual void visit(LoadVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string access = "";
-
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access = "dsp->";
-
-            if (named) {
-                *fOut << access << named->getName();
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
+            if (inst->fAddress->getAccess() & Address::kStruct) {
+                *fOut << "dsp->";
             }
+            inst->fAddress->accept(this);
         }
-
+        
         virtual void visit(LoadVarAddressInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string access = "&";
-
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access += "dsp->";
-
-            if (named) {
-                *fOut << access << named->getName();
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
+            *fOut << "&";
+            if (inst->fAddress->getAccess() & Address::kStruct) {
+                *fOut << "dsp->";
             }
+            inst->fAddress->accept(this);
         }
-
+        
         virtual void visit(StoreVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string access = "";
-
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access = "dsp->";
-
-            if (named) {
-                *fOut << access << named->getName() << " = ";
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "] = ";
+            if (inst->fAddress->getAccess() & Address::kStruct) {
+                *fOut << "dsp->";
             }
-            assert(inst->fValue);
+            inst->fAddress->accept(this);
+            *fOut << " = ";
             inst->fValue->accept(this);
             EndLine();
         }

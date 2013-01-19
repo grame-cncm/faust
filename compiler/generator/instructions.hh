@@ -1861,8 +1861,9 @@ struct InstBuilder
         Rit rend (indexBegin);
 
         Address * address = genNamedAddress(vname, Address::kStruct);
-        for (Rit it = rbegin; it != rend; ++it)
+        for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
+        }
 
         return genLoadVarInst(address);
     }
@@ -1897,8 +1898,9 @@ struct InstBuilder
         Rit rend (indexBegin);
 
         Address * address = genNamedAddress(vname, Address::kStruct);
-        for (Rit it = rbegin; it != rend; ++it)
+        for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
+        }
 
         return genStoreVarInst(address, exp);
     }
