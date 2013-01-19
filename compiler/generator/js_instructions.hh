@@ -226,7 +226,13 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
             inst->fValue->accept(this);
             EndLine();
         }
-
+        
+        // No .f syntax for float in JS
+        virtual void visit(FloatNumInst* inst)
+        {
+            *fOut << inst->fNum;
+        }
+     
         virtual void visit(CastNumInst* inst)
         {
             // No explicit cast generation

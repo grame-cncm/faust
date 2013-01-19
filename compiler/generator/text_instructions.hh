@@ -145,7 +145,7 @@ class TextInstVisitor : public InstVisitor {
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << T(inst->fNum);
+            *fOut << inst->fNum;
         }
 
         virtual void visit(BinopInst* inst)

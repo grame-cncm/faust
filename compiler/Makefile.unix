@@ -216,8 +216,9 @@ generator/c_code_container.o: tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/shlysis
 generator/c_code_container.o: signals/signals.hh generator/uitree.hh generator/floats.hh generator/function_builder.hh
 generator/c_code_container.o: global.hh parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
 generator/c_code_container.o: tlib/occurrences.hh parallelize/code_loop.hh generator/fir_to_fir.hh
-generator/c_code_container.o: generator/c_instructions.hh generator/type_manager.hh generator/vec_code_container.hh
-generator/c_code_container.o: generator/omp_code_container.hh generator/wss_code_container.hh errors/exception.hh
+generator/c_code_container.o: generator/c_instructions.hh generator/text_instructions.hh generator/type_manager.hh
+generator/c_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
+generator/c_code_container.o: generator/wss_code_container.hh errors/exception.hh
 generator/code_container.o: generator/code_container.hh generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/code_container.o: tlib/symbol.hh garbageable.hh tlib/property.hh tlib/tree.hh generator/Text.hh
 generator/code_container.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh tlib/num.hh

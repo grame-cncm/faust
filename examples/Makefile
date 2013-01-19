@@ -70,7 +70,7 @@ testmac: caqt puredata maxmsp maxmsp64 csound csounddouble supercollider
 
 javaswing :
 	install -d javaswingdir
-	$(MAKE) DEST='javaswingdir/' ARCH='java-swing.java' -f Makefile.javacompile
+	$(MAKE) DEST='javaswingdir/' ARCH='java-swing.java' EXT='.java' -f Makefile.javacompile
 
 json :
 	install -d jsondir

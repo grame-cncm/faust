@@ -89,7 +89,6 @@ void JAVAScriptCodeContainer::produceInternal()
         produceInfoFunctions(n+1, fKlassName, false);
 
         // Inits
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "this.instanceInit" << fKlassName << " = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
@@ -169,7 +168,6 @@ void JAVAScriptCodeContainer::produceClass()
         produceInfoFunctions(n+1, fKlassName, true);
 
         // Inits
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "this.classInit = function(samplingFreq) {";
             if (fStaticInitInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
