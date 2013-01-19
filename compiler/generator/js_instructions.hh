@@ -47,9 +47,9 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
             fMathLibTable["cosf"] = "Math.cos";
             fMathLibTable["expf"] = "Math.exp";
             fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
+            fMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
             fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "Math.log";
+            fMathLibTable["log10f"] = "function log10(a) { return Math.log(a)/Math.log(10); }";
             fMathLibTable["max"] = "Math.max";
             fMathLibTable["min"] = "Math.min";
             fMathLibTable["powf"] = "Math.pow";
@@ -179,7 +179,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
             }
 
             // Prototype
-            *fOut << "this." <<  fun_name << " = " << "function(";
+            *fOut << "this." << fun_name << " = " << "function(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
@@ -256,11 +256,6 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
                 compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             }
             *fOut << ")";
-            
-            // Special case
-            if (inst->fName == "log10f") {
-                *fOut << "/Math.log(10)";
-            }
         }
 
 };
