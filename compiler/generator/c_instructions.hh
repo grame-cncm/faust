@@ -158,10 +158,6 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
                 *fOut << "static ";
             }
 
-            if (inst->fType->fAttribute & FunTyped::kVirtual) {
-                *fOut << "virtual ";
-            }
-
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;

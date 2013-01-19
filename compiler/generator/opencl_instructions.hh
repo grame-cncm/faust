@@ -147,8 +147,9 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
             }
 
             // Prototype
-            if (inst->fType->fAttribute & FunTyped::kLocal)
+            if (inst->fType->fAttribute & FunTyped::kLocal) {
                  *fOut << "inline ";
+            }
 
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";

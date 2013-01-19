@@ -83,16 +83,10 @@ void JAVAScriptCodeContainer::produceInternal()
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
-
-        // Input method
-        tab(n+1, *fOut); *fOut << "this.getNumInputs = function() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "this.getNumOutputs = function() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        
+        tab(n+1, *fOut);
+        tab(n+1, *fOut);
+        produceInfoFunctions(n+1, fKlassName, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -170,16 +164,9 @@ void JAVAScriptCodeContainer::produceClass()
         }
 
         tab(n+1, *fOut); *fOut << "}" << endl;
-
-        // Input method
-        tab(n+1, *fOut); *fOut << "this.getNumInputs = function() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "this.getNumOutputs = function() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+  
+        tab(n+1, *fOut);
+        produceInfoFunctions(n+1, fKlassName, true);
 
         // Inits
         tab(n+1, *fOut);
@@ -222,6 +209,23 @@ void JAVAScriptCodeContainer::produceClass()
         generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}\n" << endl;
+}
+
+// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
+void JAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
+{
+    // Input/Output method
+    fCodeProducer.Tab(tabs);
+    generateGetInputs(subst("$0::getNumInputs", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("$0::getNumOutputs", classname), true,  isvirtual)->accept(&fCodeProducer);
+
+    // Input Rates
+    fCodeProducer.Tab(tabs);
+    generateGetInputRate(subst("$0::getInputRate", classname), true,  isvirtual)->accept(&fCodeProducer);
+
+    // Output Rates
+    fCodeProducer.Tab(tabs);
+    generateGetOutputRate(subst("$0::getOutputRate", classname), true,  isvirtual)->accept(&fCodeProducer);
 }
 
 void JAVAScriptScalarCodeContainer::generateCompute(int n)

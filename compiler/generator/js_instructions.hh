@@ -170,9 +170,16 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
+            
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+            string fun_name = inst->fName;
+            size_t pos;
+            if ((pos = inst->fName.find("::")) != string::npos) {
+                fun_name = inst->fName.substr(pos + 2); // After the "::"
+            }
 
             // Prototype
-            *fOut << "function " << inst->fName << "(";
+            *fOut << "this." <<  fun_name << " = " << "function(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
