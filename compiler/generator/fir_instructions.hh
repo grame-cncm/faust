@@ -319,95 +319,60 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 // Function body
                 *fOut << ")";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    *fOut << "EndDeclare";
-                    tab(fTab, *fOut);
+                fTab++;
+                tab(fTab, *fOut);
+                inst->fCode->accept(this);
+                fTab--;
+                *fOut << "EndDeclare";
+                tab(fTab, *fOut);
             }
 
             gGlobal->gGlobalTable[inst->fName] = 1;
+        }
+        
+        virtual void visit(NamedAddress* named)
+        {
+            *fOut << named->fName;
         }
 
         virtual void visit(IndexedAddress* indexed)
         {
             indexed->fAddress->accept(this);
-            *fOut << "[";
-            indexed->fIndex->accept(this);
-            *fOut << "]";
+            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
         }
 
         virtual void visit(LoadVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
             if (inst->fSize > 1) {
                 *fOut << "LoadVarInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "LoadVarInst(";
             }
 
-            if (named) {
-                *fOut << named->getName();
-            } else {
-                /*
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-                */
-                *fOut << indexed->getName();
-                indexed->accept(this);
-            }
+            inst->fAddress->accept(this);
             *fOut << ")";
         }
 
         virtual void visit(LoadVarAddressInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
             if (inst->fSize > 1) {
                 *fOut << "LoadVarAddressInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "LoadVarAddressInst(";
             }
-
-            if (named) {
-                *fOut << named->getName();
-            } else {
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
+            inst->fAddress->accept(this);
             *fOut << ")";
         }
 
         virtual void visit(StoreVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
             if (inst->fValue->fSize > 1) {
                 *fOut << "StoreVarInstVec<" << inst->fValue->fSize << ">(";
             } else {
                 *fOut << "StoreVarInst(";
             }
-
-            if (named) {
-                *fOut << named->getName() << ", ";
-            } else {
-                /*
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "], ";
-                */
-                *fOut << indexed->getName();
-                indexed->accept(this);
-                *fOut << " = ";
-            }
-
+            inst->fAddress->accept(this);
+            *fOut << " = ";
             inst->fValue->accept(this);
             *fOut << ")";
             EndLine();
