@@ -24,32 +24,14 @@
 
 using namespace std;
 
-#include <string>
-#include <list>
-#include <set>
-#include <map>
+#include "text_instructions.hh"
 
-#include "instructions.hh"
-#include "type_manager.hh"
-#include "binop.hh"
-#include "Text.hh"
+class CInstVisitor : public TextInstVisitor, public StringTypeManager {
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-class CInstVisitor : public InstVisitor, public StringTypeManager {
-
-    private:
-
-        int fTab;
-        std::ostream* fOut;
-        bool fFinishLine;
-   
     public:
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-            :fTab(tab), fOut(out), fFinishLine(true)
+            :TextInstVisitor(out, tab)
         {
             fTypeDirectTable[Typed::kObj] = structname;
             fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
@@ -57,16 +39,6 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual ~CInstVisitor()
         {}
-
-        void Tab(int n) {fTab = n;}
-
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab(fTab, *fOut);
-            }
-        }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -144,12 +116,6 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             EndLine();
         }
 
-        virtual void visit(LabelInst* inst)
-        {
-            *fOut << inst->fLabel;
-            tab(fTab, *fOut);
-        }
-
         virtual void visit(DeclareVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kGlobal) {
@@ -174,25 +140,6 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << " = "; inst->fValue->accept(this); 
             }
             EndLine();
-        }
-
-        virtual void visit(RetInst* inst)
-        {
-            if (inst->fResult) {
-                *fOut << "return ";
-                inst->fResult->accept(this); 
-            } else {
-                *fOut << "return";
-            }
-            EndLine();
-        }
-
-        virtual void visit(DropInst* inst)
-        {
-            if (inst->fResult) {
-                inst->fResult->accept(this); 
-                EndLine();
-            }
         }
 
         virtual void visit(DeclareFunInst* inst)
@@ -240,18 +187,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
             gGlobal->gGlobalTable[inst->fName] = 1;
         }
-        
-        virtual void visit(NamedAddress* named)
-        {
-            *fOut << named->fName;
-        }
-
-        virtual void visit(IndexedAddress* indexed)
-        {
-            indexed->fAddress->accept(this);
-            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
-        }
-
+   
         virtual void visit(LoadVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kStruct) {
@@ -280,37 +216,6 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             EndLine();
         }
 
-        virtual void visit(FloatNumInst* inst)
-        {
-            *fOut << checkFloat(inst->fNum);
-        }
-
-        virtual void visit(IntNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(BoolNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(DoubleNumInst* inst)
-        {
-            *fOut << T(inst->fNum);
-        }
-
-        virtual void visit(BinopInst* inst)
-        {
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
-        }
-
         virtual void visit(CastNumInst* inst)
         {
             *fOut << "(" << generateType(inst->fType) << ")";
@@ -328,150 +233,6 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 if (i < size - 1) *fOut << ", ";
             }
             *fOut << ")";
-        }
-
-        virtual void visit(Select2Inst* inst)
-        {
-            *fOut << "(";
-            inst->fCond->accept(this);
-            *fOut << "?";
-            inst->fThen->accept(this);
-            *fOut << ":";
-            inst->fElse->accept(this);
-            *fOut << ")";
-        }
-
-        virtual void visit(IfInst* inst)
-        {
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fThen->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            if (inst->fElse->fCode.size() > 0) {
-                *fOut << "} else {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fElse->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-            StoreVarInst* c99_init_inst = NULL;
-
-            if (c99_declare_inst) {
-                InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-
-                // To generate C99 compatible loops...
-                c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt));
-                // C99 loop variable declared outside the loop
-                c99_declare_inst->accept(this);
-            }
-
-            *fOut << "for (";
-                fFinishLine = false;
-                if (c99_declare_inst) {
-                    // C99 loop initialized here
-                    c99_init_inst->accept(this);
-                } else {
-                    // Index already defined
-                    inst->fInit->accept(this);
-                }
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-             *fOut << "}";
-             tab(fTab, *fOut);
-
-             if (c99_declare_inst) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-             }
-        }
-
-        virtual void visit(WhileLoopInst* inst)
-        {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-             *fOut << "}";
-             tab(fTab, *fOut);
-        }
-
-        virtual void visit(BlockInst* inst)
-        {
-            if (inst->fIndent) {
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-            }
-            list<StatementInst*>::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                (*it)->accept(this);
-            }
-            if (inst->fIndent) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(::SwitchInst* inst)
-        {
-            *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                list<pair <int, BlockInst*> >::const_iterator it;
-                for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                    if ((*it).first == -1) { // -1 used to code "default" case
-                        *fOut << "default: {";
-                    } else {
-                        *fOut << "case " << (*it).first << ": {";
-                    }
-                        fTab++;
-                        tab(fTab, *fOut);
-                        ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn()) {
-                            *fOut << "break;";
-                        }
-                        fTab--;
-                        tab(fTab, *fOut);
-                    *fOut << "}";
-                    tab(fTab, *fOut);
-                }
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
         }
 
 };

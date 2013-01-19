@@ -24,23 +24,12 @@
 
 using namespace std;
 
-#include "instructions.hh"
-#include "type_manager.hh"
-#include "binop.hh"
-#include "Text.hh"
+#include "text_instructions.hh"
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
+class JAVAInstVisitor : public TextInstVisitor, public StringTypeManager {
 
     private:
  
-        int fTab;
-        std::ostream* fOut;
-        bool fFinishLine;
         map <string, string> fMathLibTable;
         map<int, string> fPolyBinOpTable;
         Typed::VarType fCurType;
@@ -48,7 +37,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fCurType(Typed::kNoType)
+          :TextInstVisitor(out, tab), StringTypeManager(ifloat(), "[]"), fCurType(Typed::kNoType)
         {
             // Polymorphic arithmetic operations
             fPolyBinOpTable[kAdd] = "java_add";
@@ -134,17 +123,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual ~JAVAInstVisitor()
         {}
-
-        void Tab(int n) { fTab = n; }
-
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab(fTab, *fOut);
-            }
-        }
-
+   
         string createVarAccess(string varname)
         {
             return "new FaustVarAccess() {\n"
@@ -222,10 +201,6 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(LabelInst* inst)
         {
             // Empty
-            /*
-            *fOut << inst->fLabel;
-            tab(fTab, *fOut);
-            */
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -255,25 +230,6 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 }
             }
             EndLine();
-        }
-
-        virtual void visit(RetInst* inst)
-        {
-            if (inst->fResult) {
-                *fOut << "return ";
-                inst->fResult->accept(this); 
-            } else {
-                *fOut << "return";
-            }
-            EndLine();
-        }
-
-        virtual void visit(DropInst* inst)
-        {
-            if (inst->fResult) {
-                inst->fResult->accept(this); 
-                EndLine();
-            }
         }
 
         virtual void visit(DeclareFunInst* inst)
@@ -317,60 +273,36 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        virtual void visit(NamedAddress* named)
-        {
-            *fOut << named->fName;
-        }
-
-        virtual void visit(IndexedAddress* indexed)
-        {
-            indexed->fAddress->accept(this);
-            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
-        }
-        
-        virtual void visit(LoadVarInst* inst)
-        {
-            inst->fAddress->accept(this);
-        }
-     
         virtual void visit(LoadVarAddressInst* inst)
         {   
             // Not implemented in JAVA
             assert(false);
         }
-       
-        virtual void visit(StoreVarInst* inst)
-        {
-            inst->fAddress->accept(this);
-            *fOut << " = ";
-            inst->fValue->accept(this);
-            EndLine();
-        }
-
+   
         virtual void visit(FloatNumInst* inst)
         {
-            *fOut << checkFloat(inst->fNum);
+            TextInstVisitor::visit(inst);
             fCurType = Typed::kFloat;
         }
 
         virtual void visit(IntNumInst* inst)
         {
-            *fOut << inst->fNum;
+            TextInstVisitor::visit(inst);
             fCurType = Typed::kInt;
         }
 
         virtual void visit(BoolNumInst* inst)
         {
-            *fOut << inst->fNum;
+            TextInstVisitor::visit(inst);
             fCurType = Typed::kBool;
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << T(inst->fNum);
+            TextInstVisitor::visit(inst);
             fCurType = Typed::kDouble;
         }
-
+    
         bool isBoolOpcode(int o)
         {
             return o == kGT || o == kLT || o == kLE || o == kEQ || o == kNE;
@@ -508,18 +440,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 fCurType = Typed::kFloat;
             }
         }
-        
-        void compileArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
-        {   
-            list<ValueInst*>::const_iterator it = beg;
-            int i = 0;
-            for (it = beg; it != end; it++, i++) {
-                // Compile argument
-                (*it)->accept(this);
-                if (i < size - 1) *fOut << ", ";
-            }
-        }
-
+    
         virtual void visit(FunCallInst* inst)
         {
             string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
@@ -538,7 +459,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
             *fOut << ")";
         }
-
+  
         virtual void visit(Select2Inst* inst)
         {
             *fOut << "(cast_boolean(";
@@ -549,110 +470,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fElse->accept(this);
             *fOut << ")";
         }
-
-        virtual void visit(IfInst* inst)
-        {
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fThen->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            if (inst->fElse->fCode.size() > 0) {
-                *fOut << "} else {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fElse->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            *fOut << "for (";
-                fFinishLine = false;
-                inst->fInit->accept(this);
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(WhileLoopInst* inst)
-        {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-             *fOut << "}";
-             tab(fTab, *fOut);
-        }
-
-        virtual void visit(BlockInst* inst)
-        {
-            if (inst->fIndent) {
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-            }
-            list<StatementInst*>::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                (*it)->accept(this);
-            }
-            if (inst->fIndent) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(::SwitchInst* inst)
-        {
-            *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                list<pair <int, BlockInst*> >::const_iterator it;
-                for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                    if ((*it).first == -1) { // -1 used to code "default" case
-                        *fOut << "default: {";
-                    } else {
-                         *fOut << "case " << (*it).first << ": {";
-                    }
-                        fTab++;
-                        tab(fTab, *fOut);
-                        ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn()) {
-                            *fOut << "break;";
-                        }
-                        fTab--;
-                        tab(fTab, *fOut);
-                    *fOut << "}";
-                    tab(fTab, *fOut);
-                }
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
+        
 };
 
 #endif

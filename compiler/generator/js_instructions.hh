@@ -24,28 +24,17 @@
 
 using namespace std;
 
-#include "instructions.hh"
-#include "type_manager.hh"
-#include "binop.hh"
-#include "Text.hh"
+#include "text_instructions.hh"
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-class JAVAScriptInstVisitor : public InstVisitor {
+class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
 
     private:
 
-        int fTab;
-        std::ostream* fOut;
-        bool fFinishLine;
         map <string, string> fMathLibTable;
 
     public:
 
-        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):fTab(tab), fOut(out), fFinishLine(true)
+        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, tab)
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
@@ -72,16 +61,6 @@ class JAVAScriptInstVisitor : public InstVisitor {
 
         virtual ~JAVAScriptInstVisitor()
         {}
-
-        void Tab(int n) {fTab = n;}
-
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab(fTab, *fOut);
-            }
-        }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -155,7 +134,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
 
         virtual void visit(LabelInst* inst)
         {
-            // No generation
+            // Empty
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -183,25 +162,6 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 }
             }
             EndLine();
-        }
-
-        virtual void visit(RetInst* inst)
-        {
-            if (inst->fResult) {
-                *fOut << "return ";
-                inst->fResult->accept(this); 
-            } else {
-                *fOut << "return";
-            }
-            EndLine();
-        }
-
-        virtual void visit(DropInst* inst)
-        {
-            if (inst->fResult) {
-                inst->fResult->accept(this); 
-                EndLine();
-            }
         }
 
         virtual void visit(DeclareFunInst* inst)
@@ -234,18 +194,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 tab(fTab, *fOut);
             }
         }
-        
-        virtual void visit(NamedAddress* named)
-        {
-            *fOut << named->fName;
-        }
-
-        virtual void visit(IndexedAddress* indexed)
-        {
-            indexed->fAddress->accept(this);
-            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
-        }
-
+  
         virtual void visit(LoadVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kStruct) {
@@ -271,54 +220,12 @@ class JAVAScriptInstVisitor : public InstVisitor {
             EndLine();
         }
 
-        virtual void visit(FloatNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(IntNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(BoolNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(DoubleNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-        
-        virtual void visit(BinopInst* inst)
-        {
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
-        }
-
         virtual void visit(CastNumInst* inst)
         {
             // No explicit cast generation
             inst->fInst->accept(this);
         }
-        
-        void compileArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
-        {   
-            list<ValueInst*>::const_iterator it = beg;
-            int i = 0;
-            for (it = beg; it != end; it++, i++) {
-                // Compile argument
-                (*it)->accept(this);
-                if (i < size - 1) *fOut << ", ";
-            }
-        }
-      
+       
         virtual void visit(FunCallInst* inst)
         {
             string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
@@ -343,120 +250,6 @@ class JAVAScriptInstVisitor : public InstVisitor {
             }
         }
 
-        virtual void visit(Select2Inst* inst)
-        {
-            *fOut << "(";
-            inst->fCond->accept(this);
-            *fOut << "?";
-            inst->fThen->accept(this);
-            *fOut << ":";
-            inst->fElse->accept(this);
-            *fOut << ")";
-        }
-
-        virtual void visit(IfInst* inst)
-        {
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fThen->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            if (inst->fElse->fCode.size() > 0) {
-                *fOut << "} else {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fElse->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            *fOut << "for (";
-                fFinishLine = false;
-                inst->fInit->accept(this);
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(WhileLoopInst* inst)
-        {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-             *fOut << "}";
-             tab(fTab, *fOut);
-        }
-
-        virtual void visit(BlockInst* inst)
-        {
-            if (inst->fIndent) {
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-            }
-            list<StatementInst*>::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                (*it)->accept(this);
-            }
-            if (inst->fIndent) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(::SwitchInst* inst)
-        {
-            *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                list<pair <int, BlockInst*> >::const_iterator it;
-                for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                    if ((*it).first == -1) { // -1 used to code "default" case
-                        *fOut << "default: {";
-                    } else {
-                         *fOut << "case " << (*it).first << ": {";
-                    }
-                        fTab++;
-                        tab(fTab, *fOut);
-                        ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn()) {
-                            *fOut << "break;";
-                        }
-                        fTab--;
-                        tab(fTab, *fOut);
-                    *fOut << "}";
-                    tab(fTab, *fOut);
-                }
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
 };
 
 #endif
