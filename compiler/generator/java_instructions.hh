@@ -180,6 +180,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "ui_interface.closeBox();"; tab(fTab, *fOut);
         }
+        
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -507,32 +508,33 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 fCurType = Typed::kFloat;
             }
         }
+        
+        void compileArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
+        {   
+            list<ValueInst*>::const_iterator it = beg;
+            int i = 0;
+            for (it = beg; it != end; it++, i++) {
+                // Compile argument
+                (*it)->accept(this);
+                if (i < size - 1) *fOut << ", ";
+            }
+        }
 
         virtual void visit(FunCallInst* inst)
         {
             string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            
+              
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
+                // Compile parameters
                 *fOut << "." << java_name << "(";
-                list<ValueInst*>::const_iterator it1;
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
+                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
             } else {
                 *fOut << java_name << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
+                // Compile parameters
+                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             }
             *fOut << ")";
         }

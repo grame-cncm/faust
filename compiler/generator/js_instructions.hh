@@ -294,12 +294,10 @@ class JAVAScriptInstVisitor : public InstVisitor {
         virtual void visit(BinopInst* inst)
         {
             *fOut << "(";
-            assert(inst->fInst1);
             inst->fInst1->accept(this);
             *fOut << " ";
             *fOut << gBinOpTable[inst->fOpcode]->fName;
             *fOut << " ";
-            assert(inst->fInst2);
             inst->fInst2->accept(this);
             *fOut << ")";
         }
@@ -309,35 +307,36 @@ class JAVAScriptInstVisitor : public InstVisitor {
             // No explicit cast generation
             inst->fInst->accept(this);
         }
+        
+        void compileArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
+        {   
+            list<ValueInst*>::const_iterator it = beg;
+            int i = 0;
+            for (it = beg; it != end; it++, i++) {
+                // Compile argument
+                (*it)->accept(this);
+                if (i < size - 1) *fOut << ", ";
+            }
+        }
       
         virtual void visit(FunCallInst* inst)
         {
             string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            
+                 
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
+                // Compile parameters
                 *fOut << "." << js_name << "(";
-                list<ValueInst*>::const_iterator it1;
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
+                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
             } else {
                 *fOut << js_name << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                
+                // Compile parameters
+                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             }
             *fOut << ")";
+            
             // Special case
             if (inst->fName == "log10f") {
                 *fOut << "/Math.log(10)";

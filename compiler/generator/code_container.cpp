@@ -241,9 +241,9 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         list<NamedTyped*> named_args;
         named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
 
-        list<ValueInst*>::const_iterator it = args.begin();
-        it++;
+        list<ValueInst*>::const_iterator it = args.begin(); it++;
         IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
+        
         assert(arg1);
         assert(arg1->fNum > 0);
 
@@ -312,8 +312,9 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     }
 
     // Keep the non-empty loops in result
-    if (!l->isEmpty())
+    if (!l->isEmpty()) {
         result.push_back(l);
+    }
 }
 
 void CodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index_string)

@@ -108,7 +108,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (!isControl(inst->fAddress->getName())) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
+                    tab(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
         };
@@ -123,7 +123,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (isControl(inst->fAddress->getName())) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
+                    tab(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
 
@@ -274,7 +274,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
         struct OpenCLKernelInstVisitor : public KernelInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -311,7 +311,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // To be used when generating GPU kernel string
         struct ControlOpenCLInstVisitor : public ControlInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -327,7 +327,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // To be used when generating GPU kernel string
         struct DSPOpenCLInstVisitor : public DSPInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -343,7 +343,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";

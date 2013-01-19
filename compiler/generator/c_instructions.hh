@@ -303,12 +303,10 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(BinopInst* inst)
         {
             *fOut << "(";
-            assert(inst->fInst1);
             inst->fInst1->accept(this);
             *fOut << " ";
             *fOut << gBinOpTable[inst->fOpcode]->fName;
             *fOut << " ";
-            assert(inst->fInst2);
             inst->fInst2->accept(this);
             *fOut << ")";
         }
@@ -323,7 +321,6 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << inst->fName << "(";
             list<ValueInst*>::const_iterator it;
-
             int size = inst->fArgs.size(), i = 0;
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                 // Compile argument

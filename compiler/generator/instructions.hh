@@ -1127,7 +1127,7 @@ struct FunCallInst : public ValueInst
 struct DeclareFunInst : public StatementInst
 {
     string fName;
-    FunTyped* fType;
+    FunTyped* fType;     // Describes type of all arguments and function result
     BlockInst* fCode;    // Code is a list of StatementInst*
 
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)

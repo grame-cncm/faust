@@ -47,12 +47,6 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
 
-        virtual void tab1(int n, ostream& fout)
-        {
-            fout << '\n';
-            while (n--) fout << '\t';
-        }
-
     public:
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
@@ -68,7 +62,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         {
             if (fFinishLine) {
                 *fOut << ";";
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             }
         }
 
@@ -80,7 +74,6 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 *fOut << "interface->declare(" << "&" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")";
             }
-
             EndLine();
         }
 
@@ -101,8 +94,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CloseboxInst* inst)
         {
-            *fOut << "interface->closeBox();"; tab1(fTab, *fOut);
+            *fOut << "interface->closeBox();"; tab(fTab, *fOut);
         }
+        
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -152,7 +146,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(LabelInst* inst)
         {
             *fOut << inst->fLabel;
-            tab1(fTab, *fOut);
+            tab(fTab, *fOut);
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -242,12 +236,12 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 // Function body
                 *fOut << ") {";
                     fTab++;
-                    tab1(fTab, *fOut);
+                    tab(fTab, *fOut);
                     inst->fCode->accept(this);
                     fTab--;
-                    tab1(fTab, *fOut);
+                    tab(fTab, *fOut);
                 *fOut << "}";
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             }
             
             gGlobal->gGlobalTable[inst->fName] = 1;
@@ -318,6 +312,17 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << generateType(inst->fType);
             *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
         }
+        
+        void compileArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
+        {   
+            list<ValueInst*>::const_iterator it = beg;
+            int i = 0;
+            for (it = beg; it != end; it++, i++) {
+                // Compile argument
+                (*it)->accept(this);
+                if (i < size - 1) *fOut << ", ";
+            }
+        }
 
         virtual void visit(FunCallInst* inst)
         {
@@ -325,26 +330,15 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
+                // Compile parameters
                 *fOut << "->" << inst->fName << "(";
-                list<ValueInst*>::const_iterator it1;
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                *fOut << ")";
-          } else {
+                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
+            } else {
                 *fOut << inst->fName << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                *fOut << ")";
+                // Compile parameters
+                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             }
+            *fOut << ")";
         }
 
         virtual void visit(Select2Inst* inst)
@@ -364,22 +358,22 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fCond->accept(this);
             *fOut << " {";
                 fTab++;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
                 inst->fThen->accept(this);
                 fTab--;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             if (inst->fElse->fCode.size() > 0) {
                 *fOut << "} else {";
                     fTab++;
-                    tab1(fTab, *fOut);
+                    tab(fTab, *fOut);
                     inst->fElse->accept(this);
                     fTab--;
-                    tab1(fTab, *fOut);
+                    tab(fTab, *fOut);
                 *fOut << "}";
             } else {
                 *fOut << "}";
             }
-            tab1(fTab, *fOut);
+            tab(fTab, *fOut);
         }
 
         virtual void visit(ForLoopInst* inst)
@@ -394,24 +388,24 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 fFinishLine = true;
             *fOut << ") {";
                 fTab++;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 fTab--;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             *fOut << "}";
-            tab1(fTab, *fOut);
+            tab(fTab, *fOut);
         }
 
         virtual void visit(WhileLoopInst* inst)
         {
             *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
                 fTab++;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 fTab--;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
              *fOut << "}";
-             tab1(fTab, *fOut);
+             tab(fTab, *fOut);
         }
 
         virtual void visit(BlockInst* inst)
@@ -419,7 +413,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             if (inst->fIndent) {
                 *fOut << "{";
                 fTab++;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             }
             list<StatementInst*>::const_iterator it;
             for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
@@ -427,9 +421,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             }
             if (inst->fIndent) {
                 fTab--;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
                 *fOut << "}";
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             }
         }
 
@@ -437,7 +431,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
                 fTab++;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
                 list<pair <int, BlockInst*> >::const_iterator it;
                 for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
                     if ((*it).first == -1) { // -1 used to code "default" case
@@ -446,20 +440,20 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                          *fOut << "case " << (*it).first << ": {";
                     }
                         fTab++;
-                        tab1(fTab, *fOut);
+                        tab(fTab, *fOut);
                         ((*it).second)->accept(this);
                         if (!((*it).second)->hasReturn()) {
                             *fOut << "break;";
                         }
                         fTab--;
-                        tab1(fTab, *fOut);
+                        tab(fTab, *fOut);
                     *fOut << "}";
-                    tab1(fTab, *fOut);
+                    tab(fTab, *fOut);
                 }
                 fTab--;
-                tab1(fTab, *fOut);
+                tab(fTab, *fOut);
             *fOut << "}";
-            tab1(fTab, *fOut);
+            tab(fTab, *fOut);
         }
 
 };
