@@ -644,7 +644,7 @@ with {
 //
 tf1s(b1,b0,a0,w1) = tf1(b0d,b1d,a1d)
 with {
-  c   = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
+  c   = 1/tan(w1*0.5/SR); // bilinear-transform scale-factor
   d   = a0 + c;
   b1d = (b0 - b1*c) / d;
   b0d = (b0 + b1*c) / d;
@@ -1317,7 +1317,7 @@ with {
 
 // fourth-order allpass delay in [3.5,4.5]
 // delay d should be at least 3.5
-fdelay4a(n,d,x) = delay(n,id,x) : tf4(a4,a3,a2,a1,1,a1,a2,a3,a4)
+fdelay4a(n,d,x) = delay(n,id,x) : iir((a4,a3,a2,a1,1),(a1,a2,a3,a4))
 with {
   o = 3.49999;
   dmo = d - o;
