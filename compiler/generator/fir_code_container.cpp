@@ -26,27 +26,27 @@ using namespace std;
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new FirScalarCodeContainer(0, 1, sub_container_type, false);
+    return new FirScalarCodeContainer(name, 0, 1, sub_container_type, false);
 }
 
-CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs, bool top_level)
+CodeContainer* FirCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, bool top_level)
 {
     CodeContainer* container;
 
     if (gGlobal->gOpenMPSwitch) {
-        container = new FirOpenMPCodeContainer(numInputs, numOutputs, top_level);
+        container = new FirOpenMPCodeContainer(name, numInputs, numOutputs, top_level);
     } else if (gGlobal->gSchedulerSwitch) {
-        container = new FirWorkStealingCodeContainer(numInputs, numOutputs, top_level);
+        container = new FirWorkStealingCodeContainer(name,numInputs, numOutputs, top_level);
     } else if (gGlobal->gVectorSwitch) {
-        container = new FirVectorCodeContainer(numInputs, numOutputs, top_level);
+        container = new FirVectorCodeContainer(name,numInputs, numOutputs, top_level);
     } else {
-        container = new FirScalarCodeContainer(numInputs, numOutputs, kInt, top_level);
+        container = new FirScalarCodeContainer(name,numInputs, numOutputs, kInt, top_level);
     }
 
     return container;
 }
 
-void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst)
+void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Subclasses
     list<CodeContainer*>::const_iterator it;
@@ -84,7 +84,16 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
         fDeclarationInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
-
+    
+    generateGetInputs(subst("$0::getNumInputs", fKlassName), true, true)->accept(&firvisitor);
+    *dst << std::endl;
+    generateGetOutputs(subst("$0::getNumOutputs", fKlassName), true, true)->accept(&firvisitor);
+    *dst << std::endl;
+    generateGetInputRate(subst("$0::getInputRate", fKlassName), true, true)->accept(&firvisitor);
+    *dst << std::endl;
+    generateGetOutputRate(subst("$0::getOutputRate", fKlassName), true, true)->accept(&firvisitor);
+    *dst << std::endl;
+ 
     if (fInitInstructions->fCode.size() > 0) {
         *dst << "======= Init ==========" << std::endl;
         *dst << std::endl;
@@ -114,7 +123,7 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
     }
 }
 
-void FirCodeContainer::dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst)
+void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
@@ -162,6 +171,8 @@ void FirCodeContainer::dumpMemory(ostream* dst)
 void FirCodeContainer::dump(ostream* dst)
 {
     FIRInstVisitor firvisitor(dst);
+    *dst << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
+    *dst << std::endl;
     dumpGlobalsAndInit(firvisitor, dst);
     dumpThread(firvisitor, dst);
     dumpComputeBlock(firvisitor, dst);
@@ -173,7 +184,7 @@ void FirCodeContainer::dump(ostream* dst)
     dst->flush();
 }
 
-void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     *dst << "======= Compute DSP ==========" << std::endl;
     *dst << std::endl;
@@ -199,7 +210,7 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
     }
 }
 
-void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Generate it
     fGlobalLoopBlock->accept(&firvisitor);
@@ -214,7 +225,7 @@ void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
     }
 }
 
-void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {

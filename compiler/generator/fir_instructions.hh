@@ -295,19 +295,29 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DeclareFunInst* inst)
         {
             if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
-                return;  // already declared
+                return;  // Already declared
             }
-
+       
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
+            
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+            string fun_name = inst->fName;
+            size_t pos;
+            if ((pos = inst->fName.find("::")) != string::npos) {
+                fun_name = inst->fName.substr(pos + 2); // After the "::"
+            }
 
             // Prototype
             *fOut << "DeclareFunInst(";
-            *fOut << generateType(inst->fType->fResult, "\"" + inst->fName + "\", ");
-            list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
+            *fOut << generateType(inst->fType->fResult, "\"" + fun_name + "\"");
+            if (size > 0) { // Has more arguments...
+                *fOut << ", ";
+            } 
+            list<NamedTyped*>::const_iterator it;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 *fOut << generateType((*it));
                 if (i < size - 1) *fOut << ", ";

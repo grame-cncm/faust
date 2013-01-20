@@ -635,7 +635,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         } else if (strcmp(gOutputLang, "fir") == 0) {
        
-            container = FirCodeContainer::createContainer(numInputs, numOutputs, true);
+            container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
 
             if (gGlobal->gVectorSwitch) {
                 comp = new DAGInstructionsCompiler(container);

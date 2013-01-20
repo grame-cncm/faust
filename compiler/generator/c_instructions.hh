@@ -231,7 +231,7 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
             *fOut << ")";
         }
         
-         virtual void visit(ForLoopInst* inst)
+        virtual void visit(ForLoopInst* inst)
         {
             DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
             StoreVarInst* c99_init_inst = NULL;
