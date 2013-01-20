@@ -294,7 +294,10 @@ class UI {
         final JSlider s;
         int factor = 1;
         
-        if (java.lang.Math.abs(max - min) <= 1) {
+        if (java.lang.Math.abs(max - min) <= 0.1) {
+            p.setBorder(new TitledBorder(label+"*1000"));
+            factor = 1000;
+        } else if (java.lang.Math.abs(max - min) <= 1) {
             p.setBorder(new TitledBorder(label+"*100"));
             factor = 100;
         } else if (java.lang.Math.abs(max - min) <= 10) {
@@ -311,7 +314,13 @@ class UI {
         s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
-        if (factor == 100) {
+        if (factor == 1000) {
+            s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    varAccess.set((float)s.getValue()/1000.f);
+                }
+            });
+        } else if (factor == 100) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
                     varAccess.set((float)s.getValue()/100.f);
@@ -347,7 +356,10 @@ class UI {
         final JSlider s;
         int factor = 1;
         
-        if (java.lang.Math.abs(max - min) <= 1) {
+        if (java.lang.Math.abs(max - min) <= 0.1) {
+            p.setBorder(new TitledBorder(label+"*1000"));
+            factor = 1000;
+        } else if (java.lang.Math.abs(max - min) <= 1) {
             p.setBorder(new TitledBorder(label+"*100"));
             factor = 100;
         } else if (java.lang.Math.abs(max - min) <= 10) {
@@ -356,7 +368,7 @@ class UI {
         } else {
             p.setBorder(new TitledBorder(label));
         }
-        
+     
         s = new JSlider(JSlider.HORIZONTAL, (int)(min * factor), (int)(max * factor), (int)(init * factor));
         s.setMajorTickSpacing((int)((max - min) * factor / 4));
         s.setMinorTickSpacing((int)((max - min) * factor / 8));
@@ -364,7 +376,13 @@ class UI {
         s.setPaintLabels(true);
         s.getAccessibleContext().setAccessibleName(label);
         s.getAccessibleContext().setAccessibleDescription(label);
-        if (factor == 100) {
+        if (factor == 1000) {
+            s.addChangeListener(new ChangeListener(){
+                    public void stateChanged(ChangeEvent e) {
+                    varAccess.set((float)s.getValue()/1000.f);
+                }
+            });
+        } else if (factor == 100) {
             s.addChangeListener(new ChangeListener(){
                     public void stateChanged(ChangeEvent e) {
                     varAccess.set((float)s.getValue()/100.f);
@@ -377,7 +395,7 @@ class UI {
                 }
             });
         } else {
-            s.addChangeListener(new ChangeListener(){
+            s.addChangeListener(new ChangeListener() {
                     public void stateChanged(ChangeEvent e) {
                     varAccess.set((float)s.getValue());
                 }

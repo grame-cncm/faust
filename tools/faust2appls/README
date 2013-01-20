@@ -36,6 +36,8 @@ faust2vst  <file.dsp>...  	: create a VST plugin for each input file
 
 faust2javaswing  <file.dsp>...  : create a JAVA Swing application for each input file
 
+faust2webaudio  <file.dsp>...   : create a HTML/WebAudioAPI (with JavaScript node) application for each input file
+
 
 2) The following scripts can be used to generate block diagrams
 
