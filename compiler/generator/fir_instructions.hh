@@ -211,11 +211,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "AddNumEntry"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " <<  inst->fMax << ", " << inst->fStep << ")";
-
+            }
             EndLine();
         }
 
@@ -228,10 +228,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "AddVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            }
             EndLine();
         }
 
@@ -257,11 +258,10 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                  *fOut << "volatile ";
             }
 
+            *fOut << generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << ", "; inst->fValue->accept(this);
-            } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName());
-            }
+                *fOut << ", "; inst->fValue->accept(this);
+            } 
             *fOut << ")";
             EndLine();
         }
@@ -358,7 +358,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 *fOut << "LoadVarInst(";
             }
-
             inst->fAddress->accept(this);
             *fOut << ")";
         }

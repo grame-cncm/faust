@@ -508,11 +508,11 @@ struct ArrayTyped : public Typed {
 
 struct StructTyped : public Typed {
 
-    string fName;
     Typed* fType;
-
+    string fName;
+  
     StructTyped(const string& name, Typed* type)
-        :fName(name), fType(type)
+        :fType(type), fName(name)
     {}
     
     virtual ~StructTyped()

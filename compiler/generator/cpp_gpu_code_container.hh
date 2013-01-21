@@ -74,10 +74,11 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     case AddSliderInst::kNumEntry:
                         name = "interface->addNumEntry"; break;
                 }
-                if (strcmp(ifloat(), "float") == 0)
+                if (strcmp(ifloat(), "float") == 0) {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-                else
+                } else {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+                }
                 EndLine();
             }
 
@@ -90,10 +91,11 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     case AddBargraphInst::kVertical:
                         name = "interface->addVerticalBargraph"; break;
                 }
-                if (strcmp(ifloat(), "float") == 0)
+                if (strcmp(ifloat(), "float") == 0) {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-                else
+                } else {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+                }
                 EndLine();
             }
         };
@@ -171,8 +173,9 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
 
                 // Special treatment for "fSamplingFreq" variable
-                if (named && named->getName() == "fSamplingFreq")
+                if (named && named->getName() == "fSamplingFreq") {
                     named->setAccess(Address::kStruct);
+                }
 
                 if (named) {
                     if (named->getAccess() == Address::kStruct) {
@@ -449,27 +452,16 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
             virtual void visit(DeclareVarInst* inst)
             {
-                /*
-                if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (gGlobal->gSymbolGlobalsTable.find(inst->fAddress->getName()) == gGlobal->gSymbolGlobalsTable.end()) {
-                        // If global is not defined
-                        gGlobal->gSymbolGlobalsTable[inst->fAddress->getName()] = 1;
-                    } else {
-                        return;
-                    }
-                }
-                */
-
                 if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-                     *fOut << "static ";
+                    *fOut << "static ";
                 }
 
                 if (inst->fAddress->getAccess() & Address::kVolatile) {
-                     *fOut << "volatile ";
+                    *fOut << "volatile ";
                 }
 
                 if (inst->fAddress->getAccess() & Address::kStack) {
-                     *fOut << "__shared__ ";
+                    *fOut << "__shared__ ";
                 }
 
                 *fOut << generateType(inst->fType, inst->fAddress->getName());
