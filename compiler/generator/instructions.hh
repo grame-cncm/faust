@@ -2113,7 +2113,7 @@ struct InstBuilder
  */
 struct FIRIndex
 {
-    /* explicit constructors in order to avoid the generation implicit conversions */
+    /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst * inst):
         fValue(inst)
     {}
@@ -2223,7 +2223,7 @@ Opcode := + | - | * | / |...etc...
 
 Access := kGlobal | kStruct | kStaticStruct | kFunArgs | kStack | kLoop
 
-Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size)  si size = 0, then equivalent to a pointer on the type
+Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size) if size = 0, then equivalent to a pointer on the considered type
 
 Address := Access name | Address index
 
@@ -2246,7 +2246,6 @@ Code rewritting :
 For WSS:
 
 1) change access of variable of type kStack in kStruct
-
 
 Loop to function rewritting (faster compilation ?):
 
@@ -2306,6 +2305,3 @@ TODO : gestion des indices de boucles:
  - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop
 
 */
-
-
-

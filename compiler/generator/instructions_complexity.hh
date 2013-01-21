@@ -60,8 +60,7 @@ class InstComplexityVisitor : public InstVisitor {
 
         virtual void visit(Printable* inst) {}
 
-        virtual void visit(DeclareVarInst* inst)
-            { fDeclare++; inst->fValue->accept(this); }
+        virtual void visit(DeclareVarInst* inst) { fDeclare++; inst->fValue->accept(this); }
         virtual void visit(DeclareFunInst* inst) {}
 
         virtual void visit(LoadVarInst* inst) { fLoad++; }

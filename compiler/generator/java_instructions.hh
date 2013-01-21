@@ -37,7 +37,7 @@ class JAVAInstVisitor : public TextInstVisitor, public StringTypeManager {
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :TextInstVisitor(out, tab), StringTypeManager(ifloat(), "[]"), fCurType(Typed::kNoType)
+          :TextInstVisitor(out, ".", tab), StringTypeManager(ifloat(), "[]"), fCurType(Typed::kNoType)
         {
             // Polymorphic arithmetic operations
             fPolyBinOpTable[kAdd] = "java_add";
@@ -443,21 +443,8 @@ class JAVAInstVisitor : public TextInstVisitor, public StringTypeManager {
     
         virtual void visit(FunCallInst* inst)
         {
-            string java_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-              
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this);
-                // Compile parameters
-                *fOut << "." << java_name << "(";
-                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
-            } else {
-                *fOut << java_name << "(";
-                // Compile parameters
-                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
-            }
-            *fOut << ")";
+            string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            generateFunCall(inst, fun_name);
         }
   
         virtual void visit(Select2Inst* inst)

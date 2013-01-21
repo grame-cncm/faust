@@ -34,7 +34,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
 
     public:
 
-        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, tab)
+        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, ".", tab)
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
@@ -201,32 +201,21 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
                 tab(fTab, *fOut);
             }
         }
-  
-        virtual void visit(LoadVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() & Address::kStruct) {
+        
+        virtual void visit(NamedAddress* named)
+        {   
+            if (named->getAccess() & Address::kStruct) {
                 *fOut << "this.";
             }
-            inst->fAddress->accept(this);
+            *fOut << named->fName;
         }
-        
+  
         virtual void visit(LoadVarAddressInst* inst)
         {
            // Not implemented in JavaScript
             assert(false);
         }
-        
-        virtual void visit(StoreVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() & Address::kStruct) {
-                *fOut << "this.";
-            }
-            inst->fAddress->accept(this);
-            *fOut << " = ";
-            inst->fValue->accept(this);
-            EndLine();
-        }
-        
+                
         // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
@@ -241,21 +230,8 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
        
         virtual void visit(FunCallInst* inst)
         {
-            string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-                 
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this);
-                // Compile parameters
-                *fOut << "." << js_name << "(";
-                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
-            } else {
-                *fOut << js_name << "(";
-                // Compile parameters
-                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
-            }
-            *fOut << ")";
+            string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            generateFunCall(inst, fun_name);
         }
 
 };

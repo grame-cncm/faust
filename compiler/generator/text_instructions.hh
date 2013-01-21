@@ -46,11 +46,12 @@ class TextInstVisitor : public InstVisitor {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
+        string fObjectAccess;
 
     public:
 
-        TextInstVisitor(std::ostream* out, int tab = 0)
-            :fTab(tab), fOut(out), fFinishLine(true)
+        TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
+            :fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
         {}
 
         virtual ~TextInstVisitor()
@@ -170,6 +171,23 @@ class TextInstVisitor : public InstVisitor {
                 (*it)->accept(this);
                 if (i < size - 1) *fOut << ", ";
             }
+        }
+        
+        void generateFunCall(FunCallInst* inst, const string& fun_name)
+        {
+            if (inst->fMethod) {
+                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+                // Compile object arg
+                (*it)->accept(this);
+                // Compile parameters
+                *fOut << fObjectAccess << fun_name << "(";
+                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
+            } else {
+                *fOut << fun_name << "(";
+                // Compile parameters
+                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            }
+            *fOut << ")";
         }
 
         virtual void visit(FunCallInst* inst) { assert(false); }

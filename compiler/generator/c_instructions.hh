@@ -31,7 +31,7 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
     public:
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-            :TextInstVisitor(out, tab)
+            :TextInstVisitor(out, "->", tab)
         {
             fTypeDirectTable[Typed::kObj] = structname;
             fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
@@ -183,35 +183,20 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
 
             gGlobal->gGlobalTable[inst->fName] = 1;
         }
-   
-        virtual void visit(LoadVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() & Address::kStruct) {
+        
+        virtual void visit(NamedAddress* named)
+        {   
+            if (named->getAccess() & Address::kStruct) {
                 *fOut << "dsp->";
             }
-            inst->fAddress->accept(this);
+            *fOut << named->fName;
         }
-        
+      
         virtual void visit(LoadVarAddressInst* inst)
         {
-            *fOut << "&";
-            if (inst->fAddress->getAccess() & Address::kStruct) {
-                *fOut << "dsp->";
-            }
-            inst->fAddress->accept(this);
+            *fOut << "&"; inst->fAddress->accept(this);
         }
-        
-        virtual void visit(StoreVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() & Address::kStruct) {
-                *fOut << "dsp->";
-            }
-            inst->fAddress->accept(this);
-            *fOut << " = ";
-            inst->fValue->accept(this);
-            EndLine();
-        }
-
+  
         virtual void visit(CastNumInst* inst)
         {
             *fOut << "(" << generateType(inst->fType) << ")";
@@ -221,13 +206,7 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
         virtual void visit(FunCallInst* inst)
         {
             *fOut << inst->fName << "(";
-            list<ValueInst*>::const_iterator it;
-            int size = inst->fArgs.size(), i = 0;
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                // Compile argument
-                (*it)->accept(this);
-                if (i < size - 1) *fOut << ", ";
-            }
+            compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
         }
         

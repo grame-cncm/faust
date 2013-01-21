@@ -462,8 +462,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 string fun_name = (inst->fMethod) ? "MethodFunCallInstVec<" : "FunCallInstVec<";
                 *fOut << fun_name << inst->fSize << ">(";
             } else {
-                string fun_name = (inst->fMethod) ? "MethodFunCallInst" : "FunCallInst";
-                *fOut << "FunCallInst(";
+                string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
+                *fOut << fun_name;
             }
 
             *fOut << "\"" <<inst->fName << "\"";

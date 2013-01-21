@@ -35,7 +35,7 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
     public:
 
         OpenCLInstVisitor(std::ostream* out, int tab = 0)
-            :TextInstVisitor(out, tab)
+            :TextInstVisitor(out, "->", tab)
         {}
 
         virtual ~OpenCLInstVisitor()
@@ -190,19 +190,7 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
         
         virtual void visit(FunCallInst* inst)
         {
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this);
-                // Compile parameters
-                *fOut << "->" << inst->fName << "(";
-                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
-            } else {
-                *fOut << inst->fName << "(";
-                // Compile parameters
-                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
-            }
-            *fOut << ")";
+            generateFunCall(inst, inst->fName);
         }
 
 };
