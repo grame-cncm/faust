@@ -26,7 +26,7 @@ using namespace std;
 
 #include "text_instructions.hh"
 
-class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
+class OpenCLInstVisitor : public TextInstVisitor {
 
     private:
 
@@ -65,6 +65,7 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
         {
             *fOut << "interface->closeBox();"; tab(fTab, *fOut);
         }
+        
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -101,14 +102,14 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "interface->addVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            }
             EndLine();
         }
 
-      
         virtual void visit(DeclareVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kGlobal) {
@@ -128,11 +129,11 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
                  *fOut << "volatile ";
             }
 
+            *fOut << generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
-            } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
+                *fOut << " = "; inst->fValue->accept(this); 
             }
+            EndLine();
         }
 
         virtual void visit(DeclareFunInst* inst)
@@ -152,28 +153,9 @@ class OpenCLInstVisitor : public TextInstVisitor, public StringTypeManager {
             }
 
             *fOut << generateType(inst->fType->fResult, inst->fName);
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl; ;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
+      
             fGlobalTable[inst->fName] = 1;
         }
 

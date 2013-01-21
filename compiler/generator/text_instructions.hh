@@ -24,22 +24,16 @@
 
 using namespace std;
 
-#include <string>
-#include <list>
-#include <set>
-#include <map>
-
 #include "instructions.hh"
 #include "type_manager.hh"
-#include "binop.hh"
 #include "Text.hh"
-#include "global.hh"
 
+#include <string>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 
-class TextInstVisitor : public InstVisitor {
+class TextInstVisitor : public InstVisitor, public StringTypeManager {
 
     protected:
 
@@ -162,7 +156,18 @@ class TextInstVisitor : public InstVisitor {
 
         virtual void visit(CastNumInst* inst) { assert(false); }
         
-        void compileArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
+        virtual string generateFunName(const string& name)
+        {   
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+            size_t pos;
+            if ((pos = name.find("::")) != string::npos) {
+                return name.substr(pos + 2); // After the "::"
+            } else {
+                return name;
+            }
+        }
+        
+        virtual void generateFunArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
         {   
             list<ValueInst*>::const_iterator it = beg;
             int i = 0;
@@ -173,7 +178,35 @@ class TextInstVisitor : public InstVisitor {
             }
         }
         
-        void generateFunCall(FunCallInst* inst, const string& fun_name)
+        virtual void generateFunDefArgs(DeclareFunInst* inst)
+        {
+            *fOut << "(";
+            list<NamedTyped*>::const_iterator it;
+            int size = inst->fType->fArgsTypes.size(), i = 0;
+            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
+                *fOut << generateType((*it));
+                if (i < size - 1) *fOut << ", ";
+            }
+        }
+        
+        virtual void generateFunDefBody(DeclareFunInst* inst)
+        {
+            if (inst->fCode->fCode.size() == 0) {
+                *fOut << ");" << endl;  // Pure prototype
+            } else {
+                // Function body
+                *fOut << ") {";
+                    fTab++;
+                    tab(fTab, *fOut);
+                    inst->fCode->accept(this);
+                    fTab--;
+                    tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+            }
+        }
+        
+        virtual void generateFunCall(FunCallInst* inst, const string& fun_name)
         {
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
@@ -181,11 +214,11 @@ class TextInstVisitor : public InstVisitor {
                 (*it)->accept(this);
                 // Compile parameters
                 *fOut << fObjectAccess << fun_name << "(";
-                compileArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
+                generateFunArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
             } else {
                 *fOut << fun_name << "(";
                 // Compile parameters
-                compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+                generateFunArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             }
             *fOut << ")";
         }

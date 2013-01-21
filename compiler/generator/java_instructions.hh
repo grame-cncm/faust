@@ -26,7 +26,7 @@ using namespace std;
 
 #include "text_instructions.hh"
 
-class JAVAInstVisitor : public TextInstVisitor, public StringTypeManager {
+class JAVAInstVisitor : public TextInstVisitor {
 
     private:
  
@@ -37,8 +37,11 @@ class JAVAInstVisitor : public TextInstVisitor, public StringTypeManager {
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :TextInstVisitor(out, ".", tab), StringTypeManager(ifloat(), "[]"), fCurType(Typed::kNoType)
+          :TextInstVisitor(out, ".", tab), fCurType(Typed::kNoType)
         {
+            fPtrPosfix = "[]";
+            fillTypeDirectTable(ifloat(), ifloat() + fPtrPosfix);
+            
             // Polymorphic arithmetic operations
             fPolyBinOpTable[kAdd] = "java_add";
             fPolyBinOpTable[kSub] = "java_sub";
@@ -234,43 +237,15 @@ class JAVAInstVisitor : public TextInstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            /*
-                Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
-            */
+            // Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
             
-            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
-            string fun_name = inst->fName;
-            size_t pos;
-            if ((pos = inst->fName.find("::")) != string::npos) {
-                fun_name = inst->fName.substr(pos + 2); // After the "::"
-            }
-            
             // Prototype
-            *fOut << generateType(inst->fType->fResult, fun_name);
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
+            *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
         }
 
         virtual void visit(LoadVarAddressInst* inst)

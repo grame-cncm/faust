@@ -26,7 +26,7 @@ using namespace std;
 
 #include "text_instructions.hh"
 
-class CInstVisitor : public TextInstVisitor, public StringTypeManager {
+class CInstVisitor : public TextInstVisitor {
 
     public:
 
@@ -159,28 +159,9 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
             }
 
             *fOut << generateType(inst->fType->fResult, inst->fName);
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
+      
             gGlobal->gGlobalTable[inst->fName] = 1;
         }
         
@@ -206,7 +187,7 @@ class CInstVisitor : public TextInstVisitor, public StringTypeManager {
         virtual void visit(FunCallInst* inst)
         {
             *fOut << inst->fName << "(";
-            compileArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            generateFunArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
         }
         

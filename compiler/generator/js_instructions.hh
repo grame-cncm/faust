@@ -26,7 +26,7 @@ using namespace std;
 
 #include "text_instructions.hh"
 
-class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
+class JAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
 
@@ -163,43 +163,41 @@ class JAVAScriptInstVisitor : public TextInstVisitor, public StringTypeManager {
             }
             EndLine();
         }
-
-        virtual void visit(DeclareFunInst* inst)
+        
+        virtual void generateFunArgs(DeclareFunInst* inst)
         {
-            // Do not declare Math library functions
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-                return;
-            }
-            
-            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
-            string fun_name = inst->fName;
-            size_t pos;
-            if ((pos = inst->fName.find("::")) != string::npos) {
-                fun_name = inst->fName.substr(pos + 2); // After the "::"
-            }
-
-            // Prototype
-            *fOut << "this." << fun_name << " = " << "function(";
+            *fOut << "(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 *fOut << (*it)->fName;
                 if (i < size - 1) *fOut << ", ";
             }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
+        }
+  
+  
+        virtual void generateFunDefArgs(DeclareFunInst* inst)
+        {
+            *fOut << "(";
+            list<NamedTyped*>::const_iterator it;
+            int size = inst->fType->fArgsTypes.size(), i = 0;
+            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
+                *fOut << (*it)->fName;
+                if (i < size - 1) *fOut << ", ";
             }
+        }
+        
+        virtual void visit(DeclareFunInst* inst)
+        {
+            // Do not declare Math library functions
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                return;
+            }
+        
+            // Prototype
+            *fOut << "this." << generateFunName(inst->fName) << " = " << "function";
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
         }
         
         virtual void visit(NamedAddress* named)

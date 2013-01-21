@@ -27,7 +27,7 @@ using namespace std;
 #include "text_instructions.hh"
 #include "type_manager.hh"
 
-class CPPInstVisitor : public TextInstVisitor, public StringTypeManager {
+class CPPInstVisitor : public TextInstVisitor {
 
     public:
 
@@ -152,13 +152,6 @@ class CPPInstVisitor : public TextInstVisitor, public StringTypeManager {
                 return;
             }
 
-            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
-            string fun_name = inst->fName;
-            size_t pos;
-            if ((pos = inst->fName.find("::")) != string::npos) {
-                fun_name = inst->fName.substr(pos + 2); // After the "::"
-            }
-
             // Prototype arguments
             if (inst->fType->fAttribute & FunTyped::kLocal) {
                 *fOut << " ";
@@ -169,28 +162,9 @@ class CPPInstVisitor : public TextInstVisitor, public StringTypeManager {
             }
             
             // Prototype
-            *fOut << generateType(inst->fType->fResult, fun_name);
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl; ;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
+            *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
             
             gGlobal->gGlobalTable[inst->fName] = 1;
         }
