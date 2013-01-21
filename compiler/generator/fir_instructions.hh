@@ -294,7 +294,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
+            if (gGlobal->gSymbolGlobalsTable.find(inst->fName) != gGlobal->gSymbolGlobalsTable.end()) {
                 return;  // Already declared
             }
        
@@ -303,7 +303,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 return;
             }
             
-            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print "name"
             string fun_name = inst->fName;
             size_t pos;
             if ((pos = inst->fName.find("::")) != string::npos) {
@@ -337,7 +337,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 tab(fTab, *fOut);
             }
 
-            gGlobal->gGlobalTable[inst->fName] = 1;
+            gGlobal->gSymbolGlobalsTable[inst->fName] = 1;
         }
         
         virtual void visit(NamedAddress* named)

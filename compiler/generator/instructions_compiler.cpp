@@ -646,8 +646,9 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     fContainer->addIncludeFile(ffincfile(ff));
 	fContainer->addLibrary(fflibfile(ff));
-
+    
     string funname = ffname(ff);
+   
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
     FunTyped* fun_type;
@@ -655,16 +656,21 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     for (int i = 0; i< ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
-        // Reversed..
+        // Reversed...
         BasicTyped* argtype = InstBuilder::genBasicTyped((ffargtype(ff, (ffarity(ff) - 1) - i) == kInt) ? Typed::kInt : itfloat());
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
         args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
     }
-
+   
     // Add function declaration
     fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
-    pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
-
+    
+    // If not yet declared...
+    if (gGlobal->gSymbolGlobalsTable.find(funname) == gGlobal->gSymbolGlobalsTable.end()) {
+        pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
+        gGlobal->gSymbolGlobalsTable[funname] = 1;
+    }
+ 
     return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value),
         InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat())));
 }

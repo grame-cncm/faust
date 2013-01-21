@@ -117,15 +117,6 @@ class CPPInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
-                    // If global is not defined
-                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
-                } else {
-                    return;
-                }
-            }
-
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
@@ -143,10 +134,6 @@ class CPPInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
-                return;  // Already declared
-            }
-
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
@@ -165,8 +152,6 @@ class CPPInstVisitor : public TextInstVisitor {
             *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
-            
-            gGlobal->gGlobalTable[inst->fName] = 1;
         }
         
         virtual void visit(LoadVarAddressInst* inst)
@@ -267,8 +252,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             fCurValue = inst->fAddress->getName();
             //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
             // Keep type
-            assert(gGlobal->gVarTable.find(inst->fAddress->getName()) != gGlobal->gVarTable.end());
-            fCurType = gGlobal->gVarTable[inst->fAddress->getName()]->getType();
+            assert(gGlobal->gVarTypeTable.find(inst->fAddress->getName()) != gGlobal->gVarTypeTable.end());
+            fCurType = gGlobal->gVarTypeTable[inst->fAddress->getName()]->getType();
         }
 
         virtual void visit(FloatNumInst* inst)
@@ -550,8 +535,8 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             // Struct type access
-            if (gGlobal->gVarTable.find(indexed->getName()) != gGlobal->gVarTable.end()) {
-                Typed* var_type = gGlobal->gVarTable[indexed->getName()];
+            if (gGlobal->gVarTypeTable.find(indexed->getName()) != gGlobal->gVarTypeTable.end()) {
+                Typed* var_type = gGlobal->gVarTypeTable[indexed->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
                 assert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);

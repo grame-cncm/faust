@@ -139,15 +139,6 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
-                    // If global is not defined
-                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
-                } else {
-                    return;
-                }
-            }
-   
             string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
 
             if (inst->fValue) {
@@ -174,7 +165,6 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
                 if (i < size - 1) *fOut << ", ";
             }
         }
-  
   
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {

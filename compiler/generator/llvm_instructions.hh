@@ -2246,7 +2246,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 assert(function);
 
                 // Prepare code_block block
-                BasicBlock* code_block = BasicBlock::Create(getGlobalContext(), "block_code", function);
+                BasicBlock* code_block = BasicBlock::Create(getGlobalContext(), "code_block", function);
 
                 // Link previous_block and code_block
                 fBuilder->CreateBr(code_block);

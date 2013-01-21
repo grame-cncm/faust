@@ -118,15 +118,6 @@ class CInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
-                    // If global is not defined
-                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
-                } else {
-                    return;
-                }
-            }
-
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
@@ -144,10 +135,6 @@ class CInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
-                return;  // already declare
-            }
-
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
@@ -161,8 +148,6 @@ class CInstVisitor : public TextInstVisitor {
             *fOut << generateType(inst->fType->fResult, inst->fName);
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
-      
-            gGlobal->gGlobalTable[inst->fName] = 1;
         }
         
         virtual void visit(NamedAddress* named)

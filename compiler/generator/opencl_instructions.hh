@@ -112,15 +112,6 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (fGlobalTable.find(inst->fAddress->getName()) == fGlobalTable.end()) {
-                    // If global is not defined
-                    fGlobalTable[inst->fAddress->getName()] = 1;
-                } else {
-                    return;
-                }
-            }
-
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
@@ -138,10 +129,6 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (fGlobalTable.find(inst->fName) != fGlobalTable.end()) {
-                return;  // Already declared
-            }
-
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
@@ -155,9 +142,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
             *fOut << generateType(inst->fType->fResult, inst->fName);
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
-      
-            fGlobalTable[inst->fName] = 1;
-        }
+       }
 
         virtual void visit(LoadVarAddressInst* inst)
         {
