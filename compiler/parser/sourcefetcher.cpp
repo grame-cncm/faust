@@ -766,7 +766,7 @@ int _http_read_header(int sock, char *headerPtr)
  * Opens a TCP socket and returns the descriptor Returns: socket descriptor,
  * or -1 on error
  */
-int makeSocket(const char *host)
+int makeSocket(char *host)
 {
 	int		sock;	/* Socket descriptor */
 	struct sockaddr_in sa;	/* Socket address */

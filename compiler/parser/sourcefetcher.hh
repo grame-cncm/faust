@@ -161,7 +161,7 @@ int _http_read_header(int sock, char *headerPtr);
 	 *	socket descriptor, or
 	 *	-1 on error
 	 */
-int makeSocket(const char *host);
+int makeSocket(char *host);
 
 	/*
 	 * Determines if the given NULL-terminated buffer is large enough to
