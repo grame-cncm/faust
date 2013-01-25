@@ -7,9 +7,10 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
-static int		_jack_srate(jack_nframes_t nframes, void *);
+static int		_jack_srate(jack_nframes_t nframes, void*);
 static void		_jack_shutdown(void *);
-static int		_jack_process(jack_nframes_t nframes, void *client);
+static void     _jack_info_shutdown(jack_status_t code, const char* reason, void*);
+static int		_jack_process(jack_nframes_t nframes, void* client);
 #ifdef _OPENMP
 static void*	_jack_thread(void* arg);
 #endif
@@ -54,6 +55,7 @@ class jackaudio : public audio {
 
             jack_set_sample_rate_callback(fClient, _jack_srate, 0);
             jack_on_shutdown(fClient, _jack_shutdown, 0);
+            jack_on_info_shutdown(fClient, _jack_info_shutdown, 0);
 
             fNumInChans  = fDsp->getNumInputs();
             fNumOutChans = fDsp->getNumOutputs();
@@ -154,19 +156,24 @@ class jackaudio : public audio {
 //----------------------------------------------------------------------------
 // Jack Callbacks
 //----------------------------------------------------------------------------
-static int _jack_srate(jack_nframes_t nframes, void *)
+static int _jack_srate(jack_nframes_t nframes, void*)
 {
 	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
 	return 0;
 }
 
-static void _jack_shutdown(void *)
+static void _jack_shutdown(void*)
 {
     fprintf(stderr, "JACK server has been closed\n");
 	exit(1);
 }
+static void _jack_info_shutdown(jack_status_t code, const char* reason, void*)
+{
+    fprintf(stderr, "%s\n", reason);
+	exit(1);
+}
 
-static int _jack_process(jack_nframes_t nframes, void *client)
+static int _jack_process(jack_nframes_t nframes, void* client)
 {
 	jackaudio* jackclient = (jackaudio*)client;
 	return jackclient->process (nframes);
