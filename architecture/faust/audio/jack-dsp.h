@@ -7,14 +7,6 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
-static int		_jack_srate(jack_nframes_t nframes, void*);
-static void		_jack_shutdown(void *);
-static void     _jack_info_shutdown(jack_status_t code, const char* reason, void*);
-static int		_jack_process(jack_nframes_t nframes, void* client);
-#ifdef _OPENMP
-static void*	_jack_thread(void* arg);
-#endif
-
 /******************************************************************************
 *******************************************************************************
 
@@ -34,7 +26,25 @@ class jackaudio : public audio {
         jack_port_t**	fInput_ports;       // JACK input ports
         jack_port_t**	fOutput_ports;      // JACK output ports
         float**			fInChannel;         // tables of noninterleaved input channels for FAUST
-        float**			fOutChannel;		// tables of noninterleaved output channels for FAUST
+        float**         fOutChannel;		// tables of noninterleaved output channels for FAUST
+        shutdown_callback fShutdown;
+        void*             fShutdownArg;
+    
+        static int  _jack_srate(jack_nframes_t nframes, void*);
+        static void _jack_shutdown(void *);
+        static void _jack_info_shutdown(jack_status_t code, const char* reason, void*);
+        static int  _jack_process(jack_nframes_t nframes, void* client);
+    #ifdef _OPENMP
+        static void* _jack_thread(void* arg);
+    #endif
+        void shutdown()
+        {
+            if (fShutdown) {
+                fShutdown(fShutdownArg);
+            } else {
+                exit(1); // By default
+            }
+        }
 
     public:
                  jackaudio() : fClient(0), fNumInChans(0), fNumOutChans(0) {}
@@ -53,9 +63,9 @@ class jackaudio : public audio {
             jack_set_process_callback(fClient, _jack_process, this);
         #endif
 
-            jack_set_sample_rate_callback(fClient, _jack_srate, 0);
-            jack_on_shutdown(fClient, _jack_shutdown, 0);
-            jack_on_info_shutdown(fClient, _jack_info_shutdown, 0);
+            jack_set_sample_rate_callback(fClient, _jack_srate, this);
+            jack_on_shutdown(fClient, _jack_shutdown, this);
+            jack_on_info_shutdown(fClient, _jack_info_shutdown, this);
 
             fNumInChans  = fDsp->getNumInputs();
             fNumOutChans = fDsp->getNumOutputs();
@@ -124,6 +134,12 @@ class jackaudio : public audio {
                 delete[] fOutChannel;
             }
         }
+    
+        virtual void shutdown(shutdown_callback cb, void* arg)
+        {
+            fShutdown = cb;
+            fShutdownArg = arg;
+        }
 
         // jack callbacks
         int	process(jack_nframes_t nframes) 
@@ -156,34 +172,37 @@ class jackaudio : public audio {
 //----------------------------------------------------------------------------
 // Jack Callbacks
 //----------------------------------------------------------------------------
-static int _jack_srate(jack_nframes_t nframes, void*)
+int jackaudio::_jack_srate(jack_nframes_t nframes, void* arg)
 {
-	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
+  	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
 	return 0;
 }
 
-static void _jack_shutdown(void*)
+void jackaudio::_jack_shutdown(void* arg)
 {
     fprintf(stderr, "JACK server has been closed\n");
-	exit(1);
-}
-static void _jack_info_shutdown(jack_status_t code, const char* reason, void*)
-{
-    fprintf(stderr, "%s\n", reason);
-	exit(1);
+    jackaudio* audio = (jackaudio*)arg;
+    audio->shutdown();
 }
 
-static int _jack_process(jack_nframes_t nframes, void* client)
+void jackaudio::_jack_info_shutdown(jack_status_t code, const char* reason, void* arg)
 {
-	jackaudio* jackclient = (jackaudio*)client;
-	return jackclient->process (nframes);
+    fprintf(stderr, "%s\n", reason);
+	jackaudio* audio = (jackaudio*)arg;
+    audio->shutdown();
+}
+
+int jackaudio::_jack_process(jack_nframes_t nframes, void* client)
+{
+	jackaudio* audio = (jackaudio*)client;
+	return audio->process(nframes);
 }
 
 #ifdef _OPENMP
-static void* _jack_thread(void* arg)
+void* jackaudio::_jack_thread(void* arg)
 {
-	jackaudio* jackclient = (jackaudio*)arg;
-	jackclient->process_thread();
+	jackaudio* audio = (jackaudio*)arg;
+	audio->process_thread();
 	return 0;
 }
 #endif
