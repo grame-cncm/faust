@@ -21,13 +21,17 @@ class jackaudio : public audio {
 
         dsp*			fDsp;               // FAUST DSP
         jack_client_t*	fClient;            // JACK client
+    
         int				fNumInChans;		// number of input channels
         int				fNumOutChans;       // number of output channels
+    
         jack_port_t**	fInput_ports;       // JACK input ports
         jack_port_t**	fOutput_ports;      // JACK output ports
+    
         float**			fInChannel;         // tables of noninterleaved input channels for FAUST
         float**         fOutChannel;		// tables of noninterleaved output channels for FAUST
-        shutdown_callback fShutdown;
+    
+        shutdown_callback fShutdown;        // Shutdown callback to be called by libjack
         void*             fShutdownArg;
     
         static int  _jack_srate(jack_nframes_t nframes, void*);
@@ -145,7 +149,7 @@ class jackaudio : public audio {
         int	process(jack_nframes_t nframes) 
         {
             AVOIDDENORMALS;
-            // Retrieve JACK input/outputs audio buffers
+            // Retrieve JACK input/output audio buffers
             for (int i = 0; i < fNumInChans; i++) {
                 fInChannel[i] = (float*)jack_port_get_buffer(fInput_ports[i], nframes);
             }
@@ -162,7 +166,7 @@ class jackaudio : public audio {
             jack_nframes_t nframes;
             while (1) {
                 nframes = jack_cycle_wait(fClient);
-                process (nframes);
+                process(nframes);
                 jack_cycle_signal(fClient, 0);
             }
         }
@@ -172,6 +176,7 @@ class jackaudio : public audio {
 //----------------------------------------------------------------------------
 // Jack Callbacks
 //----------------------------------------------------------------------------
+
 int jackaudio::_jack_srate(jack_nframes_t nframes, void* arg)
 {
   	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
