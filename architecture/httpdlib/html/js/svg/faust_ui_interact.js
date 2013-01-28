@@ -264,7 +264,7 @@ _f4u$t.activate_nentry = function(ee, dir) {
   // if the id is already being used, we ignore
   // otherwise, use the first in the array...
   var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
-  _f4u$t._I[identifier] = {id : ee.target.id, moved : false};
+  _f4u$t._I[identifier] = {id : ee.target.id, moved : false, value : null};
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
 
@@ -303,7 +303,7 @@ _f4u$t.activate_moving_object = function(ee) {
     touches = ee.originalEvent.changedTouches || [ee];
   }
   var identifier = touches[0].identifier || 0;
-  _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false};
+  _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false, value : null};
   _f4u$t.updateXY(touches);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
@@ -360,9 +360,10 @@ _f4u$t.internalMoveActiveObject = function(e, identifier) {
   }
 
   // UI2DSP
-  if (now != null) {
+  if (now != null && now != _f4u$t._I[identifier]['value']) {
     var id = _f4u$t.unique(_f4u$t._I[identifier]['id']);
     _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], now);
+    _f4u$t._I[identifier]['value'] = now;
   }
 
   // soemthing like a numerical entry...so just return 0
