@@ -48,7 +48,8 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Java\n");
     } else if (gGlobal->gVectorSwitch) {
-        container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
+        //container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
+        throw faustexception("Vector mode not supported for Java\n");
     } else {
         container = new JAVAScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
@@ -74,7 +75,7 @@ void JAVACodeContainer::produceInternal()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     //generateGlobalDeclarations(&fCodeProducer);
-
+    
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
         tab(n+1, *fOut);
@@ -84,17 +85,16 @@ void JAVACodeContainer::produceInternal()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-         // Memory methods
-        tab(n+1, *fOut); *fOut << fKlassName << "[] " << "new" <<  fKlassName << "() { "
-                            << "return (" << fKlassName << "[]) new "<< fKlassName << "()"
-                            << "; }";
-
-        tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "[] dsp) { "
-                              << "; }";
-
         tab(n+1, *fOut);
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
+        
+        // Inits
+        tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
     
         // Fill
         string counter = "count";
@@ -103,14 +103,20 @@ void JAVACodeContainer::produceInternal()
         } else {
             tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1[] output) {", counter, ifloat());
         }
-        tab(n+2, *fOut);
-        fCodeProducer.Tab(n+2);
-        generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-        loop->accept(&fCodeProducer);
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateComputeBlock(&fCodeProducer);
+            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+            loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
-    tab(n, *fOut); *fOut << "};\n" << endl;
+    tab(n, *fOut); *fOut << "};" << endl;
+    
+     // Memory methods (as globals)
+    tab(n, *fOut); *fOut << fKlassName << " new" <<  fKlassName << "() { "
+                        << "return new "<< fKlassName << "()"
+                        << "; }";
+    tab(n, *fOut);
 }
 
 void JAVACodeContainer::produceClass()
@@ -122,16 +128,197 @@ void JAVACodeContainer::produceClass()
 
     // Libraries
     printLibrary(*fOut);
- 
-    // Global declarations
-    tab(n, *fOut);
-    fCodeProducer.Tab(n);
-    //generateGlobalDeclarations(&fCodeProducer);
-
+   
     tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
 
         tab(n+1, *fOut);
-
+        
+        // Global declarations
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateGlobalDeclarations(&fCodeProducer);
+        tab(n+1, *fOut);
+        
+        // Generate polymorphic cast
+        *fOut << "private final float cast_float(float val) { return val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float cast_float(double val) { return (float)val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float cast_float(int val) { return (float)val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float cast_float(boolean val) { return (float)((val)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int cast_int(double val) { return (int)val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int cast_int(float val) { return (int)val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int cast_int(int val) { return val; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int cast_int(boolean val) { return (val)?1:0; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean cast_boolean(int val) { return (val == 0) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean cast_boolean(float val) { return (val == 0.f) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean cast_boolean(double val) { return (val == 0) ? true : false; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final boolean cast_boolean(boolean val) { return val; }" << endl;
+        
+        // Generate polymorphic arithmetic operations
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(int a, int b) { return a + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(int a, float b) { return (float)a + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(float a, int b) { return a + (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(float a, float b) { return a + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(int a, boolean b) { return a + ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(boolean a, int b) { return ((a)?1:0) + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(boolean a, boolean b) { return ((a)?1:0) + ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(float a, boolean b) { return a + ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_sub(int a, int b) { return a - b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_sub(int a, float b) { return (float)a - b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_sub(float a, int b) { return a - (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_sub(float a, float b) { return a - b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_sub(int a, boolean b) { return a - ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_sub(boolean a, int b) { return ((a)?1:0) - b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_sub(boolean a, boolean b) { return ((a)?1:0) - ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_sub(float a, boolean b) { return a - ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_sub(boolean a, float b) { return ((a)?1.f:0.f) - b; }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_mult(int a, int b) { return a * b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_mult(int a, float b) { return (float)a * b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_mult(float a, int b) { return a * (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_mult(float a, float b) { return a * b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_mult(int a, boolean b) { return a * ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_mult(boolean a, int b) { return ((a)?1:0) * b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_mult(boolean a, boolean b) { return ((a)?1:0) * ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_mult(float a, boolean b) { return a * ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_mult(boolean a, float b) { return ((a)?1.f:0.f) * b; }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_div(int a, int b) { return a / b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_div(int a, float b) { return (float)a / b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_div(float a, int b) { return a / (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_div(float a, float b) { return a / b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_div(int a, boolean b) { return a / ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_div(boolean a, int b) { return ((a)?1:0) / b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_div(boolean a, boolean b) { return ((a)?1:0) / ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_div(float a, boolean b) { return a / ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_div(boolean a, float b) { return ((a)?1.f:0.f) / b; }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_rem(int a, int b) { return a % b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_rem(int a, float b) { return (float)a % b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_rem(float a, int b) { return a % (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_rem(float a, float b) { return a % b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_rem(int a, boolean b) { return a % ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_rem(boolean a, int b) { return ((a)?1:0) % b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_rem(boolean a, boolean b) { return ((a)?1:0) % ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_rem(float a, boolean b) { return a % ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_rem(boolean a, float b) { return ((a)?1.f:0.f) % b; }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_and(int a, int b) { return a & b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_and(int a, boolean b) { return a & ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_and(boolean a, int b) { return ((a)?1:0) & b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_and(boolean a, boolean b) { return ((a)?1:0) & ((b)?1:0); }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_or(int a, int b) { return a | b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_or(int a, boolean b) { return a | ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_or(boolean a, int b) { return ((a)?1:0) | b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_or(boolean a, boolean b) { return ((a)?1:0) | ((b)?1:0); }" << endl;
+        
+        tab(n+1, *fOut);
+        *fOut << "private final int java_xor(int a, int b) { return a ^ b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_xor(int a, boolean b) { return a ^ ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_xor(boolean a, int b) { return ((a)?1:0) ^ b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_xor(boolean a, boolean b) { return ((a)?1:0) ^ ((b)?1:0); }" << endl;
+        
+        /*
+        tab(n+1, *fOut);
+        *fOut << "private final int java_<<<(int a, int b) { return a << b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_<<<(int a, float b) { return (float)a << b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_<<<(float a, int b) { return a << (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_<<<(int a, boolean b) { return a << ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_<<<(boolean a, int b) { return ((a)?1:0) / b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_<<<(float a, boolean b) { return a +/ ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_<<<(boolean a, float b) { return ((a)?1.f:0.f) / b; }" << endl;
+       
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(int a, int b) { return a + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(int a, float b) { return (float)a + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(float a, int b) { return a + (float)b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(int a, boolean b) { return a + ((b)?1:0); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final int java_add(boolean a, int b) { return ((a)?1:0) + b; }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(float a, boolean b) { return a + ((b)?1.f:0.f); }" << endl;
+        tab(n+1, *fOut);
+        *fOut << "private final float java_add(boolean a, float b) { return ((a)?1.f:0.f) + b; }" << endl;
+        */
+  
         // Sub containers
         generateSubContainers();
 
@@ -139,6 +326,24 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
+        
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n+1, *fOut); *fOut << "void allocate() {";
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                generateAllocate(&fCodeProducer);
+            tab(n+1, *fOut);  *fOut << "}";
+            tab(n+1, *fOut);
+        }
+
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n+1, *fOut); *fOut << "void destroy() {";
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                generateDestroy(&fCodeProducer);
+            tab(n+1, *fOut);  *fOut << "}";
+            tab(n+1, *fOut);
+        }
 
         // Print metadata declaration
         tab(n+1, *fOut); *fOut   << "public void metadata(Meta m) { ";
@@ -163,7 +368,7 @@ void JAVACodeContainer::produceClass()
         produceInfoFunctions(n+1, fKlassName, true);
         
         // Inits
-        tab(n+1, *fOut); *fOut << "static public void classInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "public void classInit(int samplingFreq) {";
             if (fStaticInitInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
@@ -210,15 +415,15 @@ void JAVACodeContainer::produceInfoFunctions(int tabs, const string& classname, 
     // Input/Output method
     fCodeProducer.Tab(tabs);
     generateGetInputs(subst("$0::getNumInputs", classname), true, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("$0::getNumOutputs", classname), true,  isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("$0::getNumOutputs", classname), true, isvirtual)->accept(&fCodeProducer);
 
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("$0::getInputRate", classname), true,  isvirtual)->accept(&fCodeProducer);
+    generateGetInputRate(subst("$0::getInputRate", classname), true, isvirtual)->accept(&fCodeProducer);
 
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("$0::getOutputRate", classname), true,  isvirtual)->accept(&fCodeProducer);
+    generateGetOutputRate(subst("$0::getOutputRate", classname), true, isvirtual)->accept(&fCodeProducer);
 }
 
 void JAVAScalarCodeContainer::generateCompute(int n)
@@ -262,14 +467,6 @@ void JAVAVectorCodeContainer::generateCompute(int n)
 
     tab(n+1, *fOut); *fOut << "}";
 }
-
-// OpenMP
-JAVAOpenMPCodeContainer::JAVAOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :OpenMPCodeContainer( numInputs, numOutputs), JAVACodeContainer(name, super, numInputs, numOutputs, out)
-{}
-
-JAVAOpenMPCodeContainer::~JAVAOpenMPCodeContainer()
-{}
 
 // Works stealing scheduler
 JAVAWorkStealingCodeContainer::JAVAWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)

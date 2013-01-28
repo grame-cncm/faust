@@ -299,7 +299,7 @@ struct Typed : public Printable
                 kDouble, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
                 kQuad, kQuad_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
-                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr};
+                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr, kNoType};
     
     static void init();
 
@@ -508,11 +508,11 @@ struct ArrayTyped : public Typed {
 
 struct StructTyped : public Typed {
 
-    string fName;
     Typed* fType;
-
+    string fName;
+  
     StructTyped(const string& name, Typed* type)
-        :fName(name), fType(type)
+        :fType(type), fName(name)
     {}
     
     virtual ~StructTyped()
@@ -1127,7 +1127,7 @@ struct FunCallInst : public ValueInst
 struct DeclareFunInst : public StatementInst
 {
     string fName;
-    FunTyped* fType;
+    FunTyped* fType;     // Describes type of all arguments and function result
     BlockInst* fCode;    // Code is a list of StatementInst*
 
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
@@ -1861,8 +1861,9 @@ struct InstBuilder
         Rit rend (indexBegin);
 
         Address * address = genNamedAddress(vname, Address::kStruct);
-        for (Rit it = rbegin; it != rend; ++it)
+        for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
+        }
 
         return genLoadVarInst(address);
     }
@@ -1897,8 +1898,9 @@ struct InstBuilder
         Rit rend (indexBegin);
 
         Address * address = genNamedAddress(vname, Address::kStruct);
-        for (Rit it = rbegin; it != rend; ++it)
+        for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
+        }
 
         return genStoreVarInst(address, exp);
     }
@@ -2111,7 +2113,7 @@ struct InstBuilder
  */
 struct FIRIndex
 {
-    /* explicit constructors in order to avoid the generation implicit conversions */
+    /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst * inst):
         fValue(inst)
     {}
@@ -2221,7 +2223,7 @@ Opcode := + | - | * | / |...etc...
 
 Access := kGlobal | kStruct | kStaticStruct | kFunArgs | kStack | kLoop
 
-Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size)  si size = 0, then equivalent to a pointer on the type
+Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size) if size = 0, then equivalent to a pointer on the considered type
 
 Address := Access name | Address index
 
@@ -2244,7 +2246,6 @@ Code rewritting :
 For WSS:
 
 1) change access of variable of type kStack in kStruct
-
 
 Loop to function rewritting (faster compilation ?):
 
@@ -2304,6 +2305,3 @@ TODO : gestion des indices de boucles:
  - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop
 
 */
-
-
-

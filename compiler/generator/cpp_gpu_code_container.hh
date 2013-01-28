@@ -74,10 +74,11 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     case AddSliderInst::kNumEntry:
                         name = "interface->addNumEntry"; break;
                 }
-                if (strcmp(ifloat(), "float") == 0)
+                if (strcmp(ifloat(), "float") == 0) {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-                else
+                } else {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+                }
                 EndLine();
             }
 
@@ -90,10 +91,11 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     case AddBargraphInst::kVertical:
                         name = "interface->addVerticalBargraph"; break;
                 }
-                if (strcmp(ifloat(), "float") == 0)
+                if (strcmp(ifloat(), "float") == 0) {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-                else
+                } else {
                     *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+                }
                 EndLine();
             }
         };
@@ -108,7 +110,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (!isControl(inst->fAddress->getName())) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
+                    tab(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
         };
@@ -123,7 +125,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (isControl(inst->fAddress->getName())) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
+                    tab(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
 
@@ -144,19 +146,22 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
 
                 // Special treatment for "fSamplingFreq" variable
-                if (named && named->getName() == "fSamplingFreq")
+                if (named && named->getName() == "fSamplingFreq") {
                     named->setAccess(Address::kStruct);
+                }
 
                 if (named) {
-                    if (named->getAccess() == Address::kStruct)
+                    if (named->getAccess() == Address::kStruct) {
                         *fOut << (isControl(named->getName()) ? "control->" : "dsp->") << named->getName();
-                    else
+                    } else {
                         *fOut << named->getName();
+                    }
                 } else {
-                    if (indexed->getAccess() == Address::kStruct)
+                    if (indexed->getAccess() == Address::kStruct) {
                         *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->") << indexed->getName() << "[";
-                    else
+                    } else {
                         *fOut << indexed->getName() << "[";
+                    }
                     indexed->fIndex->accept(this);
                     *fOut << "]";
                 }
@@ -168,19 +173,22 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
 
                 // Special treatment for "fSamplingFreq" variable
-                if (named && named->getName() == "fSamplingFreq")
+                if (named && named->getName() == "fSamplingFreq") {
                     named->setAccess(Address::kStruct);
+                }
 
                 if (named) {
-                    if (named->getAccess() == Address::kStruct)
+                    if (named->getAccess() == Address::kStruct) {
                         *fOut << (isControl(named->getName()) ? "&control->" : "&dsp->") << named->getName();
-                    else
+                    } else {
                         *fOut << "&" << named->getName();
+                    }
                 } else {
-                    if (indexed->getAccess() == Address::kStruct)
+                    if (indexed->getAccess() == Address::kStruct) {
                         *fOut << (isControl(indexed->getName()) ? "&control->" : "&dsp->") << indexed->getName() << "[";
-                    else
+                    } else {
                         *fOut << "&" << indexed->getName() << "[";
+                    }
                     indexed->fIndex->accept(this);
                     *fOut << "]";
                 }
@@ -196,15 +204,17 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     named->setAccess(Address::kStruct);
 
                 if (named) {
-                    if (named->getAccess() == Address::kStruct)
+                    if (named->getAccess() == Address::kStruct) {
                         *fOut << (isControl(named->getName()) ? "control->" : "dsp->")  << named->getName() << " = ";
-                    else
+                    } else {
                         *fOut << named->getName() << " = ";
+                    }
                 } else {
-                    if (indexed->getAccess() == Address::kStruct)
+                    if (indexed->getAccess() == Address::kStruct) {
                         *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->") << indexed->getName() << "[";
-                    else
+                    } else {
                         *fOut << indexed->getName() << "[";
+                    }
                     indexed->fIndex->accept(this);
                     *fOut << "] = ";
                 }
@@ -274,7 +284,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
         struct OpenCLKernelInstVisitor : public KernelInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -311,7 +321,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // To be used when generating GPU kernel string
         struct ControlOpenCLInstVisitor : public ControlInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -327,7 +337,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // To be used when generating GPU kernel string
         struct DSPOpenCLInstVisitor : public DSPInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -343,7 +353,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
 
-            // Code will be genaretd as a string
+            // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -357,14 +367,16 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
             virtual void visit(DeclareVarInst* inst)
             {
+                /*
                 if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
+                    if (gGlobal->gSymbolGlobalsTable.find(inst->fAddress->getName()) == gGlobal->gSymbolGlobalsTable.end()) {
                         // If global is not defined
-                        gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
+                        gGlobal->gSymbolGlobalsTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }
                 }
+                */
 
                 if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                      *fOut << "static ";
@@ -378,15 +390,14 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
                      *fOut << "__local ";
                 }
 
+                *fOut << generateType(inst->fType, inst->fAddress->getName());
                 if (inst->fValue) {
-                    *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
-                } else {
-                    *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
-                }
+                    *fOut << " = "; inst->fValue->accept(this);
+                } 
+                EndLine();
             }
 
         };
-
 
     public:
 
@@ -441,32 +452,23 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
             virtual void visit(DeclareVarInst* inst)
             {
-                if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
-                        // If global is not defined
-                        gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
-                    } else {
-                        return;
-                    }
-                }
-
                 if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-                     *fOut << "static ";
+                    *fOut << "static ";
                 }
 
                 if (inst->fAddress->getAccess() & Address::kVolatile) {
-                     *fOut << "volatile ";
+                    *fOut << "volatile ";
                 }
 
                 if (inst->fAddress->getAccess() & Address::kStack) {
-                     *fOut << "__shared__ ";
+                    *fOut << "__shared__ ";
                 }
 
+                *fOut << generateType(inst->fType, inst->fAddress->getName());
                 if (inst->fValue) {
-                    *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
-                } else {
-                    *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
-                }
+                    *fOut << " = "; inst->fValue->accept(this);
+                } 
+                EndLine();
             }
 
         };

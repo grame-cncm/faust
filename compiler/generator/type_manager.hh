@@ -50,16 +50,16 @@ class StringTypeManager {
             fillTypeDirectTable(FLOATMACRO, FLOATMACROPTR);
         }
 
-        StringTypeManager(string kFloatMacroName, string fPtrPosfix)
+        StringTypeManager(string float_macro_name, string ptr_postfix)
         {
-            this->fPtrPosfix = fPtrPosfix;
-            fillTypeDirectTable(kFloatMacroName, kFloatMacroName + fPtrPosfix);
+            fPtrPosfix = ptr_postfix;
+            fillTypeDirectTable(float_macro_name, float_macro_name + ptr_postfix);
         }
 
-        void fillTypeDirectTable(string kFloatMacroName, string kFloatMacroNamePtr)
+        void fillTypeDirectTable(string float_macro_name, string float_macro_name_ptr)
         {
-            fTypeDirectTable[Typed::kFloatMacro] = kFloatMacroName;
-            fTypeDirectTable[Typed::kFloatMacro_ptr] = kFloatMacroNamePtr;
+            fTypeDirectTable[Typed::kFloatMacro] = float_macro_name;
+            fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name_ptr;
 
             fTypeDirectTable[Typed::kFloat] = "float";
             fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;

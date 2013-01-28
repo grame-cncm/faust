@@ -48,7 +48,8 @@ install:
 	install faust2ios $(dest)
 	install faust2lv2 $(dest)
 	install faust2lv2synth $(dest)
-	install faust2java $(dest)
+	install faust2javaswing $(dest)
+	install faust2webaudio $(dest)
 
 uninstall:
 	rm -f $(dest)/faust2alqt
@@ -86,5 +87,6 @@ uninstall:
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2lv2synth
-	rm -f $(dest)/faust2java
+	rm -f $(dest)/faust2javaswing
+	rm -f $(dest)/faust2webaudio
 

@@ -372,10 +372,10 @@ struct global {
     map<Tree, string>    gBackLink;		// link to enclosing file for sub schema
     
     // FIR 
-    map<Typed::VarType, BasicTyped*> gTypeTable;
-    map<string, Typed*> gVarTable;
-    map<Typed::VarType, int> gTypeSizeMap;
-    map <string, int> gGlobalTable;
+    map<Typed::VarType, BasicTyped*> gTypeTable;    
+    map<string, Typed*> gVarTypeTable;          // Types of variables
+    map<Typed::VarType, int> gTypeSizeMap;      // Size in bytes on types
+    map <string, int> gSymbolGlobalsTable;      // Global variables and functions names
     
     // colorize
     map<Tree, int> gColorMap;

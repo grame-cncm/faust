@@ -1912,14 +1912,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     // No supposed to happen
                     assert(false);
                     break;
-
             }
         }
 
-        void generateFunMinMax(FunCallInst* inst)
+        void generateFunPolymorphicMinMax(FunCallInst* inst)
         {
             vector<LlvmValue> fun_args;
 
+            // Compile all arguments
             for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
                 // Each argument is compiled and result is in fCurValue
                 (*it)->accept(this);
@@ -1928,10 +1928,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
             if (inst->fName == "min") {
-                fCurValue = generateFunMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kLT);
+                fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kLT);
             } else if (inst->fName == "max") {
-                fCurValue = generateFunMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
-            }
+                fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
+            } 
         }
 
         virtual void visit(FunCallInst* inst)
@@ -1944,7 +1944,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
             // Special case
             if (inst->fName == "min" || inst->fName == "max") {
-                generateFunMinMax(inst);
+                generateFunPolymorphicMinMax(inst);
                 return;
             }
 
@@ -2246,7 +2246,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 assert(function);
 
                 // Prepare code_block block
-                BasicBlock* code_block = BasicBlock::Create(getGlobalContext(), "block_code", function);
+                BasicBlock* code_block = BasicBlock::Create(getGlobalContext(), "code_block", function);
 
                 // Link previous_block and code_block
                 fBuilder->CreateBr(code_block);
@@ -2406,8 +2406,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             arg2->getType()->dump();
             */
 
-            assert(fBuilder);
-
             // Arguments are casted if needed in InstructionsCompiler::generateBinOp
             //arg1->getType()->dump();
             //arg2->getType()->dump();
@@ -2429,7 +2427,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateFunMinMaxAux(Value* arg1, Value* arg2, int size, int comparator)
+        LlvmValue generateFunPolymorphicMinMaxAux(Value* arg1, Value* arg2, int size, int comparator)
         {
             if (arg1->getType() == getFloatTy(size) && arg2->getType() == getFloatTy(size)) {
 
@@ -2490,9 +2488,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             } else {
                 // Should not happen
-                cerr << "generateFunMinMaxAux" << endl;
-                //arg1->getType()->dump();
-                //arg2->getType()->dump();
+                cerr << "generateFunPolymorphicMinMaxAux" << endl;
                 assert(false);
                 return NULL;
             }

@@ -61,8 +61,8 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
 /**
  * Create a Faust DSP factory from a LLVM bitcode string.
  * 
- * @param bit_code - the LLVM bicode string
- * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param bit_code - the LLVM bitcode string
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
@@ -81,7 +81,7 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 /**
  * Create a Faust DSP factory from a LLVM bitcode file.
  * 
- * @param bit_code_path - the LLVM bicode file pathname
+ * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
 */
@@ -117,7 +117,7 @@ llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::st
 std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 /**
- * Create a Faust DSP factory from a LLVM IR (textual) string.
+ * Create a Faust DSP factory from a LLVM IR (textual) file.
  * 
  * @param ir_code_path - the LLVM IR (textual) file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)

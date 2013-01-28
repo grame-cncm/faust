@@ -24,73 +24,115 @@
 
 using namespace std;
 
-#include "instructions.hh"
-#include "type_manager.hh"
-#include "binop.hh"
-#include "Text.hh"
+#include "text_instructions.hh"
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
+class JAVAInstVisitor : public TextInstVisitor {
 
     private:
-
-        int fTab;
-        std::ostream* fOut;
-        bool fFinishLine;
-        bool fInsideBinOp;
+ 
         map <string, string> fMathLibTable;
+        map<int, string> fPolyBinOpTable;
+        Typed::VarType fCurType;
 
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fInsideBinOp(false)
+          :TextInstVisitor(out, ".", tab), fCurType(Typed::kNoType)
         {
-            fMathLibTable["abs"] = "Math.abs";
-            fMathLibTable["absf"] = "Math.abs";
-            fMathLibTable["fabsf"] = "Math.abs";
-            fMathLibTable["acosf"] = "Math.acos";
-            fMathLibTable["asinf"] = "Math.asin";
-            fMathLibTable["atanf"] = "Math.atan";
-            fMathLibTable["atan2f"] = "Math.atan2";
-            fMathLibTable["ceilf"] = "Math.ceil";
-            fMathLibTable["cosf"] = "Math.cos";
-            fMathLibTable["expf"] = "Math.exp";
-            fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
-            fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "Math.log";
-            fMathLibTable["max"] = "Math.max";
-            fMathLibTable["min"] = "Math.min";
-            fMathLibTable["powf"] = "Math.pow";
-            fMathLibTable["roundf"] = "Math.round";
-            fMathLibTable["sinf"] = "Math.sin";
-            fMathLibTable["sqrtf"] = "Math.sqrt";
-            fMathLibTable["tanf"] = "Math.tan";
+            fPtrPosfix = "[]";
+            fillTypeDirectTable(ifloat(), ifloat() + fPtrPosfix);
+            
+            // Polymorphic arithmetic operations
+            fPolyBinOpTable[kAdd] = "java_add";
+            fPolyBinOpTable[kSub] = "java_sub";
+            fPolyBinOpTable[kMul] = "java_mult";
+            fPolyBinOpTable[kDiv] = "java_div";
+            fPolyBinOpTable[kRem] = "java_rem";
+            fPolyBinOpTable[kLsh] = "java_<<<";
+            fPolyBinOpTable[kRsh] = "java_>>>";
+            fPolyBinOpTable[kAND] = "java_and";
+            fPolyBinOpTable[kOR] = "java_or";
+            fPolyBinOpTable[kXOR] = "java_xor";
+
+            fMathLibTable["abs"] = "java.lang.Math.abs";
+            fMathLibTable["absf"] = "(float)java.lang.Math.abs";
+            
+            fMathLibTable["fabs"] = "java.lang.Math.abs";
+            fMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
+            
+            fMathLibTable["acos"] = "java.lang.Math.acos";
+            fMathLibTable["acosf"] = "(float)java.lang.Math.acos";
+            
+            fMathLibTable["asin"] = "java.lang.Math.asin";
+            fMathLibTable["asinf"] = "(cloat)java.lang.Math.asin";
+            
+            fMathLibTable["atan"] = "java.lang.Math.atan";
+            fMathLibTable["atanf"] = "(float)java.lang.Math.atan";
+            
+            fMathLibTable["atan2"] = "java.lang.Math.atan2";
+            fMathLibTable["atan2f"] = "(float)java.lang.Math.atan2";
+            
+            fMathLibTable["ceil"] = "java.lang.Math.ceil";
+            fMathLibTable["ceilf"] = "(float)java.lang.Math.ceil";
+            
+            fMathLibTable["cos"] = "java.lang.Math.cos";
+            fMathLibTable["cosf"] = "(float)java.lang.Math.cos";
+            
+            fMathLibTable["cosh"] = "java.lang.Math.cosh";
+            fMathLibTable["coshf"] = "(float)java.lang.Math.cosh";
+            
+            fMathLibTable["exp"] = "java.lang.Math.exp";
+            fMathLibTable["expf"] = "(float)java.lang.Math.exp";
+            
+            fMathLibTable["floor"] = "java.lang.Math.floor";
+            fMathLibTable["floorf"] = "(float)java.lang.Math.floor";
+            
+            fMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
+            fMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
+            
+            fMathLibTable["log"] = "java.lang.Math.log";
+            fMathLibTable["logf"] = "(float)java.lang.Math.log";
+            
+            fMathLibTable["log10"] = "java.lang.Math.log10";
+            fMathLibTable["log10f"] = "(float)java.lang.Math.log10";
+            
+            fMathLibTable["max"] = "java.lang.Math.max";
+            fMathLibTable["min"] = "java.lang.Math.min";
+            
+            fMathLibTable["pow"] = "java.lang.Math.pow";
+            fMathLibTable["powf"] = "(float)java.lang.Math.pow";
+            
+            fMathLibTable["round"] = "java.lang.Math.round";
+            fMathLibTable["roundf"] = "(float)java.lang.Math.round";
+             
+            fMathLibTable["sin"] = "java.lang.Math.sin";
+            fMathLibTable["sinf"] = "(float)java.lang.Math.sin";
+            
+            fMathLibTable["sinh"] = "java.lang.Math.sinh";
+            fMathLibTable["sinhf"] = "(float)java.lang.Math.sinh";
+             
+            fMathLibTable["sqrt"] = "java.lang.Math.sqrt";
+            fMathLibTable["sqrtf"] = "(float)java.lang.Math.sqrt";
+            
+            fMathLibTable["tan"] = "java.lang.Math.tan";
+            fMathLibTable["tanf"] = "(float)java.lang.Math.tan";
+            
+            fMathLibTable["tanh"] = "java.lang.Math.tanh";
+            fMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
+            
+            // Pointer to JAVA object is actually the object itself...
+            fTypeDirectTable[Typed::kObj_ptr] = "";
         }
 
         virtual ~JAVAInstVisitor()
         {}
-
-        void Tab(int n) {fTab = n;}
-
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab(fTab, *fOut);
-            }
-        }
-
+   
         string createVarAccess(string varname)
         {
             return "new FaustVarAccess() {\n"
-                "\t\t\t\tpublic String getId()       { return \"" + varname + "\"; }\n"
-                "\t\t\t\tpublic void   set(float val){ " + varname + " = val; }\n"
-                "\t\t\t\tpublic float  get()         { return (float)" + varname + "; }\n"
+                "\t\t\t\tpublic String getId() { return \"" + varname + "\"; }\n"
+                "\t\t\t\tpublic void set(float val) { " + varname + " = val; }\n"
+                "\t\t\t\tpublic float get() { return (float)" + varname + "; }\n"
                 "\t\t\t}\n"
                 "\t\t\t";
         }
@@ -120,6 +162,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "ui_interface.closeBox();"; tab(fTab, *fOut);
         }
+        
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -160,157 +203,72 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(LabelInst* inst)
         {
-            *fOut << inst->fLabel;
-            tab(fTab, *fOut);
+            // Empty
         }
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
-                 *fOut << "volatile ";
+            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+                 *fOut << "static ";
             }
-
+            
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = ";
-                inst->fValue->accept(this);
-                EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this);
             } else {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = fTypeDirectTable[array_typed->fType->getType()];
-                    //*fOut << "private " << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                     *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                 } else {
-                    //*fOut << "private " << generateType(inst->fType, inst->fAddress->getName());
-                    *fOut  << generateType(inst->fType, inst->fAddress->getName());
+                    *fOut << generateType(inst->fType, inst->fAddress->getName());
                 }
-                EndLine();
-            }
-        }
-
-        virtual void visit(RetInst* inst)
-        {
-            if (inst->fResult) {
-                *fOut << "return ";
-                inst->fResult->accept(this); 
-            } else {
-                *fOut << "return";
             }
             EndLine();
-        }
-
-        virtual void visit(DropInst* inst)
-        {
-            if (inst->fResult) {
-                inst->fResult->accept(this); 
-                EndLine();
-            }
         }
 
         virtual void visit(DeclareFunInst* inst)
         {
-            // Do not declare Math library functions
+            // Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
             
-            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
-            string fun_name = inst->fName;
-            size_t pos;
-            if ((pos = inst->fName.find("::")) != string::npos) {
-                fun_name = inst->fName.substr(pos + 2); // After the "::"
-            }
-            
             // Prototype
-            *fOut << generateType(inst->fType->fResult, fun_name);
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
+            *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
         }
 
-        virtual void visit(LoadVarInst* inst)
-        {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << named->getName();
-            } else {
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
-        }
-
-        // TODO. This does not work in java.
         virtual void visit(LoadVarAddressInst* inst)
-        {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << "&" << named->getName();
-            } else {
-                *fOut << "&" << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
+        {   
+            // Not implemented in JAVA
+            assert(false);
         }
-
-        virtual void visit(StoreVarInst* inst)
-        {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << named->getName() << " = ";
-            } else {
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "] = ";
-            }
-            inst->fValue->accept(this);
-            EndLine();
-        }
-
+   
         virtual void visit(FloatNumInst* inst)
         {
-            *fOut << checkFloat(inst->fNum);
+            TextInstVisitor::visit(inst);
+            fCurType = Typed::kFloat;
         }
 
         virtual void visit(IntNumInst* inst)
         {
-            *fOut << inst->fNum;
+            TextInstVisitor::visit(inst);
+            fCurType = Typed::kInt;
         }
 
         virtual void visit(BoolNumInst* inst)
         {
-            *fOut << inst->fNum;
+            TextInstVisitor::visit(inst);
+            fCurType = Typed::kBool;
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << T(inst->fNum);
+            TextInstVisitor::visit(inst);
+            fCurType = Typed::kDouble;
         }
-
+    
         bool isBoolOpcode(int o)
         {
             return o == kGT || o == kLT || o == kLE || o == kEQ || o == kNE;
@@ -318,17 +276,17 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(BinopInst* inst)
         {
-            // A bool binop operation result has to be typed as "int" when used *inside* another BinopInst
-            if (isBoolOpcode(inst->fOpcode) && fInsideBinOp) {
+            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+                /*
                 *fOut << "((";
                 inst->fInst1->accept(this);
                 *fOut << " ";
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << ") ? 1 : 0)";
-            } else {
-                fInsideBinOp = true;
+                *fOut << ")?true:false)";
+                fCurType = Typed::kBool;
+                */
                 *fOut << "(";
                 inst->fInst1->accept(this);
                 *fOut << " ";
@@ -336,177 +294,136 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << " ";
                 inst->fInst2->accept(this);
                 *fOut << ")";
-                fInsideBinOp = false;
+            } else {
+                
+                // Polymorphic
+                *fOut << fPolyBinOpTable[inst->fOpcode] << "(";
+                inst->fInst1->accept(this);
+                *fOut << ", ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+                
+                /*
+                // Using explicit type of the current value
+                stringstream str;
+                JAVAInstVisitor temp_visitor1(&str, 0);
+                inst->fInst1->accept(&temp_visitor1);
+                Typed::VarType type1 = temp_visitor1.fCurType;
+                //assert(type1 != Typed::kNoType);
+                
+                JAVAInstVisitor temp_visitor2(&str, 0);
+                inst->fInst2->accept(&temp_visitor2);
+                Typed::VarType type2 = temp_visitor2.fCurType;
+                //assert(type2 != Typed::kNoType);
+                
+                *fOut << "(";
+                
+                if (type1 == Typed::kFloat) {
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    if (type2 == Typed::kBool) {
+                        *fOut << " ((";
+                        inst->fInst2->accept(this);
+                        *fOut << ")?1.f:0f)";
+                    } else {
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                    }
+                    fCurType = Typed::kFloat;
+                } else if (type1 == Typed::kInt) { 
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    if (type2 == Typed::kBool) {
+                        *fOut << " ((";
+                        inst->fInst2->accept(this);
+                        *fOut << ")?1:0)";
+                    } else {
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                    }
+                    fCurType = Typed::kInt;
+                } else if (type1 == Typed::kDouble) { 
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    if (type2 == Typed::kBool) {
+                        *fOut << " ((";
+                        inst->fInst2->accept(this);
+                        *fOut << ")?1:0)";
+                    } else {
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                    }
+                    fCurType = Typed::kDouble;
+                } else if (type1 == Typed::kBool) { 
+                    if (type2 == Typed::kBool) {
+                        inst->fInst1->accept(this);
+                        fCurType = Typed::kBool;
+                    } else if (type2 == Typed::kFloat) { 
+                        *fOut << "((";
+                        inst->fInst1->accept(this);
+                        *fOut << ")?1.f:0.f)";
+                        fCurType = Typed::kFloat;
+                    } else if (type2 == Typed::kInt) { 
+                        *fOut << "((";
+                        inst->fInst1->accept(this);
+                        *fOut << ")?1:0)";
+                        fCurType = Typed::kInt;
+                    } else if (type2 == Typed::kDouble) { 
+                        *fOut << "((";
+                        inst->fInst1->accept(this);
+                        *fOut << ")?1:0)";
+                        fCurType = Typed::kDouble;
+                    }
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                } else {   // Typed::kNoType
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                }
+                                                
+                *fOut << ")";
+                */
             }
         }
 
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << "(" << generateType(inst->fType) << ")";
-            inst->fInst->accept(this);
+            // Generate a call to a polymorphic cast
+            string cast_type = generateType(inst->fType);
+            if (cast_type == "int") {
+                *fOut << "cast_int("; inst->fInst->accept(this); *fOut << ")";
+                fCurType = Typed::kInt;
+            } else {
+                *fOut << "cast_float("; inst->fInst->accept(this); *fOut << ")";
+                fCurType = Typed::kFloat;
+            }
         }
-
+    
         virtual void visit(FunCallInst* inst)
         {
-            /*
-            *fOut << inst->fName << "(";
-            list<ValueInst*>::const_iterator it;
-
-            int size = inst->fArgs.size(), i = 0;
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                // Compile argument
-                (*it)->accept(this);
-                if (i < size - 1) *fOut << ", ";
-            }
-            *fOut << ")";
-            */
-            
-            string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this);
-                *fOut << "." << js_name << "(";
-                list<ValueInst*>::const_iterator it1;
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-            } else {
-                *fOut << js_name << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                
-            }
-            *fOut << ")";
-            // Special case
-            if (inst->fName == "log10f") {
-                *fOut << "/Math.log(10)";
-            }
+            string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            generateFunCall(inst, fun_name);
         }
-
+  
         virtual void visit(Select2Inst* inst)
         {
-            *fOut << "(";
+            *fOut << "(cast_boolean(";
             inst->fCond->accept(this);
-            *fOut << "?";
+            *fOut << ")?";
             inst->fThen->accept(this);
             *fOut << ":";
             inst->fElse->accept(this);
             *fOut << ")";
         }
-
-        virtual void visit(IfInst* inst)
-        {
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fThen->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            if (inst->fElse->fCode.size() > 0) {
-                *fOut << "} else {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fElse->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            *fOut << "for (";
-                fFinishLine = false;
-                inst->fInit->accept(this);
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(WhileLoopInst* inst)
-        {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-             *fOut << "}";
-             tab(fTab, *fOut);
-        }
-
-        virtual void visit(BlockInst* inst)
-        {
-            if (inst->fIndent) {
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-            }
-            list<StatementInst*>::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                (*it)->accept(this);
-            }
-            if (inst->fIndent) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(::SwitchInst* inst)
-        {
-            *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                list<pair <int, BlockInst*> >::const_iterator it;
-                for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                    if ((*it).first == -1) { // -1 used to code "default" case
-                        *fOut << "default: {";
-                    } else {
-                         *fOut << "case " << (*it).first << ": {";
-                    }
-                        fTab++;
-                        tab(fTab, *fOut);
-                        ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn()) {
-                            *fOut << "break;";
-                        }
-                        fTab--;
-                        tab(fTab, *fOut);
-                    *fOut << "}";
-                    tab(fTab, *fOut);
-                }
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
+        
 };
 
 #endif

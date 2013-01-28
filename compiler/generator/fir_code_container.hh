@@ -36,13 +36,14 @@ class FirCodeContainer : public virtual CodeContainer {
     
         void dump(ostream* dst);
 
-        static CodeContainer* createContainer(int numInputs, int numOutputs, bool top_level = false);
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, bool top_level = false);
 
     protected:
     
-        FirCodeContainer(int numInputs, int numOutputs, bool top_level)
+        FirCodeContainer(const string& name, int numInputs, int numOutputs, bool top_level)
         {
             fTopLevel = top_level;
+            fKlassName = name;
             initializeCodeContainer(numInputs, numOutputs);
         }
 
@@ -66,8 +67,8 @@ class FirScalarCodeContainer : public FirCodeContainer {
 
     public:
     
-        FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type, bool top_level)
-            :FirCodeContainer(numInputs, numOutputs, top_level)
+        FirScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, bool top_level)
+            :FirCodeContainer(name, numInputs, numOutputs, top_level)
         {
             fSubContainerType = sub_container_type;
         }
@@ -81,8 +82,8 @@ class FirVectorCodeContainer : public VectorCodeContainer, public FirCodeContain
 
     public:
     
-        FirVectorCodeContainer(int numInputs, int numOutputs, bool top_level)
-            :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs, top_level)
+        FirVectorCodeContainer(const string& name, int numInputs, int numOutputs, bool top_level)
+            :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(name, numInputs, numOutputs, top_level)
         {}
 
     private:
@@ -94,8 +95,8 @@ class FirOpenMPCodeContainer : public OpenMPCodeContainer, public FirCodeContain
 
     public:
 
-        FirOpenMPCodeContainer(int numInputs, int numOutputs, bool top_level)
-            :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs, top_level)
+        FirOpenMPCodeContainer(const string& name, int numInputs, int numOutputs, bool top_level)
+            :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(name, numInputs, numOutputs, top_level)
         {}
 
     private:
@@ -107,8 +108,8 @@ class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeCont
 
     public:
 
-        FirWorkStealingCodeContainer(int numInputs, int numOutputs, bool top_level)
-            :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(numInputs, numOutputs, top_level)
+        FirWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, bool top_level)
+            :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(name, numInputs, numOutputs, top_level)
         {}
 
     private:

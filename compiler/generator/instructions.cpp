@@ -26,20 +26,22 @@
 #include "global.hh"
 
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
-void DeclareVarInst::cleanup() { gGlobal->gVarTable.clear(); }
+void DeclareVarInst::cleanup() { gGlobal->gVarTypeTable.clear(); }
 
 
 DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
     :fAddress(address), fType(typed), fValue(value)
 {
-    if (gGlobal->gVarTable.find(fAddress->getName()) == gGlobal->gVarTable.end()) {
-        gGlobal->gVarTable[fAddress->getName()] = typed;
+    if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
+        gGlobal->gVarTypeTable[fAddress->getName()] = typed;
+    } else {
+        //printf("DeclareVarInst : variable = %s already typed...\n", fAddress->getName().c_str());
     }
 }
 
 DeclareVarInst::~DeclareVarInst()
 {
-    //gGlobal->gVarTable.erase(fAddress->getName());
+    //gGlobal->gVarTypeTable.erase(fAddress->getName());
 }
 
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)

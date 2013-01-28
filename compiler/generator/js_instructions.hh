@@ -24,28 +24,17 @@
 
 using namespace std;
 
-#include "instructions.hh"
-#include "type_manager.hh"
-#include "binop.hh"
-#include "Text.hh"
+#include "text_instructions.hh"
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-class JAVAScriptInstVisitor : public InstVisitor {
+class JAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
 
-        int fTab;
-        std::ostream* fOut;
-        bool fFinishLine;
         map <string, string> fMathLibTable;
 
     public:
 
-        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):fTab(tab), fOut(out), fFinishLine(true)
+        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, ".", tab)
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
@@ -58,9 +47,9 @@ class JAVAScriptInstVisitor : public InstVisitor {
             fMathLibTable["cosf"] = "Math.cos";
             fMathLibTable["expf"] = "Math.exp";
             fMathLibTable["floorf"] = "Math.floor";
-            //fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
+            fMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
             fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "Math.log10";
+            fMathLibTable["log10f"] = "function log10(a) { return Math.log(a)/Math.log(10); }";
             fMathLibTable["max"] = "Math.max";
             fMathLibTable["min"] = "Math.min";
             fMathLibTable["powf"] = "Math.pow";
@@ -72,16 +61,6 @@ class JAVAScriptInstVisitor : public InstVisitor {
 
         virtual ~JAVAScriptInstVisitor()
         {}
-
-        void Tab(int n) {fTab = n;}
-
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab(fTab, *fOut);
-            }
-        }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -155,21 +134,15 @@ class JAVAScriptInstVisitor : public InstVisitor {
 
         virtual void visit(LabelInst* inst)
         {
-            // No generation
+            // Empty
         }
 
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
-                 *fOut << "volatile ";
-            }
-            
             string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
 
             if (inst->fValue) {
-                *fOut << prefix << inst->fAddress->getName() << " = ";
-                inst->fValue->accept(this);
-                EndLine();
+                *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
             } else {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
@@ -178,297 +151,77 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 } else {
                     *fOut << prefix << inst->fAddress->getName();
                 }
-                EndLine();
-            }
-        }
-
-        virtual void visit(RetInst* inst)
-        {
-            if (inst->fResult) {
-                *fOut << "return ";
-                inst->fResult->accept(this); 
-            } else {
-                *fOut << "return";
             }
             EndLine();
         }
-
-        virtual void visit(DropInst* inst)
+        
+        virtual void generateFunArgs(DeclareFunInst* inst)
         {
-            if (inst->fResult) {
-                inst->fResult->accept(this); 
-                EndLine();
-            }
-        }
-
-        virtual void visit(DeclareFunInst* inst)
-        {
-            // Do not declare Math library functions
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-                return;
-            }
-
-            // Prototype
-            *fOut << "function " << inst->fName << "(";
+            *fOut << "(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 *fOut << (*it)->fName;
                 if (i < size - 1) *fOut << ", ";
             }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
         }
-
-        virtual void visit(LoadVarInst* inst)
+  
+        virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            string access = "";
-            
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access = "this.";
-
-            if (named) {
-                *fOut << access << named->getName();
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
+            *fOut << "(";
+            list<NamedTyped*>::const_iterator it;
+            int size = inst->fType->fArgsTypes.size(), i = 0;
+            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
+                *fOut << (*it)->fName;
+                if (i < size - 1) *fOut << ", ";
             }
         }
-
-        // TODO : this does not work in javascript.
+        
+        virtual void visit(DeclareFunInst* inst)
+        {
+            // Do not declare Math library functions
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                return;
+            }
+        
+            // Prototype
+            *fOut << "this." << generateFunName(inst->fName) << " = " << "function";
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
+        }
+        
+        virtual void visit(NamedAddress* named)
+        {   
+            if (named->getAccess() & Address::kStruct) {
+                *fOut << "this.";
+            }
+            *fOut << named->fName;
+        }
+  
         virtual void visit(LoadVarAddressInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << "&" << named->getName();
-            } else {
-                *fOut << "&" << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
+           // Not implemented in JavaScript
+            assert(false);
         }
-
-        virtual void visit(StoreVarInst* inst)
-        {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            string access = "";
-
-            if (inst->fAddress->getAccess() & Address::kStruct)
-                access = "this.";
-
-            if (named) {
-                *fOut << access << named->getName() << " = ";
-            } else {
-                *fOut << access << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "] = ";
-            }
-            assert(inst->fValue);
-            inst->fValue->accept(this);
-            EndLine();
-        }
-
+                
+        // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
             *fOut << inst->fNum;
         }
-
-        virtual void visit(IntNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(BoolNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(DoubleNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-        
-        virtual void visit(BinopInst* inst)
-        {
-            *fOut << "(";
-            assert(inst->fInst1);
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            assert(inst->fInst2);
-            inst->fInst2->accept(this);
-            *fOut << ")";
-        }
-
+     
         virtual void visit(CastNumInst* inst)
         {
             // No explicit cast generation
             inst->fInst->accept(this);
         }
-      
+       
         virtual void visit(FunCallInst* inst)
         {
-            string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this);
-                *fOut << "." << js_name << "(";
-                list<ValueInst*>::const_iterator it1;
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-            } else {
-                *fOut << js_name << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                
-            }
-            *fOut << ")";
+            string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            generateFunCall(inst, fun_name);
         }
 
-        virtual void visit(Select2Inst* inst)
-        {
-            *fOut << "(";
-            inst->fCond->accept(this);
-            *fOut << "?";
-            inst->fThen->accept(this);
-            *fOut << ":";
-            inst->fElse->accept(this);
-            *fOut << ")";
-        }
-
-        virtual void visit(IfInst* inst)
-        {
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fThen->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            if (inst->fElse->fCode.size() > 0) {
-                *fOut << "} else {";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fElse->accept(this);
-                    fTab--;
-                    tab(fTab, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            *fOut << "for (";
-                fFinishLine = false;
-                inst->fInit->accept(this);
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
-
-        virtual void visit(WhileLoopInst* inst)
-        {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-             *fOut << "}";
-             tab(fTab, *fOut);
-        }
-
-        virtual void visit(BlockInst* inst)
-        {
-            if (inst->fIndent) {
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-            }
-            list<StatementInst*>::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                (*it)->accept(this);
-            }
-            if (inst->fIndent) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(::SwitchInst* inst)
-        {
-            *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                list<pair <int, BlockInst*> >::const_iterator it;
-                for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                    if ((*it).first == -1) { // -1 used to code "default" case
-                        *fOut << "default: {";
-                    } else {
-                         *fOut << "case " << (*it).first << ": {";
-                    }
-                        fTab++;
-                        tab(fTab, *fOut);
-                        ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn()) {
-                            *fOut << "break;";
-                        }
-                        fTab--;
-                        tab(fTab, *fOut);
-                    *fOut << "}";
-                    tab(fTab, *fOut);
-                }
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-        }
 };
 
 #endif

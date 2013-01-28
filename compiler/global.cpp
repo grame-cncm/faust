@@ -390,7 +390,7 @@ void Garbageable::operator delete(void* ptr)
     */
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
-   }
+    }
     free(ptr);
 }
 

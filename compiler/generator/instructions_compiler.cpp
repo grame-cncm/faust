@@ -646,8 +646,9 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     fContainer->addIncludeFile(ffincfile(ff));
 	fContainer->addLibrary(fflibfile(ff));
-
+    
     string funname = ffname(ff);
+   
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
     FunTyped* fun_type;
@@ -655,16 +656,21 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     for (int i = 0; i< ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
-        // Reversed..
+        // Reversed...
         BasicTyped* argtype = InstBuilder::genBasicTyped((ffargtype(ff, (ffarity(ff) - 1) - i) == kInt) ? Typed::kInt : itfloat());
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
         args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
     }
-
+   
     // Add function declaration
     fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
-    pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
-
+    
+    // If not yet declared...
+    if (gGlobal->gSymbolGlobalsTable.find(funname) == gGlobal->gSymbolGlobalsTable.end()) {
+        pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
+        gGlobal->gSymbolGlobalsTable[funname] = 1;
+    }
+ 
     return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value),
         InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat())));
 }
@@ -857,8 +863,8 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     assert(load_value1);
 
-    LoadVarInst* load_value2 = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
-        InstBuilder::genNamedAddress(load_value1->fAddress->getName(), access), CS(idx)));
+    LoadVarInst* load_value2 
+        = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(load_value1->fAddress->getName(), access), CS(idx)));
 
     return generateCacheCode(sig, load_value2);
 }
@@ -948,7 +954,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int
 
 ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2, ::Type type)
 {
-    ValueInst* cond = (t0 == kReal) ? InstBuilder::genNotEqual(sel, InstBuilder::genRealNumInst(itfloat(), 0.0)) : InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
+    ValueInst* cond = (t0 == kReal) ? InstBuilder::genNotEqual(sel, InstBuilder::genRealNumInst(itfloat(), 0)) : InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
     
     string vname = getFreshID("sel");
     DeclareVarInst* var;
@@ -1204,8 +1210,9 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     fContainer->addIncludeFile(file);
 
     // Keep SR generation state
-    if (name == "fSamplingFreq")
+    if (name == "fSamplingFreq") {
         fContainer->setGeneratedSR();
+    }
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {

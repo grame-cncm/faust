@@ -211,11 +211,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "AddNumEntry"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " <<  inst->fMax << ", " << inst->fStep << ")";
-
+            }
             EndLine();
         }
 
@@ -228,10 +228,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "AddVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
+            if (strcmp(ifloat(), "float") == 0) {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            else
+            } else {
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            }
             EndLine();
         }
 
@@ -257,11 +258,10 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                  *fOut << "volatile ";
             }
 
+            *fOut << generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << ", "; inst->fValue->accept(this);
-            } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName());
-            }
+                *fOut << ", "; inst->fValue->accept(this);
+            } 
             *fOut << ")";
             EndLine();
         }
@@ -294,20 +294,30 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
-                return;  // already declared
+            if (gGlobal->gSymbolGlobalsTable.find(inst->fName) != gGlobal->gSymbolGlobalsTable.end()) {
+                return;  // Already declared
             }
-
+       
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
+            
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print "name"
+            string fun_name = inst->fName;
+            size_t pos;
+            if ((pos = inst->fName.find("::")) != string::npos) {
+                fun_name = inst->fName.substr(pos + 2); // After the "::"
+            }
 
             // Prototype
             *fOut << "DeclareFunInst(";
-            *fOut << generateType(inst->fType->fResult, "\"" + inst->fName + "\", ");
-            list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
+            *fOut << generateType(inst->fType->fResult, "\"" + fun_name + "\"");
+            if (size > 0) { // Has more arguments...
+                *fOut << ", ";
+            } 
+            list<NamedTyped*>::const_iterator it;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 *fOut << generateType((*it));
                 if (i < size - 1) *fOut << ", ";
@@ -319,95 +329,59 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 // Function body
                 *fOut << ")";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    *fOut << "EndDeclare";
-                    tab(fTab, *fOut);
+                fTab++;
+                tab(fTab, *fOut);
+                inst->fCode->accept(this);
+                fTab--;
+                *fOut << "EndDeclare";
+                tab(fTab, *fOut);
             }
 
-            gGlobal->gGlobalTable[inst->fName] = 1;
+            gGlobal->gSymbolGlobalsTable[inst->fName] = 1;
+        }
+        
+        virtual void visit(NamedAddress* named)
+        {
+            *fOut << named->fName;
         }
 
         virtual void visit(IndexedAddress* indexed)
         {
             indexed->fAddress->accept(this);
-            *fOut << "[";
-            indexed->fIndex->accept(this);
-            *fOut << "]";
+            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
         }
 
         virtual void visit(LoadVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
             if (inst->fSize > 1) {
                 *fOut << "LoadVarInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "LoadVarInst(";
             }
-
-            if (named) {
-                *fOut << named->getName();
-            } else {
-                /*
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-                */
-                *fOut << indexed->getName();
-                indexed->accept(this);
-            }
+            inst->fAddress->accept(this);
             *fOut << ")";
         }
 
         virtual void visit(LoadVarAddressInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
             if (inst->fSize > 1) {
                 *fOut << "LoadVarAddressInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "LoadVarAddressInst(";
             }
-
-            if (named) {
-                *fOut << named->getName();
-            } else {
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
+            inst->fAddress->accept(this);
             *fOut << ")";
         }
 
         virtual void visit(StoreVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
             if (inst->fValue->fSize > 1) {
                 *fOut << "StoreVarInstVec<" << inst->fValue->fSize << ">(";
             } else {
                 *fOut << "StoreVarInst(";
             }
-
-            if (named) {
-                *fOut << named->getName() << ", ";
-            } else {
-                /*
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "], ";
-                */
-                *fOut << indexed->getName();
-                indexed->accept(this);
-                *fOut << " = ";
-            }
-
+            inst->fAddress->accept(this);
+            *fOut << " = ";
             inst->fValue->accept(this);
             *fOut << ")";
             EndLine();
@@ -487,8 +461,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 string fun_name = (inst->fMethod) ? "MethodFunCallInstVec<" : "FunCallInstVec<";
                 *fOut << fun_name << inst->fSize << ">(";
             } else {
-                string fun_name = (inst->fMethod) ? "MethodFunCallInst" : "FunCallInst";
-                *fOut << "FunCallInst(";
+                string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
+                *fOut << fun_name;
             }
 
             *fOut << "\"" <<inst->fName << "\"";

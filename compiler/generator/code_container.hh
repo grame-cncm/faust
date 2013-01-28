@@ -125,8 +125,6 @@ class CodeContainer : public virtual Garbageable {
 
         bool fGeneratedSR;
 
-        map <string, int> gPowerGlobalTable;
-
       public:
 
         CodeContainer();

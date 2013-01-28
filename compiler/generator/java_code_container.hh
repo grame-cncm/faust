@@ -88,19 +88,6 @@ class JAVAVectorCodeContainer : public VectorCodeContainer, public JAVACodeConta
 
 };
 
-class JAVAOpenMPCodeContainer : public OpenMPCodeContainer, public JAVACodeContainer {
-
-    protected:
-
-    public:
-
-        JAVAOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~JAVAOpenMPCodeContainer();
-
-        void generateCompute(int tab) {}
-
-};
-
 class JAVAWorkStealingCodeContainer : public JAVACodeContainer {
 
     protected:

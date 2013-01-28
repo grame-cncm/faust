@@ -200,7 +200,8 @@ void CPPCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "#ifndef FAUSTCLASS " << endl;
+    tab(n, *fOut); 
+    *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
     *fOut << "#endif" << endl;
 

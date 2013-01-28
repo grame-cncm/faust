@@ -634,10 +634,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (strcmp(gOutputLang, "fir") == 0) {
-        
-            //cout << "FIR " << endl;
-
-            container = FirCodeContainer::createContainer(numInputs, numOutputs, true);
+       
+            container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
 
             if (gGlobal->gVectorSwitch) {
                 comp = new DAGInstructionsCompiler(container);

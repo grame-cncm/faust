@@ -68,6 +68,10 @@ testlin: alsagtk alsaqt jackgtk jackconsole jackqt netjackqt puredata ladspa dss
 testmac: caqt puredata maxmsp maxmsp64 csound csounddouble supercollider
 
 
+javaswing :
+	install -d javaswingdir
+	$(MAKE) DEST='javaswingdir/' ARCH='java-swing.java' EXT='.java' -f Makefile.javacompile
+
 json :
 	install -d jsondir
 	$(MAKE) DEST='jsondir/' ARCH='gen-json.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-L$(LIB)/faust/ -lHTTPDFaust' -f Makefile.compile

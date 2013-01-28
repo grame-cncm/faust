@@ -24,53 +24,19 @@
 
 using namespace std;
 
-#include <string>
-#include <list>
-#include <set>
-#include <map>
-
-#include "instructions.hh"
+#include "text_instructions.hh"
 #include "type_manager.hh"
-#include "binop.hh"
-#include "Text.hh"
-#include "global.hh"
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-class CPPInstVisitor : public InstVisitor, public StringTypeManager {
-
-    protected:
-
-        int fTab;
-        std::ostream* fOut;
-        bool fFinishLine;
-
-        virtual void tab1(int n, ostream& fout)
-        {
-            fout << '\n';
-            while (n--) fout << '\t';
-        }
+class CPPInstVisitor : public TextInstVisitor {
 
     public:
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
-            :fTab(tab), fOut(out), fFinishLine(true)
+            :TextInstVisitor(out, "->", tab)
         {}
 
         virtual ~CPPInstVisitor()
         {}
-
-        void Tab(int n) {fTab = n;}
-
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab1(fTab, *fOut);
-            }
-        }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -80,7 +46,6 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 *fOut << "interface->declare(" << "&" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")";
             }
-
             EndLine();
         }
 
@@ -101,8 +66,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CloseboxInst* inst)
         {
-            *fOut << "interface->closeBox();"; tab1(fTab, *fOut);
+            *fOut << "interface->closeBox();"; tab(fTab, *fOut);
         }
+        
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -149,23 +115,8 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             EndLine();
         }
 
-        virtual void visit(LabelInst* inst)
-        {
-            *fOut << inst->fLabel;
-            tab1(fTab, *fOut);
-        }
-
         virtual void visit(DeclareVarInst* inst)
         {
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
-                if (gGlobal->gGlobalTable.find(inst->fAddress->getName()) == gGlobal->gGlobalTable.end()) {
-                    // If global is not defined
-                    gGlobal->gGlobalTable[inst->fAddress->getName()] = 1;
-                } else {
-                    return;
-                }
-            }
-
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
@@ -174,53 +125,21 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                  *fOut << "volatile ";
             }
 
+            *fOut << generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); 
-            } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()); 
-            }
-            
-            EndLine();
-        }
-
-        virtual void visit(RetInst* inst)
-        {
-            if (inst->fResult) {
-                *fOut << "return ";
-                inst->fResult->accept(this); 
-            } else {
-                *fOut << "return";
+                *fOut << " = "; inst->fValue->accept(this); 
             }
             EndLine();
-        }
-
-        virtual void visit(DropInst* inst)
-        {
-            if (inst->fResult) {
-                inst->fResult->accept(this); 
-                EndLine();
-            }
         }
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gGlobalTable.find(inst->fName) != gGlobal->gGlobalTable.end()) {
-                return;  // Already declared
-            }
-
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
 
-            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
-            string fun_name = inst->fName;
-            size_t pos;
-            if ((pos = inst->fName.find("::")) != string::npos) {
-                fun_name = inst->fName.substr(pos + 2); // After the "::"
-            }
-
-            // Prototype
+            // Prototype arguments
             if (inst->fType->fAttribute & FunTyped::kLocal) {
                 *fOut << " ";
             }
@@ -228,272 +147,27 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             if (inst->fType->fAttribute & FunTyped::kVirtual) {
                 *fOut << "virtual ";
             }
-
-            *fOut << generateType(inst->fType->fResult, fun_name);
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-
-            if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl; ;  // Pure prototype
-            } else {
-                // Function body
-                *fOut << ") {";
-                    fTab++;
-                    tab1(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
-                    tab1(fTab, *fOut);
-                *fOut << "}";
-                tab1(fTab, *fOut);
-            }
             
-            gGlobal->gGlobalTable[inst->fName] = 1;
+            // Prototype
+            *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
+            generateFunDefArgs(inst);
+            generateFunDefBody(inst);
         }
-
-        virtual void visit(IndexedAddress* indexed)
-        {
-            indexed->fAddress->accept(this);
-            *fOut << "[";
-            indexed->fIndex->accept(this);
-            *fOut << "]";
-        }
-
-        virtual void visit(LoadVarInst* inst)
-        {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << named->getName();
-            } else {
-                /*
-                *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-                */
-                *fOut << indexed->getName();
-                indexed->accept(this);
-            }
-        }
-
+        
         virtual void visit(LoadVarAddressInst* inst)
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << "&" << named->getName();
-            } else {
-                *fOut << "&" << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            }
+            *fOut << "&"; inst->fAddress->accept(this);
         }
-
-        virtual void visit(StoreVarInst* inst)
-        {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
-            if (named) {
-                *fOut << named->getName() << " = ";
-            } else {
-                /*
-                *fOut << indexed->getName() << "[";
-                indexed->fAddress->accept(this);
-                *fOut << "] = ";
-                */
-                *fOut << indexed->getName();
-                indexed->accept(this);
-                *fOut << " = ";
-            }
-            inst->fValue->accept(this);
-            EndLine();
-        }
-
-        virtual void visit(FloatNumInst* inst)
-        {
-            *fOut << checkFloat(inst->fNum);
-        }
-
-        virtual void visit(IntNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(BoolNumInst* inst)
-        {
-            *fOut << inst->fNum;
-        }
-
-        virtual void visit(DoubleNumInst* inst)
-        {
-            *fOut << T(inst->fNum);
-        }
-
-        virtual void visit(BinopInst* inst)
-        {
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
-        }
-
+     
         virtual void visit(CastNumInst* inst)
         {
             *fOut << generateType(inst->fType);
             *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
         }
-
+      
         virtual void visit(FunCallInst* inst)
         {
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this);
-                *fOut << "->" << inst->fName << "(";
-                list<ValueInst*>::const_iterator it1;
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                *fOut << ")";
-          } else {
-                *fOut << inst->fName << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this);
-                    if (i < size - 1) *fOut << ", ";
-                }
-                *fOut << ")";
-            }
-        }
-
-        virtual void visit(Select2Inst* inst)
-        {
-            *fOut << "(";
-            inst->fCond->accept(this);
-            *fOut << "?";
-            inst->fThen->accept(this);
-            *fOut << ":";
-            inst->fElse->accept(this);
-            *fOut << ")";
-        }
-
-        virtual void visit(IfInst* inst)
-        {
-            *fOut << "if ";
-            inst->fCond->accept(this);
-            *fOut << " {";
-                fTab++;
-                tab1(fTab, *fOut);
-                inst->fThen->accept(this);
-                fTab--;
-                tab1(fTab, *fOut);
-            if (inst->fElse->fCode.size() > 0) {
-                *fOut << "} else {";
-                    fTab++;
-                    tab1(fTab, *fOut);
-                    inst->fElse->accept(this);
-                    fTab--;
-                    tab1(fTab, *fOut);
-                *fOut << "}";
-            } else {
-                *fOut << "}";
-            }
-            tab1(fTab, *fOut);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            *fOut << "for (";
-                fFinishLine = false;
-                inst->fInit->accept(this);
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab1(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab1(fTab, *fOut);
-            *fOut << "}";
-            tab1(fTab, *fOut);
-        }
-
-        virtual void visit(WhileLoopInst* inst)
-        {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab1(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab1(fTab, *fOut);
-             *fOut << "}";
-             tab1(fTab, *fOut);
-        }
-
-        virtual void visit(BlockInst* inst)
-        {
-            if (inst->fIndent) {
-                *fOut << "{";
-                fTab++;
-                tab1(fTab, *fOut);
-            }
-            list<StatementInst*>::const_iterator it;
-            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                (*it)->accept(this);
-            }
-            if (inst->fIndent) {
-                fTab--;
-                tab1(fTab, *fOut);
-                *fOut << "}";
-                tab1(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(::SwitchInst* inst)
-        {
-            *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
-                fTab++;
-                tab1(fTab, *fOut);
-                list<pair <int, BlockInst*> >::const_iterator it;
-                for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                    if ((*it).first == -1) { // -1 used to code "default" case
-                        *fOut << "default: {";
-                    } else {
-                         *fOut << "case " << (*it).first << ": {";
-                    }
-                        fTab++;
-                        tab1(fTab, *fOut);
-                        ((*it).second)->accept(this);
-                        if (!((*it).second)->hasReturn()) {
-                            *fOut << "break;";
-                        }
-                        fTab--;
-                        tab1(fTab, *fOut);
-                    *fOut << "}";
-                    tab1(fTab, *fOut);
-                }
-                fTab--;
-                tab1(fTab, *fOut);
-            *fOut << "}";
-            tab1(fTab, *fOut);
+            generateFunCall(inst, inst->fName);
         }
 
 };
@@ -513,6 +187,7 @@ class CPPVecInstVisitor : public CPPInstVisitor {
  *
  */
 
+/*
 class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
     protected:
@@ -528,7 +203,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
     public:
 
         CPPVecAccelerateInstVisitor(std::ostream* out, int tab = 0)
-            :CPPVecInstVisitor(out, tab)
+            :CPPVecInstVisitor(out, tab), fCurType(Typed::kNoType)
         {
             fVecBinOpTable[kAdd] = "vDSP_vadd";
             fVecBinOpTable[kSub] = "vDSP_vsub";
@@ -577,8 +252,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             fCurValue = inst->fAddress->getName();
             //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
             // Keep type
-            assert(gGlobal->gVarTable.find(inst->fAddress->getName()) != gGlobal->gVarTable.end());
-            fCurType = gGlobal->gVarTable[inst->fAddress->getName()]->getType();
+            assert(gGlobal->gVarTypeTable.find(inst->fAddress->getName()) != gGlobal->gVarTypeTable.end());
+            fCurType = gGlobal->gVarTypeTable[inst->fAddress->getName()]->getType();
         }
 
         virtual void visit(FloatNumInst* inst)
@@ -596,13 +271,13 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
         virtual void visit(BoolNumInst* inst)
         {
             fCurValue = T(inst->fNum);
-            fCurType = Typed::kDouble;
+            fCurType = Typed::kBool;
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
             fCurValue = T(inst->fNum);
-            fCurType = Typed::kBool;
+            fCurType = Typed::kDouble;
         }
 
         virtual void visit(BinopInst* inst)
@@ -860,8 +535,8 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             // Struct type access
-            if (gGlobal->gVarTable.find(indexed->getName()) != gGlobal->gVarTable.end()) {
-                Typed* var_type = gGlobal->gVarTable[indexed->getName()];
+            if (gGlobal->gVarTypeTable.find(indexed->getName()) != gGlobal->gVarTypeTable.end()) {
+                Typed* var_type = gGlobal->gVarTypeTable[indexed->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
                 assert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);
@@ -892,5 +567,5 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         }
 
 };
-
+*/
 #endif

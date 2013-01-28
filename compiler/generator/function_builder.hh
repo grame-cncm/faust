@@ -135,11 +135,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                             // Be sure variable is defined
                             //cerr << "createParameter kStack " << name << endl;
-                            assert(gGlobal->gVarTable.find(name) != gGlobal->gVarTable.end());
+                            assert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                             // Local in the enclosing context, becomes a fun parameter
                             BasicCloneVisitor cloner;
-                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTable[name]->clone(&cloner)));
+                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                             // It becomes a value in the fun-call argument list
                             fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
@@ -160,11 +160,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Be sure variable is defined
                         cout << "createParameter kFunArgs " << name << endl;
-                        assert(gGlobal->gVarTable.find(name) != gGlobal->gVarTable.end());
+                        assert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                         // Parameter in the enclosing function, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                         fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
