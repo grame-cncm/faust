@@ -58,9 +58,6 @@ _f4u$t.update_button_value = function(address, value) {
 }
 
 _f4u$t.dispatch = function(data) {
-  if (_f4u$t.BUSY) {
-    return false;
-  }
   var lines = data.split('\n');
   var limit = lines.length;
   for (i=0; i < limit; i++) {
