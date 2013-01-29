@@ -317,6 +317,13 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         return OPEN_ERR;
     }
     
+    UInt32 allowMixing = true;
+    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+    if (err1 != noErr) {
+        printf("Could not set audio session mixing property\n");
+        return OPEN_ERR;
+    }
+    
    	//err1 = AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set property listener");
     
     Float64 hwSampleRate;
