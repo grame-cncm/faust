@@ -617,7 +617,7 @@ _f4u$t.make_delete_key_work = function(e) {
 }
 
 _f4u$t.keys_to_sink = function(e) {
-  if (_f4u$t._N == 0) {
+  if (_f4u$t._N == "") {
     return 0;
   }
   var id = _f4u$t.unique(_f4u$t._N);
