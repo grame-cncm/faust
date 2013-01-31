@@ -129,8 +129,8 @@ private:
 
     AudioBufferList* fCAInputData;
 
-    float* fInChannel[MAX_CHANNELS];
-    float* fOutChannel[MAX_CHANNELS];
+    float** fInChannel;
+    float** fOutChannel;
 
     static OSStatus Render(void *inRefCon,
                            AudioUnitRenderActionFlags *ioActionFlags,
@@ -146,28 +146,19 @@ public:
     TiPhoneCoreAudioRenderer(int input, int output)
         :fDevNumInChans(input), fDevNumOutChans(output), fCAInputData(NULL)
     {
-        memset(fInChannel, 0, sizeof(float*) * MAX_CHANNELS);
-        memset(fOutChannel, 0, sizeof(float*) * MAX_CHANNELS);
-
-        for (int i = 0; i < fDevNumInChans; i++) {
-            fInChannel[i] = new float[8192];
-        }
-
-        for (int i = 0; i < fDevNumOutChans; i++) {
-            fOutChannel[i] = new float[8192];
-        }
+        fInChannel = new float*[input];
+        fOutChannel = new float*[output];
+        fHWNumInChans = 0;
+        fHWNumOutChans = 0;
+        fCAInputData = 0;
+        fAUHAL = 0;
     }
 
     virtual ~TiPhoneCoreAudioRenderer()
     {
-        for (int i = 0; i < fDevNumInChans; i++) {
-            delete[] fInChannel[i];
-        }
-
-        for (int i = 0; i < fDevNumOutChans; i++) {
-            delete[] fOutChannel[i];
-        }
-
+        delete[] fInChannel;
+        delete[] fOutChannel;
+      
         if (fCAInputData) {
             for (int i = 0; i < fDevNumInChans; i++) {
                 free(fCAInputData->mBuffers[i].mData);
@@ -254,26 +245,19 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
     if (renderer->fHWNumInChans == 1) {
         // Mono ==> stereo
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
-            for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = ((float*)renderer->fCAInputData->mBuffers[0].mData)[frame];
-            }
+            renderer->fInChannel[chan] = (float*)renderer->fCAInputData->mBuffers[0].mData;
         }
     } else {
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
-            for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = ((float*)renderer->fCAInputData->mBuffers[chan].mData)[frame];
-            }
+            renderer->fInChannel[chan] = (float*)renderer->fCAInputData->mBuffers[chan].mData;
         }
+    }
+    
+    for (int chan = 0; chan < renderer->fDevNumOutChans; chan++) {
+        renderer->fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
     }
     
     DSP.compute((int)inNumberFrames, renderer->fInChannel, renderer->fOutChannel);
-    
-    for (int chan = 0; chan < renderer->fDevNumOutChans; chan++) {
-        for (int frame = 0; frame < inNumberFrames; frame++) {
-            ((float*)ioData->mBuffers[chan].mData)[frame] = float(renderer->fOutChannel[chan][frame]);
-        }
-    }
-    
  	return 0;
 }
 
@@ -309,11 +293,26 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         return OPEN_ERR;
     }
     
-    UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
+    UInt32 audioCategory;
+    if ((fDevNumInChans > 0)  && (fDevNumOutChans > 0)) {
+        audioCategory = kAudioSessionCategory_PlayAndRecord;
+    } else if (fDevNumInChans > 0){
+        audioCategory = kAudioSessionCategory_RecordAudio;
+    } else  if (fDevNumOutChans > 0) {
+        audioCategory = kAudioSessionCategory_MediaPlayback;
+    }
+    
 	err1 = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
     if (err1 != noErr) {
         printf("Couldn't set audio category\n");
         printError(err1);
+        return OPEN_ERR;
+    }
+    
+    UInt32 allowMixing = true;
+    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+    if (err1 != noErr) {
+        printf("Could not set audio session mixing property\n");
         return OPEN_ERR;
     }
     
@@ -345,10 +344,19 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
 	err1 = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &outSize, &fHWNumInChans);
     if (err1 != noErr) {
         printf("Couldn't get hw input channels\n");
+        fHWNumInChans = 0;
         printError(err1);
-        return OPEN_ERR;
     } else {
         printf("Get hw input channels %d\n", fHWNumInChans);
+    }
+    
+    if (fDevNumInChans > fHWNumInChans) {
+        if ((fDevNumInChans == 2 && fHWNumInChans == 1)) { // Only mono ==> stereo is accepted
+            printf("hardware ins = %d wanted = %d, so mono to stereo\n", fHWNumInChans, fDevNumInChans);
+        } else {
+            printf("Error: hardware ins = %d wanted = %d\n", fHWNumInChans, fDevNumInChans);
+            return OPEN_ERR;
+        }
     }
     
     outSize = sizeof(fHWNumOutChans);
@@ -356,9 +364,14 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     if (err1 != noErr) {
         printf("Couldn't get hw output channels\n");
         printError(err1);
-        return OPEN_ERR;
+        fHWNumOutChans = 0;
     } else {
         printf("Get hw output channels %d\n", fHWNumOutChans);
+    }
+    
+    if (fDevNumOutChans > fHWNumOutChans) {
+        printf("Error: hardware outs = %d wanted = %d\n", fHWNumOutChans, fDevNumOutChans);
+        return OPEN_ERR;
     }
     
     Float32 preferredBufferSize = float(bufferSize) / float(samplerate);
@@ -545,8 +558,7 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     
    	//err1 = AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set property listener");
     
-    if (SetParameters(bufferSize, samplerate) < 0)
-    {
+    if (SetParameters(bufferSize, samplerate) < 0) {
         printf("Cannot set parameters to CoreAudio device\n");
         return OPEN_ERR;
     }

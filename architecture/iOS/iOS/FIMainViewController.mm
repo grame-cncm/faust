@@ -93,6 +93,7 @@ char rcfilename[256];
     finterface->recallState(rcfilename);
     [self updateGui];
     
+    /*
     // Start CoreAudio
     if (audio_device->Open(bufferSize, sampleRate) < 0)
     {
@@ -105,6 +106,9 @@ char rcfilename[256];
         printf("Cannot start CoreAudio device\n");
         goto error;
     }
+    */
+    
+    [self openCoreAudio:bufferSize :sampleRate];
     
     // Notification when device orientation changed
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -137,13 +141,6 @@ char rcfilename[256];
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
     if (_assignatedWidgets.size() > 0) [self startMotion];
-
-    return;
-    
-error:
-    delete interface;
-    delete finterface;
-    delete audio_device;
 }
 
 - (void)viewDidUnload
@@ -176,6 +173,36 @@ error:
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     return YES;
+}
+
+
+- (void)openCoreAudio:(int)bufferSize :(int)sampleRate
+{
+    // Start CoreAudio
+    if (audio_device->Open(bufferSize, sampleRate) < 0) {
+        printf("Cannot open CoreAudio device\n");
+        goto error;
+    }
+
+    if (audio_device->Start() < 0) {
+        printf("Cannot start CoreAudio device\n");
+        goto error;
+    }
+    
+    return;
+
+error:
+    
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                        message:@"CoreAudio device cannot be opened with the needed in/out parameters" delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+    
+    audio_device->Stop();
+    delete audio_device;
+    audio_device = NULL;
+    return;
 }
 
 - (void)dealloc
@@ -665,32 +692,29 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     finterface->saveState(rcfilename);
     
-    if (audio_device->Stop() < 0)
-    {
+    if (audio_device->Stop() < 0) {
         printf("Cannot stop CoreAudio device\n");
         goto error;
     }
     
     DSP.init(long(sampleRate));
     
-    if (audio_device->SetParameters(bufferSize, sampleRate) < 0)
-    {
+    if (audio_device->SetParameters(bufferSize, sampleRate) < 0) {
         printf("Cannot set parameters to CoreAudio device\n");
         goto error;
     }
     
-    if (audio_device->Start() < 0)
-    {
+    if (audio_device->Start() < 0){
         printf("Cannot start CoreAudio device\n");
         goto error;
     }
     
     finterface->recallState(rcfilename);
-    
     return;
     
 error:
     delete audio_device;
+    audio_device = NULL;
 }
 
 

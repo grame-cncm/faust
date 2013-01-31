@@ -94,6 +94,7 @@ class uiBox;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+- (void)openCoreAudio:(int)bufferSize :(int)sampleRate;
 
 // Sensors
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;
