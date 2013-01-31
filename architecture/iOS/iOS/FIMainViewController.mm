@@ -87,27 +87,12 @@ char rcfilename[256];
     // Read parameters values
     const char* home = getenv ("HOME");
     const char* name = (*metadata.find("name")).second;
-    if (home == 0)
+    if (home == 0) {
         home = ".";
+    }
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, name);
     finterface->recallState(rcfilename);
     [self updateGui];
-    
-    /*
-    // Start CoreAudio
-    if (audio_device->Open(bufferSize, sampleRate) < 0)
-    {
-        printf("Cannot open CoreAudio device\n");
-        goto error;
-    }
-    
-    if (audio_device->Start() < 0)
-    {
-        printf("Cannot start CoreAudio device\n");
-        goto error;
-    }
-    */
-    
     [self openCoreAudio:bufferSize :sampleRate];
     
     // Notification when device orientation changed
@@ -224,7 +209,6 @@ error:
     
     [super dealloc];
 }
-
 
 #pragma mark - DSP view
 
