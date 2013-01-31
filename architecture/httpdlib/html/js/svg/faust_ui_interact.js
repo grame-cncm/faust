@@ -475,7 +475,10 @@ _f4u$t.clearIdCache = function(ee) {
       delete _f4u$t._I[touches[i].identifier || 0];
     }
     if (!_f4u$t._N) {
-      _f4u$t.BUSY = false;
+      if (!_f4u$t.BUSY_loop) {
+        _f4u$t.BUSY = false;
+        _f4u$t.not_busy();
+      }
     }
     // exit function before unbinding if there are still active elements
     for (var elt in _f4u$t._I) {
@@ -571,7 +574,10 @@ _f4u$t.clog_key_sink = function() {
   if (_f4u$t._N != 0) {
     var box = document.getElementById("faust_value_box_"+_f4u$t.unique(_f4u$t._N));
     box.style.stroke = "black";
-    _f4u$t.BUSY = false;
+    if (!_f4u$t.BUSY_loop) {
+      _f4u$t.BUSY = false;
+      _f4u$t.not_busy();
+    }
   }
   _f4u$t._N = 0;
 }

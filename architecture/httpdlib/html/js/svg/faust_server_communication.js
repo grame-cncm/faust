@@ -80,11 +80,15 @@ _f4u$t.dispatch = function(data) {
   }
 }
 
-_f4u$t.update = function() {
+// we only reactivate not_busy when the loop is not running
+_f4u$t.not_busy = function() {
+  _f4u$t.BUSY_loop = true;
   if (!_f4u$t.BUSY) {
     $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
+    setTimeout ( function() { _f4u$t.not_busy(); }, 200);
+  } else {
+    _f4u$t.BUSY_loop = false;
   }
-  setTimeout ( function() { _f4u$t.update(); }, 200);
 }
 
-$(document).ready(function() { _f4u$t.update(); });
+$(document).ready(function() { _f4u$t.not_busy(); });

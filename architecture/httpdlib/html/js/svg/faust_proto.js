@@ -187,6 +187,16 @@ Flag indicating if the UI is being manipulated.
 **/
 _f4u$t.BUSY = false;
 
+/**
+Flag indicating if the server is being polled.
+
+@property BUSY_loop
+@for _f4u$t
+@type Boolean
+@default true
+**/
+_f4u$t.BUSY_loop = true;
+
 // some convenience methods for inheritence
 
 /**
