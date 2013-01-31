@@ -264,7 +264,7 @@ _f4u$t.activate_nentry = function(ee, dir) {
   // if the id is already being used, we ignore
   // otherwise, use the first in the array...
   var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
-  _f4u$t._I[identifier] = {id : ee.target.id, moved : false};
+  _f4u$t._I[identifier] = {id : ee.target.id, moved : false, value : null};
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
 
@@ -303,7 +303,7 @@ _f4u$t.activate_moving_object = function(ee) {
     touches = ee.originalEvent.changedTouches || [ee];
   }
   var identifier = touches[0].identifier || 0;
-  _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false};
+  _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false, value : null};
   _f4u$t.updateXY(touches);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
@@ -360,9 +360,10 @@ _f4u$t.internalMoveActiveObject = function(e, identifier) {
   }
 
   // UI2DSP
-  if (now != null) {
+  if (now != null && now != _f4u$t._I[identifier]['value']) {
     var id = _f4u$t.unique(_f4u$t._I[identifier]['id']);
     _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], now);
+    _f4u$t._I[identifier]['value'] = now;
   }
 
   // soemthing like a numerical entry...so just return 0
@@ -474,7 +475,10 @@ _f4u$t.clearIdCache = function(ee) {
       delete _f4u$t._I[touches[i].identifier || 0];
     }
     if (!_f4u$t._N) {
-      _f4u$t.BUSY = false;
+      if (!_f4u$t.BUSY_loop) {
+        _f4u$t.BUSY = false;
+        _f4u$t.not_busy();
+      }
     }
     // exit function before unbinding if there are still active elements
     for (var elt in _f4u$t._I) {
@@ -570,7 +574,10 @@ _f4u$t.clog_key_sink = function() {
   if (_f4u$t._N != 0) {
     var box = document.getElementById("faust_value_box_"+_f4u$t.unique(_f4u$t._N));
     box.style.stroke = "black";
-    _f4u$t.BUSY = false;
+    if (!_f4u$t.BUSY_loop) {
+      _f4u$t.BUSY = false;
+      _f4u$t.not_busy();
+    }
   }
   _f4u$t._N = 0;
 }
@@ -616,7 +623,7 @@ _f4u$t.make_delete_key_work = function(e) {
 }
 
 _f4u$t.keys_to_sink = function(e) {
-  if (_f4u$t._N == 0) {
+  if (_f4u$t._N == "") {
     return 0;
   }
   var id = _f4u$t.unique(_f4u$t._N);

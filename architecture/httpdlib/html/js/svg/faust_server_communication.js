@@ -58,9 +58,6 @@ _f4u$t.update_button_value = function(address, value) {
 }
 
 _f4u$t.dispatch = function(data) {
-  if (_f4u$t.BUSY) {
-    return false;
-  }
   var lines = data.split('\n');
   var limit = lines.length;
   for (i=0; i < limit; i++) {
@@ -83,9 +80,15 @@ _f4u$t.dispatch = function(data) {
   }
 }
 
-_f4u$t.update = function() {
-  $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
-  setTimeout ( function() { _f4u$t.update(); }, 200);
+// we only reactivate not_busy when the loop is not running
+_f4u$t.not_busy = function() {
+  _f4u$t.BUSY_loop = true;
+  if (!_f4u$t.BUSY) {
+    $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
+    setTimeout ( function() { _f4u$t.not_busy(); }, 200);
+  } else {
+    _f4u$t.BUSY_loop = false;
+  }
 }
 
-$(document).ready(function() { _f4u$t.update(); });
+$(document).ready(function() { _f4u$t.not_busy(); });
