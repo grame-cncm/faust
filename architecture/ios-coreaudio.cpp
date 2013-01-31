@@ -129,9 +129,6 @@ private:
 
     AudioBufferList* fCAInputData;
 
-    float** fInChannel;
-    float** fOutChannel;
-
     static OSStatus Render(void *inRefCon,
                            AudioUnitRenderActionFlags *ioActionFlags,
                            const AudioTimeStamp *inTimeStamp,
@@ -140,14 +137,17 @@ private:
                            AudioBufferList *ioData);
 
     static void InterruptionListener(void *inClientData, UInt32 inInterruption);
+    
+    OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
+                     const AudioTimeStamp *inTimeStamp,
+                     UInt32 inNumberFrames,
+                     AudioBufferList *ioData);
 
 public:
 
     TiPhoneCoreAudioRenderer(int input, int output)
         :fDevNumInChans(input), fDevNumOutChans(output), fCAInputData(NULL)
     {
-        fInChannel = new float*[input];
-        fOutChannel = new float*[output];
         fHWNumInChans = 0;
         fHWNumOutChans = 0;
         fCAInputData = 0;
@@ -156,9 +156,6 @@ public:
 
     virtual ~TiPhoneCoreAudioRenderer()
     {
-        delete[] fInChannel;
-        delete[] fOutChannel;
-      
         if (fCAInputData) {
             for (int i = 0; i < fDevNumInChans; i++) {
                 free(fCAInputData->mBuffers[i].mData);
@@ -239,25 +236,35 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
                                          UInt32 inNumberFrames,
                                          AudioBufferList *ioData)
 {
-    TiPhoneCoreAudioRendererPtr renderer = (TiPhoneCoreAudioRendererPtr)inRefCon;
-    AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fCAInputData);
+    return static_cast<TiPhoneCoreAudioRendererPtr>(inRefCon)->Render(ioActionFlags, inTimeStamp, inNumberFrames, ioData);
+}
+
+OSStatus TiPhoneCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFlags,
+                                         const AudioTimeStamp *inTimeStamp,
+                                         UInt32 inNumberFrames,
+                                         AudioBufferList *ioData)
+{
+    AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fCAInputData);
+    
+    float* fInChannel[fDevNumInChans];
+    float* fOutChannel[fDevNumOutChans];
     
     if (renderer->fHWNumInChans == 1) {
         // Mono ==> stereo
-        for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
-            renderer->fInChannel[chan] = (float*)renderer->fCAInputData->mBuffers[0].mData;
+        for (int chan = 0; chan < fDevNumInChans; chan++) {
+            fInChannel[chan] = (float*)fCAInputData->mBuffers[0].mData;
         }
     } else {
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
-            renderer->fInChannel[chan] = (float*)renderer->fCAInputData->mBuffers[chan].mData;
+            fInChannel[chan] = (float*)fCAInputData->mBuffers[chan].mData;
         }
     }
     
     for (int chan = 0; chan < renderer->fDevNumOutChans; chan++) {
-        renderer->fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
+        fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
     }
     
-    DSP.compute((int)inNumberFrames, renderer->fInChannel, renderer->fOutChannel);
+    DSP.compute((int)inNumberFrames, fInChannel, fOutChannel);
  	return 0;
 }
 

@@ -3,6 +3,7 @@
 #define __jack_dsp__
 
 #include <stdio.h>
+#include <cstdlib>
 #include <jack/jack.h>
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
