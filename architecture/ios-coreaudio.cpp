@@ -249,18 +249,18 @@ OSStatus TiPhoneCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFl
     float* fInChannel[fDevNumInChans];
     float* fOutChannel[fDevNumOutChans];
     
-    if (renderer->fHWNumInChans == 1) {
+    if (fHWNumInChans == 1) {
         // Mono ==> stereo
         for (int chan = 0; chan < fDevNumInChans; chan++) {
             fInChannel[chan] = (float*)fCAInputData->mBuffers[0].mData;
         }
     } else {
-        for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
+        for (int chan = 0; chan < fDevNumInChans; chan++) {
             fInChannel[chan] = (float*)fCAInputData->mBuffers[chan].mData;
         }
     }
     
-    for (int chan = 0; chan < renderer->fDevNumOutChans; chan++) {
+    for (int chan = 0; chan < fDevNumOutChans; chan++) {
         fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
     }
     
