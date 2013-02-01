@@ -32,7 +32,7 @@
 @synthesize dspView = _dspView;
 @synthesize dspScrollView = _dspScrollView;
 
-TiPhoneCoreAudioRenderer* audio_device = NULL;
+iosaudio* audio_device = NULL;
 CocoaUI* interface = NULL;
 FUI* finterface = NULL;
 MY_Meta metadata;
@@ -63,14 +63,19 @@ char rcfilename[256];
 
     // Faust initialization
     DSP.metadata(&metadata);
-    interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
-    finterface = new FUI();
-    audio_device = new TiPhoneCoreAudioRenderer(DSP.getNumInputs(), DSP.getNumOutputs());
     
-    [self displayTitle];
+    // Read parameters values
+    const char* home = getenv ("HOME");
+    _name = (*metadata.find("name")).second;
+    if (home == 0) {
+        home = ".";
+    }
     
     int sampleRate = 0;
     int	bufferSize = 0;
+    
+    interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
+    finterface = new FUI();
     
     // Read audio user preferences
     sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
@@ -79,21 +84,17 @@ char rcfilename[256];
     bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     if (bufferSize == 0) bufferSize = 256;
     
+    [self openCoreAudio:bufferSize :sampleRate];
+    [self displayTitle];
+     
     // Build Faust interface
     DSP.init(long(sampleRate));
 	DSP.buildUserInterface(interface);
     DSP.buildUserInterface(finterface);
-    
-    // Read parameters values
-    const char* home = getenv ("HOME");
-    const char* name = (*metadata.find("name")).second;
-    if (home == 0) {
-        home = ".";
-    }
-    snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, name);
+   
+    snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
     [self updateGui];
-    [self openCoreAudio:bufferSize :sampleRate];
     
     // Notification when device orientation changed
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -160,20 +161,22 @@ char rcfilename[256];
     return YES;
 }
 
-
 - (void)openCoreAudio:(int)bufferSize :(int)sampleRate
 {
-    // Start CoreAudio
-    if (audio_device->Open(bufferSize, sampleRate) < 0) {
-        printf("Cannot open CoreAudio device\n");
-        goto error;
+    if (!audio_device) {
+        audio_device = new iosaudio(sampleRate, bufferSize);
+        
+        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+            printf("Cannot init iOS audio device\n");
+            goto error;
+        }
+        
+        if (audio_device->start() < 0) {
+            printf("Cannot start iOS audio device\n");
+            goto error;
+        }
     }
-
-    if (audio_device->Start() < 0) {
-        printf("Cannot start CoreAudio device\n");
-        goto error;
-    }
-    
+      
     return;
 
 error:
@@ -184,10 +187,9 @@ error:
     [alertView show];
     [alertView release];
     
-    audio_device->Stop();
+    audio_device->stop();
     delete audio_device;
     audio_device = NULL;
-    return;
 }
 
 - (void)dealloc
@@ -198,8 +200,7 @@ error:
     [_tapGesture release];
     finterface->saveState(rcfilename);
     
-    audio_device->Stop();
-    audio_device->Close();
+    audio_device->stop();
     delete audio_device;
     delete interface;
     delete finterface;
@@ -676,29 +677,17 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     finterface->saveState(rcfilename);
     
-    if (audio_device->Stop() < 0) {
-        printf("Cannot stop CoreAudio device\n");
-        goto error;
-    }
+    if (audio_device) {
     
-    DSP.init(long(sampleRate));
+        audio_device->stop();
+        audio_device = NULL;
     
-    if (audio_device->SetParameters(bufferSize, sampleRate) < 0) {
-        printf("Cannot set parameters to CoreAudio device\n");
-        goto error;
-    }
+        [self openCoreAudio:bufferSize :sampleRate];
     
-    if (audio_device->Start() < 0){
-        printf("Cannot start CoreAudio device\n");
-        goto error;
+        DSP.init(long(sampleRate));
     }
     
     finterface->recallState(rcfilename);
-    return;
-    
-error:
-    delete audio_device;
-    audio_device = NULL;
 }
 
 

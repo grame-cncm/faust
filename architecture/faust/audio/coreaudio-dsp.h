@@ -128,11 +128,11 @@ class TCoreAudioRenderer
         virtual ~TCoreAudioRenderer()
         {}
 
-        long OpenDefault(dsp* dsp, long inChan, long outChan, long bufferSize, long sampleRate);
-        long Close();
+        int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int sampleRate);
+        int Close();
 
-        long Start();
-        long Stop();
+        int Start();
+        int Stop();
 
 };
 
@@ -800,7 +800,7 @@ OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
 }
 
 
-long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long bufferSize, long samplerate)
+int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int samplerate)
 {
 	OSStatus err = noErr;
     ComponentResult err1;
@@ -808,7 +808,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
     UInt32 enableIO;
 	Boolean isWritable;
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
-    long in_nChannels, out_nChannels;
+    int in_nChannels, out_nChannels;
     
     fDSP = dsp;
     fDevNumInChans = inChan;
@@ -864,7 +864,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
         return OPEN_ERR;
     }
 
-    if (samplerate != long(sampleRate.mSampleRate)) {
+    if (samplerate != int(sampleRate.mSampleRate)) {
         sampleRate.mSampleRate = (Float64)(samplerate);
         err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyStreamFormat, outSize, &sampleRate);
         if (err != noErr) {
@@ -1088,7 +1088,7 @@ error:
     return OPEN_ERR;
 }
 
-long TCoreAudioRenderer::Close()
+int TCoreAudioRenderer::Close()
 {
     if (!fAUHAL) {
         return CLOSE_ERR;
@@ -1107,7 +1107,7 @@ long TCoreAudioRenderer::Close()
     return NO_ERR;
 }
 
-long TCoreAudioRenderer::Start()
+int TCoreAudioRenderer::Start()
 {
     if (!fAUHAL) {
         return OPEN_ERR;
@@ -1123,7 +1123,7 @@ long TCoreAudioRenderer::Start()
 	}
 }
 
-long TCoreAudioRenderer::Stop()
+int TCoreAudioRenderer::Stop()
 {
     if (!fAUHAL) {
         return OPEN_ERR;
@@ -1151,10 +1151,10 @@ long TCoreAudioRenderer::Stop()
 class coreaudio : public audio {
 
     TCoreAudioRenderer fAudioDevice;
-	long fSampleRate, fFramesPerBuf;
+	int fSampleRate, fFramesPerBuf;
 
  public:
-			 coreaudio(long srate, long fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
+			 coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
 	virtual ~coreaudio() {}
 
 	virtual bool init(const char* /*name*/, dsp* DSP) {

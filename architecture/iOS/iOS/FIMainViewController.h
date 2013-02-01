@@ -73,6 +73,8 @@ class uiBox;
     IBOutlet UISlider*                  _colorRSlider;
     IBOutlet UISlider*                  _colorGSlider;
     IBOutlet UISlider*                  _colorBSlider;
+    
+    const   char*                       _name;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
