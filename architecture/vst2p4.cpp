@@ -285,10 +285,10 @@ public:
   vstUIObject(const char* label, float* zone):fLabel(label),fZone(zone) {}
   virtual ~vstUIObject() {}
 
-  virtual void  GetName(char *text){std::strcpy(text,fLabel.c_str());}
+  virtual void  GetName(char *text){std::strncpy(text,fLabel.c_str(),kVstMaxParamStrLen);}
   virtual void  SetValue(double f) {*fZone = range(0.0f,1.0f,(float)f);}
   virtual float GetValue() {return *fZone;}
-  virtual void  GetDisplay(char *text){std::sprintf(text,"%f",*fZone);}
+  virtual void  GetDisplay(char *text){::snprintf(text,kVstMaxParamStrLen,"%f",*fZone);}
   virtual long  GetID() 
   {	/* returns the sum of all the ASCII characters  contained in the parameter's label */
     unsigned int i;
@@ -396,10 +396,10 @@ public:
   void openVerticalBox(const char* label) {}
   void closeBox() {}
 		
-  void  SetValue(VstInt32 index, double f) {assert(index<fUITable.size()); fUITable[index]->SetValue(f);}
-  float GetValue(VstInt32 index) {assert(index<fUITable.size()); return fUITable[index]->GetValue();}
-  void  GetDisplay(VstInt32 index, char *text) {assert(index<fUITable.size()); fUITable[index]->GetDisplay(text);}
-  void  GetName(VstInt32 index, char *text) {assert(index<fUITable.size()); fUITable[index]->GetName(text);}
+  void  SetValue(VstInt32 index, double f) {assert(index<(int)fUITable.size()); fUITable[index]->SetValue(f);}
+  float GetValue(VstInt32 index) {assert(index<(int)fUITable.size()); return fUITable[index]->GetValue();}
+  void  GetDisplay(VstInt32 index, char *text) {assert(index<(int)fUITable.size()); fUITable[index]->GetDisplay(text);}
+  void  GetName(VstInt32 index, char *text) {assert(index<(int)fUITable.size()); fUITable[index]->GetName(text);}
   long  GetNumParams() {return fUITable.size();}
 
   long  makeID()
@@ -409,9 +409,9 @@ public:
      */
   {   
     const long maxNumberOfId = 128;
-    long baseid = 'FAUS';
+    long baseid = CCONST('F','A','U','S');
     long id=0;
-    for(int i=0;i<fUITable.size();i++) id += fUITable[i]->GetID();
+    for(unsigned int i=0;i<fUITable.size();i++) id += fUITable[i]->GetID();
     return baseid + id % maxNumberOfId;
   }
 		
