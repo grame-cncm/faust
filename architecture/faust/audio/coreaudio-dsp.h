@@ -57,7 +57,7 @@ using namespace std;
 /******************************************************************************
 *******************************************************************************
 
-							COREAUDIO INTERFACE
+							COREAUDIO INTERNAL INTERFACE
 
 *******************************************************************************
 *******************************************************************************/
@@ -108,18 +108,18 @@ class TCoreAudioRenderer
                                UInt32 inBusNumber,
                                UInt32 inNumberFrames,
                                AudioBufferList *ioData);
-
+    
         static OSStatus SRNotificationCallback(AudioDeviceID inDevice,
                                             UInt32 inChannel,
                                             Boolean	isInput,
                                             AudioDevicePropertyID inPropertyID,
                                             void* inClientData);
     
-        virtual void compute(int inNumberFrames)
-        {
-            fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
-        }
-      
+        OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
+                        const AudioTimeStamp *inTimeStamp,
+                        UInt32 inNumberFrames,
+                        AudioBufferList *ioData);
+    
     public:
 
         TCoreAudioRenderer()
@@ -128,11 +128,11 @@ class TCoreAudioRenderer
         virtual ~TCoreAudioRenderer()
         {}
 
-        long OpenDefault(dsp* dsp, long inChan, long outChan, long bufferSize, long sampleRate);
-        long Close();
+        int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int sampleRate);
+        int Close();
 
-        long Start();
-        long Stop();
+        int Start();
+        int Stop();
 
 };
 
@@ -222,17 +222,25 @@ OSStatus TCoreAudioRenderer::Render(void *inRefCon,
                                      UInt32 inNumberFrames,
                                      AudioBufferList *ioData)
 {
-    TCoreAudioRendererPtr renderer = (TCoreAudioRendererPtr)inRefCon;
-    AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fInputData);
-    for (int i = 0; i < renderer->fDevNumInChans; i++) {
-        renderer->fInChannel[i] = (float*)renderer->fInputData->mBuffers[i].mData;
+    return static_cast<TCoreAudioRendererPtr>(inRefCon)->Render(ioActionFlags, inTimeStamp, inNumberFrames, ioData);
+}
+
+OSStatus TCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFlags,
+                                    const AudioTimeStamp *inTimeStamp,
+                                    UInt32 inNumberFrames,
+                                    AudioBufferList *ioData)
+{
+    AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
+    for (int i = 0; i < fDevNumInChans; i++) {
+        fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
     }
-    for (int i = 0; i < renderer->fDevNumOutChans; i++) {
-        renderer->fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+    for (int i = 0; i < fDevNumOutChans; i++) {
+        fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
     }
-    renderer->compute((int)inNumberFrames);
+    fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
 	return 0;
 }
+
 
 static CFStringRef GetDeviceName(AudioDeviceID id)
 {
@@ -792,7 +800,7 @@ OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
 }
 
 
-long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long bufferSize, long samplerate)
+int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int samplerate)
 {
 	OSStatus err = noErr;
     ComponentResult err1;
@@ -800,7 +808,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
     UInt32 enableIO;
 	Boolean isWritable;
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
-    long in_nChannels, out_nChannels;
+    int in_nChannels, out_nChannels;
     
     fDSP = dsp;
     fDevNumInChans = inChan;
@@ -856,7 +864,7 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
         return OPEN_ERR;
     }
 
-    if (samplerate != long(sampleRate.mSampleRate)) {
+    if (samplerate != int(sampleRate.mSampleRate)) {
         sampleRate.mSampleRate = (Float64)(samplerate);
         err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyStreamFormat, outSize, &sampleRate);
         if (err != noErr) {
@@ -1080,7 +1088,7 @@ error:
     return OPEN_ERR;
 }
 
-long TCoreAudioRenderer::Close()
+int TCoreAudioRenderer::Close()
 {
     if (!fAUHAL) {
         return CLOSE_ERR;
@@ -1099,7 +1107,7 @@ long TCoreAudioRenderer::Close()
     return NO_ERR;
 }
 
-long TCoreAudioRenderer::Start()
+int TCoreAudioRenderer::Start()
 {
     if (!fAUHAL) {
         return OPEN_ERR;
@@ -1115,7 +1123,7 @@ long TCoreAudioRenderer::Start()
 	}
 }
 
-long TCoreAudioRenderer::Stop()
+int TCoreAudioRenderer::Stop()
 {
     if (!fAUHAL) {
         return OPEN_ERR;
@@ -1142,16 +1150,16 @@ long TCoreAudioRenderer::Stop()
 *******************************************************************************/
 class coreaudio : public audio {
 
-    TCoreAudioRenderer audio_device;
-	long fSampleRate, fFramesPerBuf;
+    TCoreAudioRenderer fAudioDevice;
+	int fSampleRate, fFramesPerBuf;
 
  public:
-			 coreaudio(long srate, long fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
+			 coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
 	virtual ~coreaudio() {}
 
 	virtual bool init(const char* /*name*/, dsp* DSP) {
 		DSP->init(fSampleRate);
-		if (audio_device.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+		if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
 			printf("Cannot open CoreAudio device\n");
 			return false;
 		}
@@ -1159,7 +1167,7 @@ class coreaudio : public audio {
     }
 
 	virtual bool start() {
-		if (audio_device.Start() < 0) {
+		if (fAudioDevice.Start() < 0) {
 			printf("Cannot start CoreAudio device\n");
 			return false;
 		}
@@ -1167,8 +1175,8 @@ class coreaudio : public audio {
 	}
 
 	virtual void stop() {
-		audio_device.Stop();
-		audio_device.Close();
+		fAudioDevice.Stop();
+		fAudioDevice.Close();
 	}
 
 };

@@ -37,9 +37,18 @@
 #define __jack_dsp__
 
 #include <stdio.h>
+#include <cstdlib>
 #include <jack/jack.h>
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
+
+static int		_jack_srate(jack_nframes_t nframes, void*);
+static void		_jack_shutdown(void *);
+static void     _jack_info_shutdown(jack_status_t code, const char* reason, void*);
+static int		_jack_process(jack_nframes_t nframes, void* client);
+#ifdef _OPENMP
+static void*	_jack_thread(void* arg);
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -51,159 +60,167 @@
 
 class jackaudio : public audio {
 
- private:
-    
-	dsp*			fDsp;
-	jack_client_t*	fClient;
-	int				fNumInChans;	// number of input channels
-	int				fNumOutChans;	// number of output channels
-	jack_port_t**	fInput_ports;   // Jack input ports
-	jack_port_t**	fOutput_ports;  // Jack output ports
-	float**			fInChannel;     // tables of noninterleaved input channels for FAUST
-	float**			fOutChannel;	// tables of noninterleaved output channels for FAUST
+    private:
 
- public:
-			 jackaudio() : fClient(0), fNumInChans(0), fNumOutChans(0) {}
-	virtual ~jackaudio() 
-    { 
-        stop(); 
-        
-        delete[] fInput_ports;
-        delete[] fOutput_ports;
-        
-        delete[] fInChannel;
-        delete[] fOutChannel;
-    }
+        dsp*			fDsp;               // FAUST DSP
+        jack_client_t*	fClient;            // JACK client
+        int				fNumInChans;		// number of input channels
+        int				fNumOutChans;       // number of output channels
+        jack_port_t**	fInput_ports;       // JACK input ports
+        jack_port_t**	fOutput_ports;      // JACK output ports
+        float**			fInChannel;         // tables of noninterleaved input channels for FAUST
+        float**			fOutChannel;		// tables of noninterleaved output channels for FAUST
 
-	virtual bool init(const char*name, dsp* DSP) 
-    {
-		fDsp = DSP;
-		if ((fClient = jack_client_open(name, JackNullOption, NULL)) == 0) {
-			fprintf(stderr, "jack server not running?\n");
-			return false;
-		}
-	#ifdef _OPENMP
-		jack_set_process_thread(fClient, _jackthread, this);
-	#else
-		jack_set_process_callback(fClient, _process, this);
-	#endif
+    public:
+                 jackaudio() : fClient(0), fNumInChans(0), fNumOutChans(0) {}
+        virtual ~jackaudio() { stop(); }
 
-		jack_set_sample_rate_callback(fClient, _srate, 0);
-		jack_on_shutdown(fClient, _jack_shutdown, 0);
-
-		fNumInChans  = fDsp->getNumInputs();
-		fNumOutChans = fDsp->getNumOutputs();
-        
-        fInput_ports = new jack_port_t*[fNumInChans];
-        fOutput_ports = new jack_port_t*[fNumOutChans];
-        
-        fInChannel = new float*[fNumInChans];
-        fOutChannel =  new float*[fNumOutChans];
-
-		for (int i = 0; i < fNumInChans; i++) {
-			char buf[256];
-			snprintf(buf, 256, "in_%d", i);
-			fInput_ports[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-		}
-		for (int i = 0; i < fNumOutChans; i++) {
-			char buf[256];
-			snprintf(buf, 256, "out_%d", i);
-			fOutput_ports[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-		}
-		fDsp->init(jack_get_sample_rate(fClient));
-		return true;
-	}
-
-	virtual bool start() 
-    {
-		if (jack_activate(fClient)) {
-			fprintf(stderr, "cannot activate client");
-			return false;
-		}
-
-		char** physicalInPorts = (char **)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
-		char** physicalOutPorts = (char **)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
-		if (physicalOutPorts != NULL) {
-			for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++)
-				jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInput_ports[i]));
-            jack_free(physicalOutPorts);
-		}
-		if (physicalInPorts != NULL) {
-			for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++)
-				jack_connect(fClient, jack_port_name(fOutput_ports[i]), physicalInPorts[i]);
-            jack_free(physicalInPorts);
-		}
-        return true;
-	}
-
-	virtual void stop() 
-    {
-		if (fClient) {
-			jack_deactivate(fClient);
-			for (int i = 0; i < fNumInChans; i++) {
-				jack_port_unregister(fClient, fInput_ports[i]);
+        virtual bool init(const char* name, dsp* DSP) 
+        {
+            fDsp = DSP;
+            if ((fClient = jack_client_open(name, JackNullOption, NULL)) == 0) {
+                fprintf(stderr, "JACK server not running ?\n");
+                return false;
             }
-			for (int i = 0; i < fNumOutChans; i++) {
-				jack_port_unregister(fClient, fOutput_ports[i]);
-            }
-			jack_client_close(fClient);
-			fClient = 0;
-		}
-	}
+        #ifdef _OPENMP
+            jack_set_process_thread(fClient, _jack_thread, this);
+        #else
+            jack_set_process_callback(fClient, _jack_process, this);
+        #endif
 
-	// jack callbacks
-	int	process(jack_nframes_t nframes) 
-    {
-		AVOIDDENORMALS;
-		for (int i = 0; i < fNumInChans; i++) {
-			fInChannel[i] = (float *)jack_port_get_buffer(fInput_ports[i], nframes);
+            jack_set_sample_rate_callback(fClient, _jack_srate, 0);
+            jack_on_shutdown(fClient, _jack_shutdown, 0);
+            jack_on_info_shutdown(fClient, _jack_info_shutdown, 0);
+
+            fNumInChans  = fDsp->getNumInputs();
+            fNumOutChans = fDsp->getNumOutputs();
+            
+            fInput_ports = new jack_port_t*[fNumInChans];
+            fOutput_ports = new jack_port_t*[fNumOutChans];
+            
+            fInChannel = new float*[fNumInChans];
+            fOutChannel = new float*[fNumOutChans];
+
+            for (int i = 0; i < fNumInChans; i++) {
+                char buf[256];
+                snprintf(buf, 256, "in_%d", i);
+                fInput_ports[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+            }
+            for (int i = 0; i < fNumOutChans; i++) {
+                char buf[256];
+                snprintf(buf, 256, "out_%d", i);
+                fOutput_ports[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+            }
+            fDsp->init(jack_get_sample_rate(fClient));
+            return true;
         }
-		for (int i = 0; i < fNumOutChans; i++) {
-			fOutChannel[i] = (float *)jack_port_get_buffer(fOutput_ports[i], nframes);
+
+        virtual bool start() 
+        {
+            if (jack_activate(fClient)) {
+                fprintf(stderr, "Cannot activate client");
+                return false;
+            }
+
+            // Connect to physical input/outputs
+            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
+            if (physicalOutPorts != NULL) {
+                for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
+                    jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInput_ports[i]));
+                }
+            }
+            
+            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+            if (physicalInPorts != NULL) {
+                for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++) {
+                    jack_connect(fClient, jack_port_name(fOutput_ports[i]), physicalInPorts[i]);
+                }
+            }
+            return true;
         }
-		fDsp->compute(nframes, fInChannel, fOutChannel);
-		return 0;
-	}
+
+        virtual void stop() 
+        {
+            if (fClient) {
+                jack_deactivate(fClient);
+                for (int i = 0; i < fNumInChans; i++) {
+                    jack_port_unregister(fClient, fInput_ports[i]);
+                }
+                for (int i = 0; i < fNumOutChans; i++) {
+                    jack_port_unregister(fClient, fOutput_ports[i]);
+                }
+                jack_client_close(fClient);
+                fClient = 0;
+                
+                delete[] fInput_ports;
+                delete[] fOutput_ports;
+                
+                delete[] fInChannel;
+                delete[] fOutChannel;
+            }
+        }
+
+        // jack callbacks
+        int	process(jack_nframes_t nframes) 
+        {
+            AVOIDDENORMALS;
+            // Retrieve JACK input/outputs audio buffers
+            for (int i = 0; i < fNumInChans; i++) {
+                fInChannel[i] = (float*)jack_port_get_buffer(fInput_ports[i], nframes);
+            }
+            for (int i = 0; i < fNumOutChans; i++) {
+                fOutChannel[i] = (float*)jack_port_get_buffer(fOutput_ports[i], nframes);
+            }
+            fDsp->compute(nframes, fInChannel, fOutChannel);
+            return 0;
+        }
+
+    #ifdef _OPENMP
+        void process_thread() 
+        {
+            jack_nframes_t nframes;
+            while (1) {
+                nframes = jack_cycle_wait(fClient);
+                process (nframes);
+                jack_cycle_signal(fClient, 0);
+            }
+        }
+    #endif
+};
+
+//----------------------------------------------------------------------------
+// Jack Callbacks
+//----------------------------------------------------------------------------
+static int _jack_srate(jack_nframes_t nframes, void*)
+{
+	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
+	return 0;
+}
+
+static void _jack_shutdown(void*)
+{
+    fprintf(stderr, "JACK server has been closed\n");
+	exit(1);
+}
+static void _jack_info_shutdown(jack_status_t code, const char* reason, void*)
+{
+    fprintf(stderr, "%s\n", reason);
+	exit(1);
+}
+
+static int _jack_process(jack_nframes_t nframes, void* client)
+{
+	jackaudio* jackclient = (jackaudio*)client;
+	return jackclient->process (nframes);
+}
 
 #ifdef _OPENMP
-	void process_thread() 
-    {
-		jack_nframes_t nframes;
-		while (1) {
-			nframes = jack_cycle_wait(fClient);
-			process(nframes);
-			jack_cycle_signal(fClient, 0);
-		}
-	}
-    
-    static void* _jackthread(void* client)
-    {
-        jackaudio* jackclient = static_cast<jackaudio*>(client);
-        jackclient->process_thread();
-        return 0;
-    }
+static void* _jack_thread(void* arg)
+{
+	jackaudio* jackclient = (jackaudio*)arg;
+	jackclient->process_thread();
+	return 0;
+}
 #endif
-
-    //----------------------------------------------------------------------------
-    // Jack Callbacks
-    //----------------------------------------------------------------------------
-    static int _srate(jack_nframes_t nframes, void *)
-    {
-        printf("the sample rate is now %u/sec\n", nframes);
-        return 0;
-    }
-
-    static void _jack_shutdown(void *)
-    {
-        exit(1);
-    }
-
-    static int _process(jack_nframes_t nframes, void *client)
-    {
-        jackaudio* jackclient = static_cast<jackaudio*>(client);
-        return jackclient->process(nframes);
-    }
-
-};
 
 #endif

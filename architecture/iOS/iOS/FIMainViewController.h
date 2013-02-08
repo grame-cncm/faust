@@ -73,6 +73,8 @@ class uiBox;
     IBOutlet UISlider*                  _colorRSlider;
     IBOutlet UISlider*                  _colorGSlider;
     IBOutlet UISlider*                  _colorBSlider;
+    
+    const   char*                       _name;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -94,6 +96,7 @@ class uiBox;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+- (void)openCoreAudio:(int)bufferSize :(int)sampleRate;
 
 // Sensors
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;

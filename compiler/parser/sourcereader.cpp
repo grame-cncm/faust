@@ -36,6 +36,7 @@
 #endif
 
 #include "sourcereader.hh"
+#include "sourcefetcher.hh"
 #include "enrobage.hh"
 #include "ppbox.hh"
 #include "exception.hh"
@@ -202,22 +203,37 @@ Tree formatDefinitions(Tree rldef)
 
 Tree SourceReader::parsefile(string fname)
 {
-	string fullpath;
-  	yyerr = 0;
+ 	yyerr = 0;
     yylineno = 1;
-    FILE* tmp_file; // Keep file to properly close it
- 	
-	yyfilename = fname.c_str();
-    tmp_file = yyin = fopensearch(yyfilename, fullpath);
-    if (yyin == NULL) {
-        stringstream error;
-        error << "ERROR : Unable to open file " << yyfilename << endl;
-        throw faustexception(error.str());
-	}
+  	yyfilename = fname.c_str();
     
-    Tree res = parse(fullpath);
-    fclose(tmp_file);
-    return res;
+    if (strstr(yyfilename,"://") > 0) {
+    
+        // We are requested to parse an URL file
+        char* fileBuf = 0;
+        int ret = http_fetch(yyfilename, &fileBuf);
+        if (ret == -1) {
+            stringstream error;
+            error << "ERROR : Unable to access URL " << http_strerror << endl;
+            throw faustexception(error.str());
+        }
+        yy_scan_string(fileBuf);
+        return parse(yyfilename);
+        
+    } else {
+        string fullpath;
+        FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
+        
+        if (yyin == NULL) {
+            stringstream error;
+            error << "ERROR : Unable to open file " << yyfilename << endl;
+            throw faustexception(error.str());
+        }
+        
+        Tree res = parse(fullpath);
+        fclose(tmp_file);
+        return res;
+    }
 }
 
 Tree SourceReader::parsestring(string fname) 
@@ -249,7 +265,6 @@ Tree SourceReader::parse(string fname)
 	fFilePathnames.push_back(fname);
 	return gGlobal->gResult;
 }
-
 
 /**
  * Check if a file as been read and is in the "cache"

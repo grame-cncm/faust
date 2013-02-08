@@ -157,7 +157,7 @@ w32vst : w32vstdir
 
 vst :
 	install -d vstdir
-	$(MAKE) DEST='vstdir/' ARCH='vst.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.vstcompile
+	$(MAKE) DEST='vstdir/' ARCH='vst2p4.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.vstcompile
 
 
 sndfile :
