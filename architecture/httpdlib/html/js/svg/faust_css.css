@@ -20,56 +20,56 @@ path.faust-rbutton-knob {
 rect.faust-hslider-joint {
   fill : rgb(233,150,122);
   stroke : black;
-  width : 200,
-  height : 40,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 200;
+  height : 40;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 rect.faust-hslider-knob {
   fill : grey;
   stroke : black;
-  width : 30,
-  height : 40,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 30;
+  height : 40;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 rect.faust-vslider-joint {
   fill : rgb(233,150,122);
   stroke : black;
-  width : 40,
-  height : 200,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 40;
+  height : 200;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 rect.faust-vslider-knob {
   fill : grey;
   stroke : black;
-  width : 40,
-  height : 30,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 40;
+  height : 30;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 rect.faust-hbargraph-joint {
   fill : rgb(0,255,255);
   stroke : black;
-  width : 200,
-  height : 40,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 200;
+  height : 40;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 // hbargraph meters cannot be defined via CSS because their widths and
@@ -83,12 +83,12 @@ rect.faust-hbargraph-meter {
 rect.faust-vbargraph-joint {
   fill : rgb(0,255,255);
   stroke : black;
-  width : 40,
-  height : 200,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 40;
+  height : 200;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 rect.faust-vbargraph-meter {
@@ -99,12 +99,12 @@ rect.faust-vbargraph-meter {
 rect.faust-checkbox-box {
   fill : white;
   stroke : black;
-  width : 19,
-  height : 19,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 19;
+  height : 19;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 path.faust-checkbox-check {
@@ -115,12 +115,12 @@ path.faust-checkbox-check {
 rect.faust-nentry-button {
   fill : grey;
   stroke : black;
-  width : 60,
-  height : 20,
-  rx : 0,
-  ry : 0,
-  x : 0,
-  y : 0
+  width : 60;
+  height : 20;
+  rx : 0;
+  ry : 0;
+  x : 0;
+  y : 0;
 }
 
 path.faust-nentry-operation {
