@@ -408,7 +408,7 @@ _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.joint_fill),
       stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
-      'class' : 'faust-slider-joint',
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-joint', 'faust-vslider-joint'),
       transform : trans
     });
 
@@ -443,7 +443,7 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.knob_fill),
       stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       id : full_id,
-      'class' : 'faust-slider-knob',
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-knob', 'faust-vslider-knob'),
       transform : 'translate('+x+','+y+')'
     });
 
@@ -542,7 +542,7 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
       stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
       transform : 'translate('+xo+',0)',
-      'class' : 'faust-bargraph-joint'
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-joint', 'faust-vbargraph-joint')
     });
 
   return joint;
@@ -568,7 +568,7 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
       stroke : _f4u$t.color_to_rgb(this.meter_stroke),
       id : full_id,
       transform : 'translate('+xo+',0)',
-      'class' : 'faust-bargraph-meter'
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-meter', 'faust-vbargraph-meter')
     });
 
   return meter;
