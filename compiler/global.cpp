@@ -100,7 +100,7 @@ global::global():TABBER(1), gLoopDetector(1024, 512), gNextFreeColor(1)
     gFloatSize = 1;
 
     gPrintFileListSwitch = false;
-    gInlineArchSwitch = true;
+    gInlineArchSwitch = false;
 
     gDSPStruct = false;
 

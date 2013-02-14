@@ -323,7 +323,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 2;
 
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
-            gGlobal->gInlineArchSwitch = false;
+            gGlobal->gInlineArchSwitch = true;
             i += 1;
 			
        } else if (argv[i][0] != '-') {
