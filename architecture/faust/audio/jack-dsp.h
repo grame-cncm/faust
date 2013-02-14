@@ -34,9 +34,7 @@ class jackaudio : public audio {
         int				fNumOutChans;       // number of output channels
         jack_port_t**	fInput_ports;       // JACK input ports
         jack_port_t**	fOutput_ports;      // JACK output ports
-        float**			fInChannel;         // tables of noninterleaved input channels for FAUST
-        float**			fOutChannel;		// tables of noninterleaved output channels for FAUST
-
+ 
     public:
                  jackaudio() : fClient(0), fNumInChans(0), fNumOutChans(0) {}
         virtual ~jackaudio() { stop(); }
@@ -63,10 +61,7 @@ class jackaudio : public audio {
             
             fInput_ports = new jack_port_t*[fNumInChans];
             fOutput_ports = new jack_port_t*[fNumOutChans];
-            
-            fInChannel = new float*[fNumInChans];
-            fOutChannel = new float*[fNumOutChans];
-
+        
             for (int i = 0; i < fNumInChans; i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
@@ -120,9 +115,6 @@ class jackaudio : public audio {
                 
                 delete[] fInput_ports;
                 delete[] fOutput_ports;
-                
-                delete[] fInChannel;
-                delete[] fOutChannel;
             }
         }
 
@@ -131,9 +123,11 @@ class jackaudio : public audio {
         {
             AVOIDDENORMALS;
             // Retrieve JACK input/outputs audio buffers
+            float* fInChannel[fNumInChans];
             for (int i = 0; i < fNumInChans; i++) {
                 fInChannel[i] = (float*)jack_port_get_buffer(fInput_ports[i], nframes);
             }
+            float* fOutChannel[fNumOutChans];
             for (int i = 0; i < fNumOutChans; i++) {
                 fOutChannel[i] = (float*)jack_port_get_buffer(fOutput_ports[i], nframes);
             }
