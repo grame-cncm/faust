@@ -1027,6 +1027,7 @@ _f4u$t.make_ui = function(svg, raw_json) {
     }
   );
 
+  faust_svg.defs();
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
 }

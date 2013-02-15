@@ -19,8 +19,8 @@ _f4u$t.button_inits = {
   ideal_width : 80,
   ideal_height : 40,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  fill_on : "#404040",
-  fill_off : "#B0B0B0",
+  fill_on : "url(#buttonDownGradient)",
+  fill_off : "url(#buttonUpGradient)",
   stroke : _f4u$t.GRAY,
   baseline_skip : 5,
   address : ''

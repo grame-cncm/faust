@@ -128,7 +128,7 @@ path.faust-nentry-operation {
 }
 
 rect.faust-button-down {
-  fill : #404040;
+  fill : url(#buttonDownGradient);
   stroke : black;
   width : 80;
   height : 40;
@@ -139,7 +139,7 @@ rect.faust-button-down {
 }
 
 rect.faust-button-up {
-  fill : #B0B0B0;
+  fill : url(#buttonUpGradient);
   stroke : black;
   width : 80;
   height : 40;

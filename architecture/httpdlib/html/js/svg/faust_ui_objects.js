@@ -1313,6 +1313,26 @@ _f4u$t.SVG.prototype.get_y_offset = function() {
   return 0;
 }
 
+_f4u$t.SVG.prototype.defs = function() {
+  var defs = this.svg.defs();
+  this.svg.linearGradient(
+    defs,
+    'buttonDownGradient',
+    [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
+    0, 0, 0, 100,
+    {
+      gradientUnits:'userSpaceOnUse'
+    });
+  this.svg.linearGradient(
+    defs,
+    'buttonUpGradient',
+    [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
+    0, 0, 0, 100,
+    {
+      gradientUnits:'userSpaceOnUse'
+    });
+}
+
 _f4u$t.SVG.prototype.make = function() {
   this.svg.configure(
     {
