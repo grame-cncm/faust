@@ -19,9 +19,9 @@ _f4u$t.button_inits = {
   ideal_width : 80,
   ideal_height : 40,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  fill_on : _f4u$t.PINK,
-  fill_off : _f4u$t.GREEN,
-  stroke : _f4u$t.BLACK,
+  fill_on : "#404040",
+  fill_off : "#B0B0B0",
+  stroke : _f4u$t.GRAY,
   baseline_skip : 5,
   address : ''
 };
@@ -76,7 +76,7 @@ _f4u$t.slidingobject_inits = {
 
 _f4u$t.slider_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
 _f4u$t.slider_inits.sp = 0.15;
-_f4u$t.slider_inits.joint_fill = _f4u$t.PINK;
+_f4u$t.slider_inits.joint_fill = 'red';
 _f4u$t.slider_inits.knob_fill = _f4u$t.GREY;
 _f4u$t.slider_inits.joint_stroke = _f4u$t.BLACK;
 _f4u$t.slider_inits.knob_stroke = _f4u$t.BLACK;

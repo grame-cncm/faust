@@ -48,6 +48,8 @@ html/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
 	echo " " >> html/jsscripts
 	cat ../html/js/svg/jquerysvg/jquery.svg.min.js >> html/jsscripts
 	echo " " >> html/jsscripts
+	cat ../html/js/svg/jquerysvg/jquery.svgdom.min.js >> html/jsscripts
+	echo " " >> html/jsscripts
 	cat ../html/js/svg/faust_proto.js >> html/jsscripts
 	echo " " >> html/jsscripts
 	cat ../html/js/svg/faust_mobile.js >> html/jsscripts

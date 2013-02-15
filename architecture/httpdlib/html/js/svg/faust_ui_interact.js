@@ -497,12 +497,12 @@ _f4u$t.clearIdCache = function(ee) {
 _f4u$t.button_class_changer = function(id, down) {
   var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(id));
   if (down) {
-    //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-up').addClass('faust-button-down');
-    mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
+    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
+    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
   }
   else {
-    //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-down').addClass('faust-button-up');
-    mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
+    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
   }
 }
 

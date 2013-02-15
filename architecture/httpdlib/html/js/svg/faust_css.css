@@ -18,7 +18,7 @@ path.faust-rbutton-knob {
 }
 
 rect.faust-hslider-joint {
-  fill : rgb(233,150,122);
+  fill : red;
   stroke : black;
   width : 200;
   height : 40;
@@ -40,7 +40,7 @@ rect.faust-hslider-knob {
 }
 
 rect.faust-vslider-joint {
-  fill : rgb(233,150,122);
+  fill : red;
   stroke : black;
   width : 40;
   height : 200;
@@ -127,20 +127,40 @@ path.faust-nentry-operation {
   stroke : black;
 }
 
-path.faust-button-down {
-  fill : rgb(233,150,122);
+rect.faust-button-down {
+  fill : #404040;
   stroke : black;
+  width : 80;
+  height : 40;
+  x : 0;
+  y : 0;
+  rx : 5;
+  ry : 5;
 }
 
-path.faust-button-up {
-  fill : rgb(173,255,47);
+rect.faust-button-up {
+  fill : #B0B0B0;
   stroke : black;
+  width : 80;
+  height : 40;
+  x : 0;
+  y : 0;
+  rx : 5;
+  ry : 5;
+}
+
+rect.faust-button-down:hover {
+  stroke : orange;
+}
+
+rect.faust-button-up:hover {
+  stroke : orange;
 }
 
 // as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
 
 path.faust-hslider-joint {
-  fill : rgb(233,150,122);
+  fill : red;
   stroke : black;
 }
 
@@ -150,7 +170,7 @@ path.faust-hslider-knob {
 }
 
 path.faust-vslider-joint {
-  fill : rgb(233,150,122);
+  fill : red;
   stroke : black;
 }
 
@@ -179,7 +199,7 @@ path.faust-vbargraph-meter {
   stroke : black;
 }
 
-rect.faust-checkbox-box {
+path.faust-checkbox-box {
   fill : white;
   stroke : black;
 }
@@ -187,4 +207,22 @@ rect.faust-checkbox-box {
 path.faust-nentry-button {
   fill : grey;
   stroke : black;
+}
+
+path.faust-button-down {
+  fill : #404040;
+  stroke : black;
+}
+
+path.faust-button-up {
+  fill : #B0B0B0;
+  stroke : black;
+}
+
+path.faust-button-down:hover {
+  stroke : orange;
+}
+
+path.faust-button-up:hover {
+  stroke : orange;
 }
