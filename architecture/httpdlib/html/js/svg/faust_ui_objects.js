@@ -63,9 +63,14 @@ _f4u$t.extend(_f4u$t.UIObject, _f4u$t.IncrementalObject);
 _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mousedown) {
   var dims = this.dims();
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - this.value_box_w) / 2.0 : 0.0);
-  var vb = svg.path(
+  var vb = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+this.value_box_w+" 0L"+this.value_box_w+" "+this.value_box_h+"L0 "+this.value_box_h+"L0 0",
+    0,
+    0,
+    0,
+    this.value_box_w,
+    this.value_box_h,
     {
       id: 'faust_value_box_'+id,
       fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
@@ -74,8 +79,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
       'class': 'faust-vbox-box',
       onmousedown : mousedown,
       ontouchstart : mousedown
-    }
-  );
+    });
 
   return vb;
 }
@@ -392,17 +396,21 @@ _f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
   var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
-  var joint = svg.path(
+  var joint = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.joint_fill),
       stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
-      'class' : 'faust-slider-joint',
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-joint', 'faust-vslider-joint'),
       transform : trans
-    }
-  );
+    });
 
   return joint;
 }
@@ -423,17 +431,22 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var activate_fn = "activate_"+this.type;
   var mousedown = _f4u$t[activate_fn];
 
-  var knob = svg.path(
+  var knob = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.knob_fill),
       stroke : _f4u$t.color_to_rgb(this.knob_stroke),
       id : full_id,
-      'class' : 'faust-slider-knob',
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-knob', 'faust-vslider-knob'),
       transform : 'translate('+x+','+y+')'
-    }
-  );
+    });
+
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
   return knob;
@@ -516,17 +529,21 @@ _f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, this.length, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var joint = svg.path(
+  var joint = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.joint_fill),
       stroke : _f4u$t.color_to_rgb(this.joint_stroke),
       id : 'faust_'+this.type+'_joint_'+id,
       transform : 'translate('+xo+',0)',
-      'class' : 'faust-bargraph-joint'
-    }
-  );
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-joint', 'faust-vbargraph-joint')
+    });
 
   return joint;
 }
@@ -538,21 +555,21 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, def, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, def);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var meter = svg.path(
+  var meter = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    _f4u$t.xy(
-      this.axis,
-      "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
-      "M0 "+this.length+"L"+w+" "+this.length+"L"+w+" "+h+"L0 "+h+"L0 "+this.length
-    ),
+    0,
+    0,
+    _f4u$t.xy(this.axis, 0, this.length - h),
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.meter_fill),
       stroke : _f4u$t.color_to_rgb(this.meter_stroke),
       id : full_id,
       transform : 'translate('+xo+',0)',
-      'class' : 'faust-bargraph-meter'
-    }
-  );
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-meter', 'faust-vbargraph-meter')
+    });
 
   return meter;
 }
@@ -643,9 +660,14 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
   var xo = (dims[0] - w) / 2.0;
   var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
 
-  var box = svg.path(
+  var box = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.box_fill),
       stroke : _f4u$t.color_to_rgb(this.box_stroke),
@@ -654,8 +676,7 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
       transform : 'translate('+xo+',0)',
       onmousedown : mousedown,
       ontouchstart : mousedown
-    }
-  );
+    });
 
   return box;
 }
@@ -748,18 +769,20 @@ _f4u$t.Button.prototype.dims = function(coef) {
 _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   var full_id = 'faust_button_box_'+id;
   var rf = 10;
-  var d = "M{0} 0L{1} 0C{2} 0 {2} 0 {2} {3}L{2} {4}C{2} {5} {2} {5} {1} {5}L{0} {5}C0 {5} 0 {5} 0 {4}L0 {3}C0 0 0 0 {0} 0";
-  d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
-  var button = svg.path(
+  var button = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    d,
+    rf,
+    0,
+    0,
+    this.w(),
+    this.h(),
     {
       id : full_id,
       fill : _f4u$t.color_to_rgb(this.fill_off),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-box',
-    }
-  );
+    });
 
   return button;
 }
@@ -872,11 +895,15 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
   var w = this.w() / 2.0 - this.padding;
   var h = this.h();
 
-  var d = "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0";
   var mousedown = _f4u$t['activate_nentry'+tag]
-  var button = svg.path(
+  var button = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    d,
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       
       fill : _f4u$t.color_to_rgb(this.button_fill),
@@ -884,8 +911,8 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       transform : 'translate('+xo+',0)',
       id : full_id,
       'class' : 'faust-nentry-button'
-    }
-  );
+    });
+
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
   return button;
@@ -1076,18 +1103,21 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
   var dims = this.dims();
   var w = dims[0];
   var h = dims[1];
-  var d = "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0";
-  var background = svg.path(
+  var background = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    d,
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-group-background',
       id : full_id,
       style: +'fill-opacity:0.2;'
-    }
-  );
+    });
 
   return background;
 }
@@ -1199,9 +1229,14 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
 
 _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill) {
   var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")';
-  var tab = svg.path(
+  var tab = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       transform: 'translate('+x+','+y+')',
       'class' : 'faust-tgroup-tab',
@@ -1209,8 +1244,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
       stroke : _f4u$t.color_to_rgb(this.stroke),
       onmousedown : mousedown,
       ontouchstart : mousedown
-    }
-  );
+    });
 
   return tab;
 }
