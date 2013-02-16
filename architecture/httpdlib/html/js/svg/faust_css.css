@@ -7,17 +7,17 @@ path.faust-vbox {
   stroke : black;
 }
 
-path.faust-rbutton-joint {
+path.faust-rbutton-groove {
   fill : rgb(152,251,152);
   stroke : black;
 }
 
-path.faust-rbutton-knob {
+path.faust-rbutton-handle {
   fill : grey;
   stroke : black;
 }
 
-rect.faust-hslider-joint {
+rect.faust-hslider-groove {
   fill : red;
   stroke : black;
   width : 200;
@@ -28,8 +28,8 @@ rect.faust-hslider-joint {
   y : 0;
 }
 
-rect.faust-hslider-knob {
-  fill : grey;
+rect.faust-hslider-handle {
+  fill : url(#horizontalSliderHandleGradient);
   stroke : black;
   width : 30;
   height : 40;
@@ -39,7 +39,7 @@ rect.faust-hslider-knob {
   y : 0;
 }
 
-rect.faust-vslider-joint {
+rect.faust-vslider-groove {
   fill : red;
   stroke : black;
   width : 40;
@@ -50,8 +50,8 @@ rect.faust-vslider-joint {
   y : 0;
 }
 
-rect.faust-vslider-knob {
-  fill : grey;
+rect.faust-vslider-handle {
+  fill : url(#verticalSliderHandleGradient);
   stroke : black;
   width : 40;
   height : 30;
@@ -61,7 +61,7 @@ rect.faust-vslider-knob {
   y : 0;
 }
 
-rect.faust-hbargraph-joint {
+rect.faust-hbargraph-groove {
   fill : rgb(0,255,255);
   stroke : black;
   width : 200;
@@ -80,7 +80,7 @@ rect.faust-hbargraph-meter {
   stroke : black;
 }
 
-rect.faust-vbargraph-joint {
+rect.faust-vbargraph-groove {
   fill : rgb(0,255,255);
   stroke : black;
   width : 40;
@@ -159,27 +159,27 @@ rect.faust-button-up:hover {
 
 // as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
 
-path.faust-hslider-joint {
+path.faust-hslider-groove {
   fill : red;
   stroke : black;
 }
 
-path.faust-hslider-knob {
-  fill : grey;
+path.faust-hslider-handle {
+  fill : url(#horizontalSliderHandleGradient);
   stroke : black;
 }
 
-path.faust-vslider-joint {
+path.faust-vslider-groove {
   fill : red;
   stroke : black;
 }
 
-path.faust-vslider-knob {
-  fill : grey;
+path.faust-vslider-handle {
+  fill : url(#verticalSliderHandleGradient);
   stroke : black;
 }
 
-path.faust-hbargraph-joint {
+path.faust-hbargraph-groove {
   fill : rgb(0,255,255);
   stroke : black;
 }
@@ -189,7 +189,7 @@ path.faust-hbargraph-meter {
   stroke : black;
 }
 
-path.faust-vbargraph-joint {
+path.faust-vbargraph-groove {
   fill : rgb(0,255,255);
   stroke : black;
 }

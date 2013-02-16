@@ -345,9 +345,9 @@ _f4u$t.internalMoveActiveObject = function(e, identifier) {
   _f4u$t.clog_key_sink();
   _f4u$t.BUSY = true;
 
-  var hslider_token = "faust_hslider_knob";
-  var vslider_token = "faust_vslider_knob";
-  var rotating_button_token = "faust_rbutton_knob"
+  var hslider_token = "faust_hslider_handle";
+  var vslider_token = "faust_vslider_handle";
+  var rotating_button_token = "faust_rbutton_handle"
   var now = null;
   if (_f4u$t._I[identifier]['id'].substring(0, hslider_token.length) == hslider_token) {
     now = _f4u$t.moveActiveSlider(e, identifier);
@@ -678,9 +678,9 @@ _f4u$t.rotating_button_key_sink = function(I) {
 // actualize it
 
 _f4u$t.actualize_incremental_object = function(id) {
-  var hslider_id = "faust_hslider_knob_"+id;
-  var vslider_id = "faust_vslider_knob_"+id;
-  var rotating_button_id = "faust_rbutton_knob_"+id;
+  var hslider_id = "faust_hslider_handle_"+id;
+  var vslider_id = "faust_vslider_handle_"+id;
+  var rotating_button_id = "faust_rbutton_handle_"+id;
   var hbargraph_id = "faust_hbargraph_meter_"+id;
   var vbargraph_id = "faust_vbargraph_meter_"+id;
   var val = parseFloat(_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]);
