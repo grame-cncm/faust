@@ -164,20 +164,6 @@ class mspUIObject {
 };
 
 /*--------------------------------------------------------------------------*/
-class mspToggleButton : public mspUIObject {
-
-	public:
-
-		mspToggleButton(const char* label, double* zone):mspUIObject(label,zone) {}
-		virtual ~mspToggleButton() {}
-
-		void toString(char* buffer)
-		{
-            sprintf(buffer, "ToggleButton(double): %s", fLabel.c_str());
-		}
-};
-
-/*--------------------------------------------------------------------------*/
 class mspCheckButton : public mspUIObject {
 
 	public:
@@ -247,10 +233,13 @@ class mspUI : public UI
                 delete (iter->second);
             }
    		}
+        
+        void openTabBox(const char* label) {}
+		void openHorizontalBox(const char* label) {}
+		void openVerticalBox(const char* label) {}
+		void closeBox() {}
 
 		void addButton(const char* label, double* zone) {fUITable[string(label)] = new mspButton(label, zone);}
-
-		void addToggleButton(const char* label, double* zone) {fUITable[string(label)] = new mspToggleButton(label, zone);}
 
 		void addCheckButton(const char* label, double* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
 
@@ -268,12 +257,10 @@ class mspUI : public UI
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
-
-		void openFrameBox(const char* label) {}
-		void openTabBox(const char* label) {}
-		void openHorizontalBox(const char* label) {}
-		void openVerticalBox(const char* label) {}
-		void closeBox() {}
+        
+        // To be implemented
+        void addHorizontalBargraph(const char* label, double* zone, double min, double max) {}
+		void addVerticalBargraph(const char* label, double* zone, double min, double max) {}
 
 		bool SetValue(string name, double f)
 		{
@@ -287,11 +274,6 @@ class mspUI : public UI
 		iterator begin()	{return fUITable.begin();}
 		iterator end()		{return fUITable.end();}
 
-		// To be implemented
-		void addNumDisplay(const char* label, double* zone, int precision) {}
-		void addTextDisplay(const char* label, double* zone, const char* names[], double min, double max) {}
-        void addHorizontalBargraph(const char* label, double* zone, double min, double max) {}
-		void addVerticalBargraph(const char* label, double* zone, double min, double max) {}
 };
 
 //--------------------------------------------------------------------------
