@@ -1,4 +1,4 @@
-_f4u$t.has_knob = function(dct) {console.log(dct);
+_f4u$t.has_knob = function(dct) {
   if (!dct['meta']) {
     return false;
   }

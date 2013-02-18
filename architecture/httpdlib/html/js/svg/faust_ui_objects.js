@@ -555,6 +555,7 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, def, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, def);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+console.log(_f4u$t.xy(this.axis, 0, this.length - h), h);
   var meter = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,

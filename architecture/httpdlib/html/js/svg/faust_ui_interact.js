@@ -728,12 +728,18 @@ _f4u$t.actualize_incremental_object = function(id) {
     var weakaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["weakaxis"];
     var strongaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["strongaxis"];
     val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
+    /*
+    // for paths...
     var newd = _f4u$t.xy(
       axis,
       'M 0 0L'+val+' 0L'+val+' '+weakaxis+'L0 '+weakaxis+'L0 0',
       'M 0 '+strongaxis+'L'+weakaxis+' '+strongaxis+'L'+weakaxis+' '+val+'L0 '+val+'L0 '+strongaxis
     );
     maybe_bargraph.setAttribute("d", newd);
+    */
+    maybe_bargraph.setAttribute("y", _f4u$t.xy(axis, 0, val));
+    maybe_bargraph.setAttribute("width", _f4u$t.xy(axis, val, weakaxis));
+    maybe_bargraph.setAttribute("height", Math.max(0, _f4u$t.xy(axis, weakaxis, strongaxis - val)));
     return 0;
   }
   // no corresponding incremental object
