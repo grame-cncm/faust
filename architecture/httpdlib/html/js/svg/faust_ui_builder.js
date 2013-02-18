@@ -1,10 +1,10 @@
-_f4u$t.has_handle = function(dct) {
+_f4u$t.has_knob = function(dct) {console.log(dct);
   if (!dct['meta']) {
     return false;
   }
   for (var i=0; i < dct['meta'].length; i++) {
     if (dct['meta'][i]['style']) {
-      return dct['meta'][i]['style'] == 'handle';
+      return dct['meta'][i]['style'] == 'knob';
     }
   }
   return false;
@@ -78,7 +78,7 @@ _f4u$t.make_vslider = function(dct) {
 }
 
 _f4u$t.make_slider = function(kls, dct) {
-  if (_f4u$t.has_handle(dct)) {
+  if (_f4u$t.has_knob(dct)) {
     return _f4u$t.make_rbutton(dct);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
@@ -131,7 +131,7 @@ _f4u$t.make_checkbox = function(dct) {
 }
 
 _f4u$t.make_nentry = function(dct) {
-  if (_f4u$t.has_handle(dct)) {
+  if (_f4u$t.has_knob(dct)) {
     return _f4u$t.make_rbutton(dct);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
