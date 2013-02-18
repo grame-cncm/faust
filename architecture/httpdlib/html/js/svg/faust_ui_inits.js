@@ -175,6 +175,17 @@ _f4u$t.linear_gradient_inits = {
       settings : {
         gradientUnits:'objectBoundingBox'
       }
+    },
+  tabGradient :
+    {
+      stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
     }
 }
 

@@ -1160,7 +1160,7 @@ _f4u$t.TabGroup = function(options) {
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
-  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
+  this.stroke = _f4u$t.initifnull(options.stroke, 'orange');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.TabGroup);
@@ -1232,7 +1232,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
   var tab = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -1266,7 +1266,7 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
       0,
       curobj.id,
       badidstr,
-      curobj.fill);
+      'url(#tabGradient)' /*curobj.fill*/);
     this.make_label(
       svg,
       parent,
