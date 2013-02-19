@@ -189,7 +189,7 @@ _f4u$t.RotatingButton.prototype.dims = function() {
 }
 
 _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
-  var mousedown = _f4u$t.activate_rbutton_and_snap;
+  //var mousedown = _f4u$t.activate_rbutton;
   var groove = svg.circle(
     parent,
     this.r(),
@@ -203,8 +203,8 @@ _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
     }
   );
 
-  $('#'+full_id).bind('mousedown', mousedown);
-  $('#'+full_id).bind('touchstart', mousedown);
+  //$('#'+full_id).bind('mousedown', mousedown);
+  //$('#'+full_id).bind('touchstart', mousedown);
   return groove;
 }
 
