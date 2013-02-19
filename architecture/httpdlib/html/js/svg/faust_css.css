@@ -62,7 +62,7 @@ rect.faust-vslider-handle {
 }
 
 rect.faust-hbargraph-groove {
-  fill : rgb(0,255,255);
+  fill : rgb(20,20,20);
   stroke : black;
   width : 200;
   height : 40;
@@ -76,12 +76,12 @@ rect.faust-hbargraph-groove {
 // heights are dynamic
 
 rect.faust-hbargraph-meter {
-  fill : grey;
+  fill : rgb(173,255,47);
   stroke : black;
 }
 
 rect.faust-vbargraph-groove {
-  fill : rgb(0,255,255);
+  fill : rgb(20,20,20);
   stroke : black;
   width : 40;
   height : 200;
@@ -92,7 +92,7 @@ rect.faust-vbargraph-groove {
 }
 
 rect.faust-vbargraph-meter {
-  fill : grey;
+  fill : rgb(173,255,47);
   stroke : black;
 }
 
