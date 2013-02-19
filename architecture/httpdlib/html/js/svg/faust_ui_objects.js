@@ -189,7 +189,8 @@ _f4u$t.RotatingButton.prototype.dims = function() {
 }
 
 _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
-  //var mousedown = _f4u$t.activate_rbutton;
+  var mousedown = _f4u$t.activate_rbutton;
+  var full_id = 'faust_rbutton_groove_'+id;
   var groove = svg.circle(
     parent,
     this.r(),
@@ -198,13 +199,13 @@ _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
     {
       fill : _f4u$t.color_to_rgb(this.groove_fill),
       stroke : _f4u$t.color_to_rgb(this.groove_stroke),
-      id : 'faust_rbutton_groove_'+id,
+      id : full_id,
       'class' : 'faust-rbutton-groove'
     }
   );
 
-  //$('#'+full_id).bind('mousedown', mousedown);
-  //$('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return groove;
 }
 
@@ -337,6 +338,9 @@ _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
   var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
+  var full_id = 'faust_'+this.type+'_groove_'+id;
+  var activate_fn = "activate_"+this.type;
+  var mousedown = _f4u$t[activate_fn];
   var groove = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
@@ -348,11 +352,13 @@ _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
     {
       fill : _f4u$t.color_to_rgb(this.groove_fill),
       stroke : _f4u$t.color_to_rgb(this.groove_stroke),
-      id : 'faust_'+this.type+'_groove_'+id,
+      id : full_id,
       'class' : _f4u$t.xy(this.axis, 'faust-hslider-groove', 'faust-vslider-groove'),
       transform : trans
     });
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return groove;
 }
 

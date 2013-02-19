@@ -122,10 +122,10 @@ _f4u$t.arrayToTransform = function(array) {
   return out;
 }
 
-_f4u$t.updateXY = function(ee) {
+_f4u$t.updateXY = function(ee, initialize) {
   for (var i = 0; i < ee.length; i++) {
-    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = _f4u$t.getClientX(ee[i]);
-    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = _f4u$t.getClientY(ee[i]);
+    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? [] : _f4u$t.getClientX(ee[i]);
+    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? [] : _f4u$t.getClientY(ee[i]);
   }
 }
 
@@ -303,7 +303,7 @@ _f4u$t.activate_moving_object = function(ee) {
   }
   var identifier = touches[0].identifier || 0;
   _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false, value : null};
-  _f4u$t.updateXY(touches);
+  _f4u$t.updateXY(touches, true);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
   // if we touch a groove, we want the object to snap to the correct position, so
@@ -346,10 +346,9 @@ _f4u$t.moveActiveObject = function(ee) {
 _f4u$t.internalMoveActiveObject = function(e, identifier) {
   _f4u$t.clog_key_sink();
   _f4u$t.BUSY = true;
-
-  var hslider_token = "faust_hslider_handle";
-  var vslider_token = "faust_vslider_handle";
-  var rotating_button_token = "faust_rbutton_handle"
+  var hslider_token = "faust_hslider";
+  var vslider_token = "faust_vslider";
+  var rotating_button_token = "faust_rbutton";
   var now = null;
   if (_f4u$t._I[identifier]['id'].substring(0, hslider_token.length) == hslider_token) {
     now = _f4u$t.moveActiveSlider(e, identifier);
@@ -396,28 +395,32 @@ _f4u$t.genericMovingPartUpdate = function(aval, pval, l, h) {
 
 _f4u$t.moveActiveSlider = function(e,identifier)
 {
-  var sliding_part = document.getElementById(_f4u$t._I[identifier].id);
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
+  var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
+  var anchor = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_groove_', 'faust_vslider_groove_')+id);
   var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
+  var os = $(anchor).offset();
+  var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
+  var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
   // we only care about the axis of the slider
   if (axis == _f4u$t.X_AXIS) {
-    pos = _f4u$t.getClientX(e);
+    pos = _f4u$t.getClientX(e) - my_x;
   }
   else {
-    pos = _f4u$t.getClientY(e);
+    pos = _f4u$t.getClientY(e) - my_y;
   }
 
-  var diff = pos - _f4u$t.PREV[axis][identifier];
+  pos -= (length * pctsliding / 2.0);
+  //var diff = pos - _f4u$t.PREV[axis][identifier];
   var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
-  var aval = transform[0][axis + 1] + diff;
-
+  var aval = pos;//transform[0][axis + 1] + diff;
   // minimum of the slider is to the bottom / left
   transform[0][axis + 1] = _f4u$t.genericMovingPartUpdate(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
@@ -429,7 +432,7 @@ _f4u$t.moveActiveSlider = function(e,identifier)
 
 _f4u$t.moveActiveRotatingButton = function(e, identifier)
 {
-  var sliding_part = document.getElementById(_f4u$t._I[identifier].id);
+  var sliding_part = document.getElementById('faust_rbutton_handle_'+_f4u$t.unique(_f4u$t._I[identifier].id));
   var anchor = document.getElementById('faust_rbutton_anchor_'+_f4u$t.unique(_f4u$t._I[identifier].id));
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
@@ -438,23 +441,35 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   //console.log(anchor.getBoundingClientRect());
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
+  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
 
-  var diff = 180. * (Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) - Math.atan2(_f4u$t.PREV[_f4u$t.Y_AXIS][identifier] - my_y, _f4u$t.PREV[_f4u$t.X_AXIS][identifier] - my_x)) / Math.PI;
-  // if diff is to great, the browser is going berzerk...
+  //var diff = 180. * (Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) - Math.atan2(_f4u$t.PREV[_f4u$t.Y_AXIS][identifier] - my_y, _f4u$t.PREV[_f4u$t.X_AXIS][identifier] - my_x)) / Math.PI;
+  var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
+  // if diff is too great, the browser is going berzerk...
+  /*
   if (-180 > diff) {
     diff += 360;
   }
   else if (diff > 180) {
     diff -= 360;
   }
-
-  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
+  */
+  // we wind diff around to give it best shot of falling between two values:
+  if (diff < initangle) {
+    diff += 360;
+  }
+  else if (diff > initangle + sweepangle) {
+    diff -= 360;
+  }
+  
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
-  var aval = transform[2][1] + diff;
-  transform[2][1] = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
+  var aval = diff;//transform[2][1] + diff;
+  transform[2][1] = ((_f4u$t.PREV[_f4u$t.X_AXIS][identifier] == []) && (Math.abs(transform[2][1] - diff) > 100)
+                     ? 0.0
+                     : _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle));
   var now = _f4u$t.generic_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), aval, initangle, initangle + sweepangle);
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
