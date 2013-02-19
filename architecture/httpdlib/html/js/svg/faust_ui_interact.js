@@ -306,6 +306,9 @@ _f4u$t.activate_moving_object = function(ee) {
   _f4u$t.updateXY(touches);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
+  // if we touch a groove, we want the object to snap to the correct position, so
+  // we need to call the move function.
+  _f4u$t.moveActiveObject(ee);
 }
 
 _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
