@@ -87,8 +87,8 @@ _f4u$t.vslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
 _f4u$t.vslider_inits.handle_fill = 'url(#verticalSliderHandleGradient)';
 
 _f4u$t.bargraph_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
-_f4u$t.bargraph_inits.groove_fill = _f4u$t.CYAN;
-_f4u$t.bargraph_inits.meter_fill = _f4u$t.GREY;
+_f4u$t.bargraph_inits.groove_fill = _f4u$t.BLACK;
+_f4u$t.bargraph_inits.meter_fill = _f4u$t.GREEN;
 _f4u$t.bargraph_inits.groove_stroke = _f4u$t.BLACK;
 _f4u$t.bargraph_inits.meter_stroke = _f4u$t.BLACK;
 
