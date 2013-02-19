@@ -199,13 +199,12 @@ _f4u$t.initiate_vbargraph = function(fullid, weakaxis, strongaxis, minval, maxva
   _f4u$t.initiate_bargraph(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address);
 }
 
-_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,pctsliding,minval,maxval,step,init,integer,ndec,label,address) {
+_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,minval,maxval,step,init,integer,ndec,label,address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "rbutton";
   _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"] = initangle;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"] = sweepangle;
-  _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"] = pctsliding;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"] = minval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"] = maxval;
@@ -432,7 +431,6 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
   var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
-  var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
   var os = $(anchor).offset();
   //console.log(anchor.getBoundingClientRect());
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
@@ -453,9 +451,8 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   // actually, just make sure not to make things more complicated...
 
   var aval = transform[2][1] + diff;
-
-  transform[2][1] = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle - (sweepangle * pctsliding));
-  var now = _f4u$t.generic_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), aval, initangle, initangle + sweepangle - (sweepangle * pctsliding));
+  transform[2][1] = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
+  var now = _f4u$t.generic_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), aval, initangle, initangle + sweepangle);
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
   _f4u$t.updateXY([e]);
@@ -711,9 +708,8 @@ _f4u$t.actualize_incremental_object = function(id) {
     var minval = _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"];
     var maxval = _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"];
     var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
-    var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
     var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
-    val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle - (sweepangle * pctsliding));
+    val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle);
     var transform = _f4u$t.transformToArray(maybe_button.getAttribute("transform"));
     transform[2][1] = val;
     var movetothis = _f4u$t.arrayToTransform(transform);

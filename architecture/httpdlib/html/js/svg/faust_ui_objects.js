@@ -165,6 +165,7 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_fill');
   _f4u$t.init_prop(this, options, 'rbutton', 'groove_stroke');
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'handle_width');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_w');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_h');
   _f4u$t.init_prop(this, options, 'rbutton', 'address');
@@ -176,28 +177,10 @@ _f4u$t.RotatingButton.prototype.r = function() {
   return this._r;
 }
 
-_f4u$t.RotatingButton.prototype.get_maybe_extremal_coords = function() {
-  var angles = _f4u$t.find_all_90s(this.a0, this.sweep);
-  angles.push(this.a0);
-  angles.push(this.a0 + this.sweep);
-  angles.sort();
-  var coords = new Array();
-  for (var i = 0; i < angles.length; i++) {
-    coords.push(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(angles[i])));
-  }
-  coords.push([0,0]);
-  return coords;
+_f4u$t.RotatingButton.prototype.internal_dims = function() {
+  return [this.r() * 2, this.r() * 2];
 }
 
-_f4u$t.RotatingButton.prototype.internal_dims = function() {
-  var coords = this.get_maybe_extremal_coords();
-  var box = new _f4u$t.Box();
-  for (var i = 0; i < coords.length; i++) {
-    box.add_point(coords[i]);
-  }
-  var ugh = box.lens();
-  return ugh;
-}
 
 _f4u$t.RotatingButton.prototype.dims = function() {
   var ugh = this.internal_dims();
@@ -205,43 +188,17 @@ _f4u$t.RotatingButton.prototype.dims = function() {
   return [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
 }
 
-_f4u$t.RotatingButton.prototype.get_translation = function() {
-  var coords = this.get_maybe_extremal_coords();
-  var x = Number.POSITIVE_INFINITY;
-  var y = Number.POSITIVE_INFINITY;
-  for (var i = 0; i < coords.length; i++) {
-    x = Math.min(x, coords[i][0]);
-    y = Math.min(x, coords[i][1]);
-  }
-  return [x,y];
-}
-
 _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
-  var trans = this.get_translation()
-  var start = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0)), trans);
-  var end = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0 + this.sweep)), trans);
-  var origin = _f4u$t.coord_sub([0,0], trans);
-  var small = this.sweep < 180;
-  var dims = this.dims();
-  var xo = (dims[0] - (this.r() * 2)) / 2.0;
-  var d = "M{0} {1}L{2} {3} A{4} {4} {5} 1 {6} {7}L{0} {1}";
-  d = d.format([
-    origin[0], origin[1],
-    start[0], start[1],
-    this.r(),
-    (small ? "1 0" : "0 1"),
-    end[0], end[1]
-  ]);
-
-  var groove = svg.path(
+  var groove = svg.circle(
     parent,
-    d,
+    this.r(),
+    this.r(),
+    this.r(),    
     {
       fill : _f4u$t.color_to_rgb(this.groove_fill),
       stroke : _f4u$t.color_to_rgb(this.groove_stroke),
       id : 'faust_rbutton_groove_'+id,
-      'class' : 'faust-rbutton-groove',
-      transform : 'translate('+xo+',0)'
+      'class' : 'faust-rbutton-groove'
     }
   );
 
@@ -249,37 +206,23 @@ _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
 }
 
 _f4u$t.RotatingButton.prototype.make_handle = function(svg, parent, id) {
-  var trans = this.get_translation();
-  var slider_angle = this.sweep * this.sp;
-  var half_slider_angle = slider_angle * 0.5;
-  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0 + half_slider_angle, this.a0 + this.sweep - half_slider_angle)
-  var start = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0)), trans);
-  var end = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0 + slider_angle)), trans);
-  var origin = _f4u$t.coord_sub([0,0], trans);
-  var small = this.sweep * this.sp < 180;
   var full_id = 'faust_rbutton_handle_'+id;
-  var dims = this.dims();
-  var xo = (dims[0] - (this.r() * 2)) / 2.0;
-  var d = "M{0} {1}L{2} {3} A{4} {4} {5} 1 {6} {7}L{0} {1}";
-  d = d.format([
-    origin[0], origin[1],
-    start[0], start[1],
-    this.r(),
-    (small ? "1 0" : "0 1"),
-    end[0], end[1]
-  ]);
-
-
+  var origin = [this.r(), this.r()];
+  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
   var mousedown = _f4u$t.activate_rbutton;
-  var handle = svg.path(
+  var handle = svg.line(
     parent,
-    d,
+    origin[0],
+    origin[1],
+    origin[0] + (this.r() * this.sp) , // set at 0 degrees to start, then rotate below
+    origin[1],
     {
       fill : _f4u$t.color_to_rgb(this.handle_fill),
       stroke : _f4u$t.color_to_rgb(this.handle_stroke),
+      "stroke-width" : this.handle_width,
       'class' : 'faust-rbutton-handle',
       id : full_id,
-      transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')'
+      transform : 'translate(0,0) scale(1,1) rotate('+startp+','+origin[0]+','+origin[1]+')'
     }
   );
 
@@ -288,12 +231,10 @@ _f4u$t.RotatingButton.prototype.make_handle = function(svg, parent, id) {
   return handle;
 }
 
+// anchor helps us get correct positioning for rotation
 _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
-  var trans = this.get_translation();
-  var origin = _f4u$t.coord_sub([0,0], trans);
+  var origin = [this.r(), this.r()];
   var full_id = 'faust_rbutton_anchor_'+id;
-  var dims = this.dims();
-  var xo = (dims[0] - (this.r() * 2)) / 2.0;
 
   var anchor = svg.path(
     parent,
@@ -301,7 +242,7 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
     {
       id : full_id,
       style : 'opacity:0.0;',
-      transform : 'translate('+(origin[0] + xo)+','+origin[1]+')',
+      transform : 'translate('+origin[0]+','+origin[1]+')',
     }
   );
 
@@ -311,13 +252,10 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
 _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   var id = _f4u$t.randString();
   var g = this.make_group(svg, parent, id);
-  var trans = this.get_translation();
-  var origin = _f4u$t.coord_sub([0,0], trans);
   _f4u$t.initiate_rbutton(
     id,
-    this.a0 + 180,
+    this.a0,
     this.sweep,
-    this.sp,
     this.min,
     this.max,
     this.step,
@@ -555,7 +493,6 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, def, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, def);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-console.log(_f4u$t.xy(this.axis, 0, this.length - h), h);
   var meter = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
@@ -1326,6 +1263,20 @@ _f4u$t.SVG.prototype.defs = function() {
       _f4u$t.linear_gradient_inits[gradient]['x2'],
       _f4u$t.linear_gradient_inits[gradient]['y2'],
       _f4u$t.linear_gradient_inits[gradient]['settings']
+    );
+  }
+
+  for (var gradient in _f4u$t.radial_gradient_inits) {
+    this.svg.radialGradient(
+      defs,
+      gradient,
+      _f4u$t.radial_gradient_inits[gradient]['stops'],
+      _f4u$t.radial_gradient_inits[gradient]['cx'],
+      _f4u$t.radial_gradient_inits[gradient]['cy'],
+      _f4u$t.radial_gradient_inits[gradient]['r'],
+      _f4u$t.radial_gradient_inits[gradient]['fx'],
+      _f4u$t.radial_gradient_inits[gradient]['fy'],
+      _f4u$t.radial_gradient_inits[gradient]['settings']
     );
   }
 }

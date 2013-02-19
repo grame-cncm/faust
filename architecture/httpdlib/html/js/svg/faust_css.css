@@ -226,3 +226,8 @@ path.faust-button-down:hover {
 path.faust-button-up:hover {
   stroke : orange;
 }
+
+rect.faust-rbutton-groove {
+  fill : url(#rotatingButtonHandleGradient);
+}
+
