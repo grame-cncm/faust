@@ -157,6 +157,18 @@ rect.faust-button-up:hover {
   stroke : orange;
 }
 
+circle.faust-rbutton-groove {
+  fill : url(#rotatingButtonHandleGradient);
+}
+
+path.faust-rbutton-meter {
+  fill : rgb(50,50,50);
+}
+
+path.faust-rbutton-mgroove {
+  fill : url(#rotatingButtonMeterGradient);
+}
+
 // as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
 
 path.faust-hslider-groove {
@@ -226,8 +238,3 @@ path.faust-button-down:hover {
 path.faust-button-up:hover {
   stroke : orange;
 }
-
-rect.faust-rbutton-groove {
-  fill : url(#rotatingButtonHandleGradient);
-}
-

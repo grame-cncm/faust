@@ -32,6 +32,7 @@ _f4u$t.rbutton_inits = {
   a0 : 135,
   sweep : 270,
   sp : 0.9,
+  kp : 0.7,
   label : '',
   unit : null,
   min : 0,
@@ -43,10 +44,14 @@ _f4u$t.rbutton_inits = {
   lpadding_y : _f4u$t.TEXT_HEIGHT,
   box_padding : _f4u$t.TEXT_BOX_PADDING,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
+  meter_fill : 'rgb(50,50,50)',
+  mgroove_fill : 'url(#rotatingButtonMeterGradient)',
   groove_fill : 'url(#rotatingButtonHandleGradient)',
   handle_fill : 'none',
+  mgroove_stroke : _f4u$t.BLACK,
   groove_stroke : _f4u$t.BLACK,
   handle_stroke : _f4u$t.WHITE,
+  meter_stroke : _f4u$t.BLACK,
   handle_width : 6,
   value_box_w : _f4u$t.VALUE_BOX_W,
   value_box_h : _f4u$t.VALUE_BOX_H,
@@ -169,6 +174,17 @@ _f4u$t.linear_gradient_inits = {
   horizontalSliderHandleGradient :
     {
       stops : [['0%', '#AAAAAA', 1], ['5%' ,'#0A0A0A', 1], ['30%','#101010', 1], ['90%','#AAAAAA', 1], ['91%','#000000', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  rotatingButtonMeterGradient :
+    {
+      stops : [['0%', 'rgb(255,255,0)', 1], ['100%', 'rgb(255,0,0)', 1]],
       x1 : "0%",
       y1 : "0%",
       x2 : "100%",

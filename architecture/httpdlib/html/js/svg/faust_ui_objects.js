@@ -149,7 +149,8 @@ _f4u$t.RotatingButton = function(options) {
   if (this.sweep == 0) {
     this.sweep = 360;
   }
-  _f4u$t.init_prop(this, options, 'rbutton', 'sp');
+  _f4u$t.init_prop(this, options, 'rbutton', 'sp'); // percentage for white handle
+  _f4u$t.init_prop(this, options, 'rbutton', 'kp'); // knob percentage
   _f4u$t.init_prop(this, options, 'rbutton', 'label');
   _f4u$t.init_prop(this, options, 'rbutton', 'unit');
   _f4u$t.init_prop(this, options, 'rbutton', 'min');
@@ -161,10 +162,14 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'lpadding_y');
   _f4u$t.init_prop(this, options, 'rbutton', 'box_padding');
   _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
+  _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'meter_fill');
   _f4u$t.init_prop(this, options, 'rbutton', 'groove_fill');
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_fill');
   _f4u$t.init_prop(this, options, 'rbutton', 'groove_stroke');
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'meter_stroke');
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_width');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_w');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_h');
@@ -188,6 +193,85 @@ _f4u$t.RotatingButton.prototype.dims = function() {
   return [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
 }
 
+_f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
+  var full_id = 'faust_rbutton_mgroove_'+id;
+  var xo = this.r();
+  var yo = this.r();
+  var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
+  d = d.format([
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo, // outside Y
+    this.r(), // radius X
+    this.r(), // radius Y
+    this.sweep <= 180 ? 0 : 1, // large arc flag
+    1, // draw positive
+    this.r() * Math.cos(_f4u$t.d2r(this.a0 + this.sweep)) + xo, // endpoint X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0 + this.sweep)) + yo, // endpoint Y
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0 + this.sweep)) + xo, // inside endpoint X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0 + this.sweep)) + yo, // inside endpoint Y
+    this.r() * this.kp, // inside radiux X
+    this.r() * this.kp, // inside radiux Y
+    this.sweep <= 180 ? 0 : 1, // large arc flag
+    0, // draw negative
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0)) + xo, // inside X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0)) + yo, // inside Y
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
+  ]);
+  var mgroove = svg.path(
+    parent,
+    d,
+    {
+      fill : _f4u$t.color_to_rgb(this.mgroove_fill),
+      stroke : _f4u$t.color_to_rgb(this.mgroove_stroke),
+      id : full_id,
+      'class' : 'faust-rbutton-mgroove'
+    }
+  );
+
+  return mgroove;
+}
+
+_f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
+  var full_id = 'faust_rbutton_meter_'+id;
+  var xo = this.r();
+  var yo = this.r();
+  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
+  var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
+  d = d.format([
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo, // outside Y
+    this.r(), // radius X
+    this.r(), // radius Y
+    startp - this.a0 <= 180 ? 0 : 1, // large arc flag
+    1, // draw positive
+    this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // endpoint X
+    this.r() * Math.sin(_f4u$t.d2r(startp)) + yo, // endpoint Y
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(startp)) + xo, // inside endpoint X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(startp)) + yo, // inside endpoint Y
+    this.r() * this.kp, // inside radiux X
+    this.r() * this.kp, // inside radiux Y
+    startp - this.a0 <= 180 ? 0 : 1, // large arc flag
+    0, // draw negative
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0)) + xo, // inside X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0)) + yo, // inside Y
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
+  ]);
+  var meter = svg.path(
+    parent,
+    d,
+    {
+      fill : _f4u$t.color_to_rgb(this.meter_fill),
+      stroke : _f4u$t.color_to_rgb(this.meter_stroke),
+      id : full_id,
+      'class' : 'faust-rbutton-meter'
+    }
+  );
+
+  return meter;
+}
+
 _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
   var mousedown = _f4u$t.activate_rbutton;
   var full_id = 'faust_rbutton_groove_'+id;
@@ -195,7 +279,7 @@ _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
     parent,
     this.r(),
     this.r(),
-    this.r(),    
+    this.r() * this.kp,    
     {
       fill : _f4u$t.color_to_rgb(this.groove_fill),
       stroke : _f4u$t.color_to_rgb(this.groove_stroke),
@@ -218,7 +302,7 @@ _f4u$t.RotatingButton.prototype.make_handle = function(svg, parent, id) {
     parent,
     origin[0],
     origin[1],
-    origin[0] + (this.r() * this.sp) , // set at 0 degrees to start, then rotate below
+    origin[0] + (this.r() * this.sp * this.kp) , // set at 0 degrees to start, then rotate below
     origin[1],
     {
       fill : _f4u$t.color_to_rgb(this.handle_fill),
@@ -260,6 +344,8 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     id,
     this.a0,
     this.sweep,
+    this.r(),
+    this.kp,
     this.min,
     this.max,
     this.step,
@@ -271,6 +357,8 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   );
 
   this.make_anchor(svg, g, id);
+  this.make_mgroove(svg, g, id);
+  this.make_meter(svg, g, id);
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
