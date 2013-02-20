@@ -122,10 +122,10 @@ _f4u$t.arrayToTransform = function(array) {
   return out;
 }
 
-_f4u$t.updateXY = function(ee) {
+_f4u$t.updateXY = function(ee, initialize) {
   for (var i = 0; i < ee.length; i++) {
-    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = _f4u$t.getClientX(ee[i]);
-    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = _f4u$t.getClientY(ee[i]);
+    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientX(ee[i]);
+    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientY(ee[i]);
   }
 }
 
@@ -199,13 +199,14 @@ _f4u$t.initiate_vbargraph = function(fullid, weakaxis, strongaxis, minval, maxva
   _f4u$t.initiate_bargraph(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address);
 }
 
-_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,pctsliding,minval,maxval,step,init,integer,ndec,label,address) {
+_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label,address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "rbutton";
   _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"] = initangle;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"] = sweepangle;
-  _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"] = pctsliding;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"] = radius;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"] = knobpercentage;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"] = minval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"] = maxval;
@@ -304,9 +305,12 @@ _f4u$t.activate_moving_object = function(ee) {
   }
   var identifier = touches[0].identifier || 0;
   _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false, value : null};
-  _f4u$t.updateXY(touches);
+  _f4u$t.updateXY(touches, true);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
+  // if we touch a groove, we want the object to snap to the correct position, so
+  // we need to call the move function.
+  _f4u$t.moveActiveObject(ee);
 }
 
 _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
@@ -344,10 +348,9 @@ _f4u$t.moveActiveObject = function(ee) {
 _f4u$t.internalMoveActiveObject = function(e, identifier) {
   _f4u$t.clog_key_sink();
   _f4u$t.BUSY = true;
-
-  var hslider_token = "faust_hslider_knob";
-  var vslider_token = "faust_vslider_knob";
-  var rotating_button_token = "faust_rbutton_knob"
+  var hslider_token = "faust_hslider";
+  var vslider_token = "faust_vslider";
+  var rotating_button_token = "faust_rbutton";
   var now = null;
   if (_f4u$t._I[identifier]['id'].substring(0, hslider_token.length) == hslider_token) {
     now = _f4u$t.moveActiveSlider(e, identifier);
@@ -394,28 +397,32 @@ _f4u$t.genericMovingPartUpdate = function(aval, pval, l, h) {
 
 _f4u$t.moveActiveSlider = function(e,identifier)
 {
-  var sliding_part = document.getElementById(_f4u$t._I[identifier].id);
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
+  var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
+  var anchor = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_groove_', 'faust_vslider_groove_')+id);
   var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
+  var os = $(anchor).offset();
+  var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
+  var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
   // we only care about the axis of the slider
   if (axis == _f4u$t.X_AXIS) {
-    pos = _f4u$t.getClientX(e);
+    pos = _f4u$t.getClientX(e) - my_x;
   }
   else {
-    pos = _f4u$t.getClientY(e);
+    pos = _f4u$t.getClientY(e) - my_y;
   }
 
-  var diff = pos - _f4u$t.PREV[axis][identifier];
+  pos -= (length * pctsliding / 2.0);
+  //var diff = pos - _f4u$t.PREV[axis][identifier];
   var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
-  var aval = transform[0][axis + 1] + diff;
-
+  var aval = pos;//transform[0][axis + 1] + diff;
   // minimum of the slider is to the bottom / left
   transform[0][axis + 1] = _f4u$t.genericMovingPartUpdate(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
@@ -425,37 +432,80 @@ _f4u$t.moveActiveSlider = function(e,identifier)
   return now;
 }
 
+_f4u$t.redrawRotatingButtonMeter = function(id, initangle, sweepangle, radius, knobpercentage, startp) {
+  var meter = document.getElementById('faust_rbutton_meter_'+id);
+  var xo = radius;
+  var yo = radius;
+
+  var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
+  d = d.format([
+    radius * Math.cos(_f4u$t.d2r(startp)) + xo, // outside X
+    radius * Math.sin(_f4u$t.d2r(startp)) + yo, // outside Y
+    radius, // radius X
+    radius, // radius Y
+    initangle + sweepangle - startp <= 180 ? 0 : 1, // large arc flag
+    1, // draw positive
+    radius * Math.cos(_f4u$t.d2r(initangle + sweepangle)) + xo, // endpoint X
+    radius * Math.sin(_f4u$t.d2r(initangle + sweepangle)) + yo, // endpoint Y
+    radius * knobpercentage * Math.cos(_f4u$t.d2r(initangle + sweepangle)) + xo, // inside endpoint X
+    radius * knobpercentage * Math.sin(_f4u$t.d2r(initangle + sweepangle)) + yo, // inside endpoint Y
+    radius * knobpercentage, // inside radiux X
+    radius * knobpercentage, // inside radiux Y
+    initangle + sweepangle - startp <= 180 ? 0 : 1, // large arc flag
+    0, // draw negative
+    radius * knobpercentage * Math.cos(_f4u$t.d2r(startp)) + xo, // inside X
+    radius * knobpercentage * Math.sin(_f4u$t.d2r(startp)) + yo, // inside Y
+    radius * Math.cos(_f4u$t.d2r(startp)) + xo, // outside X
+    radius * Math.sin(_f4u$t.d2r(startp)) + yo// outside Y
+  ]);
+
+  meter.setAttribute("d", d);
+}
+
 _f4u$t.moveActiveRotatingButton = function(e, identifier)
 {
-  var sliding_part = document.getElementById(_f4u$t._I[identifier].id);
-  var anchor = document.getElementById('faust_rbutton_anchor_'+_f4u$t.unique(_f4u$t._I[identifier].id));
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
+  var sliding_part = document.getElementById('faust_rbutton_handle_'+id);
+  var anchor = document.getElementById('faust_rbutton_anchor_'+id);
   var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
   var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
-  var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
   var os = $(anchor).offset();
-  //console.log(anchor.getBoundingClientRect());
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
+  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
 
-  var diff = 180. * (Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) - Math.atan2(_f4u$t.PREV[_f4u$t.Y_AXIS][identifier] - my_y, _f4u$t.PREV[_f4u$t.X_AXIS][identifier] - my_x)) / Math.PI;
-  // if diff is to great, the browser is going berzerk...
-  if (-180 > diff) {
+  var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
+  // we wind diff around to give it best shot of falling between two values:
+  if (diff < initangle) {
     diff += 360;
   }
-  else if (diff > 180) {
+  else if (diff > initangle + sweepangle) {
     diff -= 360;
   }
-
-  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
+  
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
-  var aval = transform[2][1] + diff;
-
-  transform[2][1] = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle - (sweepangle * pctsliding));
-  var now = _f4u$t.generic_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), aval, initangle, initangle + sweepangle - (sweepangle * pctsliding));
+  var aval = diff;
+  var rotation = transform[2][1];
+  // always change rotation if we're starting with a click
+  if (_f4u$t.PREV[_f4u$t.X_AXIS][identifier] == null) {
+    rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
+  } else if (((aval > initangle) || (aval < initangle + sweepangle))
+             && (Math.abs(aval - rotation) < 35)) { // only change rotation if we're in bounds and the difference is small
+    rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
+  }
+  transform[2][1] = rotation;
+  _f4u$t.redrawRotatingButtonMeter(
+    id,
+    initangle,
+    sweepangle,
+    _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+    _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+    transform[2][1]
+  );
+  var now = _f4u$t.generic_label_update(id, rotation, initangle, initangle + sweepangle);
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
   _f4u$t.updateXY([e]);
@@ -497,12 +547,12 @@ _f4u$t.clearIdCache = function(ee) {
 _f4u$t.button_class_changer = function(id, down) {
   var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(id));
   if (down) {
-    //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-up').addClass('faust-button-down');
-    mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
+    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
+    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
   }
   else {
-    //$('#faust_button_box_'+_f4u$t.unique(I)).removeClass('faust-button-down').addClass('faust-button-up');
-    mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
+    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
   }
 }
 
@@ -678,9 +728,9 @@ _f4u$t.rotating_button_key_sink = function(I) {
 // actualize it
 
 _f4u$t.actualize_incremental_object = function(id) {
-  var hslider_id = "faust_hslider_knob_"+id;
-  var vslider_id = "faust_vslider_knob_"+id;
-  var rotating_button_id = "faust_rbutton_knob_"+id;
+  var hslider_id = "faust_hslider_handle_"+id;
+  var vslider_id = "faust_vslider_handle_"+id;
+  var rotating_button_id = "faust_rbutton_handle_"+id;
   var hbargraph_id = "faust_hbargraph_meter_"+id;
   var vbargraph_id = "faust_vbargraph_meter_"+id;
   var val = parseFloat(_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]);
@@ -711,11 +761,18 @@ _f4u$t.actualize_incremental_object = function(id) {
     var minval = _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"];
     var maxval = _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"];
     var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
-    var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
     var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
-    val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle - (sweepangle * pctsliding));
+    val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle);
     var transform = _f4u$t.transformToArray(maybe_button.getAttribute("transform"));
     transform[2][1] = val;
+    _f4u$t.redrawRotatingButtonMeter(
+      id,
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+      transform[2][1]
+    );
     var movetothis = _f4u$t.arrayToTransform(transform);
     maybe_button.setAttribute("transform", movetothis);
     return 0;
@@ -728,12 +785,18 @@ _f4u$t.actualize_incremental_object = function(id) {
     var weakaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["weakaxis"];
     var strongaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["strongaxis"];
     val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
+    /*
+    // for paths...
     var newd = _f4u$t.xy(
       axis,
       'M 0 0L'+val+' 0L'+val+' '+weakaxis+'L0 '+weakaxis+'L0 0',
       'M 0 '+strongaxis+'L'+weakaxis+' '+strongaxis+'L'+weakaxis+' '+val+'L0 '+val+'L0 '+strongaxis
     );
     maybe_bargraph.setAttribute("d", newd);
+    */
+    maybe_bargraph.setAttribute("y", _f4u$t.xy(axis, 0, val));
+    maybe_bargraph.setAttribute("width", _f4u$t.xy(axis, val, weakaxis));
+    maybe_bargraph.setAttribute("height", Math.max(0, _f4u$t.xy(axis, weakaxis, strongaxis - val)));
     return 0;
   }
   // no corresponding incremental object

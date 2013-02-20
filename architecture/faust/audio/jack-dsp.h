@@ -38,6 +38,7 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <list>
 #include <jack/jack.h>
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
@@ -68,8 +69,67 @@ class jackaudio : public audio {
         int				fNumOutChans;       // number of output channels
         jack_port_t**	fInput_ports;       // JACK input ports
         jack_port_t**	fOutput_ports;      // JACK output ports
-        float**			fInChannel;         // tables of noninterleaved input channels for FAUST
-        float**			fOutChannel;		// tables of noninterleaved output channels for FAUST
+        
+        std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
+        
+        // Save client connections
+        void save_connections()
+        {
+            const char** connections;
+            fConnections.clear();
+            
+             for (int i = 0; i < fNumInChans; i++) {
+                const char** connected_port = jack_port_get_all_connections(fClient, fInput_ports[i]);
+                if (connected_port != NULL) {
+                    for (int port = 0; connected_port[port]; port++) {
+                        fConnections.push_back(make_pair(connected_port[port], jack_port_name(fInput_ports[i])));
+                        printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInput_ports[i]));
+                    }
+                    jack_free(connected_port);
+                }
+            }
+       
+            for (int i = 0; i < fNumOutChans; i++) {
+                const char** connected_port = jack_port_get_all_connections(fClient, fOutput_ports[i]);
+                if (connected_port != NULL) {
+                    for (int port = 0; connected_port[port]; port++) {
+                        fConnections.push_back(make_pair(jack_port_name(fOutput_ports[i]), connected_port[port]));
+                        printf("OUTPUT %s ==> %s\n", jack_port_name(fOutput_ports[i]), connected_port[port]);
+                    }
+                    jack_free(connected_port);
+                }
+            }
+        }
+
+        // Restore previous client connections
+        void restore_connections()
+        {
+            list<pair<string, string> >::const_iterator it;
+            for (it = fConnections.begin(); it != fConnections.end(); it++) {
+                pair<string, string> connection = *it;
+                jack_connect(fClient, connection.first.c_str(), connection.second.c_str());
+            }
+        }
+        
+        // Connect to physical inputs/outputs
+        void default_connections()
+        {
+            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
+            if (physicalOutPorts != NULL) {
+                for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
+                    jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInput_ports[i]));
+                }
+                jack_free(physicalOutPorts);
+            }
+            
+            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+            if (physicalInPorts != NULL) {
+                for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++) {
+                    jack_connect(fClient, jack_port_name(fOutput_ports[i]), physicalInPorts[i]);
+                }
+                jack_free(physicalInPorts);
+            }
+        }
 
     public:
                  jackaudio() : fClient(0), fNumInChans(0), fNumOutChans(0) {}
@@ -97,10 +157,7 @@ class jackaudio : public audio {
             
             fInput_ports = new jack_port_t*[fNumInChans];
             fOutput_ports = new jack_port_t*[fNumOutChans];
-            
-            fInChannel = new float*[fNumInChans];
-            fOutChannel = new float*[fNumOutChans];
-
+        
             for (int i = 0; i < fNumInChans; i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
@@ -121,20 +178,11 @@ class jackaudio : public audio {
                 fprintf(stderr, "Cannot activate client");
                 return false;
             }
-
-            // Connect to physical input/outputs
-            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
-            if (physicalOutPorts != NULL) {
-                for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
-                    jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInput_ports[i]));
-                }
-            }
             
-            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
-            if (physicalInPorts != NULL) {
-                for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++) {
-                    jack_connect(fClient, jack_port_name(fOutput_ports[i]), physicalInPorts[i]);
-                }
+            if (fConnections.size() > 0) {
+                restore_connections();
+            } else {
+                default_connections();
             }
             return true;
         }
@@ -142,6 +190,7 @@ class jackaudio : public audio {
         virtual void stop() 
         {
             if (fClient) {
+                save_connections();
                 jack_deactivate(fClient);
                 for (int i = 0; i < fNumInChans; i++) {
                     jack_port_unregister(fClient, fInput_ports[i]);
@@ -154,9 +203,6 @@ class jackaudio : public audio {
                 
                 delete[] fInput_ports;
                 delete[] fOutput_ports;
-                
-                delete[] fInChannel;
-                delete[] fOutChannel;
             }
         }
 
@@ -165,9 +211,11 @@ class jackaudio : public audio {
         {
             AVOIDDENORMALS;
             // Retrieve JACK input/outputs audio buffers
+            float* fInChannel[fNumInChans];
             for (int i = 0; i < fNumInChans; i++) {
                 fInChannel[i] = (float*)jack_port_get_buffer(fInput_ports[i], nframes);
             }
+            float* fOutChannel[fNumOutChans];
             for (int i = 0; i < fNumOutChans; i++) {
                 fOutChannel[i] = (float*)jack_port_get_buffer(fOutput_ports[i], nframes);
             }

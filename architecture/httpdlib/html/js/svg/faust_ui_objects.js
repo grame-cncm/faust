@@ -63,9 +63,14 @@ _f4u$t.extend(_f4u$t.UIObject, _f4u$t.IncrementalObject);
 _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mousedown) {
   var dims = this.dims();
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - this.value_box_w) / 2.0 : 0.0);
-  var vb = svg.path(
+  var vb = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+this.value_box_w+" 0L"+this.value_box_w+" "+this.value_box_h+"L0 "+this.value_box_h+"L0 0",
+    0,
+    0,
+    0,
+    this.value_box_w,
+    this.value_box_h,
     {
       id: 'faust_value_box_'+id,
       fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
@@ -74,8 +79,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
       'class': 'faust-vbox-box',
       onmousedown : mousedown,
       ontouchstart : mousedown
-    }
-  );
+    });
 
   return vb;
 }
@@ -145,7 +149,8 @@ _f4u$t.RotatingButton = function(options) {
   if (this.sweep == 0) {
     this.sweep = 360;
   }
-  _f4u$t.init_prop(this, options, 'rbutton', 'sp');
+  _f4u$t.init_prop(this, options, 'rbutton', 'sp'); // percentage for white handle
+  _f4u$t.init_prop(this, options, 'rbutton', 'kp'); // knob percentage
   _f4u$t.init_prop(this, options, 'rbutton', 'label');
   _f4u$t.init_prop(this, options, 'rbutton', 'unit');
   _f4u$t.init_prop(this, options, 'rbutton', 'min');
@@ -157,10 +162,15 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'lpadding_y');
   _f4u$t.init_prop(this, options, 'rbutton', 'box_padding');
   _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
-  _f4u$t.init_prop(this, options, 'rbutton', 'joint_fill');
-  _f4u$t.init_prop(this, options, 'rbutton', 'knob_fill');
-  _f4u$t.init_prop(this, options, 'rbutton', 'joint_stroke');
-  _f4u$t.init_prop(this, options, 'rbutton', 'knob_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'meter_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'groove_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'handle_fill');
+  _f4u$t.init_prop(this, options, 'rbutton', 'groove_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'handle_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'meter_stroke');
+  _f4u$t.init_prop(this, options, 'rbutton', 'handle_width');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_w');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_h');
   _f4u$t.init_prop(this, options, 'rbutton', 'address');
@@ -172,28 +182,10 @@ _f4u$t.RotatingButton.prototype.r = function() {
   return this._r;
 }
 
-_f4u$t.RotatingButton.prototype.get_maybe_extremal_coords = function() {
-  var angles = _f4u$t.find_all_90s(this.a0, this.sweep);
-  angles.push(this.a0);
-  angles.push(this.a0 + this.sweep);
-  angles.sort();
-  var coords = new Array();
-  for (var i = 0; i < angles.length; i++) {
-    coords.push(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(angles[i])));
-  }
-  coords.push([0,0]);
-  return coords;
+_f4u$t.RotatingButton.prototype.internal_dims = function() {
+  return [this.r() * 2, this.r() * 2];
 }
 
-_f4u$t.RotatingButton.prototype.internal_dims = function() {
-  var coords = this.get_maybe_extremal_coords();
-  var box = new _f4u$t.Box();
-  for (var i = 0; i < coords.length; i++) {
-    box.add_point(coords[i]);
-  }
-  var ugh = box.lens();
-  return ugh;
-}
 
 _f4u$t.RotatingButton.prototype.dims = function() {
   var ugh = this.internal_dims();
@@ -201,95 +193,136 @@ _f4u$t.RotatingButton.prototype.dims = function() {
   return [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
 }
 
-_f4u$t.RotatingButton.prototype.get_translation = function() {
-  var coords = this.get_maybe_extremal_coords();
-  var x = Number.POSITIVE_INFINITY;
-  var y = Number.POSITIVE_INFINITY;
-  for (var i = 0; i < coords.length; i++) {
-    x = Math.min(x, coords[i][0]);
-    y = Math.min(x, coords[i][1]);
-  }
-  return [x,y];
-}
-
-_f4u$t.RotatingButton.prototype.make_joint = function(svg, parent, id) {
-  var trans = this.get_translation()
-  var start = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0)), trans);
-  var end = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0 + this.sweep)), trans);
-  var origin = _f4u$t.coord_sub([0,0], trans);
-  var small = this.sweep < 180;
-  var dims = this.dims();
-  var xo = (dims[0] - (this.r() * 2)) / 2.0;
-  var d = "M{0} {1}L{2} {3} A{4} {4} {5} 1 {6} {7}L{0} {1}";
+_f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
+  var full_id = 'faust_rbutton_mgroove_'+id;
+  var xo = this.r();
+  var yo = this.r();
+  var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
   d = d.format([
-    origin[0], origin[1],
-    start[0], start[1],
-    this.r(),
-    (small ? "1 0" : "0 1"),
-    end[0], end[1]
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo, // outside Y
+    this.r(), // radius X
+    this.r(), // radius Y
+    this.sweep <= 180 ? 0 : 1, // large arc flag
+    1, // draw positive
+    this.r() * Math.cos(_f4u$t.d2r(this.a0 + this.sweep)) + xo, // endpoint X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0 + this.sweep)) + yo, // endpoint Y
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0 + this.sweep)) + xo, // inside endpoint X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0 + this.sweep)) + yo, // inside endpoint Y
+    this.r() * this.kp, // inside radiux X
+    this.r() * this.kp, // inside radiux Y
+    this.sweep <= 180 ? 0 : 1, // large arc flag
+    0, // draw negative
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0)) + xo, // inside X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0)) + yo, // inside Y
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
   ]);
-
-  var joint = svg.path(
+  var mgroove = svg.path(
     parent,
     d,
     {
-      fill : _f4u$t.color_to_rgb(this.joint_fill),
-      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
-      id : 'faust_rbutton_joint_'+id,
-      'class' : 'faust-rbutton-joint',
-      transform : 'translate('+xo+',0)'
+      fill : _f4u$t.color_to_rgb(this.mgroove_fill),
+      stroke : _f4u$t.color_to_rgb(this.mgroove_stroke),
+      id : full_id,
+      'class' : 'faust-rbutton-mgroove'
     }
   );
 
-  return joint;
+  return mgroove;
 }
 
-_f4u$t.RotatingButton.prototype.make_knob = function(svg, parent, id) {
-  var trans = this.get_translation();
-  var slider_angle = this.sweep * this.sp;
-  var half_slider_angle = slider_angle * 0.5;
-  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0 + half_slider_angle, this.a0 + this.sweep - half_slider_angle)
-  var start = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0)), trans);
-  var end = _f4u$t.coord_sub(_f4u$t.point_from_polar(this.r(), _f4u$t.d2r(this.a0 + slider_angle)), trans);
-  var origin = _f4u$t.coord_sub([0,0], trans);
-  var small = this.sweep * this.sp < 180;
-  var full_id = 'faust_rbutton_knob_'+id;
-  var dims = this.dims();
-  var xo = (dims[0] - (this.r() * 2)) / 2.0;
-  var d = "M{0} {1}L{2} {3} A{4} {4} {5} 1 {6} {7}L{0} {1}";
+_f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
+  var full_id = 'faust_rbutton_meter_'+id;
+  var xo = this.r();
+  var yo = this.r();
+  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
+  var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
   d = d.format([
-    origin[0], origin[1],
-    start[0], start[1],
-    this.r(),
-    (small ? "1 0" : "0 1"),
-    end[0], end[1]
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo, // outside Y
+    this.r(), // radius X
+    this.r(), // radius Y
+    startp - this.a0 <= 180 ? 0 : 1, // large arc flag
+    1, // draw positive
+    this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // endpoint X
+    this.r() * Math.sin(_f4u$t.d2r(startp)) + yo, // endpoint Y
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(startp)) + xo, // inside endpoint X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(startp)) + yo, // inside endpoint Y
+    this.r() * this.kp, // inside radiux X
+    this.r() * this.kp, // inside radiux Y
+    startp - this.a0 <= 180 ? 0 : 1, // large arc flag
+    0, // draw negative
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0)) + xo, // inside X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0)) + yo, // inside Y
+    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
   ]);
-
-
-  var mousedown = _f4u$t.activate_rbutton;
-  var knob = svg.path(
+  var meter = svg.path(
     parent,
     d,
     {
-      fill : _f4u$t.color_to_rgb(this.knob_fill),
-      stroke : _f4u$t.color_to_rgb(this.knob_stroke),
-      'class' : 'faust-rbutton-knob',
+      fill : _f4u$t.color_to_rgb(this.meter_fill),
+      stroke : _f4u$t.color_to_rgb(this.meter_stroke),
       id : full_id,
-      transform : 'translate('+xo+',0) scale(1,1) rotate('+(startp - half_slider_angle + 180)+','+origin[0]+','+origin[1]+')'
+      'class' : 'faust-rbutton-meter'
+    }
+  );
+
+  return meter;
+}
+
+_f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
+  var mousedown = _f4u$t.activate_rbutton;
+  var full_id = 'faust_rbutton_groove_'+id;
+  var groove = svg.circle(
+    parent,
+    this.r(),
+    this.r(),
+    this.r() * this.kp,    
+    {
+      fill : _f4u$t.color_to_rgb(this.groove_fill),
+      stroke : _f4u$t.color_to_rgb(this.groove_stroke),
+      id : full_id,
+      'class' : 'faust-rbutton-groove'
     }
   );
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
-  return knob;
+  return groove;
 }
 
+_f4u$t.RotatingButton.prototype.make_handle = function(svg, parent, id) {
+  var full_id = 'faust_rbutton_handle_'+id;
+  var origin = [this.r(), this.r()];
+  var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
+  var mousedown = _f4u$t.activate_rbutton;
+  var handle = svg.line(
+    parent,
+    origin[0],
+    origin[1],
+    origin[0] + (this.r() * this.sp * this.kp) , // set at 0 degrees to start, then rotate below
+    origin[1],
+    {
+      fill : _f4u$t.color_to_rgb(this.handle_fill),
+      stroke : _f4u$t.color_to_rgb(this.handle_stroke),
+      "stroke-width" : this.handle_width,
+      'class' : 'faust-rbutton-handle',
+      id : full_id,
+      transform : 'translate(0,0) scale(1,1) rotate('+startp+','+origin[0]+','+origin[1]+')'
+    }
+  );
+
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
+  return handle;
+}
+
+// anchor helps us get correct positioning for rotation
 _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
-  var trans = this.get_translation();
-  var origin = _f4u$t.coord_sub([0,0], trans);
+  var origin = [this.r(), this.r()];
   var full_id = 'faust_rbutton_anchor_'+id;
-  var dims = this.dims();
-  var xo = (dims[0] - (this.r() * 2)) / 2.0;
 
   var anchor = svg.path(
     parent,
@@ -297,7 +330,7 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
     {
       id : full_id,
       style : 'opacity:0.0;',
-      transform : 'translate('+(origin[0] + xo)+','+origin[1]+')',
+      transform : 'translate('+origin[0]+','+origin[1]+')',
     }
   );
 
@@ -307,13 +340,12 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
 _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   var id = _f4u$t.randString();
   var g = this.make_group(svg, parent, id);
-  var trans = this.get_translation();
-  var origin = _f4u$t.coord_sub([0,0], trans);
   _f4u$t.initiate_rbutton(
     id,
-    this.a0 + 180,
+    this.a0,
     this.sweep,
-    this.sp,
+    this.r(),
+    this.kp,
     this.min,
     this.max,
     this.step,
@@ -325,8 +357,10 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   );
 
   this.make_anchor(svg, g, id);
-  this.make_joint(svg, g, id);
-  this.make_knob(svg, g, id);
+  this.make_mgroove(svg, g, id);
+  this.make_meter(svg, g, id);
+  this.make_groove(svg, g, id);
+  this.make_handle(svg, g, id);
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_label(svg, g, id);
@@ -378,36 +412,45 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 _f4u$t.Slider = function(options, type) {
   _f4u$t.SlidingObject.call(this, options, type);
   _f4u$t.init_prop(this, options, 'button','sp');
-  _f4u$t.init_prop(this, options, 'button','joint_fill');
-  _f4u$t.init_prop(this, options, 'button','joint_stroke');
-  _f4u$t.init_prop(this, options, 'button','knob_fill');
-  _f4u$t.init_prop(this, options, 'button','knob_stroke');
+  _f4u$t.init_prop(this, options, 'button','groove_fill');
+  _f4u$t.init_prop(this, options, 'button','groove_stroke');
+  _f4u$t.init_prop(this, options, 'button','handle_fill');
+  _f4u$t.init_prop(this, options, 'button','handle_stroke');
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
 
-_f4u$t.Slider.prototype.make_joint = function(svg, parent, id) {
+_f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
   var dims = this.dims();
   var w = _f4u$t.xy(this.axis, this.length, this.girth / 3.0);
   var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
-  var joint = svg.path(
+  var full_id = 'faust_'+this.type+'_groove_'+id;
+  var activate_fn = "activate_"+this.type;
+  var mousedown = _f4u$t[activate_fn];
+  var groove = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
-      fill : _f4u$t.color_to_rgb(this.joint_fill),
-      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
-      id : 'faust_'+this.type+'_joint_'+id,
-      'class' : 'faust-slider-joint',
+      fill : _f4u$t.color_to_rgb(this.groove_fill),
+      stroke : _f4u$t.color_to_rgb(this.groove_stroke),
+      id : full_id,
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-groove', 'faust-vslider-groove'),
       transform : trans
-    }
-  );
+    });
 
-  return joint;
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
+  return groove;
 }
 
-_f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
+_f4u$t.Slider.prototype.make_handle = function(svg, parent, id) {
   var dims = this.dims();
   var slider_girth = this.length  * this.sp;
   var half_slider_girth = slider_girth * 0.5;
@@ -419,24 +462,29 @@ _f4u$t.Slider.prototype.make_knob = function(svg, parent, id) {
   var xo = ((this.axis == _f4u$t.Y_AXIS) ? (dims[0] - w) / 2.0 : 0.0);
   var x = _f4u$t.xy(this.axis, bottom, xo);
   var y = _f4u$t.xy(this.axis, 0, bottom);
-  var full_id = 'faust_'+this.type+'_knob_'+id;
+  var full_id = 'faust_'+this.type+'_handle_'+id;
   var activate_fn = "activate_"+this.type;
   var mousedown = _f4u$t[activate_fn];
 
-  var knob = svg.path(
+  var handle = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
-      fill : _f4u$t.color_to_rgb(this.knob_fill),
-      stroke : _f4u$t.color_to_rgb(this.knob_stroke),
+      fill : _f4u$t.color_to_rgb(this.handle_fill),
+      stroke : _f4u$t.color_to_rgb(this.handle_stroke),
       id : full_id,
-      'class' : 'faust-slider-knob',
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-handle', 'faust-vslider-handle'),
       transform : 'translate('+x+','+y+')'
-    }
-  );
+    });
+
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
-  return knob;
+  return handle;
 }
 
 _f4u$t.Slider.prototype.make = function(svg, parent) {
@@ -457,8 +505,8 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.address
   );
 
-  this.make_joint(svg, g, id);
-  this.make_knob(svg, g, id);
+  this.make_groove(svg, g, id);
+  this.make_handle(svg, g, id);
   this.make_value_box(
     svg,
     g,
@@ -503,32 +551,36 @@ _f4u$t.extend(_f4u$t.Slider, _f4u$t.VerticalSlider);
 
 _f4u$t.BarGraph = function(options, type) {
   _f4u$t.SlidingObject.call(this, options, type);
-  this.joint_fill = _f4u$t.initifnull(options.joint_fill, _f4u$t.CYAN);
-  this.joint_stroke = _f4u$t.initifnull(options.joint_stroke, _f4u$t.CYAN);
+  this.groove_fill = _f4u$t.initifnull(options.groove_fill, _f4u$t.CYAN);
+  this.groove_stroke = _f4u$t.initifnull(options.groove_stroke, _f4u$t.CYAN);
   this.meter_fill = _f4u$t.initifnull(options.meter_fill, _f4u$t.CYAN);
   this.meter_stroke = _f4u$t.initifnull(options.meter_stroke, _f4u$t.CYAN);
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
 
-_f4u$t.BarGraph.prototype.make_joint = function(svg, parent, id) {
+_f4u$t.BarGraph.prototype.make_groove = function(svg, parent, id) {
   var dims = this.dims();
   var w = _f4u$t.xy(this.axis, this.length, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var joint = svg.path(
+  var groove = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
-      fill : _f4u$t.color_to_rgb(this.joint_fill),
-      stroke : _f4u$t.color_to_rgb(this.joint_stroke),
-      id : 'faust_'+this.type+'_joint_'+id,
+      fill : _f4u$t.color_to_rgb(this.groove_fill),
+      stroke : _f4u$t.color_to_rgb(this.groove_stroke),
+      id : 'faust_'+this.type+'_groove_'+id,
       transform : 'translate('+xo+',0)',
-      'class' : 'faust-bargraph-joint'
-    }
-  );
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-groove', 'faust-vbargraph-groove')
+    });
 
-  return joint;
+  return groove;
 }
 
 _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
@@ -538,21 +590,21 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, def, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, def);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var meter = svg.path(
+  var meter = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    _f4u$t.xy(
-      this.axis,
-      "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
-      "M0 "+this.length+"L"+w+" "+this.length+"L"+w+" "+h+"L0 "+h+"L0 "+this.length
-    ),
+    0,
+    0,
+    _f4u$t.xy(this.axis, 0, this.length - h),
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.meter_fill),
       stroke : _f4u$t.color_to_rgb(this.meter_stroke),
       id : full_id,
       transform : 'translate('+xo+',0)',
-      'class' : 'faust-bargraph-meter'
-    }
-  );
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-meter', 'faust-vbargraph-meter')
+    });
 
   return meter;
 }
@@ -572,7 +624,7 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
     this.address
   );
 
-  this.make_joint(svg, g, id);
+  this.make_groove(svg, g, id);
   this.make_meter(svg, g, id);
   this.make_value_box(svg, g, id);
   this.make_value_value(svg, g, id);
@@ -643,9 +695,14 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
   var xo = (dims[0] - w) / 2.0;
   var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
 
-  var box = svg.path(
+  var box = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.box_fill),
       stroke : _f4u$t.color_to_rgb(this.box_stroke),
@@ -654,8 +711,7 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
       transform : 'translate('+xo+',0)',
       onmousedown : mousedown,
       ontouchstart : mousedown
-    }
-  );
+    });
 
   return box;
 }
@@ -748,18 +804,20 @@ _f4u$t.Button.prototype.dims = function(coef) {
 _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
   var full_id = 'faust_button_box_'+id;
   var rf = 10;
-  var d = "M{0} 0L{1} 0C{2} 0 {2} 0 {2} {3}L{2} {4}C{2} {5} {2} {5} {1} {5}L{0} {5}C0 {5} 0 {5} 0 {4}L0 {3}C0 0 0 0 {0} 0";
-  d = d.format([rf, this.w() - rf, this.w(), rf, this.h() - rf, this.h()]);
-  var button = svg.path(
+  var button = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    d,
+    rf,
+    0,
+    0,
+    this.w(),
+    this.h(),
     {
       id : full_id,
       fill : _f4u$t.color_to_rgb(this.fill_off),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-box',
-    }
-  );
+    });
 
   return button;
 }
@@ -872,11 +930,15 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
   var w = this.w() / 2.0 - this.padding;
   var h = this.h();
 
-  var d = "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0";
   var mousedown = _f4u$t['activate_nentry'+tag]
-  var button = svg.path(
+  var button = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    d,
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       
       fill : _f4u$t.color_to_rgb(this.button_fill),
@@ -884,8 +946,8 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       transform : 'translate('+xo+',0)',
       id : full_id,
       'class' : 'faust-nentry-button'
-    }
-  );
+    });
+
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
   return button;
@@ -987,8 +1049,8 @@ _f4u$t.LayoutManager = function(options) {
   this.w = 0;
   this.h = 0;
   this.id = _f4u$t.randString();
-  this.fill = _f4u$t.magic_color();
-  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
+  this.fill = 'url(#groupBoxGradient)';//_f4u$t.magic_color();
+  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.GREY);
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.LayoutManager);
@@ -1076,18 +1138,21 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
   var dims = this.dims();
   var w = dims[0];
   var h = dims[1];
-  var d = "M0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0";
-  var background = svg.path(
+  var background = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    d,
+    0,
+    0,
+    0,
+    w,
+    h,
     {
       fill : _f4u$t.color_to_rgb(this.fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-group-background',
       id : full_id,
       style: +'fill-opacity:0.2;'
-    }
-  );
+    });
 
   return background;
 }
@@ -1130,7 +1195,7 @@ _f4u$t.TabGroup = function(options) {
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
-  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.BLACK);
+  this.stroke = _f4u$t.initifnull(options.stroke, 'orange');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.TabGroup);
@@ -1199,9 +1264,14 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
 
 _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill) {
   var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")';
-  var tab = svg.path(
+  var tab = _f4u$t.make_rectangle_via_rect(
+    svg,
     parent,
-    "M 0 0L"+w+" 0L"+w+" "+h+"L0 "+h+"L0 0",
+    4,
+    0,
+    0,
+    w,
+    h,
     {
       transform: 'translate('+x+','+y+')',
       'class' : 'faust-tgroup-tab',
@@ -1209,8 +1279,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
       stroke : _f4u$t.color_to_rgb(this.stroke),
       onmousedown : mousedown,
       ontouchstart : mousedown
-    }
-  );
+    });
 
   return tab;
 }
@@ -1232,7 +1301,7 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
       0,
       curobj.id,
       badidstr,
-      curobj.fill);
+      'url(#tabGradient)' /*curobj.fill*/);
     this.make_label(
       svg,
       parent,
@@ -1277,6 +1346,36 @@ _f4u$t.SVG.prototype.get_x_offset = function() {
 
 _f4u$t.SVG.prototype.get_y_offset = function() {
   return 0;
+}
+
+_f4u$t.SVG.prototype.defs = function() {
+  var defs = this.svg.defs();
+  for (var gradient in _f4u$t.linear_gradient_inits) {
+    this.svg.linearGradient(
+      defs,
+      gradient,
+      _f4u$t.linear_gradient_inits[gradient]['stops'],
+      _f4u$t.linear_gradient_inits[gradient]['x1'],
+      _f4u$t.linear_gradient_inits[gradient]['y1'],
+      _f4u$t.linear_gradient_inits[gradient]['x2'],
+      _f4u$t.linear_gradient_inits[gradient]['y2'],
+      _f4u$t.linear_gradient_inits[gradient]['settings']
+    );
+  }
+
+  for (var gradient in _f4u$t.radial_gradient_inits) {
+    this.svg.radialGradient(
+      defs,
+      gradient,
+      _f4u$t.radial_gradient_inits[gradient]['stops'],
+      _f4u$t.radial_gradient_inits[gradient]['cx'],
+      _f4u$t.radial_gradient_inits[gradient]['cy'],
+      _f4u$t.radial_gradient_inits[gradient]['r'],
+      _f4u$t.radial_gradient_inits[gradient]['fx'],
+      _f4u$t.radial_gradient_inits[gradient]['fy'],
+      _f4u$t.radial_gradient_inits[gradient]['settings']
+    );
+  }
 }
 
 _f4u$t.SVG.prototype.make = function() {

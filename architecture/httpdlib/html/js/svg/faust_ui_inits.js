@@ -19,9 +19,9 @@ _f4u$t.button_inits = {
   ideal_width : 80,
   ideal_height : 40,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  fill_on : _f4u$t.PINK,
-  fill_off : _f4u$t.GREEN,
-  stroke : _f4u$t.BLACK,
+  fill_on : "url(#buttonDownGradient)",
+  fill_off : "url(#buttonUpGradient)",
+  stroke : _f4u$t.GREY,
   baseline_skip : 5,
   address : ''
 };
@@ -29,9 +29,10 @@ _f4u$t.button_inits = {
 _f4u$t.rbutton_inits = {
   mom : null,
   ir : 50,
-  a0 : 180,
-  sweep : 180,
-  sp : 0.1,
+  a0 : 135,
+  sweep : 270,
+  sp : 0.9,
+  kp : 0.7,
   label : '',
   unit : null,
   min : 0,
@@ -43,10 +44,15 @@ _f4u$t.rbutton_inits = {
   lpadding_y : _f4u$t.TEXT_HEIGHT,
   box_padding : _f4u$t.TEXT_BOX_PADDING,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  joint_fill : _f4u$t.PALEGREEN,
-  knob_fill : _f4u$t.GREY,
-  joint_stroke : _f4u$t.BLACK,
-  knob_stroke : _f4u$t.BLACK,
+  meter_fill : 'rgb(50,50,50)',
+  mgroove_fill : 'url(#rotatingButtonMeterGradient)',
+  groove_fill : 'url(#rotatingButtonHandleGradient)',
+  handle_fill : 'none',
+  mgroove_stroke : _f4u$t.BLACK,
+  groove_stroke : _f4u$t.BLACK,
+  handle_stroke : _f4u$t.WHITE,
+  meter_stroke : _f4u$t.BLACK,
+  handle_width : 6,
   value_box_w : _f4u$t.VALUE_BOX_W,
   value_box_h : _f4u$t.VALUE_BOX_H,
   address : ''
@@ -76,18 +82,19 @@ _f4u$t.slidingobject_inits = {
 
 _f4u$t.slider_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
 _f4u$t.slider_inits.sp = 0.15;
-_f4u$t.slider_inits.joint_fill = _f4u$t.PINK;
-_f4u$t.slider_inits.knob_fill = _f4u$t.GREY;
-_f4u$t.slider_inits.joint_stroke = _f4u$t.BLACK;
-_f4u$t.slider_inits.knob_stroke = _f4u$t.BLACK;
+_f4u$t.slider_inits.groove_fill = 'red';
+_f4u$t.slider_inits.groove_stroke = _f4u$t.BLACK;
+_f4u$t.slider_inits.handle_stroke = _f4u$t.BLACK;
 
 _f4u$t.hslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
+_f4u$t.hslider_inits.handle_fill = 'url(#horizontalSliderHandleGradient)';
 _f4u$t.vslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
+_f4u$t.vslider_inits.handle_fill = 'url(#verticalSliderHandleGradient)';
 
 _f4u$t.bargraph_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
-_f4u$t.bargraph_inits.joint_fill = _f4u$t.CYAN;
-_f4u$t.bargraph_inits.meter_fill = _f4u$t.GREY;
-_f4u$t.bargraph_inits.joint_stroke = _f4u$t.BLACK;
+_f4u$t.bargraph_inits.groove_fill = _f4u$t.BLACK;
+_f4u$t.bargraph_inits.meter_fill = _f4u$t.GREEN;
+_f4u$t.bargraph_inits.groove_stroke = _f4u$t.BLACK;
 _f4u$t.bargraph_inits.meter_stroke = _f4u$t.BLACK;
 
 _f4u$t.hbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
@@ -117,6 +124,101 @@ _f4u$t.nentry_inits = {
   value_box_h : _f4u$t.VALUE_BOX_H,
   type : 'nentry',
   address : ''
+}
+
+_f4u$t.linear_gradient_inits = {
+  buttonDownGradient :
+    {
+      stops : [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  buttonUpGradient :
+    {
+      stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  groupBoxGradient :
+    {
+      stops : [['0%', '#A0A0A0', 1],['100%', '#202020', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  verticalSliderHandleGradient :
+    {
+      stops : [['0%', '#AAAAAA', 1], ['5%' ,'#0A0A0A', 1], ['30%','#101010', 1], ['90%','#AAAAAA', 1], ['91%','#000000', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  horizontalSliderHandleGradient :
+    {
+      stops : [['0%', '#AAAAAA', 1], ['5%' ,'#0A0A0A', 1], ['30%','#101010', 1], ['90%','#AAAAAA', 1], ['91%','#000000', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  rotatingButtonMeterGradient :
+    {
+      stops : [['0%', 'rgb(255,255,0)', 1], ['100%', 'rgb(255,0,0)', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  tabGradient :
+    {
+      stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    }
+}
+
+_f4u$t.radial_gradient_inits = {
+  rotatingButtonHandleGradient :
+    {
+      stops : [['0%', 'rgb(255,255,255)', 0.8],['100%', 'rgb(110,110,110)', 1]],
+      cx : "40%",
+      cy : "35%",
+      r : "50%",
+      fx : "40%",
+      fy : "20%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    }
 }
 
 _f4u$t.init_prop = function(instance, options, obj, prop) {

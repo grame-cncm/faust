@@ -158,23 +158,9 @@ class mspUIObject {
 		mspUIObject(const char* label, double* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 
-		virtual void SetValue(double f) {*fZone = range(0.0,1.0,f);}
+		virtual void setValue(double f) {*fZone = range(0.0,1.0,f);}
 		virtual void toString(char* buffer) {}
-		virtual string GetName() {return fLabel;}
-};
-
-/*--------------------------------------------------------------------------*/
-class mspToggleButton : public mspUIObject {
-
-	public:
-
-		mspToggleButton(const char* label, double* zone):mspUIObject(label,zone) {}
-		virtual ~mspToggleButton() {}
-
-		void toString(char* buffer)
-		{
-            sprintf(buffer, "ToggleButton(double): %s", fLabel.c_str());
-		}
+		virtual string getName() {return fLabel;}
 };
 
 /*--------------------------------------------------------------------------*/
@@ -226,31 +212,46 @@ class mspSlider : public mspUIObject {
             sprintf(buffer, "Slider(double): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
 		}
 
-		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
+		void setValue(double f) {*fZone = range(fMin,fMax,f);}
 };
 
 /*--------------------------------------------------------------------------*/
+
+#define MULTI_SIZE  256
+
 class mspUI : public UI
 {
 	private:
 
-		map<string,mspUIObject*> fUITable;
+		map<string, mspUIObject*> fUITable;
+        float* fMultiTable[MULTI_SIZE];
+        int fMultiIndex;
+        int fMultiControl;
 
 	public:
     
 		typedef map<string,mspUIObject*>::iterator iterator;
 
-		mspUI() {}
+		mspUI() 
+        {
+     		for (int i = 0; i < MULTI_SIZE; i++) {
+                fMultiTable[i] = 0;
+            }
+            fMultiIndex = fMultiControl = 0;
+        }
 		virtual ~mspUI()
 		{
 			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) {
                 delete (iter->second);
             }
    		}
+        
+        void openTabBox(const char* label) {}
+		void openHorizontalBox(const char* label) {}
+		void openVerticalBox(const char* label) {}
+		void closeBox() {}
 
 		void addButton(const char* label, double* zone) {fUITable[string(label)] = new mspButton(label, zone);}
-
-		void addToggleButton(const char* label, double* zone) {fUITable[string(label)] = new mspToggleButton(label, zone);}
 
 		void addCheckButton(const char* label, double* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
 
@@ -268,30 +269,49 @@ class mspUI : public UI
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
+        
+        // To be implemented
+        void addHorizontalBargraph(const char* label, double* zone, double min, double max) {}
+		void addVerticalBargraph(const char* label, double* zone, double min, double max) {}
+        
+        virtual void declare(float* zone, const char* key, const char* val)
+        {
+            if (strcmp(key,"multi") == 0) {
+                int index = atoi(val);
+                if (index >= 0 && index < MULTI_SIZE) {
+                    fMultiTable[index] = zone;
+                    fMultiControl++;
+                } else {
+                    post("Invalid multi index = %d", index);
+                }
+            }
+        }
+        
+        void setMultiValues(double* multi, int vs)
+		{
+            for (int read = 0; read < buffer_size; read++) {
+                int write = (fMultiIndex + read) & (MULTI_SIZE - 1);
+                if (fMultiTable[write]) {
+                    *fMultiTable[write] = multi[read];
+                }
+            }
+            fMultiIndex += vs;
+		}
+        
+        bool isMulti() { return fMultiControl > 0; }
 
-		void openFrameBox(const char* label) {}
-		void openTabBox(const char* label) {}
-		void openHorizontalBox(const char* label) {}
-		void openVerticalBox(const char* label) {}
-		void closeBox() {}
-
-		bool SetValue(string name, double f)
+		bool setValue(string name, double f)
 		{
 			if (fUITable.count(name)) {
-                fUITable[name]->SetValue(f);
+                fUITable[name]->setValue(f);
                 return true;
             } else {
                 return false;
             }
 		}
-		iterator begin()	{return fUITable.begin();}
-		iterator end()		{return fUITable.end();}
+		iterator begin()	{ return fUITable.begin(); }
+		iterator end()		{ return fUITable.end(); }
 
-		// To be implemented
-		void addNumDisplay(const char* label, double* zone, int precision) {}
-		void addTextDisplay(const char* label, double* zone, const char* names[], double min, double max) {}
-        void addHorizontalBargraph(const char* label, double* zone, double min, double max) {}
-		void addVerticalBargraph(const char* label, double* zone, double min, double max) {}
 };
 
 //--------------------------------------------------------------------------
@@ -324,8 +344,8 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
-        obj->dspUI->SetValue(name, off);
-        obj->dspUI->SetValue(name, on);
+        obj->dspUI->setValue(name, off);
+        obj->dspUI->setValue(name, on);
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
@@ -393,12 +413,12 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
             }
             
             //printf("param_name = %s value = %f\n", param_name, value);
-            res = obj->dspUI->SetValue(param_name, value); // Doesn't have any effect if name is unknown
+            res = obj->dspUI->setValue(param_name, value); // Doesn't have any effect if name is unknown
         }
     // Standard parameter
     } else {
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = obj->dspUI->SetValue(name, value); // Doesn't have any effect if name is unknown
+        res = obj->dspUI->setValue(name, value); // Doesn't have any effect if name is unknown
     }
     
     if (!res) {
@@ -418,11 +438,18 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 
     x->dsp->init(long(sys_getsr()));
     x->dsp->buildUserInterface(x->dspUI);
-
-    x->args = (void**)calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
-
+    
+    int num_input;
+    
+    if (x->dspUI->isMulti()) {
+        num_input = x->dsp->getNumInputs() + 1;
+    } else {
+        num_input = x->dsp->getNumInputs();
+    }
+    
+    x->args = (void**)calloc((num_input + x->dsp->getNumOutputs()) + 2, sizeof(void*));
     /* Multi in */
-    dsp_setup((t_pxobject*)x, x->dsp->getNumInputs());
+    dsp_setup((t_pxobject*)x, num_input);
 
     /* Multi out */
     for (int i = 0; i< x->dsp->getNumOutputs(); i++) {
@@ -484,7 +511,12 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
              memset(outs[i], 0, sizeof(double) * sampleframes);
         }
     } else {
-        x->dsp->compute(sampleframes, ins, outs);
+        if (x->dspUI->isMulti()) {
+            x->dspUI->setMultiValues(ins[0], sampleframes);
+            x->dsp->compute(sampleframes, ++ins, outs);
+        } else {
+            x->dsp->compute(sampleframes, ins, outs);
+        }
     }
 }
 
@@ -507,7 +539,7 @@ extern "C" int main(void)
 	// Add the same method for every parameters and use the symbol as a selector
 	// inside this method
 	for (mspUI::iterator it = dspUI.begin(); it != dspUI.end(); ++it) {
-		char* name = const_cast<char*>(it->second->GetName().c_str());
+		char* name = const_cast<char*>(it->second->getName().c_str());
 		addmess((method)faust_method, name, A_GIMME, 0);
 	}
 
