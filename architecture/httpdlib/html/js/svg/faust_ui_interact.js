@@ -731,8 +731,8 @@ _f4u$t.actualize_incremental_object = function(id) {
   var hslider_id = "faust_hslider_handle_"+id;
   var vslider_id = "faust_vslider_handle_"+id;
   var rotating_button_id = "faust_rbutton_handle_"+id;
-  var hbargraph_id = "faust_hbargraph_meter_"+id;
-  var vbargraph_id = "faust_vbargraph_meter_"+id;
+  var hbargraph_id = "faust_hbargraph_curtain_"+id;
+  var vbargraph_id = "faust_vbargraph_curtain_"+id;
   var val = parseFloat(_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]);
   var maybe_slider = document.getElementById(hslider_id);
   if (maybe_slider == null) {
@@ -785,6 +785,7 @@ _f4u$t.actualize_incremental_object = function(id) {
     var weakaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["weakaxis"];
     var strongaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["strongaxis"];
     val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
+    val = _f4u$t.bound(val, 0, strongaxis);
     /*
     // for paths...
     var newd = _f4u$t.xy(
@@ -794,9 +795,8 @@ _f4u$t.actualize_incremental_object = function(id) {
     );
     maybe_bargraph.setAttribute("d", newd);
     */
-    maybe_bargraph.setAttribute("y", _f4u$t.xy(axis, 0, val));
-    maybe_bargraph.setAttribute("width", _f4u$t.xy(axis, val, weakaxis));
-    maybe_bargraph.setAttribute("height", Math.max(0, _f4u$t.xy(axis, weakaxis, strongaxis - val)));
+    maybe_bargraph.setAttribute("width", Math.max(0,_f4u$t.xy(axis, val, weakaxis)));
+    maybe_bargraph.setAttribute("height", Math.max(0, _f4u$t.xy(axis, weakaxis, val)));
     return 0;
   }
   // no corresponding incremental object

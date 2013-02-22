@@ -239,24 +239,24 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
   var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
   var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
   d = d.format([
-    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
-    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo, // outside Y
+    this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(startp)) + yo, // outside Y
     this.r(), // radius X
     this.r(), // radius Y
-    startp - this.a0 <= 180 ? 0 : 1, // large arc flag
+    this.a0 + this.sweep - startp <= 180 ? 0 : 1, // large arc flag
     1, // draw positive
-    this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // endpoint X
-    this.r() * Math.sin(_f4u$t.d2r(startp)) + yo, // endpoint Y
-    this.r() * this.kp * Math.cos(_f4u$t.d2r(startp)) + xo, // inside endpoint X
-    this.r() * this.kp * Math.sin(_f4u$t.d2r(startp)) + yo, // inside endpoint Y
+    this.r() * Math.cos(_f4u$t.d2r(this.a0 + this.sweep)) + xo, // endpoint X
+    this.r() * Math.sin(_f4u$t.d2r(this.a0 + this.sweep)) + yo, // endpoint Y
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0 + this.sweep)) + xo, // inside endpoint X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0 + this.sweep)) + yo, // inside endpoint Y
     this.r() * this.kp, // inside radiux X
     this.r() * this.kp, // inside radiux Y
-    startp - this.a0 <= 180 ? 0 : 1, // large arc flag
+    this.a0 + this.sweep - startp <= 180 ? 0 : 1, // large arc flag
     0, // draw negative
-    this.r() * this.kp * Math.cos(_f4u$t.d2r(this.a0)) + xo, // inside X
-    this.r() * this.kp * Math.sin(_f4u$t.d2r(this.a0)) + yo, // inside Y
-    this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
-    this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
+    this.r() * this.kp * Math.cos(_f4u$t.d2r(startp)) + xo, // inside X
+    this.r() * this.kp * Math.sin(_f4u$t.d2r(startp)) + yo, // inside Y
+    this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // outside X
+    this.r() * Math.sin(_f4u$t.d2r(startp)) + yo// outside Y
   ]);
   var meter = svg.path(
     parent,
@@ -551,20 +551,24 @@ _f4u$t.extend(_f4u$t.Slider, _f4u$t.VerticalSlider);
 
 _f4u$t.BarGraph = function(options, type) {
   _f4u$t.SlidingObject.call(this, options, type);
-  this.groove_fill = _f4u$t.initifnull(options.groove_fill, _f4u$t.CYAN);
-  this.groove_stroke = _f4u$t.initifnull(options.groove_stroke, _f4u$t.CYAN);
+  this.curtain_fill = _f4u$t.initifnull(options.curtain_fill, _f4u$t.CYAN);
+  this.curtain_stroke = _f4u$t.initifnull(options.curtain_stroke, _f4u$t.CYAN);
   this.meter_fill = _f4u$t.initifnull(options.meter_fill, _f4u$t.CYAN);
   this.meter_stroke = _f4u$t.initifnull(options.meter_stroke, _f4u$t.CYAN);
+  this.init = this.init ? this.init : this.min;
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.BarGraph);
 
-_f4u$t.BarGraph.prototype.make_groove = function(svg, parent, id) {
+_f4u$t.BarGraph.prototype.make_curtain = function(svg, parent, id) {
+  var full_id = 'faust_'+this.type+'_curtain_'+id;
+  var def = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0, this.length);
   var dims = this.dims();
-  var w = _f4u$t.xy(this.axis, this.length, this.girth);
-  var h = _f4u$t.xy(this.axis, this.girth, this.length);
+  var w = _f4u$t.xy(this.axis, def, this.girth);
+  var h = _f4u$t.xy(this.axis, this.girth, def);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var groove = _f4u$t.make_rectangle_via_rect(
+  console.log(this.init, this.min, this.max, 0, this.length, def);
+  var curtain = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
     0,
@@ -573,35 +577,33 @@ _f4u$t.BarGraph.prototype.make_groove = function(svg, parent, id) {
     w,
     h,
     {
-      fill : _f4u$t.color_to_rgb(this.groove_fill),
-      stroke : _f4u$t.color_to_rgb(this.groove_stroke),
-      id : 'faust_'+this.type+'_groove_'+id,
+      fill : _f4u$t.color_to_rgb(this.curtain_fill),
+      stroke : _f4u$t.color_to_rgb(this.curtain_stroke),
+      id : full_id,
       transform : 'translate('+xo+',0)',
-      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-groove', 'faust-vbargraph-groove')
+      'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-curtain', 'faust-vbargraph-curtain')
     });
 
-  return groove;
+  return curtain;
 }
 
 _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
-  var full_id = 'faust_'+this.type+'_meter_'+id;
-  var def = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0, this.length);
   var dims = this.dims();
-  var w = _f4u$t.xy(this.axis, def, this.girth);
-  var h = _f4u$t.xy(this.axis, this.girth, def);
+  var w = _f4u$t.xy(this.axis, this.length, this.girth);
+  var h = _f4u$t.xy(this.axis, this.girth, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
   var meter = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
     0,
     0,
-    _f4u$t.xy(this.axis, 0, this.length - h),
+    0,
     w,
     h,
     {
       fill : _f4u$t.color_to_rgb(this.meter_fill),
       stroke : _f4u$t.color_to_rgb(this.meter_stroke),
-      id : full_id,
+      id : 'faust_'+this.type+'_meter_'+id,
       transform : 'translate('+xo+',0)',
       'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-meter', 'faust-vbargraph-meter')
     });
@@ -624,8 +626,8 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
     this.address
   );
 
-  this.make_groove(svg, g, id);
   this.make_meter(svg, g, id);
+  this.make_curtain(svg, g, id);
   this.make_value_box(svg, g, id);
   this.make_value_value(svg, g, id);
   this.make_label(svg, g, id);

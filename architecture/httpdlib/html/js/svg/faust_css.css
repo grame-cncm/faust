@@ -61,11 +61,11 @@ rect.faust-vslider-handle {
   y : 0;
 }
 
-rect.faust-hbargraph-groove {
+rect.faust-hbargraph-curtain {
   fill : rgb(20,20,20);
   stroke : black;
   width : 200;
-  height : 40;
+  height : 30;
   rx : 0;
   ry : 0;
   x : 0;
@@ -76,14 +76,14 @@ rect.faust-hbargraph-groove {
 // heights are dynamic
 
 rect.faust-hbargraph-meter {
-  fill : rgb(173,255,47);
+  fill : url(#horizontalBarGraphMeterGradient);
   stroke : black;
 }
 
-rect.faust-vbargraph-groove {
+rect.faust-vbargraph-curtain {
   fill : rgb(20,20,20);
   stroke : black;
-  width : 40;
+  width : 30;
   height : 200;
   rx : 0;
   ry : 0;
@@ -92,7 +92,7 @@ rect.faust-vbargraph-groove {
 }
 
 rect.faust-vbargraph-meter {
-  fill : rgb(173,255,47);
+  fill : url(#verticalBarGraphMeterGradient);
   stroke : black;
 }
 
@@ -191,7 +191,7 @@ path.faust-vslider-handle {
   stroke : black;
 }
 
-path.faust-hbargraph-groove {
+path.faust-hbargraph-curtain {
   fill : rgb(0,255,255);
   stroke : black;
 }
@@ -201,7 +201,7 @@ path.faust-hbargraph-meter {
   stroke : black;
 }
 
-path.faust-vbargraph-groove {
+path.faust-vbargraph-curtain {
   fill : rgb(0,255,255);
   stroke : black;
 }
