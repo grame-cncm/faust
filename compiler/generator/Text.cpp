@@ -276,6 +276,30 @@ string checkFloat(float val)
     return (dot) ? (str + "f") : (str + ".f");
 }
 
+string checkDouble(double val)
+{
+    stringstream num; num << val;
+    string str = num.str();
+
+    bool dot = false;
+    for (unsigned int i = 0; i < str.size(); i++) {
+        if (str[i] == '.' || str[i] == 'e') {
+           dot = true;
+           break;
+        }
+    }
+    return (dot) ? str : (str + ".");
+}
+
+string checkReal(double val)
+{
+    if (strcmp(ifloat(), "float") == 0) {
+        return checkFloat(val);
+    } else {
+        return checkDouble(val);
+    }
+}
+
 string indent(string const & str, int tabs)
 {
     stringstream instream(str);

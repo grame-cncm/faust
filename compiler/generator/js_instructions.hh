@@ -209,7 +209,13 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
         {
             *fOut << inst->fNum;
         }
-     
+        
+        // No . syntax for double in JS
+        virtual void visit(DoubleNumInst* inst)
+        {
+            *fOut << inst->fNum;
+        }
+
         virtual void visit(CastNumInst* inst)
         {
             // No explicit cast generation

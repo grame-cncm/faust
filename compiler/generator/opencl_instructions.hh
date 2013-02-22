@@ -86,10 +86,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
                 case AddSliderInst::kNumEntry:
                     name = "interface->addNumEntry"; break;
             }
-            if (strcmp(ifloat(), "float") == 0)
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-            else
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -102,11 +99,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "interface->addVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0) {
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            } else {
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
-            }
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

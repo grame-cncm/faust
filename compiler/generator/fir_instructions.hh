@@ -211,11 +211,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "AddNumEntry"; break;
             }
-            if (strcmp(ifloat(), "float") == 0) {
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-            } else {
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " <<  inst->fMax << ", " << inst->fStep << ")";
-            }
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -228,11 +224,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "AddVerticalBargraph"; break;
             }
-            if (strcmp(ifloat(), "float") == 0) {
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
-            } else {
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
-            }
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 
@@ -417,9 +409,9 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DoubleNumInst* inst)
         {
             if (inst->fSize > 1) {
-                *fOut << "DoubleVec<" << inst->fSize << ">(" << inst->fNum  << ")";
+                *fOut << "DoubleVec<" << inst->fSize << ">(" << checkDouble(inst->fNum) << ")";
             } else {
-                *fOut << "Double(" << inst->fNum  << ")";
+                *fOut << "Double(" << checkDouble(inst->fNum) << ")";
             }
         }
 

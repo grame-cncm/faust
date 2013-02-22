@@ -164,7 +164,6 @@ class llvm_dsp : public dsp {
         virtual void buildUserInterface(UI* interface);
  
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-     
 };
 
 /**

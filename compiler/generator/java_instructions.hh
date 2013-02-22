@@ -129,12 +129,21 @@ class JAVAInstVisitor : public TextInstVisitor {
    
         string createVarAccess(string varname)
         {
-            return "new FaustVarAccess() {\n"
-                "\t\t\t\tpublic String getId() { return \"" + varname + "\"; }\n"
-                "\t\t\t\tpublic void set(float val) { " + varname + " = val; }\n"
-                "\t\t\t\tpublic float get() { return (float)" + varname + "; }\n"
-                "\t\t\t}\n"
-                "\t\t\t";
+            if (strcmp(ifloat(), "float") == 0) {
+                return "new FaustVarAccess() {\n"
+                    "\t\t\t\tpublic String getId() { return \"" + varname + "\"; }\n"
+                    "\t\t\t\tpublic void set(float val) { " + varname + " = val; }\n"
+                    "\t\t\t\tpublic float get() { return (float)" + varname + "; }\n"
+                    "\t\t\t}\n"
+                    "\t\t\t";
+            } else {
+                 return "new FaustVarAccess() {\n"
+                    "\t\t\t\tpublic String getId() { return \"" + varname + "\"; }\n"
+                    "\t\t\t\tpublic void set(double val) { " + varname + " = val; }\n"
+                    "\t\t\t\tpublic float get() { return (double)" + varname + "; }\n"
+                    "\t\t\t}\n"
+                    "\t\t\t";
+            }
         }
 
         virtual void visit(AddMetaDeclareInst* inst)
@@ -184,7 +193,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                 case AddSliderInst::kNumEntry:
                     name = "ui_interface.addNumEntry"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -197,7 +206,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface.addVerticalBargraph"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

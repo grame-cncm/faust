@@ -75,7 +75,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         }
 
         virtual void visit(DeclareVarInst* inst) { assert(false); }
-
+        
         virtual void visit(RetInst* inst)
         {
             if (inst->fResult) {
@@ -140,7 +140,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << inst->fNum;
+            *fOut << checkDouble(inst->fNum);
         }
 
         virtual void visit(BinopInst* inst)
