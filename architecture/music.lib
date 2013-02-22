@@ -386,3 +386,22 @@ bpf = environment
 
 
 
+//----------------------------------Automat------------------------------
+// Record and replay to the values the input signal in a loop
+//
+// USAGE: hslider(...) : automat(360, 15, 0.0)
+//-----------------------------------------------------------------------
+
+automat(bps, size, init, input) = rwtable(size+1, init, windex, input, rindex)
+	with {
+		clock 	= beat(bps);
+		rindex 	= int(clock) : (+ : %(size)) ~ _;		// each clock read the next entry of the table
+		windex 	= if (timeToRenew, rindex, size);		// we ignore input unless it is time to renew
+		if(cond,thn,els) = select2(cond,els,thn);
+		timeToRenew 	= int(clock) & (inputHasMoved | (input <= init));	
+		inputHasMoved 	= abs(input-input') : countfrom(int(clock)') : >(0);
+		countfrom(reset) = (+ : if(reset, 0, _)) ~ _;
+	};
+
+
+
