@@ -92,10 +92,12 @@ _f4u$t.vslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
 _f4u$t.vslider_inits.handle_fill = 'url(#verticalSliderHandleGradient)';
 
 _f4u$t.bargraph_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
-_f4u$t.bargraph_inits.groove_fill = _f4u$t.BLACK;
-_f4u$t.bargraph_inits.meter_fill = _f4u$t.GREEN;
-_f4u$t.bargraph_inits.groove_stroke = _f4u$t.BLACK;
+_f4u$t.bargraph_inits.curtain_fill = _f4u$t.BLACK;
+_f4u$t.bargraph_inits.meter_fill = 'url(#barGraphMeterGradient)';
+_f4u$t.bargraph_inits.curtain_stroke = _f4u$t.BLACK;
 _f4u$t.bargraph_inits.meter_stroke = _f4u$t.BLACK;
+_f4u$t.bargraph_inits.init = null;
+_f4u$t.bargraph_inits.girth = 30;
 
 _f4u$t.hbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
 _f4u$t.vbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
@@ -196,6 +198,36 @@ _f4u$t.linear_gradient_inits = {
   tabGradient :
     {
       stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  horizontalBarGraphMeterGradient :
+    {
+      stops : [['0%', 'rgb(0, 160, 40)', 1], ['50%', 'rgb(0, 160, 40)', 1],
+               ['50%', 'rgb(160, 220, 20)', 1], ['60%', 'rgb(160, 220, 20)', 1],
+               ['60%', 'rgb(220, 220, 20)', 1], ['70%', 'rgb(220, 220, 20)', 1],
+               ['70%', 'rgb(240, 160, 20)', 1], ['80%', 'rgb(240, 160, 20)', 1],
+               ['80%', 'rgb(240, 0, 20)', 1], ['100%', 'rgb(240, 0, 20)', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  verticalBarGraphMeterGradient :
+    {
+      stops : [['0%', 'rgb(240, 0, 20)', 1], ['20%', 'rgb(240, 0, 20)', 1],
+               ['20%', 'rgb(240, 160, 20)', 1], ['30%', 'rgb(240, 160, 20)', 1],
+               ['30%', 'rgb(220, 220, 20)', 1], ['40%', 'rgb(220, 220, 20)', 1],
+               ['40%', 'rgb(160, 220, 20)', 1], ['50%', 'rgb(160, 220, 20)', 1],
+               ['80%', 'rgb(0, 160, 40)', 1], ['100%', 'rgb(0, 160, 40)', 1]],
       x1 : "0%",
       y1 : "0%",
       x2 : "0%",
