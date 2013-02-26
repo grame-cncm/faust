@@ -246,10 +246,9 @@ class JAVAInstVisitor : public TextInstVisitor {
             TextInstVisitor::visit(inst);
              
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
+                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-                    fCurType = Typed::getTypeFromPtr(gGlobal->gVarTypeTable[inst->getName()]->getType());
-                } else {
-                    fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
+                    fCurType = Typed::getTypeFromPtr(fCurType);
                 }
             } else {
                 fCurType = Typed::kNoType;
@@ -406,7 +405,6 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         virtual void visit(CastNumInst* inst)
         {
-            // Generate a call to a polymorphic cast
             string cast_type = generateType(inst->fType);
             stringstream str;
             JAVAInstVisitor visitor(&str, 0);
