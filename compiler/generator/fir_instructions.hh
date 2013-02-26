@@ -49,7 +49,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
     public:
 
         FIRInstVisitor(std::ostream* out, int tab = 0)
-            :fTab(tab), fOut(out), fFinishLine(true)
+            :StringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true)
         {}
 
         virtual ~FIRInstVisitor()

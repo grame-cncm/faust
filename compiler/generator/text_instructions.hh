@@ -45,7 +45,11 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
     public:
 
         TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
-            :fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
+            :StringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
+        {}
+        
+        TextInstVisitor(std::ostream* out, const string& object_access, string float_macro_name, string ptr_postfix, int tab = 0)
+            :StringTypeManager(float_macro_name, ptr_postfix), fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
         {}
 
         virtual ~TextInstVisitor()
