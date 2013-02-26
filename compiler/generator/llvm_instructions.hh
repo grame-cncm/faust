@@ -1086,7 +1086,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fType);
             string name = inst->fAddress->getName();
 
             if (inst->fAddress->getAccess() & Address::kStruct) {
@@ -1130,16 +1129,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                             Value* value = (inst->fType->getType() == Typed::kFloat) ? genFloat(0.f) : genInt32(0);
                             global_var->setInitializer(static_cast<Constant*>(value));
                         } else if (array_typed) {
-                             global_var->setInitializer(ConstantAggregateZero::get(ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())],
-                                array_typed->fSize)));
-                        } else if (vector_typed) {
-
+                            global_var->setInitializer(ConstantAggregateZero::get(convertFIRType(fModule, inst->fType)));
                         }
                     }
-
-                    //global_var->dump();
                 }
-            };
+            }
 
             // No result in fCurValue
             fCurValue = NULL;
@@ -1291,152 +1285,131 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 return genScalar2VectorLoad(load, size, aligned);
             }
         }
-
-        void visitNameAddress(LoadVarInst* inst, NamedAddress* named_address)
+        
+        Value* getDSP()
+        {
+            // Get the enclosing function
+            Function* function = fBuilder->GetInsertBlock()->getParent();
+            Function::arg_iterator function_args_it = function->arg_begin();
+            return function_args_it++;
+        }
+        
+        Value* getDSPArg(const string& name)
+        {
+            // Get the enclosing function
+            Function* function = fBuilder->GetInsertBlock()->getParent();
+            Function::arg_iterator function_args_it = function->arg_begin();
+            // Get arg with inst name
+            Value* arg = NULL;
+            bool found = false;
+            do {
+                arg = function_args_it++;
+                if (arg->getName() == name) {
+                    found = true;
+                    break;
+                }
+            } while (function_args_it != function->arg_end());
+            assert(found);
+            return arg;
+        }
+         
+        Value* visitNameAddressAux(int size, NamedAddress* named_address)
         {
             if (named_address->fAccess & Address::kStruct) {
-
-                // cerr << named_address->fName << endl;
-                assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
+                 
                 int field_index = fDSPFieldsNames[named_address->fName];
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                Value* dsp = function_args_it++;
-                Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
-
-                // We want to see array like [256 x float] as a float*
-                fCurValue = LoadArrayAsPointer(zone_ptr, inst->fAddress->getAccess() & Address::kVolatile);
-                fCurValue = genVectorLoad(zone_ptr, fCurValue, inst->fSize, false);
-
+                return fBuilder->CreateStructGEP(getDSP(), field_index);
+     
             } else if (named_address->fAccess & Address::kFunArgs) {
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                // Get arg with inst name
-                Value* arg;
-                bool found = false;
-                do {
-                    arg = function_args_it++;
-                    if (arg->getName() == named_address->fName) {
-                        found = true;
-                        break;
-                    }
-                } while (function_args_it != function->arg_end());
-                //cerr << "named_address->fName " << named_address->fName << endl;
-                assert(found);
-                fCurValue = genVectorLoad(NULL, arg, inst->fSize, false);
-
+                return genVectorLoad(NULL, getDSPArg(named_address->fName), size, false);
                 // Direct access Declare/Store ==> Load
             } else if (named_address->fAccess & Address::kLink) {
-                fCurValue = fDSPStackVars[named_address->fName];
+                return fDSPStackVars[named_address->fName];
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                 //cerr << named_address->fName << endl;
                 assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
-
-                // We want to see array like [256 x float] as a float*
-                fCurValue = LoadArrayAsPointer(fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
-                fCurValue = genVectorLoad(fDSPStackVars[named_address->fName], fCurValue, inst->fSize, false);
+                return fDSPStackVars[named_address->fName];
 
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
 
-                Function* function = fModule->getFunction(named_address->fName);
-                if (function) {
-                    fCurValue = function;
-                    //fCurValue->dump();
-                } else {
-                    assert(fModule->getGlobalVariable(named_address->fName, true));
-
-                    // We want to see array like [256 x float] as a float*
-                    fCurValue = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
-                    fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize, false);
-                }
+                assert(fModule->getGlobalVariable(named_address->fName, true));
+                return fModule->getGlobalVariable(named_address->fName, true);
+            } else {
+                assert(false);
+                return NULL;
             }
         }
 
-        void visitIndexedAddress(LoadVarInst* inst, IndexedAddress* indexed_address)
+        void visitNameAddress(LoadVarInst* inst, NamedAddress* named_address)
+        {
+            Value* load_ptr = visitNameAddressAux(inst->fSize, named_address);
+            
+            if (named_address->fAccess & Address::kStruct) {
+                // We want to see array like [256 x float] as a float*
+                fCurValue = genVectorLoad(load_ptr, LoadArrayAsPointer(load_ptr, inst->fAddress->getAccess() & Address::kVolatile), inst->fSize, false);
+            } else if (named_address->fAccess & Address::kFunArgs) {
+                fCurValue = load_ptr;
+            } else if (named_address->fAccess & Address::kLink) {
+                fCurValue = load_ptr;
+            } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
+                // We want to see array like [256 x float] as a float*
+                fCurValue = genVectorLoad(load_ptr, LoadArrayAsPointer(load_ptr, inst->fAddress->getAccess() & Address::kVolatile), inst->fSize, false);
+            } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
+                // We want to see array like [256 x float] as a float*
+                fCurValue = genVectorLoad(load_ptr, LoadArrayAsPointer(load_ptr, inst->fAddress->getAccess() & Address::kVolatile), inst->fSize, false);
+            }
+        }
+     
+        Value* visitIndexedAddressAux(IndexedAddress* indexed_address)
         {
             NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
             assert(named_address); // One level indexation for now
+            
+            // Compute index, result is in fCurValue
+            indexed_address->fIndex->accept(this);
+            Value* res_load_ptr;
 
             if (named_address->fAccess & Address::kStruct) {
-                //cout << "LoadVarInst " << named_address->fName << endl;
-                //fModule->dump();
-                assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
                 int field_index = fDSPFieldsNames[named_address->fName];
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                Value* dsp = function_args_it++;
-                //dsp->dump();
-
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-
+      
                 Value* idx[2];
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* load_ptr1 = fBuilder->CreateInBoundsGEP(dsp, MAKE_IXD(idx, idx+2));
-                Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
-                Value* load_ptr3 = fBuilder->CreateInBoundsGEP(load_ptr2, fCurValue);
-
-                fCurValue = fBuilder->CreateLoad(load_ptr3);
-                fCurValue = genPointer2VectorLoad(load_ptr3, fCurValue, inst->fSize, false);
-
+                Value* load_ptr1 = fBuilder->CreateInBoundsGEP(getDSP(), MAKE_IXD(idx, idx+2));
+                res_load_ptr = LoadArrayAsPointer(load_ptr1);
+      
             } else if (named_address->fAccess & Address::kFunArgs) {
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                // Get arg with inst name
-                Value* arg;
-                bool found = false;
-                do {
-                    arg = function_args_it++;
-                    if (arg->getName() == named_address->fName) {
-                        string name = arg->getName();
-                        found = true;
-                        break;
-                    }
-                } while (function_args_it != function->arg_end());
-                assert(found);
-
-                // Result is in fCurValue
-                indexed_address->fIndex->accept(this);
-                Value* load_ptr = fBuilder->CreateInBoundsGEP(arg, fCurValue);
-
-                fCurValue = fBuilder->CreateLoad(load_ptr);
-                fCurValue = genPointer2VectorLoad(load_ptr, fCurValue, inst->fSize, false);
-
+       
+                res_load_ptr = getDSPArg(named_address->fName);
+       
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-
+     
                 // We want to see array like [256 x float] as a float*
                 assert(fDSPStackVars[named_address->fName]);
-                Value* load_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
-                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
-
-                fCurValue = fBuilder->CreateLoad(load_ptr2);
-                fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize, false);
-
+                res_load_ptr = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
+     
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-               // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-                assert(fModule->getGlobalVariable(named_address->fName, true));
-
+           
                 // We want to see array like [256 x float] as a float*
-                Value* load_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
-                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
-
-                fCurValue = fBuilder->CreateLoad(load_ptr2);
-                fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize, false);
-
+                assert(fModule->getGlobalVariable(named_address->fName, true));
+                res_load_ptr = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
+                
             } else {
                 // Default
+                assert(false);
             }
+            
+            return fBuilder->CreateInBoundsGEP(res_load_ptr, fCurValue);
+        }
+        
+        void visitIndexedAddress(LoadVarInst* inst, IndexedAddress* indexed_address)
+        {
+            NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
+            assert(named_address); // One level indexation for now
+            
+            Value* load_ptr = visitIndexedAddressAux(indexed_address);
+            fCurValue = genPointer2VectorLoad(load_ptr, fBuilder->CreateLoad(load_ptr), inst->fSize, false);
         }
 
         virtual void visit(LoadVarInst* inst)
@@ -1455,18 +1428,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         void visitNameAddress(LoadVarAddressInst* inst, NamedAddress* named_address)
         {
+            Value* load_ptr = visitNameAddressAux(inst->fSize, named_address);
+            
             if (named_address->fAccess & Address::kStruct) {
-
-                assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
-                int field_index = fDSPFieldsNames[named_address->fName];
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                Value* dsp = function_args_it++;
-                Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
-                fCurValue = zone_ptr;
-
+                fCurValue = load_ptr;
             } else if (named_address->fAccess & Address::kFunArgs) {
                 // Not supported
                 assert(false);
@@ -1474,88 +1439,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // Not supported
                 assert(false);
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
-                // cerr << named_address->fName << endl;
-                assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
-                fCurValue = fDSPStackVars[named_address->fName];
+                fCurValue = load_ptr;
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-                assert(fModule->getGlobalVariable(named_address->fName, true));
-                fCurValue = fModule->getGlobalVariable(named_address->fName, true);
+                fCurValue = load_ptr;
             }
         }
 
         void visitIndexedAddress(LoadVarAddressInst* inst, IndexedAddress* indexed_address)
         {
-            NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
-            assert(named_address); // One level indexation for now
-
-            if (named_address->fAccess & Address::kStruct) {
-                // cout << "LoadVarAddressInst " << named_address->fName << endl;
-                //fModule->dump();
-                assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
-                int field_index = fDSPFieldsNames[named_address->fName];
-                // cout << "LoadVarAddressInst " << field_index  << endl;
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                Value* dsp = function_args_it++;
-
-                // Result is in fCurValue;
-                indexed_address->fIndex->accept(this);
-
-                Value* idx[2];
-                idx[0] = genInt64(0);
-                idx[1] = genInt32(field_index);
-
-                Value* load_ptr1 = fBuilder->CreateInBoundsGEP(dsp, MAKE_IXD(idx, idx+2));
-                Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
-                Value* load_ptr3 = fBuilder->CreateInBoundsGEP(load_ptr2, fCurValue);
-                fCurValue = load_ptr3;
-
-            } else if (named_address->fAccess & Address::kFunArgs) {
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                // Get arg with inst name
-                Value* arg;
-                bool found = false;
-                do {
-                    arg = function_args_it++;
-                    if (arg->getName() == named_address->fName) {
-                        string name = arg->getName();
-                        found = true;
-                        break;
-                    }
-                } while (function_args_it != function->arg_end());
-                assert(found);
-
-                // Result is in fCurValue
-                indexed_address->fIndex->accept(this);
-                Value* load_ptr = fBuilder->CreateInBoundsGEP(arg, fCurValue);
-                fCurValue = load_ptr;
-            } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-
-                //cout << "Address::kStack " << named_address->fName << endl;
-                assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
-
-                // We want to see array like [256 x float] as a float*
-                Value* load_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
-                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
-                fCurValue = load_ptr2;
-            } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-               // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-                assert(fModule->getGlobalVariable(named_address->fName, true));
-
-                // We want to see array like [256 x float] as a float*
-                Value* load_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
-                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
-                fCurValue = load_ptr2;
-            } else {
-                // Default
-            }
+            fCurValue = visitIndexedAddressAux(indexed_address);
         }
 
         virtual void visit(LoadVarAddressInst* inst)
@@ -1611,66 +1503,29 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         void visitNameAddress(StoreVarInst* inst, NamedAddress* named_address)
         {
+            // Result is in fCurValue;
+            inst->fValue->accept(this);
+                
             if (named_address->fAccess & Address::kStruct) {
-                // Result is in fCurValue;
-                inst->fValue->accept(this);
-
-                assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
+           
+                //assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
                 int field_index = fDSPFieldsNames[named_address->fName];
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                Value* dsp = function_args_it++;
-                Value* store_ptr = fBuilder->CreateStructGEP(dsp, field_index);
-
-                //fBuilder->CreateStore(fCurValue, store_ptr, inst->fAddress->getAccess() & Address::kVolatile);
+                Value* store_ptr = fBuilder->CreateStructGEP(getDSP(), field_index);
                 genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
 
-             } else if (named_address->fAccess & Address::kFunArgs) {
-                // Result is in fCurValue
-                inst->fValue->accept(this);
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                // Get arg with inst name
-                Value* arg;
-                bool found = false;
-                do {
-                    arg = function_args_it++;
-                    if (arg->getName() == named_address->fName) {
-                        found = true;
-                        break;
-                    }
-                } while (function_args_it != function->arg_end());
-                assert(found);
-
-                // fBuilder->CreateStore(fCurValue, arg);
-                genVectorStore(arg, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
+            } else if (named_address->fAccess & Address::kFunArgs) {
+                genVectorStore(getDSPArg(named_address->fName), fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
 
             // Direct access Declare/Store ==> Load
             } else if (named_address->fAccess & Address::kLink) {
-                // Result is in fCurValue
-                inst->fValue->accept(this);
                 fDSPStackVars[named_address->fName] = fCurValue;
 
              } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                 assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
-                // Result is in fCurValue
-                inst->fValue->accept(this);
-
-                //fBuilder->CreateStore(fCurValue, fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
                 genVectorStore(fDSPStackVars[named_address->fName], fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile, false);
 
              } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-                // Result is in fCurValue
-                inst->fValue->accept(this);
-                //fCurValue->dump();
                 assert(fModule->getGlobalVariable(named_address->fName, true));
-
-                //fBuilder->CreateStore(fCurValue, fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
-                //fCurValue->dump();
                 genVectorStore(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile, false);
             }
         }
@@ -1679,97 +1534,49 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
             assert(named_address); // One level indexation for now
+            
+            // Compute index, result is in fCurValue
+            indexed_address->fIndex->accept(this);
+            Value* store_ptr;
 
             if (named_address->fAccess & Address::kStruct) {
 
-                assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
                 int field_index = fDSPFieldsNames[named_address->fName];
-
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                Value* dsp = function_args_it++;
-
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-
+       
                 Value* idx[2];
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* store_ptr1 = fBuilder->CreateInBoundsGEP(dsp, MAKE_IXD(idx, idx+2));
+                Value* store_ptr1 = fBuilder->CreateInBoundsGEP(getDSP(), MAKE_IXD(idx, idx+2));
                 Value* store_ptr2 = LoadArrayAsPointer(store_ptr1);
-                Value* store_ptr = fBuilder->CreateInBoundsGEP(store_ptr2, fCurValue);
-
-                // Compute value to be stored, result is in fCurValue
-                inst->fValue->accept(this);
-
-                //fBuilder->CreateStore(fCurValue, store_ptr);
-                genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
+                store_ptr = fBuilder->CreateInBoundsGEP(store_ptr2, fCurValue);
 
             } else if (named_address->fAccess & Address::kFunArgs) {
-                // Get the enclosing function
-                Function* function = fBuilder->GetInsertBlock()->getParent();
-                Function::arg_iterator function_args_it = function->arg_begin();
-                // Get arg with inst name
-                Value* arg;
-                bool found = false;
-                do {
-                    arg = function_args_it++;
-                    string name = arg->getName();
-                    //printf("arg %s \n", name.c_str());
-                    if (arg->getName() == named_address->fName) {
-                        found = true;
-                        break;
-                    }
-                } while (function_args_it != function->arg_end());
-                assert(found);
-
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
-                Value* store_ptr = fBuilder->CreateInBoundsGEP(arg, fCurValue);
-
-                // Compute value to be stored, result is in fCurValue
-                inst->fValue->accept(this);
-
-                //fBuilder->CreateStore(fCurValue, store_ptr);
-                genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
+      
+                store_ptr = fBuilder->CreateInBoundsGEP(getDSPArg(named_address->fName), fCurValue);
 
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
-                //cout <<  "named_address->fName " << named_address->fName.c_str() << endl;
                 assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
-
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
 
                 // We want to see array like [256 x float] as a float*
                 Value* store_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
-                Value* store_ptr2 = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
-
-                // Compute value to be stored, result is in fCurValue
-                inst->fValue->accept(this);
-
-                //fBuilder->CreateStore(fCurValue, store_ptr2);
-                genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
+                store_ptr = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
 
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-                // Compute index, result is in fCurValue
-                indexed_address->fIndex->accept(this);
                 assert(fModule->getGlobalVariable(named_address->fName, true));
 
                 // We want to see array like [256 x float] as a float*
                 Value* store_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
-                Value* store_ptr2 = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
-
-                // Compute value to be stored, result is in fCurValue
-                inst->fValue->accept(this);
-
-                //fBuilder->CreateStore(fCurValue, store_ptr2);
-                genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize,  named_address->fAccess & Address::kVolatile, false);
+                store_ptr = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
 
             } else {
                 // default
+                assert(false);
             }
+            
+            // Compute value to be stored, result is in fCurValue
+            inst->fValue->accept(this);
+            genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
         }
 
         virtual void visit(StoreVarInst* inst)
