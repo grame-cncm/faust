@@ -218,6 +218,35 @@ struct LLVMTypeHelper {
             return llvm::Type::getDoubleTy(getGlobalContext());
         }
     }
+    
+    LLVM_TYPE convertFIRType(Module* module, Typed* type)
+    {
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
+    
+        if (basic_typed) {
+            return fTypeMap[basic_typed->fType];
+        } else if (named_typed) {
+            // Used for internal structures (RWTable... etc...)
+            LLVM_TYPE type = module->getTypeByName("struct.dsp" + named_typed->fName);
+            assert(type);
+            return PointerType::get(type, 0);
+        } else if (array_typed) {
+            // Arrays of 0 size are actually pointers on the type
+            if (array_typed->fSize == 0) {
+                return fTypeMap[array_typed->getType()];
+            } else {
+                return ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize);
+            }
+        } else if (vector_typed) {
+            return VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize);
+        }
+        
+        assert(false);
+        return NULL;
+    }
 
 };
 
@@ -533,24 +562,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // Not supposed to declare var with value here
             assert(inst->fValue == NULL);
-
-            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
-            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fType);
-
-            if (basic_typed) {
-                fDSPFields.push_back(fTypeMap[basic_typed->fType]);
-            } else if (array_typed) {
-                if (array_typed->fSize == 0) {
-                    // Array of zero size are treated as pointer in the corresponding type
-                    fDSPFields.push_back(fTypeMap[array_typed->getType()]);
-                } else {
-                    fDSPFields.push_back(ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize));
-                }
-            } else if (vector_typed) {
-                fDSPFields.push_back(VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize));
-            }
-
+            fDSPFields.push_back(convertFIRType(fModule, inst->fType));
             fDSPFieldsNames[inst->fAddress->getName()] = fDSPFieldsCounter++;
         }
 
@@ -1073,13 +1085,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual void visit(DeclareVarInst* inst)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
-            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(inst->fType);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fType);
+            string name = inst->fAddress->getName();
 
             if (inst->fAddress->getAccess() & Address::kStruct) {
                 // Not supposed to happen
-                //cerr << "DeclareVarInst " << inst->fName << endl;
                 assert(false);
             } else if (inst->fAddress->getAccess() & Address::kFunArgs) {
                 // Not supposed to happen
@@ -1089,55 +1100,24 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 if (inst->fValue) {
                     // Result is in fCurValue;
                     inst->fValue->accept(this);
-                    fDSPStackVars[inst->fAddress->getName()] = fCurValue;
+                    fDSPStackVars[name] = fCurValue;
                 }
             } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
 
-                if (basic_typed) {
-                    fCurValue = fBuilder->CreateAlloca(fTypeMap[basic_typed->fType]);
-                } else if (named_typed) {
-                    // Used for internal structures (RWTable... etc...)
-                    LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
-                    assert(type);
-                    fCurValue = fBuilder->CreateAlloca(PointerType::get(type, 0));
-                } else if (array_typed) {
-                    // Arrays of 0 size are actually pointers on the type
-                    if (array_typed->fSize == 0) {
-                        fCurValue = fBuilder->CreateAlloca(fTypeMap[array_typed->getType()]);
-                    } else {
-                        fCurValue = fBuilder->CreateAlloca(ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize));
-                    }
-                } else if (vector_typed) {
-                    fCurValue = fBuilder->CreateAlloca(VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize));
-                }
-
-                //fCurValue->dump();
-                fDSPStackVars[inst->fAddress->getName()] = fCurValue; // Keep var
-                fDSPStackVars[inst->fAddress->getName()]->setName(inst->fAddress->getName());
-                //cout << "DeclareVarInst " << inst->fAccess << " " << inst->fName << endl;
-
+                fCurValue = fBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
+                fCurValue->setName(name);
+                fDSPStackVars[name] = fCurValue; // Keep var
+          
                 // Declaration with a value
                 if (inst->fValue) {
                     // Result is in fCurValue;
                     inst->fValue->accept(this);
-                    //fCurValue->dump();
-                    //fDSPStackVars[inst->fName]->dump();
-                    fBuilder->CreateStore(fCurValue, fDSPStackVars[inst->fAddress->getName()]);
+                    fBuilder->CreateStore(fCurValue, fDSPStackVars[name]);
                 }
-                //fModule->dump();
+                
             } else if (inst->fAddress->getAccess() & Address::kGlobal || inst->fAddress->getAccess() & Address::kStaticStruct) {
-                if (!fModule->getGlobalVariable(inst->fAddress->getName(), true)) {
-                    GlobalVariable* global_var = NULL;
-
-                    if (basic_typed) {
-                        global_var = new GlobalVariable(*fModule, fTypeMap[basic_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fAddress->getName());
-                    } else if (array_typed) {
-                        global_var = new GlobalVariable(*fModule, ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize),
-                            false, GlobalValue::PrivateLinkage, 0, inst->fAddress->getName());
-                    } else if (vector_typed) {
-                        // TO CHECK
-                        global_var = new GlobalVariable(*fModule, fTypeMap[vector_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fAddress->getName());
-                    }
+                if (!fModule->getGlobalVariable(name, true)) {
+                    GlobalVariable* global_var = new GlobalVariable(*fModule, convertFIRType(fModule, inst->fType), false, GlobalValue::PrivateLinkage, 0, name);
 
                     // Declaration with a value
                     if (inst->fValue) {
