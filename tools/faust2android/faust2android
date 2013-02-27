@@ -1,0 +1,73 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compile a Faust program to an android app           #
+#               (c) Romain Michon CCRMA and Grame, 2013             #
+#                                                                   #
+#####################################################################
+
+TMPFILES="tmpfaust2android"
+JAVA_HOME="/home/romain/Android/android-ndk-r8d"
+
+rm -rf $TMPFILES
+mkdir $TMPFILES
+
+cp -r src/* $TMPFILES
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+	if [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+for f in $FILES; do
+	faust -xml -a faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+done
+
+NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
+NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
+
+if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
+	if [ $NINPUTS -gt  1 ]; then
+		INMOD="_ <:"
+		echo "Your Faust object has more than one inputs!"
+	elif [ $NOUTPUTS -gt  2 ]; then
+		OUTMOD=":> _,_"
+		echo "Your Faust object has more than two outputs!"
+	fi
+	echo "It was modified as follows:"
+	echo "process = $INMOD component(\"$f\") $OUTMOD;"
+	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
+	faust -xml -a faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	rm tmpMOD.dsp
+	rm tmpMOD.dsp.xml
+fi
+
+cd $TMPFILES
+
+sh build.sh > /dev/null
+android update project --target 1 --path . > /dev/null 
+ant debug > /dev/null
+
+cp -r bin/faustApp-debug.apk ../faustApp.apk
+
+for p in $@; do
+	if [ $p = "-install" ]; then
+		adb install -r bin/faustApp-debug.apk
+	fi
+	if [ $p = "-eclipse" ]; then
+		cd ..
+		rm -rf faustApp
+		mv $TMPFILES faustApp
+		echo "An eclipse project named faustApp was created."
+	else
+		cd ..
+		rm -rf $TMPFILES
+	fi
+done
+
+rm "$f.xml"
