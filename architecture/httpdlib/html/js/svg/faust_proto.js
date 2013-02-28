@@ -1100,6 +1100,7 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
     
   _f4u$t.update = function() {}
 
+  faust_svg.defs();
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
 }

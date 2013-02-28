@@ -405,12 +405,11 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         virtual void visit(CastNumInst* inst)
         {
-            string cast_type = generateType(inst->fType);
             stringstream str;
             JAVAInstVisitor visitor(&str, 0);
             inst->fInst->accept(&visitor);
                 
-            if (cast_type == "int") {
+            if (generateType(inst->fType) == "int") {
                 switch (visitor.fCurType) {
                     case Typed::kDouble:
                     case Typed::kFloat:
@@ -476,7 +475,6 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << "(("; inst->fCond->accept(this); *fOut << ")";
                     break;
                 default:
-                    printf("visitor.fCurType %d\n", visitor.fCurType);
                     assert(false);
                     break;
             }

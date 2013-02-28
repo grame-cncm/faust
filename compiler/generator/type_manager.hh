@@ -43,15 +43,6 @@ class StringTypeManager {
 
     public:
 
-        // Default values for C and C++.
-        /*
-        StringTypeManager()
-        {
-            fPtrPosfix = "*";
-            fillTypeDirectTable(FLOATMACRO, FLOATMACROPTR);
-        }
-        */
-
         StringTypeManager(string float_macro_name, string ptr_postfix)
         {
             fPtrPosfix = ptr_postfix;
