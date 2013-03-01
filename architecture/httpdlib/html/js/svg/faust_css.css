@@ -162,14 +162,6 @@ rect.faust-button-up {
   ry : 5;
 }
 
-rect.faust-button-down:hover {
-  stroke : orange;
-}
-
-rect.faust-button-up:hover {
-  stroke : orange;
-}
-
 circle.faust-rbutton-groove {
   fill : url(#rotatingButtonHandleGradient);
 }
@@ -251,3 +243,96 @@ path.faust-button-down:hover {
 path.faust-button-up:hover {
   stroke : orange;
 }
+
+// hovers
+
+rect.faust-button-down:hover {
+  stroke : orange;
+}
+
+rect.faust-button-up:hover {
+  stroke : orange;
+}
+
+path.faust-rbutton-groove.hover {
+  stroke : orange;
+}
+
+rect.faust-hslider-groove.hover {
+  stroke : orange;
+}
+
+rect.faust-hslider-handle.hover {
+  stroke : orange;
+}
+
+rect.faust-vslider-groove.hover {
+  stroke : orange;
+}
+
+rect.faust-vslider-handle.hover {
+  stroke : orange;
+}
+
+rect.faust-hbargraph-curtain.hover {
+  stroke : orange;
+}
+
+rect.faust-checkbox-box.hover {
+  stroke : orange;
+}
+
+rect.faust-nentry-button.hover {
+  stroke : orange;
+}
+
+path.faust-nentry-operation.hover {
+  stroke : orange;
+}
+
+circle.faust-rbutton-groove.hover {
+  stroke : orange;
+}
+
+// as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
+
+path.faust-hslider-groove.hover {
+  stroke : orange;
+}
+
+path.faust-hslider-handle.hover {
+  stroke : orange;
+}
+
+path.faust-vslider-groove.hover {
+  stroke : orange;
+}
+
+path.faust-vslider-handle.hover {
+  stroke : orange;
+}
+
+path.faust-checkbox-box.hover {
+  stroke : orange;
+}
+
+path.faust-nentry-button.hover {
+  stroke : orange;
+}
+
+path.faust-button-down.hover {
+  stroke : orange;
+}
+
+path.faust-button-up.hover {
+  stroke : orange;
+}
+
+path.faust-button-down:hover.hover {
+  stroke : orange;
+}
+
+path.faust-button-up:hover.hover {
+  stroke : orange;
+}
+
