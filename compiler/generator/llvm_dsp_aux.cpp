@@ -22,10 +22,6 @@
 #include <stdio.h>
 #include "llvm_dsp_aux.hh"
 #include "libfaust.h"
-
-#include <stdio.h>
-
-static int gLLVMInit = 0;
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
@@ -164,9 +160,8 @@ bool llvm_dsp_factory::initJIT()
         return false;
     }
     
-    if (gLLVMInit++ == 0) {
-        InitializeNativeTarget();
-    }
+    InitializeNativeTarget();
+    
     if (fTarget != "") {
          fModule->setTargetTriple(fTarget);
     } else {
@@ -296,12 +291,6 @@ llvm_dsp_factory::~llvm_dsp_factory()
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
         delete fJIT;
-    }
-    
-    if (--gLLVMInit == 0) {
-        //TODO
-        //printf("llvm_shutdown\n");
-        //llvm_shutdown();
     }
 }
 
