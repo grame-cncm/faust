@@ -22,14 +22,16 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 	float ** fInBuffers, **fOutBuffers;
 
  public:
-			 oscdsp(const char * dst, int argc, char *argv[]) : OSCIO(dst), fDsp(0), fInBuffers(0), fOutBuffers(0)
-			 {
-				for (int i = 1; i < argc-1; i++)
-					if (!strcmp(argv[i], "-iodst")) setDest (argv[i+1]);
-			 }
+    oscdsp(const char * dst, int argc, char *argv[]) : OSCIO(dst), fDsp(0), fInBuffers(0), fOutBuffers(0)
+    {
+        for (int i = 1; i < argc-1; i++) {
+            if (!strcmp(argv[i], "-iodst")) setDest (argv[i+1]);
+        }
+    }
 	virtual ~oscdsp() { stop(); }
 
-	virtual bool init(const char*name, dsp* DSP) {
+	virtual bool init(const char*name, dsp* DSP) 
+    {
 		fDsp = DSP;
 		fDsp->init(44100);
 		fInBuffers  = new float*[numInputs()];
@@ -44,13 +46,15 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 	virtual bool start()	{ return true; }
 	virtual void stop()		{}
 
-	void compute( int nframes ) {
+	void compute(int nframes) 
+    {
 		fDsp->compute(nframes, fInBuffers, fOutBuffers);
 		for (int i= 0; i < numOutputs(); i++)
 			send( nframes, fOutBuffers [i], i);
 	}
 
-	void receive( int nvalues, float * val ) {
+	void receive(int nvalues, float* val) 
+    {
 		int inChans = numInputs();
 		if (!inChans) {
 			compute(nvalues);

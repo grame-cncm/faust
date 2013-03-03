@@ -1139,8 +1139,6 @@ int TCoreAudioRenderer::Stop()
 	}
 }
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1154,7 +1152,7 @@ class coreaudio : public audio {
 	int fSampleRate, fFramesPerBuf;
 
  public:
-			 coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
+    coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
 	virtual ~coreaudio() {}
 
 	virtual bool init(const char* /*name*/, dsp* DSP) {
@@ -1166,7 +1164,8 @@ class coreaudio : public audio {
         return true;
     }
 
-	virtual bool start() {
+	virtual bool start() 
+    {
 		if (fAudioDevice.Start() < 0) {
 			printf("Cannot start CoreAudio device\n");
 			return false;
@@ -1174,7 +1173,8 @@ class coreaudio : public audio {
 		return true;
 	}
 
-	virtual void stop() {
+	virtual void stop() 
+    {
 		fAudioDevice.Stop();
 		fAudioDevice.Close();
 	}

@@ -567,7 +567,6 @@ int TiPhoneCoreAudioRenderer::Stop()
 	}
 }
 
-
 /******************************************************************************
  *******************************************************************************
  
@@ -577,37 +576,37 @@ int TiPhoneCoreAudioRenderer::Stop()
  *******************************************************************************/
 class iosaudio : public audio {
     
-    TiPhoneCoreAudioRenderer* fAudioDevice;
+    TiPhoneCoreAudioRenderer fAudioDevice;
 	int fSampleRate, fFramesPerBuf;
     
 public:
-    iosaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb), fAudioDevice(NULL) {}
+    iosaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
 	virtual ~iosaudio() {}
     
-	virtual bool init(const char* /*name*/, dsp* DSP) {
-        fAudioDevice = new TiPhoneCoreAudioRenderer();
-		DSP->init(fSampleRate);
-		if (fAudioDevice->Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+	virtual bool init(const char* /*name*/, dsp* DSP) 
+    {
+    	DSP->init(fSampleRate);
+		if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
 			printf("Cannot open iOS audio device\n");
     		return false;
 		}
         return true;
     }
     
-	virtual bool start() {
-		if (fAudioDevice->Start() < 0) {
+	virtual bool start() 
+    {
+		if (fAudioDevice.Start() < 0) {
 			printf("Cannot start iOS audio device\n");
 			return false;
 		}
 		return true;
 	}
     
-	virtual void stop() {
-		fAudioDevice->Stop();
-		fAudioDevice->Close();
-        delete fAudioDevice;
-        fAudioDevice = NULL;
-	}
+	virtual void stop() 
+    {
+		fAudioDevice.Stop();
+		fAudioDevice.Close();
+ 	}
     
 };
 
