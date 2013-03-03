@@ -107,13 +107,6 @@ int main(int argc, char *argv[] )
 }
 #endif
 
-long lopt(char *argv[], const char *name, long def)
-{
-	int	i;
-	for (i=0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
-	return def;
-}
-
 int main(int argc, char *argv[])
 {
 	char	appname[256];
@@ -150,7 +143,6 @@ int main(int argc, char *argv[])
 	finterface->saveState(rcfilename);
   	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

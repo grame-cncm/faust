@@ -44,7 +44,7 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
-static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv);
+static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv);
 
 static bool pa_error(int err)
 {
@@ -72,39 +72,14 @@ class portaudio : public audio {
         PaStream* fAudioStream;
         long fSampleRate;
         long fBufferSize;
+        PaStreamParameters fInputParameters;
+        PaStreamParameters fOutputParameters;
         
         //----------------------------------------------------------------------------
         // 	number of physical input and output channels of the PA device
         //----------------------------------------------------------------------------
         int	fDevNumInChans;
         int	fDevNumOutChans;
-
-        //----------------------------------------------------------------------------
-        // tables of noninterleaved input and output channels for FAUST
-        //----------------------------------------------------------------------------
-        float** fInChannel;
-        float** fOutChannel;
-
-        //----------------------------------------------------------------------------
-        // allocated the noninterleaved input and output channels for FAUST
-        //----------------------------------------------------------------------------
-        void allocChannels(int size, int numInChan, int numOutChan)
-        {
-            fInChannel = new float*[numInChan];
-            fOutChannel = new float*[numOutChan];
-
-            for (int i = 0; i < numInChan; i++) {
-                fInChannel[i] = (float*) calloc (size, sizeof(float));
-                for (int j = 0; j < size; j++)
-                    fInChannel[i][j] = 0.0;
-            }
-
-            for (int i = 0; i < numOutChan; i++) {
-                fOutChannel[i] = (float*) calloc (size, sizeof(float));
-                for (int j = 0; j < size; j++)
-                    fOutChannel[i][j] = 0.0;
-            }
-        }
 
 	public:
     
@@ -113,8 +88,7 @@ class portaudio : public audio {
         virtual ~portaudio() 
         {   
             stop(); 
-            delete [] fInChannel;
-            delete [] fOutChannel;
+            Pa_Terminate();
         }
 
         virtual bool init(const char* name, dsp* DSP)
@@ -126,42 +100,46 @@ class portaudio : public audio {
 
             const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
             const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
+         
+            if (fDsp->getNumInputs() > idev->maxInputChannels || fDsp->getNumOutputs() > odev->maxOutputChannels) {
+                printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
+                        fDsp->getNumInputs(), fDsp->getNumOutputs(), 
+                        idev->maxInputChannels, odev->maxOutputChannels);
+                return false;
+            }
+            
+            fDevNumInChans = idev->maxInputChannels;
+            fDevNumOutChans = odev->maxOutputChannels;
 
-            fDevNumInChans = (fDsp->getNumInputs() > 0) ? idev->maxInputChannels : 0;
-            fDevNumOutChans = (fDsp->getNumOutputs() > 0) ? odev->maxOutputChannels : 0;
+            fInputParameters.device = Pa_GetDefaultInputDevice();
+            fInputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
+            fInputParameters.channelCount = fDevNumInChans;
+            fInputParameters.hostApiSpecificStreamInfo = 0;
 
-            PaStreamParameters inputParameters;
-            PaStreamParameters outputParameters;
-
-            inputParameters.device = Pa_GetDefaultInputDevice();
-            inputParameters.sampleFormat = paFloat32;
-            inputParameters.channelCount = fDevNumInChans;
-            inputParameters.hostApiSpecificStreamInfo = 0;
-
-            outputParameters.device = Pa_GetDefaultOutputDevice();
-            outputParameters.sampleFormat = paFloat32;
-            outputParameters.channelCount = fDevNumOutChans;
-            outputParameters.hostApiSpecificStreamInfo = 0;
-
+            fOutputParameters.device = Pa_GetDefaultOutputDevice();
+            fOutputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
+            fOutputParameters.channelCount = fDevNumOutChans;
+            fOutputParameters.hostApiSpecificStreamInfo = 0;
+          
             PaError err;
             if ((err = Pa_IsFormatSupported(
-                ((fDevNumInChans > 0) ? &inputParameters : 0),
-                ((fDevNumOutChans > 0) ? &outputParameters : 0), fSampleRate)) != 0) {
+                ((fDevNumInChans > 0) ? &fInputParameters : 0),
+                ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate)) != 0) {
                 printf("stream format is not supported err = %d\n", err);
                 return false;
             }
 
-            allocChannels(fBufferSize, max(fDevNumInChans, fDsp->getNumInputs()), max(fDevNumOutChans, fDsp->getNumOutputs()));
             fDsp->init(fSampleRate);
             return true;
         }
 
         virtual bool start() 
         {
-            if (pa_error(Pa_OpenDefaultStream(&fAudioStream, fDevNumInChans, fDevNumOutChans, paFloat32, fSampleRate, fBufferSize, audioCallback, this))) {
+            if (pa_error(Pa_OpenStream(&fAudioStream, &fInputParameters, &fOutputParameters, fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
                 return false;
-            }
-            if (pa_error(Pa_StartStream(fAudioStream)) {
+            }      
+            
+            if (pa_error(Pa_StartStream(fAudioStream))) {
                 return false;
             }
             return true;
@@ -170,34 +148,17 @@ class portaudio : public audio {
         virtual void stop() 
         {
             if (fAudioStream) {
-                Pa_StopStream (fAudioStream);
+                Pa_StopStream(fAudioStream);
                 Pa_CloseStream(fAudioStream);
                 fAudioStream = 0;
             }
         }
 
-        int processAudio(const float* ibuf, float* obuf, unsigned long frames) 
+        int processAudio(float** ibuf, float** obuf, unsigned long frames) 
         {
-            const float* fInputBuffer = ibuf;
-            float* fOutputBuffer = obuf;
-
-            // split input samples
-            for (unsigned long s = 0; s < frames; s++) {
-                for (int c = 0; c < fDevNumInChans; c++) {
-                    fInChannel[c][s] = fInputBuffer[c + s*fDevNumInChans];
-                }
-            }
-
             // process samples
-            fDsp->compute(frames, fInChannel, fOutChannel);
-
-            // merge output samples
-            for (unsigned long s = 0; s < frames; s++) {
-                for (int c = 0; c < fDevNumOutChans; c++) {
-                    fOutputBuffer[c + s*fDevNumOutChans] = fOutChannel[c][s];
-                }
-            }
-            return 0;
+            fDsp->compute(frames, ibuf, obuf);
+            return paContinue;
         }
 };
 
@@ -206,8 +167,8 @@ class portaudio : public audio {
 //----------------------------------------------------------------------------
 static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void* drv)
 {
-	portaudio* pa = (portaudio*) drv;
-	return pa->processAudio((const float*)ibuf, (float*)obuf, frames);
+	portaudio* pa = (portaudio*)drv;
+	return pa->processAudio((float**)ibuf, (float**)obuf, frames);
 }
 
 #endif
