@@ -160,6 +160,12 @@ bool llvm_dsp_factory::initJIT()
         return false;
     }
     
+    // Save current locale
+    char* current_local = setlocale(LC_ALL, NULL);
+    // Setup standard "C" local 
+    // (workaround for a bug in bicode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html )
+    setlocale(LC_ALL, "C");
+    
     InitializeNativeTarget();
     
     if (fTarget != "") {
@@ -197,6 +203,8 @@ bool llvm_dsp_factory::initJIT()
     fJIT = builder.create(tm);
 #endif
     if (!fJIT) {
+        // Restore saved locale
+        setlocale(LC_ALL, current_local);
         return false;
     }
     
@@ -278,9 +286,12 @@ bool llvm_dsp_factory::initJIT()
         fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
         fCompute = (computeFun)LoadOptimize("compute_mydsp");
         fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
+        // Restore saved locale
+        setlocale(LC_ALL, current_local);
         return true;
-    } catch (...) {
-        // Module does not contain the Faust entry points...
+    } catch (...) { // Module does not contain the Faust entry points...
+        // Restore saved locale
+        setlocale(LC_ALL, current_local);
         return false;
     }
 }
