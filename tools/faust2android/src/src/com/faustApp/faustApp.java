@@ -20,12 +20,17 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.MotionEvent;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -61,6 +66,53 @@ public class faustApp extends Activity {
                 return true;
             }
         });
+	}
+	
+	public static boolean isNumeric(String str)  
+	{  
+	  try  
+	  {  
+	    double d = Double.parseDouble(str);  
+	  }  
+	  catch(NumberFormatException nfe)  
+	  {  
+	    return false;  
+	  }  
+	  return true;  
+	}
+	
+	private void addNentry(final int n, final String label, final float init, final float min, final float max, final float step){
+		// slider's label and value display
+		final TextView t = new TextView(this);
+		LayoutParams paramsText = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		t.setLayoutParams(paramsText);
+		t.setText(label+":");
+		LinearLayout ll = (LinearLayout) findViewById(R.id.the_layout);
+		ll.addView(t);
+				
+		final EditText v = new EditText(this);
+		LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		v.setLayoutParams(params);
+		v.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
+		v.setText(Float.toString(init));
+		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		ll.addView(v);
+		
+		TextWatcher textWatcher = new TextWatcher() { 
+		    @Override
+		    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+		    }
+		    @Override
+		    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+		    }
+		    @Override
+		    public void afterTextChanged(Editable editable) {
+		       //here, after we introduced something in the EditText we get the string from it
+		       String value = v.getText().toString();
+		       if(isNumeric(value)) parVals[20] = Float.parseFloat(value);
+		    }
+		};
+		v.addTextChangedListener(textWatcher);
 	}
 	
 	private void addGroup(final int level, final String label){
@@ -173,6 +225,7 @@ public class faustApp extends Activity {
         appName.setText("Faust App Interface");
         
         //addGroup(0,"First Group");
+        //addNentry(1,"tt",15f,0f,100f,0.01f);
         
         //************************************
         // Accel test
@@ -210,6 +263,8 @@ public class faustApp extends Activity {
 				while(on){
 					SWIGTYPE_p_float paramValues = parameters.getZone();
 					
+					if(old != parVals[20]) System.out.println("Hello: " + parVals[20]);
+					old = parVals[20];
 					/*
 					if(old != mAccel) System.out.println("Hello: " + mAccel);
 					old = mAccel;

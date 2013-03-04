@@ -21,6 +21,7 @@ mydsp* DSP;
 GUI* interface;
 
 int inChanNumb, outChanNumb;
+float **bufferout,**bufferin;
 
 Para faust::initFaust(){
 	DSP = new mydsp();
@@ -31,6 +32,17 @@ Para faust::initFaust(){
 	Para params;
 	inChanNumb = DSP->getNumInputs();
 	outChanNumb = DSP->getNumOutputs();
+
+	// allocating memory for output channel
+	bufferout = new float *[outChanNumb];
+	bufferout[0] = new float [VECSAMPS];
+	if(outChanNumb == 2) bufferout[1] = new float [VECSAMPS];
+
+	// allocating memory for input channel
+	if(inChanNumb == 1){
+		bufferin = new float *[1];
+		bufferin[0] = new float [VECSAMPS];
+	}
 
 	// layout elements initialization
 	params.cntLay = interface->params.cntLay;
@@ -97,6 +109,10 @@ void faust::startAudio(){
 
 void faust::stopAudio(){
 	android_CloseAudioDevice(p);
+	delete [] *bufferin;
+	delete [] bufferin;
+	delete [] *bufferout;
+	delete [] bufferout;
 }
 
 void faust::setParam(float *params){
@@ -108,16 +124,8 @@ void faust::setParam(float *params){
 void faust::processDSP(){
 	float out[VECSAMPS*2];
 	FAUSTFLOAT **bufIn, **bufOut;
-	float *bufferin[inChanNumb],*bufferout[outChanNumb];
 	bufIn = (FAUSTFLOAT**) bufferin;
 	bufOut = (FAUSTFLOAT**) bufferout;
-
-	// allocating memory for input channel
-	if(inChanNumb == 1) bufferin[0] = (float*) malloc(VECSAMPS*sizeof(float));
-
-	// allocating memory for output channel(s)
-	bufferout[0] = (float*) malloc(VECSAMPS*sizeof(float));
-	if(outChanNumb == 2) bufferout[1] = (float*) malloc(VECSAMPS*sizeof(float));
 
 	// getting input signal
 	if(inChanNumb>=1) android_AudioIn(p,bufferin[0],VECSAMPS);
