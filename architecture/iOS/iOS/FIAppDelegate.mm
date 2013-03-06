@@ -43,7 +43,8 @@
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-   [self.mainViewController openAudio];
+    [self.mainViewController closeAudio];
+    [self.mainViewController openAudio];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
