@@ -31,12 +31,14 @@
 @synthesize flipsidePopoverController = _flipsidePopoverController;
 @synthesize dspView = _dspView;
 @synthesize dspScrollView = _dspScrollView;
-
-iosaudio* audio_device = NULL;
+audio* audio_device = NULL;
 CocoaUI* interface = NULL;
 FUI* finterface = NULL;
 MY_Meta metadata;
 char rcfilename[256];
+
+int sampleRate = 0;
+int	bufferSize = 0;
 
 - (void)didReceiveMemoryWarning
 {
@@ -49,6 +51,14 @@ char rcfilename[256];
 - (void)loadView
 {
     [super loadView];
+}
+
+static void jack_shutdown_callback(const char* message, void* arg)
+{
+    FIMainViewController* self = (FIMainViewController*)arg;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self closeJack :message];
+    });
 }
 
 - (void)viewDidLoad
@@ -70,10 +80,7 @@ char rcfilename[256];
     if (home == 0) {
         home = ".";
     }
-    
-    int sampleRate = 0;
-    int	bufferSize = 0;
-    
+   
     interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
     finterface = new FUI();
     
@@ -84,14 +91,14 @@ char rcfilename[256];
     bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     if (bufferSize == 0) bufferSize = 256;
     
-    [self openCoreAudio:bufferSize :sampleRate];
+    [self openAudio];
     [self displayTitle];
-     
+    
     // Build Faust interface
     DSP.init(long(sampleRate));
 	DSP.buildUserInterface(interface);
     DSP.buildUserInterface(finterface);
-   
+    
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
     [self updateGui];
@@ -129,6 +136,110 @@ char rcfilename[256];
     if (_assignatedWidgets.size() > 0) [self startMotion];
 }
 
+#ifdef JACK_IOS
+
+- (BOOL)openJack
+{
+    if (!audio_device) {
+        
+        audio_device = new jackaudio();
+        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+            printf("Cannot init JACK device\n");
+            goto error;
+        }
+        
+        if (audio_device->start() < 0) {
+            printf("Cannot connect to JACK server\n");
+            goto error;
+        }
+    }
+    
+    audio_device->shutdown(jack_shutdown_callback, self);
+    return TRUE;
+    
+error:
+    
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                        message:@"JACK server is not running !" delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+    
+    [self closeAudio];
+    return FALSE;
+}
+
+// Save widgets values
+- (void)closeJack:(const char*)reason 
+{
+    
+    NSString* errorString = [[NSString alloc] initWithCString:reason encoding:NSASCIIStringEncoding];
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                        message:errorString delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+
+    [self closeAudio];
+}
+
+#endif
+
+- (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate
+{
+    if (!audio_device) {
+        audio_device = new iosaudio(sampleRate, bufferSize);
+        
+        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+            printf("Cannot init iOS audio device\n");
+            goto error;
+        }
+        
+        if (audio_device->start() < 0) {
+            printf("Cannot start iOS audio device\n");
+            goto error;
+        }
+    }
+    
+    return TRUE;
+    
+error:
+    
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                        message:@"CoreAudio device cannot be opened with the needed in/out parameters" delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+    
+    [self closeAudio];
+    return FALSE;
+}
+
+#ifdef JACK_IOS
+
+- (void)openAudio
+{
+    if (![self openJack]) {
+        [self openCoreAudio:bufferSize :sampleRate];
+    }
+}
+
+#else
+
+- (void)openAudio
+{
+    [self openCoreAudio:bufferSize :sampleRate];
+}
+
+#endif
+
+- (void)closeAudio
+{
+    audio_device->stop();
+    delete audio_device;
+    audio_device = NULL;
+}
+
 - (void)viewDidUnload
 {
     [super viewDidUnload];
@@ -136,11 +247,13 @@ char rcfilename[256];
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    if (!interface) return;
     [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated
-{    
+{
+    if (!interface) return;
     [super viewDidAppear:animated];
     [self orientationChanged:nil];
     [self zoomToLockedBox];
@@ -161,37 +274,6 @@ char rcfilename[256];
     return YES;
 }
 
-- (void)openCoreAudio:(int)bufferSize :(int)sampleRate
-{
-    if (!audio_device) {
-        audio_device = new iosaudio(sampleRate, bufferSize);
-        
-        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
-            printf("Cannot init iOS audio device\n");
-            goto error;
-        }
-        
-        if (audio_device->start() < 0) {
-            printf("Cannot start iOS audio device\n");
-            goto error;
-        }
-    }
-      
-    return;
-
-error:
-    
-    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
-                                                        message:@"CoreAudio device cannot be opened with the needed in/out parameters" delegate:self
-                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    [alertView show];
-    [alertView release];
-    
-    audio_device->stop();
-    delete audio_device;
-    audio_device = NULL;
-}
-
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -200,8 +282,8 @@ error:
     [_tapGesture release];
     finterface->saveState(rcfilename);
     
-    audio_device->stop();
-    delete audio_device;
+    [self closeAudio];
+    
     delete interface;
     delete finterface;
     
@@ -210,6 +292,7 @@ error:
     
     [super dealloc];
 }
+
 
 #pragma mark - DSP view
 
@@ -369,8 +452,12 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Save widgets values
 - (void)saveGui
 {
-    finterface->saveState(rcfilename);
+    if (finterface) {
+        finterface->saveState(rcfilename);
+    }
 }
+
+
 
 // Reflect the whole patch
 - (void)updateGui
@@ -677,16 +764,16 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     finterface->saveState(rcfilename);
     
-    if (audio_device) {
-    
+    if (dynamic_cast<iosaudio*>(audio_device)) {
+        
         audio_device->stop();
         audio_device = NULL;
-    
+        
         [self openCoreAudio:bufferSize :sampleRate];
-    
+        
         DSP.init(long(sampleRate));
     }
-    
+   
     finterface->recallState(rcfilename);
 }
 
@@ -728,14 +815,16 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (IBAction)togglePopover:(id)sender
 {
-    if (self.flipsidePopoverController)
-    {
-        [self.flipsidePopoverController dismissPopoverAnimated:YES];
-        self.flipsidePopoverController = nil;
-    }
-    else
-    {
-        [self performSegueWithIdentifier:@"showAlternate" sender:sender];
+    if (dynamic_cast<iosaudio*>(audio_device)) {
+        if (self.flipsidePopoverController)
+        {
+            [self.flipsidePopoverController dismissPopoverAnimated:YES];
+            self.flipsidePopoverController = nil;
+        }
+        else
+        {
+            [self performSegueWithIdentifier:@"showAlternate" sender:sender];
+        }
     }
 }
 
