@@ -18,17 +18,17 @@
 #define kMaxBuffer 4096
 
 class oscdsp : public audio, public oscfaust::OSCIO {
-	dsp*	 fDsp;
+	dsp* fDsp;
 	float ** fInBuffers, **fOutBuffers;
 
  public:
- 
     oscdsp(const char * dst, int argc, char *argv[]) : OSCIO(dst), fDsp(0), fInBuffers(0), fOutBuffers(0)
     {
-        for (int i = 1; i < argc-1; i++)
+        for (int i = 1; i < argc-1; i++) {
             if (!strcmp(argv[i], "-iodst")) setDest (argv[i+1]);
+        }
     }
-    virtual ~oscdsp() { stop(); }
+	virtual ~oscdsp() { stop(); }
 
 	virtual bool init(const char*name, dsp* DSP) 
     {
@@ -53,7 +53,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 			send( nframes, fOutBuffers [i], i);
 	}
 
-	void receive(int nvalues, float * val) 
+	void receive(int nvalues, float* val) 
     {
 		int inChans = numInputs();
 		if (!inChans) {

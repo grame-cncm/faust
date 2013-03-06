@@ -235,9 +235,11 @@ error:
 
 - (void)closeAudio
 {
-    audio_device->stop();
-    delete audio_device;
-    audio_device = NULL;
+    if (audio_device) {
+        audio_device->stop();
+        delete audio_device;
+        audio_device = NULL;
+    }
 }
 
 - (void)viewDidUnload
