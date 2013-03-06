@@ -20,20 +20,22 @@ for p in $@; do
     fi
 
     if [ "$p" = -icc ]; then
-		ignore=" "
+	ignore=" "
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
-	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
+	OSCDEFS="DEFINES += OSCCTRL"
+	OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+    elif [ "$p" = "-httpd" ]; then
+	HTTPDEFS="DEFINES += HTTPCTRL"
+	HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
+    elif [ "$p" = "-jack" ]; then
+	JACK="1"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+	OPTIONS="$OPTIONS $p"
+    elif [[ -e "$p" ]]; then
+	FILES="$FILES $p"
+    else
+	OPTIONS="$OPTIONS $p"
+    fi
 done
 
 
@@ -46,11 +48,23 @@ for p in $FILES; do
 
 	T=$(mktemp -d faust.XXX)
 	cp -r /usr/local/lib/faust/iOS/* $T
-	faust $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
-	(
-		xcodebuild -project "$T/iOS.xcodeproj" PRODUCT_NAME=$P
-	) > /dev/null
 
+	if [ "$JACK" = "1" ]; then
+	    echo "Compile with JACK/CoreAudio support"
+	    faust $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h"
+	   (
+		xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
+	   ) > /dev/null
+
+	else
+	   echo "Compile with CoreAudio support"
+	   faust $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
+	   (
+		xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
+	   ) > /dev/null
+
+	fi
+	
 	# move generated app to source directory
 	rm -rf "$S/$P.app"
 	mv "$T/build/Release-iphoneos/$P.app" "$S/"
