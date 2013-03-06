@@ -338,6 +338,9 @@ RGB value of the color cyan in an array.
 _f4u$t.CYAN = [0,255,255];
 
 /**
+RGB value of the color cyan in an array.
+
+/**
 RGB value of the color grey in an array.
 
 @property GREY
@@ -742,13 +745,16 @@ _f4u$t.unique = function(s) {
 Takes an array of three values (R, G, and B) and returns a color
 useable by CSS.
 
-@method color_to_rgb
+@method color_to_css
 @for _f4u$t
 @static
-@param {Array} rgb An array with three values for R, G, and B.
+@param {Array, String} rgb An array with three values for
+R, G, and B or a CSS string to bypass the conversion.
 @return {String} An RGB value useable by CSS.
 **/
 _f4u$t.color_to_rgb = function(rgb) {
+  if (typeof rgb == 'string')
+    return rgb;
   return (rgb ? "rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")" : 'none');
 }
 
@@ -1021,6 +1027,7 @@ _f4u$t.make_ui = function(svg, raw_json) {
     }
   );
 
+  faust_svg.defs();
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
 }
