@@ -224,7 +224,15 @@ void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 i
 	if (inInterruption == kAudioSessionEndInterruption) {
 		// make sure we are again the active session
 		AudioSessionSetActive(true);
-		AudioOutputUnitStart(obj->fAUHAL);
+        
+        UInt32 allowMixing = true;
+        OSStatus err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+        if (err != noErr) {
+            printf("Could not set audio session mixing\n");
+            printError(err);
+        }
+        
+        AudioOutputUnitStart(obj->fAUHAL);
 	}
 
 	if (inInterruption == kAudioSessionBeginInterruption) {
