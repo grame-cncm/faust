@@ -107,7 +107,7 @@
 		65C1C07214F543E9006464DF /* FIBargraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIBargraph.h; sourceTree = "<group>"; };
 		65C1C07314F543E9006464DF /* FIBargraph.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBargraph.mm; sourceTree = "<group>"; };
 		65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
-		65E5ED8E14DB037D00136CFC /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Template.app; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E5ED8E14DB037D00136CFC /* Template_CoreAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E5ED9214DB037D00136CFC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		65E5ED9414DB037D00136CFC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		65E5ED9614DB037D00136CFC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -223,7 +223,7 @@
 		65E5ED8F14DB037D00136CFC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				65E5ED8E14DB037D00136CFC /* Template.app */,
+				65E5ED8E14DB037D00136CFC /* Template_CoreAudio.app */,
 				65E5EDB514DB037D00136CFC /* iOSTests.octest */,
 				4B06ECAF16E77D6A004D2F59 /* Template.app */,
 			);
@@ -343,7 +343,7 @@
 			);
 			name = Template_CoreAudio;
 			productName = iOS;
-			productReference = 65E5ED8E14DB037D00136CFC /* Template.app */;
+			productReference = 65E5ED8E14DB037D00136CFC /* Template_CoreAudio.app */;
 			productType = "com.apple.product-type.application";
 		};
 		65E5EDB414DB037D00136CFC /* iOSTests */ = {
