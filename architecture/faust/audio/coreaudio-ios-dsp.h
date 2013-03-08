@@ -89,10 +89,17 @@ private:
 
     static void InterruptionListener(void *inClientData, UInt32 inInterruption);
     
+    static void AudioSessionPropertyListener(void* inClientData,
+                                             AudioSessionPropertyID inID,
+                                             UInt32 inDataSize,
+                                             const void* inData);
+    
     OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
                      const AudioTimeStamp *inTimeStamp,
                      UInt32 inNumberFrames,
                      AudioBufferList *ioData);
+                     
+    int SetupMixing();
 
 public:
 
@@ -224,11 +231,49 @@ void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 i
 	if (inInterruption == kAudioSessionEndInterruption) {
 		// make sure we are again the active session
 		AudioSessionSetActive(true);
-		AudioOutputUnitStart(obj->fAUHAL);
+        obj->SetupMixing();
+        AudioOutputUnitStart(obj->fAUHAL);
 	}
 
 	if (inInterruption == kAudioSessionBeginInterruption) {
 		AudioOutputUnitStop(obj->fAUHAL);
+    }
+}
+
+int TiPhoneCoreAudioRenderer::SetupMixing()
+{
+    UInt32 allowMixing = true;
+    OSStatus err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+    if (err != noErr) {
+        printf("Could not set audio session mixing\n");
+        printError(err);
+        return -1;
+    } else {
+        return 0;
+    }
+}
+   
+void TiPhoneCoreAudioRenderer::AudioSessionPropertyListener(void* inClientData,
+                                                 AudioSessionPropertyID inID,
+                                                 UInt32 inDataSize,
+                                                 const void* inData)
+{
+    TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer*)inData;
+    switch (inID) {
+        case kAudioSessionProperty_ServerDied: {
+            printf("kAudioSessionProperty_ServerDied\n");
+            break;
+        }
+        case kAudioSessionProperty_AudioRouteChange: {
+            printf("kAudioSessionProperty_AudioRouteChange\n");
+            obj->SetupMixing();
+            break;
+        }
+        case kAudioSessionProperty_AudioInputAvailable: {
+            printf("kAudioSessionProperty_AudioInputAvailable\n");
+            obj->SetupMixing();
+            break;
+        }
     }
 }
 
@@ -248,6 +293,10 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         return OPEN_ERR;
     }
     
+    AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, AudioSessionPropertyListener, this);
+    AudioSessionAddPropertyListener(kAudioSessionProperty_AudioInputAvailable, AudioSessionPropertyListener, this);
+    AudioSessionAddPropertyListener(kAudioSessionProperty_ServerDied, AudioSessionPropertyListener, this);
+    
     UInt32 audioCategory;
     if ((fDevNumInChans > 0) && (fDevNumOutChans > 0)) {
         audioCategory = kAudioSessionCategory_PlayAndRecord;
@@ -264,10 +313,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         return OPEN_ERR;
     }
     
-    UInt32 allowMixing = true;
-    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
-    if (err != noErr) {
-        printf("Could not set audio session mixing property\n");
+    if (SetupMixing() < 0) {
         return OPEN_ERR;
     }
     
@@ -567,7 +613,6 @@ int TiPhoneCoreAudioRenderer::Stop()
 	}
 }
 
-
 /******************************************************************************
  *******************************************************************************
  
@@ -577,37 +622,37 @@ int TiPhoneCoreAudioRenderer::Stop()
  *******************************************************************************/
 class iosaudio : public audio {
     
-    TiPhoneCoreAudioRenderer* fAudioDevice;
+    TiPhoneCoreAudioRenderer fAudioDevice;
 	int fSampleRate, fFramesPerBuf;
     
 public:
-    iosaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb), fAudioDevice(NULL) {}
+    iosaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
 	virtual ~iosaudio() {}
     
-	virtual bool init(const char* /*name*/, dsp* DSP) {
-        fAudioDevice = new TiPhoneCoreAudioRenderer();
-		DSP->init(fSampleRate);
-		if (fAudioDevice->Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+	virtual bool init(const char* /*name*/, dsp* DSP) 
+    {
+    	DSP->init(fSampleRate);
+		if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
 			printf("Cannot open iOS audio device\n");
     		return false;
 		}
         return true;
     }
     
-	virtual bool start() {
-		if (fAudioDevice->Start() < 0) {
+	virtual bool start() 
+    {
+		if (fAudioDevice.Start() < 0) {
 			printf("Cannot start iOS audio device\n");
 			return false;
 		}
 		return true;
 	}
     
-	virtual void stop() {
-		fAudioDevice->Stop();
-		fAudioDevice->Close();
-        delete fAudioDevice;
-        fAudioDevice = NULL;
-	}
+	virtual void stop() 
+    {
+		fAudioDevice.Stop();
+		fAudioDevice.Close();
+ 	}
     
 };
 

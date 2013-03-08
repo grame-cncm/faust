@@ -86,6 +86,16 @@ class uiBox;
 - (void)saveGui;
 - (void)updateGui;
 
+#ifdef JACK_IOS
+- (BOOL)openJack;
+- (void)closeJack:(const char*)reason;
+#endif
+
+- (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate;
+
+- (void)openAudio;
+- (void)closeAudio;
+
 // Misc GUI
 - (void)orientationChanged:(NSNotification *)notification;
 - (void)displayTitle;
@@ -96,7 +106,6 @@ class uiBox;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
-- (void)openCoreAudio:(int)bufferSize :(int)sampleRate;
 
 // Sensors
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;
