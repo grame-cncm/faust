@@ -24,7 +24,7 @@
 #import "FIScrollView.h"
 #import "FISensorFilter.h"
 
-//#define JACK_IOS 1
+#define JACK_IOS 1
 
 using namespace std;
 class uiCocoaItem;

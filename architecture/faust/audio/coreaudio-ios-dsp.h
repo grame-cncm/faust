@@ -300,10 +300,13 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     UInt32 audioCategory;
     if ((fDevNumInChans > 0) && (fDevNumOutChans > 0)) {
         audioCategory = kAudioSessionCategory_PlayAndRecord;
+        printf("kAudioSessionCategory_PlayAndRecord\n");
     } else if (fDevNumInChans > 0) {
         audioCategory = kAudioSessionCategory_RecordAudio;
+        printf("kAudioSessionCategory_RecordAudio\n");
     } else  if (fDevNumOutChans > 0) {
         audioCategory = kAudioSessionCategory_MediaPlayback;
+        printf("kAudioSessionCategory_MediaPlayback\n");
     }
     
 	err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
