@@ -90,6 +90,7 @@ class uiBox;
 
 #ifdef JACK_IOS
 - (BOOL)openJack;
+- (BOOL)checkJack;
 - (void)closeJack:(const char*)reason;
 #endif
 

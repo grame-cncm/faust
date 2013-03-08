@@ -118,14 +118,18 @@ class jackaudio : public audio {
     public:
         jackaudio(const void* icon_data, size_t icon_size) : fClient(0), fNumInChans(0), fNumOutChans(0) 
         {
-            fIconData = malloc(icon_size);
-            fIconSize = icon_size;
-            memcpy(fIconData, icon_data, icon_size);
+            if (fIconData) {
+                fIconData = malloc(icon_size);
+                fIconSize = icon_size;
+                memcpy(fIconData, icon_data, icon_size);
+            }
         }
         virtual ~jackaudio() 
         { 
             stop(); 
-            free(fIconData);
+            if (fIconData) {
+                free(fIconData);
+            }
         }
         
         jack_client_t* getClient() { return fClient; }

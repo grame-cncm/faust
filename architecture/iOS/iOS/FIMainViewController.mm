@@ -142,6 +142,18 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 #ifdef JACK_IOS
 
+- (BOOL)checkJack
+{
+    audio* audio_device1;
+    if ((audio_device1 = new jackaudio(NULL, 0)) && audio_device1->init("dummy", &DSP)) {
+        audio_device1->stop();
+        delete audio_device1;
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 - (BOOL)openJack
 {
     if (!audio_device) {
@@ -238,6 +250,11 @@ error:
 
 - (void)openAudio
 {
+    // If CA audio running and JACK server running, will switch to JACK
+    if (audio_device && dynamic_cast<iosaudio*>(audio_device) && [self checkJack]) {
+        [self closeAudio];
+    }
+    
     if (![self openJack]) {
         [self openCoreAudio:bufferSize :sampleRate];
     }
