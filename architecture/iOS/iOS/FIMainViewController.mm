@@ -53,6 +53,8 @@ int	bufferSize = 0;
     [super loadView];
 }
 
+#ifdef JACK_IOS
+
 static void jack_shutdown_callback(const char* message, void* arg)
 {
     FIMainViewController* self = (FIMainViewController*)arg;
@@ -60,6 +62,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
         [self closeJack :message];
     });
 }
+
+#endif
 
 - (void)viewDidLoad
 {
@@ -142,14 +146,29 @@ static void jack_shutdown_callback(const char* message, void* arg)
 {
     if (!audio_device) {
         
-        audio_device = new jackaudio();
+        NSString* iconFile;
+        if (DSP.getNumInputs() > 0 && DSP.getNumOutputs() > 0) {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Fx136" ofType:@"png"];
+        } else if (DSP.getNumOutputs() > 0) {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Output136" ofType:@"png"];
+        } else {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Analyzer136" ofType:@"png"];
+        }
+        NSFileHandle* fileHandle = [NSFileHandle fileHandleForReadingAtPath:iconFile];
+        NSData* data = [fileHandle readDataToEndOfFile];
+        const void* icon_data = [data bytes];
+        const size_t size = [data length];
+        NSLog(@"publishAppIcon rawDataSize = %ld", size);
+        [fileHandle closeFile];
+        
+        audio_device = new jackaudio(icon_data, size);
         if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
-            printf("Cannot init JACK device\n");
+            printf("Cannot connect to JACK server\n");
             goto error;
         }
         
         if (audio_device->start() < 0) {
-            printf("Cannot connect to JACK server\n");
+            printf("Cannot start JACK client\n");
             goto error;
         }
     }
