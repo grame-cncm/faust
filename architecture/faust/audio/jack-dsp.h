@@ -122,6 +122,9 @@ class jackaudio : public audio {
                 fIconData = malloc(icon_size);
                 fIconSize = icon_size;
                 memcpy(fIconData, icon_data, icon_size);
+            } else {
+                fIconData = NULL;
+                fIconSize = 0;
             }
         }
         virtual ~jackaudio() 
