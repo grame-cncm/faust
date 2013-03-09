@@ -287,7 +287,7 @@ class mspUI : public UI
             }
         }
         
-        void setMultiValues(double* multi, int vs)
+        void setMultiValues(double* multi, int buffer_size)
 		{
             for (int read = 0; read < buffer_size; read++) {
                 int write = (fMultiIndex + read) & (MULTI_SIZE - 1);
@@ -295,7 +295,7 @@ class mspUI : public UI
                     *fMultiTable[write] = multi[read];
                 }
             }
-            fMultiIndex += vs;
+            fMultiIndex += buffer_size;
 		}
         
         bool isMulti() { return fMultiControl > 0; }

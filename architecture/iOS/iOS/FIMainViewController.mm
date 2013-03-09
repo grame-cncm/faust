@@ -53,6 +53,8 @@ int	bufferSize = 0;
     [super loadView];
 }
 
+#ifdef JACK_IOS
+
 static void jack_shutdown_callback(const char* message, void* arg)
 {
     FIMainViewController* self = (FIMainViewController*)arg;
@@ -60,6 +62,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
         [self closeJack :message];
     });
 }
+
+#endif
 
 - (void)viewDidLoad
 {
@@ -138,18 +142,45 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 #ifdef JACK_IOS
 
+- (BOOL)checkJack
+{
+    audio* audio_device1;
+    if ((audio_device1 = new jackaudio(NULL, 0)) && audio_device1->init("dummy", &DSP)) {
+        audio_device1->stop();
+        delete audio_device1;
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 - (BOOL)openJack
 {
     if (!audio_device) {
         
-        audio_device = new jackaudio();
+        NSString* iconFile;
+        if (DSP.getNumInputs() > 0 && DSP.getNumOutputs() > 0) {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Fx136" ofType:@"png"];
+        } else if (DSP.getNumOutputs() > 0) {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Output136" ofType:@"png"];
+        } else {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Analyzer136" ofType:@"png"];
+        }
+        NSFileHandle* fileHandle = [NSFileHandle fileHandleForReadingAtPath:iconFile];
+        NSData* data = [fileHandle readDataToEndOfFile];
+        const void* icon_data = [data bytes];
+        const size_t size = [data length];
+        NSLog(@"publishAppIcon rawDataSize = %ld", size);
+        [fileHandle closeFile];
+        
+        audio_device = new jackaudio(icon_data, size);
         if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
-            printf("Cannot init JACK device\n");
+            printf("Cannot connect to JACK server\n");
             goto error;
         }
         
         if (audio_device->start() < 0) {
-            printf("Cannot connect to JACK server\n");
+            printf("Cannot start JACK client\n");
             goto error;
         }
     }
@@ -219,6 +250,11 @@ error:
 
 - (void)openAudio
 {
+    // If CA audio running and JACK server running, will switch to JACK
+    if (audio_device && dynamic_cast<iosaudio*>(audio_device) && [self checkJack]) {
+        [self closeAudio];
+    }
+    
     if (![self openJack]) {
         [self openCoreAudio:bufferSize :sampleRate];
     }

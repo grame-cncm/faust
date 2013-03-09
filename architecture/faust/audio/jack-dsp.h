@@ -39,7 +39,11 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <list>
+#include <string.h>
 #include <jack/jack.h>
+#ifdef JACK_IOS
+#include <jack/custom.h>
+#endif
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
@@ -65,7 +69,9 @@ class jackaudio : public audio {
         jack_port_t**	fOutput_ports;      // JACK output ports
     
         shutdown_callback fShutdown;        // Shutdown callback to be called by libjack
-        void*             fShutdownArg;
+        void*           fShutdownArg;
+        void*           fIconData;
+        int             fIconSize;
         
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
     
@@ -88,7 +94,6 @@ class jackaudio : public audio {
         // Save client connections
         void save_connections()
         {
-            const char** connections;
             fConnections.clear();
             
              for (int i = 0; i < fNumInChans; i++) {
@@ -145,8 +150,26 @@ class jackaudio : public audio {
         }
 
     public:
-                 jackaudio() : fClient(0), fNumInChans(0), fNumOutChans(0) {}
-        virtual ~jackaudio() { stop(); }
+        jackaudio(const void* icon_data, size_t icon_size) : fClient(0), fNumInChans(0), fNumOutChans(0) 
+        {
+            if (icon_data) {
+                fIconData = malloc(icon_size);
+                fIconSize = icon_size;
+                memcpy(fIconData, icon_data, icon_size);
+            } else {
+                fIconData = NULL;
+                fIconSize = 0;
+            }
+        }
+        virtual ~jackaudio() 
+        { 
+            stop(); 
+            if (fIconData) {
+                free(fIconData);
+            }
+        }
+        
+        jack_client_t* getClient() { return fClient; }
 
         virtual bool init(const char* name, dsp* DSP) 
         {
@@ -155,6 +178,10 @@ class jackaudio : public audio {
                 fprintf(stderr, "JACK server not running ?\n");
                 return false;
             }
+        #ifdef JACK_IOS
+            jack_custom_publish_data(fClient, "icon.png", fIconData, fIconSize);
+        #endif
+            
         #ifdef _OPENMP
             jack_set_process_thread(fClient, _jack_thread, this);
         #else

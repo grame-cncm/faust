@@ -24,6 +24,8 @@
 #import "FIScrollView.h"
 #import "FISensorFilter.h"
 
+#define JACK_IOS 1
+
 using namespace std;
 class uiCocoaItem;
 class uiBox;
@@ -88,6 +90,7 @@ class uiBox;
 
 #ifdef JACK_IOS
 - (BOOL)openJack;
+- (BOOL)checkJack;
 - (void)closeJack:(const char*)reason;
 #endif
 

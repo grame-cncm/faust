@@ -1,0 +1,29 @@
+declare name "HOA";
+declare title "High Order Ambisonics library";
+
+declare author "Pierre Guillot";
+declare author "Eliott Paris";
+declare author "Julien Colafrancesco";
+
+declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8";
+
+
+import("math.lib");
+
+
+//----------------------------------------------------------------------------
+// Ambisonic encoder 
+// usage : encoder(3,input,angle) where 3 is the order and the angle is in radiant
+encoder(0, x, a) = x;
+encoder(n, x, a) = encoder(n-1, x, a), x*sin(n*a), x*cos(n*a);
+
+
+
+//----------------------------------------------------------------------------
+// Ambisonic decoder 
+// usage : decoder(3,8) where 3 is the order and 8 the number of loudspeakers
+// the number of loudspeakers p must be greater or eqqual to 2*n+1
+decoder(n,p)	= par(i, 2*n+1, _) <: par(i, p, speaker(n, 2*PI*i/p))
+ with {
+   speaker(n,a)	= /(2), par(i, 2*n, _), encoder(n,2/(2*n+1),a) : dot(2*n+1);
+ };

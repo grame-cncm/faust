@@ -50,14 +50,14 @@ for p in $FILES; do
 	cp -r /usr/local/lib/faust/iOS/* $T
 
 	if [ "$JACK" = "1" ]; then
-	    echo "Compile with JACK/CoreAudio support"
-	    faust $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h"
+	   #echo "Compile with JACK/CoreAudio support"
+	   faust $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
 	   ) > /dev/null
 
 	else
-	   echo "Compile with CoreAudio support"
+	   #echo "Compile with CoreAudio support"
 	   faust $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P

@@ -202,3 +202,7 @@ butterfly(n) = bus(n) <: interleave(n/2,2), interleave(n/2,2) : par(i, n/2, +), 
 // hadamard(n) : hadamard matrix function of size n = 2^k
 hadamard(2) = butterfly(2);
 hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
+
+// dot product for two vectors of size n
+dot(n) = interleave(n,2) : par(i,n,*) :> _;
+
