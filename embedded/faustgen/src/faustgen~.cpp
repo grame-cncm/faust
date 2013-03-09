@@ -546,18 +546,20 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
 
 void faustgen_factory::read(long inlet, t_symbol* s)
 {
-    char filename[MAX_PATH_CHARS];
+    char filename[MAX_FILENAME_CHARS];
     short path;
     long type = 'TEXT';
     long err;
     t_filehandle fh;
     
+    // No filename, so open load dialog
     if (s == gensym("")) {
         filename[0] = 0;
         if (open_dialog(filename, &path, &type, &type, 1)) {
             post("Faust DSP file not found");
             return;
         }
+    // Otherwise locate the file
     } else {
         strcpy(filename, s->s_name);
         if (locatefile_extended(filename, &path, &type, &type, 1)) {
@@ -585,7 +587,53 @@ void faustgen_factory::read(long inlet, t_symbol* s)
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
             (*it)->update_sourcecode();
         }
+    } else {
+        post("Faust DSP file cannot be opened : %s", filename);
     }
+}
+
+void faustgen_factory::write(long inlet, t_symbol* s)
+{
+    char filename[MAX_FILENAME_CHARS];
+    short path;
+    long type = 'TEXT';
+    long err;
+    t_filehandle fh;
+    
+    // No filename, so open save dialog
+    if (s == gensym("")) {
+        filename[0] = 0;
+        if (saveas_dialog(filename, &path, NULL)) {
+            post("Faust DSP file not found");
+            return;
+        } else {
+            err = path_createsysfile(filename, path, type, &fh);
+            if (err) {
+                post("Faust DSP file cannot be created : %s", filename);
+                return;
+            }
+        }
+    // Otherwise locate or create the file
+    } else {
+        strcpy(filename, s->s_name);
+        if (locatefile_extended(filename, &path, &type, &type, 1)) {
+            post("Faust DSP file not found : %s", filename);
+            err = path_createsysfile(filename, path, type, &fh);
+            if (err) {
+                post("Faust DSP file cannot be created : %s", filename);
+                return;
+            }
+        } else {
+            err = path_opensysfile(filename, path, &fh, WRITE_PERM);
+            if (err) {
+                post("Faust DSP file cannot be opened : %s", filename);
+                return;
+            }
+        }
+    }
+    
+    sysfile_writetextfile(fh, fSourceCode, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
+    sysfile_close(fh);
 }
 
 void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv) 
@@ -873,6 +921,11 @@ void faustgen::read(long inlet, t_symbol* s)
     fDSPfactory->read(inlet, s);
 }
 
+void faustgen::write(long inlet, t_symbol* s)
+{
+    fDSPfactory->write(inlet, s);
+}
+
 // Called when saving the Max patcher, this function saves the necessary data inside the json file (faust sourcecode)
 void faustgen::appendtodictionary(t_dictionary* d)
 {
@@ -928,7 +981,7 @@ void faustgen::dblclick(long inlet)
             break;
             
         case 4: 
-            // Open the PDF docuemention
+            // Open the PDF documentation
             display_pdf();
             break;
             
@@ -1139,7 +1192,7 @@ int main(void)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s", FAUSTGEN_VERSION);
     post("LLVM powered Faust embedded compiler");
-    post("Copyright (c) 2012 Grame");
+    post("Copyright (c) 2012-2013 Grame");
   
     // Process all messages coming to the object using a custom method
     REGISTER_METHOD_GIMME(faustgen, anything);
@@ -1149,6 +1202,7 @@ int main(void)
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);
+    REGISTER_METHOD_DEFSYM(faustgen, write);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);

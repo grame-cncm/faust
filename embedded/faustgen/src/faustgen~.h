@@ -52,7 +52,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "0.82b"
+#define FAUSTGEN_VERSION "0.83b"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -164,6 +164,7 @@ class faustgen_factory {
         string get_name() { return fName; }
         
         void read(long inlet, t_symbol* s);
+        void write(long inlet, t_symbol* s);
         
         char* get_sourcecode() { return *fSourceCode; }
         
@@ -271,6 +272,7 @@ class faustgen : public MspCpp5<faustgen> {
         void compileoptions(long inlet, t_symbol*s, long argc, t_atom* argv);
          
         void read(long inlet, t_symbol* s);
+        void write(long inlet, t_symbol* s);
         
         void mute(long inlet, long mute);
          
