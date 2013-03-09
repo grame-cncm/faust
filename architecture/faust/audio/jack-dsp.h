@@ -150,7 +150,7 @@ class jackaudio : public audio {
         }
 
     public:
-        jackaudio(const void* icon_data, size_t icon_size) : fClient(0), fNumInChans(0), fNumOutChans(0) 
+        jackaudio(const void* icon_data = 0, size_t icon_size = 0) : fClient(0), fNumInChans(0), fNumOutChans(0) 
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);
