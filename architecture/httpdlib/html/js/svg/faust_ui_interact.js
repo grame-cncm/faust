@@ -335,7 +335,7 @@ _f4u$t.moveActiveObject = function(ee) {
         touches = ee.originalEvent.touches || [ee];
       }
       for (var i = 0; i < touches.length; i++) {
-        _f4u$t.internalMoveActiveObject(touches[i], ee.touches ? touches[i].identifier : 0);
+        _f4u$t.internalMoveActiveObject(touches[i], touches[0] == ee ? 0 : touches[i].identifier);
       }
       // breaks loop, as we just need one active element for this to work
       return true;
@@ -347,7 +347,7 @@ _f4u$t.moveActiveObject = function(ee) {
 
 _f4u$t.internalMoveActiveObject = function(e, identifier) {
   _f4u$t.clog_key_sink();
-  _f4u$t.BUSY = true;
+  //_f4u$t.BUSY = true; // deprecated
   var hslider_token = "faust_hslider";
   var vslider_token = "faust_vslider";
   var rotating_button_token = "faust_rbutton";
@@ -525,10 +525,7 @@ _f4u$t.clearIdCache = function(ee) {
       delete _f4u$t._I[touches[i].identifier || 0];
     }
     if (!_f4u$t._N) {
-      if (!_f4u$t.BUSY_loop) {
-        _f4u$t.BUSY = false;
-        _f4u$t.not_busy();
-      }
+      //_f4u$t.BUSY = false; // deprecated
     }
     // exit function before unbinding if there are still active elements
     for (var elt in _f4u$t._I) {
@@ -624,10 +621,7 @@ _f4u$t.clog_key_sink = function() {
   if (_f4u$t._N != 0) {
     var box = document.getElementById("faust_value_box_"+_f4u$t.unique(_f4u$t._N));
     box.style.stroke = "black";
-    if (!_f4u$t.BUSY_loop) {
-      _f4u$t.BUSY = false;
-      _f4u$t.not_busy();
-    }
+    //_f4u$t.BUSY = false; // deprecated
   }
   _f4u$t._N = 0;
 }
@@ -690,14 +684,15 @@ _f4u$t.keys_to_sink = function(e) {
 }
 
 _f4u$t.make_key_sink = function(I) {
-  if (_f4u$t.BUSY) {
+  //if (_f4u$t.BUSY) { // deprecated
+  if (_f4u$t.ajax_queue_busy) {
     return false;
   }
   _f4u$t._N = 'faust_value_value_'+I;
   _f4u$t.IDS_TO_ATTRIBUTES[I]["buffer"] = "";
   var box = document.getElementById("faust_value_box_"+I);
   box.style.stroke = "red";
-  _f4u$t.BUSY = true;
+  //_f4u$t.BUSY = true; // deprecated
   // below is a hack for text inputs that should only be activated
   // after some work is done to figure out how to prevent auto zooming
   // in mobile devices

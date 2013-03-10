@@ -4,11 +4,7 @@
 // actually using a 'GET' method
 //-----------------------------------------------------------------------------
 _f4u$t.fausthandler = function(dest, value) {
-  if (0) {
-    var msg = "$.get( " + dest +"?value=" + value + ");";
-    console.log(msg);
-  }
-  $.get(dest +"?value=" + value);
+  _f4u$t.ajax_queue.push(dest +"?value=" + value);
 }
 
 //-----------------------------------------------------------------------------
@@ -80,15 +76,19 @@ _f4u$t.dispatch = function(data) {
   }
 }
 
-// we only reactivate not_busy when the loop is not running
-_f4u$t.not_busy = function() {
-  _f4u$t.BUSY_loop = true;
-  if (!_f4u$t.BUSY) {
+_f4u$t.main_loop = function() {
+  // before we accept things from the server, we need to not be moving things
+  if (/*!_f4u$t.BUSY && */!_f4u$t.ajax_queue_busy &&  (_f4u$t.ajax_queue.length == 0)) {
     $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
-    setTimeout ( function() { _f4u$t.not_busy(); }, 200);
-  } else {
-    _f4u$t.BUSY_loop = false;
   }
+  // ajax needs to be synchronous, so we create a queue
+  if (!_f4u$t.ajax_queue_busy &&  (_f4u$t.ajax_queue.length > 0)) {
+    var request = _f4u$t.ajax_queue[0];
+    _f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1);
+    _f4u$t.ajax_queue_busy = true;
+    $.get(request).done(function() { _f4u$t.ajax_queue_busy = false; });
+  }
+  setTimeout ( function() { _f4u$t.main_loop(); }, 1);
 }
 
-$(document).ready(function() { _f4u$t.not_busy(); });
+$(document).ready(function() { _f4u$t.main_loop(); });
