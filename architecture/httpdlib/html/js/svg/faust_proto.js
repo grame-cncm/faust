@@ -884,6 +884,12 @@ Ajax queue.
 **/
 _f4u$t.ajax_queue = [];
 
+//------------------------------------------------------------
+// Stores last time a widget was updated
+//_f4u$t.ajax_pending_updates = {};
+_f4u$t.ajax_update_time = {};
+
+
 /**
 Is the ajax queue busy?
 
