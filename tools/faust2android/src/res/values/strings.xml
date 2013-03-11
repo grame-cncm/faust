@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">audio IO test</string>
-    <string name="app_name">OpenSL audiotest</string>
+    <string name="hello">FaustApp</string>
+    <string name="app_name">1</string>
 
 </resources>

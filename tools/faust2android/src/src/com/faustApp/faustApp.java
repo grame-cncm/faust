@@ -30,6 +30,8 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -37,10 +39,12 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import java.lang.String;
 
+
+
 public class faustApp extends Activity {
     /** Called when the activity is first created. */
 	Thread thread;
-	float[] parVals = new float[30]; // this should be allocated dynamically TODO
+	float[] parVals;
 	
 	faust f = new faust();
 	boolean on = true;
@@ -65,6 +69,26 @@ public class faustApp extends Activity {
                 }
                 return true;
             }
+        });
+	}
+	
+	private void addCheckButton(final int n, final String label){
+		CheckBox b = new CheckBox(this);
+        LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        b.setText(label);
+        b.setLayoutParams(params);
+        parVals[n] = 0.f;
+        LinearLayout ll = (LinearLayout) findViewById(R.id.the_layout);
+        ll.addView(b);
+        
+        b.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        	@Override
+        	public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+        		if (isChecked){
+        			parVals[n] = 1.f;
+        		}
+        		else parVals[n] = 0.f;
+        	}
         });
 	}
 	
@@ -95,6 +119,7 @@ public class faustApp extends Activity {
 		v.setLayoutParams(params);
 		v.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
 		v.setText(Float.toString(init));
+		parVals[n] = init;
 		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		ll.addView(v);
 		
@@ -109,7 +134,10 @@ public class faustApp extends Activity {
 		    public void afterTextChanged(Editable editable) {
 		       //here, after we introduced something in the EditText we get the string from it
 		       String value = v.getText().toString();
-		       if(isNumeric(value)) parVals[20] = Float.parseFloat(value);
+		       if(isNumeric(value)){
+		    	   if(Float.parseFloat(value) >= min & Float.parseFloat(value) <= max) parVals[n] = Float.parseFloat(value);
+		    	   else parVals[n] = init;
+		       }
 		    }
 		};
 		v.addTextChangedListener(textWatcher);
@@ -202,6 +230,8 @@ public class faustApp extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        //setTitle("fm");
+        
         final Para parameters = f.initFaust();
         
         // layout parameters
@@ -221,11 +251,12 @@ public class faustApp extends Activity {
         String labels = parameters.getLabel();
         String[] paramLabel = new String[nbParams];
         
-        TextView appName = (TextView) findViewById(R.id.app_name);
-        appName.setText("Faust App Interface");
+        //TextView appName = (TextView) findViewById(R.id.app_name);
+        //appName.setText("Faust App Interface");
+        
+        parVals = new float[nbParams];
         
         //addGroup(0,"First Group");
-        //addNentry(1,"tt",15f,0f,100f,0.01f);
         
         //************************************
         // Accel test
@@ -247,9 +278,12 @@ public class faustApp extends Activity {
         	//System.out.println("Hello: " + mAccel);
         	
         	if(o.intArray_getitem(paramsTypes, i) == 0) addButton(i,paramLabel[i]);
+        	if(o.intArray_getitem(paramsTypes, i) == 1) addCheckButton(i,paramLabel[i]);
         	if(o.intArray_getitem(paramsTypes, i) == 2) addSeekBar(i,paramLabel[i],o.floatArray_getitem(paramsInit, i),
         			o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
         	if(o.intArray_getitem(paramsTypes, i) == 3) addSeekBar(i,paramLabel[i],o.floatArray_getitem(paramsInit, i),
+        			o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
+        	if(o.intArray_getitem(paramsTypes, i) == 4) addNentry(i,paramLabel[i],o.floatArray_getitem(paramsInit, i),
         			o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
 		}
         
@@ -262,9 +296,11 @@ public class faustApp extends Activity {
 				float old = 0;
 				while(on){
 					SWIGTYPE_p_float paramValues = parameters.getZone();
-					
+
+					/*
 					if(old != parVals[20]) System.out.println("Hello: " + parVals[20]);
 					old = parVals[20];
+					*/
 					/*
 					if(old != mAccel) System.out.println("Hello: " + mAccel);
 					old = mAccel;

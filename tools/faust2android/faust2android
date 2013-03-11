@@ -25,7 +25,7 @@ for p in $@; do
 done
 
 for f in $FILES; do
-	faust -xml -a faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -a src/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
@@ -42,13 +42,17 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	echo "It was modified as follows:"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -xml -a faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -a src/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
 	rm tmpMOD.dsp
 	rm tmpMOD.dsp.xml
 fi
 
 cd $TMPFILES
 
+APPNAME=$(echo $f | sed 's/.\{4\}$//')
+mv res/values/strings.xml res/values/stringsN.xml 
+sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
+rm res/values/stringsN.xml
 sh build.sh > /dev/null
 android update project --target 1 --path . > /dev/null 
 ant debug > /dev/null
