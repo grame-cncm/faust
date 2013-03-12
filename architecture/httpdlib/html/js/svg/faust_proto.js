@@ -187,16 +187,6 @@ Flag indicating if the UI is being manipulated.
 **/
 _f4u$t.BUSY = false;
 
-/**
-Flag indicating if the server is being polled.
-
-@property BUSY_loop
-@for _f4u$t
-@type Boolean
-@default true
-**/
-_f4u$t.BUSY_loop = true;
-
 // some convenience methods for inheritence
 
 /**
@@ -883,6 +873,32 @@ Converts degrees to radians.
 _f4u$t.d2r = function(a) {
   return a * Math.PI / 180.;
 }
+
+/**
+Ajax queue.
+
+@property ajax_queue
+@for _f4u$t
+@type Array
+@default []
+**/
+_f4u$t.ajax_queue = [];
+
+//------------------------------------------------------------
+// Stores last time a widget was updated
+//_f4u$t.ajax_pending_updates = {};
+_f4u$t.ajax_update_time = {};
+
+
+/**
+Is the ajax queue busy?
+
+@property ajax_queue_busy
+@for _f4u$t
+@type Boolean
+@default false
+**/
+_f4u$t.ajax_queue_busy = false;
 
 /**
 A box class.

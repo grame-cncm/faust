@@ -4,11 +4,9 @@
 // actually using a 'GET' method
 //-----------------------------------------------------------------------------
 _f4u$t.fausthandler = function(dest, value) {
-  if (0) {
-    var msg = "$.get( " + dest +"?value=" + value + ");";
-    console.log(msg);
-  }
-  $.get(dest +"?value=" + value);
+  _f4u$t.ajax_queue.push(dest +"?value=" + value);
+  var D = new Date();
+  _f4u$t.ajax_update_time[dest] = D.getTime();
 }
 
 //-----------------------------------------------------------------------------
@@ -58,37 +56,49 @@ _f4u$t.update_button_value = function(address, value) {
 }
 
 _f4u$t.dispatch = function(data) {
+	var D = new Date();
+	var ctime = D.getTime()-1000;			// limit for refreshing widgets
   var lines = data.split('\n');
   var limit = lines.length;
   for (i=0; i < limit; i++) {
     var values = lines[i].split(' ');
     if (values.length > 1) {
       var address = values[0];
-      var value = Math.round(values[1]*10000)/10000;
-      var id = _f4u$t.PATHS_TO_IDS[address];
-      var kind = _f4u$t.IDS_TO_ATTRIBUTES[id] ? _f4u$t.IDS_TO_ATTRIBUTES[id].type : null ;
-      if (kind == 'vslider') { _f4u$t.update_vslider_value(address, value); }
-      else if (kind == 'hslider') { _f4u$t.update_hslider_value(address, value); }
-      else if (kind == 'rbutton') { _f4u$t.update_rbutton_value(address, value); }
-      else if (kind == 'checkbox') { _f4u$t.update_checkbox_value(address, value); }
-      else if (kind == 'button') { _f4u$t.update_button_value(address, value); }
-      else if (kind == 'nentry') { _f4u$t.update_nentry_value(address, value); }
-      else if (kind == 'vbargraph') { _f4u$t.update_vbargraph_value(address, value); }
-      else if (kind == 'hbargraph') { _f4u$t.update_hbargraph_value(address, value); }
-      else { if (0) { console.log("Unidentified Faust Object (UFO) "+id+" "+kind); }}
+      var utime = _f4u$t.ajax_update_time[address];
+      if (utime === undefined || utime < ctime) {
+      	// we dont update widgets very recently modified by ourself
+				var value = Math.round(values[1]*10000)/10000;
+				var id = _f4u$t.PATHS_TO_IDS[address];
+				var kind = _f4u$t.IDS_TO_ATTRIBUTES[id] ? _f4u$t.IDS_TO_ATTRIBUTES[id].type : null ;
+				if (kind == 'vslider') { _f4u$t.update_vslider_value(address, value); }
+				else if (kind == 'hslider') { _f4u$t.update_hslider_value(address, value); }
+				else if (kind == 'rbutton') { _f4u$t.update_rbutton_value(address, value); }
+				else if (kind == 'checkbox') { _f4u$t.update_checkbox_value(address, value); }
+				else if (kind == 'button') { _f4u$t.update_button_value(address, value); }
+				else if (kind == 'nentry') { _f4u$t.update_nentry_value(address, value); }
+				else if (kind == 'vbargraph') { _f4u$t.update_vbargraph_value(address, value); }
+				else if (kind == 'hbargraph') { _f4u$t.update_hbargraph_value(address, value); }
+				else { if (0) { console.log("Unidentified Faust Object (UFO) "+id+" "+kind); }}
+      }
     }
   }
 }
 
-// we only reactivate not_busy when the loop is not running
-_f4u$t.not_busy = function() {
-  _f4u$t.BUSY_loop = true;
-  if (!_f4u$t.BUSY) {
-    $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
-    setTimeout ( function() { _f4u$t.not_busy(); }, 200);
-  } else {
-    _f4u$t.BUSY_loop = false;
-  }
+// We update the user interface by polling the server every 40 ms
+// But this is done only when no updates are pending for the server
+_f4u$t.main_loop = function() {
+	if (_f4u$t.ajax_queue.length > 0) {
+		// we have pending updates to send to the server
+		_f4u$t.ajax_queue_busy = true;
+		var request = _f4u$t.ajax_queue[0];
+		_f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1);
+		$.get(request).done(_f4u$t.main_loop); 
+	} else {
+		// regular polling
+		_f4u$t.ajax_queue_busy = false;
+		$.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
+		setTimeout ( function() { _f4u$t.main_loop(); }, 20);
+	}		
 }
 
-$(document).ready(function() { _f4u$t.not_busy(); });
+$(document).ready(function() { _f4u$t.main_loop(); });
