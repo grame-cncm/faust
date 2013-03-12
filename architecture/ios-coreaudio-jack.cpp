@@ -62,7 +62,12 @@
 #include <map>
 #include <libgen.h>
 
-using namespace std;
+#define JACK_IOS 1
+
+#import "FICocoaUI.h"
+#include "faust/audio/jack-dsp.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
+#include "faust/misc.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -82,12 +87,6 @@ using namespace std;
 *******************************************************************************
 *******************************************************************************/
 
-#define JACK_IOS 1
-
-#import "FICocoaUI.h"
-#include "audio/jack-dsp.h"
-#include "audio/coreaudio-ios-dsp.h"
-#include "misc.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
