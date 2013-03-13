@@ -97,7 +97,7 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
       id: 'faust_value_value_'+id,
       "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y)+')',
-      'class': 'faust-vbox-text',
+      'class': 'faust-value-text',
       onmousedown : mymousedown,
       ontouchstart : mymousedown
     }
@@ -123,6 +123,7 @@ _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
     label,
     {
       id: 'faust_label_'+id,
+      "class" : "faust-label",
       "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
       transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y + this.lpadding_y)+')'
     }
@@ -751,6 +752,7 @@ _f4u$t.CheckBox.prototype.make_label = function(svg, parent, id) {
     this.label,
     {
       id: 'faust_label_'+id,
+      'class' : 'faust-label',
       transform: 'translate(0,'+(this.internal_dims()[1] + this.lpadding_y)+')'
     }
   );
