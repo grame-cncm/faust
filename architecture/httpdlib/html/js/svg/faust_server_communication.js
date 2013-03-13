@@ -5,8 +5,6 @@
 //-----------------------------------------------------------------------------
 _f4u$t.fausthandler = function(dest, value) {
   _f4u$t.ajax_queue.push(dest +"?value=" + value);
-  var D = new Date();
-  _f4u$t.ajax_update_time[dest] = D.getTime();
 }
 
 //-----------------------------------------------------------------------------
@@ -64,22 +62,22 @@ _f4u$t.dispatch = function(data) {
     var values = lines[i].split(' ');
     if (values.length > 1) {
       var address = values[0];
-      var utime = _f4u$t.ajax_update_time[address];
-      if (utime === undefined || utime < ctime) {
-      	// we dont update widgets very recently modified by ourself
-				var value = Math.round(values[1]*10000)/10000;
-				var id = _f4u$t.PATHS_TO_IDS[address];
-				var kind = _f4u$t.IDS_TO_ATTRIBUTES[id] ? _f4u$t.IDS_TO_ATTRIBUTES[id].type : null ;
-				if (kind == 'vslider') { _f4u$t.update_vslider_value(address, value); }
-				else if (kind == 'hslider') { _f4u$t.update_hslider_value(address, value); }
-				else if (kind == 'rbutton') { _f4u$t.update_rbutton_value(address, value); }
-				else if (kind == 'checkbox') { _f4u$t.update_checkbox_value(address, value); }
-				else if (kind == 'button') { _f4u$t.update_button_value(address, value); }
-				else if (kind == 'nentry') { _f4u$t.update_nentry_value(address, value); }
-				else if (kind == 'vbargraph') { _f4u$t.update_vbargraph_value(address, value); }
-				else if (kind == 'hbargraph') { _f4u$t.update_hbargraph_value(address, value); }
-				else { if (0) { console.log("Unidentified Faust Object (UFO) "+id+" "+kind); }}
+      // skip things being moved to avoid interference
+      if (_f4u$t.active_addresses.indexOf(address) != -1) {
+        continue;
       }
+      var value = Math.round(values[1]*10000)/10000;
+      var id = _f4u$t.PATHS_TO_IDS[address];
+      var kind = _f4u$t.IDS_TO_ATTRIBUTES[id] ? _f4u$t.IDS_TO_ATTRIBUTES[id].type : null ;
+      if (kind == 'vslider') { _f4u$t.update_vslider_value(address, value); }
+      else if (kind == 'hslider') { _f4u$t.update_hslider_value(address, value); }
+      else if (kind == 'rbutton') { _f4u$t.update_rbutton_value(address, value); }
+      else if (kind == 'checkbox') { _f4u$t.update_checkbox_value(address, value); }
+      else if (kind == 'button') { _f4u$t.update_button_value(address, value); }
+      else if (kind == 'nentry') { _f4u$t.update_nentry_value(address, value); }
+      else if (kind == 'vbargraph') { _f4u$t.update_vbargraph_value(address, value); }
+      else if (kind == 'hbargraph') { _f4u$t.update_hbargraph_value(address, value); }
+      else { if (0) { console.log("Unidentified Faust Object (UFO) "+id+" "+kind); }}
     }
   }
 }
