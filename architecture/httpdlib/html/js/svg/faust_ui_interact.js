@@ -265,8 +265,10 @@ _f4u$t.activate_nentry = function(ee, dir) {
   // if the id is already being used, we ignore
   // otherwise, use the first in the array...
   var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
-  _f4u$t._I[identifier] = {id : ee.target.id, moved : false, value : null};
-  var id = _f4u$t.unique(_f4u$t._I[identifier].id);
+  var longid = ee.target.id;
+  var id = _f4u$t.unique(longid);
+  _f4u$t._I[identifier] = {id : longid, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
+  _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
   _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
 
   var now = parseFloat(_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]);
@@ -304,7 +306,10 @@ _f4u$t.activate_moving_object = function(ee) {
     touches = ee.originalEvent.changedTouches || [ee];
   }
   var identifier = touches[0].identifier || 0;
-  _f4u$t._I[identifier] = {id : touches[0].target.id, moved : false, value : null};
+  var longid = touches[0].target.id;
+  var id = _f4u$t.unique(longid);
+  _f4u$t._I[identifier] = {id : longid, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
+  _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
   _f4u$t.updateXY(touches, true);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
@@ -522,7 +527,13 @@ _f4u$t.clearIdCache = function(ee) {
       touches = ee.originalEvent.changedTouches || ee;
     }
     for (var i = 0; i < touches.length; i++) {
-      delete _f4u$t._I[touches[i].identifier || 0];
+      if (_f4u$t._I[touches[i].identifier || 0]) {
+        var addr = _f4u$t._I[touches[i].identifier || 0].address;
+        while (_f4u$t.active_addresses.indexOf(addr) !== -1) {
+          _f4u$t.active_addresses.splice(_f4u$t.active_addresses.indexOf(addr), 1);
+        }
+        delete _f4u$t._I[touches[i].identifier || 0];
+      }
     }
     if (!_f4u$t._N) {
       //_f4u$t.BUSY = false; // deprecated
@@ -536,6 +547,7 @@ _f4u$t.clearIdCache = function(ee) {
   }
   // clear gunk out of cache
   _f4u$t._I = {};
+  _f4u$t.active_addresses = [];
   _f4u$t.PREV[_f4u$t.X_AXIS] = {};
   _f4u$t.PREV[_f4u$t.Y_AXIS] = {};
   $('body').unbind('touchmove'); // turns on zooming for mobile devices
@@ -703,6 +715,7 @@ _f4u$t.generic_key_sink = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.make_key_sink(id);
   _f4u$t._I = {};
+  _f4u$t.active_addresses = [];
   _f4u$t.PREV[_f4u$t.X_AXIS] = {};
   _f4u$t.PREV[_f4u$t.Y_AXIS] = {};
 }

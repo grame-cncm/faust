@@ -179,13 +179,14 @@ _f4u$t.TEXT_BOX_PADDING = 3;
 
 /**
 Flag indicating if the UI is being manipulated.
+DEPRECATED
 
 @property BUSY
 @for _f4u$t
 @type Boolean
 @default false
 **/
-_f4u$t.BUSY = false;
+//_f4u$t.BUSY = false;//deprecated
 
 // some convenience methods for inheritence
 
@@ -884,12 +885,6 @@ Ajax queue.
 **/
 _f4u$t.ajax_queue = [];
 
-//------------------------------------------------------------
-// Stores last time a widget was updated
-//_f4u$t.ajax_pending_updates = {};
-_f4u$t.ajax_update_time = {};
-
-
 /**
 Is the ajax queue busy?
 
@@ -899,6 +894,16 @@ Is the ajax queue busy?
 @default false
 **/
 _f4u$t.ajax_queue_busy = false;
+
+/**
+Active addresses being sent to server.
+
+@property active_addresses
+@for _f4u$t
+@type Array
+@default []
+**/
+_f4u$t.active_addresses = [];
 
 /**
 A box class.

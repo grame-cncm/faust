@@ -80,17 +80,16 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     // Read parameters values
     const char* home = getenv ("HOME");
-  
+    if (home == 0) {
+        home = ".";
+    }
+ 
     if ((*metadata.find("name")).second) {
         _name = (*metadata.find("name")).second;
     } else {
         _name = [[[NSProcessInfo processInfo] processName] UTF8String];
     }
-    
-    if (home == 0) {
-        home = ".";
-    }
-   
+       
     interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
     finterface = new FUI();
     
@@ -196,7 +195,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
 error:
     
-    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio warning"
                                                         message:@"JACK server is not running !" delegate:self
                                               cancelButtonTitle:@"OK" otherButtonTitles:nil];
     [alertView show];

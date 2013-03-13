@@ -284,7 +284,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     UInt32 enableIO;
 	AudioStreamBasicDescription srcFormat, dstFormat;
     
-    printf("OpenDefault fDevNumInChans = %ld fDevNumOutChans = %ld bufferSize = %ld samplerate = %ld\n", fDevNumInChans, fDevNumOutChans, bufferSize, samplerate);
+    printf("OpenDefault fDevNumInChans = %d fDevNumOutChans = %d bufferSize = %d samplerate = %d\n", fDevNumInChans, fDevNumOutChans, bufferSize, samplerate);
      
     err = AudioSessionSetActive(true);
     if (err != noErr) {
@@ -444,7 +444,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         printError(err);
         goto error;
     } else {
-        printf("Get kAudioUnitProperty_MaximumFramesPerSlice %d\n", maxFPS);
+        printf("Get kAudioUnitProperty_MaximumFramesPerSlice %d\n", (unsigned int)maxFPS);
     }
     
     err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
