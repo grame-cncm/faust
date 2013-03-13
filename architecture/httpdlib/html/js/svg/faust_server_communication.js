@@ -54,8 +54,6 @@ _f4u$t.update_button_value = function(address, value) {
 }
 
 _f4u$t.dispatch = function(data) {
-	var D = new Date();
-	var ctime = D.getTime()-1000;			// limit for refreshing widgets
   var lines = data.split('\n');
   var limit = lines.length;
   for (i=0; i < limit; i++) {
@@ -95,7 +93,7 @@ _f4u$t.main_loop = function() {
 		// regular polling
 		_f4u$t.ajax_queue_busy = false;
 		$.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
-		setTimeout ( function() { _f4u$t.main_loop(); }, 20);
+		setTimeout ( function() { _f4u$t.main_loop(); }, 40);
 	}		
 }
 
