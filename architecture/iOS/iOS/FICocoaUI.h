@@ -212,6 +212,8 @@ public:
     virtual BOOL isHExpandable() = 0;
     virtual BOOL isVExpandable() = 0;
     
+    virtual void enableLongPressGestureRecognizer(BOOL enable) = 0;
+    
     float getX()                                                    {return fx;}
     float getY()                                                    {return fy;}
     float getW()                                                    {return fw;}
@@ -328,6 +330,11 @@ public:
     BOOL isVExpandable()
     {
         return FALSE;
+    }
+    
+    void enableLongPressGestureRecognizer(BOOL enable)
+    {
+        // Do nothing
     }
     
     int getNumberOfDirectChildren()
@@ -475,8 +482,9 @@ class uiKnob : public uiCocoaItem
     
 public :
     
-    FIKnob*             fKnob;
-    UILabel*            fLabel;
+    FIKnob*                         fKnob;
+    UILabel*                        fLabel;
+    UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiKnob(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller, name)
@@ -502,16 +510,17 @@ public :
         fKnob.valueArcWidth = kStdKnobArcWidth;
         fKnob.backgroundColorAlpha = 0.4;
         [controller.dspView addSubview:fKnob];
-        
-        UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
-        longPressGesture.delegate = controller;
-		[fKnob addGestureRecognizer:longPressGesture];
+                
+        fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
+        fLongPressGesture.delegate = controller;
+		[fKnob addGestureRecognizer:fLongPressGesture];
     }
     
     ~uiKnob()
     {
         [fLabel release];
         [fKnob release];
+        [fLongPressGesture release];
     }
     
     BOOL isHExpandable()
@@ -524,6 +533,18 @@ public :
         return FALSE;
     }
 
+    void enableLongPressGestureRecognizer(BOOL enable)
+    {
+        if (enable)
+        {
+            [fKnob addGestureRecognizer:fLongPressGesture];
+        }
+        else
+        {
+            [fKnob removeGestureRecognizer:fLongPressGesture];
+        }
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -551,7 +572,7 @@ public :
     void setSelected(BOOL selected)
     {
         uiCocoaItem::setSelected(selected);
-        fKnob.selected = selected;
+        fKnob.responderSelected = selected;
         [fKnob setNeedsDisplay];
     }
     
@@ -592,9 +613,10 @@ class uiSlider : public uiCocoaItem
 
 public :
     
-    FISlider*               fSlider;
-    UILabel*                fLabel;
-    BOOL                    fHorizontal;
+    FISlider*                       fSlider;
+    UILabel*                        fLabel;
+    BOOL                            fHorizontal;
+    UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiSlider(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller, name)
@@ -623,16 +645,16 @@ public :
         fSlider.handleSize = 50;
         fSlider.step = step;
         [controller.dspView addSubview:fSlider];
-        
-        UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
-        longPressGesture.delegate = controller;
-		[fSlider addGestureRecognizer:longPressGesture];
+        fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
+        fLongPressGesture.delegate = controller;
+		[fSlider addGestureRecognizer:fLongPressGesture];
     }
     
     ~uiSlider()
     {
         [fLabel release];
         [fSlider release];
+        [fLongPressGesture release];
     }
     
     BOOL isHExpandable()
@@ -651,6 +673,18 @@ public :
             return FALSE;
         }
         return TRUE;
+    }
+    
+    void enableLongPressGestureRecognizer(BOOL enable)
+    {        
+        if (enable)
+        {
+            [fSlider addGestureRecognizer:fLongPressGesture];            
+        }
+        else
+        {
+            [fSlider removeGestureRecognizer:fLongPressGesture];
+        }
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -717,7 +751,7 @@ public :
     void setSelected(BOOL selected)
     {
         uiCocoaItem::setSelected(selected);
-        fSlider.selected = selected;
+        fSlider.responderSelected = selected;
         [fSlider setNeedsDisplay];
     }
     
@@ -737,7 +771,8 @@ class uiButton : public uiCocoaItem
     
 public:
     
-    FIButton*           fButton;
+    FIButton*                       fButton;
+    UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
     : uiCocoaItem(ui, zone, controller, name)
@@ -752,14 +787,15 @@ public:
         fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         [controller.dspView addSubview:fButton];
         
-        UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
-        longPressGesture.delegate = controller;
-		[fButton addGestureRecognizer:longPressGesture];
+        fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
+        fLongPressGesture.delegate = controller;
+		[fButton addGestureRecognizer:fLongPressGesture];
     }
     
     ~uiButton()
     {
         [fButton release];
+        [fLongPressGesture release];
     }
 
     BOOL isHExpandable()
@@ -770,6 +806,18 @@ public:
     BOOL isVExpandable()
     {
         return FALSE;
+    }
+    
+    void enableLongPressGestureRecognizer(BOOL enable)
+    {
+        if (enable)
+        {
+            [fButton addGestureRecognizer:fLongPressGesture];
+        }
+        else
+        {
+            [fButton removeGestureRecognizer:fLongPressGesture];
+        }
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -793,7 +841,7 @@ public:
     void setSelected(BOOL selected)
     {
         uiCocoaItem::setSelected(selected);
-        fButton.selected = selected;
+        fButton.responderSelected = selected;
         [fButton setNeedsDisplay];
     }
     
@@ -875,6 +923,11 @@ public:
     BOOL isVExpandable()
     {
         return FALSE;
+    }
+    
+    void enableLongPressGestureRecognizer(BOOL enable)
+    {
+        // Do nothing
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -966,6 +1019,11 @@ public:
             return FALSE;
         }
         return TRUE;
+    }
+    
+    void enableLongPressGestureRecognizer(BOOL enable)
+    {
+        // Do nothing
     }
     
     void setFrame(float x, float y, float w, float h)

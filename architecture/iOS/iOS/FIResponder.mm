@@ -41,7 +41,7 @@
 @synthesize min, max, value, step;
 @synthesize displaysValue, allowsGestures;
 @synthesize suffixe;
-@synthesize selected;
+@synthesize responderSelected;
 @synthesize motionBlocked;
 @synthesize assignated;
 
@@ -78,7 +78,7 @@
 		self.clipsToBounds = NO;
 		self.opaque = YES;
         self.suffixe = [[NSString alloc] initWithString:@""];
-        self.selected = NO;
+        self.responderSelected = NO;
         self.assignated = NO;
         self.motionBlocked = NO;
 	}

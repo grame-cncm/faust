@@ -144,7 +144,7 @@
     }
     
     // Draw selection
-    if (self.selected)
+    if (self.responderSelected)
     {
         CGContextSetLineWidth(context, 15.);
         [self.color set];

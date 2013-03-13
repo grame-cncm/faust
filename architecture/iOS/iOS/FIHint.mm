@@ -33,7 +33,7 @@
     {
         self.position = 0;
         self.backgroundColor = [UIColor clearColor];
-        self.title = [NSString stringWithString:@""];
+        self.title = @"";
         [self setFrame:CGRectMake(0.f, 0.f, kStdHintWidth, kStdHintHeight)];
     }
     return self;

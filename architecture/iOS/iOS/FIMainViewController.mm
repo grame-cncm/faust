@@ -39,6 +39,7 @@ char rcfilename[256];
 
 int sampleRate = 0;
 int	bufferSize = 0;
+BOOL openWidgetPanel = YES;
 
 - (void)didReceiveMemoryWarning
 {
@@ -67,6 +68,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 - (void)viewDidLoad
 {
+    int tmp = 0;
+    
     // General UI initializations
     _widgetPreferencesView.hidden = YES;
     _viewLoaded = NO;
@@ -74,7 +77,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     UIView *contentView;
     [super viewDidLoad];
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
-
+    _openPanelChanged = YES;
+    
     // Faust initialization
     DSP.metadata(&metadata);
     
@@ -99,6 +103,10 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     if (bufferSize == 0) bufferSize = 256;
+    
+    tmp = [[NSUserDefaults standardUserDefaults] integerForKey:@"openWidgetPanel"];
+    if (tmp == 0) openWidgetPanel = YES;
+    else openWidgetPanel = (BOOL)(tmp - 1);
     
     [self openAudio];
     [self displayTitle];
@@ -506,13 +514,20 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)updateGui
 {
     list<uiCocoaItem*>::iterator i;
-    
+        
     // Loop on uiCocoaItem elements
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
         // Refresh GUI
         (*i)->reflectZone();
+        
+        if (_openPanelChanged)
+        {
+            (*i)->enableLongPressGestureRecognizer(openWidgetPanel);
+        }
     }
+    
+    if (_openPanelChanged) _openPanelChanged = !_openPanelChanged;
 }
 
 // Force push button to go back to 0
@@ -800,6 +815,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
+- (void)setOpenWidgetPanel:(BOOL)openWidgetPanelOnLongTouch
+{
+    openWidgetPanel = openWidgetPanelOnLongTouch;
+    _openPanelChanged = YES;
+    [self updateGui];
+}
+
 
 #pragma mark - Audio
 
@@ -878,7 +900,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture
 {
     list<uiCocoaItem*>::iterator    i;
-    
+        
     // Deselect all widgets
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
@@ -1462,7 +1484,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     list<uiCocoaItem*>::iterator    i = interface->fWidgetList.end();
     uiCocoaItem*                    currentWidget = widget;
-    NSString*                       result = [NSString stringWithString:@""];
+    NSString*                       result = @"";
     
     while (currentWidget != *interface->fWidgetList.begin())
     {
