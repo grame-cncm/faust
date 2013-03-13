@@ -20,6 +20,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		4B07343F16F139C0003923C3 /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B07343D16F139C0003923C3 /* MaxAPI.framework */; };
+		4B07344016F139C0003923C3 /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B07343E16F139C0003923C3 /* MaxAudioAPI.framework */; };
 		4B179CE7160C7230004418BF /* faust-quick-reference.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4B179CE6160C7230004418BF /* faust-quick-reference.pdf */; };
 		4B3E914C16569775006952CC /* effect.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914516569775006952CC /* effect.lib */; };
 		4B3E914D16569775006952CC /* filter.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914616569775006952CC /* filter.lib */; };
@@ -29,13 +31,13 @@
 		4B3E915116569775006952CC /* oscillator.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914A16569775006952CC /* oscillator.lib */; };
 		4B3E915216569775006952CC /* reduce.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914B16569775006952CC /* reduce.lib */; };
 		4B5A392A15F3B05B007317F4 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B5A392915F3B05B007317F4 /* CoreFoundation.framework */; };
-		4B732F7A15FC8C41004817D9 /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B732F7915FC8C41004817D9 /* MaxAudioAPI.framework */; };
-		4B732F7C15FC8C4D004817D9 /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B732F7B15FC8C4D004817D9 /* MaxAPI.framework */; };
 		4BE5E41715F1569F00AFD014 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BE5E41415F1569F00AFD014 /* base64.cpp */; };
 		5B3AA39D158B65190050941C /* faustgen~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BCA75A0156D13B200C3299A /* faustgen~.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4B07343D16F139C0003923C3 /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "/Applications/Max 6.1/Max.app/Contents/Frameworks/MaxAPI.framework"; sourceTree = "<absolute>"; };
+		4B07343E16F139C0003923C3 /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "/Applications/Max 6.1/Max.app/Contents/Frameworks/MaxAudioAPI.framework"; sourceTree = "<absolute>"; };
 		4B179CE6160C7230004418BF /* faust-quick-reference.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = "faust-quick-reference.pdf"; path = "../../documentation/faust-quick-reference.pdf"; sourceTree = SOURCE_ROOT; };
 		4B3E914516569775006952CC /* effect.lib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = effect.lib; path = ../../architecture/effect.lib; sourceTree = SOURCE_ROOT; };
 		4B3E914616569775006952CC /* filter.lib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = filter.lib; path = ../../architecture/filter.lib; sourceTree = SOURCE_ROOT; };
@@ -47,8 +49,6 @@
 		4B5A392915F3B05B007317F4 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4B5A3C4A15F4042D007317F4 /* maxcpp5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxcpp5.h; path = src/maxcpp5.h; sourceTree = "<group>"; };
 		4B5A3C4B15F4042D007317F4 /* mspUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mspUI.h; path = src/mspUI.h; sourceTree = "<group>"; };
-		4B732F7915FC8C41004817D9 /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../Applications/Max6/MaxSDK-6.0.4/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = SOURCE_ROOT; };
-		4B732F7B15FC8C4D004817D9 /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "../../../../Applications/Max6/MaxSDK-6.0.4/c74support/max-includes/MaxAPI.framework"; sourceTree = SOURCE_ROOT; };
 		4BE5E41415F1569F00AFD014 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = src/base64.cpp; sourceTree = "<group>"; };
 		4BE5E41515F1569F00AFD014 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = src/base64.h; sourceTree = "<group>"; };
 		5B3AA3A5158B65190050941C /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -62,8 +62,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B5A392A15F3B05B007317F4 /* CoreFoundation.framework in Frameworks */,
-				4B732F7A15FC8C41004817D9 /* MaxAudioAPI.framework in Frameworks */,
-				4B732F7C15FC8C4D004817D9 /* MaxAPI.framework in Frameworks */,
+				4B07343F16F139C0003923C3 /* MaxAPI.framework in Frameworks */,
+				4B07344016F139C0003923C3 /* MaxAudioAPI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,8 +91,8 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				4B732F7B15FC8C4D004817D9 /* MaxAPI.framework */,
-				4B732F7915FC8C41004817D9 /* MaxAudioAPI.framework */,
+				4B07343D16F139C0003923C3 /* MaxAPI.framework */,
+				4B07343E16F139C0003923C3 /* MaxAudioAPI.framework */,
 				4B5A392915F3B05B007317F4 /* CoreFoundation.framework */,
 			);
 			name = "External Frameworks and Libraries";
@@ -249,19 +249,15 @@
 		5B3AA3A3158B65190050941C /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CONFIGURATION_BUILD_DIR = "/Applications/Max6/Cycling '74/msp-externals";
-				CONFIGURATION_TEMP_DIR = "/Applications/Max6/Cycling '74/msp-externals";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = "/Applications/Max 6.1/Cycling '74/msp-externals";
+				CONFIGURATION_TEMP_DIR = "/Applications/Max 6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_EXTENSION = "";
 				EXECUTABLE_SUFFIX = "";
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"/usr/local/include/c74support/jit-includes\"",
-					"\"/usr/local/include/c74support/msp-includes\"",
-					"\"/usr/local/include/c74support/max-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6/MaxSDK-6.0.4/c74support/msp-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6/MaxSDK-6.0.4/c74support/max-includes\"",
+					"$(inherited)\n\"$(SYSTEM_APPS_DIR)/Max 6.1/Max.app/Contents/Frameworks\"",
+					"\"$(SYSTEM_APPS_DIR)/Max 6.1/Max.app/Contents/Frameworks\"",
 				);
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = YES;
@@ -273,14 +269,13 @@
 				HEADER_SEARCH_PATHS = (
 					../../architecture,
 					/usr/local/include/,
-					usr/local/include/faust/audio/,
-					"/usr/local/include/c74support/max-includes",
-					"/usr/local/include/c74support/msp-includes",
 					/opt/local/include,
 					/Developer/Headers/FlatCarbon,
+					"\"/Applications/Max6/MaxSDK-6.0.4/c74support/max-includes\"",
+					"\"/Applications/Max6/MaxSDK-6.0.4/c74support/msp-includes\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				INSTALL_PATH = "/../../../../../../../../../Applications/Max6/Cycling '74/msp-externals";
+				INSTALL_PATH = "/../../../../../../../../../Applications/Max 6.1/Cycling '74/msp-externals";
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib/faust,
 					/opt/local/lib/,
@@ -384,7 +379,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.83b;
+				PRODUCT_VERSION = 0.84b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -394,20 +389,17 @@
 		5B3AA3A4158B65190050941C /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CONFIGURATION_BUILD_DIR = "/Applications/Max6/Cycling '74/msp-externals";
-				CONFIGURATION_TEMP_DIR = "/Applications/Max6/Cycling '74/msp-externals";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = "/Applications/Max 6.1/Cycling '74/msp-externals";
+				CONFIGURATION_TEMP_DIR = "/Applications/Max 6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				EXECUTABLE_EXTENSION = "";
 				EXECUTABLE_SUFFIX = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"/usr/local/include/c74support/jit-includes\"",
-					"\"/usr/local/include/c74support/msp-includes\"",
-					"\"/usr/local/include/c74support/max-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6/MaxSDK-6.0.4/c74support/msp-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6/MaxSDK-6.0.4/c74support/max-includes\"",
+					"$(inherited)\n\"$(SYSTEM_APPS_DIR)/Max 6.1/Max.app/Contents/Frameworks\"",
+					"\"$(SYSTEM_APPS_DIR)/Max 6.1/Max.app/Contents/Frameworks\"",
 				);
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = YES;
@@ -422,15 +414,14 @@
 				HEADER_SEARCH_PATHS = (
 					../../architecture,
 					/usr/local/include/,
-					usr/local/include/faust/audio/,
-					"/usr/local/include/c74support/max-includes",
-					"/usr/local/include/c74support/msp-includes",
 					/opt/local/include,
 					/Developer/Headers/FlatCarbon,
+					"\"/Applications/Max6/MaxSDK-6.0.4/c74support/max-includes\"",
+					"\"/Applications/Max6/MaxSDK-6.0.4/c74support/msp-includes\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				INFOPLIST_OTHER_PREPROCESSOR_FLAGS = "";
-				INSTALL_PATH = "/../../../../../../../../../Applications/Max6/Cycling '74/msp-externals";
+				INSTALL_PATH = "/../../../../../../../../../Applications/Max 6.1/Cycling '74/msp-externals";
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib/faust,
 					/opt/local/lib/,
@@ -534,7 +525,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.83b;
+				PRODUCT_VERSION = 0.84b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;

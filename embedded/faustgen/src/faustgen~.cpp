@@ -34,6 +34,16 @@ map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 // Faust DSP Factory
 //===================
 
+#ifdef __APPLE__
+static string getTarget()
+{
+    int tmp;
+    return (sizeof(&tmp) == 8) ? "" : "i386-apple-darwin10.6.0";
+}
+#else
+static string getTarget() { return ""; }
+#endif
+
 struct Max_Meta : public Meta
 {
     void declare(const char* key, const char* value)
@@ -156,10 +166,10 @@ void faustgen_factory::free_dsp_factory()
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     string decoded_bitcode = base64_decode(*fBitCode, fBitCodeSize);
-    return readDSPFactoryFromBitcode(decoded_bitcode, LLVM_MACHINE_TARGET);
+    return readDSPFactoryFromBitcode(decoded_bitcode, getTarget());
     /*
     // Alternate model using LLVM IR
-    return readDSPFactoryFromIR(*fBitCode, LLVM_MACHINE_TARGET);
+    return readDSPFactoryFromIR(*fBitCode, getTarget());
     */
 }
 
@@ -180,7 +190,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), LLVM_MACHINE_TARGET, error);
+    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error);
     
     if (factory) {
         return factory;
@@ -684,7 +694,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         post("Start looking for optimal compilation options...");
         
 	#ifndef WIN32
-        FaustLLVMOptimizer optimizer(string(*fSourceCode), fLibraryPath, LLVM_MACHINE_TARGET, 2000, sys_getblksize());
+        FaustLLVMOptimizer optimizer(string(*fSourceCode), fLibraryPath, getTarget(), 2000, sys_getblksize());
         fCompileOptions = optimizer.findOptimize();
 	#endif
         

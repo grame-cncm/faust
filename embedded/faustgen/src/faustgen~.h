@@ -52,20 +52,18 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "0.83b"
+#define FAUSTGEN_VERSION "0.84b"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
     #include "bench-llvm.cpp"
     #define FAUST_LIBRARY_PATH "/Contents/Resources/"
     #define FAUST_DRAW_PATH "/var/tmp/"
-    #define LLVM_MACHINE_TARGET "i386-apple-darwin10.6.0"
 #endif
 
 #ifdef WIN32
     #define FAUST_LIBRARY_PATH "\\faustgen-resources\\"
     #define FAUST_DRAW_PATH "\\faustgen-resources\\"
-    #define LLVM_MACHINE_TARGET ""
 #endif
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
