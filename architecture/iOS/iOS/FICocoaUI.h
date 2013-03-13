@@ -37,10 +37,9 @@
 #import <UIKit/UIKit.h>
 #import "FIMainViewController.h"
 
-#include "GUI.h"
-#include "FUI.h"
-
-#include "misc.h"
+#include "faust/gui/GUI.h"
+#include "faust/gui/FUI.h"
+#include "faust/misc.h"
 
 #include <list>
 #include <map>
