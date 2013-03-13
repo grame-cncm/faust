@@ -77,6 +77,8 @@ class uiBox;
     IBOutlet UISlider*                  _colorBSlider;
     
     const   char*                       _name;
+    
+    BOOL                                _openPanelChanged;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -106,6 +108,8 @@ class uiBox;
 - (void)zoomToLockedBox;
 - (void)doubleTap;
 - (void)buttonSetToZero:(id)sender;
+- (void)zoomToWidget:(FIResponder*)widget;
+- (void)setOpenWidgetPanel:(BOOL)openWidgetPanelOnLongTouch;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;

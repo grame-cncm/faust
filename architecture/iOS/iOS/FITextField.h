@@ -17,6 +17,7 @@
  ************************************************************************/
 
 #import "FIResponder.h"
+#import "FIMainViewController.h"
 
 @interface FITextField : FIResponder <  UITextViewDelegate,
                                         UIGestureRecognizerDelegate>
