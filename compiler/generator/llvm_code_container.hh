@@ -47,6 +47,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         Module* fModule;
         IRBuilder<>* fBuilder;
         LLVMInstVisitor* fCodeProducer;
+        LLVMContext* fContext;
       
         void generateComputeBegin(const string& counter);
         void generateComputeEnd();
@@ -93,27 +94,27 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         LlvmValue genInt1(int number)
         {
-            return ConstantInt::get(llvm::Type::getInt1Ty(getGlobalContext()), number);
+            return ConstantInt::get(llvm::Type::getInt1Ty(fModule->getContext()), number);
         }
 
         LlvmValue genInt32(int number)
         {
-            return ConstantInt::get(llvm::Type::getInt32Ty(getGlobalContext()), number);
+            return ConstantInt::get(llvm::Type::getInt32Ty(fModule->getContext()), number);
         }
 
         LlvmValue genInt64(int number)
         {
-            return ConstantInt::get(llvm::Type::getInt64Ty(getGlobalContext()), number);
+            return ConstantInt::get(llvm::Type::getInt64Ty(fModule->getContext()), number);
         }
 
         LlvmValue genFloat(const string& number)
         {
-            return ConstantFP::get(getGlobalContext(), APFloat(APFloat::IEEEsingle, number));
+            return ConstantFP::get(fModule->getContext(), APFloat(APFloat::IEEEsingle, number));
         }
 
         LlvmValue genFloat(float number)
         {
-            return ConstantFP::get(getGlobalContext(), APFloat(number));
+            return ConstantFP::get(fModule->getContext(), APFloat(number));
         }
 
     public:
@@ -122,9 +123,11 @@ class LLVMCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
+            fContext = new LLVMContext();
 
-            fModule = new Module("Faust LLVM backend", getGlobalContext());
-            fBuilder = new IRBuilder<>(getGlobalContext());
+            //fModule = new Module("Faust LLVM backend", getGlobalContext());
+            fModule = new Module("Faust LLVM backend", *fContext);
+            fBuilder = new IRBuilder<>(fModule->getContext());
     
         #if defined(LLVM_31) || defined(LLVM_32)
             fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
@@ -142,7 +145,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
             fModule = module;
-            fBuilder = new IRBuilder<>(getGlobalContext());
+            fBuilder = new IRBuilder<>(fModule->getContext());
         }
       
         virtual ~LLVMCodeContainer()

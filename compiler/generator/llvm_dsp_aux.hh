@@ -115,8 +115,6 @@ class llvm_dsp_factory {
                    
   public:
   
-        llvm_dsp_factory(const std::string& module_path, int opt_level = 3);
-  
         llvm_dsp_factory(int argc, const char *argv[], 
             const std::string& library_path, const std::string& draw_path, const std::string& name, 
             const std::string& input, const std::string& target, 

@@ -33,12 +33,12 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-static Module* LoadModule(const std::string filename)
+static Module* LoadModule(const std::string filename, LLVMContext& context)
 {
     //printf("Load module : %s \n", filename.c_str());
     
     SMDiagnostic err;
-    Module* res = ParseIRFile(filename, err, getGlobalContext());
+    Module* res = ParseIRFile(filename, err, context);
     if (!res) {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("LoadModule", errs());
@@ -231,7 +231,8 @@ bool llvm_dsp_factory::initJIT()
 #endif
     // Link with "scheduler" code
     if (fScheduler) {
-        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll");
+        LLVMContext context;
+        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", context);
         if (scheduler) {
             //scheduler->dump();
             if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {
@@ -390,7 +391,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
 {
     string error_msg;
     MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(bit_code));
-    Module* module = ParseBitcodeFile(buffer, getGlobalContext(), &error_msg);
+    LLVMContext* context = new LLVMContext();
+    Module* module = ParseBitcodeFile(buffer, *context, &error_msg);
     delete buffer;
     
     if (module) {
@@ -416,7 +418,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     }
   
     std::string error_msg;
-    Module* module = ParseBitcodeFile(buffer.get(), getGlobalContext(), &error_msg);
+    LLVMContext* context = new LLVMContext();
+    Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
@@ -436,7 +439,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
 {
     SMDiagnostic err;
     MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(ir_code));
-    Module* module = ParseIR(buffer, err, getGlobalContext()); // ParseIR takes ownership of the given buffer, so don't delete it
+    LLVMContext* context = new LLVMContext();
+    Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
     
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
@@ -459,7 +463,8 @@ EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level)
 {
     SMDiagnostic err;
-    Module* module = ParseIRFile(ir_code_path, err, getGlobalContext());
+    LLVMContext* context = new LLVMContext();
+    Module* module = ParseIRFile(ir_code_path, err, *context);
     
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
