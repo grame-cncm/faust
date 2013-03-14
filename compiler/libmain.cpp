@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
  
-#define FAUSTVERSION "2.0.a5"
+#define FAUSTVERSION "2.0.a6"
 
 #include <stdio.h>
 #include <string.h>
@@ -364,7 +364,7 @@ static bool process_cmdline(int argc, const char* argv[])
 static void printversion()
 {
 	cout << "FAUST: DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2012, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2013, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
