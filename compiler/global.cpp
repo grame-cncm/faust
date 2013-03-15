@@ -20,10 +20,8 @@
  ************************************************************************/
 
 #include "global.hh"
-
 #include "sourcereader.hh"
 #include "tree.hh"
-
 #include "absprim.hh"
 #include "acosprim.hh"
 #include "tanprim.hh"
@@ -44,9 +42,9 @@
 #include "atanprim.hh"
 #include "atan2prim.hh"
 #include "asinprim.hh"
-
 #include "binop.hh"
 #include "instructions.hh"
+#include "libfaust.h"
 
 // Parser
 extern FILE* yyin;

@@ -44,8 +44,7 @@ ifeq ($(LLVM_VERSION), 3.2)
 LLVM_VERSION  = LLVM_32
 endif
 
-#CXXFLAGS += -O3 -Wall -Wuninitialized 
-CXXFLAGS += -g -Wall -Wuninitialized
+CXXFLAGS += -O3 -Wall -Wuninitialized 
 CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)

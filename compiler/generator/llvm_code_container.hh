@@ -37,6 +37,8 @@
 using namespace std;
 using namespace llvm;
 
+struct LLVMResult;
+
 class LLVMCodeContainer : public virtual CodeContainer {
 
     protected:
@@ -120,45 +122,13 @@ class LLVMCodeContainer : public virtual CodeContainer {
             return ConstantFP::get(getContext(), APFloat(number));
         }
         
-        LLVMContext& getContext() { return *fResult->fContext; }
+        LLVMContext& getContext();
 
     public:
 
-        LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-            
-            fResult = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
-            fResult->fContext = new LLVMContext();
-            fResult->fModule = new Module("Faust LLVM backend", getContext());
-            fBuilder = new IRBuilder<>(getContext());
-    
-        #if defined(LLVM_31) || defined(LLVM_32)
-            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-        #else
-            fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
-        #endif
-            fNumInputs = numInputs;
-            fNumOutputs = numOutputs;
-            fInputRates.resize(numInputs);
-            fOutputRates.resize(numOutputs);
-        }
-    
-        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-            fResult = result;
-            fBuilder = new IRBuilder<>(getContext());
-        }
-       
-        virtual ~LLVMCodeContainer()
-        {
-            // External object not covered by Garbageable, do delete it here
-            delete fBuilder;
-        }
-
+        LLVMCodeContainer(const string& name, int numInputs, int numOutputs);
+        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
+      
         virtual LLVMResult* produceModule(const string& filename);
         virtual void generateCompute() = 0;
         void produceInternal();

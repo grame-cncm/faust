@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
-#define FAUSTVERSION "2.0.a6"
-
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -40,7 +38,6 @@
 #include "simplify.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
-
 #include "propagate.hh"
 #include "errormsg.hh"
 #include "ppbox.hh"
@@ -63,7 +60,6 @@
 #endif
 
 #include "sourcereader.hh"
-
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
 #include "c_code_container.hh"
@@ -73,18 +69,29 @@
 #include "js_code_container.hh"
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
-
-// Build graphical representations
-
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
 #include "ppsig.hh"
 #include "garbageable.hh"
 #include "export.hh"
-#include "libfaust.h"
+
+#define FAUSTVERSION "2.0.a6"
+
+// Same as libfaust.h 
+typedef struct LLVMResult {
+    llvm::Module*       fModule;
+    llvm::LLVMContext*  fContext;
+} LLVMResult;
+
+extern "C" EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 using namespace std;
+
+/****************************************************************
+ 						Global context variable
+*****************************************************************/
 
 global* gGlobal = NULL;
 

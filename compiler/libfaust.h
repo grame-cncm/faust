@@ -30,7 +30,6 @@ extern "C"
 #endif
 
 typedef struct LLVMResult {
-
     llvm::Module*       fModule;
     llvm::LLVMContext*  fContext;
 } LLVMResult;

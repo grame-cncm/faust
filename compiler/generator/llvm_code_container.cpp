@@ -22,6 +22,7 @@
 #include "llvm_code_container.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "libfaust.h"
 
 using namespace std;
 
@@ -52,6 +53,37 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 {
     return new LLVMScalarCodeContainer(name, 0, 1, fResult, sub_container_type);
 }
+
+ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
+{
+    initializeCodeContainer(numInputs, numOutputs);
+    fKlassName = name;
+    
+    fResult = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
+    fResult->fContext = new LLVMContext();
+    fResult->fModule = new Module("Faust LLVM backend", getContext());
+    fBuilder = new IRBuilder<>(getContext());
+
+#if defined(LLVM_31) || defined(LLVM_32)
+    fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+#else
+    fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
+#endif
+    fNumInputs = numInputs;
+    fNumOutputs = numOutputs;
+    fInputRates.resize(numInputs);
+    fOutputRates.resize(numOutputs);
+}
+
+LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
+{
+    initializeCodeContainer(numInputs, numOutputs);
+    fKlassName = name;
+    fResult = result;
+    fBuilder = new IRBuilder<>(getContext());
+}
+
+LLVMContext& LLVMCodeContainer::getContext() { return *fResult->fContext; }
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {

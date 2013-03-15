@@ -40,7 +40,7 @@
 #include "loopDetector.hh"
 #include "occurrences.hh"
 #include "instructions.hh"
-#include "libfaust.h"
+
 
 class 	CTree;
 typedef CTree* Tree;
@@ -52,6 +52,8 @@ class xtended;
 class AudioType;
 
 class Garbageable;
+
+struct LLVMResult;
 
 struct global {
 
