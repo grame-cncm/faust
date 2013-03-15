@@ -213,7 +213,6 @@ class faustgen : public MspCpp5<faustgen> {
 
         mspUI fDSPUI;               // DSP UI
         
-        // volatile 
         llvm_dsp* fDSP;             // pointer to the LLVM Faust dsp
         
         t_object* fEditor;          // text editor object

@@ -147,7 +147,7 @@ void faustgen_factory::free_bitcode()
 
 void faustgen_factory::free_dsp_factory()
 {
-   if (systhread_mutex_lock(fDSPMutex) == MAX_ERR_NONE) {
+   if (lock()) {
    
         // Free all instances
         set<faustgen*>::const_iterator it;
@@ -157,7 +157,7 @@ void faustgen_factory::free_dsp_factory()
      
         deleteDSPFactory(fDSPfactory);
         fDSPfactory = 0;
-        systhread_mutex_unlock(fDSPMutex);
+        unlock();
     } else {
         post("Mutex lock cannot be taken...");
     }
@@ -1032,7 +1032,10 @@ void faustgen::update_sourcecode()
 inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts) 
 {
     if (!fMute && fDSPfactory->try_lock()) {
-        fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
+        // Has to be tested again when the lock has been taken...
+        if (fDSP) {
+            fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
+        }
         fDSPfactory->unlock();
     } else {
         // Write null buffers to outs
