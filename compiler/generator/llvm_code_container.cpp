@@ -83,6 +83,15 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fBuilder = new IRBuilder<>(getContext());
 }
 
+LLVMCodeContainer::~LLVMCodeContainer()
+{
+    if (fResult) { // fResult was not returned by produceModule (possibly in case of syntax error...) so desallocate it here
+        delete fResult->fModule;
+        delete fResult->fContext;
+        free(fResult);
+    }
+}
+
 LLVMContext& LLVMCodeContainer::getContext() { return *fResult->fContext; }
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
@@ -620,13 +629,10 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
         raw_fd_ostream out(filename.c_str(), err, raw_fd_ostream::F_Binary);
         WriteBitcodeToFile(fResult->fModule, out);
     }
-    /*
-    LLVMResult* result = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
-    result->fResult->fModule = fResult->fModule;
-    result->fContext = fContext;
-    */
     
-    return fResult;
+    LLVMResult* result = fResult;
+    fResult = NULL; // Will be deallocated later on in the compilation chain...
+    return result;
 }
 
 // Scalar
@@ -641,7 +647,10 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInpu
 }
 
 LLVMScalarCodeContainer::~LLVMScalarCodeContainer()
-{}
+{
+    // fResult will be possibly deallocated by main container..
+    fResult = NULL;
+}
 
 void LLVMScalarCodeContainer::generateCompute()
 {

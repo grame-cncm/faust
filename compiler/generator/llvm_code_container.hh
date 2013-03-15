@@ -51,8 +51,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
         LLVMInstVisitor* fCodeProducer;
         
         LLVMResult* fResult;
-         
-        //LLVMContext* fContext;
       
         void generateComputeBegin(const string& counter);
         void generateComputeEnd();
@@ -128,6 +126,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         LLVMCodeContainer(const string& name, int numInputs, int numOutputs);
         LLVMCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
+        virtual ~LLVMCodeContainer();
       
         virtual LLVMResult* produceModule(const string& filename);
         virtual void generateCompute() = 0;

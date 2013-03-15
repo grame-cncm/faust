@@ -51,8 +51,6 @@ static Module* LoadModule(const std::string filename, LLVMContext& context)
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
 {
-    //printf("Compile module...\n");
-    
     int argc1 = argc + 3;
  	const char* argv1[32];
 	assert(argc1 < 32);
@@ -158,7 +156,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 bool llvm_dsp_factory::initJIT()
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
-    if (!fResult->fModule) {
+    if (!fResult || !fResult->fModule) {
         return false;
     }
     
@@ -307,8 +305,10 @@ llvm_dsp_factory::~llvm_dsp_factory()
         delete fJIT;
     }
     
-    delete fResult->fContext;
-    free(fResult);
+    if (fResult) {
+        delete fResult->fContext;
+        free(fResult);
+    }
 }
 
 void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
@@ -404,6 +404,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
+        delete context;
         return 0;
     }
 }
@@ -430,6 +431,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
+        delete context;
         return 0;
     }
 }
@@ -455,6 +457,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());
     #endif
+        delete context;
         return 0;
     }
 }
@@ -479,6 +482,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());
     #endif
+        delete context;
         return 0;
     }
 }
