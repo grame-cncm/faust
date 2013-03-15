@@ -106,7 +106,7 @@ global::global():TABBER(1), gLoopDetector(1024, 512), gNextFreeColor(1)
 
     gClassName = "mydsp";
 
-    gModule = 0;
+    gLLVMResult = 0;
     gInputString = 0;
     
     gLstDependenciesSwitch	= true; ///< mdoc listing management.

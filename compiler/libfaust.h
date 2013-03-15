@@ -29,6 +29,12 @@ extern "C"
 {
 #endif
 
+typedef struct LLVMResult {
+
+    llvm::Module*       fModule;
+    llvm::LLVMContext*  fContext;
+} LLVMResult;
+
 /**
  * Compile a Faust program.
  * 
@@ -56,10 +62,10 @@ int compile_faust(int argc, const char* argv[], const char* library_path, const 
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
- * @return a valid LLVM module on success, 0 otherwise, with an error message in error_msg.
+ * @return a LLVMResult with a LLVM module and LLVM context on success, O otherwise, with an error message in error_msg.
  */
 
-llvm::Module* compile_faust_llvm(int argc,  const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 #ifdef __cplusplus
 }

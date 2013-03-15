@@ -25,7 +25,7 @@
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
-    llvm::Function* fun_ptr = fModule->getFunction(function);
+    llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
     if (fun_ptr) {
         return fJIT->getPointerToFunction(fun_ptr);
     } else {
@@ -49,7 +49,7 @@ static Module* LoadModule(const std::string filename, LLVMContext& context)
     return res;
 }
 
-Module* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
+LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
 {
     //printf("Compile module...\n");
     
@@ -75,7 +75,7 @@ std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
 {
     std::string res;
     raw_string_ostream out(res);
-    WriteBitcodeToFile(fModule, out);
+    WriteBitcodeToFile(fResult->fModule, out);
     out.flush();
     return res;
 }
@@ -84,7 +84,7 @@ void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const std::string& bit_code_
 {
     std::string err;
     raw_fd_ostream out(bit_code_path.c_str(), err, raw_fd_ostream::F_Binary);
-    WriteBitcodeToFile(fModule, out);
+    WriteBitcodeToFile(fResult->fModule, out);
 }
 
 // IR
@@ -94,7 +94,7 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
     raw_string_ostream out(res);
     PassManager PM;
     PM.add(createPrintModulePass(&out));
-    PM.run(*fModule);
+    PM.run(*fResult->fModule);
     out.flush();
     return res;
 }
@@ -105,30 +105,32 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const std::string& ir_code_path)
     raw_fd_ostream out(ir_code_path.c_str(), err, raw_fd_ostream::F_Binary);
     PassManager PM;
     PM.add(createPrintModulePass(&out));
-    PM.run(*fModule);
+    PM.run(*fResult->fModule);
     out.flush();
 }
 
-llvm_dsp_factory::llvm_dsp_factory(Module* module, const std::string& target, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const std::string& target, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = target;
     Init();
-    fModule = module;
+    fResult = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
+    fResult->fModule = module;
+    fResult->fContext = context;
 }
 
 llvm_dsp_factory::llvm_dsp_factory(int argc, const char *argv[], 
-    const std::string& library_path,
-    const std::string& draw_path, 
-    const std::string& name,
-    const std::string& input, 
-    const std::string& target, 
-    char* error_msg, int opt_level)
+                                    const std::string& library_path,
+                                    const std::string& draw_path, 
+                                    const std::string& name,
+                                    const std::string& input, 
+                                    const std::string& target, 
+                                    char* error_msg, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = target;
     Init();
-    fModule = CompileModule(argc, argv, library_path.c_str(), draw_path.c_str(), name.c_str(), input.c_str(), error_msg);
+    fResult = CompileModule(argc, argv, library_path.c_str(), draw_path.c_str(), name.c_str(), input.c_str(), error_msg);
 }
 
 void llvm_dsp_factory::Init()
@@ -148,7 +150,7 @@ void llvm_dsp_factory::Init()
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 {
-    assert(fModule);
+    assert(fResult->fModule);
     assert(fJIT);
     return new llvm_dsp_aux(this, fNew());
 }
@@ -156,7 +158,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 bool llvm_dsp_factory::initJIT()
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
-    if (!fModule) {
+    if (!fResult->fModule) {
         return false;
     }
     
@@ -169,17 +171,17 @@ bool llvm_dsp_factory::initJIT()
     InitializeNativeTarget();
     
     if (fTarget != "") {
-         fModule->setTargetTriple(fTarget);
+         fResult->fModule->setTargetTriple(fTarget);
     } else {
     #if defined(LLVM_31) || defined(LLVM_32)
-        fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+        fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     #else
-        fModule->setTargetTriple(llvm::sys::getHostTriple());
+        fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
     #endif
     }
 
     std::string err;
-    EngineBuilder builder(fModule);
+    EngineBuilder builder(fResult->fModule);
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
     builder.setUseMCJIT(true);
@@ -213,16 +215,16 @@ bool llvm_dsp_factory::initJIT()
     
     fJIT->DisableLazyCompilation(true);
 #ifdef LLVM_32
-    fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
+    fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
 #else
-    fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
+    fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
 #endif
-    //fModule->dump();
+    //fResult->fModule->dump();
 
     // Set up the optimizer pipeline. Start with registering info about how the
     // target lays out data structures.
     PassManager pm;
-    FunctionPassManager fpm(fModule);
+    FunctionPassManager fpm(fResult->fModule);
 #ifdef LLVM_32    
     // TODO
 #else
@@ -235,7 +237,7 @@ bool llvm_dsp_factory::initJIT()
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", context);
         if (scheduler) {
             //scheduler->dump();
-            if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {
+            if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
                 printf("Cannot link scheduler module : %s\n", err.c_str());
             }
             delete scheduler;
@@ -272,9 +274,9 @@ bool llvm_dsp_factory::initJIT()
     Builder.populateFunctionPassManager(fpm);
     Builder.populateModulePassManager(pm);
     
-    pm.run(*fModule);
+    pm.run(*fResult->fModule);
     
-    //fModule->dump();
+    //fResult->fModule->dump();
     
     try {
         fNew = (newDspFun)LoadOptimize("new_mydsp");
@@ -301,9 +303,12 @@ llvm_dsp_factory::~llvm_dsp_factory()
 {
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
-        // fModule is kept and deleted by fJIT
+        // fResult->fModule is kept and deleted by fJIT
         delete fJIT;
     }
+    
+    delete fResult->fContext;
+    free(fResult);
 }
 
 void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
@@ -396,7 +401,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     delete buffer;
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
         return 0;
@@ -422,7 +427,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
         return 0;
@@ -443,7 +448,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("readDSPFactoryFromIR failed :", errs());
@@ -467,7 +472,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     Module* module = ParseIRFile(ir_code_path, err, *context);
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("readDSPFactoryFromIR failed :", errs());

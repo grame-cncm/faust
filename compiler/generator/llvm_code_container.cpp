@@ -50,7 +50,7 @@ using namespace std;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new LLVMScalarCodeContainer(name, 0, 1, fModule, sub_container_type);
+    return new LLVMScalarCodeContainer(name, 0, 1, fResult, sub_container_type);
 }
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
@@ -100,7 +100,7 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
 
     llvm_fill_args.push_back(PointerType::get(buffer_type, 0));
     FunctionType* llvm_fill_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_fill_args), false);
-    Function* llvm_fill = Function::Create(llvm_fill_type, GlobalValue::InternalLinkage, "fill" + fKlassName, fModule);
+    Function* llvm_fill = Function::Create(llvm_fill_type, GlobalValue::InternalLinkage, "fill" + fKlassName, fResult->fModule);
     llvm_fill->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_fill_args_it = llvm_fill->arg_begin();
@@ -114,15 +114,15 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
     //llvm_fill->dump();
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "block_code", llvm_fill));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_fill));
 }
 
 void LLVMCodeContainer::generateFillEnd()
 {
-    Function* llvm_fill = fModule->getFunction("fill" + fKlassName);
+    Function* llvm_fill = fResult->fModule->getFunction("fill" + fKlassName);
     assert(llvm_fill);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_fill);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_fill);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -146,14 +146,14 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
   
     FunctionType* llvm_compute_type = FunctionType::get(fBuilder->getVoidTy(), llvm_compute_args, false);
 
-    Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
+    Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fResult->fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
 
 #if defined(LLVM_32)
     AttrBuilder attr_builder;
     attr_builder.addAttribute(Attributes::NoAlias);
-    Attributes attribute = Attributes::get(fModule->getContext(), attr_builder);
+    Attributes attribute = Attributes::get(getContext(), attr_builder);
     llvm_compute->addAttribute(3U, attribute);
     llvm_compute->addAttribute(4U, attribute);
 #else
@@ -177,15 +177,15 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     arg4->setName("outputs");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "block_code", llvm_compute));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_compute));
 }
 
 void LLVMCodeContainer::generateComputeEnd()
 {
-    Function* llvm_compute = fModule->getFunction("compute" + fKlassName);
+    Function* llvm_compute = fResult->fModule->getFunction("compute" + fKlassName);
     assert(llvm_compute);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_compute);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_compute);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -204,20 +204,20 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 
     FunctionType* llvm_getSR_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSR_args), false);
 
-    Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampleRate" + fKlassName, fModule);
+    Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampleRate" + fKlassName, fResult->fModule);
     sr_fun->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_SR_args_it = sr_fun->arg_begin();
     Value* dsp = llvm_SR_args_it++;
     dsp->setName("dsp");
 
-    BasicBlock* block = BasicBlock::Create(fModule->getContext(), "entry", sr_fun);
+    BasicBlock* block = BasicBlock::Create(getContext(), "entry", sr_fun);
     fBuilder->SetInsertPoint(block);
 
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
     Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
 
-    ReturnInst::Create(fModule->getContext(), load_ptr, block); 
+    ReturnInst::Create(getContext(), load_ptr, block); 
     
     verifyFunction(*sr_fun);
     fBuilder->ClearInsertionPoint();
@@ -243,7 +243,7 @@ void LLVMCodeContainer::generateClassInitBegin()
     llvm_classInit_args.push_back(fBuilder->getInt32Ty());
     FunctionType* llvm_classInit_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_classInit_args), false);
 
-    Function* llvm_classInit = Function::Create(llvm_classInit_type, Function::ExternalLinkage, "classInit" + fKlassName, fModule);
+    Function* llvm_classInit = Function::Create(llvm_classInit_type, Function::ExternalLinkage, "classInit" + fKlassName, fResult->fModule);
     llvm_classInit->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_classInit_args_it = llvm_classInit->arg_begin();
@@ -251,15 +251,15 @@ void LLVMCodeContainer::generateClassInitBegin()
     sample_freq->setName("samplingFreq");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "entry", llvm_classInit));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_classInit));
 }
 
 void LLVMCodeContainer::generateClassInitEnd()
 {
-    Function* llvm_classInit = fModule->getFunction("classInit" + fKlassName);
+    Function* llvm_classInit = fResult->fModule->getFunction("classInit" + fKlassName);
     assert(llvm_classInit);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_classInit);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_classInit);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -278,7 +278,7 @@ void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
     llvm_instanceInit_args.push_back(fBuilder->getInt32Ty());
     FunctionType* llvm_instanceInit_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_instanceInit_args), false);
 
-    Function* llvm_instanceInit = Function::Create(llvm_instanceInit_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "instanceInit" + fKlassName, fModule);
+    Function* llvm_instanceInit = Function::Create(llvm_instanceInit_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "instanceInit" + fKlassName, fResult->fModule);
     llvm_instanceInit->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_instanceInit_args_it = llvm_instanceInit->arg_begin();
@@ -288,15 +288,15 @@ void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
     sample_freq->setName("samplingFreq");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "entry", llvm_instanceInit));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_instanceInit));
 }
 
 void LLVMCodeContainer::generateInstanceInitEnd()
 {
-    Function* llvm_instanceInit = fModule->getFunction("instanceInit" + fKlassName);
+    Function* llvm_instanceInit = fResult->fModule->getFunction("instanceInit" + fKlassName);
     assert(llvm_instanceInit);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_instanceInit);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_instanceInit);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -310,19 +310,19 @@ void LLVMCodeContainer::generateInstanceInitEnd()
 
 void LLVMCodeContainer::generateDestroyBegin()
 {
-    Function* llvm_destroy = fModule->getFunction("destroy" + fKlassName);
+    Function* llvm_destroy = fResult->fModule->getFunction("destroy" + fKlassName);
     assert(llvm_destroy);
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "entry", llvm_destroy));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_destroy));
 }
 
 void LLVMCodeContainer::generateDestroyEnd()
 {
-    Function* llvm_destroy = fModule->getFunction("destroy" + fKlassName);
+    Function* llvm_destroy = fResult->fModule->getFunction("destroy" + fKlassName);
     assert(llvm_destroy);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_destroy);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_destroy);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -336,19 +336,19 @@ void LLVMCodeContainer::generateDestroyEnd()
 
 void LLVMCodeContainer::generateAllocateBegin()
 {
-    Function* llvm_allocate = fModule->getFunction("allocate" + fKlassName);
+    Function* llvm_allocate = fResult->fModule->getFunction("allocate" + fKlassName);
     assert(llvm_allocate);
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "entry", llvm_allocate));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_allocate));
 }
 
 void LLVMCodeContainer::generateAllocateEnd()
 {
-    Function* llvm_allocate = fModule->getFunction("allocate" + fKlassName);
+    Function* llvm_allocate = fResult->fModule->getFunction("allocate" + fKlassName);
     assert(llvm_allocate);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_allocate);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_allocate);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -367,7 +367,7 @@ void LLVMCodeContainer::generateInitFun()
     llvm_init_args.push_back(fBuilder->getInt32Ty());
     FunctionType* llvm_init_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_init_args), false);
 
-    Function* llvm_init = Function::Create(llvm_init_type, Function::ExternalLinkage, "init" + fKlassName, fModule);
+    Function* llvm_init = Function::Create(llvm_init_type, Function::ExternalLinkage, "init" + fKlassName, fResult->fModule);
     llvm_init->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_init_args_it = llvm_init->arg_begin();
@@ -377,11 +377,11 @@ void LLVMCodeContainer::generateInitFun()
     arg2->setName("samplingFreq");
 
     /// llvm_init block
-    BasicBlock* return_block2 = BasicBlock::Create(fModule->getContext(), "entry", llvm_init);
+    BasicBlock* return_block2 = BasicBlock::Create(getContext(), "entry", llvm_init);
     vector<Value*> params1;
     params1.push_back(arg2);
 
-    Function* llvm_classInit = fModule->getFunction("classInit" + fKlassName);
+    Function* llvm_classInit = fResult->fModule->getFunction("classInit" + fKlassName);
     assert(llvm_classInit);
     CallInst* call_inst1 = CREATE_CALL1(llvm_classInit, params1, "", return_block2);
     call_inst1->setCallingConv(CallingConv::C);
@@ -390,12 +390,12 @@ void LLVMCodeContainer::generateInitFun()
     params2.push_back(arg1);
     params2.push_back(arg2);
 
-    Function* llvm_instanceInit = fModule->getFunction("instanceInit" + fKlassName);
+    Function* llvm_instanceInit = fResult->fModule->getFunction("instanceInit" + fKlassName);
     assert(llvm_instanceInit);
     CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
 
-    ReturnInst::Create(fModule->getContext(), return_block2);
+    ReturnInst::Create(getContext(), return_block2);
     verifyFunction(*llvm_init);
     fBuilder->ClearInsertionPoint();
 }
@@ -406,7 +406,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     llvm_metaData_args.push_back(meta_type_ptr);
     FunctionType* llvm_metaData_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_metaData_args), false);
 
-    Function* llvm_metaData = Function::Create(llvm_metaData_type, GlobalValue::ExternalLinkage, "metadata" + fKlassName, fModule);
+    Function* llvm_metaData = Function::Create(llvm_metaData_type, GlobalValue::ExternalLinkage, "metadata" + fKlassName, fResult->fModule);
     llvm_metaData->setCallingConv(CallingConv::C);
 
     // Name arguments
@@ -414,7 +414,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     Value* meta = llvm_metaData_args_it++;
     meta->setName("m");
 
-    BasicBlock* init_block = BasicBlock::Create(fModule->getContext(), "init", llvm_metaData);
+    BasicBlock* init_block = BasicBlock::Create(getContext(), "init", llvm_metaData);
     fBuilder->SetInsertPoint(init_block);
     
     Value* idx0[2];
@@ -456,8 +456,8 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     }
 
     // Create return block
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_metaData);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_metaData);
+    ReturnInst::Create(getContext(), return_block);
 
     // Insert return block
     fBuilder->CreateBr(return_block);
@@ -468,7 +468,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 void LLVMCodeContainer::generateBuildUserInterfaceBegin()
 {
     // Function is actually created in LLVMTypeInstVisitor::generateDataStruct
-    Function* llvm_buildUserInterface = fModule->getFunction("buildUserInterface" + fKlassName);
+    Function* llvm_buildUserInterface = fResult->fModule->getFunction("buildUserInterface" + fKlassName);
 
     // Get the already created init block and insert in it.
     BasicBlock* init_block = llvm_buildUserInterface->getBasicBlockList().begin();
@@ -477,9 +477,9 @@ void LLVMCodeContainer::generateBuildUserInterfaceBegin()
 
 void LLVMCodeContainer::generateBuildUserInterfaceEnd()
 {
-    Function* llvm_buildUserInterface = fModule->getFunction("buildUserInterface" + fKlassName);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_buildUserInterface);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    Function* llvm_buildUserInterface = fResult->fModule->getFunction("buildUserInterface" + fKlassName);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_buildUserInterface);
+    ReturnInst::Create(getContext(), return_block);
 
     // Insert return block
     fBuilder->CreateBr(return_block);
@@ -490,7 +490,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
 void LLVMCodeContainer::produceInternal()
 {
     // Creates DSP structure
-    LLVMTypeInstVisitor fTypeBuilder(fModule, fKlassName);
+    LLVMTypeInstVisitor fTypeBuilder(fResult->fModule, fKlassName);
 
     // Sort arrays to be at the begining
     generateDeclarations(&fTypeBuilder);
@@ -498,7 +498,7 @@ void LLVMCodeContainer::produceInternal()
     // Now we can create the DSP type
     fStruct_DSP_ptr = fTypeBuilder.getDSPType(true, false);
 
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    fCodeProducer = new LLVMInstVisitor(fResult->fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
     
     generateInfoFunctions(fKlassName, false);
   
@@ -522,7 +522,7 @@ void LLVMCodeContainer::produceInternal()
     generateFillEnd();
 }
 
-Module* LLVMCodeContainer::produceModule(const string& filename)
+LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
 {
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     if (!fGeneratedSR) {
@@ -536,7 +536,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateSubContainers();
 
     // Creates DSP structure
-    LLVMTypeInstVisitor1 fTypeBuilder(fModule, fKlassName);
+    LLVMTypeInstVisitor1 fTypeBuilder(fResult->fModule, fKlassName);
 
     // Sort arrays to be at the begining
     generateDeclarations(&fTypeBuilder);
@@ -547,7 +547,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    fCodeProducer = new LLVMInstVisitor(fResult->fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
     
     generateInfoFunctions(fKlassName, true);
   
@@ -586,10 +586,15 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     if (filename != "") {
         std::string err;
         raw_fd_ostream out(filename.c_str(), err, raw_fd_ostream::F_Binary);
-        WriteBitcodeToFile(fModule, out);
+        WriteBitcodeToFile(fResult->fModule, out);
     }
-
-    return fModule;
+    /*
+    LLVMResult* result = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
+    result->fResult->fModule = fResult->fModule;
+    result->fContext = fContext;
+    */
+    
+    return fResult;
 }
 
 // Scalar
@@ -597,8 +602,8 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInpu
     :LLVMCodeContainer(name, numInputs, numOutputs)
 {}
 
-LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, int sub_container_type)
-    :LLVMCodeContainer(name, numInputs, numOutputs, module)
+LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result, int sub_container_type)
+    :LLVMCodeContainer(name, numInputs, numOutputs, result)
 {
     fSubContainerType = sub_container_type;
 }
@@ -683,7 +688,7 @@ void LLVMOpenMPCodeContainer::generateOMPCompute()
 void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 {
     vector<LlvmValue> fun_args;
-    Function* dsp_omp_compute = fModule->getFunction("dsp_omp_compute");
+    Function* dsp_omp_compute = fResult->fModule->getFunction("dsp_omp_compute");
     CallInst* call_inst = CREATE_CALL(dsp_omp_compute, fun_args);
     call_inst->setCallingConv(CallingConv::C);
 }
@@ -691,21 +696,21 @@ void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 void LLVMOpenMPCodeContainer::generateGOMP_parallel_start()
 {
     vector<LlvmValue> fun_args;
-    Function* GOMP_parallel_start = fModule->getFunction("GOMP_parallel_start");
+    Function* GOMP_parallel_start = fResult->fModule->getFunction("GOMP_parallel_start");
     CallInst* call_inst = CREATE_CALL(GOMP_parallel_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);
 }
 
 void LLVMOpenMPCodeContainer::generateGOMP_parallel_end()
 {
-    Function* GOMP_parallel_end = fModule->getFunction("GOMP_parallel_end");
+    Function* GOMP_parallel_end = fResult->fModule->getFunction("GOMP_parallel_end");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_parallel_end);
     call_inst->setCallingConv(CallingConv::C);
 }
 
 LlvmValue LLVMOpenMPCodeContainer::generateGOMP_single_start()
 {
-    Function* GOMP_single_start = fModule->getFunction("GOMP_single_start");
+    Function* GOMP_single_start = fResult->fModule->getFunction("GOMP_single_start");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_single_start);
     call_inst->setCallingConv(CallingConv::C);
     return call_inst;
@@ -713,7 +718,7 @@ LlvmValue LLVMOpenMPCodeContainer::generateGOMP_single_start()
 
 void LLVMOpenMPCodeContainer::generateGOMP_barrier()
 {
-    Function* GOMP_barrier = fModule->getFunction("GOMP_barrier");
+    Function* GOMP_barrier = fResult->fModule->getFunction("GOMP_barrier");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_barrier);
     call_inst->setCallingConv(CallingConv::C);
 }
@@ -722,21 +727,21 @@ void LLVMOpenMPCodeContainer::generateGOMP_sections_start(LlvmValue number)
 {
     vector<LlvmValue> fun_args;
     fun_args[0] = number;
-    Function* GOMP_sections_start = fModule->getFunction("GOMP_sections_start");
+    Function* GOMP_sections_start = fResult->fModule->getFunction("GOMP_sections_start");
     CallInst* call_inst = CREATE_CALL(GOMP_sections_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);
 }
 
 void LLVMOpenMPCodeContainer::generateGOMP_sections_end()
 {
-    Function* GOMP_sections_end = fModule->getFunction("GOMP_sections_end");
+    Function* GOMP_sections_end = fResult->fModule->getFunction("GOMP_sections_end");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_sections_end);
     call_inst->setCallingConv(CallingConv::C);
 }
 
 void LLVMOpenMPCodeContainer::generateGOMP_sections_next()
 {
-    Function* GOMP_sections_next = fModule->getFunction("GOMP_sections_next");
+    Function* GOMP_sections_next = fResult->fModule->getFunction("GOMP_sections_next");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_sections_next);
     call_inst->setCallingConv(CallingConv::C);
 }
@@ -746,11 +751,11 @@ void LLVMOpenMPCodeContainer::generateOMPDeclarations()
     // Type Definitions
     VECTOR_OF_TYPES FuncTy_0_args;
     VECTOR_OF_TYPES FuncTy_2_args;
-    PointerType* PointerTy_3 = PointerType::get(IntegerType::get(fModule->getContext(), 8), 0);
+    PointerType* PointerTy_3 = PointerType::get(IntegerType::get(getContext(), 8), 0);
 
     FuncTy_2_args.push_back(PointerTy_3);
     FunctionType* FuncTy_2 = FunctionType::get(
-    /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
+    /*Result=*/llvm::Type::getVoidTy(getContext()),
     /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_2_args),
     /*isVarArg=*/false);
 
@@ -758,34 +763,34 @@ void LLVMOpenMPCodeContainer::generateOMPDeclarations()
 
     FuncTy_0_args.push_back(PointerTy_1);
     FuncTy_0_args.push_back(PointerTy_3);
-    FuncTy_0_args.push_back(IntegerType::get(fModule->getContext(), 32));
+    FuncTy_0_args.push_back(IntegerType::get(getContext(), 32));
     FunctionType* FuncTy_0 = FunctionType::get(
-    /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
+    /*Result=*/llvm::Type::getVoidTy(getContext()),
     /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_0_args),
     /*isVarArg=*/false);
 
     VECTOR_OF_TYPES FuncTy_4_args;
     FunctionType* FuncTy_4 = FunctionType::get(
-    /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
+    /*Result=*/llvm::Type::getVoidTy(getContext()),
     /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_4_args),
     /*isVarArg=*/false);
 
     VECTOR_OF_TYPES FuncTy_5_args;
     FunctionType* FuncTy_5 = FunctionType::get(
-    /*Result=*/IntegerType::get(fModule->getContext(), 8),
+    /*Result=*/IntegerType::get(getContext(), 8),
     /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_5_args),
     /*isVarArg=*/false);
 
     VECTOR_OF_TYPES FuncTy_6_args;
-    FuncTy_6_args.push_back(IntegerType::get(fModule->getContext(), 32));
+    FuncTy_6_args.push_back(IntegerType::get(getContext(), 32));
     FunctionType* FuncTy_6 = FunctionType::get(
-    /*Result=*/IntegerType::get(fModule->getContext(), 32),
+    /*Result=*/IntegerType::get(getContext(), 32),
     /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_6_args),
     /*isVarArg=*/false);
 
     VECTOR_OF_TYPES FuncTy_7_args;
     FunctionType* FuncTy_7 = FunctionType::get(
-    /*Result=*/IntegerType::get(fModule->getContext(), 32),
+    /*Result=*/IntegerType::get(getContext(), 32),
     /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_7_args),
     /*isVarArg=*/false);
 
@@ -793,50 +798,50 @@ void LLVMOpenMPCodeContainer::generateOMPDeclarations()
     Function* func_GOMP_parallel_start = Function::Create(
     /*Type=*/FuncTy_0,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_parallel_start", fModule); // (external, no body)
+    /*Name=*/"GOMP_parallel_start", fResult->fModule); // (external, no body)
     func_GOMP_parallel_start->setCallingConv(CallingConv::C);
 
     Function* func_GOMP_parallel_end = Function::Create(
     /*Type=*/FuncTy_4,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_parallel_end", fModule); // (external, no body)
+    /*Name=*/"GOMP_parallel_end", fResult->fModule); // (external, no body)
     func_GOMP_parallel_end->setCallingConv(CallingConv::C);
 
     Function* func_GOMP_single_start = Function::Create(
     /*Type=*/FuncTy_5,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_single_start", fModule); // (external, no body)
+    /*Name=*/"GOMP_single_start", fResult->fModule); // (external, no body)
     func_GOMP_single_start->setCallingConv(CallingConv::C);
 
     Function* func_GOMP_barrier = Function::Create(
     /*Type=*/FuncTy_4,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_barrier", fModule); // (external, no body)
+    /*Name=*/"GOMP_barrier", fResult->fModule); // (external, no body)
     func_GOMP_barrier->setCallingConv(CallingConv::C);
 
     Function* func_GOMP_sections_start = Function::Create(
     /*Type=*/FuncTy_6,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_sections_start", fModule); // (external, no body)
+    /*Name=*/"GOMP_sections_start", fResult->fModule); // (external, no body)
     func_GOMP_sections_start->setCallingConv(CallingConv::C);
 
     Function* func_GOMP_sections_end = Function::Create(
     /*Type=*/FuncTy_4,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_sections_end", fModule); // (external, no body)
+    /*Name=*/"GOMP_sections_end", fResult->fModule); // (external, no body)
     func_GOMP_sections_end->setCallingConv(CallingConv::C);
 
     Function* func_GOMP_sections_next = Function::Create(
     /*Type=*/FuncTy_7,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"GOMP_sections_next", fModule); // (external, no body)
+    /*Name=*/"GOMP_sections_next", fResult->fModule); // (external, no body)
     func_GOMP_sections_next->setCallingConv(CallingConv::C);
 
     // DSP
     Function* func_dsp_omp_compute = Function::Create(
     /*Type=*/FuncTy_2,
     /*Linkage=*/GlobalValue::ExternalLinkage,
-    /*Name=*/"dsp_omp_compute", fModule); // (external, no body)
+    /*Name=*/"dsp_omp_compute", fResult->fModule); // (external, no body)
     func_dsp_omp_compute->setCallingConv(CallingConv::C);
 }
 
@@ -856,7 +861,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
 
     FunctionType* llvm_computethread_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_computethread_args), false);
 
-    Function* llvm_computethread = Function::Create(llvm_computethread_type, GlobalValue::ExternalLinkage, "computeThread", fModule);
+    Function* llvm_computethread = Function::Create(llvm_computethread_type, GlobalValue::ExternalLinkage, "computeThread", fResult->fModule);
     llvm_computethread->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_computethread_args_it = llvm_computethread->arg_begin();
@@ -866,15 +871,15 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
     arg2->setName("num_thread");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "block_code", llvm_computethread));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_computethread));
 }
 
 void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
 {
-    Function* llvm_computethread = fModule->getFunction("computeThread");
+    Function* llvm_computethread = fResult->fModule->getFunction("computeThread");
     assert(llvm_computethread);
-    BasicBlock* return_block = BasicBlock::Create(fModule->getContext(), "return", llvm_computethread);
-    ReturnInst::Create(fModule->getContext(), return_block);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_computethread);
+    ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
     if (fBuilder->GetInsertBlock()) {
@@ -889,12 +894,12 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
 void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 {
     VECTOR_OF_TYPES llvm_computethread_args;
-    llvm_computethread_args.push_back(PointerType::get(llvm::Type::getInt8Ty(fModule->getContext()), 0));
+    llvm_computethread_args.push_back(PointerType::get(llvm::Type::getInt8Ty(getContext()), 0));
     llvm_computethread_args.push_back(fBuilder->getInt32Ty());
 
     FunctionType* llvm_computethread_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_computethread_args), false);
 
-    Function* llvm_computethread = Function::Create(llvm_computethread_type, GlobalValue::ExternalLinkage, "computeThreadExternal", fModule);
+    Function* llvm_computethread = Function::Create(llvm_computethread_type, GlobalValue::ExternalLinkage, "computeThreadExternal", fResult->fModule);
     llvm_computethread->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_computethread_args_it = llvm_computethread->arg_begin();
@@ -904,9 +909,9 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     arg2->setName("num_thread");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(fModule->getContext(), "block_code", llvm_computethread));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_computethread));
 
-    Function* llvm_computethreadInternal = fModule->getFunction("computeThread");
+    Function* llvm_computethreadInternal = fResult->fModule->getFunction("computeThread");
     assert(llvm_computethreadInternal);
 
     CallInst* call_inst = fBuilder->CreateCall2(llvm_computethreadInternal, fBuilder->CreateBitCast(arg1, fStruct_DSP_ptr), arg2);
@@ -988,7 +993,7 @@ fun2->accept(fCodeProducer);
 StatementInst* fun3 = InstBuilder::genDeclareFunInst("fun3", InstBuilder::genFunTyped(types1, InstBuilder::genBasicTyped(Typed::kVoid)), code2);
 fun3->accept(fCodeProducer);
 
-fModule->dump();
+fResult->fModule->dump();
 
 StatementInst* inst1 = InstBuilder::genDeclareVarInst("temp1", InstBuilder::genBasicTyped(Typed::kFloat), Address::kStack, InstBuilder::genFloatNumInst(3));
 StatementInst* inst2 = InstBuilder::genDeclareVarInst("temp2", InstBuilder::genBasicTyped(Typed::kFloat), Address::kStack,
@@ -1018,11 +1023,11 @@ fun1->accept(fCodeProducer);
 /*
 ExecutionEngine* fJIT;
 std::string ErrorMessage;
-fJIT = EngineBuilder(fModule).setErrorStr(&ErrorMessage).create();
+fJIT = EngineBuilder(fResult->fModule).setErrorStr(&ErrorMessage).create();
 cout << ErrorMessage;
 assert(fJIT);
 
-getNumInputsFun fGetNumInputs = (getNumInputsFun)(intptr_t)fJIT->getPointerToFunction(fModule->getFunction("getNumInputs_llvm"));
+getNumInputsFun fGetNumInputs = (getNumInputsFun)(intptr_t)fJIT->getPointerToFunction(fResult->fModule->getFunction("getNumInputs_llvm"));
 printf("function %x\n", fGetNumInputs);
 llvm_dsp dsp;
 int num = fGetNumInputs(&dsp);
@@ -1030,8 +1035,8 @@ printf("module num %d\n", num);
 */
 
 /*
-TargetData* target = new TargetData(fModule->getDataLayout());
-FunctionPassManager manager(fModule);
+TargetData* target = new TargetData(fResult->fModule->getDataLayout());
+FunctionPassManager manager(fResult->fModule);
 manager.add(target);
 manager.add(createInstructionCombiningPass());
 
@@ -1041,6 +1046,6 @@ manager.add(createCFGSimplificationPass());
 
 createStandardFunctionPasses(&manager, 3);
 
-manager.run(*fModule->getFunction("compute" + fKlassName));
-manager.run(*fModule->getFunction("init" + fKlassName));
+manager.run(*fResult->fModule->getFunction("compute" + fKlassName));
+manager.run(*fResult->fModule->getFunction("init" + fKlassName));
 */

@@ -82,6 +82,7 @@
 #include "ppsig.hh"
 #include "garbageable.hh"
 #include "export.hh"
+#include "libfaust.h"
 
 using namespace std;
 
@@ -601,10 +602,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         comp->prepare(signals);
      
         comp->compileMultiSignal(signals);
-        gGlobal->gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gGlobal->gOutputFile.c_str());
+        LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
+        gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
         
         if (gLLVMOut && gGlobal->gOutputFile == "") {
-            outs() << *gGlobal->gModule;
+            outs() << *gGlobal->gLLVMResult->fModule;
         }
  
     } else {
@@ -803,18 +805,6 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-EXPORT Module* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-
-#ifdef __cplusplus
-}
-#endif
-
 int compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
 {
     /****************************************************************
@@ -901,23 +891,23 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
     return 0;
 }
 
-EXPORT Module* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
-    Module* module = 0;
+    LLVMResult* result = NULL;
     gLLVMOut = false;
     gGlobal = NULL;
     
     try {
         global::allocate();
         compile_faust_internal(argc, argv, library_path, draw_path, name, input);
-        module = gGlobal->gModule;
+        result = gGlobal->gLLVMResult;
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
     }
     
     global::destroy();
-    return module;
+    return result;
 }
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)

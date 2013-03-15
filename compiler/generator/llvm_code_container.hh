@@ -44,10 +44,13 @@ class LLVMCodeContainer : public virtual CodeContainer {
         // UI structure creation
         llvm::PointerType* fStruct_DSP_ptr;
 
-        Module* fModule;
+        //Module* fModule;
         IRBuilder<>* fBuilder;
         LLVMInstVisitor* fCodeProducer;
-        LLVMContext* fContext;
+        
+        LLVMResult* fResult;
+         
+        //LLVMContext* fContext;
       
         void generateComputeBegin(const string& counter);
         void generateComputeEnd();
@@ -94,28 +97,30 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         LlvmValue genInt1(int number)
         {
-            return ConstantInt::get(llvm::Type::getInt1Ty(fModule->getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), number);
         }
 
         LlvmValue genInt32(int number)
         {
-            return ConstantInt::get(llvm::Type::getInt32Ty(fModule->getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt32Ty(getContext()), number);
         }
 
         LlvmValue genInt64(int number)
         {
-            return ConstantInt::get(llvm::Type::getInt64Ty(fModule->getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt64Ty(getContext()), number);
         }
 
         LlvmValue genFloat(const string& number)
         {
-            return ConstantFP::get(fModule->getContext(), APFloat(APFloat::IEEEsingle, number));
+            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));
         }
 
         LlvmValue genFloat(float number)
         {
-            return ConstantFP::get(fModule->getContext(), APFloat(number));
+            return ConstantFP::get(getContext(), APFloat(number));
         }
+        
+        LLVMContext& getContext() { return *fResult->fContext; }
 
     public:
 
@@ -123,16 +128,16 @@ class LLVMCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
-            fContext = new LLVMContext();
-
-            //fModule = new Module("Faust LLVM backend", getGlobalContext());
-            fModule = new Module("Faust LLVM backend", *fContext);
-            fBuilder = new IRBuilder<>(fModule->getContext());
+            
+            fResult = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
+            fResult->fContext = new LLVMContext();
+            fResult->fModule = new Module("Faust LLVM backend", getContext());
+            fBuilder = new IRBuilder<>(getContext());
     
         #if defined(LLVM_31) || defined(LLVM_32)
-            fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
         #else
-            fModule->setTargetTriple(llvm::sys::getHostTriple());
+            fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
         #endif
             fNumInputs = numInputs;
             fNumOutputs = numOutputs;
@@ -140,21 +145,21 @@ class LLVMCodeContainer : public virtual CodeContainer {
             fOutputRates.resize(numOutputs);
         }
     
-        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module)
+        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
-            fModule = module;
-            fBuilder = new IRBuilder<>(fModule->getContext());
+            fResult = result;
+            fBuilder = new IRBuilder<>(getContext());
         }
-      
+       
         virtual ~LLVMCodeContainer()
         {
             // External object not covered by Garbageable, do delete it here
             delete fBuilder;
         }
 
-        virtual Module* produceModule(const string& filename);
+        virtual LLVMResult* produceModule(const string& filename);
         virtual void generateCompute() = 0;
         void produceInternal();
 
@@ -171,7 +176,7 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
     public:
 
         LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
-        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, int sub_container_type);
+        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result, int sub_container_type);
         virtual ~LLVMScalarCodeContainer();
 
         void generateCompute();

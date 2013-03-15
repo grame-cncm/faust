@@ -62,7 +62,7 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/CUI.h"
 #include "faust/audio/dsp.h"
-
+#include "libfaust.h"
 #include "export.hh"
 
 #ifdef WIN32
@@ -86,7 +86,10 @@ class llvm_dsp_factory {
     private:
 
         ExecutionEngine* fJIT;
-        Module* fModule;
+        //Module* fModule;
+        
+        LLVMResult* fResult;
+        
         int fOptLevel;
         string fTarget;
     
@@ -107,7 +110,7 @@ class llvm_dsp_factory {
         
         void* LoadOptimize(const std::string& function);
         
-        Module* CompileModule(int argc, const char *argv[], 
+        LLVMResult* CompileModule(int argc, const char *argv[], 
             const char* library_path, const char* draw_path,
             const char* input_name, const char* input, char* error_msg);
             
@@ -116,11 +119,11 @@ class llvm_dsp_factory {
   public:
   
         llvm_dsp_factory(int argc, const char *argv[], 
-            const std::string& library_path, const std::string& draw_path, const std::string& name, 
-            const std::string& input, const std::string& target, 
-            char* error_msg, int opt_level = 3);
+                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
+                        const std::string& input, const std::string& target, 
+                        char* error_msg, int opt_level = 3);
               
-        llvm_dsp_factory(Module* module, const std::string& target, int opt_level = 0);
+        llvm_dsp_factory(Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
       
         virtual ~llvm_dsp_factory();
       

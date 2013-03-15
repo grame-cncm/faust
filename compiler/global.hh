@@ -40,6 +40,7 @@
 #include "loopDetector.hh"
 #include "occurrences.hh"
 #include "instructions.hh"
+#include "libfaust.h"
 
 class 	CTree;
 typedef CTree* Tree;
@@ -111,7 +112,7 @@ struct global {
 
     string			gClassName;
 
-    llvm::Module*   gModule;
+    LLVMResult*     gLLVMResult;
     const char*     gInputString;
     
     bool			gLstDependenciesSwitch;     ///< mdoc listing management.
