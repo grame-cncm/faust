@@ -66,7 +66,7 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
   var vb = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    2,
     0,
     0,
     this.value_box_w,
@@ -433,7 +433,7 @@ _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
   var groove = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -470,7 +470,7 @@ _f4u$t.Slider.prototype.make_handle = function(svg, parent, id) {
   var handle = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -572,7 +572,7 @@ _f4u$t.BarGraph.prototype.make_curtain = function(svg, parent, id) {
   var curtain = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -596,7 +596,7 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
   var meter = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -701,7 +701,7 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
   var box = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -938,7 +938,7 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
   var button = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
@@ -1145,7 +1145,7 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
   var background = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
-    0,
+    4,
     0,
     0,
     w,
