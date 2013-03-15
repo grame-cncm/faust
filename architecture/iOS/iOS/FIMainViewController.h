@@ -88,6 +88,7 @@ class uiBox;
 // DSP view
 - (void)responderValueDidChange:(float)value sender:(id)sender;
 - (void)saveGui;
+- (void)loadGui;
 - (void)updateGui;
 
 #ifdef JACK_IOS
