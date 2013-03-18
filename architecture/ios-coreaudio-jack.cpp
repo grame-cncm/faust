@@ -34,34 +34,6 @@
  ************************************************************************
  ************************************************************************/
 
-/* link with  */
-#include <math.h>
-/* link with  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <math.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <pwd.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <pthread.h>
-#include <sys/wait.h>
-
-#include <list>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <stack>
-#include <list>
-#include <map>
-#include <libgen.h>
-
 #define JACK_IOS 1
 
 #import "FICocoaUI.h"

@@ -34,20 +34,20 @@
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
+     [self.mainViewController saveGui];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
-{
-    [self.mainViewController saveGui];
-}
+{}
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-     [self.mainViewController openAudio];
+    [self.mainViewController openAudio];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
+    [self.mainViewController loadGui];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application

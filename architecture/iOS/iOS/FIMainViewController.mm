@@ -157,10 +157,10 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 - (BOOL)checkJack
 {
-    audio* audio_device1;
-    if ((audio_device1 = new jackaudio(NULL, 0)) && audio_device1->init("dummy", &DSP)) {
-        audio_device1->stop();
-        delete audio_device1;
+    jackaudio audio;
+    
+    if (audio.init("dummy", &DSP)) {
+        audio.stop();
         return TRUE;
     } else {
         return FALSE;
@@ -331,7 +331,6 @@ error:
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
     
     [_tapGesture release];
-    finterface->saveState(rcfilename);
     
     [self closeAudio];
     
@@ -508,7 +507,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
-
+// Load widgets values
+- (void)loadGui
+{
+    if (finterface) {
+        finterface->recallState(rcfilename);
+    }
+}
 
 // Reflect the whole patch
 - (void)updateGui

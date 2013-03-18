@@ -53,6 +53,7 @@
 		4B06ECA816E77D6A004D2F59 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65E5EDA714DB037D00136CFC /* MainStoryboard_iPad.storyboard */; };
 		4B06ECAA16E77D6A004D2F59 /* close.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9D157806E6009F2D7A /* close.png */; };
 		4B06ECAB16E77D6A004D2F59 /* close@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9E157806E6009F2D7A /* close@2x.png */; };
+		4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BAD5B9E16F0FA5D000FEF86 /* jack.framework */; };
 		4BB0480616EA01EC00C0677C /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BB0480516EA01EC00C0677C /* icon.png */; };
 		4BB0480716EA01EC00C0677C /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BB0480516EA01EC00C0677C /* icon.png */; };
 		4BDAA21016AEF05D00A3499E /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDAA20F16AEF05D00A3499E /* Accelerate.framework */; };
@@ -111,6 +112,7 @@
 		4B04365016E9E9AD00C0C02A /* Icon-Output136.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output136.png"; sourceTree = "<group>"; };
 		4B04365116E9E9AD00C0C02A /* Icon-Output@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output@2x.png"; sourceTree = "<group>"; };
 		4B06ECAF16E77D6A004D2F59 /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
 		4BB0480516EA01EC00C0677C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
@@ -144,8 +146,8 @@
 		65E5EDA014DB037D00136CFC /* iOS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "iOS-Prefix.pch"; sourceTree = "<group>"; };
 		65E5EDA114DB037D00136CFC /* FIAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FIAppDelegate.h; sourceTree = "<group>"; };
 		65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FIAppDelegate.mm; sourceTree = "<group>"; };
-		65E5EDA514DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
-		65E5EDA814DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		65E5EDA514DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		65E5EDA814DB037D00136CFC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		65E5EDAA14DB037D00136CFC /* FIMainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FIMainViewController.h; sourceTree = "<group>"; };
 		65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = FIMainViewController.mm; sourceTree = "<group>"; };
 		65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FIFlipsideViewController.h; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 				4B06ECA216E77D6A004D2F59 /* Foundation.framework in Frameworks */,
 				4B06ECA316E77D6A004D2F59 /* CoreGraphics.framework in Frameworks */,
 				4B06ECA416E77D6A004D2F59 /* Accelerate.framework in Frameworks */,
+				4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,6 +279,7 @@
 		65E5ED9114DB037D00136CFC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4BAD5B9E16F0FA5D000FEF86 /* jack.framework */,
 				4BDAA20F16AEF05D00A3499E /* Accelerate.framework */,
 				65E85C9A157806C2009F2D7A /* QuartzCore.framework */,
 				65F87430156FFB0C008AE175 /* CoreMotion.framework */,
@@ -610,12 +614,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = /usr/local/include;
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				OTHER_LDFLAGS = "-ljackclient";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Template;
 				WRAPPER_EXTENSION = app;
 			};
@@ -625,12 +633,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = /usr/local/include;
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				OTHER_LDFLAGS = "-ljackclient";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Template;
 				WRAPPER_EXTENSION = app;
 			};
@@ -655,15 +667,15 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = "";
 				MACH_O_TYPE = mh_execute;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "-ljack";
+				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "/usr/local/include/**";
+				USER_HEADER_SEARCH_PATHS = "";
 				VALIDATE_PRODUCT = NO;
 			};
 			name = Debug;
@@ -685,15 +697,15 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = "";
 				MACH_O_TYPE = mh_execute;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "-ljack";
+				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "/usr/local/include/**";
+				USER_HEADER_SEARCH_PATHS = "";
 				VALIDATE_PRODUCT = NO;
 			};
 			name = Release;
