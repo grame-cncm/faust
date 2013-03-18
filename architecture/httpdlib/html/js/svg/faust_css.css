@@ -66,6 +66,18 @@ path.faust-rbutton-handle {
   stroke : black;
 }
 
+rect.faust-hslider-meter {
+  fill : url(#horizontalSliderMeterGradient);
+  width : 200;
+  height : 40;
+}
+
+rect.faust-vslider-meter {
+  fill : url(#verticalSliderMeterGradient);
+  height : 200;
+  width : 40;
+}
+
 rect.faust-hslider-groove {
   fill : rgba(28,126,192,0.65);
   stroke : rgba(0,182,253,0.9);
@@ -78,6 +90,12 @@ rect.faust-hslider-handle {
   stroke : black;
   width : 30;
   height : 40;
+}
+
+rect.faust-vslider-meter {
+  fill : url(#horizontalSliderMeterGradient);
+  height : 200;
+  width : 40;
 }
 
 rect.faust-vslider-groove {

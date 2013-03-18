@@ -426,8 +426,41 @@ _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, this.length, this.girth / 3.0);
   var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+  var slider_girth = this.length  * this.sp;
+  var half_slider_girth = slider_girth * 0.5;
+  var startp = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0 + half_slider_girth, this.length - half_slider_girth);
   var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
   var full_id = 'faust_'+this.type+'_groove_'+id;
+  var activate_fn = "activate_"+this.type;
+  var mousedown = _f4u$t[activate_fn];
+  var groove = _f4u$t.make_rectangle_via_rect(
+    svg,
+    parent,
+    4,
+    _f4u$t.xy(this.axis, startp, 0),
+    0,
+    _f4u$t.xy(this.axis, w - startp, w),
+    _f4u$t.xy(this.axis, h, startp),
+    {
+      fill : _f4u$t.color_to_rgb(this.groove_fill),
+      stroke : _f4u$t.color_to_rgb(this.groove_stroke),
+      id : full_id,
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-groove', 'faust-vslider-groove'),
+      transform : trans
+    });
+
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
+  return groove;
+}
+
+_f4u$t.Slider.prototype.make_meter = function(svg, parent, id) {
+  var dims = this.dims();
+  var w = _f4u$t.xy(this.axis, this.length, this.girth / 3.0);
+  var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
+  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
+  var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
+  var full_id = 'faust_'+this.type+'_meter_'+id;
   var activate_fn = "activate_"+this.type;
   var mousedown = _f4u$t[activate_fn];
   var groove = _f4u$t.make_rectangle_via_rect(
@@ -442,7 +475,7 @@ _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.groove_fill),
       stroke : _f4u$t.color_to_rgb(this.groove_stroke),
       id : full_id,
-      'class' : _f4u$t.xy(this.axis, 'faust-hslider-groove', 'faust-vslider-groove'),
+      'class' : _f4u$t.xy(this.axis, 'faust-hslider-meter', 'faust-vslider-meter'),
       transform : trans
     });
 
@@ -506,6 +539,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.address
   );
 
+  this.make_meter(svg, g, id);
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
   this.make_value_box(
@@ -568,7 +602,6 @@ _f4u$t.BarGraph.prototype.make_curtain = function(svg, parent, id) {
   var w = _f4u$t.xy(this.axis, def, this.girth);
   var h = _f4u$t.xy(this.axis, this.girth, def);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  console.log(this.init, this.min, this.max, 0, this.length, def);
   var curtain = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,

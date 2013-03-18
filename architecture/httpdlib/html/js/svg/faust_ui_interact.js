@@ -400,12 +400,24 @@ _f4u$t.genericMovingPartUpdate = function(aval, pval, l, h) {
   return pval;
 }
 
+_f4u$t.redrawSliderGroove = function(id, axis, length, perc) {
+  perc = _f4u$t.bound(perc, 0, 1); // to avoid mouse spillover on either side of slider
+  var groove = document.getElementById('faust_'+(_f4u$t.xy(axis,'hslider','vslider'))+'_groove_'+id);
+  if (axis == _f4u$t.X_AXIS) {
+    groove.setAttribute('x', length * perc)
+    groove.setAttribute('width', length * (1 - perc));
+  }
+  if (axis == _f4u$t.Y_AXIS) {
+    groove.setAttribute('height', length * perc);
+  }
+}
+
 _f4u$t.moveActiveSlider = function(e,identifier)
 {
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
   var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
-  var anchor = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_groove_', 'faust_vslider_groove_')+id);
+  var anchor = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_meter_', 'faust_vslider_meter_')+id);
   var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
@@ -430,6 +442,12 @@ _f4u$t.moveActiveSlider = function(e,identifier)
   var aval = pos;//transform[0][axis + 1] + diff;
   // minimum of the slider is to the bottom / left
   transform[0][axis + 1] = _f4u$t.genericMovingPartUpdate(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
+  _f4u$t.redrawSliderGroove(
+    id,
+    axis,
+    length,
+    aval / length
+  );
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
@@ -761,6 +779,12 @@ _f4u$t.actualize_incremental_object = function(id) {
     val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, length - (length * pctsliding));
     var transform = _f4u$t.transformToArray(maybe_slider.getAttribute("transform"));
     transform[0][axis + 1] = val;
+    _f4u$t.redrawSliderGroove(
+      id,
+      axis,
+      length,
+      val / length
+    );
     var movetothis = _f4u$t.arrayToTransform(transform);
     maybe_slider.setAttribute("transform", movetothis);
     return 0;
