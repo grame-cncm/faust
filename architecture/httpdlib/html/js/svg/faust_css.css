@@ -1,4 +1,5 @@
 body {
+	background-color: #000000;
 }
 
 /* WEBKIT */
@@ -20,7 +21,7 @@ text {
 .faust-label {
 	font-family: Arial, Verdana, Helvetica, sans;
 	font-size: 13px;
-	fill: rgba(0,182,253,0.9);
+	fill: rgba(0,182,253,0.6);
 }
 
 .faust-value-text {
@@ -36,6 +37,10 @@ path {
 
 rect {
   -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
 }
 
 circle {
@@ -61,6 +66,12 @@ path.faust-rbutton-handle {
   stroke : black;
 }
 
+rect.faust-hslider-meter {
+  fill : url(#horizontalSliderMeterGradient);
+  width : 200;
+  height : 40;
+}
+
 rect.faust-hslider-groove {
   fill : rgba(28,126,192,0.65);
   stroke : rgba(0,182,253,0.9);
@@ -73,10 +84,12 @@ rect.faust-hslider-handle {
   stroke : black;
   width : 30;
   height : 40;
-  rx : 0;
-  ry : 0;
-  x : 0;
-  y : 0;
+}
+
+rect.faust-vslider-meter {
+  fill : url(#verticalSliderMeterGradient);
+  height : 200;
+  width : 40;
 }
 
 rect.faust-vslider-groove {
@@ -91,10 +104,6 @@ rect.faust-vslider-handle {
   stroke : black;
   width : 40;
   height : 30;
-  rx : 0;
-  ry : 0;
-  x : 0;
-  y : 0;
 }
 
 rect.faust-hbargraph-curtain {
@@ -102,10 +111,6 @@ rect.faust-hbargraph-curtain {
   stroke : black;
   width : 200;
   height : 30;
-  rx : 0;
-  ry : 0;
-  x : 0;
-  y : 0;
 }
 
 // hbargraph meters cannot be defined via CSS because their widths and
@@ -121,10 +126,6 @@ rect.faust-vbargraph-curtain {
   stroke : black;
   width : 30;
   height : 200;
-  rx : 0;
-  ry : 0;
-  x : 0;
-  y : 0;
 }
 
 rect.faust-vbargraph-meter {
@@ -137,10 +138,6 @@ rect.faust-checkbox-box {
   stroke : black;
   width : 19;
   height : 19;
-  rx : 0;
-  ry : 0;
-  x : 0;
-  y : 0;
 }
 
 path.faust-checkbox-check {
@@ -153,10 +150,6 @@ rect.faust-nentry-button {
   stroke : black;
   width : 60;
   height : 20;
-  rx : 0;
-  ry : 0;
-  x : 0;
-  y : 0;
 }
 
 path.faust-nentry-operation {
@@ -168,10 +161,6 @@ rect.faust-button-down {
   stroke : black;
   width : 80;
   height : 40;
-  x : 0;
-  y : 0;
-  rx : 5;
-  ry : 5;
 }
 
 rect.faust-button-up {
@@ -179,10 +168,6 @@ rect.faust-button-up {
   stroke : black;
   width : 80;
   height : 40;
-  x : 0;
-  y : 0;
-  rx : 5;
-  ry : 5;
 }
 
 circle.faust-rbutton-groove {

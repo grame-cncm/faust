@@ -88,8 +88,10 @@ _f4u$t.slider_inits.handle_stroke = _f4u$t.BLACK;
 
 _f4u$t.hslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
 _f4u$t.hslider_inits.handle_fill = 'url(#horizontalSliderHandleGradient)';
+_f4u$t.hslider_inits.meter_fill = 'url(#horizontalSliderMeterGradient)';
 _f4u$t.vslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
 _f4u$t.vslider_inits.handle_fill = 'url(#verticalSliderHandleGradient)';
+_f4u$t.vslider_inits.meter_fill = 'url(#verticalSliderMeterGradient)';
 
 _f4u$t.bargraph_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
 _f4u$t.bargraph_inits.curtain_fill = _f4u$t.BLACK;
@@ -191,6 +193,28 @@ _f4u$t.linear_gradient_inits = {
       y1 : "0%",
       x2 : "100%",
       y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  horizontalSliderMeterGradient :
+    {
+      stops : [['0%', 'rgb(255,255,0)', 1], ['100%', 'rgb(255,0,0)', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  verticalSliderMeterGradient :
+    {
+      stops : [['0%', 'rgb(255,0,0)', 1], ['100%', 'rgb(255,255,0)', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
       settings : {
         gradientUnits:'objectBoundingBox'
       }
