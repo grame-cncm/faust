@@ -274,7 +274,10 @@ bool llvm_dsp_factory::initJIT()
     
     pm.run(*fResult->fModule);
     
-    //fResult->fModule->dump();
+    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM") != string::npos)) {
+        fResult->fModule->dump();
+    }
     
     try {
         fNew = (newDspFun)LoadOptimize("new_mydsp");
