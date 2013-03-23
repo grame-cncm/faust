@@ -45,6 +45,7 @@ class jackaudio : public audio {
         static void _jack_shutdown(void* arg);
         static void _jack_info_shutdown(jack_status_t code, const char* reason, void* arg);
         static int  _jack_process(jack_nframes_t nframes, void* arg);
+        static int  _jack_buffersize(jack_nframes_t nframes, void* arg);
     #ifdef _OPENMP
         static void* _jack_thread(void* arg);
     #endif
@@ -155,6 +156,7 @@ class jackaudio : public audio {
         #endif
 
             jack_set_sample_rate_callback(fClient, _jack_srate, this);
+            jack_set_buffer_size_callback(fClient, _jack_buffersize, this);
             jack_on_info_shutdown(fClient, _jack_info_shutdown, this);
 
             fNumInChans  = fDsp->getNumInputs();
@@ -254,6 +256,12 @@ class jackaudio : public audio {
 int jackaudio::_jack_srate(jack_nframes_t nframes, void* arg)
 {
   	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
+	return 0;
+}
+
+int jackaudio::_jack_buffersize(jack_nframes_t nframes, void* arg)
+{
+  	fprintf(stdout, "The buffer size rate is now %u/sec\n", nframes);
 	return 0;
 }
 
