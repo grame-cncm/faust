@@ -261,7 +261,7 @@ int jackaudio::_jack_srate(jack_nframes_t nframes, void* arg)
 
 int jackaudio::_jack_buffersize(jack_nframes_t nframes, void* arg)
 {
-  	fprintf(stdout, "The buffer size rate is now %u/sec\n", nframes);
+  	fprintf(stdout, "The buffer size is now %u/sec\n", nframes);
 	return 0;
 }
 
