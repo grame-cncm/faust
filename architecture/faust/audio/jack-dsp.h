@@ -38,6 +38,7 @@ class jackaudio : public audio {
         void*           fShutdownArg;
         void*           fIconData;
         int             fIconSize;
+        bool            fAutoConnect;
         
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
     
@@ -117,7 +118,8 @@ class jackaudio : public audio {
         }
 
     public:
-        jackaudio(const void* icon_data = 0, size_t icon_size = 0) : fClient(0), fNumInChans(0), fNumOutChans(0) 
+        jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
+            : fClient(0), fNumInChans(0), fNumOutChans(0), fAutoConnect(auto_connect)
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);
@@ -188,7 +190,7 @@ class jackaudio : public audio {
             
             if (fConnections.size() > 0) {
                 restore_connections();
-            } else {
+            } else if (fAutoConnect) {
                 default_connections();
             }
             return true;
