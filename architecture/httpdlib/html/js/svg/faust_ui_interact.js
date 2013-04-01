@@ -285,6 +285,7 @@ _f4u$t.activate_nentry = function(ee, dir) {
 
   now = _f4u$t.quantize(now, _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"], _f4u$t.IDS_TO_ATTRIBUTES[id]["step"]);
   now = _f4u$t.dumb_label_update(_f4u$t.unique(_f4u$t._I[identifier].id), now);
+  _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], now);
   return now;
 }
 
@@ -697,7 +698,7 @@ _f4u$t.actualize_buffer = function() {
   var label = document.getElementById(_f4u$t._N);
   var now = _f4u$t.bound(c, minval, maxval);
   _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] = ""+now;
-  _f4u$t.change_label_text(label, id);;
+  _f4u$t.change_label_text(label, id);
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]; // prevents bad snaps of values
 
   // UI2DSP
@@ -729,6 +730,8 @@ _f4u$t.keys_to_sink = function(e) {
   var id = _f4u$t.unique(_f4u$t._N);
   if (e.keyCode == 13) {
     _f4u$t.actualize_buffer();
+    _f4u$t.clog_key_sink();
+    return;
   }
   else {
     var key = e.keyCode;
@@ -744,7 +747,6 @@ _f4u$t.make_key_sink = function(I) {
   if (_f4u$t.ajax_queue_busy) {
     return false;
   }
-  _f4u$t.ajax_queue_busy = true;
   _f4u$t._N = 'faust_value_value_'+I;
   _f4u$t.IDS_TO_ATTRIBUTES[I]["buffer"] = "";
   var box = document.getElementById("faust_value_box_"+I);

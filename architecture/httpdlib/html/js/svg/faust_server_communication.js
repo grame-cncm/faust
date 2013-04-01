@@ -85,7 +85,7 @@ _f4u$t.dispatch = function(data) {
 _f4u$t.main_loop = function() {
 	if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
 		// we have pending updates to send to the server
-		_f4u$t.ajax_queue_busy = true;
+		//_f4u$t.ajax_queue_busy = true;
 		var request = _f4u$t.ajax_queue[0];
 		_f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1,Math.min(5,_f4u$t.ajax_queue.length));
 		$.get(request).done(_f4u$t.main_loop); 
