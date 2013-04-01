@@ -107,8 +107,8 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
 
 _f4u$t.IncrementalObject.prototype.label_text = function() {
   var label = this.label;
-  if (this.unit) {
-    label += this.unit;
+  if (this.unit) {/* // deprecated
+    label += this.unit;*/
   }
   return label;
 }
