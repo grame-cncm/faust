@@ -778,6 +778,10 @@ _f4u$t.rotating_button_key_sink = function(I) {
   _f4u$t.generic_key_sink(I);
 }
 
+_f4u$t.nentry_key_sink = function(I) {
+  _f4u$t.generic_key_sink(I);
+}
+
 // if a numerical entry is linked to an incremental object,
 // actualize it
 
