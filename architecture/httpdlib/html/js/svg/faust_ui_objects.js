@@ -1229,6 +1229,8 @@ _f4u$t.TabGroup = function(options) {
   this.init = _f4u$t.initifnull(options.init, 0);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
+  _f4u$t.init_prop(this, options, 'button','fill_on');
+  _f4u$t.init_prop(this, options, 'button','fill_off');
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
@@ -1299,7 +1301,7 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
   return vl;
 }
 
-_f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill) {
+_f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill, down) {
   var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")';
   var tab = _f4u$t.make_rectangle_via_rect(
     svg,
@@ -1311,9 +1313,10 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     h,
     {
       transform: 'translate('+x+','+y+')',
-      'class' : 'faust-tgroup-tab',
+      'class' : 'faust-tgroup-'+(down ? 'down' : 'up'),
       fill : _f4u$t.color_to_rgb(fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
+      id : 'faust_tab_'+_f4u$t.unique(goodid),
       onmousedown : mousedown,
       ontouchstart : mousedown
     });
@@ -1338,7 +1341,8 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
       0,
       curobj.id,
       badidstr,
-      'url(#tabGradient)' /*curobj.fill*/);
+      this.fill_off,
+      i==0);
     this.make_label(
       svg,
       parent,

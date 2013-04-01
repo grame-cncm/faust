@@ -170,6 +170,16 @@ rect.faust-button-up {
   height : 40;
 }
 
+rect.faust-tgroup-down {
+  fill : url(#tabDownGradient);
+  stroke : orange;
+}
+
+rect.faust-tgroup-up {
+  fill : url(#tabUpGradient);
+  stroke : black;
+}
+
 circle.faust-rbutton-groove {
   fill : url(#rotatingButtonHandleGradient);
 }

@@ -322,8 +322,10 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
   var strar = badids.split('#');
   for (var i = 0; strar.length > i; i++) {
     _f4u$t.move_to_ridiculous_negative(strar[i]);
+    _f4u$t.tgroup_class_changer(_f4u$t.unique(strar[i]), false);
   }
   _f4u$t.generic_translate(goodid, x, y);
+  _f4u$t.tgroup_class_changer(_f4u$t.unique(goodid), true);
 }
 
 /*
@@ -579,6 +581,20 @@ _f4u$t.button_class_changer = function(id, down) {
   }
   else {
     $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
+  }
+}
+
+// TODO : this is just a copy and paste of the above
+// if we need more of these, consolidate
+_f4u$t.tgroup_class_changer = function(id, down) {
+  var mybutton = document.getElementById('faust_tab_'+_f4u$t.unique(id));
+  if (down) {
+    $('#faust_tab_'+_f4u$t.unique(id)).removeClass('faust-tgroup-up').addClass('faust-tgroup-down');
+    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
+  }
+  else {
+    $('#faust_tab_'+_f4u$t.unique(id)).removeClass('faust-tgroup-down').addClass('faust-tgroup-up');
     //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
   }
 }

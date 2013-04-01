@@ -203,7 +203,8 @@ _f4u$t.make_group = function(axis, dct) {
 }
 
 _f4u$t.make_tgroup = function(dct) {
-  var tg = new _f4u$t.TabGroup({});
+  var options = $.extend(true, {}, _f4u$t.tgroup_inits);
+  var tg = new _f4u$t.TabGroup(options);
 
   for (var i = 0; i < dct["items"].length; i++) {
     if (dct["items"][i]["type"] == "hgroup") {
