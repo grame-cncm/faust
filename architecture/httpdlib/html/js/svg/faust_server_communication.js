@@ -83,7 +83,7 @@ _f4u$t.dispatch = function(data) {
 // We update the user interface by polling the server every 40 ms
 // But this is done only when no updates are pending for the server
 _f4u$t.main_loop = function() {
-	if (_f4u$t.ajax_queue.length > 0) {
+	if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
 		// we have pending updates to send to the server
 		_f4u$t.ajax_queue_busy = true;
 		var request = _f4u$t.ajax_queue[0];

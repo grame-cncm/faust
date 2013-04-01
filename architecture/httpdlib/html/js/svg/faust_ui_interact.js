@@ -676,6 +676,7 @@ _f4u$t.clog_key_sink = function() {
   if (_f4u$t._N != 0) {
     var box = document.getElementById("faust_value_box_"+_f4u$t.unique(_f4u$t._N));
     box.style.stroke = "black";
+    _f4u$t.ajax_queue_busy = false;
     //_f4u$t.BUSY = false; // deprecated
   }
   _f4u$t._N = 0;
@@ -743,10 +744,12 @@ _f4u$t.make_key_sink = function(I) {
   if (_f4u$t.ajax_queue_busy) {
     return false;
   }
+  _f4u$t.ajax_queue_busy = true;
   _f4u$t._N = 'faust_value_value_'+I;
   _f4u$t.IDS_TO_ATTRIBUTES[I]["buffer"] = "";
   var box = document.getElementById("faust_value_box_"+I);
   box.style.stroke = "red";
+  _f4u$t.ajax_queue_busy = true;
   //_f4u$t.BUSY = true; // deprecated
   // below is a hack for text inputs that should only be activated
   // after some work is done to figure out how to prevent auto zooming
