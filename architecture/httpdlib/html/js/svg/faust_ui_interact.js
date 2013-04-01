@@ -133,7 +133,7 @@ _f4u$t.updateXY = function(ee, initialize) {
   INITIALIZATION FUNCTIONS
 */
 
-_f4u$t.initiate_nentry = function(fullid, minval, maxval, step, init, integer, ndec, label, address) {
+_f4u$t.initiate_nentry = function(fullid, minval, maxval, step, init, integer, ndec, label, unit, address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "nentry";
@@ -144,12 +144,13 @@ _f4u$t.initiate_nentry = function(fullid, minval, maxval, step, init, integer, n
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] = init;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxval, step, init, integer, ndec, label, address) {
+_f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxval, step, init, integer, ndec, label, unit, address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = (axis == _f4u$t.X_AXIS ? "hslider" : "vslider");
@@ -160,6 +161,7 @@ _f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxv
   _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"] = maxval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["step"] = step;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
@@ -167,15 +169,15 @@ _f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxv
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_hslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, address) {
-  _f4u$t.initiate_slider(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, address);
+_f4u$t.initiate_hslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address) {
+  _f4u$t.initiate_slider(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address);
 }
 
-_f4u$t.initiate_vslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, address) {
-  _f4u$t.initiate_slider(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, address);
+_f4u$t.initiate_vslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address) {
+  _f4u$t.initiate_slider(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address);
 }
 
-_f4u$t.initiate_bargraph = function(axis, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address) {
+_f4u$t.initiate_bargraph = function(axis, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = (axis == _f4u$t.X_AXIS ? "hbargraph" : "vbargraph");
@@ -186,20 +188,21 @@ _f4u$t.initiate_bargraph = function(axis, fullid, weakaxis, strongaxis, minval, 
   _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"] = maxval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["step"] = step;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_hbargraph = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address) {
-  _f4u$t.initiate_bargraph(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address);
+_f4u$t.initiate_hbargraph = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address) {
+  _f4u$t.initiate_bargraph(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address);
 }
 
-_f4u$t.initiate_vbargraph = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address) {
-  _f4u$t.initiate_bargraph(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, address);
+_f4u$t.initiate_vbargraph = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address) {
+  _f4u$t.initiate_bargraph(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address);
 }
 
-_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label,address) {
+_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label, unit,address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "rbutton";
@@ -212,6 +215,7 @@ _f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercen
   _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"] = maxval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["step"] = step;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
@@ -649,6 +653,11 @@ _f4u$t.generic_flipped_label_update = function(id, c, l, h) {
   return _f4u$t.dumb_label_update(id, now);
 }
 
+_f4u$t.change_label_text = function(label, id)
+{
+  label.textContent = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] + _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"];
+}
+
 _f4u$t.dumb_label_update = function(id, c) {
   var label = document.getElementById("faust_value_value_"+id);
   var integer = _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"];
@@ -658,8 +667,8 @@ _f4u$t.dumb_label_update = function(id, c) {
   else {
     c = c.toFixed(_f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"]);
   }
-  label.textContent = c;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] = c;
+  _f4u$t.change_label_text(label, id);;
   return c;
 }
 
@@ -687,7 +696,7 @@ _f4u$t.actualize_buffer = function() {
   var label = document.getElementById(_f4u$t._N);
   var now = _f4u$t.bound(c, minval, maxval);
   _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] = ""+now;
-  label.textContent = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"];
+  _f4u$t.change_label_text(label, id);;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]; // prevents bad snaps of values
 
   // UI2DSP
@@ -703,7 +712,7 @@ _f4u$t.buffer_backspace = function() {
   }
   _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"].substring(0, _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"].length - 1);
   var label = document.getElementById(_f4u$t._N);
-  label.textContent = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"];
+  _f4u$t.change_label_text(label, id);;
 }
 
 _f4u$t.make_delete_key_work = function(e) {
@@ -726,7 +735,7 @@ _f4u$t.keys_to_sink = function(e) {
     _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] += str;
   }
   var label = document.getElementById(_f4u$t._N);
-  label.textContent = _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"];
+  _f4u$t.change_label_text(label, id);;
 }
 
 _f4u$t.make_key_sink = function(I) {

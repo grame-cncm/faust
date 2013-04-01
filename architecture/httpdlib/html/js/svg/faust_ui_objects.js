@@ -108,10 +108,11 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
 _f4u$t.IncrementalObject.prototype.label_text = function() {
   var label = this.label;
   if (this.unit) {
-    label += ' ('+this.unit+')';
+    label += this.unit;
   }
   return label;
 }
+
 _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
   var dims = this.dims();
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? dims[0] / 2.0 : 0.0);
@@ -354,6 +355,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.integer,
     this.ndec,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -536,6 +538,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.integer,
     this.ndec,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -657,6 +660,7 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
     this.step,
     this.init,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -1058,6 +1062,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
     this.integer,
     this.ndec,
     this.label,
+    this.unit,
     this.address
   );
 
