@@ -255,12 +255,31 @@ _f4u$t.initiate_tab_group = function(index, ids) {
   Activates UI objects as being in focus
 */
 
-_f4u$t.activate_nentryminus = function(ee) {
+_f4u$t.nentry_down_minus = function(ee) {
   _f4u$t.activate_nentry(ee, -1);
 }
 
-_f4u$t.activate_nentryplus = function(ee) {
+_f4u$t.nentry_down_plus = function(ee) {
   _f4u$t.activate_nentry(ee, 1);
+}
+
+_f4u$t.nentry_up_minus = function(ee) {
+  _f4u$t.disactivate_nentry(ee, -1);
+}
+
+_f4u$t.nentry_up_plus = function(ee) {
+  _f4u$t.disactivate_nentry(ee, 1);
+}
+
+_f4u$t.disactivate_nentry = function(ee, dir) {
+  // it is possible that an object is touched by multiple fingers at the
+  // same time
+  // if the id is already being used, we ignore
+  // otherwise, use the first in the array...
+  var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
+  var longid = ee.target.id;
+  var id = _f4u$t.unique(longid);
+  _f4u$t.nentry_class_changer(id, false, dir);
 }
 
 _f4u$t.activate_nentry = function(ee, dir) {
@@ -271,6 +290,7 @@ _f4u$t.activate_nentry = function(ee, dir) {
   var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
   var longid = ee.target.id;
   var id = _f4u$t.unique(longid);
+  _f4u$t.nentry_class_changer(id, true, dir);
   _f4u$t._I[identifier] = {id : longid, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
   _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
   _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
@@ -579,28 +599,33 @@ _f4u$t.clearIdCache = function(ee) {
 }
 
 _f4u$t.button_class_changer = function(id, down) {
-  var mybutton = document.getElementById('faust_button_box_'+_f4u$t.unique(id));
   if (down) {
     $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
-    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
   }
   else {
     $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
-    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
   }
 }
 
 // TODO : this is just a copy and paste of the above
 // if we need more of these, consolidate
 _f4u$t.tgroup_class_changer = function(id, down) {
-  var mybutton = document.getElementById('faust_tab_'+_f4u$t.unique(id));
   if (down) {
     $('#faust_tab_'+_f4u$t.unique(id)).removeClass('faust-tgroup-up').addClass('faust-tgroup-down');
-    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].downfill;
   }
   else {
     $('#faust_tab_'+_f4u$t.unique(id)).removeClass('faust-tgroup-down').addClass('faust-tgroup-up');
-    //mybutton.style.fill = _f4u$t.IDS_TO_ATTRIBUTES[id].upfill;
+  }
+}
+
+// DITTO - slight variation on function above
+_f4u$t.nentry_class_changer = function(id, down, dir) {
+  var dirtext = dir == -1 ? 'minus' : 'plus';
+  if (down) {
+    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-up').addClass('faust-nentry-down');
+  }
+  else {
+    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-down').addClass('faust-nentry-up');
   }
 }
 

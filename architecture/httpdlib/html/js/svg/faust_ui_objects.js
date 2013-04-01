@@ -967,11 +967,11 @@ _f4u$t.NumericalEntry.prototype.make_right_button = function(svg, parent, id) {
 _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr) {
   var identifier = incr ? 'rbutton' : 'lbutton';
   var tag = incr ? 'plus' : 'minus';
-  var full_id = 'faust_nentry_'+identifier+'_'+id;
+  var full_id = 'faust_nentry_button_'+tag+'_'+id;
   var w = this.w() / 2.0 - this.padding;
   var h = this.h();
-
-  var mousedown = _f4u$t['activate_nentry'+tag]
+  var mousedown = _f4u$t['nentry_down_'+tag]
+  var mouseup = _f4u$t['nentry_up_'+tag]
   var button = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
@@ -986,11 +986,13 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       stroke : _f4u$t.color_to_rgb(this.button_stroke),
       transform : 'translate('+xo+',0)',
       id : full_id,
-      'class' : 'faust-nentry-button'
+      'class' : 'faust-nentry-up'
     });
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mouseup', mouseup);
+  $('#'+full_id).bind('touchend', mouseup);
   return button;
 }
 
@@ -999,7 +1001,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
   var x0 = (this.w() / 2.0 - this.padding) / 4.0;
   var y = this.h() / 2.0;
   var x1 = (this.w() / 2.0 - this.padding) * 3.0 / 4.0;
-  var mousedown = _f4u$t.activate_nentryminus;
+  var mousedown = _f4u$t.nentry_down_minus;
+  var mouseup = _f4u$t.nentry_up_minus;
 
   var d = "M"+x0+" "+y+"L"+x1+" "+y;
   var minus = svg.path(
@@ -1015,6 +1018,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mouseup', mouseup);
+  $('#'+full_id).bind('touchend', mouseup);
   return minus;
 }
 
@@ -1029,7 +1034,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 
   var d = "M{0} {1}L{2} {1}M{3} {4}L{3} {5}";
   d = d.format([x00, y0, x01, x1, y10, y11]);
-  var mousedown = _f4u$t.activate_nentryplus;
+  var mousedown = _f4u$t.nentry_down_plus;
+  var mouseup = _f4u$t.nentry_up_plus;
 
   var plus = svg.path(
     parent,
@@ -1047,6 +1053,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mouseup', mouseup);
+  $('#'+full_id).bind('touchend', mouseup);
   return plus;
 }
 

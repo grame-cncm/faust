@@ -145,9 +145,16 @@ path.faust-checkbox-check {
   stroke : black;
 }
 
-rect.faust-nentry-button {
-  fill : grey;
+rect.faust-nentry-up {
+  fill : url(#numericalEntryUpGradient);
   stroke : black;
+  width : 60;
+  height : 20;
+}
+
+rect.faust-nentry-down {
+  fill : url(#numericalEntryDownGradient);
+  stroke : orange;
   width : 60;
   height : 20;
 }
@@ -239,9 +246,14 @@ path.faust-checkbox-box {
   stroke : black;
 }
 
-path.faust-nentry-button {
-  fill : grey;
+path.faust-nentry-up {
+  fill : url(#numericalEntryUpGradient);
   stroke : black;
+}
+
+path.faust-nentry-down {
+  fill : url(#numericalEntryDownGradient);
+  stroke : orange;
 }
 
 path.faust-button-down {
@@ -300,7 +312,11 @@ rect.faust-checkbox-box.hover {
   stroke : orange;
 }
 
-rect.faust-nentry-button.hover {
+rect.faust-nentry-up.hover {
+  stroke : orange;
+}
+
+rect.faust-nentry-down.hover {
   stroke : orange;
 }
 
@@ -334,7 +350,11 @@ path.faust-checkbox-box.hover {
   stroke : orange;
 }
 
-path.faust-nentry-button.hover {
+path.faust-nentry-up.hover {
+  stroke : orange;
+}
+
+path.faust-nentry-down.hover {
   stroke : orange;
 }
 

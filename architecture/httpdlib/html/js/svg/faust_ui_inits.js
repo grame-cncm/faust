@@ -271,6 +271,28 @@ _f4u$t.linear_gradient_inits = {
         gradientUnits:'objectBoundingBox'
       }
     },
+  numericalEntryDownGradient :
+    {
+      stops : [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  numericalEntryUpGradient :
+    {
+      stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
   horizontalBarGraphMeterGradient :
     {
       stops : [['0%', 'rgb(0, 160, 40)', 1], ['50%', 'rgb(0, 160, 40)', 1],
