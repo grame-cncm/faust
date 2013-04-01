@@ -885,6 +885,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (IBAction)togglePopover:(id)sender
 {
+    // If running in CoreAudio mode...
     if (dynamic_cast<iosaudio*>(audio_device)) {
         if (self.flipsidePopoverController)
         {

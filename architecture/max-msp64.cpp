@@ -549,7 +549,7 @@ extern "C" int main(void)
 	dsp_initclass();
 
 	post((char*)"Faust DSP object 64 bits v%s", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012 Grame");
+    post((char*)"Copyright (c) 2012-2013 Grame");
     Max_Meta1 meta1;
     mydsp::metadata(&meta1);
     if (meta1.fCount > 0) {

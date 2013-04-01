@@ -257,7 +257,7 @@ public:
 	char* 	file (int n)	{ return fFiles[n]; }
 
 	char* input_file ()     { cout << "input file " << fFiles[0]; return fFiles[0]; }
-	char* output_file() 	{  cout << "output file " << fFiles[1]; return fFiles[1]; }
+	char* output_file() 	{ cout << "output file " << fFiles[1]; return fFiles[1]; }
 
 	void process_init()
 	{
