@@ -33,7 +33,8 @@ _f4u$t.tgroup_inits = {
 
 _f4u$t.rbutton_inits = {
   mom : null,
-  ir : 50,
+  //ir : 50,
+  ir : 30,
   a0 : 135,
   sweep : 270,
   sp : 0.9,
