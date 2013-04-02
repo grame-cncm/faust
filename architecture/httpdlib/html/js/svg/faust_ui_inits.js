@@ -26,9 +26,15 @@ _f4u$t.button_inits = {
   address : ''
 };
 
+_f4u$t.tgroup_inits = {
+  fill_on : "url(#tabDownGradient)", // for now use the button gradient
+  fill_off : "url(#tabUpGradient)" // for now use the button gradient
+};
+
 _f4u$t.rbutton_inits = {
   mom : null,
-  ir : 50,
+  //ir : 50,
+  ir : 30,
   a0 : 135,
   sweep : 270,
   sp : 0.9,
@@ -219,12 +225,69 @@ _f4u$t.linear_gradient_inits = {
         gradientUnits:'objectBoundingBox'
       }
     },
-  tabGradient :
+/*
+  tabUpGradient :
     {
       stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
       x1 : "0%",
       y1 : "0%",
       x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  tabDownGradient :
+    {
+      stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
+      x1 : "0%",
+      y1 : "100%",
+      x2 : "0%",
+      y2 : "0%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+*/
+  tabDownGradient :
+    {
+      stops : [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  tabUpGradient :
+    {
+      stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  numericalEntryDownGradient :
+    {
+      stops : [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  numericalEntryUpGradient :
+    {
+      stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
       y2 : "100%",
       settings : {
         gradientUnits:'objectBoundingBox'
