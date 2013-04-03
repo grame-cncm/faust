@@ -279,13 +279,14 @@ class mspUI : public UI
                 }
             }
         }
-        
+        /*
         void setMultiValues(float* multi, int buffer_size)
 		{
 			if (fMultiTable[index]) {
                 *fMultiTable[index] = f;
             }
 		}
+        */
 
 		bool setValue(string name, double f)
 		{
