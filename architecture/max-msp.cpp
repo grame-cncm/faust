@@ -280,7 +280,7 @@ class mspUI : public UI
             }
         }
         
-        void setMultiValues(double* multi, int buffer_size)
+        void setMultiValues(float* multi, int buffer_size)
 		{
 			if (fMultiTable[index]) {
                 *fMultiTable[index] = f;
