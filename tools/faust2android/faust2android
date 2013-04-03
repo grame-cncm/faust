@@ -28,9 +28,6 @@ for f in $FILES; do
 	faust -xml -a src/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
-sed -i '1iconst int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
-sed -i '1iconst int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
-
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
 NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
 
@@ -49,6 +46,9 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	rm tmpMOD.dsp
 	rm tmpMOD.dsp.xml
 fi
+
+sed -i '1iconst int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
+sed -i '1iconst int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
 
 cd $TMPFILES
 
