@@ -53,7 +53,12 @@ extern const char * yyfilename;
 list<Garbageable*> global::gObjectTable;
 bool global::gHeapCleanup = false;
 
-global::global():TABBER(1), gLoopDetector(1024, 512), gNextFreeColor(1)
+/*
+faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation error).
+So we use a lower value here.
+*/
+
+global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();

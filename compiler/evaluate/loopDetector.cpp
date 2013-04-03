@@ -41,8 +41,7 @@ bool loopDetector::detect(Tree t)
                     << fPhase
                     << " evaluation steps, the compiler has detected an endless evaluation cycle of "
                     << i
-                    << " steps"
-                    << endl;
+                    << " steps";
                 throw faustexception(error.str());
             }
         }

@@ -951,7 +951,6 @@ ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int
     }
 }
 
-
 ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2, ::Type type)
 {
     ValueInst* cond = (t0 == kReal) ? InstBuilder::genNotEqual(sel, InstBuilder::genRealNumInst(itfloat(), 0)) : InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
