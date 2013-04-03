@@ -32,6 +32,12 @@
     return YES;
 }
 
+// Fast switch testing
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    return YES;
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application
 {
      [self.mainViewController saveGui];

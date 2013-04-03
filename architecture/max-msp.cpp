@@ -221,7 +221,7 @@ class mspUI : public UI
    private:
 
 		map<string, mspUIObject*> fUITable;
-        float* fMultiTable[MULTI_SIZE];
+        //float* fMultiTable[MULTI_SIZE];
 
 	public:
     
@@ -229,9 +229,11 @@ class mspUI : public UI
 
 		mspUI() 
         {
+            /*
      		for (int i = 0; i < MULTI_SIZE; i++) {
                 fMultiTable[i] = 0;
             }
+            */
         }
 		virtual ~mspUI()
 		{
@@ -270,6 +272,7 @@ class mspUI : public UI
         
         virtual void declare(float* zone, const char* key, const char* val)
         {
+            /*
             if (strcmp(key,"multi") == 0) {
                 int index = atoi(val);
                 if (index >= 0 && index < MULTI_SIZE) {
@@ -278,14 +281,16 @@ class mspUI : public UI
                     post("Invalid multi index = %d", index);
                 }
             }
+            */
         }
-        
-        void setMultiValues(double* multi, int buffer_size)
+        /*
+        void setMultiValues(float* multi, int buffer_size)
 		{
 			if (fMultiTable[index]) {
                 *fMultiTable[index] = f;
             }
 		}
+        */
 
 		bool setValue(string name, double f)
 		{
@@ -534,7 +539,7 @@ extern "C" int main(void)
 	dsp_initclass();
     
     post((char*)"Faust DSP object 32 bits v%s", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012 Grame");
+    post((char*)"Copyright (c) 2012-2013 Grame");
     Max_Meta1 meta1;
     mydsp::metadata(&meta1);
     if (meta1.fCount > 0) {

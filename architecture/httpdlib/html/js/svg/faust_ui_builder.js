@@ -22,6 +22,18 @@ _f4u$t.get_unit = function(dct) {
   return '';
 }
 
+_f4u$t.get_size = function(dct) {
+  if (!dct['meta']) {
+    return 1;
+  }
+  for (var i=0; i < dct['meta'].length; i++) {
+    if (dct['meta'][i]['size']) {
+      return [0.5,1,2,3,4][parseInt(dct['meta'][i]['size'])];
+    }
+  }
+  return 1;
+}
+
 _f4u$t.getnumspecs = function(dct) {
   var integer = false;
   if((parseFloat(dct["max"]) == parseInt(dct["max"]))
@@ -66,6 +78,8 @@ _f4u$t.make_rbutton = function(dct) {
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct)
+  var size = _f4u$t.get_size(dct);
+  options.ir *= size;
   return new _f4u$t.RotatingButton(options);
 }
 
@@ -92,6 +106,10 @@ _f4u$t.make_slider = function(kls, dct) {
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
+  var size = _f4u$t.get_size(dct);
+  console.log(size);
+  options.girth *= size;
+  options.length *= size;
   return new kls(options);
 }
 
@@ -111,6 +129,9 @@ _f4u$t.make_bargraph = function(kls, dct) {
   options.max = parseFloat(dct["max"]);
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
+  var size = _f4u$t.get_size(dct);
+  options.girth *= size;
+  options.length *= size;
   return new kls(options);
 }
 
@@ -127,6 +148,8 @@ _f4u$t.make_checkbox = function(dct) {
   options.label  = dct.label;
   options.address = dct.address;
   options.init = (dct.init == "1" ? true : false);
+  var size = _f4u$t.get_size(dct);
+  options.d *= size;
   return new _f4u$t.CheckBox(options);
 }
 
@@ -203,7 +226,8 @@ _f4u$t.make_group = function(axis, dct) {
 }
 
 _f4u$t.make_tgroup = function(dct) {
-  var tg = new _f4u$t.TabGroup({});
+  var options = $.extend(true, {}, _f4u$t.tgroup_inits);
+  var tg = new _f4u$t.TabGroup(options);
 
   for (var i = 0; i < dct["items"].length; i++) {
     if (dct["items"][i]["type"] == "hgroup") {

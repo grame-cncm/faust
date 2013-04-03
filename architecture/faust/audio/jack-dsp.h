@@ -72,6 +72,7 @@ class jackaudio : public audio {
         void*           fShutdownArg;
         void*           fIconData;
         int             fIconSize;
+        bool            fAutoConnect;
         
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
     
@@ -79,6 +80,7 @@ class jackaudio : public audio {
         static void _jack_shutdown(void* arg);
         static void _jack_info_shutdown(jack_status_t code, const char* reason, void* arg);
         static int  _jack_process(jack_nframes_t nframes, void* arg);
+        static int  _jack_buffersize(jack_nframes_t nframes, void* arg);
     #ifdef _OPENMP
         static void* _jack_thread(void* arg);
     #endif
@@ -150,7 +152,8 @@ class jackaudio : public audio {
         }
 
     public:
-        jackaudio(const void* icon_data = 0, size_t icon_size = 0) : fClient(0), fNumInChans(0), fNumOutChans(0) 
+        jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
+            : fClient(0), fNumInChans(0), fNumOutChans(0), fAutoConnect(auto_connect)
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);
@@ -189,6 +192,7 @@ class jackaudio : public audio {
         #endif
 
             jack_set_sample_rate_callback(fClient, _jack_srate, this);
+            jack_set_buffer_size_callback(fClient, _jack_buffersize, this);
             jack_on_info_shutdown(fClient, _jack_info_shutdown, this);
 
             fNumInChans  = fDsp->getNumInputs();
@@ -220,7 +224,7 @@ class jackaudio : public audio {
             
             if (fConnections.size() > 0) {
                 restore_connections();
-            } else {
+            } else if (fAutoConnect) {
                 default_connections();
             }
             return true;
@@ -288,6 +292,12 @@ class jackaudio : public audio {
 int jackaudio::_jack_srate(jack_nframes_t nframes, void* arg)
 {
   	fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
+	return 0;
+}
+
+int jackaudio::_jack_buffersize(jack_nframes_t nframes, void* arg)
+{
+  	fprintf(stdout, "The buffer size is now %u/sec\n", nframes);
 	return 0;
 }
 

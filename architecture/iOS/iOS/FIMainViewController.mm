@@ -186,7 +186,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         NSLog(@"publishAppIcon rawDataSize = %ld", size);
         [fileHandle closeFile];
         
-        audio_device = new jackaudio(icon_data, size);
+        audio_device = new jackaudio(icon_data, size, true);
         if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
             printf("Cannot connect to JACK server\n");
             goto error;
@@ -885,6 +885,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (IBAction)togglePopover:(id)sender
 {
+    // If running in CoreAudio mode...
     if (dynamic_cast<iosaudio*>(audio_device)) {
         if (self.flipsidePopoverController)
         {

@@ -107,11 +107,12 @@ _f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, 
 
 _f4u$t.IncrementalObject.prototype.label_text = function() {
   var label = this.label;
-  if (this.unit) {
-    label += ' ('+this.unit+')';
+  if (this.unit) {/* // deprecated
+    label += this.unit;*/
   }
   return label;
 }
+
 _f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
   var dims = this.dims();
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? dims[0] / 2.0 : 0.0);
@@ -354,6 +355,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.integer,
     this.ndec,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -536,6 +538,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.integer,
     this.ndec,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -657,6 +660,7 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
     this.step,
     this.init,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -963,11 +967,11 @@ _f4u$t.NumericalEntry.prototype.make_right_button = function(svg, parent, id) {
 _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr) {
   var identifier = incr ? 'rbutton' : 'lbutton';
   var tag = incr ? 'plus' : 'minus';
-  var full_id = 'faust_nentry_'+identifier+'_'+id;
+  var full_id = 'faust_nentry_button_'+tag+'_'+id;
   var w = this.w() / 2.0 - this.padding;
   var h = this.h();
-
-  var mousedown = _f4u$t['activate_nentry'+tag]
+  var mousedown = _f4u$t['nentry_down_'+tag]
+  var mouseup = _f4u$t['nentry_up_'+tag]
   var button = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
@@ -982,11 +986,13 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       stroke : _f4u$t.color_to_rgb(this.button_stroke),
       transform : 'translate('+xo+',0)',
       id : full_id,
-      'class' : 'faust-nentry-button'
+      'class' : 'faust-nentry-up'
     });
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mouseup', mouseup);
+  $('#'+full_id).bind('touchend', mouseup);
   return button;
 }
 
@@ -995,7 +1001,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
   var x0 = (this.w() / 2.0 - this.padding) / 4.0;
   var y = this.h() / 2.0;
   var x1 = (this.w() / 2.0 - this.padding) * 3.0 / 4.0;
-  var mousedown = _f4u$t.activate_nentryminus;
+  var mousedown = _f4u$t.nentry_down_minus;
+  var mouseup = _f4u$t.nentry_up_minus;
 
   var d = "M"+x0+" "+y+"L"+x1+" "+y;
   var minus = svg.path(
@@ -1011,6 +1018,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mouseup', mouseup);
+  $('#'+full_id).bind('touchend', mouseup);
   return minus;
 }
 
@@ -1025,7 +1034,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 
   var d = "M{0} {1}L{2} {1}M{3} {4}L{3} {5}";
   d = d.format([x00, y0, x01, x1, y10, y11]);
-  var mousedown = _f4u$t.activate_nentryplus;
+  var mousedown = _f4u$t.nentry_down_plus;
+  var mouseup = _f4u$t.nentry_up_plus;
 
   var plus = svg.path(
     parent,
@@ -1043,6 +1053,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 
   $('#'+full_id).bind('mousedown', mousedown);
   $('#'+full_id).bind('touchstart', mousedown);
+  $('#'+full_id).bind('mouseup', mouseup);
+  $('#'+full_id).bind('touchend', mouseup);
   return plus;
 }
 
@@ -1058,6 +1070,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
     this.integer,
     this.ndec,
     this.label,
+    this.unit,
     this.address
   );
 
@@ -1229,6 +1242,8 @@ _f4u$t.TabGroup = function(options) {
   this.init = _f4u$t.initifnull(options.init, 0);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
+  _f4u$t.init_prop(this, options, 'button','fill_on');
+  _f4u$t.init_prop(this, options, 'button','fill_off');
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
@@ -1299,7 +1314,7 @@ _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, ba
   return vl;
 }
 
-_f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill) {
+_f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, badidstr, fill, down) {
   var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")';
   var tab = _f4u$t.make_rectangle_via_rect(
     svg,
@@ -1311,9 +1326,10 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     h,
     {
       transform: 'translate('+x+','+y+')',
-      'class' : 'faust-tgroup-tab',
+      'class' : 'faust-tgroup-'+(down ? 'down' : 'up'),
       fill : _f4u$t.color_to_rgb(fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
+      id : 'faust_tab_'+_f4u$t.unique(goodid),
       onmousedown : mousedown,
       ontouchstart : mousedown
     });
@@ -1338,7 +1354,8 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
       0,
       curobj.id,
       badidstr,
-      'url(#tabGradient)' /*curobj.fill*/);
+      this.fill_off,
+      i==0);
     this.make_label(
       svg,
       parent,
