@@ -221,7 +221,7 @@ class mspUI : public UI
    private:
 
 		map<string, mspUIObject*> fUITable;
-        float* fMultiTable[MULTI_SIZE];
+        //float* fMultiTable[MULTI_SIZE];
 
 	public:
     
@@ -229,9 +229,11 @@ class mspUI : public UI
 
 		mspUI() 
         {
+            /*
      		for (int i = 0; i < MULTI_SIZE; i++) {
                 fMultiTable[i] = 0;
             }
+            */
         }
 		virtual ~mspUI()
 		{
@@ -270,6 +272,7 @@ class mspUI : public UI
         
         virtual void declare(float* zone, const char* key, const char* val)
         {
+            /*
             if (strcmp(key,"multi") == 0) {
                 int index = atoi(val);
                 if (index >= 0 && index < MULTI_SIZE) {
@@ -278,6 +281,7 @@ class mspUI : public UI
                     post("Invalid multi index = %d", index);
                 }
             }
+            */
         }
         /*
         void setMultiValues(float* multi, int buffer_size)
