@@ -1,3 +1,21 @@
+/************************************************************************
+ ************************************************************************
+ FAUST Architecture File for Android
+ Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
+ Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ 
+ This is sample code. This file is provided as an example of minimal
+ FAUST architecture file. Redistribution and use in source and binary
+ forms, with or without modification, in part or in full are permitted.
+ In particular you can create a derived work of this FAUST architecture
+ and distribute that work under terms of your choice.
+ 
+ This sample code is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ ************************************************************************
+ ************************************************************************/
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -85,21 +103,24 @@ class GUI : public UI {
 	struct para {
 		int cnt;
 		int cntLay;
-		int typeLay[10];
-		const char *labelLay[10];
-		int type[30];
-		int layoutEl[30];
-		const char *label[30];
-		float *value[30];
-		float init[30];
-		float min[30];
-		float max[30];
-		float step[30];
+		int cntEl;
+		int typeEl[numbLayouts*2+numbParams];
+		int typeLay[numbLayouts*2];
+		const char *labelLay[numbLayouts*2];
+		int type[numbParams];
+		int layoutEl[numbLayouts*2];
+		const char *label[numbParams];
+		float *value[numbParams];
+		float init[numbParams];
+		float min[numbParams];
+		float max[numbParams];
+		float step[numbParams];
 	} params;
 
 		virtual void initUI() {
 			params.cnt=0;
 			params.cntLay=0;
+			params.cntEl=0;
 		};
 
 		// -- widget's layouts
@@ -108,18 +129,23 @@ class GUI : public UI {
 	    virtual void openHorizontalBox(const char* label) {
 	    	params.typeLay[params.cntLay] = 0;
 	    	params.labelLay[params.cntLay] = label;
-	    	if(params.layoutEl[params.cnt]>1) params.layoutEl[params.cnt]++;
-	    	else params.layoutEl[params.cnt] = 1;
+	    	params.typeEl[params.cntEl] = 0;
 	    	params.cntLay++;
+	    	params.cntEl++;
 	    };
 	    virtual void openVerticalBox(const char* label) {
 	    	params.typeLay[params.cntLay] = 1;
 	    	params.labelLay[params.cntLay] = label;
-	    	if(params.layoutEl[params.cnt]>1) params.layoutEl[params.cnt]++;
-	    	else params.layoutEl[params.cnt] = 1;
+	    	params.typeEl[params.cntEl] = 0;
 	    	params.cntLay++;
+	    	params.cntEl++;
 	    };
-	    virtual void closeBox() {};
+	    virtual void closeBox() {
+	    	params.typeLay[params.cntLay] = 2;
+	    	params.typeEl[params.cntEl] = 0;
+	    	params.cntLay++;
+	    	params.cntEl++;
+	    };
 
 	    // -- active widgets
 
@@ -127,15 +153,17 @@ class GUI : public UI {
 	    	params.type[params.cnt] = 0;
 	    	params.label[params.cnt] = label;
 	    	params.value[params.cnt] = zone;
-	    	if(params.layoutEl[params.cnt]<1) params.layoutEl[params.cnt] = 0;
+	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
+	    	params.cntEl++;
 	    };
 	    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) {
 	    	params.type[params.cnt] = 1;
 	    	params.label[params.cnt] = label;
 	    	params.value[params.cnt] = zone;
-	    	if(params.layoutEl[params.cnt]<1) params.layoutEl[params.cnt] = 0;
+	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
+	    	params.cntEl++;
 	    };
 	    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
 	    	params.type[params.cnt] = 2;
@@ -145,8 +173,9 @@ class GUI : public UI {
 	    	params.min[params.cnt] = min;
 	    	params.max[params.cnt] = max;
 	    	params.step[params.cnt] = step;
-	    	if(params.layoutEl[params.cnt]<1) params.layoutEl[params.cnt] = 0;
+	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
+	    	params.cntEl++;
 	    };
 	    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
 	    	params.type[params.cnt] = 3;
@@ -156,8 +185,9 @@ class GUI : public UI {
 	    	params.min[params.cnt] = min;
 	    	params.max[params.cnt] = max;
 	    	params.step[params.cnt] = step;
-	    	if(params.layoutEl[params.cnt]<1) params.layoutEl[params.cnt] = 0;
+	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
+	    	params.cntEl++;
 	    };
 	    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
 	    	params.type[params.cnt] = 4;
@@ -167,8 +197,9 @@ class GUI : public UI {
 	    	params.min[params.cnt] = min;
 	    	params.max[params.cnt] = max;
 	    	params.step[params.cnt] = step;
-	    	if(params.layoutEl[params.cnt]<1) params.layoutEl[params.cnt] = 0;
+	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
+	    	params.cntEl++;
 	    };
 
 	    // -- passive widgets
