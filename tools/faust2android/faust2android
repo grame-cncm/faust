@@ -47,6 +47,9 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	rm tmpMOD.dsp.xml
 fi
 
+sed -i '1iconst int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
+sed -i '1iconst int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
+
 cd $TMPFILES
 
 APPNAME=$(echo $f | sed 's/.\{4\}$//')
@@ -58,18 +61,17 @@ android update project --target 1 --path . > /dev/null
 ant debug > /dev/null
 
 cp -r bin/faustApp-debug.apk ../faustApp.apk
+cd ..
 
 for p in $@; do
 	if [ $p = "-install" ]; then
-		adb install -r bin/faustApp-debug.apk
+		adb install -r $TMPFILES/bin/faustApp-debug.apk
 	fi
 	if [ $p = "-eclipse" ]; then
-		cd ..
 		rm -rf faustApp
 		mv $TMPFILES faustApp
 		echo "An eclipse project named faustApp was created."
 	else
-		cd ..
 		rm -rf $TMPFILES
 	fi
 done
