@@ -107,7 +107,6 @@ _f4u$t.make_slider = function(kls, dct) {
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   var size = _f4u$t.get_size(dct);
-  console.log(size);
   options.girth *= size;
   options.length *= size;
   return new kls(options);

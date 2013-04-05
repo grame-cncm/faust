@@ -883,8 +883,8 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
 _f4u$t.Button.prototype.make = function(svg, parent) {
   var id = _f4u$t.randString();
   var full_id = 'faust_button_box_'+id;
-  var mousedown = '_f4u$t.button_down("'+full_id+'")';
-  var mouseup = '_f4u$t.button_up("'+full_id+'")';
+  var mousedown = '_f4u$t.button_down("'+full_id+'",true)';
+  var mouseup = '_f4u$t.button_up("'+full_id+'",true)';
   var g = this.make_group(svg, parent, id);
   svg.configure(g,
   {

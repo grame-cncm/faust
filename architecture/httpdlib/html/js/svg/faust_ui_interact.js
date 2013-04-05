@@ -629,19 +629,22 @@ _f4u$t.nentry_class_changer = function(id, down, dir) {
   }
 }
 
-_f4u$t.button_up = function(I) {
+_f4u$t.button_up = function(I, toserver) {
   var id = _f4u$t.unique(I);
   _f4u$t.button_class_changer(id, false);
-  _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 0);
+  if (toserver) {
+    _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 0);
+  }
   _f4u$t.clearIdCache();
 }
 
-_f4u$t.button_down = function(I) {
+_f4u$t.button_down = function(I, toserver) {
   var id = _f4u$t.unique(I);
   _f4u$t.clog_key_sink();
   _f4u$t.button_class_changer(id, true);
-  // UI2DSP
-  _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
+  if (toserver) {
+    _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
+  }
 }
 
 _f4u$t.change_checkbox = function(I) {
