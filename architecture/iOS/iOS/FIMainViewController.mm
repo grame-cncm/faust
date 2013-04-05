@@ -26,6 +26,11 @@
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
 
+// Test Jack
+#define kJackViewHeight 100
+#define kJackViewAnimationDuration 0.2
+
+
 @implementation FIMainViewController
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;
@@ -157,6 +162,16 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
     if (_assignatedWidgets.size() > 0) [self startMotion];
+
+#ifdef JACK_IOS
+    // Test Jack
+    _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(openJackView)];
+    _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionUp;
+    _swipeRecognizer.numberOfTouchesRequired = 3;
+    [_dspScrollView addGestureRecognizer:_swipeRecognizer];
+    
+    _jackView = nil;
+#endif
 }
 
 #ifdef JACK_IOS
@@ -345,6 +360,11 @@ error:
     
     [_refreshTimer invalidate];
     [self stopMotion];
+
+#ifdef JACK_IOS
+    // Test Jack
+    [_swipeRecognizer release];
+#endif
     
     [super dealloc];
 }
@@ -653,6 +673,14 @@ T findCorrespondingUiItem(FIResponder* sender)
             [_colorBSlider setFrame:CGRectMake(306., 219., 156., 23.)];
         }
     }
+
+#ifdef JACK_IOS
+    // Test Jack
+    if (_jackView)
+    {
+        [self performSelector:@selector(autoResizeJackView) withObject:nil afterDelay:0.1];
+    }
+#endif
 }
 
 // Locked box : box currently zoomed in
@@ -1514,4 +1542,65 @@ T findCorrespondingUiItem(FIResponder* sender)
     return result;
 }
 
+#ifdef JACK_IOS
+// Test Jack
+- (void)openJackView
+{
+    // Construct view
+    _jackView = [[JackView alloc] initWithFrame:CGRectMake(0, _dspScrollView.frame.size.height, _dspScrollView.frame.size.width, kJackViewHeight)];
+    _jackView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    
+    // Load client in view
+    [_jackView loadJackClient:dynamic_cast<jackaudio*>(audio_device)->getClient()];
+    
+    // Insert view in super view
+    [_dspScrollView addSubview:_jackView];
+    
+    // Gesture recognizer
+    [_swipeRecognizer removeTarget:self action:@selector(openJackView)];
+    [_swipeRecognizer addTarget:self action:@selector(closeJackView)];
+    _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionDown;
+    
+    // Animation
+    [UIView animateWithDuration:kJackViewAnimationDuration
+                          delay:0.0
+                        options:UIViewAnimationOptionCurveLinear
+                     animations:^
+     {
+         [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height - kJackViewHeight, _dspScrollView.frame.size.width, kJackViewHeight)];
+     }
+                     completion:^(BOOL finished)
+     {
+     }];
+}
+
+- (void)closeJackView
+{
+    // Gesture recognizer
+    [_swipeRecognizer removeTarget:self action:@selector(closeJackView)];
+    [_swipeRecognizer addTarget:self action:@selector(openJackView)];
+    _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionUp;
+    
+    // Animation
+    [UIView animateWithDuration:kJackViewAnimationDuration
+                          delay:0.0
+                        options:UIViewAnimationOptionCurveLinear
+                     animations:^
+     {
+         [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height, _dspScrollView.frame.size.width, kJackViewHeight)];
+     }
+                     completion:^(BOOL finished)
+     {
+         [_jackView removeFromSuperview];
+         [_jackView release];
+         _jackView = nil;
+     }];
+}
+
+- (void)autoResizeJackView
+{
+    [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height - kJackViewHeight, _dspScrollView.frame.size.width, kJackViewHeight)];
+}
+
+#endif
 @end
