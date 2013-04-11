@@ -50,7 +50,12 @@ _f4u$t.update_checkbox_value = function(address, value) {
 }
 
 _f4u$t.update_button_value = function(address, value) {
- /* do nothing */
+  var id = _f4u$t.PATHS_TO_IDS[address];
+  if (value == 1) {
+    _f4u$t.button_class_changer(id, true);
+  } else {
+    _f4u$t.button_class_changer(id, false);
+  }
 }
 
 _f4u$t.dispatch = function(data) {

@@ -35,6 +35,7 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QColormap>
+#include <QCommonStyle>
 #include <QDial>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
@@ -48,6 +49,7 @@
 #include <QRadialGradient>
 #include <QSlider>
 #include <QStyle>
+#include <QStyleOptionSlider>
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolTip>

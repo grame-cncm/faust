@@ -88,7 +88,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-        $QMAKE -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-lportaudio $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
+        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-lportaudio $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
 	    $QMAKE $SPEC
         make
     ) > /dev/null

@@ -1,6 +1,21 @@
-/*
-TODO Header needed
-*/
+/************************************************************************
+ ************************************************************************
+ FAUST Architecture File for Android
+ Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
+ Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+
+ This is sample code. This file is provided as an example of minimal
+ FAUST architecture file. Redistribution and use in source and binary
+ forms, with or without modification, in part or in full are permitted.
+ In particular you can create a derived work of this FAUST architecture
+ and distribute that work under terms of your choice.
+
+ This sample code is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ ************************************************************************
+ ************************************************************************/
 
 #include <android/log.h>
 #include "opensl_io.h"
@@ -51,8 +66,9 @@ Para faust::initFaust(){
 
 	// parameters elements initialization
 	params.cnt = interface->params.cnt;
+	params.cntEl = interface->params.cntEl;
 	params.type = new int [params.cnt];
-	params.layoutEl = new int [params.cnt];
+	params.typeEl = new int [params.cntEl];
 	params.labelPos = new int [params.cnt];
 	params.zone = new float [params.cnt];
 	params.init = new float [params.cnt];
@@ -65,12 +81,13 @@ Para faust::initFaust(){
 
 	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %i", outChanNumb);
 
+	for(int i=0; i<params.cntEl; i++) params.typeEl[i] = interface->params.typeEl[i];
+
 	for(int i=0; i<params.cnt; i++){
 		params.type[i] = interface->params.type[i];
-		params.layoutEl[i] = interface->params.layoutEl[i];
 		/*
-		 * I know there must be a way to do that in a nicer way with swig, but for now,
-		 * it works fine... XXX
+		 * There must be a way to do that in a nicer way with swig, but for now,
+		 * it works fine... TODO
 		 */
 		int currentPos = strlen(interface->params.label[i]);
 		params.labelPos[i] = currentPos + oldPos;
@@ -93,12 +110,15 @@ Para faust::initFaust(){
 
 	for(int i=0; i<params.cntLay; i++){
 		params.typeLay[i] = interface->params.typeLay[i];
-		int currentPos = strlen(interface->params.labelLay[i]);
-		params.labelLayPos[i] = currentPos + oldPos;
-		strcpy(labelBuf2,labelOld);
-		strcat(labelBuf2,interface->params.labelLay[i]);
-		strcpy(labelOld,labelBuf2);
-		params.labelLay = labelBuf2;
+		if(params.typeLay[i] == 0 || params.typeLay[i] == 1){
+			int currentPos = strlen(interface->params.labelLay[i]);
+			params.labelLayPos[i] = currentPos + oldPos;
+			oldPos = currentPos + oldPos;
+			strcpy(labelBuf2,labelOld);
+			strcat(labelBuf2,interface->params.labelLay[i]);
+			strcpy(labelOld,labelBuf2);
+			params.labelLay = labelBuf2;
+		}
 	}
 	return params;
 }
@@ -144,3 +164,4 @@ void faust::processDSP(){
 		android_AudioOut(p,out,VECSAMPS*2);
 	}
 }
+

@@ -469,6 +469,26 @@ _f4u$t.magic_color = function() {
 }
 
 /**
+Returns false.
+
+@method faux
+@for _f4u$t
+@static
+@return {Boolean}
+**/
+_f4u$t.faux = function() { return false; }
+
+/**
+Returns true.
+
+@method vrai
+@for _f4u$t
+@static
+@return {Boolean}
+**/
+_f4u$t.vrai = function() { return true; }
+
+/**
 Taking an axis _f4u$t.X_AXIS or _f4u$t.Y_AXIS, returns
 the opposite axis.
 

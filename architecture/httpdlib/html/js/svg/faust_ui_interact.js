@@ -640,7 +640,6 @@ _f4u$t.button_down = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.clog_key_sink();
   _f4u$t.button_class_changer(id, true);
-  // UI2DSP
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
 }
 
