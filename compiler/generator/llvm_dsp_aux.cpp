@@ -421,7 +421,7 @@ EXPORT std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level)
 {
     OwningPtr<MemoryBuffer> buffer;
-    if (error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
         return 0;
     }
