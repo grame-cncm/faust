@@ -26,7 +26,7 @@ done
 
 # Faust compilation
 for f in $FILES; do
-	faust -xml -a src/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -a $TMPFILES/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
 # Get the number of input and output of the Faust object 
@@ -45,7 +45,7 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	echo "It was modified as follows:"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -xml -a src/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -a $TMPFILES/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
 	rm tmpMOD.dsp
 	rm tmpMOD.dsp.xml
 fi
@@ -70,7 +70,7 @@ sh build.sh #> /dev/null
 # This line line might be necessary in the case you would get the following error message: "Buildfile: build.xml does not exist!"
 # If that happens, you must run "android list targets" to know what is the ID for android-17 and use it after --target.
 
-#android update project --target 1 --path . > /dev/null 
+android update project --target 1 --path . > /dev/null 
 
 ant debug #> /dev/null
 
