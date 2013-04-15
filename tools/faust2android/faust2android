@@ -8,7 +8,7 @@
 #####################################################################
 
 TMPFILES="tmpfaust2android"
-JAVA_HOME="/home/romain/Android/android-ndk-r8d"
+JAVA_HOME=$ANDROID_NDK_ROOT
 
 rm -rf $TMPFILES
 mkdir $TMPFILES
@@ -24,13 +24,16 @@ for p in $@; do
 	fi
 done
 
+# Faust compilation
 for f in $FILES; do
-	faust -xml -a src/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -a $TMPFILES/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
+# Get the number of input and output of the Faust object 
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
 NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
 
+# If the number of input signals is greater than one, they are merged into one signal
 if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	if [ $NINPUTS -gt  1 ]; then
 		INMOD="_ <:"
@@ -42,11 +45,12 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	echo "It was modified as follows:"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -xml -a src/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -a $TMPFILES/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
 	rm tmpMOD.dsp
 	rm tmpMOD.dsp.xml
 fi
 
+# Declare global variables in the C++ code for the number of parameters
 sed -i '1iconst int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
 sed -i '1iconst int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
 
@@ -56,12 +60,26 @@ APPNAME=$(echo $f | sed 's/.\{4\}$//')
 mv res/values/strings.xml res/values/stringsN.xml 
 sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
 rm res/values/stringsN.xml
-sh build.sh > /dev/null
+
+# *************
+# COMPILATION
+# *************
+
+sh build.sh #> /dev/null
+
+# This line line might be necessary in the case you would get the following error message: "Buildfile: build.xml does not exist!"
+# If that happens, you must run "android list targets" to know what is the ID for android-17 and use it after --target.
+
 android update project --target 1 --path . > /dev/null 
-ant debug > /dev/null
+
+ant debug #> /dev/null
 
 cp -r bin/faustApp-debug.apk ../faustApp.apk
 cd ..
+
+# ****************
+# TREAT OPTIONS
+# ****************
 
 for p in $@; do
 	if [ $p = "-install" ]; then

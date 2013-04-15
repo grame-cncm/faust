@@ -31,8 +31,7 @@ using namespace std;
 namespace httpdfaust
 {
 
-static const char * kJSONMsg = "JSON";
-
+static const char * kJSONAddr = "/JSON";
 
 
 //--------------------------------------------------------------------------
@@ -41,6 +40,12 @@ bool RootNode::processMessage( const Message* msg, vector<Message*>& outMsg )
 	const string& addr = msg->address();
 	if (addr.empty() || (addr == "/")) {
 		return accept(msg, outMsg);
+	}
+	else if (addr == kJSONAddr) {
+		Message* msg = new Message (fJson);
+		msg->setMIMEType ("application/json");
+		outMsg.push_back (msg);
+		return true;
 	}
 	return MessageDriven::processMessage( msg, outMsg );
 }
@@ -54,12 +59,6 @@ bool RootNode::accept( const Message* msg, vector<Message*>& outMsg )
 		Message* msg = new Message (fHtml);
 		msg->setMIMEType ("text/html");
 		outMsg.push_back(msg);
-		return true;
-	}
-	else if ((msg->size() == 2) && (msg->param(0, val)) && (val == kJSONMsg) ) {
-		Message* msg = new Message (fJson);
-		msg->setMIMEType ("application/json");
-		outMsg.push_back (msg);
 		return true;
 	}
 	return MessageDriven::accept (msg, outMsg);

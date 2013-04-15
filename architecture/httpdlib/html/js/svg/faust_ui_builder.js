@@ -107,7 +107,6 @@ _f4u$t.make_slider = function(kls, dct) {
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   var size = _f4u$t.get_size(dct);
-  console.log(size);
   options.girth *= size;
   options.length *= size;
   return new kls(options);
@@ -180,11 +179,11 @@ _f4u$t.make_vgroup = function(dct) {
 }
 
 _f4u$t.make_group = function(axis, dct) {
+  var options = $.extend(true, {}, _f4u$t.xy(axis, _f4u$t.hgroup_inits, _f4u$t.vgroup_inits));
+  options.label = dct["label"];
+  options.axis = axis;
 
-  var lm = new _f4u$t.LayoutManager({
-    axis : axis,
-    label : dct["label"]
-  });
+  var lm = new _f4u$t.LayoutManager(options);
 
   for (var i = 0; i < dct["items"].length; i++) {
     if (dct["items"][i]["type"] == "hgroup") {

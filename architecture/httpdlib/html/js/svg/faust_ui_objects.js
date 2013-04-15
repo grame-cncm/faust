@@ -161,6 +161,7 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'step');
   _f4u$t.init_prop(this, options, 'rbutton', 'integer');
   _f4u$t.init_prop(this, options, 'rbutton', 'ndec');
+  _f4u$t.init_prop(this, options, 'rbutton', 'stretchable');
   _f4u$t.init_prop(this, options, 'rbutton', 'lpadding_y');
   _f4u$t.init_prop(this, options, 'rbutton', 'box_padding');
   _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
@@ -388,6 +389,7 @@ _f4u$t.SlidingObject = function(options, type) {
   _f4u$t.init_prop(this, options, type, 'step');
   _f4u$t.init_prop(this, options, type, 'integer');
   _f4u$t.init_prop(this, options, type, 'ndec');
+  _f4u$t.init_prop(this, options, type, 'stretchable');
   _f4u$t.init_prop(this, options, type, 'lpadding_y');
   _f4u$t.init_prop(this, options, type, 'box_padding');
   _f4u$t.init_prop(this, options, type, 'gravity');
@@ -709,6 +711,7 @@ _f4u$t.CheckBox = function(options) {
   _f4u$t.init_prop(this, options, 'checkbox','box_fill');
   _f4u$t.init_prop(this, options, 'checkbox','box_stroke');
   _f4u$t.init_prop(this, options, 'checkbox','init');
+  _f4u$t.init_prop(this, options, 'checkbox', 'stretchable');
   _f4u$t.init_prop(this, options, 'checkbox','lpadding_y');
   _f4u$t.init_prop(this, options, 'checkbox','box_padding');
   _f4u$t.init_prop(this, options, 'checkbox','address');
@@ -824,6 +827,7 @@ _f4u$t.Button = function(options) {
   _f4u$t.init_prop(this, options, 'button','fill_on');
   _f4u$t.init_prop(this, options, 'button','fill_off');
   _f4u$t.init_prop(this, options, 'button','stroke');
+  _f4u$t.init_prop(this, options, 'button', 'stretchable');
   _f4u$t.init_prop(this, options, 'button','baseline_skip');
   _f4u$t.init_prop(this, options, 'button','address');
 }
@@ -928,6 +932,7 @@ _f4u$t.NumericalEntry = function(options) {
   _f4u$t.init_prop(this, options, 'nentry', 'value_box_h');
   _f4u$t.init_prop(this, options, 'nentry', 'address');
   _f4u$t.init_prop(this, options, 'nentry', 'type');
+  _f4u$t.init_prop(this, options, 'button', 'stretchable');
   _f4u$t.init_prop(this, options, 'nentry', 'button_fill');
   _f4u$t.init_prop(this, options, 'nentry', 'operation_fill');
   _f4u$t.init_prop(this, options, 'nentry', 'button_stroke');
@@ -1092,6 +1097,7 @@ _f4u$t.LayoutManager = function(options) {
   this.objs = _f4u$t.initifnull(options.objs, []);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.label = _f4u$t.initifnull(options.label, '');
+  this.stretchable = _f4u$t.initifnull(options.stretchable, _f4u$t.faux);
   this.lpadding_y = _f4u$t.initifnull(options.lpaddiny_y, (_f4u$t.TEXT_HEIGHT * 1.5));
   this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
   this.x = 0;
@@ -1240,6 +1246,7 @@ _f4u$t.TabGroup = function(options) {
   this.x_width = _f4u$t.initifnull(options.x_width, 80);
   this.objs= _f4u$t.initifnull(options.objs, []);
   this.init = _f4u$t.initifnull(options.init, 0);
+  this.stretchable = _f4u$t.initifnull(options.stretchable, _f4u$t.faux);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
   _f4u$t.init_prop(this, options, 'button','fill_on');

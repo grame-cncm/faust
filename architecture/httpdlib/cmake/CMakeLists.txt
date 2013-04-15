@@ -8,7 +8,7 @@ set (CMAKE_CONFIGURATION_TYPES Debug Release)
 set (TARGET	HTTPDFaust)
 #######################################
 # versions management
-set (version 0.50)
+set (version 0.71)
 
 #######################################
 if(WIN32)
