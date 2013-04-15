@@ -25,7 +25,7 @@
 #import "FISensorFilter.h"
 
 
-//#define JACK_IOS 1
+#define JACK_IOS 1
 
 
 #ifdef JACK_IOS
