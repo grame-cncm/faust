@@ -24,7 +24,6 @@ import faust_dsp.SWIGTYPE_p_float;
 import faust_dsp.SWIGTYPE_p_int;
 import faust_dsp.faust;
 import faust_dsp.faust_dsp;
-import faust_dsp.faust_dspJNI;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
