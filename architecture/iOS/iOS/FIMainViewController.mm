@@ -167,18 +167,18 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _tapRecognizerToDismissJackView = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closeJackView)];
     _tapRecognizerToDismissJackView.numberOfTapsRequired = 1;
     _tapRecognizerToDismissJackView.numberOfTouchesRequired = 1;
-    [_dspView addGestureRecognizer:_tapRecognizerToDismissJackView];
+    [_dspScrollView addGestureRecognizer:_tapRecognizerToDismissJackView];
     
     _jackButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [_jackButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Icon-Jack" ofType:@"png"]]
                  forState:UIControlStateNormal];
     [_jackButton addTarget:self action:@selector(openJackView) forControlEvents:UIControlEventTouchUpInside];
     [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
-                                     _dspScrollView.frame.size.height - 43,
+                                     _dspScrollView.frame.size.height,
                                      70,
                                      32)];
     _jackButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin & UIViewAutoresizingFlexibleTopMargin;
-    [_dspScrollView addSubview:_jackButton];
+    [_dspScrollView.superview addSubview:_jackButton];
     
     _jackView = nil;
     _orientationIsChanging = NO;
@@ -821,6 +821,11 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [self closeJackView];
+}
+
 // Function called just after scroll view scrolled
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
@@ -829,7 +834,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         && [_dspScrollView.panGestureRecognizer translationInView:_dspView].y != 0.f)
     {
         _lockedBox = interface->getMainBox();
-    }
+    }    
 }
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
@@ -1584,14 +1589,17 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (_jackView) return;
     
     // Construct view
-    _jackView = [[JackView alloc] initWithFrame:CGRectMake(0, _dspScrollView.frame.size.height, _dspScrollView.frame.size.width, kJackViewHeight)];
+    _jackView = [[JackView alloc] initWithFrame:CGRectMake(0,
+                                                           _dspScrollView.frame.size.height,
+                                                           _dspScrollView.frame.size.width,
+                                                           kJackViewHeight)];
     _jackView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     
     // Load client in view
     [_jackView loadJackClient:dynamic_cast<jackaudio*>(audio_device)->getClient()];
     
     // Insert view in super view
-    [_dspScrollView addSubview:_jackView];
+    [_dspScrollView.superview addSubview:_jackView];
     
     // Gesture recognizers
     [_swipeRecognizer removeTarget:self action:@selector(openJackView)];
@@ -1604,7 +1612,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                         options:UIViewAnimationOptionCurveLinear
                      animations:^
      {
-         [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height - kJackViewHeight, _dspScrollView.frame.size.width, kJackViewHeight)];
+         [_jackView setFrame:CGRectMake(0,
+                                        _dspScrollView.frame.size.height - kJackViewHeight + 44,
+                                        _dspScrollView.frame.size.width,
+                                        kJackViewHeight)];
      }
                      completion:^(BOOL finished)
      {
@@ -1626,7 +1637,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                         options:UIViewAnimationOptionCurveLinear
                      animations:^
      {
-         [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height, _dspScrollView.frame.size.width, kJackViewHeight)];
+         [_jackView setFrame:CGRectMake(0,
+                                        _dspScrollView.frame.size.height + 44,
+                                        _dspScrollView.frame.size.width,
+                                        kJackViewHeight)];
      }
                      completion:^(BOOL finished)
      {
@@ -1640,13 +1654,16 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     if (_jackView)
     {
-        [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height - kJackViewHeight, _dspScrollView.frame.size.width, kJackViewHeight)];
+        [_jackView setFrame:CGRectMake(0,
+                                       _dspScrollView.frame.size.height - kJackViewHeight + 44,
+                                       _dspScrollView.frame.size.width,
+                                       kJackViewHeight)];
     }
     
     if (_jackButton)
     {
         [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
-                                         _dspScrollView.frame.size.height - 43,
+                                         _dspScrollView.frame.size.height,
                                          70,
                                          32)];
     }
