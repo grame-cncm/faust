@@ -164,7 +164,24 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _swipeRecognizer.numberOfTouchesRequired = 3;
     [_dspScrollView addGestureRecognizer:_swipeRecognizer];
     
+    _tapRecognizerToDismissJackView = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closeJackView)];
+    _tapRecognizerToDismissJackView.numberOfTapsRequired = 1;
+    _tapRecognizerToDismissJackView.numberOfTouchesRequired = 1;
+    [_dspView addGestureRecognizer:_tapRecognizerToDismissJackView];
+    
+    _jackButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_jackButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Icon-Jack" ofType:@"png"]]
+                 forState:UIControlStateNormal];
+    [_jackButton addTarget:self action:@selector(openJackView) forControlEvents:UIControlEventTouchUpInside];
+    [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
+                                     _dspScrollView.frame.size.height - 43,
+                                     70,
+                                     32)];
+    _jackButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin & UIViewAutoresizingFlexibleTopMargin;
+    [_dspScrollView addSubview:_jackButton];
+    
     _jackView = nil;
+    _orientationIsChanging = NO;
 #endif
 }
 
@@ -240,6 +257,11 @@ error:
     [alertView release];
 
     [self closeAudio];
+}
+
+- (BOOL)isJackAudio
+{
+    return (dynamic_cast<jackaudio*>(audio_device) != NULL);
 }
 
 #endif
@@ -517,6 +539,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
     else NSLog(@"UIItem not implemented yet :)");
     
+#ifdef JACK_IOS
+    // Test Jack
+    if (!_orientationIsChanging) // Only when users touches a widget
+    {
+        [self closeJackView];
+    }
+#endif
 }
 
 // Save widgets values
@@ -576,7 +605,15 @@ T findCorrespondingUiItem(FIResponder* sender)
     float                           height = 0.f;
     UIDeviceOrientation             deviceOrientation = [UIDevice currentDevice].orientation;
     
+#ifdef JACK_IOS
+    _orientationIsChanging = YES;
+#endif
+    
     [self updateGui];
+    
+#ifdef JACK_IOS
+    _orientationIsChanging = NO;
+#endif
     
     // Compute layout
     if (deviceOrientation == UIDeviceOrientationPortrait
@@ -668,11 +705,11 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
     }
 
-#ifdef JACK_IOS
+#ifdef JACK_IOS    
     // Test Jack
-    if (_jackView)
+    if ([self isJackAudio])
     {
-        [self performSelector:@selector(autoResizeJackView) withObject:nil afterDelay:0.1];
+        [self performSelector:@selector(autoResizeJackViews) withObject:nil afterDelay:0.1];
     }
 #endif
 }
@@ -803,6 +840,9 @@ T findCorrespondingUiItem(FIResponder* sender)
 // User just double tapped somewhere in the DSP view
 - (void)doubleTap
 {
+    // Test Jack
+    [self closeJackView];
+    
     uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
 
     // Avoid a strange bug
@@ -914,7 +954,8 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (IBAction)togglePopover:(id)sender
 {
     // If running in CoreAudio mode...
-    if (dynamic_cast<iosaudio*>(audio_device)) {
+    //if (dynamic_cast<iosaudio*>(audio_device))
+    {
         if (self.flipsidePopoverController)
         {
             [self.flipsidePopoverController dismissPopoverAnimated:YES];
@@ -1540,6 +1581,8 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Test Jack
 - (void)openJackView
 {
+    if (_jackView) return;
+    
     // Construct view
     _jackView = [[JackView alloc] initWithFrame:CGRectMake(0, _dspScrollView.frame.size.height, _dspScrollView.frame.size.width, kJackViewHeight)];
     _jackView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -1550,7 +1593,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     // Insert view in super view
     [_dspScrollView addSubview:_jackView];
     
-    // Gesture recognizer
+    // Gesture recognizers
     [_swipeRecognizer removeTarget:self action:@selector(openJackView)];
     [_swipeRecognizer addTarget:self action:@selector(closeJackView)];
     _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionDown;
@@ -1570,11 +1613,13 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)closeJackView
 {
-    // Gesture recognizer
+    if (!_jackView) return;
+    
+    // Gesture recognizers
     [_swipeRecognizer removeTarget:self action:@selector(closeJackView)];
     [_swipeRecognizer addTarget:self action:@selector(openJackView)];
     _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionUp;
-    
+        
     // Animation
     [UIView animateWithDuration:kJackViewAnimationDuration
                           delay:0.0
@@ -1591,9 +1636,20 @@ T findCorrespondingUiItem(FIResponder* sender)
      }];
 }
 
-- (void)autoResizeJackView
+- (void)autoResizeJackViews
 {
-    [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height - kJackViewHeight, _dspScrollView.frame.size.width, kJackViewHeight)];
+    if (_jackView)
+    {
+        [_jackView setFrame:CGRectMake(0, _dspScrollView.frame.size.height - kJackViewHeight, _dspScrollView.frame.size.width, kJackViewHeight)];
+    }
+    
+    if (_jackButton)
+    {
+        [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
+                                         _dspScrollView.frame.size.height - 43,
+                                         70,
+                                         32)];
+    }
 }
 
 #endif

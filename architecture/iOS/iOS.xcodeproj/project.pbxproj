@@ -59,6 +59,10 @@
 		4BB0480616EA01EC00C0677C /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BB0480516EA01EC00C0677C /* icon.png */; };
 		4BB0480716EA01EC00C0677C /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BB0480516EA01EC00C0677C /* icon.png */; };
 		4BDAA21016AEF05D00A3499E /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDAA20F16AEF05D00A3499E /* Accelerate.framework */; };
+		651BB43E171D91260065CBC9 /* Icon-Jack.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43C171D91260065CBC9 /* Icon-Jack.png */; };
+		651BB43F171D91260065CBC9 /* Icon-Jack.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43C171D91260065CBC9 /* Icon-Jack.png */; };
+		651BB440171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
+		651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
@@ -118,6 +122,8 @@
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
 		4BB0480516EA01EC00C0677C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		651BB43C171D91260065CBC9 /* Icon-Jack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack.png"; sourceTree = "<group>"; };
+		651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack@2x.png"; sourceTree = "<group>"; };
 		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
 		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
 		65510E9314EEC1190014A01F /* FITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITextField.h; sourceTree = "<group>"; };
@@ -229,6 +235,8 @@
 				4B04364F16E9E9AD00C0C02A /* Icon-Output.png */,
 				4B04365016E9E9AD00C0C02A /* Icon-Output136.png */,
 				4B04365116E9E9AD00C0C02A /* Icon-Output@2x.png */,
+				651BB43C171D91260065CBC9 /* Icon-Jack.png */,
+				651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */,
 			);
 			path = pix;
 			sourceTree = SOURCE_ROOT;
@@ -465,6 +473,8 @@
 				4BB0480716EA01EC00C0677C /* icon.png in Resources */,
 				4B4AB48E16FDF0FC0066E1CA /* MainStoryboard_iPad.storyboard in Resources */,
 				4B4AB49016FDF0FC0066E1CA /* MainStoryboard_iPhone.storyboard in Resources */,
+				651BB43F171D91260065CBC9 /* Icon-Jack.png in Resources */,
+				651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -487,6 +497,8 @@
 				4BB0480616EA01EC00C0677C /* icon.png in Resources */,
 				4B4AB48D16FDF0FC0066E1CA /* MainStoryboard_iPad.storyboard in Resources */,
 				4B4AB48F16FDF0FC0066E1CA /* MainStoryboard_iPhone.storyboard in Resources */,
+				651BB43E171D91260065CBC9 /* Icon-Jack.png in Resources */,
+				651BB440171D91260065CBC9 /* Icon-Jack@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
