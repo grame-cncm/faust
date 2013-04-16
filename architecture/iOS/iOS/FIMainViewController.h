@@ -92,7 +92,10 @@ class uiBox;
 #ifdef JACK_IOS
     // Test Jack
     UISwipeGestureRecognizer*           _swipeRecognizer;
+    UITapGestureRecognizer*             _tapRecognizerToDismissJackView;
+    UIButton*                           _jackButton;
     JackView*                           _jackView;
+    BOOL                                _orientationIsChanging;
 #endif
 }
 
@@ -110,6 +113,7 @@ class uiBox;
 - (BOOL)openJack;
 - (BOOL)checkJack;
 - (void)closeJack:(const char*)reason;
+- (BOOL)isJackAudio;
 #endif
 
 - (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate;
@@ -147,7 +151,7 @@ class uiBox;
 // Test Jack
 - (void)openJackView;
 - (void)closeJackView;
-- (void)autoResizeJackView;
+- (void)autoResizeJackViews;
 #endif
 
 @end
