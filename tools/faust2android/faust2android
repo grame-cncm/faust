@@ -10,15 +10,32 @@
 TMPFILES="tmpfaust2android"
 JAVA_HOME=$ANDROID_NDK_ROOT
 
+set -e
+
 rm -rf $TMPFILES
 mkdir $TMPFILES
 
 cp -r src/* $TMPFILES
 
-#PHASE 2 : dispatch command arguments
+# Global variables for options
+INSTALL=0
+ECLIPSE=0
+
+# PHASE 2 : dispatch command arguments
 for p in $@; do
 	if [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
+	elif [ $p = "-install" ]; then
+		INSTALL=1
+	elif [ $p = "-eclipse" ]; then
+		ECLIPSE=1
+	elif [ $p = "-h" ]; then
+		echo "Usage: faust2android faustFile.dsp"
+		echo "OPTIONS:"
+		echo "-install : once compilation is over, installs the generated app on the Android device connected to the computer."
+		echo "-eclipse : creates an eclipse project of the app in the current directory."
+		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
+		exit 1
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
@@ -51,8 +68,8 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 fi
 
 # Declare global variables in the C++ code for the number of parameters
-sed -i '1iconst int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
-sed -i '1iconst int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' $TMPFILES/jni/mydsp.cpp
+echo 'const int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
+echo 'const int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
 
 cd $TMPFILES
 
@@ -67,31 +84,27 @@ rm res/values/stringsN.xml
 
 sh build.sh #> /dev/null
 
-# This line line might be necessary in the case you would get the following error message: "Buildfile: build.xml does not exist!"
-# If that happens, you must run "android list targets" to know what is the ID for android-17 and use it after --target.
-
-android update project --target 1 --path . > /dev/null 
+# To be checked on the mac
+android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > /dev/null 
 
 ant debug #> /dev/null
 
-cp -r bin/faustApp-debug.apk ../faustApp.apk
+cp -r bin/faustApp-debug.apk ../$APPNAME.apk
 cd ..
 
 # ****************
 # TREAT OPTIONS
 # ****************
 
-for p in $@; do
-	if [ $p = "-install" ]; then
-		adb install -r $TMPFILES/bin/faustApp-debug.apk
-	fi
-	if [ $p = "-eclipse" ]; then
-		rm -rf faustApp
-		mv $TMPFILES faustApp
-		echo "An eclipse project named faustApp was created."
-	else
-		rm -rf $TMPFILES
-	fi
-done
+if [ $INSTALL -eq 1 ]; then
+	adb install -r $TMPFILES/bin/faustApp-debug.apk
+fi
+if [ $ECLIPSE -eq 1 ]; then
+	rm -rf faustApp
+	mv $TMPFILES faustApp
+	echo "An eclipse project named faustApp was created."
+else
+	rm -rf $TMPFILES
+fi
 
 rm "$f.xml"
