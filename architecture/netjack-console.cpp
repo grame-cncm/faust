@@ -40,7 +40,7 @@
 
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
-#include "faust/gui/faustqt.h"
+#include "faust/gui/console.h"
 #include "faust/audio/netjack-dsp.h"
 
 #ifdef OSCCTRL
@@ -62,6 +62,7 @@
 *******************************************************************************/
 
 <<includeIntrinsic>>
+
 
 <<includeclass>>
 
@@ -95,13 +96,13 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	GUI* interface = new QTGUI(argc, argv);
+    CMDUI* interface = new CMDUI(argc, argv);
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
 	DSP->buildUserInterface(httpdinterface);
 #endif
 

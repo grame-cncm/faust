@@ -162,6 +162,7 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'integer');
   _f4u$t.init_prop(this, options, 'rbutton', 'ndec');
   _f4u$t.init_prop(this, options, 'rbutton', 'stretchable');
+  _f4u$t.init_prop(this, options, 'rbutton', 'orientation');
   _f4u$t.init_prop(this, options, 'rbutton', 'lpadding_y');
   _f4u$t.init_prop(this, options, 'rbutton', 'box_padding');
   _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
@@ -357,6 +358,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.ndec,
     this.label,
     this.unit,
+    this.orientation,
     this.address
   );
 
@@ -416,11 +418,12 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 
 _f4u$t.Slider = function(options, type) {
   _f4u$t.SlidingObject.call(this, options, type);
-  _f4u$t.init_prop(this, options, 'button','sp');
-  _f4u$t.init_prop(this, options, 'button','groove_fill');
-  _f4u$t.init_prop(this, options, 'button','groove_stroke');
-  _f4u$t.init_prop(this, options, 'button','handle_fill');
-  _f4u$t.init_prop(this, options, 'button','handle_stroke');
+  _f4u$t.init_prop(this, options, type,'sp');
+  _f4u$t.init_prop(this, options, type, 'orientation');
+  _f4u$t.init_prop(this, options, type,'groove_fill');
+  _f4u$t.init_prop(this, options, type,'groove_stroke');
+  _f4u$t.init_prop(this, options, type,'handle_fill');
+  _f4u$t.init_prop(this, options, type,'handle_stroke');
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
@@ -541,6 +544,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.ndec,
     this.label,
     this.unit,
+    this.orientation,
     this.address
   );
 
