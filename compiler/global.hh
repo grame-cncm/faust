@@ -386,6 +386,8 @@ struct global {
      
     // to keep track of already injected files
     set<string> gAlreadyIncluded;
+    
+    char* gCurrentLocal;
    
     // GC
     static list<Garbageable*> gObjectTable;

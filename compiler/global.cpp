@@ -333,6 +333,11 @@ void global::init()
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
    
     Typed::init();
+    
+    gCurrentLocal = setlocale(LC_ALL, NULL);
+    // Setup standard "C" local 
+    // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
+    setlocale(LC_ALL, "C");
 }
     
 global::~global()
@@ -340,6 +345,7 @@ global::~global()
     Garbageable::cleanup();
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
+    setlocale(LC_ALL, gCurrentLocal);
 }
 
 void global::allocate()
