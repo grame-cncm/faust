@@ -537,6 +537,8 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
   // no updating XY as there is no event specific to this object
+  // TODO: make a sort of fake event so that we can keep track of sliders
+  // having been moved after global events like the devicemotion.
   //_f4u$t.updateXY([e]);
   return now;
 }
