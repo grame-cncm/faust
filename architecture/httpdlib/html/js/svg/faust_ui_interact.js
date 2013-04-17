@@ -487,8 +487,8 @@ _f4u$t.moveActiveSlider = function(e,identifier)
 _f4u$t.respondToOrientationChange = function(e) {
   for (var id in _f4u$t.IDS_TO_ATTRIBUTES) {
     if (_f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"] &&
-        (_f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"] != {}))
-      {
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"].orientation)
+      {console.log(_f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"]);
         var now = null;
         if ((_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'hslider')
             || (_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'vslider')) {
