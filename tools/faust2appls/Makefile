@@ -44,6 +44,7 @@ install:
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
 	install faust2netjackqt $(dest)
+	install faust2netjackconsole $(dest)
 	install faust2vst $(dest)
 	install faust2ios $(dest)
 	install faust2lv2 $(dest)
@@ -81,6 +82,7 @@ uninstall:
 	rm -f $(dest)/faust2sig
 	rm -f $(dest)/faust2sigviewer
 	rm -f $(dest)/faust2netjackqt
+	rm -f $(dest)/faust2netjackconsole
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2lv2
