@@ -22,6 +22,18 @@ _f4u$t.get_unit = function(dct) {
   return '';
 }
 
+_f4u$t.get_orientation = function(dct) {
+  if (!dct['meta']) {
+    return {};
+  }
+  for (var i=0; i < dct['meta'].length; i++) {
+    if (dct['meta'][i]['orientation']) {
+      return _f4u$t.parse_orientation(dct['meta'][i]['orientation']);
+    }
+  }
+  return {};
+}
+
 _f4u$t.get_size = function(dct) {
   if (!dct['meta']) {
     return 1;
@@ -77,7 +89,8 @@ _f4u$t.make_rbutton = function(dct) {
   options.integer = numspecs["integer"];
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
-  options.unit = _f4u$t.get_unit(dct)
+  options.unit = _f4u$t.get_unit(dct);
+  options.orientation = _f4u$t.get_orientation(dct);
   var size = _f4u$t.get_size(dct);
   options.ir *= size;
   return new _f4u$t.RotatingButton(options);
@@ -106,6 +119,7 @@ _f4u$t.make_slider = function(kls, dct) {
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
+  options.orientation = _f4u$t.get_orientation(dct);
   var size = _f4u$t.get_size(dct);
   options.girth *= size;
   options.length *= size;
