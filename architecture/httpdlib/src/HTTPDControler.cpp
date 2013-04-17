@@ -41,8 +41,8 @@ using namespace std;
 namespace httpdfaust
 {
 
-#define kVersion	 0.70f
-#define kVersionStr	"0.70"
+#define kVersion	 0.71f
+#define kVersionStr	"0.71"
 
 static const char* kPortOpt	= "-port";
 
