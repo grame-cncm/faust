@@ -489,6 +489,57 @@ Returns true.
 _f4u$t.vrai = function() { return true; }
 
 /**
+The bounds for an accelerometer orientation.
+
+@property orientation_bounds
+@for _f4u$t
+@type Object
+@default {}
+**/
+_f4u$t.orientation_bounds = {
+  alpha : [0, 360],
+  beta : [-90, 90],
+  gamma : [-90, 90]
+};
+
+/**
+Parses a string into an orientation
+
+@method parse_orientation
+@for _f4u$t
+@static
+@return {Object}
+**/
+_f4u$t.parse_orientation = function(s) {
+  var split = s.split(" ");
+  while (split.indexOf("") >= 0) {
+    split.splce(split.indexOf(""), 1);
+  }
+  if (split.length == 0) {
+    return {};
+  }
+  if (['alpha','beta','gamma'].indexOf(split[0]) < 0) {
+    return {};
+  }
+  var itor = {1 : Number.NEGATIVE_INFINITY, 2 : Number.POSITIVE_INFINITY };
+
+  // this loop creates the rest of the array
+  for (var i in itor) {
+    if (split.length == i) {
+      split.push(itor[i]);
+    }
+    else {
+      split[i] = parseFloat(split[i]);
+      if (isNaN(split[i])) {
+        split[i] = itor[i];
+      }
+    }
+  }
+
+  return {angle : split[0], low : split[1], high : split[2]};
+}
+
+/**
 Taking an axis _f4u$t.X_AXIS or _f4u$t.Y_AXIS, returns
 the opposite axis.
 

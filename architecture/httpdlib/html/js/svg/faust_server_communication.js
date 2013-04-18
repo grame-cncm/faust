@@ -88,12 +88,15 @@ _f4u$t.dispatch = function(data) {
 // We update the user interface by polling the server every 40 ms
 // But this is done only when no updates are pending for the server
 _f4u$t.main_loop = function() {
+console.log("MAIN LOOP CALLED");
 	if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
 		// we have pending updates to send to the server
 		//_f4u$t.ajax_queue_busy = true;
 		var request = _f4u$t.ajax_queue[0];
 		_f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1,Math.min(5,_f4u$t.ajax_queue.length));
-		$.get(request).done(_f4u$t.main_loop); 
+		console.log(request);
+		$.get(request).done(function () { console.log("request done"); _f4u$t.main_loop(); }); 
+		console.log("end of if");
 	} else {
 		// regular polling
 		_f4u$t.ajax_queue_busy = false;
@@ -102,4 +105,4 @@ _f4u$t.main_loop = function() {
 	}		
 }
 
-$(document).ready(function() { _f4u$t.main_loop(); });
+$(document).ready(function() { console.log("FIRING MAIN LOOP"); _f4u$t.main_loop(); });
