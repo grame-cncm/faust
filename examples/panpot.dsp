@@ -13,5 +13,5 @@ panpot(x) 	= sqrt(c)*x, sqrt(1-c)*x
 				c=(nentry("[1]pan[style:knob]",0,-90,90,1)-90.0)/-180.0;
 			};
 
-process		= panpot, panpot;
+process		= panpot;
 
