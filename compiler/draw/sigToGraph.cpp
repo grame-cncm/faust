@@ -31,7 +31,7 @@
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
-
+#include "exception.hh"
 #include "sigToGraph.hh"
 
 using namespace std;
@@ -231,8 +231,9 @@ static string sigLabel(Tree sig)
     else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}
 
     else {
-        cerr << "ERROR, unrecognized signal : " << *sig << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR, unrecognized signal : " << *sig  << endl;
+        throw faustexception(error.str());
     }
 
     return fout.str();

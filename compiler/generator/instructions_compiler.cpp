@@ -163,8 +163,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
 
 	// dump normal form
 	if (gGlobal->gDumpNorm) {
-		cout << ppsig(L3) << endl;
-		exit(0);
+        cout << ppsig(L3) << endl;
+        throw faustexception("Dump normal form finished...\n");
 	}
 
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
