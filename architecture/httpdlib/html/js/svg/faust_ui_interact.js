@@ -489,6 +489,9 @@ _f4u$t.respondToOrientationChange = function(e) {
     if (_f4u$t.IDS_TO_ATTRIBUTES[id].orientation &&
         _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle)
       {
+        if (!_f4u$t._I['orientation'+id]) {
+          _f4u$t._I['orientation'+id] = {id : id, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
+        }
         var now = null;
         if ((_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'hslider')
             || (_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'vslider')) {
@@ -497,10 +500,9 @@ _f4u$t.respondToOrientationChange = function(e) {
           now = _f4u$t.moveSliderViaAccelerometer(e, id);
         }
         // UI2DSP
-        if (now != null) {
-          // for now, we don't keep track of previous values for accelerometer
-          // which means a lot of server pinging.
+        if (now != null && now != _f4u$t._I['orientation'+id]['value']) {
           _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], now);
+          _f4u$t._I['orientation'+id]['value'] = now;
         }
       }
   }
@@ -537,8 +539,6 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
   // no updating XY as there is no event specific to this object
-  // TODO: make a sort of fake event so that we can keep track of sliders
-  // having been moved after global events like the devicemotion.
   //_f4u$t.updateXY([e]);
   return now;
 }
