@@ -45,6 +45,10 @@ _f4u$t.update_nentry_value = function(address, value) {
 _f4u$t.update_checkbox_value = function(address, value) {
   // perhaps too much UI here?
   var id = _f4u$t.PATHS_TO_IDS[address];
+  // for latency issues...seems not to do anything, so commented out
+  /*if (now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] < 2000) {
+    return;
+  }*/
   var check = document.getElementById('faust_checkbox_check_'+id);
   check.style.opacity = value;
 }
