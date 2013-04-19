@@ -1,49 +1,29 @@
-_f4u$t.has_knob = function(dct) {
+_f4u$t.meta_info = function(dct, prop, def, fn) {
   if (!dct['meta']) {
-    return false;
+    return def;
   }
   for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['style']) {
-      return dct['meta'][i]['style'] == 'knob';
+    if (dct['meta'][i][prop]) {
+      return fn(dct['meta'][i][prop]);
     }
   }
-  return false;
+  return def;
+}
+
+_f4u$t.has_knob = function(dct) {
+  return _f4u$t.meta_info(dct, 'style', false, function(prop) { return prop == 'knob'; });
 }
 
 _f4u$t.get_unit = function(dct) {
-  if (!dct['meta']) {
-    return '';
-  }
-  for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['unit']) {
-      return dct['meta'][i]['unit'];
-    }
-  }
-  return '';
+  return _f4u$t.meta_info(dct, 'unit', '', function(prop) { return prop; });
 }
 
 _f4u$t.get_orientation = function(dct) {
-  if (!dct['meta']) {
-    return {};
-  }
-  for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['orientation']) {
-      return _f4u$t.parse_orientation(dct['meta'][i]['orientation']);
-    }
-  }
-  return {};
+  return _f4u$t.meta_info(dct, 'orientation', {}, _f4u$t.parse_orientation);
 }
 
 _f4u$t.get_size = function(dct) {
-  if (!dct['meta']) {
-    return 1;
-  }
-  for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['size']) {
-      return [0.5,1,2,3,4][parseInt(dct['meta'][i]['size'])];
-    }
-  }
-  return 1;
+  return _f4u$t.meta_info(dct, 'size', 1, function(prop) { return [0.5,1,2,3,4][parseInt(prop)]; });
 }
 
 _f4u$t.getnumspecs = function(dct) {
