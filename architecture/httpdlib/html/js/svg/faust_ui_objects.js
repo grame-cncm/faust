@@ -43,7 +43,7 @@ _f4u$t.UIObject.prototype.setY = function(y) {
   this.y = y
 }
 
-_f4u$t.UIObject.prototype.do_spacing = function(toplevel) { }
+_f4u$t.UIObject.prototype.do_spacing = function() { }
 
 _f4u$t.UIObject.prototype.stretch = function(a,x,y) {
   /*
@@ -425,7 +425,7 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 }
 
 _f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
-  if (this.axis != a && this.stretchable()) {
+  if (this.axis != a && this.stretchable) {
     dims = this.internal_dims();
     this.length = Math.max(_f4u$t.xy(this.axis,dims[_f4u$t.X_AXIS],dims[_f4u$t.Y_AXIS]),
                            // TODO : we adjust Y to clear the value box by a long shot
@@ -1170,7 +1170,7 @@ _f4u$t.LayoutManager.prototype.dims = function() {
 }
 
 _f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
-  if (this.axis != a && this.stretchable()) {
+  if (this.axis != a && this.stretchable) {
     dims = this.internal_dims();
     this.padding = Math.max(this.padding,
                            // 3 * this.padding to prevent spillover
@@ -1178,7 +1178,7 @@ _f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
   }
 }
 
-_f4u$t.LayoutManager.prototype.do_spacing = function(toplevel) {
+_f4u$t.LayoutManager.prototype.do_spacing = function() {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
   var y = dims[_f4u$t.Y_AXIS];
@@ -1199,7 +1199,7 @@ _f4u$t.LayoutManager.prototype.do_spacing = function(toplevel) {
     var yv1 = _f4u$t.xy(this.axis, 0, running_count);
     var yv2 = _f4u$t.xy(this.axis, y - dim[_f4u$t.Y_AXIS], running_count);
     obj.setY(_f4u$t.linear_combination(obj.gravity[_f4u$t.Y_AXIS], yv1, yv2));
-    obj.do_spacing(false);
+    obj.do_spacing();
     running_count += padding + _f4u$t.xy(this.axis, dim[_f4u$t.X_AXIS], dim[_f4u$t.Y_AXIS]);
   }
 }
@@ -1326,11 +1326,11 @@ _f4u$t.TabGroup.prototype.dims = function() {
   return [Math.max(x, (this.x_width + this.x_padding) * this.objs.length - this.x_padding), y + this.headroom + this.headpadding];
 }
 
-_f4u$t.TabGroup.prototype.do_spacing = function(toplevel) {
+_f4u$t.TabGroup.prototype.do_spacing = function() {
   for (var i = 0; i < this.objs.length; i++) {
     this.objs[i].x = 0;
     this.objs[i].y = this.headroom + this.headpadding;
-    this.objs[i].do_spacing(false);
+    this.objs[i].do_spacing();
   }
 }
 
@@ -1480,7 +1480,7 @@ _f4u$t.SVG.prototype.make = function() {
     true);
   _f4u$t.ROOT = this.title;
   this.lm.populate_objects();
-  this.lm.do_spacing(true);
+  this.lm.do_spacing();
   this.lm.make(this.svg, this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();

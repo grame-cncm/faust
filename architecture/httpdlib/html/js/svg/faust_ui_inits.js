@@ -3,7 +3,7 @@ _f4u$t.checkbox_inits = {
   d : 19,
   label : '',
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  stretchable : _f4u$t.faux,
+  stretchable : false,
   check_fill : _f4u$t.BLACK,
   check_stroke : _f4u$t.BLACK,
   box_fill : _f4u$t.WHITE,
@@ -17,7 +17,7 @@ _f4u$t.checkbox_inits = {
 _f4u$t.button_inits = {
   mom : null,
   label : '',
-  stretchable : _f4u$t.faux,
+  stretchable : false,
   ideal_width : 80,
   ideal_height : 40,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
@@ -29,17 +29,17 @@ _f4u$t.button_inits = {
 };
 
 _f4u$t.tgroup_inits = {
-  stretchable : _f4u$t.vrai, // needs to be function
+  stretchable : true,
   fill_on : "url(#tabDownGradient)", // for now use the button gradient
   fill_off : "url(#tabUpGradient)" // for now use the button gradient
 };
 
 _f4u$t.vgroup_inits = {
-  stretchable : _f4u$t.vrai // needs to be function
+  stretchable : true
 };
 
 _f4u$t.hgroup_inits = {
-  stretchable : _f4u$t.vrai // needs to be function
+  stretchable : true
 };
 
 _f4u$t.rbutton_inits = {
@@ -58,7 +58,7 @@ _f4u$t.rbutton_inits = {
   step : 1,
   integer : false,
   ndec : 0,
-  stretchable : _f4u$t.faux,
+  stretchable : false,
   lpadding_y : _f4u$t.TEXT_HEIGHT,
   box_padding : _f4u$t.TEXT_BOX_PADDING,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
@@ -89,7 +89,7 @@ _f4u$t.slidingobject_inits = {
   step : 1,
   integer : false,
   ndec : 0,
-  stretchable : _f4u$t.vrai,
+  stretchable : true,
   lpadding_y : _f4u$t.TEXT_HEIGHT,
   box_padding : _f4u$t.TEXT_BOX_PADDING,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
@@ -135,7 +135,7 @@ _f4u$t.nentry_inits = {
   step : 1,
   integer : false,
   ndec : 0,
-  stretchable : _f4u$t.faux,
+  stretchable : false,
   button_fill : _f4u$t.GREY,
   operation_fill : _f4u$t.BLACK,
   button_stroke : _f4u$t.BLACK,

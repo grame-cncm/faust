@@ -469,26 +469,6 @@ _f4u$t.magic_color = function() {
 }
 
 /**
-Returns false.
-
-@method faux
-@for _f4u$t
-@static
-@return {Boolean}
-**/
-_f4u$t.faux = function() { return false; }
-
-/**
-Returns true.
-
-@method vrai
-@for _f4u$t
-@static
-@return {Boolean}
-**/
-_f4u$t.vrai = function() { return true; }
-
-/**
 The bounds for an accelerometer orientation.
 
 @property orientation_bounds
