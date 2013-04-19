@@ -795,7 +795,7 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
   var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
-  var touchdown = '_f4u$t.touch_checkbox("'+full_id+'")';
+  //var touchdown = '_f4u$t.touch_checkbox("'+full_id+'")';
   var box = svg.path(
     parent,
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
@@ -805,7 +805,7 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       stroke : _f4u$t.color_to_rgb(this.check_stroke),
       style : "opacity:"+(this.init == 1 ? 1.0 : 0.0),
       onmousedown : mousedown,
-      ontouchstart : touchdown,
+      //ontouchstart : touchdown, // deactivated so that touch doesn't trigger both box and check at the same time
       'class' : 'faust-chekbox-check',
       transform : 'translate('+xo+',0)'
     }
