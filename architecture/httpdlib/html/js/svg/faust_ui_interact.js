@@ -230,6 +230,7 @@ _f4u$t.initiate_checkbox = function(fullid, address) {
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "checkbox";
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] = 0;new Date().getTime();
   _f4u$t.path_to_id(address, fullid);
 }
 
@@ -704,10 +705,23 @@ _f4u$t.button_down = function(I) {
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
 }
 
-_f4u$t.change_checkbox = function(I) {
+_f4u$t.click_checkbox = function(I) {
+  _f4u$t.change_checkbox(I, false);
+}
+_f4u$t.touch_checkbox = function(I) {
+  _f4u$t.change_checkbox(I, true);
+}
+
+_f4u$t.change_checkbox = function(I, touch) {
+  var id = _f4u$t.unique(I)
+  var now = new Date().getTime();
+  if (touch && (now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] < 1000)) {
+    return;
+  }
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] = now;
   _f4u$t.clog_key_sink();
-  var address = _f4u$t.IDS_TO_ATTRIBUTES[_f4u$t.unique(I)]["address"];
-  var box = document.getElementById('faust_checkbox_check_'+_f4u$t.unique(I));
+  var address = _f4u$t.IDS_TO_ATTRIBUTES[id]["address"];
+  var box = document.getElementById('faust_checkbox_check_'+id);
   var opacity = 0;
   if (box.style.opacity == 1.0) {
     opacity = 0;
