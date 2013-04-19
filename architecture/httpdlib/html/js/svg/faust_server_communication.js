@@ -45,6 +45,10 @@ _f4u$t.update_nentry_value = function(address, value) {
 _f4u$t.update_checkbox_value = function(address, value) {
   // perhaps too much UI here?
   var id = _f4u$t.PATHS_TO_IDS[address];
+  // for latency issues...seems not to do anything, so commented out
+  /*if (now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] < 2000) {
+    return;
+  }*/
   var check = document.getElementById('faust_checkbox_check_'+id);
   check.style.opacity = value;
 }
@@ -88,21 +92,29 @@ _f4u$t.dispatch = function(data) {
 // We update the user interface by polling the server every 40 ms
 // But this is done only when no updates are pending for the server
 _f4u$t.main_loop = function() {
-console.log("MAIN LOOP CALLED");
-	if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
-		// we have pending updates to send to the server
-		//_f4u$t.ajax_queue_busy = true;
-		var request = _f4u$t.ajax_queue[0];
-		_f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1,Math.min(5,_f4u$t.ajax_queue.length));
-		console.log(request);
-		$.get(request).done(function () { console.log("request done"); _f4u$t.main_loop(); }); 
-		console.log("end of if");
-	} else {
-		// regular polling
-		_f4u$t.ajax_queue_busy = false;
-		$.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
-		setTimeout ( function() { _f4u$t.main_loop(); }, 40);
-	}		
+  if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
+    // we have pending updates to send to the server
+    //_f4u$t.ajax_queue_busy = true;
+    var request = _f4u$t.ajax_queue[0];
+    _f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1,Math.min(5,_f4u$t.ajax_queue.length));
+    $.get(request)
+      .done(function () {
+        //console.log("request succeeded", request);
+        _f4u$t.main_loop();
+      })
+      .fail(function () {
+        console.log("request failed", request);
+        _f4u$t.main_loop();
+      });/*
+      .always(function () {
+        console.log("request passed", request);
+      });*/
+  } else {
+    // regular polling
+    _f4u$t.ajax_queue_busy = false;
+    $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
+    setTimeout ( function() { _f4u$t.main_loop(); }, 40);
+  }		
 }
 
-$(document).ready(function() { console.log("FIRING MAIN LOOP"); _f4u$t.main_loop(); });
+$(document).ready(function() { _f4u$t.main_loop(); });
