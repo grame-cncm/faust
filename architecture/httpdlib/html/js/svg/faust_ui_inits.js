@@ -29,17 +29,17 @@ _f4u$t.button_inits = {
 };
 
 _f4u$t.tgroup_inits = {
-  stretchable : _f4u$t.faux, // needs to be function
+  stretchable : _f4u$t.vrai, // needs to be function
   fill_on : "url(#tabDownGradient)", // for now use the button gradient
   fill_off : "url(#tabUpGradient)" // for now use the button gradient
 };
 
 _f4u$t.vgroup_inits = {
-  stretchable : _f4u$t.faux // needs to be function
+  stretchable : _f4u$t.vrai // needs to be function
 };
 
 _f4u$t.hgroup_inits = {
-  stretchable : _f4u$t.faux // needs to be function
+  stretchable : _f4u$t.vrai // needs to be function
 };
 
 _f4u$t.rbutton_inits = {

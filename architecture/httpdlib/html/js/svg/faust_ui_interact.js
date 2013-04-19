@@ -364,7 +364,7 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
 // main function to move currently-selected slider
 _f4u$t.moveActiveObject = function(ee) {
   for (var elt in _f4u$t._I) {
-    if (_f4u$t._I[elt]) {
+    if (_f4u$t._I[elt] && (elt.indexOf('orientation') == -1)) {
       var touches = ee.touches || [ee];
       if (ee.originalEvent) {
         touches = ee.originalEvent.touches || [ee];

@@ -43,7 +43,15 @@ _f4u$t.UIObject.prototype.setY = function(y) {
   this.y = y
 }
 
-_f4u$t.UIObject.prototype.do_spacing = function() { }
+_f4u$t.UIObject.prototype.do_spacing = function(toplevel) { }
+
+_f4u$t.UIObject.prototype.stretch = function(a,x,y) {
+  /*
+    the whole family
+    all with white hair and canes
+    visiting graves
+  */
+}
 
 _f4u$t.UIObject.prototype.get_root_svg = function() {
   if (!this.mom) {
@@ -414,6 +422,16 @@ _f4u$t.SlidingObject.prototype.dims = function() {
   var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label_text()).width;
   ugh = [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
   return ugh;
+}
+
+_f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
+  if (this.axis != a && this.stretchable()) {
+    dims = this.internal_dims();
+    this.length = Math.max(_f4u$t.xy(this.axis,dims[_f4u$t.X_AXIS],dims[_f4u$t.Y_AXIS]),
+                           // TODO : we adjust Y to clear the value box by a long shot
+                           // check to see if X needs adjustment too...
+                           _f4u$t.xy(this.axis, x, y - (3 * this.lpadding_y)));
+  }
 }
 
 _f4u$t.Slider = function(options, type) {
@@ -1151,7 +1169,16 @@ _f4u$t.LayoutManager.prototype.dims = function() {
   return out;
 }
 
-_f4u$t.LayoutManager.prototype.do_spacing = function() {
+_f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
+  if (this.axis != a && this.stretchable()) {
+    dims = this.internal_dims();
+    this.padding = Math.max(this.padding,
+                           // 3 * this.padding to prevent spillover
+                           (this.padding + (_f4u$t.xy(this.axis,x,y) - (3 * this.padding) - dims[_f4u$t.xy(this.axis,_f4u$t.X_AXIS,_f4u$t.Y_AXIS)]) / (this.objs.length + 1)));
+  }
+}
+
+_f4u$t.LayoutManager.prototype.do_spacing = function(toplevel) {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
   var y = dims[_f4u$t.Y_AXIS];
@@ -1164,6 +1191,7 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
   var running_count = padding;
   for (var i = 0; i < this.objs.length; i++) {
     var obj = this.objs[i];
+    obj.stretch(this.axis, x - (this.padding * 2) , y - (this.padding * 2));
     var dim = obj.dims();
     var xv1 = _f4u$t.xy(this.axis, running_count, 0);
     var xv2 = _f4u$t.xy(this.axis, running_count, x - dim[_f4u$t.X_AXIS]);
@@ -1171,7 +1199,7 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
     var yv1 = _f4u$t.xy(this.axis, 0, running_count);
     var yv2 = _f4u$t.xy(this.axis, y - dim[_f4u$t.Y_AXIS], running_count);
     obj.setY(_f4u$t.linear_combination(obj.gravity[_f4u$t.Y_AXIS], yv1, yv2));
-    obj.do_spacing();
+    obj.do_spacing(false);
     running_count += padding + _f4u$t.xy(this.axis, dim[_f4u$t.X_AXIS], dim[_f4u$t.Y_AXIS]);
   }
 }
@@ -1298,11 +1326,11 @@ _f4u$t.TabGroup.prototype.dims = function() {
   return [Math.max(x, (this.x_width + this.x_padding) * this.objs.length - this.x_padding), y + this.headroom + this.headpadding];
 }
 
-_f4u$t.TabGroup.prototype.do_spacing = function() {
+_f4u$t.TabGroup.prototype.do_spacing = function(toplevel) {
   for (var i = 0; i < this.objs.length; i++) {
     this.objs[i].x = 0;
     this.objs[i].y = this.headroom + this.headpadding;
-    this.objs[i].do_spacing();
+    this.objs[i].do_spacing(false);
   }
 }
 
@@ -1452,7 +1480,7 @@ _f4u$t.SVG.prototype.make = function() {
     true);
   _f4u$t.ROOT = this.title;
   this.lm.populate_objects();
-  this.lm.do_spacing();
+  this.lm.do_spacing(true);
   this.lm.make(this.svg, this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
