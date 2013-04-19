@@ -207,6 +207,7 @@ _f4u$t.RotatingButton.prototype.dims = function() {
 
 _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
   var full_id = 'faust_rbutton_mgroove_'+id;
+  var mousedown = _f4u$t.activate_rbutton;
   var xo = this.r();
   var yo = this.r();
   var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
@@ -241,11 +242,14 @@ _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return mgroove;
 }
 
 _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
   var full_id = 'faust_rbutton_meter_'+id;
+  var mousedown = _f4u$t.activate_rbutton;
   var xo = this.r();
   var yo = this.r();
   var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
@@ -281,6 +285,8 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return meter;
 }
 
