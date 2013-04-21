@@ -76,6 +76,8 @@ class httpdUI : public UI
     virtual void declare (FAUSTFLOAT* , const char* key, const char* val ) { fCtrl->declare(key, val); }
 
 	void run()						{ fCtrl->run(); }
+	int getTCPPort()                { return fCtrl->getTCPPort(); }
+
 };
 
 					

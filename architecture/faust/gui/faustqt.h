@@ -59,6 +59,12 @@
 
 #include "faust/gui/GUI.h"
 
+#ifdef QRCODECTRL
+#include <sstream>
+#include <qrencode.h>
+#include <QRegExp>
+#endif
+
 //----------------------------------
 
 // for compatibility
@@ -1344,6 +1350,73 @@ class QTGUI : public QObject, public GUI
     }
 
 	virtual ~QTGUI() {}
+
+#ifdef HTTPCTRL
+#ifdef QRCODECTRL
+   
+   	//
+	// Analyze the network config in order to extract the IP number of the machine
+ 	//
+	QString extractIPnum(int portnum)
+	{
+		QRegExp httpPat ("[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}");
+		QRegExp localPat ("127\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}");
+		QRegExp bcastPat ("[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.255");
+		QString result;
+		int idx = 0;
+
+		// Read network configuration ifconfig
+		QProcess ppp;
+		ppp.start( "/sbin/ifconfig");
+		ppp.waitForFinished(-1);
+		QString data = ppp.readAllStandardOutput();
+
+		// convert port number into a string
+		stringstream ss; ss << portnum;
+
+		// Analyze network configuration to find IP number
+		while ( (idx=data.indexOf(httpPat,idx)) != -1) {
+			int n = httpPat.matchedLength();
+			result = data.mid(idx, n);
+			qDebug() << "check ip " << result;
+			if ( (result.indexOf(localPat) == -1) && (result.indexOf(bcastPat) == -1) ) {
+				result = result + ":" + ss.str().c_str();
+				qDebug() << "got ip " << result;
+				return result;
+			}
+			idx += n;
+		}
+
+		qDebug() << "ip not found ! return localhost ";
+		return "http://localhost";
+	}
+
+    //
+    // Used in HTTPD mode, display the QRCode of the URL of the application
+    //
+    void displayQRCode(int portnum)
+    {
+    	QString url = extractIPnum(portnum);
+        QRcode* qrc = QRcode_encodeString(url.toStdString().c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+
+        qDebug() << "QRcode width = " << qrc->width;
+
+        // build the QRCode image
+        QImage image(qrc->width, qrc->width, QImage::Format_Mono);
+        for (int y=0; y<qrc->width; y++) {
+            for (int x=0; x<qrc->width; x++) {
+                image.setPixel(x, y, qrc->data[y*qrc->width+x]&1);
+            }
+        }
+
+        QImage big = image.scaledToWidth(qrc->width*8);
+        QLabel* myLabel = new QLabel();
+        myLabel->setPixmap(QPixmap::fromImage(big));
+        myLabel->show();
+
+    }
+#endif
+#endif
 
 	virtual void run()
 	{
