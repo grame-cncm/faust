@@ -715,7 +715,7 @@ _f4u$t.touch_checkbox = function(I) {
 _f4u$t.change_checkbox = function(I, touch) {
   var id = _f4u$t.unique(I)
   var now = new Date().getTime();
-  if (touch && (now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] < 1000)) {
+  if (((now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"]) < 1000)) {
     return;
   }
   _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] = now;
