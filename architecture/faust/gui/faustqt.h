@@ -1396,16 +1396,24 @@ class QTGUI : public QObject, public GUI
     //
     void displayQRCode(int portnum)
     {
+        const int padding = 5;
     	QString url = extractIPnum(portnum);
         QRcode* qrc = QRcode_encodeString(url.toStdString().c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
 
         qDebug() << "QRcode width = " << qrc->width;
 
         // build the QRCode image
-        QImage image(qrc->width, qrc->width, QImage::Format_Mono);
+        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_Mono);
+        // clear the image
+        for (int y=0; y<qrc->width+2*padding; y++) {
+            for (int x=0; x<qrc->width+2*padding; x++) {
+                image.setPixel(x, y, 0);
+            }
+        }
+        // copy the qrcode inside
         for (int y=0; y<qrc->width; y++) {
             for (int x=0; x<qrc->width; x++) {
-                image.setPixel(x, y, qrc->data[y*qrc->width+x]&1);
+                image.setPixel(x+padding, y+padding, qrc->data[y*qrc->width+x]&1);
             }
         }
 
