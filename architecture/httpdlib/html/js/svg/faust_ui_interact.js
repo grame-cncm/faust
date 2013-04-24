@@ -587,14 +587,19 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
 
   var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
-  // we wind diff around to give it best shot of falling between two values:
-  if (diff < initangle) {
+  while (diff < 0) {
     diff += 360;
   }
-  else if (diff > initangle + sweepangle) {
-    diff -= 360;
+  diff = diff % 360;
+  // put it between the values if necessary
+  if (((360 + diff) >= initangle) && ((360 + diff) <= (initangle + sweepangle))) {
+    diff += 360;
   }
-  
+
+  if (e.target.id.indexOf('dot') != -1) {
+    // if it is a panoramic dot, snap to the multiple of 45
+    diff = parseInt((diff / 45) + 0.5) * 45;
+  }
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
@@ -604,19 +609,23 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   // always change rotation if we're starting with a click
   if (_f4u$t.PREV[_f4u$t.X_AXIS][identifier] == null) {
     rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
-  } else if (((aval > initangle) || (aval < initangle + sweepangle))
-             && (Math.abs(aval - rotation) < 35)) { // only change rotation if we're in bounds and the difference is small
+  } else if (((aval >= initangle) && (aval <= (initangle + sweepangle)))
+             && ((Math.abs(aval - rotation) < 35)
+                 || (Math.abs (360 - Math.abs(aval - rotation)) < 35))) {
+    // only change rotation if we're in bounds and the difference is small
     rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
   }
   transform[2][1] = rotation;
-  _f4u$t.redrawRotatingButtonMeter(
-    id,
-    initangle,
-    sweepangle,
-    _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
-    _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
-    transform[2][1]
-  );
+  if (sweepangle != 360) {
+    _f4u$t.redrawRotatingButtonMeter(
+      id,
+      initangle,
+      sweepangle,
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+      transform[2][1]
+    );
+  }
   var now = _f4u$t.generic_label_update(id, rotation, initangle, initangle + sweepangle);
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
@@ -930,14 +939,16 @@ _f4u$t.actualize_incremental_object = function(id) {
     val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle);
     var transform = _f4u$t.transformToArray(maybe_button.getAttribute("transform"));
     transform[2][1] = val;
-    _f4u$t.redrawRotatingButtonMeter(
-      id,
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
-      transform[2][1]
-    );
+    if (sweepangle != 360) {
+      _f4u$t.redrawRotatingButtonMeter(
+        id,
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+        transform[2][1]
+      );
+    }
     var movetothis = _f4u$t.arrayToTransform(transform);
     maybe_button.setAttribute("transform", movetothis);
     return 0;

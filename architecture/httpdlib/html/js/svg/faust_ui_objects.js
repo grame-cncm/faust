@@ -247,6 +247,29 @@ _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
   return mgroove;
 }
 
+_f4u$t.RotatingButton.prototype.make_dot = function(svg, parent, id, rot) {
+  var full_id = 'faust_rbutton_dot'+(rot*45)+'_'+id;
+  var mousedown = _f4u$t.activate_rbutton;
+  var xo = this.r();
+  var yo = this.r();
+  var dot = svg.circle(
+    parent,
+    this.r() * (this.kp + 1) * 0.5 * Math.cos(_f4u$t.d2r(rot * 45)) + xo,
+    this.r() * (this.kp + 1) * 0.5 * Math.sin(_f4u$t.d2r(rot * 45)) + yo,
+    this.r() * (1 - this.kp) * 0.5,
+    {
+      fill : _f4u$t.color_to_rgb(this.dot_fill),
+      stroke : _f4u$t.color_to_rgb(this.dot_stroke),
+      id : full_id,
+      'class' : 'faust-rbutton-dot'
+    }
+  );
+
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
+  return dot;
+}
+
 _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
   var full_id = 'faust_rbutton_meter_'+id;
   var mousedown = _f4u$t.activate_rbutton;
@@ -377,8 +400,14 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   );
 
   this.make_anchor(svg, g, id);
-  this.make_mgroove(svg, g, id);
-  this.make_meter(svg, g, id);
+  if (this.sweep != 360) {
+    this.make_mgroove(svg, g, id);
+    this.make_meter(svg, g, id);
+  } else {
+    for (var i = 0; i < 8; i++) {
+      this.make_dot(svg, g, id, i);
+    }
+  }
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');

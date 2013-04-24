@@ -22,6 +22,14 @@ _f4u$t.get_orientation = function(dct) {
   return _f4u$t.meta_info(dct, 'orientation', {}, _f4u$t.parse_orientation);
 }
 
+_f4u$t.is_panoramic = function(dct) {
+  return _f4u$t.meta_info(dct, 'panoramic', false, function(prop) { return prop === 'true'; });
+}
+
+_f4u$t.get_sweep = function(dct) {
+  return _f4u$t.meta_info(dct, 'sweep', _f4u$t.rbutton_inits.sweep, function(prop) { return parseFloat(prop) != null ? parseFloat(prop) : _f4u$t.rbutton_inits.sweep; });
+}
+
 _f4u$t.get_size = function(dct) {
   return _f4u$t.meta_info(dct, 'size', 1, function(prop) { return [0.5,1,2,3,4][parseInt(prop)]; });
 }
@@ -71,6 +79,10 @@ _f4u$t.make_rbutton = function(dct) {
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   options.orientation = _f4u$t.get_orientation(dct);
+  if (_f4u$t.is_panoramic(dct)) {
+    options.a0 = 0;
+    options.sweep = 360;
+  }
   var size = _f4u$t.get_size(dct);
   options.ir *= size;
   return new _f4u$t.RotatingButton(options);
