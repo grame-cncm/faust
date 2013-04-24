@@ -4,7 +4,10 @@
 // actually using a 'GET' method
 //-----------------------------------------------------------------------------
 _f4u$t.fausthandler = function(dest, value) {
-  _f4u$t.ajax_queue.push(dest +"?value=" + value);
+  if (!_f4u$t.ajax_queue[dest]) {
+    _f4u$t.ajax_queue[dest] = [];
+  }
+  _f4u$t.ajax_queue[dest].push({request : dest +"?value=" + value, time : new Date().getTime()});
 }
 
 //-----------------------------------------------------------------------------
@@ -89,14 +92,38 @@ _f4u$t.dispatch = function(data) {
   }
 }
 
+_f4u$t.ajax_queue_length = function() {
+  var l = 0;
+  for (var key in _f4u$t.ajax_queue) {
+    for (var i = 0; i < _f4u$t.ajax_queue[key].length; i++) {
+      l += 1;
+    }
+  }
+  return l;
+}
+
+_f4u$t.ajax_queue_get_request_and_trim = function () {
+  var t = Number.POSITIVE_INFINITY;
+  var request = '';
+  for (var key in _f4u$t.ajax_queue) {
+    for (var i = 0; i < _f4u$t.ajax_queue[key].length; i++) {
+      if (_f4u$t.ajax_queue[key][i].time < t) {
+        request = _f4u$t.ajax_queue[key][i].request;
+      }
+    }
+    // always trim
+    _f4u$t.ajax_queue[key] = _f4u$t.ajax_queue[key].slice(1,Math.min(5,_f4u$t.ajax_queue[key].length));
+  }
+  return request;
+}
+
 // We update the user interface by polling the server every 40 ms
 // But this is done only when no updates are pending for the server
 _f4u$t.main_loop = function() {
-  if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
+  if ((_f4u$t.ajax_queue_length() > 0) || _f4u$t.ajax_queue_busy) {
     // we have pending updates to send to the server
     //_f4u$t.ajax_queue_busy = true;
-    var request = _f4u$t.ajax_queue[0];
-    _f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1,Math.min(5,_f4u$t.ajax_queue.length));
+    var request = _f4u$t.ajax_queue_get_request_and_trim();
     $.get(request)
       .done(function () {
         //console.log("request succeeded", request);

@@ -931,10 +931,10 @@ Ajax queue.
 
 @property ajax_queue
 @for _f4u$t
-@type Array
-@default []
+@type Object
+@default {}
 **/
-_f4u$t.ajax_queue = [];
+_f4u$t.ajax_queue = {};
 
 /**
 Is the ajax queue busy?
