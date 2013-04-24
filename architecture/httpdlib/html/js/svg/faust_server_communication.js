@@ -105,16 +105,20 @@ _f4u$t.ajax_queue_length = function() {
 _f4u$t.ajax_queue_get_request_and_trim = function () {
   var t = Number.POSITIVE_INFINITY;
   var request = '';
+  var mykey = '';
   for (var key in _f4u$t.ajax_queue) {
     for (var i = 0; i < _f4u$t.ajax_queue[key].length; i++) {
       if (_f4u$t.ajax_queue[key][i].time < t) {
         t = _f4u$t.ajax_queue[key][i].time;
         request = _f4u$t.ajax_queue[key][i].request;
+        mykey = key;
       }
     }
     // always trim
-    _f4u$t.ajax_queue[key] = _f4u$t.ajax_queue[key].slice(1,Math.min(5,_f4u$t.ajax_queue[key].length));
+    _f4u$t.ajax_queue[key] = _f4u$t.ajax_queue[key].slice(0,Math.min(5,_f4u$t.ajax_queue[key].length));
   }
+  // trim first request off of successful array
+  _f4u$t.ajax_queue[mykey] = _f4u$t.ajax_queue[mykey].slice(1,Math.min(5,_f4u$t.ajax_queue[key].length));
   return request;
 }
 
