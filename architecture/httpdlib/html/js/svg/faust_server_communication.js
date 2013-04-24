@@ -108,6 +108,7 @@ _f4u$t.ajax_queue_get_request_and_trim = function () {
   for (var key in _f4u$t.ajax_queue) {
     for (var i = 0; i < _f4u$t.ajax_queue[key].length; i++) {
       if (_f4u$t.ajax_queue[key][i].time < t) {
+        t = _f4u$t.ajax_queue[key][i].time;
         request = _f4u$t.ajax_queue[key][i].request;
       }
     }
