@@ -50,13 +50,24 @@
 
 - (void)buttonClicked
 {
-    if (self.isSelected) self.selected = NO;
-    else self.selected = YES;
-    
-    [self.jackView quicklyConnectApp:self.selected
-                            toClient:self.jackViewClient.name
-                         inputOutput:inputOutput
-                           audioMidi:audioMidi];
+    if (self.isSelected)
+    {
+        if ([self.jackView quicklyDisconnectAppToClient:self.jackViewClient.name
+                                            inputOutput:inputOutput
+                                              audioMidi:audioMidi])
+        {
+            self.selected = NO;
+        }
+    }
+    else
+    {        
+        if ([self.jackView quicklyConnectAppToClient:self.jackViewClient.name
+                                         inputOutput:inputOutput
+                                           audioMidi:audioMidi])
+        {
+            self.selected = YES;
+        }
+    }
     
     [self setNeedsDisplay];
 }
@@ -83,7 +94,8 @@
     // Draw icon
     if (self.jackViewClient)
     {
-        [self.jackViewClient.icon drawInRect:rect];
+        if (self.enabled) [self.jackViewClient.icon drawInRect:rect];
+        else [self.jackViewClient.icon drawInRect:rect blendMode:kCGBlendModeNormal alpha:0.5];
     }
     
     // Draw selection
@@ -241,16 +253,11 @@
 - (void)loadJackClient:(jack_client_t*)jackClient
 {
 	jack_status_t status;
-	const char **ports, **connections;
+	const char **ports;
 	int show_aliases = 0;
-	int show_con = 0;
-	int show_port_latency = 0;
-	int show_total_latency = 0;
-	int show_properties = 0;
-	int show_type = 0;
 	char* aliases[2];
 	jack_port_t *port;
-    int i,j;
+    int i;
     
     _jackClient = jackClient;
     
@@ -285,12 +292,8 @@
     
     for (i = 0; ports && ports[i]; ++i)
     {
-		printf ("PORT [%i] - %s\n", i, ports[i]);
 		port = jack_port_by_name (_jackClient, ports[i]);
         
-        
-        
-        ////
         int res = 0;
         NSString* clientName = nil;
         size_t size = 0;
@@ -329,8 +332,6 @@
             {
                 jackViewClient.icon = [[UIImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Icon_Apple" ofType:@"png"]];
             }
-            
-            NSLog(@"Create client %@", jackViewClient.name);
         }
         else
         {
@@ -416,108 +417,60 @@
         {
             [_clients addObject:jackViewClient];
         }
-        
-        
-        ////
-        
-        
-        
-        
-		if (show_aliases)
-        {
-			int cnt;
-            
-			cnt = jack_port_get_aliases (port, aliases);
-			for (j = 0; j < cnt; ++j)
-            {
-				printf ("   ALIAS [%i] - %s\n", j, aliases[j]);
-			}
-		}
-        
-		if (show_con)
-        {
-			if ((connections = jack_port_get_all_connections (_jackClient, jack_port_by_name(_jackClient, ports[i]))) != 0)
-            {
-				for (j = 0; connections[j]; j++)
-                {
-					printf ("   CONNECTION [%i] - %s\n", j, connections[j]);
-				}
-				free (connections);
-			}
-		}
-        
-		if (show_port_latency)
-        {
-			if (port)
-            {
-				jack_latency_range_t range;
-				printf ("	port latency = %" PRIu32 " frames\n",
-                        jack_port_get_latency (port));
-                
-				jack_port_get_latency_range (port, JackPlaybackLatency, &range);
-				printf ("	port playback latency = [ %" PRIu32 " %" PRIu32 " ] frames\n",
-                        range.min, range.max);
-                
-				jack_port_get_latency_range (port, JackCaptureLatency, &range);
-				printf ("	port capture latency = [ %" PRIu32 " %" PRIu32 " ] frames\n",
-                        range.min, range.max);
-			}
-		}
-        
-		if (show_total_latency)
-        {
-			if (port)
-            {
-				printf ("	total latency = %d frames\n", jack_port_get_total_latency (_jackClient, port));
-			}
-		}
-        
-		if (show_properties)
-        {
-			if (port)
-            {
-				int flags = jack_port_flags (port);
-				printf ("	properties: ");
-                
-				if (flags & JackPortIsInput)
-                {
-					fputs ("input,", stdout);
-				}
-                
-				if (flags & JackPortIsOutput)
-                {
-					fputs ("output,", stdout);
-				}
-                
-				if (flags & JackPortCanMonitor)
-                {
-					fputs ("can-monitor,", stdout);
-				}
-                
-				if (flags & JackPortIsPhysical)
-                {
-					fputs ("physical,", stdout);
-				}
-                
-				if (flags & JackPortIsTerminal)
-                {
-					fputs ("terminal,", stdout);
-				}
-                
-				putc ('\n', stdout);
-			}
-		}
-        
-		if (show_type)
-        {
-			if (port)
-            {
-				putc ('\t', stdout);
-				fputs (jack_port_type (port), stdout);
-				putc ('\n', stdout);
-			}
-		}
 	}
+    
+    // Deactivate uncomaptible buttons and select connected buttons
+    NSArray* buttons = nil;
+    BOOL compatible = NO;
+    BOOL selected = NO;
+    
+    buttons = [_audioInputsScrollView subviews];
+    compatible = [self hasCurrentClientCompatiblePortWithInputOutput:1 audioMidi:1];
+
+    for (i = 0; i < [buttons count]; ++i)
+    {
+        ((JackViewButton*)([buttons objectAtIndex:i])).enabled = compatible;
+        
+        selected = [self isClient:((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient connectedToCurrentClientInputOutput:1 audioMidi:1];
+        ((JackViewButton*)([buttons objectAtIndex:i])).selected = selected;
+    }
+    
+    buttons = [_audioOutputsScrollView subviews];
+    compatible = [self hasCurrentClientCompatiblePortWithInputOutput:2 audioMidi:1];
+    for (i = 0; i < [buttons count]; ++i)
+    {
+        ((JackViewButton*)([buttons objectAtIndex:i])).enabled = compatible;
+        
+        NSLog(@"check %@", ((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient.name);
+        selected = [self isClient:((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient connectedToCurrentClientInputOutput:2 audioMidi:1];
+        ((JackViewButton*)([buttons objectAtIndex:i])).selected = selected;
+    }
+    
+    buttons = [_midiInputsScrollView subviews];
+    compatible = [self hasCurrentClientCompatiblePortWithInputOutput:1 audioMidi:2];
+    for (i = 0; i < [buttons count]; ++i)
+    {
+        ((JackViewButton*)([buttons objectAtIndex:i])).enabled = compatible;
+        
+        selected = [self isClient:((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient connectedToCurrentClientInputOutput:1 audioMidi:2];
+        ((JackViewButton*)([buttons objectAtIndex:i])).selected = selected;
+    }
+    
+    buttons = [_midiOutputsScrollView subviews];
+    compatible = [self hasCurrentClientCompatiblePortWithInputOutput:2 audioMidi:2];
+    for (i = 0; i < [buttons count]; ++i)
+    {
+        ((JackViewButton*)([buttons objectAtIndex:i])).enabled = compatible;
+        
+        selected = [self isClient:((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient connectedToCurrentClientInputOutput:2 audioMidi:2];
+        ((JackViewButton*)([buttons objectAtIndex:i])).selected = selected;
+    }
+
+    
+    // Free memory
+    jack_free(ports);
+    free(aliases[0]);
+    free(aliases[1]);
 }
 
 - (jack_client_t*)jackClient
@@ -558,7 +511,73 @@
     return nil;
 }
 
-- (void)quicklyConnectApp:(BOOL)connectApp toClient:(NSString*)clientName inputOutput:(int)inputOutput audioMidi:(int)audioMidi
+- (BOOL)hasCurrentClientCompatiblePortWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi
+{
+    JackViewClient* currentClient = [self clientWithName:_currentClientName];
+    JackViewPort* port = nil;
+    int nbPorts = [currentClient.ports count];
+    int i = 0;
+    
+    for (i = 0; i < nbPorts; ++i)
+    {
+        port = [currentClient.ports objectAtIndex:i];
+        
+        if (port.inputOutput == inputOutput
+            && port.audioMidi == audioMidi)
+        {
+            return YES;
+        }
+    }
+    
+    return NO;
+}
+
+- (BOOL)isClient:(JackViewClient*)client connectedToCurrentClientInputOutput:(int)inputOutput audioMidi:(int)audioMidi
+{
+    JackViewClient* jackViewAppClient = [self clientWithName:_currentClientName];
+    int nbAppClientPorts = [jackViewAppClient.ports count];
+    int i = 0;
+    int j = 0;
+    JackViewPort* port = nil;
+    const char **connections;
+    NSString* connection = nil;
+    NSString* connectedClient = nil;
+        
+    // Find app client ports connected to client
+    for (i = 0; i < nbAppClientPorts; ++i)
+    {
+        port = [jackViewAppClient.ports objectAtIndex:i];
+                
+        if (port.audioMidi == audioMidi
+            && port.inputOutput == inputOutput)
+        {
+            if ((connections = jack_port_get_all_connections(_jackClient,
+                                                             jack_port_by_name(_jackClient,
+                                                                               [port.name cStringUsingEncoding:NSUTF8StringEncoding]))) != 0)
+            {
+				for (j = 0; connections[j]; j++)
+                {
+                    connection = [NSString stringWithCString:connections[j] encoding:NSUTF8StringEncoding];
+                    connectedClient = [[connection componentsSeparatedByString:@":"] objectAtIndex:0];
+                                        
+                    if ([connectedClient compare:client.name] == NSOrderedSame)
+                    {
+                        jack_free (connections);
+                        return YES;
+                    }
+				}
+				jack_free (connections);
+			}
+        }
+    }
+    
+    return NO;
+}
+
+// Returns YES if software was able to connect, NO otherwise
+- (BOOL)quicklyConnectAppToClient:(NSString*)clientName
+                      inputOutput:(int)inputOutput
+                        audioMidi:(int)audioMidi
 {
     JackViewClient* jackViewAppClient = [self clientWithName:_currentClientName];
     int nbAppClientPorts = [jackViewAppClient.ports count];
@@ -583,7 +602,7 @@
             [jackViewAppClientAvailablePorts addObject:port];
         }
     }
-
+    
     // Find connectable ports for client
     for (i = 0; i < nbClientPorts; ++i)
     {
@@ -597,6 +616,12 @@
         }
     }
     
+    if ([jackViewAppClientAvailablePorts count] == 0
+        || [jackViewClientAvailablePorts count] == 0)
+    {
+        return NO;
+    }
+    
     // Connect rules
     // Audio
     if (audioMidi == 1)
@@ -606,9 +631,18 @@
         {
             for (i = 0; i < [jackViewAppClientAvailablePorts count]; ++i)
             {
-                jack_connect(_jackClient,
-                             [((JackViewPort*)([jackViewClientAvailablePorts objectAtIndex:i])).name cStringUsingEncoding:NSUTF8StringEncoding],
-                             [((JackViewPort*)([jackViewAppClientAvailablePorts objectAtIndex:i])).name cStringUsingEncoding:NSUTF8StringEncoding]);
+                if (inputOutput == 1)
+                {
+                    jack_connect(_jackClient,
+                                 [((JackViewPort*)([jackViewClientAvailablePorts objectAtIndex:i])).name cStringUsingEncoding:NSUTF8StringEncoding],
+                                 [((JackViewPort*)([jackViewAppClientAvailablePorts objectAtIndex:i])).name cStringUsingEncoding:NSUTF8StringEncoding]);
+                }
+                else if (inputOutput == 2)
+                {
+                    jack_connect(_jackClient,
+                                 [((JackViewPort*)([jackViewAppClientAvailablePorts objectAtIndex:i])).name cStringUsingEncoding:NSUTF8StringEncoding],
+                                 [((JackViewPort*)([jackViewClientAvailablePorts objectAtIndex:i])).name cStringUsingEncoding:NSUTF8StringEncoding]);
+                }
             }
         }
         
@@ -659,6 +693,85 @@
                          [((JackViewPort*)([jackViewClientAvailablePorts objectAtIndex:0])).name cStringUsingEncoding:NSUTF8StringEncoding]);
         }
     }
+    
+    // Midi
+    else if (audioMidi == 2)
+    {
+        // Input cases
+        if (inputOutput == 1)
+        {
+            
+            jack_connect(_jackClient,
+                         [((JackViewPort*)([jackViewClientAvailablePorts objectAtIndex:0])).name cStringUsingEncoding:NSUTF8StringEncoding],
+                         [((JackViewPort*)([jackViewAppClientAvailablePorts objectAtIndex:0])).name cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
+        
+        // Output cases
+        else
+        {
+            
+            jack_connect(_jackClient,
+                         [((JackViewPort*)([jackViewAppClientAvailablePorts objectAtIndex:0])).name cStringUsingEncoding:NSUTF8StringEncoding],
+                         [((JackViewPort*)([jackViewClientAvailablePorts objectAtIndex:0])).name cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
+    }
+    
+    return YES;
+}
+
+// Returns YES if software was able to disconnect, NO otherwise
+- (BOOL)quicklyDisconnectAppToClient:(NSString*)clientName
+                         inputOutput:(int)inputOutput
+                           audioMidi:(int)audioMidi
+{
+    JackViewClient* jackViewAppClient = [self clientWithName:_currentClientName];
+    int nbAppClientPorts = [jackViewAppClient.ports count];
+    int i = 0;
+    int j = 0;
+    JackViewPort* port = nil;
+    const char **connections;
+    NSString* connection = nil;
+    NSString* client = nil;
+    
+    // Find app client ports connected to client
+    for (i = 0; i < nbAppClientPorts; ++i)
+    {
+        port = [jackViewAppClient.ports objectAtIndex:i];
+        
+        if (port.audioMidi == audioMidi
+            && port.inputOutput == inputOutput)
+        {            
+            if ((connections = jack_port_get_all_connections(_jackClient,
+                                                             jack_port_by_name(_jackClient,
+                                                                               [port.name cStringUsingEncoding:NSUTF8StringEncoding]))) != 0)
+            {
+				for (j = 0; connections[j]; j++)
+                {
+                    connection = [NSString stringWithCString:connections[j] encoding:NSUTF8StringEncoding];
+                    client = [[connection componentsSeparatedByString:@":"] objectAtIndex:0];
+                                        
+                    if ([client compare:_currentClientName])
+                    {
+                        if (inputOutput == 1)
+                        {
+                            jack_disconnect(_jackClient,
+                                            connections[j],
+                                            [port.name cStringUsingEncoding:NSUTF8StringEncoding]);
+                        }
+                        else if (inputOutput == 2)
+                        {
+                            jack_disconnect(_jackClient,
+                                            [port.name cStringUsingEncoding:NSUTF8StringEncoding],
+                                            connections[j]);
+                        }
+                    }
+				}
+				jack_free (connections);
+			}
+        }
+    }
+    
+    return YES;
 }
 
 @end
