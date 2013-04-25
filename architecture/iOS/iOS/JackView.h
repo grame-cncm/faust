@@ -83,9 +83,16 @@
 - (BOOL)doesClientExist:(NSString*)clientName;
 - (JackViewClient*)clientWithName:(NSString*)clientName;
 
-- (void)quicklyConnectApp:(BOOL)connectApp
-                 toClient:(NSString*)clientName
-              inputOutput:(int)inputOutput
-                audioMidi:(int)audioMidi;
+- (BOOL)hasCurrentClientCompatiblePortWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
+
+- (BOOL)isClient:(JackViewClient*)client connectedToCurrentClientInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
+
+- (BOOL)quicklyConnectAppToClient:(NSString*)clientName
+                      inputOutput:(int)inputOutput
+                        audioMidi:(int)audioMidi;
+
+- (BOOL)quicklyDisconnectAppToClient:(NSString*)clientName
+                         inputOutput:(int)inputOutput
+                           audioMidi:(int)audioMidi;
 
 @end

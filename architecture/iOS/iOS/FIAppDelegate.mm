@@ -38,7 +38,11 @@
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
-{}
+{
+#ifdef JACK_IOS
+    [_mainViewController closeJackView];
+#endif
+}
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
