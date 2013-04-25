@@ -811,7 +811,7 @@ A function that generates a random 7-letter string.
 _f4u$t.randString = function() {
   var result = '';
   var length = 7;
-  var chars = "'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (var i = length; i > 0; --i) {
     result += chars[Math.round(Math.random() * (chars.length - 1))];
   }
