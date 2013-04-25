@@ -793,8 +793,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
   var h = this.d;
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
-  var mousedown = '_f4u$t.click_checkbox("'+full_id+'")';
-  var touchdown = '_f4u$t.touch_checkbox("'+full_id+'")';
+  var mouseup = '_f4u$t.click_checkbox("'+full_id+'")';
+  var touchup = '_f4u$t.touch_checkbox("'+full_id+'")';
 
   var box = _f4u$t.make_rectangle_via_rect(
     svg,
@@ -810,8 +810,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
       id : full_id,
       'class' : 'faust-checkbox-box',
       transform : 'translate('+xo+',0)',
-      onmousedown : mousedown,
-      ontouchstart : touchdown
+      onmouseup : mouseup,
+      ontouchend : touchup
     });
 
   return box;
@@ -823,8 +823,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   var h = this.d;
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
-  var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
-  //var touchdown = '_f4u$t.touch_checkbox("'+full_id+'")';
+  var mouseup = '_f4u$t.change_checkbox("'+full_id+'")';
+  //var touchup = '_f4u$t.touch_checkbox("'+full_id+'")';
   var box = svg.path(
     parent,
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
@@ -833,8 +833,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.check_fill),
       stroke : _f4u$t.color_to_rgb(this.check_stroke),
       style : "opacity:"+(this.init == 1 ? 1.0 : 0.0),
-      onmousedown : mousedown,
-      //ontouchstart : touchdown, // deactivated so that touch doesn't trigger both box and check at the same time
+      onmouseup : mouseup,
+      //ontouchend : touchup, // deactivated so that touch doesn't trigger both box and check at the same time
       'class' : 'faust-chekbox-check',
       transform : 'translate('+xo+',0)'
     }
@@ -1208,10 +1208,19 @@ _f4u$t.LayoutManager.prototype.dims = function() {
 
 _f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
   if (this.axis != a && this.stretchable) {
-    dims = this.internal_dims();
+    var dims = this.internal_dims();
+    // space objects out via the padding
     this.padding = Math.max(this.padding,
                            // 3 * this.padding to prevent spillover
                            (this.padding + (_f4u$t.xy(this.axis,x,y) - (3 * this.padding) - dims[_f4u$t.xy(this.axis,_f4u$t.X_AXIS,_f4u$t.Y_AXIS)]) / (this.objs.length + 1)));
+  }
+  else if (this.axis == a && this.stretchable) {
+    // hijack the dims function
+    var dims = this.dims();
+    // - 20 is magic number for testing...replace...
+    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w, this.mom.h) - 20;
+    this.dims = function() { return [_f4u$t.xy(a, dims[a], fill_to),
+                                     _f4u$t.xy(a, fill_to, dims[a])]; };
   }
 }
 
@@ -1228,7 +1237,8 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
   var running_count = padding;
   for (var i = 0; i < this.objs.length; i++) {
     var obj = this.objs[i];
-    obj.stretch(this.axis, x - (this.padding * 2) , y - (this.padding * 2));
+    //commented out until this actually works...
+    //obj.stretch(this.axis, x - (this.padding * 2) , y - (this.padding * 2));
     var dim = obj.dims();
     var xv1 = _f4u$t.xy(this.axis, running_count, 0);
     var xv2 = _f4u$t.xy(this.axis, running_count, x - dim[_f4u$t.X_AXIS]);
@@ -1316,7 +1326,7 @@ _f4u$t.TabGroup = function(options) {
   this.objs= _f4u$t.initifnull(options.objs, []);
   this.init = _f4u$t.initifnull(options.init, 0);
   this.stretchable = _f4u$t.initifnull(options.stretchable, _f4u$t.faux);
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
+  this.gravity = _f4u$t.initifnull(options.gravity, [__f4u$t.LayoutManagerf4u$t.CENTER, _f4u$t.CENTER]);
   this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
   _f4u$t.init_prop(this, options, 'button','fill_on');
   _f4u$t.init_prop(this, options, 'button','fill_off');
