@@ -45,6 +45,14 @@ _f4u$t.UIObject.prototype.setY = function(y) {
 
 _f4u$t.UIObject.prototype.do_spacing = function() { }
 
+_f4u$t.UIObject.prototype.stretch = function(a,x,y) {
+  /*
+    the whole family
+    all with white hair and canes
+    visiting graves
+  */
+}
+
 _f4u$t.UIObject.prototype.get_root_svg = function() {
   if (!this.mom) {
     return null;
@@ -199,6 +207,7 @@ _f4u$t.RotatingButton.prototype.dims = function() {
 
 _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
   var full_id = 'faust_rbutton_mgroove_'+id;
+  var mousedown = _f4u$t.activate_rbutton;
   var xo = this.r();
   var yo = this.r();
   var d = "M{0} {1}A{2} {3} 0 {4} {5} {6} {7}L{8} {9}A{10} {11} 0 {12} {13} {14} {15}L{16} {17}";
@@ -233,11 +242,37 @@ _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return mgroove;
+}
+
+_f4u$t.RotatingButton.prototype.make_dot = function(svg, parent, id, rot) {
+  var full_id = 'faust_rbutton_dot'+(rot*45)+'_'+id;
+  var mousedown = _f4u$t.activate_rbutton;
+  var xo = this.r();
+  var yo = this.r();
+  var dot = svg.circle(
+    parent,
+    this.r() * (this.kp + 1) * 0.5 * Math.cos(_f4u$t.d2r(rot * 45)) + xo,
+    this.r() * (this.kp + 1) * 0.5 * Math.sin(_f4u$t.d2r(rot * 45)) + yo,
+    this.r() * (1 - this.kp) * 0.5,
+    {
+      fill : _f4u$t.color_to_rgb(this.dot_fill),
+      stroke : _f4u$t.color_to_rgb(this.dot_stroke),
+      id : full_id,
+      'class' : 'faust-rbutton-dot'
+    }
+  );
+
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
+  return dot;
 }
 
 _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
   var full_id = 'faust_rbutton_meter_'+id;
+  var mousedown = _f4u$t.activate_rbutton;
   var xo = this.r();
   var yo = this.r();
   var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
@@ -273,6 +308,8 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
     }
   );
 
+  $('#'+full_id).bind('mousedown', mousedown);
+  $('#'+full_id).bind('touchstart', mousedown);
   return meter;
 }
 
@@ -363,8 +400,14 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   );
 
   this.make_anchor(svg, g, id);
-  this.make_mgroove(svg, g, id);
-  this.make_meter(svg, g, id);
+  if (this.sweep != 360) {
+    this.make_mgroove(svg, g, id);
+    this.make_meter(svg, g, id);
+  } else {
+    for (var i = 0; i < 8; i++) {
+      this.make_dot(svg, g, id, i);
+    }
+  }
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
@@ -414,6 +457,16 @@ _f4u$t.SlidingObject.prototype.dims = function() {
   var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label_text()).width;
   ugh = [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
   return ugh;
+}
+
+_f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
+  if (this.axis != a && this.stretchable) {
+    dims = this.internal_dims();
+    this.length = Math.max(_f4u$t.xy(this.axis,dims[_f4u$t.X_AXIS],dims[_f4u$t.Y_AXIS]),
+                           // TODO : we adjust Y to clear the value box by a long shot
+                           // check to see if X needs adjustment too...
+                           _f4u$t.xy(this.axis, x, y - (3 * this.lpadding_y)));
+  }
 }
 
 _f4u$t.Slider = function(options, type) {
@@ -740,7 +793,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
   var h = this.d;
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
-  var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
+  var mouseup = '_f4u$t.click_checkbox("'+full_id+'")';
+  var touchup = '_f4u$t.touch_checkbox("'+full_id+'")';
 
   var box = _f4u$t.make_rectangle_via_rect(
     svg,
@@ -756,8 +810,8 @@ _f4u$t.CheckBox.prototype.make_box = function(svg, parent, id) {
       id : full_id,
       'class' : 'faust-checkbox-box',
       transform : 'translate('+xo+',0)',
-      onmousedown : mousedown,
-      ontouchstart : mousedown
+      onmouseup : mouseup,
+      ontouchend : touchup
     });
 
   return box;
@@ -769,7 +823,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   var h = this.d;
   var dims = this.dims();
   var xo = (dims[0] - w) / 2.0;
-  var mousedown = '_f4u$t.change_checkbox("'+full_id+'")';
+  var mouseup = '_f4u$t.change_checkbox("'+full_id+'")';
+  //var touchup = '_f4u$t.touch_checkbox("'+full_id+'")';
   var box = svg.path(
     parent,
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
@@ -778,8 +833,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.check_fill),
       stroke : _f4u$t.color_to_rgb(this.check_stroke),
       style : "opacity:"+(this.init == 1 ? 1.0 : 0.0),
-      onmousedown : mousedown,
-      ontouchstart : mousedown,
+      onmouseup : mouseup,
+      //ontouchend : touchup, // deactivated so that touch doesn't trigger both box and check at the same time
       'class' : 'faust-chekbox-check',
       transform : 'translate('+xo+',0)'
     }
@@ -1151,6 +1206,24 @@ _f4u$t.LayoutManager.prototype.dims = function() {
   return out;
 }
 
+_f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
+  if (this.axis != a && this.stretchable) {
+    var dims = this.internal_dims();
+    // space objects out via the padding
+    this.padding = Math.max(this.padding,
+                           // 3 * this.padding to prevent spillover
+                           (this.padding + (_f4u$t.xy(this.axis,x,y) - (3 * this.padding) - dims[_f4u$t.xy(this.axis,_f4u$t.X_AXIS,_f4u$t.Y_AXIS)]) / (this.objs.length + 1)));
+  }
+  else if (this.axis == a && this.stretchable) {
+    // hijack the dims function
+    var dims = this.dims();
+    // - 20 is magic number for testing...replace...
+    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w, this.mom.h) - 20;
+    this.dims = function() { return [_f4u$t.xy(a, dims[a], fill_to),
+                                     _f4u$t.xy(a, fill_to, dims[a])]; };
+  }
+}
+
 _f4u$t.LayoutManager.prototype.do_spacing = function() {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
@@ -1164,6 +1237,8 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
   var running_count = padding;
   for (var i = 0; i < this.objs.length; i++) {
     var obj = this.objs[i];
+    //commented out until this actually works...
+    //obj.stretch(this.axis, x - (this.padding * 2) , y - (this.padding * 2));
     var dim = obj.dims();
     var xv1 = _f4u$t.xy(this.axis, running_count, 0);
     var xv2 = _f4u$t.xy(this.axis, running_count, x - dim[_f4u$t.X_AXIS]);

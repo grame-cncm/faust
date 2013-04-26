@@ -469,26 +469,6 @@ _f4u$t.magic_color = function() {
 }
 
 /**
-Returns false.
-
-@method faux
-@for _f4u$t
-@static
-@return {Boolean}
-**/
-_f4u$t.faux = function() { return false; }
-
-/**
-Returns true.
-
-@method vrai
-@for _f4u$t
-@static
-@return {Boolean}
-**/
-_f4u$t.vrai = function() { return true; }
-
-/**
 The bounds for an accelerometer orientation.
 
 @property orientation_bounds
@@ -831,7 +811,7 @@ A function that generates a random 7-letter string.
 _f4u$t.randString = function() {
   var result = '';
   var length = 7;
-  var chars = "'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (var i = length; i > 0; --i) {
     result += chars[Math.round(Math.random() * (chars.length - 1))];
   }
@@ -951,10 +931,10 @@ Ajax queue.
 
 @property ajax_queue
 @for _f4u$t
-@type Array
-@default []
+@type Object
+@default {}
 **/
-_f4u$t.ajax_queue = [];
+_f4u$t.ajax_queue = {};
 
 /**
 Is the ajax queue busy?
