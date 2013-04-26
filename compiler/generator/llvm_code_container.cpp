@@ -59,7 +59,7 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
     
-    fResult = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
+    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fContext = new LLVMContext();
     fResult->fModule = new Module("Faust LLVM backend", getContext());
     fBuilder = new IRBuilder<>(getContext());

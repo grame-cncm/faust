@@ -44,6 +44,8 @@ struct MyMeta : public Meta
     }
 };
 
+extern "C" int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
@@ -150,15 +152,56 @@ int main(int argc, char *argv[])
         //deleteDSPInstance(DSP);
         //deleteDSPFactory(factory3);
         
-        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
-        //printf("createDSPFactory %x\n", factory3);
-        if (factory3) {
-            DSP = createDSPInstance(factory3);
-            assert(DSP);
-         } else {
-            printf("Cannot create factory : %s\n", error_msg3);
-            return 1;
+        char c;
+        
+        printf("Type a character\n");
+        
+        
+        while ((c = getchar()) != 'q') {
+        
+            char error_msg[256];
+            
+            int argc1 = 7;
+            const char* argv1[argc1];
+            argv1[0] = "faust";
+            argv1[1] = "-lang";
+            argv1[2] = "fir";
+            argv1[3] = "-vec";
+            argv1[4] = "-lv";
+            argv1[5] = "1";
+            argv1[6] = "freeverb.dsp";
+             
+            compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            
+            factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
+            //printf("createDSPFactory %x\n", factory3);
+            if (factory3) {
+                DSP = createDSPInstance(factory3);
+                assert(DSP);
+            } else {
+                printf("Cannot create factory : %s\n", error_msg3);
+                return 1;
+            }
         }
+    
+        
+        
+        while ((c = getchar()) != 'q') {
+            char error_msg[256];
+            
+            int argc1 = 7;
+            const char* argv1[argc1];
+            argv1[0] = "faust";
+            argv1[1] = "-lang";
+            argv1[2] = "fir";
+            argv1[3] = "-vec";
+            argv1[4] = "-lv";
+            argv1[5] = "1";
+            argv1[6] = "freeverb.dsp";
+             
+            compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+        }
+        
         
         /*
         printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());

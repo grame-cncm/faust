@@ -1102,7 +1102,8 @@ static Tree larg2par (Tree larg)
  */
 static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 {
-	Tree def, name;
+    Tree def = NULL;
+    Tree name = NULL;
 
 	// search the environment env for a definition of symbol id
 	while (!isNil(lenv) && !getProperty(lenv, id, def)) {
@@ -1121,6 +1122,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 	// check that it is not a recursive definition
 	Tree p = cons(id,lenv);
 	// set the definition name property
+    assert(def);
 	if (!getDefNameProperty(def, name)) {
 		// if the definition has no name use the identifier
 		stringstream s; s << boxpp(id);

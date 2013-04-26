@@ -122,11 +122,12 @@ CTree::~CTree ()
 	if (t == this) {
 		gHashTable[i] = fNext;
 	} else {
-		Tree p;
+		Tree p = NULL;
 		while (t != this) {
 			p = t;
 			t = t->fNext;
 		}
+        assert(p);
 		p->fNext = fNext;
 	}
 }

@@ -50,7 +50,7 @@ using namespace std;
 std::ostream* Printable::fOut = &cout;
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
-            :fContainer(container), fUIRoot(uiFolder(cons(tree(0),
+            :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0),
             tree(subst("$0", gGlobal->gMasterName))), gGlobal->nil)), fDescription(0),
             fLoadedIota(false)
 {}
@@ -81,7 +81,7 @@ int InstructionsCompiler::getSharingCount(Tree sig)
 	Tree c;
 	if (getProperty(sig, fSharingKey, c)) {
 		//cerr << c->node().getInt() << endl;
-		return c->node().getInt();
+        return c->node().getInt();
 	} else {
 		//cerr << 0 << endl;
 		return 0;
@@ -96,7 +96,7 @@ void InstructionsCompiler::setSharingCount(Tree sig, int count)
 
 void InstructionsCompiler::sharingAnalysis(Tree t)
 {
-	fSharingKey = shprkey(t);
+  	fSharingKey = shprkey(t);
 	if (isList(t)) {
 		while (isList(t)) {
 			sharingAnnotation(kSamp, hd(t));
@@ -230,8 +230,9 @@ InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& c
 {
     InstType old;
     if (fCompileProperty.get(sig, old) && (old != cexp)) {
-        //cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
-        //exit(1);
+        stringstream error;
+        error << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
+        throw faustexception(error.str());
     }
 
     fCompileProperty.set(sig, cexp);

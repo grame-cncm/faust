@@ -112,7 +112,7 @@ llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const s
     fOptLevel = opt_level;
     fTarget = target;
     Init();
-    fResult = static_cast<LLVMResult*>(calloc(sizeof(LLVMResult), 0));
+    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
     fResult->fContext = context;
 }
@@ -264,10 +264,15 @@ bool llvm_dsp_factory::initJIT()
     Builder.populateFunctionPassManager(fpm);
     Builder.populateModulePassManager(pm);
     
+    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+    
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+        fResult->fModule->dump();
+    }
+    
     pm.run(*fResult->fModule);
     
-    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM") != string::npos)) {
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
         fResult->fModule->dump();
     }
     

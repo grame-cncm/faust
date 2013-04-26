@@ -59,6 +59,8 @@ class OccMarkup : public virtual Garbageable
 	void 		setOcc (Tree t, Occurences* occ);		///< set Occurences property of t
 
  public:
+    OccMarkup():fRootTree(NULL), fPropKey(NULL)
+    {}
  	void 		mark(Tree root);						///< start markup of root tree with new unique key
 	Occurences* retrieve(Tree t);						///< occurences of subtree t within root tree
 };

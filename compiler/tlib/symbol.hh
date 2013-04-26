@@ -67,7 +67,7 @@ class Symbol : public virtual Garbageable {
 	
  // Constructors & destructors
     Symbol (const char* str, unsigned int hsh, Symbol* nxt); 	///< Constructs a new symbol ready to be placed in the hash table
-   virtual ~Symbol ();											
+    virtual ~Symbol ();											
 	
  // Others
 	bool			equiv (unsigned int hash, const char* str) const ;	///< Check if the name of the symbol is equal to string \p str
