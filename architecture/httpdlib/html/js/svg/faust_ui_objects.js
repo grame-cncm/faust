@@ -1326,7 +1326,7 @@ _f4u$t.TabGroup = function(options) {
   this.objs= _f4u$t.initifnull(options.objs, []);
   this.init = _f4u$t.initifnull(options.init, 0);
   this.stretchable = _f4u$t.initifnull(options.stretchable, _f4u$t.faux);
-  this.gravity = _f4u$t.initifnull(options.gravity, [__f4u$t.LayoutManagerf4u$t.CENTER, _f4u$t.CENTER]);
+  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
   _f4u$t.init_prop(this, options, 'button','fill_on');
   _f4u$t.init_prop(this, options, 'button','fill_off');
