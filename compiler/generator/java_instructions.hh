@@ -32,7 +32,7 @@ class JAVAInstVisitor : public TextInstVisitor {
  
         static map <string, string> fMathLibTable;
         Typed::VarType fCurType;
-
+  
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
@@ -303,16 +303,16 @@ class JAVAInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kBool;
             } else {
                 
-                // Using explicit type of the current value
-                stringstream str;
-                JAVAInstVisitor visitor1(&str, 0);
-                inst->fInst1->accept(&visitor1);
-                Typed::VarType type1 = visitor1.fCurType;
-                
-                JAVAInstVisitor visitor2(&str, 0);
-                inst->fInst2->accept(&visitor2);
-                Typed::VarType type2 = visitor2.fCurType;
-                
+                // Only one shared visitor
+                static stringstream str;
+                static JAVAInstVisitor visitor(&str, 0);
+              
+                inst->fInst1->accept(&visitor);
+                Typed::VarType type1 = visitor.fCurType;
+                 
+                inst->fInst2->accept(&visitor);
+                Typed::VarType type2 = visitor.fCurType;
+                             
                 *fOut << "(";
                 
                 if (type1 == Typed::kInt && type2 == Typed::kInt) {

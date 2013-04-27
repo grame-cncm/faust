@@ -36,8 +36,8 @@ class StringTypeManager {
 
     protected:
 
-        static map <Typed::VarType, string> fTypeDirectTable;
-        static map <string, Typed::VarType> fInvertTypeTable;
+        map <Typed::VarType, string> fTypeDirectTable;
+        map <string, Typed::VarType> fInvertTypeTable;
 
         string fPtrPosfix;
 
@@ -51,9 +51,6 @@ class StringTypeManager {
 
         void fillTypeDirectTable(string float_macro_name, string float_macro_name_ptr)
         {
-            if (fTypeDirectTable.size() > 0 && fInvertTypeTable.size() > 0) {
-                return;
-            }
             fTypeDirectTable[Typed::kFloatMacro] = float_macro_name;
             fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name_ptr;
 

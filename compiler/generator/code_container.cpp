@@ -33,9 +33,6 @@
 
 using namespace std;
 
-map <Typed::VarType, string> StringTypeManager::fTypeDirectTable;
-map <string, Typed::VarType> StringTypeManager::fInvertTypeTable;
-
 void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
 {
     fNumInputs = numInputs;
