@@ -463,9 +463,8 @@ _f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
   if (this.axis != a && this.stretchable) {
     dims = this.internal_dims();
     this.length = Math.max(_f4u$t.xy(this.axis,dims[_f4u$t.X_AXIS],dims[_f4u$t.Y_AXIS]),
-                           // TODO : we adjust Y to clear the value box by a long shot
-                           // check to see if X needs adjustment too...
-                           _f4u$t.xy(this.axis, x, y - (3 * this.lpadding_y)));
+                           // todo - make adjustment for label width if it is huge
+                           _f4u$t.xy(this.axis, x - (2 * this.mom.other_axis_padding), y - (2 * this.lpadding_y) - this.mom.other_axis_padding - Math.max(this.mom.lpadding_y, this.mom.other_axis_padding)));
   }
 }
 
@@ -1153,6 +1152,7 @@ _f4u$t.LayoutManager = function(options) {
   this.mom = _f4u$t.initifnull(options.mom, null);
   this.axis = _f4u$t.initifnull(options.axis, _f4u$t.X_AXIS);
   this.padding = _f4u$t.initifnull(options.padding, 10);
+  this.other_axis_padding = _f4u$t.initifnull(options.other_axis_padding, 10);
   this.objs = _f4u$t.initifnull(options.objs, []);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.label = _f4u$t.initifnull(options.label, '');
@@ -1179,13 +1179,17 @@ _f4u$t.LayoutManager.prototype.internal_dims = function() {
     outy.push(dim[_f4u$t.Y_AXIS]);
   }
 
-  var out = [outx,outy];
+  var out = [outx, outy];
 
   for (var i = _f4u$t.X_AXIS; i < _f4u$t.NO_AXES; i++) {
     out[i] = (i == this.axis ? out[i].sum() : out[i].max());
   }
 
-  out[this.axis] += (this.padding * (this.objs.length - 1));
+  // this adds in between padding for all objects as well as
+  // padding on the top and on the bottom
+  out[this.axis] += (this.padding * (this.objs.length + 1));
+  // this only adds padding on the sides
+  out[_f4u$t.other_axis(this.axis)] += (2 * this.other_axis_padding);
   return out;
 }
 
@@ -1201,26 +1205,30 @@ _f4u$t.LayoutManager.prototype.populate_objects = function() {
 
 _f4u$t.LayoutManager.prototype.dims = function() {
   var ugh = this.internal_dims();
+  // we make sure it is at least as wide as the label
   var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label).width;
-  var out = [Math.max(ugh[0], text_w) + (2 * this.padding), ugh[1] + Math.max(this.lpadding_y, this.padding) + this.padding];
+  // if the label padding is bigger than the natural padding, we add the label padding
+  var out = [Math.max(ugh[0], text_w), ugh[1] + Math.max(this.lpadding_y - _f4u$t.xy(this.axis, this.other_axis_padding, this.padding), 0)];
   return out;
 }
 
 _f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
+  var oap = this.mom.other_axis_padding;
+  var lp = this.mom.lpadding_y;
+  oap = oap ? oap : 0;
+  lp = lp ? lp : 0;
   if (this.axis != a && this.stretchable) {
-    var dims = this.internal_dims();
+    var dim = this.dims();
     // space objects out via the padding
-    this.padding = Math.max(this.padding,
-                           // 3 * this.padding to prevent spillover
-                           (this.padding + (_f4u$t.xy(this.axis,x,y) - (3 * this.padding) - dims[_f4u$t.xy(this.axis,_f4u$t.X_AXIS,_f4u$t.Y_AXIS)]) / (this.objs.length + 1)));
+    this.padding = this.padding + Math.max(0,
+                    (_f4u$t.xy(this.axis,x,y)  - dim[this.axis] - oap - _f4u$t.xy(this.axis, oap, Math.max(oap,lp))) / (this.objs.length + 1));
   }
   else if (this.axis == a && this.stretchable) {
-    // hijack the dims function
-    var dims = this.dims();
-    // - 20 is magic number for testing...replace...
-    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w, this.mom.h) - 20;
-    this.dims = function() { return [_f4u$t.xy(a, dims[a], fill_to),
-                                     _f4u$t.xy(a, fill_to, dims[a])]; };
+    // hijack dims function...
+    var dim = this.dims();
+    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w - (2 * oap), this.mom.h - oap - Math.max(oap, lp));
+    this.dims = function() { return [_f4u$t.xy(a, dim[a], fill_to),
+                                     _f4u$t.xy(a, fill_to, dim[a])]; };
   }
 }
 
@@ -1238,7 +1246,8 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
   for (var i = 0; i < this.objs.length; i++) {
     var obj = this.objs[i];
     //commented out until this actually works...
-    //obj.stretch(this.axis, x - (this.padding * 2) , y - (this.padding * 2));
+    //obj.stretch(this.axis, x - this.padding, y - this.padding);
+    obj.stretch(this.axis, x, y);
     var dim = obj.dims();
     var xv1 = _f4u$t.xy(this.axis, running_count, 0);
     var xv2 = _f4u$t.xy(this.axis, running_count, x - dim[_f4u$t.X_AXIS]);
