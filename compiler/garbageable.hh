@@ -22,9 +22,9 @@
 #ifndef __FAUST_GARBAGE__
 #define __FAUST_GARBAGE__
 
-#include <list>
 #include <stdio.h>
 #include <assert.h>
+#include <new>
 
 class Garbageable {
 

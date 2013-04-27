@@ -77,9 +77,6 @@ using namespace std;
 #define KSKIP 20
 #define KMESURE 600
 
-#define STARTMESURE starts[fMeasure % KMESURE] = rdtsc();
-#define STOPMESURE stops[fMeasure % KMESURE] = rdtsc(); fMeasure = fMeasure + 1;
-
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
@@ -108,6 +105,9 @@ static void set_affinity(pthread_t thread, int tag)
 class FaustLLVMOptimizer {
 
     private:
+        
+        #define STARTMESURE fStarts[fMeasure % KMESURE] = rdtsc();
+        #define STOPMESURE fStops[fMeasure % KMESURE] = rdtsc(); fMeasure = fMeasure + 1;
 
         FAUSTFLOAT* fBuffer;    // a buffer of NV*VSize samples
 
@@ -130,6 +130,17 @@ class FaustLLVMOptimizer {
         
         vector<vector <string > > fOptionsTable;
         
+        // these values are used to determine the number of clocks in a second
+        uint64 fFirstRDTSC;
+        uint64 fLastRDTSC;
+
+        // these tables contains the last KMESURE in clocks
+        uint64 fStarts[KMESURE];
+        uint64 fStops[KMESURE];
+
+        struct timeval fTv1;
+        struct timeval fTv2;
+   
         /**
          * Returns the number of clock cycles elapsed since the last reset
          * of the processor
@@ -145,50 +156,43 @@ class FaustLLVMOptimizer {
              return count.i64;
         }
  
-        // these values are used to determine the number of clocks in a second
-        uint64 firstRDTSC;
-        uint64 lastRDTSC;
-
-        // these tables contains the last KMESURE in clocks
-        uint64 starts[KMESURE];
-        uint64 stops[KMESURE];
-
-        struct timeval tv1;
-        struct timeval tv2;
-
         void openMesure()
         {
             struct timezone tz;
-            gettimeofday(&tv1, &tz);
-            firstRDTSC = rdtsc();
+            gettimeofday(&fTv1, &tz);
+            fFirstRDTSC = rdtsc();
             fMeasure = 0;
         }
 
         void closeMesure()
         {
             struct timezone tz;
-            gettimeofday(&tv2, &tz);
-            lastRDTSC = rdtsc();
+            gettimeofday(&fTv2, &tz);
+            fLastRDTSC = rdtsc();
         }
             
         /**
          * return the number of RDTSC clocks per seconds
          */
-        int64 rdtscpersec()
+        double rdtscpersec()
         {
             // If the environment variable CLOCKSPERSEC is defined
             // we use it instead of our own measurement
+            /*
             char* str = getenv("CLOCKSPERSEC");
             if (str) {
                 int64 cps = (int64)atoll(str);
                 if (cps > 1000000000) {
                     return cps;
-                } else {
-                    return (lastRDTSC - firstRDTSC) / (tv2.tv_sec - tv1.tv_sec);
-                }
+                } 
+            }
+            */
+            
+            if (fTv2.tv_sec != fTv1.tv_sec) {
+                return double(fLastRDTSC - fFirstRDTSC) / double(fTv2.tv_sec - fTv1.tv_sec);
             } else {
-                return (lastRDTSC - firstRDTSC) / (tv2.tv_sec - tv1.tv_sec);
-            }   
+                return (double(fLastRDTSC - fFirstRDTSC) / (double(fTv2.tv_usec - fTv1.tv_usec) / 1000000.));
+            }
         }
             
         /**
@@ -196,12 +200,12 @@ class FaustLLVMOptimizer {
          */
         double rdtsc2sec(uint64 clk)
         {
-            return double(clk) / double(rdtscpersec());
+            return double(clk) / rdtscpersec();
         }
 
         double rdtsc2sec(double clk)
         {
-            return clk / double(rdtscpersec());
+            return clk / rdtscpersec();
         }
             
         /**
@@ -231,7 +235,7 @@ class FaustLLVMOptimizer {
             vector<uint64> V(KMESURE);
 
             for (int i = 0; i < KMESURE; i++) {
-                V[i] = stops[i] - starts[i];
+                V[i] = fStops[i] - fStarts[i];
             }
 
             sort(V.begin(), V.end());
@@ -444,7 +448,7 @@ class FaustLLVMOptimizer {
             vector< pair <int, double > > table_res;
             double res;
              
-            for (int i = 0; i < size(); i++) {
+            for (int i = 0; i < fOptionsTable.size(); i++) {
                 if (computeOne(i, res)) {
                     table_res.push_back(make_pair(i, res));
                 } else {
@@ -511,9 +515,7 @@ class FaustLLVMOptimizer {
             
             return true;
         }
-        
-        int size() { return fOptionsTable.size(); }
-
+    
 };
 
 int getStackSize()

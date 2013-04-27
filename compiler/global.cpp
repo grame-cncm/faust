@@ -370,10 +370,10 @@ Garbageable::~Garbageable()
 void Garbageable::cleanup()
 {
     std::list<Garbageable*>::iterator it;
-    /*
-    Here removing the deleted pointer from the list is pointless 
-	and takes time, thus we don't do it.
-    */
+
+    // Here removing the deleted pointer from the list is pointless 
+	// and takes time, thus we don't do it.
+    
     global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
 	#ifdef WIN32
@@ -381,24 +381,25 @@ void Garbageable::cleanup()
 		Garbageable::operator delete(*it);
 	#else
 		delete(*it);
-	#endif
+  	#endif
     }
     global::gObjectTable.clear();
 }
 
+
 void* Garbageable::operator new(size_t size)
 {
-	Garbageable* res = (Garbageable*)::operator new(size);
+    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
+    Garbageable* res = (Garbageable*)malloc(size + 16);
   	global::gObjectTable.push_front(res);
     return res;
 }
 
 void Garbageable::operator delete(void* ptr)
 {
-    /*
-    We may have cases when a pointer will be deleted during a compilation, 
-    thus the pointer has to be removed from the list.
-    */
+    // We may have cases when a pointer will be deleted during 
+    // a compilation, thus the pointer has to be removed from the list.
+    
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
@@ -407,13 +408,18 @@ void Garbageable::operator delete(void* ptr)
 
 void* Garbageable::operator new[](size_t size)
 {
-  	Garbageable* res = (Garbageable*)::operator new[](size);
+    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
+    
+    Garbageable* res = (Garbageable*)malloc(size + 16);
  	global::gObjectTable.push_front(res);
     return res;
 }
 
 void Garbageable::operator delete[](void* ptr)
 {
+    // We may have cases when a pointer will be deleted during 
+    // a compilation, thus the pointer has to be removed from the list.
+    
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }

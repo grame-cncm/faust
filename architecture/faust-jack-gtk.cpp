@@ -45,6 +45,7 @@ struct MyMeta : public Meta
 };
 
 extern "C" int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 //----------------------------------------------------------------------------
 // 	FAUST generated code
@@ -131,6 +132,7 @@ int main(int argc, char *argv[])
         }
         */
         
+        /*
         char error_msg3[256];
         factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
         //printf("createDSPFactory %x\n", factory3);
@@ -151,6 +153,7 @@ int main(int argc, char *argv[])
         
         //deleteDSPInstance(DSP);
         //deleteDSPFactory(factory3);
+        */
         
         char c;
         
@@ -166,6 +169,7 @@ int main(int argc, char *argv[])
             argv1[0] = "faust";
             argv1[1] = "-lang";
             argv1[2] = "cpp";
+            //argv1[2] = "llvm";
             argv1[3] = "-vec";
             argv1[4] = "-lv";
             argv1[5] = "1";
@@ -173,11 +177,27 @@ int main(int argc, char *argv[])
             argv1[6] = "";
             argv1[7] = "freeverb.dsp";
              
-            //compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
-            //compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            
+            compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            
+            /*
+            argv1[0] = "faust";
+            argv1[1] = "-lang";
+            argv1[2] = "llvm";
+            argv1[3] = "-vec";
+            argv1[4] = "-lv";
+            argv1[5] = "1";
+            //argv1[6] = "-d";
+            argv1[6] = "";
+            argv1[7] = "freeverb.dsp";
+            
+            compile_faust_llvm(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            */
             
             
-            factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
+            //factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
+            /*
             //printf("createDSPFactory %x\n", factory3);
             if (factory3) {
                 DSP = createDSPInstance(factory3);
@@ -186,7 +206,7 @@ int main(int argc, char *argv[])
                 printf("Cannot create factory : %s\n", error_msg3);
                 return 1;
             }
-            
+            */
         }
         
         while ((c = getchar()) != 'q') {
