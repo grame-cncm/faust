@@ -388,6 +388,8 @@ struct global {
     set<string> gAlreadyIncluded;
     
     char* gCurrentLocal;
+    
+    int gAllocationCount;
    
     // GC
     static list<Garbageable*> gObjectTable;

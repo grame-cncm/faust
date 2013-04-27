@@ -109,7 +109,6 @@ CTree::CTree (unsigned int hk, const Node& n, const tvec& br)
    	int j = hk % kHashTableSize;
 	fNext = gHashTable[j];
 	gHashTable[j] = this;
-
 }
 
 // Destructor : remove the tree form the hash table

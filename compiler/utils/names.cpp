@@ -42,8 +42,8 @@
 /**
  * Definition name property : a property to keep track of the definition name
  * of an expression. Whenever an identifier is evaluated, it is attached as a
- * property of its definitionObviously there is no perfect solution since a same
- * definition quand be given to different names.
+ * property of its definition. Obviously there is no perfect solution since a same
+ * definition can be given to different names.
  */
 
 void setDefNameProperty(Tree t, Tree id)

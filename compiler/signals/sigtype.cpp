@@ -25,8 +25,6 @@
 #include "exception.hh"
 #include "global.hh"
 
-int     AudioType::gAllocationCount = 0;
-
 bool    SimpleType::isMaximal() const                             ///< true when type is maximal (and therefore can't change depending of hypothesis)
 {
     return  (fNature==kReal)
@@ -376,7 +374,7 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
     if (gGlobal->gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        AudioType::gAllocationCount++;
+        gGlobal->gAllocationCount++;
         t = new SimpleType(n,v,c,vec,b,i);
         gGlobal->gMemoizedTypes->set(code, t);
         t->setCode(code);
@@ -402,7 +400,7 @@ AudioType* makeTableType(const Type& ct)
     if (gGlobal->gMemoizedTypes->get(code, tt)) {
         return tt;
     } else {
-        AudioType::gAllocationCount++;
+        gGlobal->gAllocationCount++;
         tt = new TableType(ct);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
@@ -419,7 +417,7 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, co
     if (gGlobal->gMemoizedTypes->get(code, tt)) {
         return tt;
     } else {
-        AudioType::gAllocationCount++;
+        gGlobal->gAllocationCount++;
         tt = new TableType(ct);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
@@ -436,7 +434,7 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
     if (gGlobal->gMemoizedTypes->get(code, tt)) {
         return tt;
     } else {
-        AudioType::gAllocationCount++;
+        gGlobal->gAllocationCount++;
         tt = new TableType(ct);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
@@ -466,7 +464,7 @@ AudioType* makeTupletType(const vector<Type>& vt)
     if (gGlobal->gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        AudioType::gAllocationCount++;
+        gGlobal->gAllocationCount++;
         t = new TupletType(vt);
         gGlobal->gMemoizedTypes->set(code, t);
         t->setCode(code);
@@ -483,7 +481,7 @@ AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, 
     if (gGlobal->gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        AudioType::gAllocationCount++;
+        gGlobal->gAllocationCount++;
         t = new TupletType(vt,n,v,c,vec,b,i);
         gGlobal->gMemoizedTypes->set(code, t);
         t->setCode(code);

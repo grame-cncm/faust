@@ -57,7 +57,7 @@ static Tree traced_simplification(Tree sig)
 	*/
 #endif
 	Tree r = simplification(sig);
-	assert(r!=0);
+	assert(r != 0);
 #ifdef TRACE
     cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig) << " Returns : " << ppsig(r) << endl;
 	/*

@@ -604,10 +604,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
-
-        // Prepare signals
-        comp->prepare(signals);
-     
+  
         comp->compileMultiSignal(signals);
         LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
         gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
@@ -652,9 +649,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 comp = new InstructionsCompiler(container);
             }
 
-            // Prepare signals
-            comp->prepare(signals);
-
             comp->compileMultiSignal(signals);
             container->dump(dst);
             throw faustexception("");
@@ -672,9 +666,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
-
-        // Prepare signals
-        comp->prepare(signals);
 
         comp->compileMultiSignal(signals);
 
@@ -919,17 +910,17 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
-    int res = 0;
+    int result = 0;
     gGlobal = NULL;
     
     try {
         global::allocate();        
-        res = compile_faust_internal(argc, argv, library_path, draw_path, name, input);
+        result = compile_faust_internal(argc, argv, library_path, draw_path, name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
     }
     
     global::destroy();
-    return res;
+    return result;
 }

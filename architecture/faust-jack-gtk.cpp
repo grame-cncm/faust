@@ -161,17 +161,21 @@ int main(int argc, char *argv[])
         
             char error_msg[256];
             
-            int argc1 = 7;
+            int argc1 = 8;
             const char* argv1[argc1];
             argv1[0] = "faust";
             argv1[1] = "-lang";
-            argv1[2] = "fir";
+            argv1[2] = "cpp";
             argv1[3] = "-vec";
             argv1[4] = "-lv";
             argv1[5] = "1";
-            argv1[6] = "freeverb.dsp";
+            //argv1[6] = "-d";
+            argv1[6] = "";
+            argv1[7] = "freeverb.dsp";
              
-            compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            //compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            //compile_faust(argc1, (const char**)argv1, false, "", "", "", error_msg);
+            
             
             factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
             //printf("createDSPFactory %x\n", factory3);
@@ -182,9 +186,8 @@ int main(int argc, char *argv[])
                 printf("Cannot create factory : %s\n", error_msg3);
                 return 1;
             }
+            
         }
-    
-        
         
         while ((c = getchar()) != 'q') {
             char error_msg[256];

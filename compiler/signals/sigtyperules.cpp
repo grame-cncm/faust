@@ -128,7 +128,7 @@ void typeAnnotation(Tree sig)
 void annotationStatistics()
 {
     cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
-    cerr << gGlobal->TABBER << "COUNT ALLOCATION " << AudioType::gAllocationCount << endl;
+    cerr << gGlobal->TABBER << "COUNT ALLOCATION " << gGlobal->gAllocationCount << endl;
     cerr << gGlobal->TABBER << "COUNT MAXIMAL " << gGlobal->gCountMaximal << endl;
 }
 

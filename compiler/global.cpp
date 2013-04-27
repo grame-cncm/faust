@@ -338,6 +338,8 @@ void global::init()
     // Setup standard "C" local 
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
     setlocale(LC_ALL, "C");
+    
+    gAllocationCount = 0;
 }
     
 global::~global()

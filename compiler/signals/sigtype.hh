@@ -81,8 +81,6 @@ typedef P<AudioType> Type;
  
 class AudioType : public virtual Garbageable
 {
-  public:
-    static int  gAllocationCount;
   protected:
 	int   		fNature;  		  	///< the kind of data represented
 	int   		fVariability; 	  	///< how fast values change
@@ -95,7 +93,7 @@ class AudioType : public virtual Garbageable
 
 
   public :
-	AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i=interval())
+	AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval())
 		  : fNature(n), fVariability(v), fComputability(c),
 		    fVectorability(vec), fBoolean(b),
             fInterval(i), fCode(0) {}                           ///< constructs an abstract audio type
@@ -119,7 +117,6 @@ class AudioType : public virtual Garbageable
     virtual AudioType* promoteVectorability(int n)	= 0;		///< promote the vectorability of a type
 	virtual AudioType* promoteBoolean(int n)   	= 0;			///< promote the booleanity of a type
 	//virtual AudioType* promoteInterval(const interval& i) = 0;		///< promote the interval of a type
-
 
     virtual ostream& print(ostream& dst) const		= 0;		///< print nicely a type
     virtual bool    isMaximal() const               = 0;        ///< true when type is maximal (and therefore can't change depending of hypothesis)
