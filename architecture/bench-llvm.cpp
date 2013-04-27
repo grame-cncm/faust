@@ -128,6 +128,8 @@ class FaustLLVMOptimizer {
         
         int fMeasure;
         
+        char fError[256];
+        
         vector<vector <string > > fOptionsTable;
         
         // these values are used to determine the number of clocks in a second
@@ -467,9 +469,10 @@ class FaustLLVMOptimizer {
             }
         }
         
+        const char* getError() { return fError; }
+        
         bool computeOne(int index, double& res)
         {
-            char error_msg[256];
             vector <string> item = fOptionsTable[index];
             
             if (fInput == "") { 
@@ -481,7 +484,7 @@ class FaustLLVMOptimizer {
                     argv[i + 1] = item[i].c_str();
                 }
             
-                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", "", fTarget, error_msg, 3);
+                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", "", fTarget, fError, 3);
                 
             } else {
                 
@@ -491,11 +494,11 @@ class FaustLLVMOptimizer {
                     argv[i] = item[i].c_str();
                 }
                 
-                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", fInput, fTarget, error_msg, 3);
+                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", fInput, fTarget, fError, 3);
             }
             
             if (!fFactory)  {
-                printf("Cannot create factory... %s\n", error_msg);
+                printf("Cannot create factory... %s\n", fError);
                 return false;
             } 
             

@@ -268,13 +268,13 @@ static int mkchdir(const char* dirname)
 	if (getCurrentDir()) {
 		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
-			if (chdir(dirname) == 0) {
+  			if (chdir(dirname) == 0) {
 				return 0;
 			}
 		}
 	}
 	stringstream error;
-    error << "ERROR in mkchdir " << strerror(errno) << endl;
+    error << "ERROR in mkchdir : " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
 
@@ -288,7 +288,7 @@ static int cholddir ()
 		return 0;
 	} else {
         stringstream error;
-        error << "ERROR in cholddir " << strerror(errno) << endl;
+        error << "ERROR in cholddir : " << strerror(errno) << endl;
         throw faustexception(error.str());
 	}
 }

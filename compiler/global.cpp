@@ -372,7 +372,7 @@ void Garbageable::cleanup()
     std::list<Garbageable*>::iterator it;
 
     // Here removing the deleted pointer from the list is pointless 
-	// and takes time, thus we don't do it.
+    // and takes time, thus we don't do it.
     
     global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {

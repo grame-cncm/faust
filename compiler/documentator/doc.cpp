@@ -922,7 +922,7 @@ static int makedir(const char* dirname)
 		}
 	}
     stringstream error;
-    error << "ERROR in makedir " << strerror(errno) << endl;
+    error << "ERROR in makedir : " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
 
@@ -947,7 +947,7 @@ static int mkchdir(const char* dirname)
 		}
 	}
     stringstream error;
-    error << "ERROR in mkchdir " << strerror(errno) << endl;
+    error << "ERROR in mkchdir : " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
 
@@ -960,7 +960,7 @@ static int cholddir ()
 		return 0;
 	} else {
         stringstream error;
-        error << "ERROR in cholddir " << strerror(errno) << endl;
+        error << "ERROR in cholddir : " << strerror(errno) << endl;
         throw faustexception(error.str());
 	}
 }

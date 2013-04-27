@@ -106,20 +106,20 @@ int             yyerr;
 
 //-- command line arguments
 
-static bool			gHelpSwitch 	= false;
-static bool			gVersionSwitch 	= false;
-static bool         gGraphSwitch 	= false;
-static bool         gDrawPSSwitch 	= false;
-static bool         gDrawSVGSwitch 	= false;
-static bool         gPrintXMLSwitch = false;
-static bool         gPrintDocSwitch = false;
-static int          gBalancedSwitch = 0;
-static const char*  gArchFile = 0;
+static bool	gHelpSwitch = false;
+static bool	gVersionSwitch = false;
+static bool gGraphSwitch = false;
+static bool gDrawPSSwitch = false;
+static bool gDrawSVGSwitch = false;
+static bool gPrintXMLSwitch = false;
+static bool gPrintDocSwitch = false;
+static int gBalancedSwitch = 0;
+static const char* gArchFile = 0;
 
-static int          gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
-static bool         gPrintFileListSwitch = false;
-static const char*  gOutputLang = 0;
-static bool         gLLVMOut = true;
+static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
+static bool gPrintFileListSwitch = false;
+static const char* gOutputLang = 0;
+static bool gLLVMOut = true;
 
 //-- command line tools
 
@@ -805,6 +805,20 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
 int compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
 {
+    gHelpSwitch = false;
+    gVersionSwitch = false;
+    gGraphSwitch = false;
+    gDrawPSSwitch = false;
+    gDrawSVGSwitch = false;
+    gPrintXMLSwitch = false;
+    gPrintDocSwitch = false;
+    gBalancedSwitch = 0;
+    gArchFile = 0;
+
+    gTimeout = INT_MAX;           
+    gPrintFileListSwitch = false;
+    gOutputLang = 0;
+  
     /****************************************************************
      0 - set library_path and draw_path
     *****************************************************************/
@@ -911,6 +925,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     int result = 0;
+    gLLVMOut = true;
     gGlobal = NULL;
     
     try {
