@@ -1760,6 +1760,10 @@ struct InstBuilder
             return new CastNumInst(inst, typed, size);
         }
     }
+    
+    static ValueInst* genCastNumFloatInst(ValueInst* inst);
+    static ValueInst* genCastNumFloatMacroInst(ValueInst* inst);
+    static ValueInst* genCastNumIntInst(ValueInst* inst);
 
     // Control flow
     static RetInst* genRetInst(ValueInst* result = NULL) { return new RetInst(result); }

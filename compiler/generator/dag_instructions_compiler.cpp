@@ -79,7 +79,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             fContainer->openLoop("i");
 
             // Cast to external float
-            ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+            ValueInst* res = InstBuilder::genCastNumFloatMacroInst(CS(sig));
             pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"), res));
 
             fContainer->closeLoop(sig);
@@ -100,7 +100,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             fContainer->openLoop("i");
 
             // Cast to external float
-            ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+            ValueInst* res = InstBuilder::genCastNumFloatMacroInst(CS(sig));
             pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
 
             fContainer->closeLoop(sig);
@@ -271,7 +271,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         string name = subst("input$0", T(idx));
         ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
         // Cast to internal float
-        res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+        res = InstBuilder::genCastNumFloatInst(res);
         return generateCacheCode(sig, res);
 
      } else {
@@ -279,7 +279,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         string name = subst("fInput$0", T(idx));
         ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
         // Cast to internal float
-        res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+        res = InstBuilder::genCastNumFloatInst(res);
         return generateCacheCode(sig, res);
      }
 }

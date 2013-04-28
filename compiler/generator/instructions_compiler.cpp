@@ -92,7 +92,6 @@ int InstructionsCompiler::getSharingCount(Tree sig)
 
 void InstructionsCompiler::setSharingCount(Tree sig, int count)
 {
-	//cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
 	setProperty(sig, fSharingKey, tree(count));
 }
 
@@ -324,7 +323,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         string name = subst("output$0", T(index));
 
         // Cast to external float
-        ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+        ValueInst* res = InstBuilder::genCastNumFloatMacroInst(CS(sig));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
 
         // 09/12/11 : HACK
@@ -612,32 +611,24 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, 
     if (t1 == kReal) {
         if (t2 == kReal) {
             res = InstBuilder::genBinopInst(opcode, val1, val2);
-            if (t3 == kReal) {
-                // Nothing
-            } else {
-                res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(Typed::kInt));
+            if (t3 != kReal) {
+                res = InstBuilder::genCastNumIntInst(res);
             }
         } else {
-            res = InstBuilder::genBinopInst(opcode, val1, InstBuilder::genCastNumInst(val2, InstBuilder::genBasicTyped(itfloat())));
-            if (t3 == kReal) {
-                // Nothing
-            } else {
-                res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(Typed::kInt));
+            res = InstBuilder::genBinopInst(opcode, val1, InstBuilder::genCastNumFloatInst(val2));
+            if (t3 != kReal) {
+                res = InstBuilder::genCastNumIntInst(res);
             }
         }
     } else if (t2 == kReal) {
-        res = InstBuilder::genBinopInst(opcode, InstBuilder::genCastNumInst(val1, InstBuilder::genBasicTyped(itfloat())), val2);
-        if (t3 == kReal) {
-            // Nothing
-        } else {
-            res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(Typed::kInt));
+        res = InstBuilder::genBinopInst(opcode, InstBuilder::genCastNumFloatInst(val1), val2);
+        if (t3 != kReal) {
+            res = InstBuilder::genCastNumIntInst(res);
         }
     } else {
         res = InstBuilder::genBinopInst(opcode, val1, val2);
         if (t3 == kReal) {
-            res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
-        } else {
-            // Nothing
+            res = InstBuilder::genCastNumFloatInst(res);
         }
     }
 
@@ -674,8 +665,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         gGlobal->gSymbolGlobalsTable[funname] = 1;
     }
  
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value),
-        InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
 }
 
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
@@ -688,8 +678,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     string name = subst("input$0", T(idx));
     ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
 
-    ValueInst* castedToFloat = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
-    return generateCacheCode(sig, castedToFloat);
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(res));
 }
 
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
@@ -846,9 +835,7 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     ValueInst* casted_data = CS(data);
     
     if (t1 != t2) {
-        casted_data = (t1 == kInt) 
-            ? InstBuilder::genCastNumInst(casted_data, InstBuilder::genBasicTyped(Typed::kInt))
-            : InstBuilder::genCastNumInst(casted_data, InstBuilder::genBasicTyped(itfloat()));
+        casted_data = InstBuilder::genCastNumInst(casted_data, genBasicFIRTyped(t1));
     }
     
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), CS(idx), casted_data));
@@ -951,15 +938,9 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
 ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* cond, ValueInst* val1, ValueInst* val2)
 {
     if (t1 == kReal) {
-        if (t2 == kReal) {
-            return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, val1));
-        } else {
-            return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, InstBuilder::genCastNumInst(val2, InstBuilder::genBasicTyped(itfloat())), val1));
-        }
-    } else if (t2 == kReal) {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, InstBuilder::genCastNumInst(val1, InstBuilder::genBasicTyped(itfloat()))));
+        return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, (t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2), val1));
     } else {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, val1));
+        return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, ((t2 == kReal)) ? InstBuilder::genCastNumFloatInst(val1) : val1));
     }
 }
 
@@ -973,20 +954,12 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1,
     list<StatementInst*> block1_inst;
     list<StatementInst*> block2_inst;
     
-    BlockInst* block1;
-    BlockInst* block2;
-    
     if (t1 == kReal) {
-        if (t2 == kReal) {
-            block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
-            block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
-        } else {
-            block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
-            block2_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumInst(val2, InstBuilder::genBasicTyped(itfloat()))));
-        }
+        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
+        block2_inst.push_back(InstBuilder::genStoreStackVar(vname, ((t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2))));
         var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()));
     } else if (t2 == kReal) {
-        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumInst(val1, InstBuilder::genBasicTyped(itfloat()))));
+        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumFloatInst(val1)));
         block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
         var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()));
     } else {
@@ -995,8 +968,8 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1,
         var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(Typed::kInt));
     }
     
-    block1 = InstBuilder::genBlockInst(block1_inst);
-    block2 = InstBuilder::genBlockInst(block2_inst);
+    BlockInst* block1 = InstBuilder::genBlockInst(block1_inst);
+    BlockInst* block2 = InstBuilder::genBlockInst(block2_inst);
     
     /* 
     generateSelect2WithIf only called for kSamp code for now 
@@ -1089,12 +1062,12 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
 
 ValueInst* InstructionsCompiler::generateIntCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(CS(x), InstBuilder::genBasicTyped(Typed::kInt)));
+    return generateCacheCode(sig, InstBuilder::genCastNumIntInst(CS(x)));
 }
 
 ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(CS(x), InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(CS(x)));
 }
 
 ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const string& name)
@@ -1106,7 +1079,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genLoadStructVar(varname), InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1128,7 +1101,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genLoadStructVar(varname), InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -1167,7 +1140,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 			break;
 	}
 
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genLoadStructVar(varname), InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
@@ -1269,9 +1242,9 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(delay));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_inc);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loop_decl->load(), init));
     return loop;
@@ -1284,9 +1257,9 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
     ValueInst* loop_end = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genIntNumInst(0));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1)));
+    StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_inc);
     ValueInst* load_value2 = InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1));
     ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
@@ -1307,9 +1280,9 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(size));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_inc);
     ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, loop_decl->load());
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loop_decl->load(), load_value));

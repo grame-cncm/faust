@@ -70,6 +70,21 @@ int ArrayTyped::getSize()
     }
 }
 
+ValueInst* InstBuilder::genCastNumFloatInst(ValueInst* inst)
+{
+    return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(itfloat()));
+}
+
+ValueInst* InstBuilder::genCastNumFloatMacroInst(ValueInst* inst)
+{
+    return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(Typed::kFloatMacro));
+}
+
+ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
+{
+    return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(Typed::kInt));
+}
+
 Typed* BasicCloneVisitor::visit(BasicTyped* typed) { return gGlobal->gTypeTable[typed->fType]; }
 
 void Typed::init()
