@@ -837,8 +837,19 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     ValueInst* tblname = CS(tbl);
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
     assert(load_value);
-
-    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), CS(idx), CS(data)));
+    
+    // Check types and possibly cast written value
+    int t1 = getCertifiedSigType(tbl)->nature();
+    int t2 = getCertifiedSigType(data)->nature();
+    ValueInst* casted_data = CS(data);
+    
+    if (t1 != t2) {
+        casted_data = (t1 == kInt) 
+            ? InstBuilder::genCastNumInst(casted_data, InstBuilder::genBasicTyped(Typed::kInt))
+            : InstBuilder::genCastNumInst(casted_data, InstBuilder::genBasicTyped(itfloat()));
+    }
+    
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), CS(idx), casted_data));
 
     // Return table access
     return InstBuilder::genLoadStructVar(load_value->fAddress->getName());
@@ -864,9 +875,7 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     assert(load_value1);
 
-    LoadVarInst* load_value2 
-        = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(load_value1->fAddress->getName(), access), CS(idx)));
-
+    LoadVarInst* load_value2 = InstBuilder::genLoadArrayVar(load_value1->fAddress->getName(), access, CS(idx));
     return generateCacheCode(sig, load_value2);
 }
 
