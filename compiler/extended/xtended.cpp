@@ -23,11 +23,11 @@
 #include "floats.hh"
     
 void xtended::prepareTypeArgsResult(::Type result, 
-                            const list<ValueInst*>& args, 
-                            vector< ::Type> const& types,
-                            Typed::VarType& result_type, 
-                            vector<Typed::VarType>& arg_types, 
-                            list<ValueInst*>& casted_args)
+                                    const list<ValueInst*>& args, 
+                                    vector< ::Type> const& types,
+                                    Typed::VarType& result_type, 
+                                    vector<Typed::VarType>& arg_types, 
+                                    list<ValueInst*>& casted_args)
 {
     if (result->nature() == kInt) {
         result_type = Typed::kInt; 

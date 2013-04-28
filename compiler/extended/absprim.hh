@@ -71,6 +71,7 @@ class AbsPrim : public xtended
 		}
 	}
 
+    /*
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
         assert(args.size() == arity());
@@ -85,6 +86,28 @@ class AbsPrim : public xtended
 		if (t->nature() == kReal) {
             return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
         } else {
+            return container->pushFunction("abs", result_type, arg_types, args);
+        }
+    }
+    */
+    
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
+    {
+        assert(args.size() == arity());
+        assert(types.size() == arity());
+        
+        Typed::VarType result_type;
+        vector<Typed::VarType> arg_types;
+       
+        ::Type t = infereSigType(types);
+        if (t->nature() == kReal) {
+            list<ValueInst*> casted_args;
+            prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
+            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
+        } else {
+            // "Int" abs
+            result_type = Typed::kInt; 
+            arg_types.push_back(Typed::kInt);
             return container->pushFunction("abs", result_type, arg_types, args);
         }
     }

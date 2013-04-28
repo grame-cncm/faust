@@ -101,7 +101,7 @@ class MinPrim : public xtended
             result_type = itfloat();
         }
         
-        // generates code compatible with overloaded max
+        // generates code compatible with overloaded min
 		int n0 = types[0]->nature();
 		int n1 = types[1]->nature();
         if (n0 == kReal) {

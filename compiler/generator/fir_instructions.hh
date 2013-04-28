@@ -373,7 +373,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << "StoreVarInst(";
             }
             inst->fAddress->accept(this);
-            *fOut << " = ";
+            *fOut << ", ";
             inst->fValue->accept(this);
             *fOut << ")";
             EndLine();
