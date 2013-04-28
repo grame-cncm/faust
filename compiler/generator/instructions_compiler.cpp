@@ -49,6 +49,11 @@ using namespace std;
 
 std::ostream* Printable::fOut = &cout;
 
+static BasicTyped* genBasicFIRTyped(int fir_type)
+{
+    return InstBuilder::genBasicTyped((fir_type == kInt) ? Typed::kInt : itfloat());
+}
+
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0),
             tree(subst("$0", gGlobal->gMasterName))), gGlobal->nil)), fDescription(0),
@@ -77,14 +82,11 @@ string InstructionsCompiler::getFreshID(const string& prefix)
 
 int InstructionsCompiler::getSharingCount(Tree sig)
 {
-	//cerr << "getSharingCount of : " << *sig << " = ";
 	Tree c;
 	if (getProperty(sig, fSharingKey, c)) {
-		//cerr << c->node().getInt() << endl;
         return c->node().getInt();
 	} else {
-		//cerr << 0 << endl;
-		return 0;
+        return 0;
 	}
 }
 
@@ -658,13 +660,13 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
         // Reversed...
-        BasicTyped* argtype = InstBuilder::genBasicTyped((ffargtype(ff, (ffarity(ff) - 1) - i) == kInt) ? Typed::kInt : itfloat());
+        BasicTyped* argtype = genBasicFIRTyped(ffargtype(ff, (ffarity(ff) - 1) - i));
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
         args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
     }
    
     // Add function declaration
-    fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
+    fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
     
     // If not yet declared...
     if (gGlobal->gSymbolGlobalsTable.find(funname) == gGlobal->gSymbolGlobalsTable.end()) {
@@ -1180,12 +1182,12 @@ ValueInst* InstructionsCompiler::generateHBargraph(Tree sig, Tree path, Tree min
 
 ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
 {
-    Typed::VarType ctype;
-    string vname;
-	Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieve(sig);
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
+        Typed::VarType ctype;
+        string vname;
 		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, InstBuilder::genIntNumInst(num), ctype, vname, o->getMaxDelay());
 	}
@@ -1197,11 +1199,11 @@ ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
 ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
 {
     Typed::VarType ctype = itfloat();
-    string vname;
-	Occurences* o = fOccMarkup.retrieve(sig);
+ 	Occurences* o = fOccMarkup.retrieve(sig);
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
+        string vname;
 		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, InstBuilder::genRealNumInst(ctype, num), ctype, vname, o->getMaxDelay());
 	}
@@ -1226,19 +1228,15 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
 		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-		generateDelayVec(sig,
-            (name == "fSamplingFreq") ? InstBuilder::genLoadStructVar(name) : InstBuilder::genLoadGlobalVar(name),
-            ctype, vname, o->getMaxDelay());
+		generateDelayVec(sig, (name == "fSamplingFreq") ? InstBuilder::genLoadStructVar(name) : InstBuilder::genLoadGlobalVar(name), ctype, vname, o->getMaxDelay());
 	}
 
     int sig_type = getCertifiedSigType(sig)->nature();
     if (name == "fSamplingFreq") {
-        pushDeclare(InstBuilder::genDecStructVar(name,
-            InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
+        pushDeclare(InstBuilder::genDecStructVar(name, genBasicFIRTyped(sig_type)));
         return InstBuilder::genLoadStructVar(name);
     } else {
-        pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
-            InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
+        pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name, genBasicFIRTyped(sig_type)));
         return InstBuilder::genLoadGlobalVar(name);
     }
 }
@@ -1248,8 +1246,7 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
     fContainer->addIncludeFile(file);
 
     int sig_type = getCertifiedSigType(sig)->nature();
-    pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
-        InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
+    pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name, genBasicFIRTyped(sig_type)));
     return generateCacheCode(sig, InstBuilder::genLoadGlobalVar(name));
 }
 
@@ -1262,17 +1259,9 @@ ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Type
 
 StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
 {
-    ValueInst* init;
-    BasicTyped* typed;
+    ValueInst* init = InstBuilder::genTypedZero(ctype);
+    BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
     string index = "i";
-
-    if (ctype == Typed::kInt) {
-        init = InstBuilder::genIntNumInst(0);
-        typed = InstBuilder::genBasicTyped(Typed::kInt);
-    } else {  // Real type
-        init = InstBuilder::genRealNumInst(ctype, 0);
-        typed = InstBuilder::genBasicTyped(ctype);
-    }
 
     // Generates table declaration
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
@@ -1298,7 +1287,6 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
-
     ValueInst* load_value2 = InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1));
     ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
@@ -1322,7 +1310,6 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
-
     ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, loop_decl->load());
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loop_decl->load(), load_value));
@@ -1414,9 +1401,9 @@ static string wdel(const string& s)
 {
     size_t i = 0;
     size_t j = s.size();
-    while (i<j && s[i]==' ') i++;
-    while (j>i && s[j-1] == ' ') j--;
-    return s.substr(i,j-i);
+    while (i < j && s[i] == ' ') i++;
+    while (j > i && s[j-1] == ' ') j--;
+    return s.substr(i, j-i);
 }
 
 //================================= BUILD USER INTERFACE METHOD =================================

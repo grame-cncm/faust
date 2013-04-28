@@ -1678,6 +1678,11 @@ struct InstBuilder
     static DoubleNumInst* genDoubleNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }
     static DoubleNumInst* genQuadNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }  // Use DoubleNumInst
 
+    static ValueInst* genTypedZero(Typed::VarType type)
+    {
+        return (type == Typed::kInt) ? genIntNumInst(0) : genRealNumInst(type, 0);
+    }
+    
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
     {
         if (ctype == Typed::kFloat) {
