@@ -557,9 +557,9 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
 void faustgen_factory::read(long inlet, t_symbol* s)
 {
     char filename[MAX_FILENAME_CHARS];
-    short path;
+    short path = 0;
     long type = 'TEXT';
-    long err;
+    short err;
     t_filehandle fh;
     
     // No filename, so open load dialog
@@ -609,9 +609,9 @@ void faustgen_factory::read(long inlet, t_symbol* s)
 void faustgen_factory::write(long inlet, t_symbol* s)
 {
     char filename[MAX_FILENAME_CHARS];
-    short path;
+    short path = 0;
     long type = 'TEXT';
-    long err;
+    short err;
     t_filehandle fh;
     
     // No filename, so open save dialog
