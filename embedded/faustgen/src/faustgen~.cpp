@@ -573,7 +573,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     } else {
         strcpy(filename, s->s_name);
         if (locatefile_extended(filename, &path, &type, &type, 1)) {
-            post("Faust DSP file not found : %s", filename);
+            post("Faust DSP file '%s' not found", filename);
             return;
         }
     }
@@ -581,7 +581,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     // File found, open it and recompile DSP
     err = path_opensysfile(filename, path, &fh, READ_PERM);
     if (err) {
-        post("Faust DSP file cannot be opened : %s", filename);
+        post("Faust DSP file '%s' cannot be opened", filename);
         return;
     }
     
@@ -593,7 +593,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
 
     err = sysfile_readtextfile(fh, fSourceCode, 0, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
     if (err) {
-        post("Faust DSP file cannot be read : %s", filename);
+        post("Faust DSP file '%s' cannot be read", filename);
     }
     
     sysfile_close(fh);
@@ -623,7 +623,7 @@ void faustgen_factory::write(long inlet, t_symbol* s)
         } else {
             err = path_createsysfile(filename, path, type, &fh);
             if (err) {
-                post("Faust DSP file cannot be created : %s", filename);
+                post("Faust DSP file '%s' cannot be created", filename);
                 return;
             }
         }
@@ -631,16 +631,16 @@ void faustgen_factory::write(long inlet, t_symbol* s)
     } else {
         strcpy(filename, s->s_name);
         if (locatefile_extended(filename, &path, &type, &type, 1)) {
-            post("Faust DSP file not found : %s", filename);
+            post("Faust DSP file '%s' not found, so tries to create it", filename);
             err = path_createsysfile(filename, path, type, &fh);
             if (err) {
-                post("Faust DSP file cannot be created : %s", filename);
+                post("Faust DSP file '%s' cannot be created", filename);
                 return;
             }
         } else {
             err = path_opensysfile(filename, path, &fh, WRITE_PERM);
             if (err) {
-                post("Faust DSP file cannot be opened : %s", filename);
+                post("Faust DSP file '%s' cannot be opened", filename);
                 return;
             }
         }
@@ -648,7 +648,7 @@ void faustgen_factory::write(long inlet, t_symbol* s)
     
     err = sysfile_writetextfile(fh, fSourceCode, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
     if (err) {
-        post("Faust DSP file cannot be written : %s", filename);
+        post("Faust DSP file '%s' cannot be written", filename);
     }
     sysfile_close(fh);
 }
