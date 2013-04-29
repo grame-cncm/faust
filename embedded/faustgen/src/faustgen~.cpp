@@ -580,25 +580,29 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     
     // File found, open it and recompile DSP
     err = path_opensysfile(filename, path, &fh, READ_PERM);
-    if (!err) {
-    
-        // Delete the existing Faust module
-        free_dsp_factory();
-    
-        // Free the memory allocated for fBitCode
-        free_bitcode();
-
-        sysfile_readtextfile(fh, fSourceCode, 0, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
-        sysfile_close(fh);
-        fSourceCodeSize = sysmem_handlesize(fSourceCode);
-        
-        // Update all instances
-        set<faustgen*>::const_iterator it;
-        for (it = fInstances.begin(); it != fInstances.end(); it++) {
-            (*it)->update_sourcecode();
-        }
-    } else {
+    if (err) {
         post("Faust DSP file cannot be opened : %s", filename);
+        return;
+    }
+    
+    // Delete the existing Faust module
+    free_dsp_factory();
+
+    // Free the memory allocated for fBitCode
+    free_bitcode();
+
+    err = sysfile_readtextfile(fh, fSourceCode, 0, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
+    if (err) {
+        post("Faust DSP file cannot be read : %s", filename);
+    }
+    
+    sysfile_close(fh);
+    fSourceCodeSize = sysmem_handlesize(fSourceCode);
+    
+    // Update all instances
+    set<faustgen*>::const_iterator it;
+    for (it = fInstances.begin(); it != fInstances.end(); it++) {
+        (*it)->update_sourcecode();
     }
 }
 
@@ -642,7 +646,10 @@ void faustgen_factory::write(long inlet, t_symbol* s)
         }
     }
     
-    sysfile_writetextfile(fh, fSourceCode, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
+    err = sysfile_writetextfile(fh, fSourceCode, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
+    if (err) {
+        post("Faust DSP file cannot be written : %s", filename);
+    }
     sysfile_close(fh);
 }
 
