@@ -10,10 +10,16 @@
 #import <UIKit/UIKit.h>
 #import "jack/jack.h"
 #import "jack/custom.h"
+#import "JackViewPortsView.h"
 
-#define kJackViewExtLRMargins 30
-#define kJackViewExtTopBottomMargins 5
-#define kJackViewIntMargins 5
+
+#define kJackViewExtHMargins 30
+#define kJackViewExtVMargins 5
+#define kJackViewIntHMargins 100
+#define kJackViewIntVMargins 5
+
+#define kJackViewCurrentAppIconDimension 90
+#define kJackViewCurrentAppIconBottomMargin 30
 
 #define kJackViewIconDimension 70
 #define kJackViewIconMargins 5
@@ -59,13 +65,23 @@
 @property (assign, nonatomic) JackViewButton* midiInputButton;
 @property (assign, nonatomic) JackViewButton* midiOutputButton;
 
+- (NSArray*)compatiblePortsWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
+
 @end
 
+
+@interface JackViewDrawingView : UIView
+
+@property (assign, nonatomic) JackView* jackView;
+
+@end
 
 
 @interface JackView : UIView
 {
     jack_client_t*          _jackClient;
+    
+    JackViewButton*         _currentClientButton;
     
     NSMutableArray*         _clients;
     NSString*               _currentClientName;
@@ -74,8 +90,14 @@
     UIScrollView*           _audioOutputsScrollView;
     UIScrollView*           _midiInputsScrollView;
     UIScrollView*           _midiOutputsScrollView;
+    
+    JackViewDrawingView*    _drawingView;
 }
 
+@property (assign, nonatomic) BOOL linking;
+@property (assign, nonatomic) CGPoint srcPt;
+@property (assign, readwrite) CGPoint dstPt;
+@property (assign, readwrite) JackViewPortsView* portsView;
 
 - (void)loadJackClient:(jack_client_t*)jackClient;
 - (jack_client_t*)jackClient;
@@ -87,6 +109,8 @@
 
 - (BOOL)isClient:(JackViewClient*)client connectedToCurrentClientInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
 
+- (BOOL)isPort:(JackViewPort*)port connectedToCurrentClientInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
+
 - (BOOL)quicklyConnectAppToClient:(NSString*)clientName
                       inputOutput:(int)inputOutput
                         audioMidi:(int)audioMidi;
@@ -94,5 +118,9 @@
 - (BOOL)quicklyDisconnectAppToClient:(NSString*)clientName
                          inputOutput:(int)inputOutput
                            audioMidi:(int)audioMidi;
+
+- (BOOL)isPointInsideCurrentAppIcon:(CGPoint)pt;
+
+- (BOOL)isPointInsideView:(CGPoint)pt;
 
 @end

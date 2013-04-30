@@ -64,6 +64,7 @@
 		651BB440171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
+		6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6534E20E17301716009A4FD2 /* JackViewPortsView.mm */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
 		655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
@@ -130,6 +131,8 @@
 		651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack@2x.png"; sourceTree = "<group>"; };
 		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
 		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
+		6534E20D17301716009A4FD2 /* JackViewPortsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JackViewPortsView.h; sourceTree = "<group>"; };
+		6534E20E17301716009A4FD2 /* JackViewPortsView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JackViewPortsView.mm; sourceTree = "<group>"; };
 		65510E9314EEC1190014A01F /* FITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITextField.h; sourceTree = "<group>"; };
 		65510E9414EEC1190014A01F /* FITextField.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITextField.mm; sourceTree = "<group>"; };
 		6559E84514F2685A00D3AB9A /* FIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIKnob.h; sourceTree = "<group>"; };
@@ -249,6 +252,17 @@
 			path = pix;
 			sourceTree = SOURCE_ROOT;
 		};
+		6534E2101730171B009A4FD2 /* JackView */ = {
+			isa = PBXGroup;
+			children = (
+				65B9D5D9170EB9D5009DE0DC /* JackView.h */,
+				65B9D5DA170EB9D5009DE0DC /* JackView.mm */,
+				6534E20D17301716009A4FD2 /* JackViewPortsView.h */,
+				6534E20E17301716009A4FD2 /* JackViewPortsView.mm */,
+			);
+			name = JackView;
+			sourceTree = "<group>";
+		};
 		655DAAEB14F69CA80013FAF5 /* Faust Responders */ = {
 			isa = PBXGroup;
 			children = (
@@ -318,8 +332,7 @@
 				4B4AB48916FDF0FC0066E1CA /* MainStoryboard_iPad.storyboard */,
 				4B4AB48B16FDF0FC0066E1CA /* MainStoryboard_iPhone.storyboard */,
 				4B04364816E9E9AD00C0C02A /* pix */,
-				65B9D5D9170EB9D5009DE0DC /* JackView.h */,
-				65B9D5DA170EB9D5009DE0DC /* JackView.mm */,
+				6534E2101730171B009A4FD2 /* JackView */,
 				65E5EDA114DB037D00136CFC /* FIAppDelegate.h */,
 				65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */,
 				65FD744D1549993A00E7CB0B /* FIScrollView.h */,
@@ -561,6 +574,7 @@
 				4B06EC9A16E77D6A004D2F59 /* FIScrollView.mm in Sources */,
 				4B06EC9B16E77D6A004D2F59 /* FISensorFilter.mm in Sources */,
 				65B9D5DB170EB9D5009DE0DC /* JackView.mm in Sources */,
+				6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
