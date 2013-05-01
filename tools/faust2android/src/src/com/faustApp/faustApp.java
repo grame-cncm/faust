@@ -311,6 +311,7 @@ public class faustApp extends Activity {
 		UI.nEntries[m] = new EditText(this);
 		LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		UI.nEntries[m].setLayoutParams(params);
+		UI.nEntries[m].setGravity(Gravity.CENTER); // TODO nentry and buttons should be centered...
 		UI.nEntries[m].setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);
 		UI.nEntries[m].setText(Float.toString(init));
 		parVals[n] = init;
@@ -342,7 +343,7 @@ public class faustApp extends Activity {
 		// slider's label and value display
 		UI.labels[n] = new TextView(this);
 		LinearLayout barLabel = new LinearLayout(this);
-		LayoutParams paramsText = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		LayoutParams paramsText = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		LayoutParams paramsBarLabel = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		barLabel.setLayoutParams(paramsBarLabel);
 		UI.labels[n].setLayoutParams(paramsText);
@@ -424,7 +425,7 @@ public class faustApp extends Activity {
 		l.setOrientation(LinearLayout.VERTICAL);
 		l.setBackgroundColor(Color.rgb(groupLevel*15,groupLevel*15,groupLevel*15));
 		l.setPadding(10,10,10,10);
-		l.setGravity(Gravity.CENTER);
+		l.setGravity(Gravity.LEFT);
 		currentGroup[groupLevel-1].addView(l);
 		currentGroup[groupLevel] = l;
 		groupLevel++;
