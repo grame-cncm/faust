@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	char* home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
-    const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
