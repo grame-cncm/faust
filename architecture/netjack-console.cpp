@@ -70,8 +70,7 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp* DSP;
-
+mydsp DSP;
 list<GUI*> GUI::fGuiList;
 
 //-------------------------------------------------------------------------
@@ -84,35 +83,29 @@ int main(int argc, char *argv[])
 	char* home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
-    char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
     
-    DSP = new mydsp();
-	if (!DSP) {
-		cerr << "Unable to allocate Faust DSP object" << endl;
-		exit(1);
-	}
-
     CMDUI* interface = new CMDUI(argc, argv);
 	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
-
-#ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
-	DSP->buildUserInterface(httpdinterface);
-#endif
+	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
 	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+	DSP.buildUserInterface(oscinterface);
+#endif
+
+#ifdef HTTPCTRL
+	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+	DSP.buildUserInterface(httpdinterface);
 #endif
 
 	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(appname, DSP)) {
+	if (!audio.init(appname, &DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);
