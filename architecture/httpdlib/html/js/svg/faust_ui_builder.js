@@ -1,37 +1,37 @@
-_f4u$t.has_knob = function(dct) {
+_f4u$t.meta_info = function(dct, prop, def, fn) {
   if (!dct['meta']) {
-    return false;
+    return def;
   }
   for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['style']) {
-      return dct['meta'][i]['style'] == 'knob';
+    if (dct['meta'][i][prop]) {
+      return fn(dct['meta'][i][prop]);
     }
   }
-  return false;
+  return def;
+}
+
+_f4u$t.has_knob = function(dct) {
+  return _f4u$t.meta_info(dct, 'style', false, function(prop) { return prop == 'knob'; });
 }
 
 _f4u$t.get_unit = function(dct) {
-  if (!dct['meta']) {
-    return '';
-  }
-  for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['unit']) {
-      return dct['meta'][i]['unit'];
-    }
-  }
-  return '';
+  return _f4u$t.meta_info(dct, 'unit', '', function(prop) { return prop; });
+}
+
+_f4u$t.get_orientation = function(dct) {
+  return _f4u$t.meta_info(dct, 'orientation', {}, _f4u$t.parse_orientation);
+}
+
+_f4u$t.is_panoramic = function(dct) {
+  return _f4u$t.meta_info(dct, 'panoramic', false, function(prop) { return prop === 'true'; });
+}
+
+_f4u$t.get_sweep = function(dct) {
+  return _f4u$t.meta_info(dct, 'sweep', _f4u$t.rbutton_inits.sweep, function(prop) { return parseFloat(prop) != null ? parseFloat(prop) : _f4u$t.rbutton_inits.sweep; });
 }
 
 _f4u$t.get_size = function(dct) {
-  if (!dct['meta']) {
-    return 1;
-  }
-  for (var i=0; i < dct['meta'].length; i++) {
-    if (dct['meta'][i]['size']) {
-      return [0.5,1,2,3,4][parseInt(dct['meta'][i]['size'])];
-    }
-  }
-  return 1;
+  return _f4u$t.meta_info(dct, 'size', 1, function(prop) { return [0.5,1,2,3,4][parseInt(prop)]; });
 }
 
 _f4u$t.getnumspecs = function(dct) {
@@ -77,7 +77,12 @@ _f4u$t.make_rbutton = function(dct) {
   options.integer = numspecs["integer"];
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
-  options.unit = _f4u$t.get_unit(dct)
+  options.unit = _f4u$t.get_unit(dct);
+  options.orientation = _f4u$t.get_orientation(dct);
+  if (_f4u$t.is_panoramic(dct)) {
+    options.a0 = 0;
+    options.sweep = 360;
+  }
   var size = _f4u$t.get_size(dct);
   options.ir *= size;
   return new _f4u$t.RotatingButton(options);
@@ -106,6 +111,7 @@ _f4u$t.make_slider = function(kls, dct) {
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
+  options.orientation = _f4u$t.get_orientation(dct);
   var size = _f4u$t.get_size(dct);
   options.girth *= size;
   options.length *= size;

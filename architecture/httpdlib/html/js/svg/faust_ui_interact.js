@@ -122,6 +122,7 @@ _f4u$t.arrayToTransform = function(array) {
   return out;
 }
 
+// all this PREV stuff can likely be deprecated
 _f4u$t.updateXY = function(ee, initialize) {
   for (var i = 0; i < ee.length; i++) {
     _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientX(ee[i]);
@@ -150,7 +151,7 @@ _f4u$t.initiate_nentry = function(fullid, minval, maxval, step, init, integer, n
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxval, step, init, integer, ndec, label, unit, address) {
+_f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = (axis == _f4u$t.X_AXIS ? "hslider" : "vslider");
@@ -162,6 +163,7 @@ _f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxv
   _f4u$t.IDS_TO_ATTRIBUTES[id]["step"] = step;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"] = orientation;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
@@ -169,12 +171,12 @@ _f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxv
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_hslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address) {
-  _f4u$t.initiate_slider(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address);
+_f4u$t.initiate_hslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
+  _f4u$t.initiate_slider(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address);
 }
 
-_f4u$t.initiate_vslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address) {
-  _f4u$t.initiate_slider(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, address);
+_f4u$t.initiate_vslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
+  _f4u$t.initiate_slider(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address);
 }
 
 _f4u$t.initiate_bargraph = function(axis, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address) {
@@ -202,7 +204,7 @@ _f4u$t.initiate_vbargraph = function(fullid, weakaxis, strongaxis, minval, maxva
   _f4u$t.initiate_bargraph(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address);
 }
 
-_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label, unit,address) {
+_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label,unit,orientation,address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "rbutton";
@@ -216,6 +218,7 @@ _f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercen
   _f4u$t.IDS_TO_ATTRIBUTES[id]["step"] = step;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"] = orientation;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
@@ -227,6 +230,7 @@ _f4u$t.initiate_checkbox = function(fullid, address) {
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "checkbox";
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] = 0;new Date().getTime();
   _f4u$t.path_to_id(address, fullid);
 }
 
@@ -361,7 +365,7 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
 // main function to move currently-selected slider
 _f4u$t.moveActiveObject = function(ee) {
   for (var elt in _f4u$t._I) {
-    if (_f4u$t._I[elt]) {
+    if (_f4u$t._I[elt] && (elt.indexOf('orientation') == -1)) {
       var touches = ee.touches || [ee];
       if (ee.originalEvent) {
         touches = ee.originalEvent.touches || [ee];
@@ -401,8 +405,7 @@ _f4u$t.internalMoveActiveObject = function(e, identifier) {
     _f4u$t._I[identifier]['value'] = now;
   }
 
-  // soemthing like a numerical entry...so just return 0
-  return 0;
+  return now;
 }
 
 _f4u$t.genericMovingPartUpdate = function(aval, pval, l, h) {
@@ -482,6 +485,65 @@ _f4u$t.moveActiveSlider = function(e,identifier)
   return now;
 }
 
+_f4u$t.respondToOrientationChange = function(e) {
+  for (var id in _f4u$t.IDS_TO_ATTRIBUTES) {
+    if (_f4u$t.IDS_TO_ATTRIBUTES[id].orientation &&
+        _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle)
+      {
+        if (!_f4u$t._I['orientation'+id]) {
+          _f4u$t._I['orientation'+id] = {id : id, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
+        }
+        var now = null;
+        if ((_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'hslider')
+            || (_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'vslider')) {
+           // ugh...this means that they will not be disactivated...
+           _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
+          now = _f4u$t.moveSliderViaAccelerometer(e, id);
+        }
+        // UI2DSP
+        if (now != null && now != _f4u$t._I['orientation'+id]['value']) {
+          _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], now);
+          _f4u$t._I['orientation'+id]['value'] = now;
+        }
+      }
+  }
+}
+
+// TODO...combine this with above...
+// simplified version, so shouldn't be too hard
+_f4u$t.moveSliderViaAccelerometer = function(e, longid) {
+  var id = _f4u$t.unique(longid);
+  var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
+  var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
+  var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
+  var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
+  var pos = _f4u$t.remap(e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle],
+                         _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.low,
+                         _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high,
+                         0,
+                         length - (length * pctsliding));
+  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
+  // we assume that there is only one element and that it is a transform
+  // make sure to change this if things get more complicated
+  // actually, just make sure not to make things more complicated...
+
+  var aval = pos;
+  // minimum of the slider is to the bottom / left
+  transform[0][axis + 1] = _f4u$t.genericMovingPartUpdate(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
+  _f4u$t.redrawSliderGroove(
+    id,
+    axis,
+    length,
+    aval / length
+  );
+  var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
+  var movetothis = _f4u$t.arrayToTransform(transform);
+  sliding_part.setAttribute("transform", movetothis);
+  // no updating XY as there is no event specific to this object
+  //_f4u$t.updateXY([e]);
+  return now;
+}
+
 _f4u$t.redrawRotatingButtonMeter = function(id, initangle, sweepangle, radius, knobpercentage, startp) {
   var meter = document.getElementById('faust_rbutton_meter_'+id);
   var xo = radius;
@@ -525,14 +587,19 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
 
   var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
-  // we wind diff around to give it best shot of falling between two values:
-  if (diff < initangle) {
+  while (diff < 0) {
     diff += 360;
   }
-  else if (diff > initangle + sweepangle) {
-    diff -= 360;
+  diff = diff % 360;
+  // put it between the values if necessary
+  if (((360 + diff) >= initangle) && ((360 + diff) <= (initangle + sweepangle))) {
+    diff += 360;
   }
-  
+
+  if (e.target.id.indexOf('dot') != -1) {
+    // if it is a panoramic dot, snap to the multiple of 45
+    diff = parseInt((diff / 45) + 0.5) * 45;
+  }
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
@@ -542,19 +609,23 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   // always change rotation if we're starting with a click
   if (_f4u$t.PREV[_f4u$t.X_AXIS][identifier] == null) {
     rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
-  } else if (((aval > initangle) || (aval < initangle + sweepangle))
-             && (Math.abs(aval - rotation) < 35)) { // only change rotation if we're in bounds and the difference is small
+  } else if (((aval >= initangle) && (aval <= (initangle + sweepangle)))
+             && ((Math.abs(aval - rotation) < 35)
+                 || (Math.abs (360 - Math.abs(aval - rotation)) < 35))) {
+    // only change rotation if we're in bounds and the difference is small
     rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
   }
   transform[2][1] = rotation;
-  _f4u$t.redrawRotatingButtonMeter(
-    id,
-    initangle,
-    sweepangle,
-    _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
-    _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
-    transform[2][1]
-  );
+  if (sweepangle != 360) {
+    _f4u$t.redrawRotatingButtonMeter(
+      id,
+      initangle,
+      sweepangle,
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+      transform[2][1]
+    );
+  }
   var now = _f4u$t.generic_label_update(id, rotation, initangle, initangle + sweepangle);
   var movetothis = _f4u$t.arrayToTransform(transform);
   sliding_part.setAttribute("transform", movetothis);
@@ -643,10 +714,23 @@ _f4u$t.button_down = function(I) {
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
 }
 
-_f4u$t.change_checkbox = function(I) {
+_f4u$t.click_checkbox = function(I) {
+  _f4u$t.change_checkbox(I, false);
+}
+_f4u$t.touch_checkbox = function(I) {
+  _f4u$t.change_checkbox(I, true);
+}
+
+_f4u$t.change_checkbox = function(I, touch) {
+  var id = _f4u$t.unique(I)
+  var now = new Date().getTime();
+  if (touch && ((now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"]) < 1000)) {
+    return;
+  }
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] = now;
   _f4u$t.clog_key_sink();
-  var address = _f4u$t.IDS_TO_ATTRIBUTES[_f4u$t.unique(I)]["address"];
-  var box = document.getElementById('faust_checkbox_check_'+_f4u$t.unique(I));
+  var address = _f4u$t.IDS_TO_ATTRIBUTES[id]["address"];
+  var box = document.getElementById('faust_checkbox_check_'+id);
   var opacity = 0;
   if (box.style.opacity == 1.0) {
     opacity = 0;
@@ -855,14 +939,16 @@ _f4u$t.actualize_incremental_object = function(id) {
     val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle);
     var transform = _f4u$t.transformToArray(maybe_button.getAttribute("transform"));
     transform[2][1] = val;
-    _f4u$t.redrawRotatingButtonMeter(
-      id,
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
-      transform[2][1]
-    );
+    if (sweepangle != 360) {
+      _f4u$t.redrawRotatingButtonMeter(
+        id,
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+        transform[2][1]
+      );
+    }
     var movetothis = _f4u$t.arrayToTransform(transform);
     maybe_button.setAttribute("transform", movetothis);
     return 0;
@@ -904,5 +990,6 @@ document.onmouseup = _f4u$t.clearIdCache;
 document.onmousemove = _f4u$t.moveActiveObject;
 document.ontouchend = _f4u$t.clearIdCache;
 document.ontouchmove = _f4u$t.moveActiveObject;
+window.ondeviceorientation = _f4u$t.respondToOrientationChange;
 // make the entire document clickable for mobile devices
 document.onclick = _f4u$t.devnull;

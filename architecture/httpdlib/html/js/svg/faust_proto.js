@@ -469,24 +469,55 @@ _f4u$t.magic_color = function() {
 }
 
 /**
-Returns false.
+The bounds for an accelerometer orientation.
 
-@method faux
+@property orientation_bounds
 @for _f4u$t
-@static
-@return {Boolean}
+@type Object
+@default {}
 **/
-_f4u$t.faux = function() { return false; }
+_f4u$t.orientation_bounds = {
+  alpha : [0, 360],
+  beta : [-90, 90],
+  gamma : [-90, 90]
+};
 
 /**
-Returns true.
+Parses a string into an orientation
 
-@method vrai
+@method parse_orientation
 @for _f4u$t
 @static
-@return {Boolean}
+@return {Object}
 **/
-_f4u$t.vrai = function() { return true; }
+_f4u$t.parse_orientation = function(s) {
+  var split = s.split(" ");
+  while (split.indexOf("") >= 0) {
+    split.splce(split.indexOf(""), 1);
+  }
+  if (split.length == 0) {
+    return {};
+  }
+  if (['alpha','beta','gamma'].indexOf(split[0]) < 0) {
+    return {};
+  }
+  var itor = {1 : Number.NEGATIVE_INFINITY, 2 : Number.POSITIVE_INFINITY };
+
+  // this loop creates the rest of the array
+  for (var i in itor) {
+    if (split.length == i) {
+      split.push(itor[i]);
+    }
+    else {
+      split[i] = parseFloat(split[i]);
+      if (isNaN(split[i])) {
+        split[i] = itor[i];
+      }
+    }
+  }
+
+  return {angle : split[0], low : split[1], high : split[2]};
+}
 
 /**
 Taking an axis _f4u$t.X_AXIS or _f4u$t.Y_AXIS, returns
@@ -780,7 +811,7 @@ A function that generates a random 7-letter string.
 _f4u$t.randString = function() {
   var result = '';
   var length = 7;
-  var chars = "'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (var i = length; i > 0; --i) {
     result += chars[Math.round(Math.random() * (chars.length - 1))];
   }
@@ -900,10 +931,10 @@ Ajax queue.
 
 @property ajax_queue
 @for _f4u$t
-@type Array
-@default []
+@type Object
+@default {}
 **/
-_f4u$t.ajax_queue = [];
+_f4u$t.ajax_queue = {};
 
 /**
 Is the ajax queue busy?
