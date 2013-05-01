@@ -8,7 +8,7 @@
 #####################################################################
 
 TMPFILES="tmpfaust2android"
-JAVA_HOME="/home/romain/Android/android-ndk-r8d"
+JAVA_HOME="~/Applications/android-ndk-r8e"
 
 rm -rf $TMPFILES
 mkdir $TMPFILES

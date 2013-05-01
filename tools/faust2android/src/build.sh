@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export ANDROID_NDK_ROOT=/home/romain/Android/android-ndk-r8d
+export ANDROID_NDK_ROOT=~/Applications/android-ndk-r8e
 
 rm -rf src/faust_dsp
 mkdir -p src/faust_dsp
