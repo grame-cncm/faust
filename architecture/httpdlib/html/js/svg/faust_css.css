@@ -191,6 +191,11 @@ circle.faust-rbutton-groove {
   fill : url(#rotatingButtonHandleGradient);
 }
 
+circle.faust-rbutton-dot {
+  fill : pink;
+  stroke : black;
+}
+
 path.faust-rbutton-meter {
   fill : rgb(50,50,50);
 }

@@ -4,7 +4,10 @@
 // actually using a 'GET' method
 //-----------------------------------------------------------------------------
 _f4u$t.fausthandler = function(dest, value) {
-  _f4u$t.ajax_queue.push(dest +"?value=" + value);
+  if (!_f4u$t.ajax_queue[dest]) {
+    _f4u$t.ajax_queue[dest] = [];
+  }
+  _f4u$t.ajax_queue[dest].push({request : dest +"?value=" + value, time : new Date().getTime()});
 }
 
 //-----------------------------------------------------------------------------
@@ -45,6 +48,10 @@ _f4u$t.update_nentry_value = function(address, value) {
 _f4u$t.update_checkbox_value = function(address, value) {
   // perhaps too much UI here?
   var id = _f4u$t.PATHS_TO_IDS[address];
+  // for latency issues...seems not to do anything, so commented out
+  /*if (now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] < 2000) {
+    return;
+  }*/
   var check = document.getElementById('faust_checkbox_check_'+id);
   check.style.opacity = value;
 }
@@ -85,21 +92,61 @@ _f4u$t.dispatch = function(data) {
   }
 }
 
+_f4u$t.ajax_queue_length = function() {
+  var l = 0;
+  for (var key in _f4u$t.ajax_queue) {
+    for (var i = 0; i < _f4u$t.ajax_queue[key].length; i++) {
+      l += 1;
+    }
+  }
+  return l;
+}
+
+_f4u$t.ajax_queue_get_request_and_trim = function () {
+  var t = Number.POSITIVE_INFINITY;
+  var request = '';
+  var mykey = '';
+  for (var key in _f4u$t.ajax_queue) {
+    for (var i = 0; i < _f4u$t.ajax_queue[key].length; i++) {
+      if (_f4u$t.ajax_queue[key][i].time < t) {
+        t = _f4u$t.ajax_queue[key][i].time;
+        request = _f4u$t.ajax_queue[key][i].request;
+        mykey = key;
+      }
+    }
+    // always trim
+    _f4u$t.ajax_queue[key] = _f4u$t.ajax_queue[key].slice(0,Math.min(5,_f4u$t.ajax_queue[key].length));
+  }
+  // trim first request off of successful array
+  _f4u$t.ajax_queue[mykey] = _f4u$t.ajax_queue[mykey].slice(1,Math.min(5,_f4u$t.ajax_queue[key].length));
+  return request;
+}
+
 // We update the user interface by polling the server every 40 ms
 // But this is done only when no updates are pending for the server
 _f4u$t.main_loop = function() {
-	if ((_f4u$t.ajax_queue.length > 0) || _f4u$t.ajax_queue_busy) {
-		// we have pending updates to send to the server
-		//_f4u$t.ajax_queue_busy = true;
-		var request = _f4u$t.ajax_queue[0];
-		_f4u$t.ajax_queue = _f4u$t.ajax_queue.slice(1,Math.min(5,_f4u$t.ajax_queue.length));
-		$.get(request).done(_f4u$t.main_loop); 
-	} else {
-		// regular polling
-		_f4u$t.ajax_queue_busy = false;
-		$.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
-		setTimeout ( function() { _f4u$t.main_loop(); }, 40);
-	}		
+  if ((_f4u$t.ajax_queue_length() > 0) || _f4u$t.ajax_queue_busy) {
+    // we have pending updates to send to the server
+    //_f4u$t.ajax_queue_busy = true;
+    var request = _f4u$t.ajax_queue_get_request_and_trim();
+    $.get(request)
+      .done(function () {
+        //console.log("request succeeded", request);
+        _f4u$t.main_loop();
+      })
+      .fail(function () {
+        console.log("request failed", request);
+        _f4u$t.main_loop();
+      });/*
+      .always(function () {
+        console.log("request passed", request);
+      });*/
+  } else {
+    // regular polling
+    _f4u$t.ajax_queue_busy = false;
+    $.get(_f4u$t.ROOT, function(data) { _f4u$t.dispatch( data ); } );
+    setTimeout ( function() { _f4u$t.main_loop(); }, 40);
+  }		
 }
 
 $(document).ready(function() { _f4u$t.main_loop(); });
