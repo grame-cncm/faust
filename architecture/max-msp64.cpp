@@ -131,7 +131,7 @@ struct Max_Meta2 : Meta
 
 /*--------------------------------------------------------------------------*/
 typedef struct faust
-    {
+{
     t_pxobject m_ob;
     t_atom *m_seen, *m_want;
     short m_where;
