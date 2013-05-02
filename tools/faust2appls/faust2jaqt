@@ -73,8 +73,10 @@ for p in $@; do
 		 OSCDEFS="DEFINES += OSCCTRL"
 		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
 	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL QRCODECTRL"
+		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd -lqrencode"
+	elif [ "$p" = "-qrcode" ]; then # requires -httpd
+		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -114,7 +116,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
 	    $QMAKE $SPEC
         make
     ) > /dev/null
