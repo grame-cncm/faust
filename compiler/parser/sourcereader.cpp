@@ -213,6 +213,7 @@ Tree SourceReader::parse(string fname)
         
         // we have parsed a valid file
         fFilePathnames.push_back(fullpath);
+        free(fileBuf);
         return gResult;
 
     } else {

@@ -173,8 +173,8 @@ bool process_cmdline(int argc, char* argv[])
 	int	i=1; int err=0;
 
 	while (i<argc) {
-
-		if        (isCmd(argv[i], "-h", "--help")) {
+   
+		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
 			i += 1;
 
@@ -336,9 +336,10 @@ bool process_cmdline(int argc, char* argv[])
             i += 1;
 			
        } else if (argv[i][0] != '-') {
-			if (check_file(argv[i])) {
-				gInputFiles.push_back(argv[i]);
-			}
+            const char* url = strip_start(argv[i]);
+            if (check_url(url)) {
+                gInputFiles.push_back(url);
+            }
 			i++;
 
 		} else {
