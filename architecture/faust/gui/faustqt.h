@@ -1403,9 +1403,10 @@ class QTGUI : public QObject, public GUI
             }
         }
 
-        QImage big = image.scaledToWidth(qrc->width*8);
+        QImage big = image.scaledToWidth(qrc->width*5);
         QLabel* myLabel = new QLabel();
         myLabel->setPixmap(QPixmap::fromImage(big));
+        myLabel->setWindowTitle(url);
         myLabel->show();
 
     }
