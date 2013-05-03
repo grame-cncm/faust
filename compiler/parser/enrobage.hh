@@ -41,7 +41,8 @@ ifstream* open_arch_stream (const char* filename);
 
 FILE* fopensearch(const char* filename, string& fullpath);
 
-bool check_file(const char* filename);
+const char* strip_start(const char* filename);
+bool check_url(const char* filename);
 		
 const char* filebasename(const char* name); // returns a pointer on the basename part of name
 

@@ -29,6 +29,8 @@
 #include "compatibility.hh"
 #include "garbageable.hh"
 #include "global.hh"
+#include "sourcefetcher.hh"
+#include <climits>
 
 #include <climits>
 #include <iostream>
@@ -47,7 +49,6 @@ static bool isBlank(const string& s)
     return true;
 }
 
-
 /**
  * Replace every occurrence of oldstr by newstr inside str. str is modified
  * and returned as reference for convenience
@@ -58,13 +59,12 @@ static string& replaceOccurences(string& str, const string& oldstr, const string
     string::size_type l2 = newstr.length();
 
     string::size_type pos = str.find(oldstr);
-    while ( pos != string::npos) {
+    while (pos != string::npos) {
         str.replace(pos, l1, newstr);
         pos = str.find(oldstr, pos + l2);
     }
     return str;
 }
-
 
 /**
  * Used when copying architecture files to replace default mydsp
@@ -74,7 +74,6 @@ static string& replaceClassName(string& str)
 {
     return replaceOccurences(str, "mydsp", gGlobal->gClassName);
 }
-
 
 /**
  * Copy or remove license header. Architecture files can contain a header specifying
@@ -97,7 +96,7 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
     bool remove = false;
     H.push_back(s);
 
-    while (getline(src,s) && s.find("*/")==string::npos) {
+    while (getline(src,s) && s.find("*/") == string::npos) {
         H.push_back(s);
         if (s.find(exceptiontag) != string::npos) remove=true;
     }
@@ -140,7 +139,6 @@ public:
         return false;
     }
 };
-
 
 /**
  * True if string s match '#include <faust/fname>'
@@ -294,23 +292,40 @@ ifstream* open_arch_stream(const char* filename)
 
 /*---------------------------------------------*/
 
+const char* strip_start(const char* filename)
+{
+    const char* start = "file://";
+    if (strstr(filename, start) != NULL) {
+        return &filename[strlen(start)];
+    }  else {
+        return filename;
+    }
+}
+
 /**
- * Check if a file exists.
- * @return true if the file exist, false otherwise
+ * Check if an URL exists.
+ * @return true if the URL exist, false otherwise
  */
 		
-bool check_file(const char* filename)
+bool check_url(const char* filename)
 {
-	FILE* f = fopen(filename, "r");
-	
-	if (f == NULL) {
-		fprintf(stderr, "faust: "); perror(filename);
-	} else {
-		fclose(f);
-	}
-	return f != NULL;
+    char* fileBuf = 0;
+     
+    // Tries to open as a http URL
+    if (http_fetch(filename, &fileBuf) != -1) {
+        return true;
+    } else {
+        // Otherwise tries to open as a regular file
+        FILE* f = fopen(filename, "r");
+        if (f == NULL) {
+            fprintf(stderr, "faust: "); perror(filename);
+        } else {
+            fclose(f);
+        }
+        return f != NULL;
+    }
 }
-		
+
 /**
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
  * of the file into <fullpath>

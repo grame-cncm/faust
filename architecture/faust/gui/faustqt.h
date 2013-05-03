@@ -1389,18 +1389,22 @@ class QTGUI : public QObject, public GUI
         qDebug() << "url to encode = " << url;
         qDebug() << "QRcode width  = " << qrc->width;
 
+		QRgb colors[2];
+		colors[0] = qRgb(255, 255, 255); 	// 0 is white
+		colors[1] = qRgb(0, 0, 0); 			// 1 is black
+
         // build the QRCode image
-        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_Mono);
+        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
         // clear the image
         for (int y=0; y<qrc->width+2*padding; y++) {
             for (int x=0; x<qrc->width+2*padding; x++) {
-                image.setPixel(x, y, 0);
+                image.setPixel(x, y, colors[0]);
             }
         }
         // copy the qrcode inside
         for (int y=0; y<qrc->width; y++) {
             for (int x=0; x<qrc->width; x++) {
-                image.setPixel(x+padding, y+padding, qrc->data[y*qrc->width+x]&1);
+                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
             }
         }
 

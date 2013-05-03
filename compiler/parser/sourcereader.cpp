@@ -218,8 +218,9 @@ Tree SourceReader::parsefile(string fname)
             throw faustexception(error.str());
         }
         yy_scan_string(fileBuf);
-        return parse(yyfilename);
-        
+        Tree res = parse(yyfilename);
+        free(fileBuf);
+        return res;
     } else {
         string fullpath;
         FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
