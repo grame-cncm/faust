@@ -70,9 +70,8 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp* DSP;
-
-list<GUI*> GUI::fGuiList;
+mydsp       DSP;
+list<GUI*>  GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -89,30 +88,24 @@ int main(int argc, char *argv[])
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
-    
-    DSP = new mydsp();
-	if (!DSP) {
-		cerr << "Unable to allocate Faust DSP object" << endl;
-		exit(1);
-	}
-
+  
 	GUI* interface = new QTGUI(argc, argv);
 	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
+	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
 	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
-	DSP->buildUserInterface(httpdinterface);
+	DSP.buildUserInterface(httpdinterface);
 #endif
 
 #ifdef OSCCTRL
 	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+	DSP.buildUserInterface(oscinterface);
 #endif
 
 	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(appname, DSP)) {
+	if (!audio.init(appname, &DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);
