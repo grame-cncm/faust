@@ -1144,7 +1144,7 @@ _f4u$t.main = function(svg, raw_json) {
 }
 
 _f4u$t.make_audio_ui = function(dsp, svg) {
-  var json = eval ("(" + dsp.json + ")");
+  var json = eval ("(" + dsp.json() + ")");
   var faust_svg = new _f4u$t.SVG(
     svg,
     // kludge to prevent scroll bars...

@@ -51,7 +51,11 @@ CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addpr
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
+ifeq ($(system), Darwin)
+all : faust libfaust.a libfaust.dylib
+else
 all : faust libfaust.a
+endif
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
@@ -68,6 +72,9 @@ faust : $(objects) main.o libmain.o global.o
 libfaust.a : $(objects) libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o libfaust.a
 
+libfaust.dylib : $(objects) libmain.o global.o
+	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o -lstdc++ `$(LLVM_CONFIG) --ldflags` -lLLVM-`$(LLVM_CONFIG) --version` -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.dylib
+
 
 .PHONY: clean depend ctags parser
 
@@ -76,7 +83,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) main.o libmain.o faust libfaust.a *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) main.o libmain.o faust libfaust.a libfaust.dylib *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :

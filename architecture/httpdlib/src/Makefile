@@ -1,6 +1,8 @@
 subprojects := html httpd include json lib msg nodes
 sources = $(wildcard *.cpp) $(wildcard */*.cpp) 
 objects = $(sources:.cpp=.o)
+objects += html/jsscripts.o
+objects += html/stylesheet.o
 
 VPATH = $(subprojects)
 
@@ -17,13 +19,18 @@ CXXFLAGS += -I../../../architecture -Wno-parentheses $(addprefix -I, $(subprojec
 
 target := ../libHTTPDFaust.a
 
-all : $(target)
+all : $(target) libHTTPDFaust.dylib 
 
 $(target) : html/jsscripts.o html/stylesheet.o $(objects)
 	rm -f $@
 	ar cq $@ html/jsscripts.o html/stylesheet.o $(objects)
 	ranlib $@
-	
+
+ifeq ($(system), Darwin)
+libHTTPDFaust.dylib  :  $(objects)
+
+	libtool -dynamic $(objects) -lc -lstdc++ -L/opt/local/lib -lmicrohttpd.10 -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o libHTTPDFaust.dylib
+endif	
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
@@ -32,6 +39,7 @@ clean :
 	rm -f $(objects) html/jsscripts html/jsscripts.o html/jsscripts.cpp
 	rm -f $(objects) html/stylesheet html/stylesheet.o html/stylesheet.cpp
 	rm -f $(target)
+	rm -f libHTTPDFaust.dylib 
 	
 
 html/jsscripts.o : html/jsscripts.cpp
@@ -77,7 +85,6 @@ HTTPDControler.o: json/jsonroot.h json/jsonnode.h json/jsoncontrol.h html/htmlfa
 HTTPDControler.o: nodes/RootNode.h
 html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
 html/htmlpage.o: lib/deelx.h html/htmlpage.h html/jsscripts.h html/stylesheet.h
-html/htmlrow.o: html/htmlpage.h
 html/htmlui.o: html/htmlui.h html/htmlfactory.h html/htmlpage.h
 httpd/Address.o: httpd/Address.h
 httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h msg/MessageProcessor.h

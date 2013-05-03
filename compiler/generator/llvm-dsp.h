@@ -49,10 +49,18 @@ struct llvm_dsp_factory {};
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
+
+
 llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
+
+llvm_dsp_factory* createDSPFactory1(int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* name, 
+                        const char* input, const char* target, 
+                        char* error_msg, int opt_level = 3);
+
 /**
  * Destroy a Faust DSP factory.
  * 
@@ -71,6 +79,8 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
 */
 llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
 
+llvm_dsp_factory* readDSPFactoryFromBitcode1(const char* bit_code, const char* target, int opt_level = 0);
+
 /**
  * Write a Faust DSP factory into a LLVM bitcode string.
  * 
@@ -79,6 +89,8 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const s
  * @return the LLVM bitcode as a string.
 */
 std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
+
+const char* writeDSPFactoryToBitcode1(llvm_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a LLVM bitcode file.
@@ -89,6 +101,8 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 */
 llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 0);
 
+llvm_dsp_factory* readDSPFactoryFromBitcodeFile1(const char* bit_code_path, const std::string& target, int opt_level = 0);
+
 /**
  * Write a Faust DSP factory into a LLVM bitcode file.
  * 
@@ -97,6 +111,8 @@ llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path
  *
 */
 void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
+
+void writeDSPFactoryToBitcodeFile1(llvm_dsp_factory* factory, const char* bit_code_path);
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) string.
@@ -109,6 +125,8 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
 */
 llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
 
+llvm_dsp_factory* readDSPFactoryFromIR1(const char* ir_code, const char* target, int opt_level = 0);
+
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) string.
  * 
@@ -117,6 +135,8 @@ llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::st
  * @return the LLVM IR (textual) as a string.
 */
 std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
+
+const char* writeDSPFactoryToIR1(llvm_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) file.
@@ -129,6 +149,8 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 */
 llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
 
+llvm_dsp_factory* readDSPFactoryFromIRFile1(const char* ir_code_path, const char* target, int opt_level = 0);
+
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) file.
  * 
@@ -137,6 +159,8 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
  *
 */
 void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
+
+void writeDSPFactoryToIRFile1(llvm_dsp_factory* factory, const char* ir_code_path);
 
 /**
  * Call global declarations with the given meta object.
