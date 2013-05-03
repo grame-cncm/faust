@@ -8,22 +8,7 @@ OSCDEFS=""
 #                                                                   #
 #####################################################################
 
-#-------------------------------------------------------------------
-# Search Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-  FAUSTINC=$FAUST_LIB_PATH
-elif [ -f /usr/local/lib/faust/music.lib ]
-then
-  FAUSTINC=/usr/local/lib/faust/
-elif [ -f /usr/lib/faust/music.lib ]
-then
-  FAUSTINC=/usr/lib/faust/
-else
-  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
-fi
-
+. faustpath
 
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
@@ -63,9 +48,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTINC -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTINC -lHTTPDFaust -lmicrohttpd"
+	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
 	PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then

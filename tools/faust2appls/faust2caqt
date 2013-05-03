@@ -7,25 +7,11 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+
 ARCHFILE="ca-qt.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
-
-#-------------------------------------------------------------------------------
-# Search where Faust is installed. Store '.../lib/faust/' in $FLIB
-# and '.../include/(faust)' in $FINC 
-
-FLIB=""; FINC=""; 
-FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
-for f in $FPATH; do
-	if [ -e $f/lib/faust ]; 	then FLIB=$f/lib/faust;	fi
-	if [ -e $f/include/faust ];	then FINC=$f/include/; fi
-done
-if [ -z "$FLIB" -o -z "$FINC" ]; then 
-	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)"; 
-	exit 1;
-fi
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -67,10 +53,10 @@ for p in $@; do
     	ignore=" "
     elif [ $p = "-osc" ]; then
 		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+		 OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd -lqrencode"
+		HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd -lqrencode"
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -112,7 +98,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
 	    qmake $SPEC
         make
     ) > /dev/null
