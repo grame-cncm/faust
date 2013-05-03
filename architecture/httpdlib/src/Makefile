@@ -19,7 +19,11 @@ CXXFLAGS += -I../../../architecture -Wno-parentheses $(addprefix -I, $(subprojec
 
 target := ../libHTTPDFaust.a
 
+ifeq ($(system), Darwin)
 all : $(target) libHTTPDFaust.dylib 
+else
+all : $(target)  
+endif
 
 $(target) : html/jsscripts.o html/stylesheet.o $(objects)
 	rm -f $@
@@ -28,7 +32,6 @@ $(target) : html/jsscripts.o html/stylesheet.o $(objects)
 
 ifeq ($(system), Darwin)
 libHTTPDFaust.dylib  :  $(objects)
-
 	libtool -dynamic $(objects) -lc -lstdc++ -L/opt/local/lib -lmicrohttpd.10 -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o libHTTPDFaust.dylib
 endif	
 	
