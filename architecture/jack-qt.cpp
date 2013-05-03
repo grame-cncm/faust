@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	GUI* interface = new QTGUI(argc, argv);
+	QTGUI* interface = new QTGUI(argc, argv);
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
@@ -115,6 +115,9 @@ int main(int argc, char *argv[])
 	
 #ifdef HTTPCTRL
 	httpdinterface->run();
+#ifdef QRCODECTRL
+    interface->displayQRCode( httpdinterface->getTCPPort() );
+#endif
 #endif
 	
 #ifdef OSCCTRL

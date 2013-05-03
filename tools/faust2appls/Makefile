@@ -13,6 +13,7 @@ help:
 
 install:
 	mkdir -p $(dest)
+	install faustpath $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2caqt $(dest)
@@ -53,6 +54,7 @@ install:
 	install faust2webaudio $(dest)
 
 uninstall:
+	rm -f $(dest)/faustpath
 	rm -f $(dest)/faust2alqt
 	rm -f $(dest)/faust2alsa 
 	rm -f $(dest)/faust2caqt
