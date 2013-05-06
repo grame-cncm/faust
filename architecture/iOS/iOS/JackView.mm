@@ -45,6 +45,11 @@
 
 - (void)dealloc
 {
+    [jackView.portsView removeFromSuperview];
+    [jackView.portsView release];
+    jackView.portsView = nil;
+    [jackView.superview setNeedsDisplay];
+    
     [super dealloc];
 }
 
@@ -55,17 +60,14 @@
     float w = 0.f;
     float h = 0.f;
     int i = 0;
-    NSArray* compatiblePorts = [jackViewClient compatiblePortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi];
+    NSArray* compatiblePorts = [self.jackViewClient compatiblePortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi];
+    CGPoint pt = [self convertPoint:CGPointMake(0., 0.) toView:jackView.superview];
+    CGPoint defPt;
     
-    CGPoint pt = [self convertPoint:CGPointMake(0., 0.) toView:jackView];
-    
-    if (pt.x + kPortsViewWidth < jackView.frame.size.width) x = pt.x;
-    else x = jackView.frame.size.width - kPortsViewWidth;
-    
-    w = kPortsViewWidth;
-    
-    h = [compatiblePorts count] * kPortsViewItemHeight + kPortsArrowHeight;
-    
+    x = 0;
+    w = jackView.frame.size.width;
+    h = fmaxf([compatiblePorts count] * kPortsViewItemHeight + kPortsArrowHeight,
+              [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight + kPortsArrowHeight);
     y = 0. - h;
     
     // TODO : add a max height
@@ -77,6 +79,7 @@
             [jackView.portsView removeFromSuperview];
             [jackView.portsView release];
             jackView.portsView = nil;
+            [jackView.superview setNeedsDisplay];
             
             return;
         }
@@ -85,17 +88,27 @@
             [jackView.portsView removeFromSuperview];
             [jackView.portsView release];
             jackView.portsView = nil;
+            [jackView.superview setNeedsDisplay];
         }
     }
     
-    jackView.portsView = [[JackViewPortsView alloc] initWithFrame:CGRectMake(x, y, w, h)];
+    defPt = [self convertPoint:CGPointMake(x, y) toView:jackView.superview];
+    
+    jackView.portsView = [[JackViewPortsView alloc] initWithFrame:CGRectMake(x, defPt.y, w, h)];
     jackView.portsView.clientButton = self;
+    
+    if (pt.x + kPortsViewWidth < jackView.frame.size.width) jackView.portsView.clientX = pt.x;
+    else jackView.portsView.clientX = jackView.frame.size.width - kPortsViewWidth;
+    
+    jackView.portsView.currentAppX = [jackView convertPoint:jackView.currentClientButton.frame.origin toView:jackView.superview].x;
     
     for (i = 0; i < [compatiblePorts count]; ++i)
     {
-        JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(0, i * kPortsViewItemHeight, kPortsViewWidth, kPortsViewItemHeight)];
+        JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(jackView.portsView.clientX,
+                                                                                              i * kPortsViewItemHeight,
+                                                                                              kPortsViewWidth,
+                                                                                              kPortsViewItemHeight)];
         item.longName = ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name;
-        item.shortName = [[item.longName componentsSeparatedByString:@":"] objectAtIndex:1];
         item.alias = @"alias";
         
         item.selected = [jackView isPort:((JackViewPort*)([compatiblePorts objectAtIndex:i]))
@@ -105,12 +118,17 @@
         [jackView.portsView addSubview:item];
     }
     
-    [jackView addSubview:jackView.portsView];
+    if (self.inputOutput == 1) [jackView displayCurrentAppPortsWithInputOutput:2 audioMidi:self.audioMidi];
+    else if (self.inputOutput == 2) [jackView displayCurrentAppPortsWithInputOutput:1 audioMidi:self.audioMidi];
+    
+    [jackView.superview addSubview:jackView.portsView];
     [jackView.portsView setNeedsDisplay];
 }
 
 - (void)buttonDoubleClicked
 {
+    //if (self == jackView.currentAppPortsView) return;
+    
     // Switch to Jack server
     if ([self.jackViewClient.name compare:@"system"] == NSOrderedSame
         || [self.jackViewClient.name compare:@"system_midi"] == NSOrderedSame)
@@ -210,7 +228,7 @@
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     jackView.linking = NO;
-    [jackView setNeedsDisplay];
+    [jackView setNeedsDisplay];    
 }
 
 // Refresh view
@@ -355,6 +373,9 @@
 
 - (void)drawRect:(CGRect)rect
 {
+    CGPoint srcPt = [jackView convertPoint:jackView.srcPt toView:self];
+    CGPoint dstPt = [jackView convertPoint:jackView.dstPt toView:self];
+    
     self.backgroundColor = [UIColor clearColor];
     
     if (jackView.linking)
@@ -364,8 +385,8 @@
         CGFloat color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
         CGContextSetStrokeColor(c, color);
         CGContextBeginPath(c);
-        CGContextMoveToPoint(c, jackView.srcPt.x, jackView.srcPt.y);
-        CGContextAddLineToPoint(c, jackView.dstPt.x, jackView.dstPt.y);
+        CGContextMoveToPoint(c, srcPt.x, srcPt.y);
+        CGContextAddLineToPoint(c, dstPt.x, dstPt.y);
         CGContextStrokePath(c);
     }
 }
@@ -379,6 +400,7 @@
 @synthesize srcPt;
 @synthesize dstPt;
 @synthesize portsView;
+@synthesize currentClientButton;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -389,7 +411,7 @@
         self.portsView = nil;
         self.linking = NO;
         _jackClient = nil;
-        _currentClientButton = nil;
+        self.currentClientButton = nil;
         self.backgroundColor = [UIColor colorWithWhite:0.1 alpha:0.7];
                 
         _audioInputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins,
@@ -441,6 +463,14 @@
     [_midiInputsScrollView release];
     [_midiOutputsScrollView release];
     [_drawingView release];
+    
+    if (self.portsView)
+    {
+        [self.portsView removeFromSuperview];
+        [self.portsView release];
+        self.portsView = nil;
+        [self.superview setNeedsDisplay];
+    }
     
     [super dealloc];
 }
@@ -629,7 +659,7 @@
     button.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
     button.jackViewClient = [self clientWithName:_currentClientName];
     button.jackView = self;
-    _currentClientButton = button;
+    self.currentClientButton = button;
     [self addSubview:button];
     
     // Deactivate uncomaptible buttons and select connected buttons
@@ -679,7 +709,7 @@
     }
 
     // Load drawing view
-    _drawingView = [[JackViewDrawingView alloc] initWithFrame:CGRectMake(0., 0., self.frame.size.width, self.frame.size.height)];
+    _drawingView = [[JackViewDrawingView alloc] initWithFrame:CGRectMake(0., -self.frame.origin.y, 2000, 2000)];
     //_drawingView.autoresizingMask = self.autoresizingMask;
     _drawingView.jackView = self;
     [self addSubview:_drawingView];
@@ -726,6 +756,26 @@
         }
     }
     
+    return nil;
+}
+
+- (JackViewPort*)portWithName:(NSString*)portName
+{
+    int i = 0;
+    NSString* clientName = [[portName componentsSeparatedByString:@":"] objectAtIndex:0];
+    JackViewClient* client = [self clientWithName:clientName];
+    int nbPorts = [client.ports count];
+    JackViewPort* port = nil;
+    
+    for (i = 0; i < nbPorts; ++i)
+    {
+        port = (JackViewPort*)[client.ports objectAtIndex:i];
+        if ([port.name compare:portName] == NSOrderedSame)
+        {
+            return port;
+        }
+    }
+
     return nil;
 }
 
@@ -797,7 +847,6 @@
     const char **connections;
     NSString* connection = nil;
     NSString* connectedClient = nil;
-    NSString* clientName = [[port.name componentsSeparatedByString:@":"] objectAtIndex:1];
     int i = 0;
         
     if ((connections = jack_port_get_all_connections(_jackClient,
@@ -819,6 +868,34 @@
     }
     
     return NO;
+}
+
+- (NSArray*)getCurrentClientPortConnectedTo:(NSString*)portName
+{
+    const char **connections;
+    NSString* connection = nil;
+    NSString* connectedClient = nil;
+    int i = 0;
+    NSMutableArray* array = [NSMutableArray arrayWithCapacity:0];
+    
+    if ((connections = jack_port_get_all_connections(_jackClient,
+                                                     jack_port_by_name(_jackClient,
+                                                                       [portName cStringUsingEncoding:NSUTF8StringEncoding]))) != 0)
+    {
+        for (i = 0; connections[i]; i++)
+        {
+            connection = [NSString stringWithCString:connections[i] encoding:NSUTF8StringEncoding];
+            connectedClient = [[connection componentsSeparatedByString:@":"] objectAtIndex:0];
+            
+            if ([connectedClient compare:_currentClientName] == NSOrderedSame)
+            {
+                [array addObject:connection];
+            }
+        }
+        jack_free (connections);
+    }
+    
+    return array;
 }
 
 // Returns YES if software was able to connect, NO otherwise
@@ -1021,12 +1098,28 @@
     return YES;
 }
 
+- (void)connectPort:(NSString*)inputPort
+           withPort:(NSString*)outputPort
+{
+    jack_connect(_jackClient,
+                 [inputPort cStringUsingEncoding:NSUTF8StringEncoding],
+                 [outputPort cStringUsingEncoding:NSUTF8StringEncoding]);
+}
+
+- (void)disconnectPort:(NSString*)inputPort
+              withPort:(NSString*)outputPort
+{
+    jack_disconnect(_jackClient,
+                    [inputPort cStringUsingEncoding:NSUTF8StringEncoding],
+                    [outputPort cStringUsingEncoding:NSUTF8StringEncoding]);
+}
+
 - (BOOL)isPointInsideCurrentAppIcon:(CGPoint)pt
 {
-    return (pt.x >= _currentClientButton.frame.origin.x
-            && pt.x <= _currentClientButton.frame.origin.x + _currentClientButton.frame.size.width
-            && pt.y >= _currentClientButton.frame.origin.y
-            && pt.y <= _currentClientButton.frame.origin.y + _currentClientButton.frame.size.height);
+    return (pt.x >= self.currentClientButton.frame.origin.x
+            && pt.x <= self.currentClientButton.frame.origin.x + self.currentClientButton.frame.size.width
+            && pt.y >= self.currentClientButton.frame.origin.y
+            && pt.y <= self.currentClientButton.frame.origin.y + self.currentClientButton.frame.size.height);
 }
 
 - (BOOL)isPointInsideView:(CGPoint)pt
@@ -1035,6 +1128,49 @@
             && pt.x <= self.frame.size.width
             && pt.y >= 0
             && pt.y <= self.frame.size.height);
+}
+
+- (BOOL)isPointInsideCurrentAppPortsView:(CGPoint)pt
+{    
+    /*return (pt.x >= self.currentAppPortsView.frame.origin.x
+            && pt.x <= self.currentAppPortsView.frame.origin.x + self.currentAppPortsView.frame.size.width
+            && pt.y >= self.currentAppPortsView.frame.origin.y
+            && pt.y <= self.currentAppPortsView.frame.origin.y + self.currentAppPortsView.frame.size.height);*/
+    return NO;
+}
+
+- (NSString*)getPortDefinedAtPoint:(CGPoint)pt
+{
+    NSArray* items = nil;
+    JackViewPortsViewItem* item = nil;
+    int i = 0;
+    CGRect frame;
+    
+    /*if (self.currentAppPortsView)
+    {
+        NSLog(@"scan %f %f", pt.x, pt.y);
+        items = [self.currentAppPortsView subviews];
+        
+        for (i = 0; i < [items count]; ++i)
+        {
+            item = (JackViewPortsViewItem*)([items objectAtIndex:i]);
+            frame = [item convertRect:item.frame toView:self.superview];
+            
+            NSLog(@"  %@", item.longName);
+            NSLog(@"  %f %f %f %f", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+            
+            if (pt.x >= frame.origin.x
+                && pt.x <= frame.origin.x + frame.size.width
+                && pt.y >= frame.origin.y
+                && pt.y <= frame.origin.y + frame.size.height)
+            {
+                NSLog(@"      >> connect");
+                return item.longName;
+            }
+        }
+    }*/
+    
+    return nil;
 }
 
 // Refresh view
@@ -1048,8 +1184,69 @@
     else
     {
         _drawingView.hidden = YES;
+        [_drawingView setNeedsDisplay];
     }
 }
+
+- (int)numberOfCurrentAppPortsWithInputOutput:(int)inputOutput
+                                    audioMidi:(int)audioMidi
+{
+    JackViewClient* client = [self clientWithName:_currentClientName];
+    JackViewPort* port = nil;
+    int nbPorts = [client.ports count];
+    int i = 0;
+    NSMutableArray* portsArray = [NSMutableArray arrayWithCapacity:0];
+    int cpt = 0;
+    
+    // Find ports to display
+    for (i = 0; i < nbPorts; ++i)
+    {
+        port = [client.ports objectAtIndex:i];
+        
+        if (((port.inputOutput == 1 && inputOutput == 2) || (port.inputOutput == 2 && inputOutput == 1))
+            && port.audioMidi == audioMidi)
+        {
+            cpt++;
+        }
+    }
+    
+    return cpt;
+}
+
+- (void)displayCurrentAppPortsWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi
+{
+    JackViewClient* client = [self clientWithName:_currentClientName];
+    JackViewPort* port = nil;
+    int nbPorts = [client.ports count];
+    int i = 0;
+    NSMutableArray* portsArray = [NSMutableArray arrayWithCapacity:0];
+    
+    // Find ports to display
+    for (i = 0; i < nbPorts; ++i)
+    {
+        port = [client.ports objectAtIndex:i];
+        
+        if (((port.inputOutput == 1 && inputOutput == 2) || (port.inputOutput == 2 && inputOutput == 1))
+            && port.audioMidi == audioMidi)
+        {
+            [portsArray addObject:port];
+        }
+    }
+        
+    for (i = 0; i < [portsArray count]; ++i)
+    {
+        JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(self.portsView.currentAppX, i * kPortsViewItemHeight, kPortsViewWidth, kPortsViewItemHeight)];
+        item.longName = ((JackViewPort*)([portsArray objectAtIndex:i])).name;
+        item.alias = @"alias";
+        
+        item.selected = [self isPort:((JackViewPort*)([portsArray objectAtIndex:i]))
+     connectedToCurrentClientInputOutput:((JackViewPort*)([portsArray objectAtIndex:i])).inputOutput
+                               audioMidi:((JackViewPort*)([portsArray objectAtIndex:i])).audioMidi];
+        
+        [self.portsView addSubview:item];
+    }
+}
+
 
 @end
 
