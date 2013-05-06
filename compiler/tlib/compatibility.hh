@@ -27,9 +27,6 @@
 #include <windows.h>
 #define snprintf _snprintf
 
-int http_fetch(const char *url, char **fileBuf) { return -1; }
-const char *http_strerror() { return NULL; }
-
 #ifdef WIN32
 	#undef min
 	#undef max

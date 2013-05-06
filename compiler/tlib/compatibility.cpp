@@ -28,6 +28,9 @@
 
 	#include <windows.h>
 	#include "math.h"
+    
+int http_fetch(const char *url, char **fileBuf) { return -1; }
+const char *http_strerror() { return NULL; }
 
 #if defined(_MBCS) || __MINGW32__
 	bool chdir(const char* path)
