@@ -81,8 +81,6 @@
 {
     jack_client_t*          _jackClient;
     
-    JackViewButton*         _currentClientButton;
-    
     NSMutableArray*         _clients;
     NSString*               _currentClientName;
     
@@ -95,32 +93,48 @@
 }
 
 @property (assign, nonatomic) BOOL linking;
-@property (assign, nonatomic) CGPoint srcPt;
+@property (assign, readwrite) CGPoint srcPt;
 @property (assign, readwrite) CGPoint dstPt;
 @property (assign, readwrite) JackViewPortsView* portsView;
+@property (assign, readwrite) JackViewButton* currentClientButton;
 
 - (void)loadJackClient:(jack_client_t*)jackClient;
 - (jack_client_t*)jackClient;
 
 - (BOOL)doesClientExist:(NSString*)clientName;
 - (JackViewClient*)clientWithName:(NSString*)clientName;
+- (JackViewPort*)portWithName:(NSString*)portName;
 
 - (BOOL)hasCurrentClientCompatiblePortWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
 
-- (BOOL)isClient:(JackViewClient*)client connectedToCurrentClientInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
-
-- (BOOL)isPort:(JackViewPort*)port connectedToCurrentClientInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
+- (BOOL)isClient:(JackViewClient*)client
+connectedToCurrentClientInputOutput:(int)inputOutput
+       audioMidi:(int)audioMidi;
+- (BOOL)isPort:(JackViewPort*)port
+connectedToCurrentClientInputOutput:(int)inputOutput
+     audioMidi:(int)audioMidi;
+- (NSArray*)getCurrentClientPortConnectedTo:(NSString*)portName;
 
 - (BOOL)quicklyConnectAppToClient:(NSString*)clientName
                       inputOutput:(int)inputOutput
                         audioMidi:(int)audioMidi;
-
 - (BOOL)quicklyDisconnectAppToClient:(NSString*)clientName
                          inputOutput:(int)inputOutput
                            audioMidi:(int)audioMidi;
+- (void)connectPort:(NSString*)inputPort
+           withPort:(NSString*)outputPort;
+- (void)disconnectPort:(NSString*)inputPort
+              withPort:(NSString*)outputPort;
+
 
 - (BOOL)isPointInsideCurrentAppIcon:(CGPoint)pt;
-
 - (BOOL)isPointInsideView:(CGPoint)pt;
+- (BOOL)isPointInsideCurrentAppPortsView:(CGPoint)pt;
+- (NSString*)getPortDefinedAtPoint:(CGPoint)pt;
+
+- (int)numberOfCurrentAppPortsWithInputOutput:(int)inputOutput
+                                    audioMidi:(int)audioMidi;
+- (void)displayCurrentAppPortsWithInputOutput:(int)inputOutput
+                                    audioMidi:(int)audioMidi;
 
 @end
