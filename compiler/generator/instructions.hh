@@ -2305,7 +2305,7 @@ TODO : gestion des indices de boucles:
 
  - Dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une expression test, ajout de ValueInst fNext, calcul qui utilise fName.
 
- - nouveau type d'accès  kLoop pour les variables de loop
+ - nouveau type d'accès kLoop pour les variables de loop
 
  - lors des transformations sur les loops, Loop2FunctionBuider, SeqLoopBuilderVisitor, "désactiver" les statements qui manipulent les indices de la boucle ??
  (pas besoin, ils n'apparaissent pas dans le corps de le boucle, par contre l'indice de la boucle est utilisée dans le corps de la boucle, il faut le faire correspondre
