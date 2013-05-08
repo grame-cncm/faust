@@ -1159,16 +1159,23 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   );
   
   // Keep audio params in a table 
+  
   _f4u$t.controls = new Array();
   for (var i = 0; i < dsp.numberOfAudioParams(); i++) {
     var ctrl = dsp.getAudioParam(i);
     _f4u$t.controls[ctrl.name] = ctrl;
   }
-    
-  // Change value of the given audio param
+  
   _f4u$t.fausthandler = function(dest, value) {
     _f4u$t.controls[dest].value = value; 
   }
+  
+  /*  
+  // Change value of the given audio param
+  _f4u$t.fausthandler = function(dest, value) {
+    dsp.setAudioParamValue(dest, value); 
+  }
+  */
     
   _f4u$t.update = function() {}
   _f4u$t.main_loop = function() {}
