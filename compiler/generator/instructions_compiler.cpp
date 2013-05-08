@@ -49,9 +49,9 @@ using namespace std;
 
 std::ostream* Printable::fOut = &cout;
 
-static BasicTyped* genBasicFIRTyped(int fir_type)
+static BasicTyped* genBasicFIRTyped(int sig_type)
 {
-    return InstBuilder::genBasicTyped((fir_type == kInt) ? Typed::kInt : itfloat());
+    return InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat());
 }
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
@@ -499,27 +499,22 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     Typed::VarType ctype;
     ::Type t = getCertifiedSigType(sig);
 
-    Typed* type;
-
     switch (t->variability()) {
 
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
-            type = InstBuilder::genBasicTyped(ctype);
-            pushDeclare(InstBuilder::genDecStructVar(vname, type));
+            pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genBasicTyped(ctype)));
             pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
             return InstBuilder::genLoadStructVar(vname);
 
         case kBlock:
             getTypedNames(t, "Slow", ctype, vname);
-            type = InstBuilder::genBasicTyped(ctype);
-            pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, type, exp));
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
             return InstBuilder::genLoadStackVar(vname);
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
-            type = InstBuilder::genBasicTyped(ctype);
-            pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, type, exp));
+            pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
             return InstBuilder::genLoadStackVar(vname);
 
         default:
@@ -532,7 +527,6 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
     xtended* p = (xtended*)getUserData(sig);
 	list<ValueInst*> args;
     vector< ::Type> arg_types;
-    ::Type result_type = getCertifiedSigType(sig);
 
 	for (int i = 0; i < sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i)));
@@ -540,23 +534,23 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 	}
 
 	if (p->needCache()) {
-		return generateCacheCode(sig, p->generateCode(fContainer, args, result_type, arg_types));
+		return generateCacheCode(sig, p->generateCode(fContainer, args, getCertifiedSigType(sig), arg_types));
 	} else {
-		return p->generateCode(fContainer, args, result_type, arg_types);
+		return p->generateCode(fContainer, args, getCertifiedSigType(sig), arg_types);
 	}
 }
 
 ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-    int mxd;
-	string vname;
-
     CS(exp); // Ensure exp is compiled to have a vector name, result of CS is not needed, only side effect is important
-    mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+    
+    int mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+    string vname;
 
 	if (!getVectorNameProperty(exp, vname)) {
-        cerr << "No vector name for : " << ppsig(exp) << endl;
-        assert(0);
+        stringstream error;
+        error << "No vector name for : " << ppsig(exp) << endl;
+        throw faustexception(error.str());
     }
 
     if (mxd == 0) {
@@ -575,12 +569,10 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 
 ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
-    ::Type te = getCertifiedSigType(sig);
-
-	string vperm = getFreshID("M");
+ 	string vperm = getFreshID("M");
 	string vtemp = getFreshID("T");
 
-    Typed::VarType type = ctType(te);
+    Typed::VarType type = ctType(getCertifiedSigType(sig));
 
     // Table declaration
     pushDeclare(InstBuilder::genDecStructVar(vperm, InstBuilder::genBasicTyped(type)));
@@ -675,8 +667,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     int rate = 1;
     fContainer->setInputRate(idx, rate);
 
-    string name = subst("input$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
+    ValueInst* res = InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex());
 
     return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(res));
 }
@@ -715,16 +706,8 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         throw faustexception(error.str());
 	}
 
-	// definition du nom et du type de la table
-	// A REVOIR !!!!!!!!!
-	::Type t = getCertifiedSigType(content);//, tEnv);
-	if (t->nature() == kInt) {
-		vname = getFreshID("itbl");
-		ctype = Typed::kInt;
-	} else {
-		vname = getFreshID("ftbl");
-		ctype = itfloat();
-	}
+	// Define table name and type
+    getTypedNames(getCertifiedSigType(content), "tbl", ctype, vname);
 
     // Table declaration
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
@@ -787,16 +770,9 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 			 << endl;
         throw faustexception(error.str());
   	}
-	// definition du nom et du type de la table
-	// A REVOIR !!!!!!!!!
-	::Type t = getCertifiedSigType(content);//, tEnv);
-	if (t->nature() == kInt) {
-		vname = getFreshID("itbl");
-		ctype = Typed::kInt;
-	} else {
-		vname = getFreshID("ftbl");
-		ctype = itfloat();
-	}
+    
+	// Define table name and type
+    getTypedNames(getCertifiedSigType(content), "tbl", ctype, vname);
 
     string tablename;
     getTableNameProperty(content, tablename);
@@ -1365,20 +1341,6 @@ Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
 	return t;
 }
 
-//================================= some string processing utilities =================================
-
-/**
- * Removes enclosing whitespaces : '  toto  ' -> 'toto'
- */
-static string wdel(const string& s)
-{
-    size_t i = 0;
-    size_t j = s.size();
-    while (i < j && s[i] == ' ') i++;
-    while (j > i && s[j-1] == ' ') j--;
-    return s.substr(i, j-i);
-}
-
 //================================= BUILD USER INTERFACE METHOD =================================
 
 /**
@@ -1404,7 +1366,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
             const string& key = i->first;
             const set<string>& values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", wdel(key), wdel(*j)));
+                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(*j)));
             }
         }
 
@@ -1449,7 +1411,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
         const string& key = i->first;
         const set<string>& values = i->second;
         for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-            pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), wdel(key), wdel(*j)));
+            pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(*j)));
         }
     }
 
@@ -1526,7 +1488,7 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 {
 	Tree path, c, x, y, z;
     string label;
-    map<string, set<string> >   metadata;
+    map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
 
