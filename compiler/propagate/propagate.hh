@@ -32,30 +32,18 @@
 /**
  * boxPropagateSig : box listOfSignal-> listOfSignal'
  *
- * Propage une liste de signaux de l'entrÈe vers la sortie d'une boite
- * La boite ‡ ÈtÈ annotÈe aec son type
+ * Propagate a list of signals into a block-diagram. Fo example to
+ * compute the list of outputs of a block-diagram with n inputs, do :
+ * Tree lsig =  boxPropagateSig(box, makeSigInputList(n));
  */
 ///////////////////////////////////////////////////////////////////////
+
 using namespace std;
 
 typedef vector<Tree> siglist;
 
 siglist makeSigInputList (int n);
+
 Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig);
 
-//bool getSigListNickName (Tree t, Tree& id);
-//void setSigListNickName (const siglist&  lsig, const string& nickname);
-
-
-//siglist makeSigProjList (Tree t, int n);
-//siglist lrepeat(int n, const siglist& l);
-//siglist lmerge(int nbelems, int nblignes, Tree src);
-
-
-/*
-	exemple :
-	Pour calculer 'lsig' la liste des signaux de sortie d'une boite 'box' 
-	‡ n entrÈes on utilisera :
-		lsig =  boxPropagateSig(box, makeSigInputList(n));
-*/
 #endif
