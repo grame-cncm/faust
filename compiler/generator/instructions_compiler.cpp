@@ -177,7 +177,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
     //annotationStatistics();
-    endTiming("ScalarCompiler::prepare");
+    endTiming("InstructionsCompiler::prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->gDrawPath + gGlobal->gMasterDocument).c_str());
@@ -911,12 +911,12 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
      }
 }
 
-ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* cond, ValueInst* val1, ValueInst* val2)
+ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2)
 {
     if (t1 == kReal) {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, (t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2), val1));
+        return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, (t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2), val1));
     } else {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, ((t2 == kReal)) ? InstBuilder::genCastNumFloatInst(val1) : val1));
+        return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, val2, ((t2 == kReal)) ? InstBuilder::genCastNumFloatInst(val1) : val1));
     }
 }
 
