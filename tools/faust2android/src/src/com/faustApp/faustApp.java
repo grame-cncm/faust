@@ -26,6 +26,8 @@ import faust_dsp.faust;
 import faust_dsp.faust_dsp;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
@@ -38,6 +40,8 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.MotionEvent;
 import android.view.View.OnClickListener;
@@ -60,12 +64,19 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.lang.String;
+import java.net.SocketException;
+
+import osc.OSCListener;
+import osc.OSCMessage;
+import osc.OSCPortIn;
 
 public class faustApp extends Activity {
 	
 	// global elements
-	Thread thread; // main thread for DSP and stuff
+	public static final String PREFS_NAME = "faust2androidPrefs";
+	Thread thread;
 	float[] parVals; // values given by the different elements of the UI
+	static float[] OSCval;
 	boolean on = true; // process on/off
 	
 	// C++ components
@@ -95,6 +106,32 @@ public class faustApp extends Activity {
 	  }  
 	  return true;  
 	}
+	
+	/****************************************************************
+	 OSC support
+	*****************************************************************/
+	
+	public static void OSCreceiver(OSCPortIn receiver, final String address, final int n) throws java.net.SocketException {
+		OSCListener listener = new OSCListener() {
+			float value;
+			Object[] values;	
+			public void acceptMessage(java.util.Date time, OSCMessage message) {
+				// check for null pointer exception...
+				if(message != null){ 
+			        values = message.getArguments();
+			        if(values.length>0){
+			        	// Only the first OSC value is used
+			        	if(values[0] != null){ 
+			        		value = Float.parseFloat(values[0].toString());
+			        		OSCval[n] = value;
+			        	}
+			        }
+				}
+				}
+			};
+			receiver.addListener(address, listener);
+			receiver.startListening();
+	 }
 	
 	/****************************************************************
 	 UI FUNCTIONS 
@@ -400,6 +437,15 @@ public class faustApp extends Activity {
 		else UI.sliders[m].setProgress(Math.round((init+min)*(1/step)));
 		currentGroup[groupLevel-1].addView(UI.sliders[m]);
 		
+		String OSCaddress = "/"+label.replaceAll(" ","_");
+		/*
+		try {
+			OSCreceiver(9001,OSCaddress);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		
 		OnSeekBarChangeListener listener = new OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -491,20 +537,35 @@ public class faustApp extends Activity {
 	    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	    }
 	};
-
 	
+	@Override
+	protected void onStart() {
+		super.onStart();
+		on = true;
+	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
 	    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+	    on = true;
 	}
 	
+	/*
 	@Override
-	protected void onPause() {
-		mSensorManager.unregisterListener(mSensorListener);
-	    super.onPause();
+	protected void onSaveInstanceState(Bundle state) {
+	    super.onSaveInstanceState(state);
+	    state.putInt("starttime", 10);
 	}
+
+	@Override
+
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+	    super.onRestoreInstanceState(savedInstanceState);
+	    int startTime = savedInstanceState.getInt("starttime");
+	    System.out.println("Hello: " + startTime);
+	}
+	*/
 	
 	/*
 	 * Main view
@@ -514,6 +575,23 @@ public class faustApp extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        boolean firstOpen = true;
+        firstOpen = settings.getBoolean("firstOpen", true);
+        int oscReceiverPort;
+        if(firstOpen){ 
+        	SharedPreferences.Editor editor = settings.edit();
+        	editor.putBoolean("firstOpen", false);
+        	editor.putInt("OSCport", 9001);
+        	editor.commit();
+        	Intent intent = new Intent(this, DisplayWelcomeActivity.class);
+        	startActivity(intent);
+        }
+        else{ 
+        	System.out.println("Hello: didi");
+        }
+        oscReceiverPort = settings.getInt("OSCport", 9001);
         
         // init the parameters of the Faust object
         final Para parameters = f.initFaust();
@@ -539,6 +617,7 @@ public class faustApp extends Activity {
         String[] paramLabel = new String[nbParams];
         
         parVals = new float[nbParams];
+        OSCval = new float[nbParams];
         
         // Initialisation of the accelerometer elements
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -587,6 +666,11 @@ public class faustApp extends Activity {
         int z=0;
         
         // loop to create the UI in function of the specification contained in the Faust code
+        
+        final OSCPortIn receiver;
+        try {
+        	receiver = new OSCPortIn(oscReceiverPort);
+    	
         for(int j=0;j<nbUIEl;j++){
         	if(o.intArray_getitem(UIElType, j)==0){
         		if(o.intArray_getitem(layType, y)==0 || o.intArray_getitem(layType, y)==1){
@@ -618,11 +702,14 @@ public class faustApp extends Activity {
         		if(o.intArray_getitem(paramsTypes, i) == 2){ 
         			addSeekBar(i,elemCnt[2],paramLabel[i],o.floatArray_getitem(paramsInit, i),
         				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
+        			OSCreceiver(receiver,"/"+paramLabel[i].replaceAll(" ","_"),i);
         			elemCnt[2]++;
+        			
         		}
         		if(o.intArray_getitem(paramsTypes, i) == 3){ 
         			addSeekBar(i,elemCnt[2],paramLabel[i],o.floatArray_getitem(paramsInit, i),
         				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
+        			OSCreceiver(receiver,"/"+paramLabel[i].replaceAll(" ","_"),i);
         			elemCnt[2]++;
         		}
         		if(o.intArray_getitem(paramsTypes, i) == 4){ 
@@ -633,10 +720,12 @@ public class faustApp extends Activity {
         		i++;
         	}
         }
+       
         
         // the accelerometer window is created and the default for its elements are set-up
         createAccelWindow(accel.statu,accel.popUp,accel.layout);
         accel.paramAccelState = new int [nbParams][3];
+        float[] OSCvalOld = new float [nbParams];
         for(int j=0; j<nbParams; j++){ 
         	accel.paramAccelState[j][0] = 0;
         	accel.paramAccelState[j][1] = 1;
@@ -651,15 +740,15 @@ public class faustApp extends Activity {
 				float accelCurrentValue; // variable to store the value of the selected axis of the accelerometer
 				
 				f.startAudio(); // start the audio engine, etc. (C++ function)
-				int old = 0; // here only for debugging
+				float old = 0.f; // here only for debugging
 				
 				// processing loop
 				while(on){
 					SWIGTYPE_p_float paramValues = parameters.getZone();
 
 					/*
-					if(old != accelSensibility) System.out.println("Hello: " + accelSensibility);
-					old = accelSensibility;
+					if(old != OSCval[0]) System.out.println("OSC: " + OSCval[0]);
+					old = OSCval[0];
 					*/
 					
 					// counters for the different UI elements
@@ -682,6 +771,7 @@ public class faustApp extends Activity {
 					}
 					
 					// the values of the different parameters are sent to the audio process and are modified by the accelerometer
+					float[] OSCvalOld = new float [nbParams];
 					for(int i=0;i<nbParams;i++){
 						if(o.intArray_getitem(paramsTypes, i) == 2 || o.intArray_getitem(paramsTypes, i) == 3){
 							// X, Y, or Z?
@@ -703,6 +793,12 @@ public class faustApp extends Activity {
 								UI.sliders[elemCnt[2]].setProgress(Math.round((accelCurrentValue-o.floatArray_getitem(paramsMin, i))*(1/o.floatArray_getitem(paramsStep, i))));	
 								parVals[i] = accelCurrentValue;
 							}
+							// OSC messages change parameters values TODO: for now, only sliders can be controlled via OSC
+							if(OSCval[i] != OSCvalOld[i]){ 
+								UI.sliders[elemCnt[2]].setProgress(Math.round((OSCval[i]-o.floatArray_getitem(paramsMin, i))*(1/o.floatArray_getitem(paramsStep, i))));
+								parVals[i] = OSCval[i];
+								OSCvalOld[i] = OSCval[i];
+							}
 							elemCnt[2]++;
 						}
 						o.floatArray_setitem(paramValues, i, parVals[i]);
@@ -713,15 +809,69 @@ public class faustApp extends Activity {
 					f.processDSP();
 				}
 				
-				// when the app closes, the audio process is killed
+				// when the app closes, the audio process is killed and the OSC connection is closed
 				f.stopAudio();
+				receiver.stopListening();
+				receiver.close();
 			}
 		};
-		thread.start();   
+		thread.start();
+    } catch (SocketException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+		
     }
     
-    public void onDestroy(){
-    	
+    @Override
+	protected void onPause() {
+		mSensorManager.unregisterListener(mSensorListener);
+		super.onPause();
+	}
+    
+    /*
+    @Override
+	protected void onStop() {
+    	super.onStop();
+    	on = false;
+    	try {
+			thread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    	thread = null;
+	}
+	*/
+    
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.activity_faust_app, menu);
+		return true;
+	}
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+        	case R.id.settings:
+        		Intent settingsIntent = new Intent(this, Settings.class);
+            	startActivity(settingsIntent);
+        		return true;
+        	case R.id.help:
+        		Intent helpIntent = new Intent(this, DisplayWelcomeActivity.class);
+            	startActivity(helpIntent);
+        		return true;
+        	case R.id.about:
+        		Intent aboutIntent = new Intent(this, About.class);
+            	startActivity(aboutIntent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    public void onDestroy(){	
     	super.onDestroy();
     	on = false;
     	try {
@@ -730,6 +880,5 @@ public class faustApp extends Activity {
 			e.printStackTrace();
 		}
     	thread = null;
-    	
     }
 }

@@ -73,6 +73,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gExpandedDefList    = 0;
     
     gDetailsSwitch  = false;
+    gTimingSwitch   = false;
     gDrawSignals    = false;
     gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
     gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
@@ -268,6 +269,8 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachinePtrSize = sizeof(void*);
     
     gMachineMaxStackSize = MAX_STACK_SIZE;
+    
+    gIndex = 0;
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
@@ -324,6 +327,8 @@ void global::init()
     DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY = tree("BCOMPLEXITY");
+    
+    PROPAGATEPROPERTY = symbol("PropagateProperty");
     
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "";

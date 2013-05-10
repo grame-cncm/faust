@@ -292,6 +292,10 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-t", "--timeout")) {
             gTimeout = atoi(argv[i+1]);
             i += 2;
+            
+        } else if (isCmd(argv[i], "-time", "--compilation-time")) {
+            gGlobal->gTimingSwitch = true;
+            i += 1;
 
         // double float options
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
@@ -410,6 +414,7 @@ static void printhelp()
 	cout << "-i \t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
+    cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC++ output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
