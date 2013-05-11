@@ -213,8 +213,7 @@ bool llvm_dsp_factory::initJIT()
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
 #endif
-    //fResult->fModule->dump();
-
+  
     // Set up the optimizer pipeline. Start with registering info about how the
     // target lays out data structures.
     PassManager pm;
@@ -230,7 +229,6 @@ bool llvm_dsp_factory::initJIT()
     if (fScheduler) {
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
-            //scheduler->dump();
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
                 printf("Cannot link scheduler module : %s\n", err.c_str());
             }

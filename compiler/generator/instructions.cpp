@@ -28,7 +28,6 @@
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
 void DeclareVarInst::cleanup() { gGlobal->gVarTypeTable.clear(); }
 
-
 DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
     :fAddress(address), fType(typed), fValue(value)
 {
@@ -40,20 +39,15 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
 }
 
 DeclareVarInst::~DeclareVarInst()
-{
-    //gGlobal->gVarTypeTable.erase(fAddress->getName());
-}
+{}
 
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 {
-    BasicTyped* result;
-    if (gGlobal->gTypeTable.find(type) != gGlobal->gTypeTable.end()) {
-        result = gGlobal->gTypeTable[type]; // Already allocated
-    } else {
-        result = new BasicTyped(type);
-        gGlobal->gTypeTable[type] = result;
+    // If not defined, add the type in the table
+    if (gGlobal->gTypeTable.find(type) == gGlobal->gTypeTable.end()) {
+        gGlobal->gTypeTable[type] = new BasicTyped(type);
     }
-    return result;
+    return gGlobal->gTypeTable[type];
 }
 
 int BasicTyped::getSize() { return gGlobal->gTypeSizeMap[fType]; }

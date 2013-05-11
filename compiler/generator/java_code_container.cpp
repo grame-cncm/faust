@@ -133,13 +133,10 @@ void JAVACodeContainer::produceClass()
    
     tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
 
-        tab(n+1, *fOut);
-        
         // Global declarations
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateGlobalDeclarations(&fCodeProducer);
-        tab(n+1, *fOut);
       
         // Sub containers
         generateSubContainers();
