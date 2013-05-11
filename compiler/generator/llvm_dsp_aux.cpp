@@ -33,12 +33,12 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-static Module* LoadModule(const std::string filename, LLVMContext& context)
+static Module* LoadModule(const std::string filename, LLVMContext* context)
 {
     //printf("Load module : %s \n", filename.c_str());
     
     SMDiagnostic err;
-    Module* res = ParseIRFile(filename, err, context);
+    Module* res = ParseIRFile(filename, err, *context);
     if (!res) {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("LoadModule", errs());
@@ -225,10 +225,10 @@ bool llvm_dsp_factory::initJIT()
     pm.add(new TargetData(*fJIT->getTargetData()));
     fpm.add(new TargetData(*fJIT->getTargetData()));
 #endif
+
     // Link with "scheduler" code
     if (fScheduler) {
-        LLVMContext context;
-        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", context);
+        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
             //scheduler->dump();
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {

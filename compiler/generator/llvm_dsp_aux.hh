@@ -86,8 +86,6 @@ class llvm_dsp_factory {
     private:
 
         ExecutionEngine* fJIT;
-        //Module* fModule;
-        
         LLVMResult* fResult;
         
         int fOptLevel;
