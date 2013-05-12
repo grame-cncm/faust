@@ -28,9 +28,7 @@
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
-using namespace std;
-
-JAVAInstVisitor* JAVAInstVisitor::fGlobalVisitor = 0;            
+using namespace std;           
 
 class JAVACodeContainer : public virtual CodeContainer {
 

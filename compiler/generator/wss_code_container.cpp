@@ -313,8 +313,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
      
     ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                                 InstBuilder::genLoadStructVar("fFullcount"));
-                                                
-  
+   
     BlockInst* then_block = InstBuilder::genBlockInst();
     BlockInst* else_block = InstBuilder::genBlockInst();
     

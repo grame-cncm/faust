@@ -195,7 +195,10 @@ errors/errormsg.o: tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.h
 errors/errormsg.o: global.hh parser/sourcereader.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
 errors/errormsg.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
 errors/errormsg.o: tlib/occurrences.hh errors/exception.hh
-errors/timing.o: errors/timing.hh
+errors/timing.o: errors/timing.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh
+errors/timing.o: garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
+errors/timing.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+errors/timing.o: generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
 evaluate/environment.o: evaluate/environment.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 evaluate/environment.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh errors/errormsg.hh boxes/boxes.hh signals/signals.hh
 evaluate/environment.o: signals/binop.hh boxes/ppbox.hh utils/names.hh propagate/propagate.hh global.hh
@@ -419,7 +422,7 @@ parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh garbageable.hh globa
 parser/enrobage.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 parser/enrobage.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh
 parser/enrobage.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-parser/enrobage.o: evaluate/loopDetector.hh tlib/occurrences.hh
+parser/enrobage.o: evaluate/loopDetector.hh tlib/occurrences.hh parser/sourcefetcher.hh
 parser/faustparser.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 parser/faustparser.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
 parser/faustparser.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh

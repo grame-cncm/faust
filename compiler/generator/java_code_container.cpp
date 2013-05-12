@@ -28,6 +28,7 @@
 using namespace std;
 
 map <string, string> JAVAInstVisitor::fMathLibTable;
+JAVAInstVisitor* JAVAInstVisitor::fGlobalVisitor = 0; 
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
