@@ -140,6 +140,8 @@ class llvm_dsp_factory {
         bool initJIT();
         
         void metadataDSPFactory(Meta* meta);
+        
+        void classInitDSPFactory(int samplingFreq);
     
 };
 
@@ -160,7 +162,6 @@ class llvm_dsp_aux : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
       
@@ -223,6 +224,8 @@ EXPORT void writeDSPFactoryToIRFile1(llvm_dsp_factory* factory, const char* ir_c
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
+EXPORT void classInitDSPFactory(llvm_dsp_factory* factory, int samplingFreq);
+
 class EXPORT llvm_dsp : public dsp {
                 
     public:
@@ -230,7 +233,6 @@ class EXPORT llvm_dsp : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
       

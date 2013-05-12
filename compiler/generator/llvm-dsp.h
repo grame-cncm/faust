@@ -180,7 +180,6 @@ class llvm_dsp : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
 
-        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
 
