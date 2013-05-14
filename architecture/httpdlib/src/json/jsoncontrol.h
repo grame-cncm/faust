@@ -65,8 +65,7 @@ template <typename C> class jsoncontrol : public jsonnode
 			out << eol << "\"label\": \"" << fName << "\",";
 			out << eol << "\"address\": \"" << getAddress() << "\"";
 			if (fMeta.size()) {
-				out << eol << "\"meta\": \"" << "[ "; eol++;
-		//		for (TMetas::const_iterator i=fMeta.begin(); i!=fMeta.end();) {
+				out << "," << eol << "\"meta\": " << "[ "; eol++;
 				TMetas::const_iterator i=fMeta.begin();
 				while (true) {
 					out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
@@ -78,12 +77,13 @@ template <typename C> class jsoncontrol : public jsonnode
 
 			if (button) { out << --eol << "}"; return; }		// done for buttons
 
+			if (!bargraph) {
+				out << "," << eol << "\"init\": \"" << fInit << "\"";
+			}
+			out << "," << eol << "\"min\": \"" << fMin << "\",";
+			out << eol << "\"max\": \"" << fMax << "\"";
 			if (!bargraph)
-				out << "," << eol << "\"init\": \"" << fInit << "\",";
-			out << eol << "\"min\": \"" << fMin << "\",";
-			out << eol << "\"max\": \"" << fMax << "\",";
-			if (!bargraph)
-				out << eol << "\"step\": \"" << fStep << "\"";
+				out << "," << eol << "\"step\": \"" << fStep << "\"";
 			out << --eol << "}";
 		}
 	

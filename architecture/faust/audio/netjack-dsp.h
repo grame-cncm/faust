@@ -122,9 +122,7 @@ class netjackaudio : public audio {
 
 };
 
-
 #endif
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

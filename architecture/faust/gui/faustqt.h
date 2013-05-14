@@ -34,6 +34,7 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QColormap>
+#include <QCommonStyle>
 #include <QDial>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
@@ -47,6 +48,7 @@
 #include <QRadialGradient>
 #include <QSlider>
 #include <QStyle>
+#include <QStyleOptionSlider>
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolTip>
@@ -56,6 +58,14 @@
 #include <QtGui>
 
 #include "faust/gui/GUI.h"
+
+#ifdef QRCODECTRL
+#include <sstream>
+#include <QHostAddress>
+#include <QTcpSocket>
+#include <qrencode.h>
+#include <QRegExp>
+#endif
 
 //----------------------------------
 
@@ -1337,11 +1347,75 @@ class QTGUI : public QObject, public GUI
 
   public:
 
-	QTGUI(int argc, char* argv[], QStyle* style = 0) : fAppl(argc, argv), fTimer(0), fStyle(style){
+	QTGUI(int& argc, char* argv[], QStyle* style = 0) : fAppl(argc, argv), fTimer(0), fStyle(style){
         //fGroupStack.push(new QMainWindow());
     }
 
 	virtual ~QTGUI() {}
+
+#ifdef HTTPCTRL
+#ifdef QRCODECTRL
+   
+   	//
+	// Extract the IP number of the machine http
+ 	//
+
+    QString extractIPnum(int portnum)
+	{
+        QString     result;
+        QTcpSocket  sock;
+        
+        sock.connectToHost("8.8.8.8", 53); // google DNS, or somethingelse reliable
+        if (sock.waitForConnected()) {
+            QHostAddress IP = sock.localAddress();
+            result = IP.toString(); 
+        } else {
+            result = "localhost";
+        }
+        stringstream ss; ss << portnum;
+        return result + ":" + ss.str().c_str();;
+    }
+
+    //
+    // Used in HTTPD mode, display the QRCode of the URL of the application
+    //
+    void displayQRCode(int portnum)
+    {
+        const int padding = 5;
+    	QString url = extractIPnum(portnum);
+        QRcode* qrc = QRcode_encodeString(url.toStdString().c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+
+        qDebug() << "url to encode = " << url;
+        qDebug() << "QRcode width  = " << qrc->width;
+
+		QRgb colors[2];
+		colors[0] = qRgb(255, 255, 255); 	// 0 is white
+		colors[1] = qRgb(0, 0, 0); 			// 1 is black
+
+        // build the QRCode image
+        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
+        // clear the image
+        for (int y=0; y<qrc->width+2*padding; y++) {
+            for (int x=0; x<qrc->width+2*padding; x++) {
+                image.setPixel(x, y, colors[0]);
+            }
+        }
+        // copy the qrcode inside
+        for (int y=0; y<qrc->width; y++) {
+            for (int x=0; x<qrc->width; x++) {
+                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
+            }
+        }
+
+        QImage big = image.scaledToWidth(qrc->width*5);
+        QLabel* myLabel = new QLabel();
+        myLabel->setPixmap(QPixmap::fromImage(big));
+        myLabel->setWindowTitle(url);
+        myLabel->show();
+
+    }
+#endif
+#endif
 
 	virtual void run()
 	{

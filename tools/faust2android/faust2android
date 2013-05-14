@@ -1,0 +1,124 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compile a Faust program to an android app           #
+#               (c) Romain Michon CCRMA and Grame, 2013             #
+#                                                                   #
+#####################################################################
+
+TMPFILES="tmpfaust2android"
+JAVA_HOME=$ANDROID_NDK_ROOT
+
+set -e
+
+rm -rf $TMPFILES
+mkdir $TMPFILES
+
+cp -r src/* $TMPFILES
+
+# Global variables for options
+INSTALL=0
+ECLIPSE=0
+
+# PHASE 2 : dispatch command arguments
+for p in $@; do
+	if [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	elif [ $p = "-install" ]; then
+		INSTALL=1
+	elif [ $p = "-eclipse" ]; then
+		ECLIPSE=1
+	elif [ $p = "-h" ]; then
+		echo "Usage: faust2android faustFile.dsp"
+		echo "OPTIONS:"
+		echo "-install : once compilation is over, installs the generated app on the Android device connected to the computer."
+		echo "-eclipse : creates an eclipse project of the app in the current directory."
+		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
+		exit 1
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+# Faust compilation
+for f in $FILES; do
+	faust -xml -a $TMPFILES/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+done
+
+# Get the number of input and output of the Faust object 
+NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
+NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
+
+# If the number of input signals is greater than one, they are merged into one signal
+if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
+	if [ $NINPUTS -gt  1 ]; then
+		INMOD="_ <:"
+		echo "Your Faust object has more than one inputs!"
+	elif [ $NOUTPUTS -gt  2 ]; then
+		OUTMOD=":> _,_"
+		echo "Your Faust object has more than two outputs!"
+	fi
+	echo "It was modified as follows:"
+	echo "process = $INMOD component(\"$f\") $OUTMOD;"
+	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
+	faust -xml -a $TMPFILES/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	rm tmpMOD.dsp
+	rm tmpMOD.dsp.xml
+fi
+
+# Declare global variables in the C++ code for the number of parameters
+echo 'const int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
+echo 'const int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
+
+cd $TMPFILES
+
+APPNAME=$(echo $f | sed 's/.\{4\}$//')
+mv res/values/strings.xml res/values/stringsN.xml 
+sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
+rm res/values/stringsN.xml
+
+# *************
+# COMPILATION
+# *************
+
+sh build.sh #> /dev/null
+
+# To be checked on the mac
+android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > /dev/null 
+
+ant release #> /dev/null
+
+# Code used to generate the faust2android key:
+# keytool -genkey -v -keystore faust2android.keystore -alias faust2an -keyalg RSA -keysize 2048 -validity 10000
+
+# Sign the app...
+expect -c "
+spawn jarsigner -sigalg MD5withRSA -digestalg SHA1 -keystore faust2android.keystore bin/faustApp-release-unsigned.apk faust2an
+expect \"Enter Passphrase for keystore:\"
+send \"mephisto\r\"
+interact
+"
+
+# Check the alignment of the compressed file
+zipalign -v 4 bin/faustApp-release-unsigned.apk bin/faustApp-release.apk
+
+cp -r bin/faustApp-release.apk ../$APPNAME.apk
+cd ..
+
+# ****************
+# TREAT OPTIONS
+# ****************
+
+if [ $INSTALL -eq 1 ]; then
+	adb install -r $APPNAME.apk
+fi
+if [ $ECLIPSE -eq 1 ]; then
+	rm -rf faustApp
+	mv $TMPFILES faustApp
+	echo "An eclipse project named faustApp was created."
+else
+	rm -rf $TMPFILES
+fi
+
+rm "$f.xml"

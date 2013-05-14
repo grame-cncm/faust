@@ -12,6 +12,7 @@
 
 
 #include "sourcereader.hh"
+#include "sourcefetcher.hh"
 #include "enrobage.hh"
 #include "ppbox.hh"
 
@@ -28,6 +29,7 @@ extern bool gLatexDocSwitch;
 
 
 int yyparse();
+void* yy_scan_string (const char *yy_str  ); // In principle YY_BUFFER_STATE
 
 extern int 		yyerr;
 extern int 		yydebug;
@@ -186,29 +188,56 @@ Tree formatDefinitions(Tree rldef)
 Tree SourceReader::parse(string fname)
 {
 	string	fullpath;
+    char*   fileBuf = 0;
 	
 	yyerr = 0;
 	
 	yyfilename = fname.c_str();
-	yyin = fopensearch(yyfilename, fullpath);
-	if (yyin == NULL) {
-		fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
-		exit(1);
-	}
-	
-	yylineno = 1;
-	int r = yyparse();
-	if (r) { 
-		fprintf(stderr, "Parse error : code = %d \n", r); 
-	}
-	if (yyerr > 0) {
-		//fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr); 
-		exit(1);
-	}
+    if (strstr(yyfilename,"://")>0) {
+        // We are requested to parse an URL file
+        int ret = http_fetch(yyfilename, &fileBuf);
+        if (ret == -1) {
+            http_perror("http fetch");
+            exit(1);
+        }
+        yy_scan_string(fileBuf);
+        yylineno = 1;
+        int r = yyparse();
+        if (r) {
+            fprintf(stderr, "Parse error : code = %d \n", r);
+        }
+        if (yyerr > 0) {
+            //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
+            exit(1);
+        }
+        
+        // we have parsed a valid file
+        fFilePathnames.push_back(fullpath);
+        free(fileBuf);
+        return gResult;
 
-	// we have parsed a valid file
-	fFilePathnames.push_back(fullpath);
-	return gResult;
+    } else {
+        // We are requested to parse a regular file
+        yyin = fopensearch(yyfilename, fullpath);
+        if (yyin == NULL) {
+            fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
+            exit(1);
+        }
+        
+        yylineno = 1;
+        int r = yyparse();
+        if (r) { 
+            fprintf(stderr, "Parse error : code = %d \n", r); 
+        }
+        if (yyerr > 0) {
+            //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr); 
+            exit(1);
+        }
+
+        // we have parsed a valid file
+        fFilePathnames.push_back(fullpath);
+        return gResult;
+    }
 }
 
 

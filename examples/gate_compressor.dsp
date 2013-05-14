@@ -1,3 +1,5 @@
+declare name 		"gate_compressor";
+
 ol = library("oscillator.lib");
 el = library("effect.lib");
 fl = library("filter.lib");

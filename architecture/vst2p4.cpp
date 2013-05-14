@@ -95,27 +95,10 @@
 #include <cstring>
 #include <cmath>
 
-using namespace std ;
+#include "faust/gui/UI.h"
+#include "faust/audio/dsp.h"
 
-// There is a bug with powf() when cross compiling with mingw
-// the following macro avoid the problem
-#ifdef WIN32
-#define powf(x,y) pow(x,y)
-#define expf(x) exp(x)
-#endif
-
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-    #define AVOIDDENORMALS 
-#endif
+using namespace std;
 
 struct Meta : std::map<std::string, std::string>
 {
@@ -124,13 +107,6 @@ struct Meta : std::map<std::string, std::string>
         (*this)[key] = value;
     }
 };
-		
-// abs is now predefined
-//template<typename T> T abs (T a) { return (a<T(0)) ? -a : a; }
-
-inline int lsr (int x, int n) { return int(((unsigned int)x) >> n); }
-
-inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 
 /******************************************************************************
 *******************************************************************************
@@ -140,85 +116,7 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
 <<includeIntrinsic>>
-
-/******************************************************************************
-*******************************************************************************
-*
-*								USER INTERFACE
-*
-*******************************************************************************
-*******************************************************************************/
-
-class UI
-{
-  bool	fStopped;
-		
-public:
-			
-  UI() : fStopped(false) {}
-  virtual ~UI() {}
-		
-  virtual void addButton(const char* label, float* zone) = 0;
-  virtual void addToggleButton(const char* label, float* zone) = 0;
-  virtual void addCheckButton(const char* label, float* zone) = 0;
-  virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	
-  virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-  virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
-  virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-  virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-		
-  virtual void openFrameBox(const char* label) = 0;
-  virtual void openTabBox(const char* label) = 0;
-  virtual void openHorizontalBox(const char* label) = 0;
-  virtual void openVerticalBox(const char* label) = 0;
-  virtual void closeBox() = 0;
-		
-  virtual void run() {};
-		
-  void stop()		{ fStopped = true; }
-  bool stopped()	{ return fStopped; }
-
-  virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
-
-/******************************************************************************
-*******************************************************************************
-*
-*								FAUST DSP
-*
-*******************************************************************************
-*******************************************************************************/
-
-
-
-//----------------------------------------------------------------
-//  Base dsp class for this architecture
-//----------------------------------------------------------------
-			
-class dsp {
-
-protected:
-	 
-  int fSamplingFreq;
-		
-public:
-	 
-  dsp() {}
-  virtual ~dsp() {}
-  virtual int getNumInputs() = 0;
-  virtual int getNumOutputs() = 0;
-  virtual void buildUserInterface(UI* interface) = 0;
-  virtual void init(int samplingRate) = 0;
-  virtual void compute(int len, float** inputs, float** outputs) = 0;
-};
 		
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -292,10 +190,10 @@ public:
   vstUIObject(const char* label, float* zone):fLabel(label),fZone(zone) {}
   virtual ~vstUIObject() {}
 
-  virtual void  GetName(char *text){std::strcpy(text,fLabel.c_str());}
+  virtual void  GetName(char *text){std::strncpy(text,fLabel.c_str(),kVstMaxParamStrLen);}
   virtual void  SetValue(double f) {*fZone = range(0.0f,1.0f,(float)f);}
   virtual float GetValue() {return *fZone;}
-  virtual void  GetDisplay(char *text){std::sprintf(text,"%f",*fZone);}
+  virtual void  GetDisplay(char *text){::snprintf(text,kVstMaxParamStrLen,"%f",*fZone);}
   virtual long  GetID() 
   {	/* returns the sum of all the ASCII characters  contained in the parameter's label */
     unsigned int i;
@@ -403,10 +301,10 @@ public:
   void openVerticalBox(const char* label) {}
   void closeBox() {}
 		
-  void  SetValue(VstInt32 index, double f) {assert(index<fUITable.size()); fUITable[index]->SetValue(f);}
-  float GetValue(VstInt32 index) {assert(index<fUITable.size()); return fUITable[index]->GetValue();}
-  void  GetDisplay(VstInt32 index, char *text) {assert(index<fUITable.size()); fUITable[index]->GetDisplay(text);}
-  void  GetName(VstInt32 index, char *text) {assert(index<fUITable.size()); fUITable[index]->GetName(text);}
+  void  SetValue(VstInt32 index, double f) {assert(index<(int)fUITable.size()); fUITable[index]->SetValue(f);}
+  float GetValue(VstInt32 index) {assert(index<(int)fUITable.size()); return fUITable[index]->GetValue();}
+  void  GetDisplay(VstInt32 index, char *text) {assert(index<(int)fUITable.size()); fUITable[index]->GetDisplay(text);}
+  void  GetName(VstInt32 index, char *text) {assert(index<(int)fUITable.size()); fUITable[index]->GetName(text);}
   long  GetNumParams() {return fUITable.size();}
 
   long  makeID()
@@ -416,9 +314,9 @@ public:
      */
   {   
     const long maxNumberOfId = 128;
-    long baseid = 'FAUS';
+    long baseid = CCONST('F','A','U','S');
     long id=0;
-    for(int i=0;i<fUITable.size();i++) id += fUITable[i]->GetID();
+    for(unsigned int i=0;i<fUITable.size();i++) id += fUITable[i]->GetID();
     return baseid + id % maxNumberOfId;
   }
 		

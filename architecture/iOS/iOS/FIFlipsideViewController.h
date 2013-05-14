@@ -35,19 +35,23 @@
     IBOutlet UILabel*               _sampleRateLabel;
     IBOutlet UISlider*              _bufferSizeSlider;
     IBOutlet UILabel*               _bufferSizeLabel;
+    IBOutlet UISwitch*              _openWidgetPanelSwitch;
     
     int                             _sampleRate;
     int                             _bufferSize;
+    BOOL                            _openWidgetPanel;
 }
 
 @property (assign, nonatomic) IBOutlet id <FIFlipsideViewControllerDelegate> delegate;
 @property (nonatomic, nonatomic) int sampleRate;
 @property (nonatomic, nonatomic) int bufferSize;
+@property (nonatomic, nonatomic) BOOL openWidgetPanel;
 
 
 - (IBAction)done:(id)sender;
 - (IBAction)sampleRateSliderMoved:(id)sender;
 - (IBAction)bufferSizeSliderMoved:(id)sender;
+- (IBAction)openWidgetPanelSwitchMoved:(id)sender;
 
 - (int)sampleRateToSliderValue:(int)sampleRate;
 - (int)sliderValueToSampleRate:(int)sliderValue;

@@ -41,8 +41,8 @@ using namespace std;
 namespace httpdfaust
 {
 
-#define kVersion	 0.70f
-#define kVersionStr	"0.70"
+#define kVersion	 0.71f
+#define kVersionStr	"0.71"
 
 static const char* kPortOpt	= "-port";
 
@@ -190,7 +190,7 @@ void HTTPDControler::run ()
 
 			stringstream strhtml;
 			fHtml->root().setPort (fTCPPort);
-			fHtml->root().print(strhtml);
+			fHtml->root().print(strhtml, strjson.str());
 			if (rootnode) rootnode->setHtml (strhtml.str());
 			// and outputs a message
 			cout << "Faust httpd server version " << version() <<  " is running on UDP ports " << fTCPPort << endl;

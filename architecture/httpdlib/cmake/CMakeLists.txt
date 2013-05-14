@@ -8,7 +8,7 @@ set (CMAKE_CONFIGURATION_TYPES Debug Release)
 set (TARGET	HTTPDFaust)
 #######################################
 # versions management
-set (version 0.50)
+set (version 0.71)
 
 #######################################
 if(WIN32)
@@ -29,7 +29,7 @@ if(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
 		set (CMAKE_OSX_SYSROOT "macosx10.7")
 	endif (${CMAKE_SYSTEM_VERSION} VERSION_LESS 9.0.0)
 
-	set (CMAKE_OSX_ARCHITECTURES "i386 x86_64")
+	set (CMAKE_OSX_ARCHITECTURES "x86_64")
 	set (CMAKE_C++_FLAGS -mmacosx-version-min=10.4)
 endif(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
 
@@ -60,13 +60,23 @@ file (GLOB HEADERFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${HEADERS})
 foreach(folder ${SRCFOLDERS})
 	set(INCL ${INCL} "${ROOT}/${folder}")			# add include folders
 endforeach(folder)
-set(INCL ${INCL} "${ROOT}/threads" "/usr/local/include")	# add other include folders
+set(INCL ${INCL} "${LIBDIR}" "${ROOT}/threads" "/usr/local/include")	# add other include folders
 
 #######################################
 # set targets
 include_directories (${INCL} )
 
-add_library ( ${TARGET} STATIC ${SRCFILES} ${HEADERFILES} )
+#######################################
+# target lib settings
+if (STATIC STREQUAL "yes")
+	message (STATUS "Generates a static library - Use -DSTATIC=no to change.")
+	set (lib "STATIC")
+else ()
+	message (STATUS "Generates a dynamic library - Use -DSTATIC=yes to change.")
+	set (lib "SHARED")
+endif ()
+
+add_library ( ${TARGET} ${lib} ${SRCFILES} ${HEADERFILES} )
 set_source_files_properties (${HEADERFILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_target_properties (${TARGET} PROPERTIES 
 	VERSION ${version} 
@@ -78,6 +88,7 @@ if(WIN32)
   target_link_libraries ( ${TARGET} ws2_32.lib microhttpd.lib)
  set (OUTLIB "${TARGET}.lib")
 else()
+  set_target_properties ( ${TARGET} PROPERTIES LINK_FLAGS -L/usr/local/lib )
   target_link_libraries ( ${TARGET} microhttpd )
  set (OUTLIB "lib${TARGET}.a")
 endif()

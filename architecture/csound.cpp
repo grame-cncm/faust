@@ -52,6 +52,9 @@
 #include <new>
 #include <vector>
 #include "csdl.h"                       /* CSOUND plugin API header */
+#include "faust/audio/dsp.h"
+#include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
 
 // used to transform a symbol in a string
 #define sym(name) xsym(name)
@@ -72,24 +75,7 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
-
 using namespace std;
-
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-    #define AVOIDDENORMALS 
-#endif
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -99,54 +85,7 @@ using namespace std;
 *******************************************************************************
 *******************************************************************************/
 
-
 <<includeIntrinsic>>
-
-
-
-/**
- * We will ignore metadata declarations
- */
-struct Meta 
-{
-    void declare (const char* key, const char* value) { }
-};
-
-/**
- * Abstract Definition of a user interface
- */
-class UI 
-{
- public:
-        
-    virtual ~UI() {}
-
-    // -- active widgets
-    
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) = 0;
-    virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) = 0;
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) = 0;
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-    
-    // -- passive widgets
-    
-    virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision)                           {}
-    virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, char* names[], FAUSTFLOAT min, FAUSTFLOAT max)    {}
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)            {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)              {}
-    
-    // -- widget's layouts
-    
-    virtual void openFrameBox(const char* label)                                                        {}
-    virtual void openTabBox(const char* label)                                                          {}
-    virtual void openHorizontalBox(const char* label)                                                   {}
-    virtual void openVerticalBox(const char* label)                                                     {}
-    virtual void closeBox()                                                                             {}
-
-    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value) {}
-};
 
 /**
  * A UI that simply collects the active zones in a vector
@@ -157,40 +96,33 @@ class CSUI : public UI
     vector<FAUSTFLOAT*>  vZone;
 
  public:
+ 
+    // -- widget's layouts
+    
+    virtual void openTabBox(const char* label)                                                          {}
+    virtual void openHorizontalBox(const char* label)                                                   {}
+    virtual void openVerticalBox(const char* label)                                                     {}
+    virtual void closeBox()                                                                             {}
+    
     // -- active widgets
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)                                                          { vZone.push_back(zone); }
-    virtual void addToggleButton(const char* label, FAUSTFLOAT* zone)                                                    { vZone.push_back(zone); }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)                                                     { vZone.push_back(zone); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)    { vZone.push_back(zone); }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)  { vZone.push_back(zone); }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)          { vZone.push_back(zone); }
-
+    
+    // -- passive widgets
+    
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)            {}
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)              {}
+ 
     void copyfrom(MYFLT* mem[]) {
         for (unsigned int i=0; i<vZone.size(); i++) { *vZone[i] = *(mem[i]); }
     }
 
     int size()                  { return vZone.size(); }
 };
-
-
-
-/**
- * Abstract Definition of a DSP
- */
-
-class dsp {
- protected:
-    int fSamplingFreq;
-  public:
-    virtual int getNumInputs() = 0;
-    virtual int getNumOutputs() = 0;
-    virtual void instanceInit(int samplingFreq) = 0;
-    virtual void init(int samplingFreq)= 0;
-    virtual void buildUserInterface(UI* interface) = 0;
-    virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) = 0;
-};
-
 		
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -202,8 +134,6 @@ class dsp {
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-
-
 struct dataspace {
     OPDS      h;                          /* basic attributes */
     MYFLT*    aout[FAUST_OUTPUTS];        /* output buffers   */
@@ -214,7 +144,6 @@ struct dataspace {
     AUXCH     dspmem;                     /* aux memory allocated once to store the DSP object */
     AUXCH     intmem;                     /* aux memory allocated once to store the interface object */
 };
-
 
 /**
  * Creates a "aaakkkk" CSound description string. Note that
@@ -231,7 +160,6 @@ static char* makeDescription(int numa, int numk=0)
     return str;
 }
 
-
 /**
  * CSOUND callback that allocates and initializes
  * the FAUST generated DSP object and it's CSound interface
@@ -244,7 +172,6 @@ static int init(CSOUND *csound, dataspace *p)
     if(p->intmem.auxp == NULL)
         csound->AuxAlloc(csound, sizeof(CSUI), &p->intmem);
 
-
     p->DSP = new (p->dspmem.auxp) mydsp;
     p->interface = new (p->intmem.auxp) CSUI;
 
@@ -255,7 +182,6 @@ static int init(CSOUND *csound, dataspace *p)
 
     return OK;
 }
-
 
 /**
  * CSound callback that process the samples by updating
@@ -274,12 +200,11 @@ static int process32bits(CSOUND *csound, dataspace *p)
 }
 
 extern "C" {
-
-static OENTRY localops[] = {
-    {(char*)sym(OPCODE_NAME), sizeof(dataspace),5,makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS,FAUST_ACTIVES),
-     (SUBR)init, NULL,(SUBR)process32bits }
-};
-LINKAGE
+    static OENTRY localops[] = {
+        {(char*)sym(OPCODE_NAME), sizeof(dataspace),5,makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS,FAUST_ACTIVES),
+         (SUBR)init, NULL,(SUBR)process32bits }
+    };
+    LINKAGE
 }
   
 		

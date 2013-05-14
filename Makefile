@@ -1,4 +1,4 @@
-version := 0.9.57
+version := 0.9.61
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -95,9 +95,10 @@ uninstall :
 
 # make a faust distribution .zip file
 dist :
-	git archive -o faust-$(version).zip HEAD
+	git archive -o faust-$(version).zip --prefix=faust-$(version)/ HEAD
 
 
 log :
-	cvs2cl --fsf
+	git log --oneline --date-order --reverse --after={2011-01-07} master >log-$(version)
+	
 # DO NOT DELETE

@@ -36,7 +36,7 @@ class htmlui
 		virtual ~htmlui();
 
 		// -- widget's layouts
-		virtual void openFrameBox(const char* label);
+//		virtual void openFrameBox(const char* label);
 		virtual void openTabBox(const char* label);
 		virtual void openHorizontalBox(const char* label);
 		virtual void openVerticalBox(const char* label);
@@ -44,7 +44,7 @@ class htmlui
 
 		// -- active widgets
 		virtual void addButton(const char* label, float* zone);
-		virtual void addToggleButton(const char* label, float* zone);
+//		virtual void addToggleButton(const char* label, float* zone);
 		virtual void addCheckButton(const char* label, float* zone);
 		virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);
 		virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);

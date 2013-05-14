@@ -13,6 +13,7 @@ help:
 
 install:
 	mkdir -p $(dest)
+	install faustpath $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2caqt $(dest)
@@ -44,12 +45,14 @@ install:
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
 	install faust2netjackqt $(dest)
+	install faust2netjackconsole $(dest)
 	install faust2vst $(dest)
 	install faust2ios $(dest)
 	install faust2lv2 $(dest)
 	install faust2lv2synth $(dest)
 
 uninstall:
+	rm -f $(dest)/faustpath
 	rm -f $(dest)/faust2alqt
 	rm -f $(dest)/faust2alsa 
 	rm -f $(dest)/faust2caqt
@@ -81,6 +84,7 @@ uninstall:
 	rm -f $(dest)/faust2sig
 	rm -f $(dest)/faust2sigviewer
 	rm -f $(dest)/faust2netjackqt
+	rm -f $(dest)/faust2netjackconsole
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2lv2
