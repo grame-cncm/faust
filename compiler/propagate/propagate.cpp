@@ -136,12 +136,14 @@ Tree listConvert(const siglist& a)
 	return t;
 }
 
-// siglist listConvertBack(Tree l)
-// {
-// 	siglist r;
-// 	while (!isNil(l)) { r.push_back(hd(l)); l = tl(l); }
-// 	return r;
-// }
+/**
+ * Convert a tree list of signals into an stl list of signals
+ */
+ void treelist2siglist(Tree l, siglist& r)
+ {
+    r.clear();
+    while (!isNil(l)) { r.push_back(hd(l)); l = tl(l); }
+ }
 
 siglist listLift(const siglist& l)
 {
@@ -163,40 +165,90 @@ static int	gDummyInput = 10000;
  *\param lsig list of signals to be propagated into box
  *\return list of resulting signals
  */
-/*
-// for debugging purposes
 
-siglist realpropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
+
+
+/**
+ * Node used for memoization purposes
+ */
+
+static Node PROPAGATEPROPERTY(symbol("PropagateProperty"));
+
+/**
+ * Store the propagation result as a property of the arguments tuplet
+ * @param args propagation arguments
+ * @param value propagation result
+ */
+void setPropagateProperty(Tree args, const siglist&  lsig)
+{
+    setProperty(args, tree(PROPAGATEPROPERTY), listConvert(lsig));
+}
+
+
+/**
+ * Retreive the propagation result as a property of the arguments tuplet
+ * @param args propagation arguments
+ * @param lsig the propagation result if any
+ * @return true if a propagation result was stored
+ */
+bool getPropagateProperty(Tree args, siglist&  lsig)
+{
+    Tree value;
+    if (getProperty(args, tree(PROPAGATEPROPERTY), value)) {
+        treelist2siglist(value, lsig);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+/**
+ * Propagate a list of signals into a block diagram.
+ * @param slotenv environment associating slots and signals
+ * @param path user interface group path
+ * @param box the block diagram
+ * @param lsig the list of input signals to propagate
+ * @return the resulting list of output signals
+ */
+
+siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
+
+
+/**
+ * Propagate a list of signals into a block diagram. Do memoization.
+ * @param slotenv environment associating slots and signals
+ * @param path user interface group path
+ * @param box the block diagram
+ * @param lsig the list of input signals to propagate
+ * @return the resulting list of output signals
+ */
 
 siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
-	cerr << "propagate in " << boxpp(box) << endl; 
-	for (int i=0; i<lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
-	cerr << endl;
-	return realpropagate (slotenv, path, box, lsig);
+    Tree args =tree(PROPAGATEPROPERTY,slotenv,path,box,listConvert(lsig));
+    siglist result;
+    if (! getPropagateProperty(args, result)) {
+        result = realPropagate (slotenv, path, box, lsig);
+        setPropagateProperty(args, result);
+    }
+    //cerr << "propagate in " << boxpp(box) << endl;
+    //for (int i=0; i<lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
+    //cerr << endl;
+    return result;
 }
-*/
+
 
 /**
- * Old try for names propagation.
+ * Propagate a list of signals into a block diagram. Actual function.
+ * @param slotenv environment associating slots and signals
+ * @param path user interface group path
+ * @param box the block diagram
+ * @param lsig the list of input signals to propagate
+ * @return the resulting list of output signals
  */
-//siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
-//{
-//	siglist S = realPropagate(slotenv, path, box, lsig);
-//
-//	if (gPrintDocSwitch) {
-//		Tree	id;
-//		if (lsig.size()==0 && getDefNameProperty(box, id)) {
-//			string nickname = defName2NickName(tree2str(id));
-//			//setSigListNickName(S, nickname);
-//		}
-//	}
-//
-//	return S;
-//}
 
-//siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
-siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
+siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
 	int		i;
 	double	r;
@@ -408,19 +460,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		siglist l2 = mix(l1, in2);
 		return propagate(slotenv, path, t2, l2);
 	}
-/*	
-	else if (isBoxRec(box, t1, t2)) 	{ 
-		int in1, out1, in2, out2;
-		getBoxType(t1, &in1, &out1);
-		getBoxType(t2, &in2, &out2);
-		
-		siglist l0 = makeSigProjList(ref(1), in2);
-		siglist l1 = propagate(slotenv, path, t2, l0);
-		siglist l2 = propagate(slotenv, path, t1, listConcat(l1,listLift(lsig)));
-		Tree g = rec(listConvert(l2));
-		return makeSigProjList(g, out1);
-	}
-*/	
+
     else if (isBoxRec(box, t1, t2)) 	{
         // Bug Corrected
         int in1, out1, in2, out2;
@@ -441,7 +481,14 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	return siglist();
 }
 
-	
+/**
+ * Top level propagate a list of signals into a block diagram. Do memoization.
+ * @param path user interface group path
+ * @param box the block diagram
+ * @param lsig the list of input signals to propagate
+ * @return the resulting list of output signals
+ */
+
 Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig)
 {
 	return listConvert(propagate(nil, path, box, lsig));
