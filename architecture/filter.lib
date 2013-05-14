@@ -240,9 +240,13 @@ fir(bv) = conv(bv);
 //  _ : conv((k1,k2,k3,...,kN)) : _; // Argument = one signal bank
 //  _ : convN(N,(k1,k2,k3,...)) : _; // Useful when N < count((k1,...))
 
-convN(N,kv,x) = sum(i,N,take(i+1,kv) * x@i); // take() defined in math.lib
+// fast-compiling recursive formulation by Yann Orlarey:
+conv((c,lc)) = _ <: *(c), R(1,lc) :> _ with {
+    R(n,(c,lc)) = @(n) * (c), R(n+1,lc);
+    R(n, c)     = @(n) * (c); };
+conv(c) = *(c);
 
-conv(kv,x) = sum(i,count(kv),take(i+1,kv) * x@i); // count() from math.lib
+convN(N,kv,x) = sum(i,N,take(i+1,kv) * x@i); // take() defined in math.lib
 
 // Named special cases:
 //----------------------------- tf1, tf2 ---------------------------------
