@@ -4,7 +4,7 @@
 #include "audioeffectx.h"
 #include "dsp.h"
 
-const int MAX_POLYPHONY = 1;
+const int MAX_POLYPHONY = 10;
 const int INITIAL_TEMP_OUTPUT_SIZE = 1024;
 
 class Faust : public AudioEffectX

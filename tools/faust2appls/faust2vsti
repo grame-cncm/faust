@@ -108,7 +108,7 @@ for p in $FILES; do
     TMP=$(mktemp -d faust.XXX)
 
     # compile faust to c++
-	faust -a vsti-mono.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -a vsti-poly.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
