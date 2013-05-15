@@ -551,6 +551,8 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
             (*it)->update_sourcecode();
         }
+    } else {
+        post("DSP code has not been changed...");
     }
 }
 
@@ -805,6 +807,7 @@ faustgen::~faustgen()
      
     if (fEditor) {
         object_free(fEditor);
+        fEditor = 0;
     }
      
     fDSPfactory->remove_instance(this);
@@ -1023,7 +1026,7 @@ void faustgen::edclose(long inlet, char** source_code, long size)
     if (fDSP && fEditor) {
         fDSPfactory->update_sourcecode(size, *source_code, this);
         fEditor = 0;
-    }
+    } 
 }
 
 void faustgen::update_sourcecode()

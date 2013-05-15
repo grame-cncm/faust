@@ -47,6 +47,8 @@
 
 using namespace std;
 
+string makeDrawPath();
+
 std::ostream* Printable::fOut = &cout;
 
 static BasicTyped* genBasicFIRTyped(int sig_type)
@@ -180,7 +182,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("InstructionsCompiler::prepare");
 
     if (gGlobal->gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gGlobal->gDrawPath + gGlobal->gMasterDocument).c_str());
+        ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
         sigToGraph(L3, dotfile);
     }
   	return L3;

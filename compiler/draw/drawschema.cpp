@@ -274,7 +274,7 @@ static int mkchdir(const char* dirname)
 		}
 	}
 	stringstream error;
-    error << "ERROR in mkchdir : " << strerror(errno) << endl;
+    error << "ERROR in mkchdir for " << dirname << " : " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
 
