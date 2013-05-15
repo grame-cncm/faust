@@ -122,6 +122,7 @@
     else if (self.inputOutput == 2) [jackView displayCurrentAppPortsWithInputOutput:1 audioMidi:self.audioMidi];
     
     [jackView.superview addSubview:jackView.portsView];
+    [jackView.portsView createLinks];
     [jackView.portsView setNeedsDisplay];
 }
 
