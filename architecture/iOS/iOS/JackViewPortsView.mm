@@ -137,6 +137,7 @@
     }
     
     portsView.linking = NO;
+    [portsView createLinks];
     [portsView setNeedsDisplay];
     [jackView setNeedsDisplay];
 }
@@ -148,10 +149,44 @@
     if (self.frame.origin.x == portsView.currentAppX) return;
     
     portsView.linking = NO;
+    [portsView createLinks];
     [portsView setNeedsDisplay];
 }
 
 @end
+
+
+@implementation JackViewPortsLink
+
+@synthesize srcPt;
+@synthesize dstPt;
+@synthesize srcName;
+@synthesize dstName;
+@synthesize selected;
+
+- (id)init
+{
+    self = [super init];
+    if (self)
+    {
+        self.srcPt = CGPointMake(0., 0.);
+        self.dstPt = CGPointMake(0., 0.);
+        self.srcName = nil;
+        self.dstName = nil;
+        self.selected = NO;
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [self.srcName release];
+    [self.dstName release];
+    [super dealloc];
+}
+
+@end
+
 
 
 @implementation JackViewPortsView
@@ -173,9 +208,28 @@
         self.clientX = 0.;
         self.currentAppX = 0.;
         self.linking = NO;
+        _links = [[NSMutableArray alloc] initWithCapacity:0];
+        _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
+        _tapRecognizer.numberOfTapsRequired = 1;
+        [self addGestureRecognizer:_tapRecognizer];
+        _deleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_deleteButton setTitle:@"X" forState:UIControlStateNormal];
+        [_deleteButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+        [_deleteButton setFrame:CGRectMake(0, 0, 20, 20)];
+        _deleteButton.showsTouchWhenHighlighted = YES;
+        _deleteButton.hidden = YES;
+        [_deleteButton addTarget:self action:@selector(deleteSelectedLink) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_deleteButton];
     }
     return self;
 }
+
+- (void)dealloc
+{
+    [_links release];
+    [super dealloc];
+}
+
 
 - (void)drawRect:(CGRect)rect
 {
@@ -234,18 +288,58 @@
     CGContextRestoreGState(context);
     
     // Links
+    JackViewPortsLink* link = nil;
+    
+    for (i = 0; i < [_links count]; ++i)
+    {
+        link = [_links objectAtIndex:i];
+        
+        if (linking) link.selected = NO;
+        
+        CGContextRef c = UIGraphicsGetCurrentContext();
+        
+        if (link.selected) [[UIColor redColor] set];
+        else [[UIColor whiteColor] set];
+        
+        CGContextBeginPath(c);
+        CGContextMoveToPoint(c, link.srcPt.x, link.srcPt.y);
+        CGContextAddLineToPoint(c, link.dstPt.x, link.dstPt.y);
+        CGContextStrokePath(c);
+    }
+    
+    if (self.linking)
+    {
+        _deleteButton.hidden = YES;
+        
+        CGContextRef c = UIGraphicsGetCurrentContext();
+        
+        [[UIColor whiteColor] set];
+        
+        CGContextBeginPath(c);
+        CGContextMoveToPoint(c, self.srcPt.x, self.srcPt.y);
+        CGContextAddLineToPoint(c, self.dstPt.x, self.dstPt.y);
+        CGContextStrokePath(c);
+    }
+}
+
+- (void)createLinks
+{
+    // Links
+    int i = 0;
+    int j = 0;
+    int k = 0;
     NSArray* buttons = [self subviews];
     JackViewPortsViewItem* srcItem = nil;
     JackViewPortsViewItem* dstItem = nil;
     JackView* jackView = self.clientButton.jackView;
     CGPoint tmpSrcPt;
     CGPoint tmpDstPt;
-    int j = 0;
     NSString* srcName = nil;
     NSString* dstName = nil;
     NSArray* dstArray = nil;
-    int k = 0;
-        
+    
+    [_links removeAllObjects];
+    
     for (i = 0; i < [buttons count]; ++i)
     {
         srcItem = (JackViewPortsViewItem*)[buttons objectAtIndex:i];
@@ -255,10 +349,10 @@
             {
                 srcName = srcItem.longName;
                 tmpSrcPt = CGPointMake(srcItem.frame.origin.x + srcItem.frame.size.width / 2.,
-                                    srcItem.frame.origin.y + srcItem.frame.size.height / 2.);
+                                       srcItem.frame.origin.y + srcItem.frame.size.height / 2.);
                 
                 dstArray = [jackView getCurrentClientPortConnectedTo:srcName];
-               
+                
                 for (j = 0; j < [buttons count]; ++j)
                 {
                     dstItem = (JackViewPortsViewItem*)[buttons objectAtIndex:j];
@@ -267,21 +361,19 @@
                     {
                         for (k = 0; k < [dstArray count]; ++k)
                         {
-                            dstName = (NSString*)[dstArray objectAtIndex:k];
+                            dstName = [[NSString alloc] initWithFormat:@"%@", (NSString*)[dstArray objectAtIndex:k]];
                             
                             if ([dstItem.longName compare:dstName] == NSOrderedSame)
                             {
                                 tmpDstPt = CGPointMake(dstItem.frame.origin.x + dstItem.frame.size.width / 2.,
                                                        dstItem.frame.origin.y + dstItem.frame.size.height / 2.);
                                 
-                                CGContextRef c = UIGraphicsGetCurrentContext();
-                                
-                                CGFloat color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-                                CGContextSetStrokeColor(c, color);
-                                CGContextBeginPath(c);
-                                CGContextMoveToPoint(c, tmpSrcPt.x, tmpSrcPt.y);
-                                CGContextAddLineToPoint(c, tmpDstPt.x, tmpDstPt.y);
-                                CGContextStrokePath(c);
+                                JackViewPortsLink* link = [[JackViewPortsLink alloc] init];
+                                link.srcPt = CGPointMake(tmpSrcPt.x, tmpSrcPt.y);
+                                link.dstPt = CGPointMake(tmpDstPt.x, tmpDstPt.y);
+                                link.srcName = srcName;
+                                link.dstName = dstName;
+                                [_links addObject:link];
                             }
                         }
                     }
@@ -289,18 +381,26 @@
             }
         }
     }
+}
+
+- (void)deleteSelectedLink
+{
+    int i = 0;
+    JackViewPortsLink* link = nil;
     
-    if (self.linking)
-    {        
-        CGContextRef c = UIGraphicsGetCurrentContext();
-        
-        CGFloat color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-        CGContextSetStrokeColor(c, color);
-        CGContextBeginPath(c);
-        CGContextMoveToPoint(c, self.srcPt.x, self.srcPt.y);
-        CGContextAddLineToPoint(c, self.dstPt.x, self.dstPt.y);
-        CGContextStrokePath(c);
+    for (i = 0; i < [_links count]; ++i)
+    {
+        link = [_links objectAtIndex:i];
+
+        if (link.selected)
+        {
+            [clientButton.jackView disconnectPort:link.srcName withPort:link.dstName];
+        }
     }
+    
+    _deleteButton.hidden = YES;
+    [self createLinks];
+    [self setNeedsDisplay];
 }
 
 - (JackViewPortsViewItem*)itemAtPoint:(CGPoint)pt
@@ -322,6 +422,69 @@
     }
     
     return nil;
+}
+
+- (void)singleTap:(UIGestureRecognizer *)gestureRecognizer
+{
+    CGPoint pt = [gestureRecognizer locationInView:self];
+    float a = 0.f;
+    float b = 0.f;
+    float c = 0.f;
+    float m = 0.f;
+    float p = 0.f;
+    JackViewPortsLink* link = nil;
+    int i = 0;
+    int minLinkIndex = -1;
+    float dist = 0.;
+    float minDist = 100000.;
+    
+    _deleteButton.hidden = YES;
+    
+    // Look for nearest link
+    for (i = 0; i < [_links count]; ++i)
+    {
+        link = [_links objectAtIndex:i];
+        link.selected = NO;
+        
+        if (pt.x > fminf(link.srcPt.x, link.dstPt.x)
+            && pt.x < fmaxf(link.srcPt.x, link.dstPt.x))
+        {
+            // Compute link equation : y = mx + p
+            m = (link.dstPt.y - link.srcPt.y) / (link.dstPt.x - link.srcPt.x);
+            p = link.srcPt.y - m * link.srcPt.x;
+            
+            // Convert link equation to ax + by + c = 0
+            b = 1.;
+            a = -m;
+            c = -p;
+            
+            // Compute distance from pt to line
+            dist = fabsf(a * pt.x + b * pt.y + c) / sqrt(a * a + b * b);
+            
+            if (dist <= 10)
+            {
+                // Compare distance with min distance
+                minDist = fminf(minDist, dist);
+                
+                // If this current link is the nearest, keep its index
+                if (minDist == dist)
+                {
+                    minLinkIndex = i;
+                }
+            }
+        }
+    }
+    
+    if (minLinkIndex != -1)
+    {
+        link = [_links objectAtIndex:minLinkIndex];
+        link.selected = YES;
+        
+        [_deleteButton setFrame:CGRectMake(link.dstPt.x - 80, (link.dstPt.y - 20) * 0.8 + (link.srcPt.y - 20) * 0.2, 20, 20)];
+        _deleteButton.hidden = NO;
+    }
+    
+    [self setNeedsDisplay];
 }
 
 @end

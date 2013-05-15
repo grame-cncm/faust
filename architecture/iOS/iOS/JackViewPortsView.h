@@ -24,9 +24,23 @@
 @end
 
 
+@interface JackViewPortsLink : NSObject
+
+@property (assign, nonatomic) CGPoint srcPt;
+@property (assign, nonatomic) CGPoint dstPt;
+@property (assign, nonatomic) NSString* srcName;
+@property (assign, nonatomic) NSString* dstName;
+@property (assign, nonatomic) BOOL selected;
+
+@end
+
+
 @interface JackViewPortsView : UIView
 {
     UIScrollView*           _scrollView;
+    NSMutableArray*         _links;
+    UITapGestureRecognizer* _tapRecognizer;
+    UIButton*               _deleteButton;
 }
 
 @property (assign, nonatomic) JackViewButton* clientButton;
@@ -36,6 +50,9 @@
 @property (assign, readwrite) CGPoint srcPt;
 @property (assign, readwrite) CGPoint dstPt;
 
+- (void)createLinks;
+- (void)deleteSelectedLink;
 - (JackViewPortsViewItem*)itemAtPoint:(CGPoint)pt;
+- (void)singleTap:(UIGestureRecognizer *)gestureRecognizer;
 
 @end
