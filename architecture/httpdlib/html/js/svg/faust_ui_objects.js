@@ -462,7 +462,7 @@ _f4u$t.SlidingObject.prototype.dims = function() {
 _f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
   if (this.axis != a && this.stretchable) {
     dims = this.internal_dims();
-    this.length = Math.max(_f4u$t.xy(this.axis,dims[_f4u$t.X_AXIS],dims[_f4u$t.Y_AXIS]),
+    this.length = Math.max(dims[this.axis],
                            // todo - make adjustment for label width if it is huge
                            _f4u$t.xy(this.axis, x - (2 * this.mom.other_axis_padding), y - (2 * this.lpadding_y) - this.mom.other_axis_padding - Math.max(this.mom.lpadding_y, this.mom.other_axis_padding)));
   }
