@@ -497,6 +497,26 @@ static string fxname(const string& filename)
     return filename.substr(p1, p2-p1);
 }
 
+string makeDrawPath()
+{
+    if (gGlobal->gDrawPath != "") {
+        return gGlobal->gDrawPath + "/" + gGlobal->gMasterName + ".dsp";
+    } else {
+        return gGlobal->gMasterDocument;
+    }
+}
+
+static string makeDrawPathNoExt()
+{
+    if (gGlobal->gDrawPath != "") {
+        return gGlobal->gDrawPath + "/" + gGlobal->gMasterName;
+    } else if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
+        return gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4);
+    } else {
+        return gGlobal->gMasterDocument;
+    }
+}
+
 static void initFaustDirectories()
 {
     char s[1024];
@@ -554,12 +574,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     if (gGlobal->gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
     if (gDrawPSSwitch || gDrawSVGSwitch) {
-        string projname;
-        if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
-            projname = gGlobal->gDrawPath + gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4);
-        } else {
-            projname = gGlobal->gDrawPath + gGlobal->gMasterDocument;
-        }
+        string projname = makeDrawPathNoExt();
         if (gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
         if (gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
     }
@@ -771,9 +786,8 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     *****************************************************************/
   
     if (gPrintXMLSwitch) {
-        Description*    D = comp->getDescription(); assert(D);
-        
-        ofstream        xout(subst("$0.xml", (gGlobal->gDrawPath + gGlobal->gMasterDocument)).c_str());
+        Description* D = comp->getDescription(); assert(D);
+        ofstream xout(subst("$0.xml", makeDrawPath()).c_str());
       
         if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
         if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
@@ -794,13 +808,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
     if (gPrintDocSwitch) {
         if (gGlobal->gLatexDocSwitch) {
-            string projname;
-            if (gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
-                projname = gGlobal->gDrawPath + gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4); 
-            } else {
-                projname = gGlobal->gDrawPath + gGlobal->gMasterDocument;
-            }
-            printDoc(subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION);
+            printDoc(subst("$0-mdoc", makeDrawPathNoExt()).c_str(), "tex", FAUSTVERSION);
         }
     }
 
@@ -809,7 +817,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     *****************************************************************/
 
     if (gGraphSwitch) {
-        ofstream dotfile(subst("$0.dot", (gGlobal->gDrawPath + gGlobal->gMasterDocument)).c_str());
+        ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
         container->printGraphDotFormat(dotfile);
     }
 }

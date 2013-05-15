@@ -177,17 +177,6 @@ and its text-box.
 **/
 _f4u$t.TEXT_BOX_PADDING = 3;
 
-/**
-Flag indicating if the UI is being manipulated.
-DEPRECATED
-
-@property BUSY
-@for _f4u$t
-@type Boolean
-@default false
-**/
-//_f4u$t.BUSY = false;//deprecated
-
 // some convenience methods for inheritence
 
 /**
@@ -560,7 +549,7 @@ Bounds a value between two numbers.
 @param {Number} v The value to bound.
 @param {Number} m One side of the bound (either the min or max).
 @param {Number} n The other side of the bound (either min or max).
-@return {Number} v bounded, meaning either unchanged or cropped at the min/max.
+@return {Number} Bounded value, meaning either unchanged or cropped at the min/max.
 **/
 _f4u$t.bound = function(v,m,n) {
   var mn = Math.min(m,n);
@@ -568,6 +557,42 @@ _f4u$t.bound = function(v,m,n) {
   if (v < mn) { return mn; }
   if (v > mx) { return mx; }
   return v;
+}
+
+/**
+Bounds a value between two numbers, avoiding large leaps
+from a previous value
+
+@method bound
+@for _f4u$t
+@static
+@param {Number} aval The value to bound.
+@param {Number} pval The previous value
+@param {Number} l The lower bound
+@param {Number} h The upper bound
+@return {Number} The value bounded. If the previous value was the upper
+bound, we remain on this to avoid large leaps.
+**/
+_f4u$t.bound_and_avoid_large_leaps = function(aval, pval, l, h) {
+  if (l > aval) {
+    if (pval != h) {
+      return l;
+    }
+  }
+
+  else if (aval > h) {
+    if (pval != l) {
+      return h;
+    }
+  }
+
+  // if neither of the above are true, free to move by the difference
+  else {
+    return aval;
+  }
+
+  // corner case - we avoid large leaps
+  return pval;
 }
 
 /**
@@ -781,6 +806,26 @@ _f4u$t.unique = function(s) {
     return s;
   }
   return spl[spl.length - 1];
+}
+
+/**
+Returns the type part of an id.  The faust naming convention gives
+all DOM ids a type as the second entry. Examples are vslider, hslider,
+rbutton.
+
+@method unique
+@for _f4u$t
+@static
+@param {String} s An ID string
+@return {String} The unique type, if one exists.
+**/
+_f4u$t.type = function(s) {
+  var spl = s.split("_");
+  if (spl.length == 0) {
+    console.log("incorrect naming of faust object");
+    return s;
+  }
+  return spl[1];
 }
 
 /**

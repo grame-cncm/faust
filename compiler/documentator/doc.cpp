@@ -912,7 +912,7 @@ static bool doesFileBeginWithCode(const string& faustfile)
  */
 static int makedir(const char* dirname)
 {
-	char	buffer[FAUST_PATH_MAX];
+ 	char buffer[FAUST_PATH_MAX];
 	gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
 	
 	if (gGlobal->gCurrentDir.c_str() != 0) {
@@ -922,7 +922,7 @@ static int makedir(const char* dirname)
 		}
 	}
     stringstream error;
-    error << "ERROR in makedir : " << strerror(errno) << endl;
+    error << "ERROR in makedir for " << dirname << " : " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
 
@@ -947,7 +947,7 @@ static int mkchdir(const char* dirname)
 		}
 	}
     stringstream error;
-    error << "ERROR in mkchdir : " << strerror(errno) << endl;
+    error << "ERROR in mkchdir for " << dirname << " : " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
 
