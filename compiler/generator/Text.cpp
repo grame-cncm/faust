@@ -126,7 +126,6 @@ string subst (const string& model, const string& a0, const string& a1, const str
 	return substitution (model, args);
 }
 
-
 static string substitution (const string& model, const vector<string>& args)
 {
     char 	c;
@@ -150,11 +149,9 @@ static string substitution (const string& model, const vector<string>& args)
     return result;
 }
 
-
 string T (char* c) 	{ return string(c); }
 string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
-
 
 /**
  * If needed add a trailing '.0' to the
@@ -191,7 +188,6 @@ string T(double n)
     return string(c)+inumix();
 }
 
-
 /**
  * remove quotes from a string
  */
@@ -202,7 +198,6 @@ string unquote(const string& s)
 	assert(s[s.size()-1] == '"');
 	return s.substr(1, s.size()-2);
 }
-
 
 /**
  * add quotes to a string

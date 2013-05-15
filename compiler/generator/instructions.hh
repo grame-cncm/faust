@@ -97,133 +97,133 @@ struct IndexedAddress;
 
 struct InstVisitor : public virtual Garbageable {
 
-        InstVisitor()
-        {}
-        virtual ~InstVisitor()
-        {}
+    InstVisitor()
+    {}
+    virtual ~InstVisitor()
+    {}
 
-        virtual void visit(Printable* inst) {}
-        virtual void visit(NullInst* inst) {}
+    virtual void visit(Printable* inst) {}
+    virtual void visit(NullInst* inst) {}
 
-        // Declarations
-        virtual void visit(DeclareVarInst* inst) {}
-        virtual void visit(DeclareFunInst* inst) {}
-        virtual void visit(DeclareTypeInst* inst) {}
+    // Declarations
+    virtual void visit(DeclareVarInst* inst) {}
+    virtual void visit(DeclareFunInst* inst) {}
+    virtual void visit(DeclareTypeInst* inst) {}
 
-        // Memory
-        virtual void visit(LoadVarInst* inst) {}
-        virtual void visit(LoadVarAddressInst* inst) {}
-        virtual void visit(StoreVarInst* inst) {}
+    // Memory
+    virtual void visit(LoadVarInst* inst) {}
+    virtual void visit(LoadVarAddressInst* inst) {}
+    virtual void visit(StoreVarInst* inst) {}
 
-        // Addresses
-        virtual void visit(NamedAddress* address) {}
-        virtual void visit(IndexedAddress* address) {}
+    // Addresses
+    virtual void visit(NamedAddress* address) {}
+    virtual void visit(IndexedAddress* address) {}
 
-        // Primitives : numbers
-        virtual void visit(FloatNumInst* inst) {}
-        virtual void visit(IntNumInst* inst) {}
-        virtual void visit(BoolNumInst* inst) {}
-        virtual void visit(DoubleNumInst* inst) {}
+    // Primitives : numbers
+    virtual void visit(FloatNumInst* inst) {}
+    virtual void visit(IntNumInst* inst) {}
+    virtual void visit(BoolNumInst* inst) {}
+    virtual void visit(DoubleNumInst* inst) {}
 
-        // Numerical computation
-        virtual void visit(BinopInst* inst) {}
-        virtual void visit(CastNumInst* inst) {}
+    // Numerical computation
+    virtual void visit(BinopInst* inst) {}
+    virtual void visit(CastNumInst* inst) {}
 
-        // Function call
-        virtual void visit(FunCallInst* inst) {}
-        virtual void visit(RetInst* inst) {}
-        virtual void visit(DropInst* inst) {}
+    // Function call
+    virtual void visit(FunCallInst* inst) {}
+    virtual void visit(RetInst* inst) {}
+    virtual void visit(DropInst* inst) {}
 
-        // Conditionnal
-        virtual void visit(Select2Inst* inst) {}
-        virtual void visit(IfInst* inst) {}
-        virtual void visit(SwitchInst* inst) {}
+    // Conditionnal
+    virtual void visit(Select2Inst* inst) {}
+    virtual void visit(IfInst* inst) {}
+    virtual void visit(SwitchInst* inst) {}
 
-        // Loops
-        virtual void visit(ForLoopInst* inst) {}
-        virtual void visit(WhileLoopInst* inst) {}
+    // Loops
+    virtual void visit(ForLoopInst* inst) {}
+    virtual void visit(WhileLoopInst* inst) {}
 
-        // Block
-        virtual void visit(BlockInst* inst) {}
+    // Block
+    virtual void visit(BlockInst* inst) {}
 
-        // User interface
-        virtual void visit(AddMetaDeclareInst* inst) {}
-        virtual void visit(OpenboxInst* inst) {}
-        virtual void visit(CloseboxInst* inst) {}
-        virtual void visit(AddButtonInst* inst) {}
-        virtual void visit(AddSliderInst* inst) {}
-        virtual void visit(AddBargraphInst* inst) {}
+    // User interface
+    virtual void visit(AddMetaDeclareInst* inst) {}
+    virtual void visit(OpenboxInst* inst) {}
+    virtual void visit(CloseboxInst* inst) {}
+    virtual void visit(AddButtonInst* inst) {}
+    virtual void visit(AddSliderInst* inst) {}
+    virtual void visit(AddBargraphInst* inst) {}
 
-        virtual void visit(LabelInst* inst) {}
+    virtual void visit(LabelInst* inst) {}
 
 };
 
 struct CloneVisitor : public virtual Garbageable {
 
-        CloneVisitor()
-        {}
-        virtual ~CloneVisitor()
-        {}
+    CloneVisitor()
+    {}
+    virtual ~CloneVisitor()
+    {}
 
-        virtual ValueInst* visit(NullInst* inst) = 0;
+    virtual ValueInst* visit(NullInst* inst) = 0;
 
-        // Declarations
-        virtual StatementInst* visit(DeclareVarInst* inst) = 0;
-        virtual StatementInst* visit(DeclareFunInst* inst) = 0;
-        virtual StatementInst* visit(DeclareTypeInst* inst) = 0;
+    // Declarations
+    virtual StatementInst* visit(DeclareVarInst* inst) = 0;
+    virtual StatementInst* visit(DeclareFunInst* inst) = 0;
+    virtual StatementInst* visit(DeclareTypeInst* inst) = 0;
 
-        // Memory
-        virtual ValueInst* visit(LoadVarInst* inst) = 0;
-        virtual ValueInst* visit(LoadVarAddressInst* inst) = 0;
-        virtual StatementInst* visit(StoreVarInst* inst) = 0;
+    // Memory
+    virtual ValueInst* visit(LoadVarInst* inst) = 0;
+    virtual ValueInst* visit(LoadVarAddressInst* inst) = 0;
+    virtual StatementInst* visit(StoreVarInst* inst) = 0;
 
-        // Addresses
-        virtual Address* visit(NamedAddress* address) = 0;
-        virtual Address* visit(IndexedAddress* address) = 0;
+    // Addresses
+    virtual Address* visit(NamedAddress* address) = 0;
+    virtual Address* visit(IndexedAddress* address) = 0;
 
-        // Primitives : numbers
-        virtual ValueInst* visit(FloatNumInst* inst) = 0;
-        virtual ValueInst* visit(IntNumInst* inst) = 0;
-        virtual ValueInst* visit(BoolNumInst* inst) = 0;
-        virtual ValueInst* visit(DoubleNumInst* inst) = 0;
+    // Primitives : numbers
+    virtual ValueInst* visit(FloatNumInst* inst) = 0;
+    virtual ValueInst* visit(IntNumInst* inst) = 0;
+    virtual ValueInst* visit(BoolNumInst* inst) = 0;
+    virtual ValueInst* visit(DoubleNumInst* inst) = 0;
 
-        // Numerical computation
-        virtual ValueInst* visit(BinopInst* inst) = 0;
-        virtual ValueInst* visit(CastNumInst* inst) = 0;
+    // Numerical computation
+    virtual ValueInst* visit(BinopInst* inst) = 0;
+    virtual ValueInst* visit(CastNumInst* inst) = 0;
 
-        // Function call
-        virtual ValueInst* visit(FunCallInst* inst) = 0;
-        virtual StatementInst* visit(RetInst* inst) = 0;
-        virtual StatementInst* visit(DropInst* inst) = 0;
+    // Function call
+    virtual ValueInst* visit(FunCallInst* inst) = 0;
+    virtual StatementInst* visit(RetInst* inst) = 0;
+    virtual StatementInst* visit(DropInst* inst) = 0;
 
-        // Conditionnal
-        virtual ValueInst* visit(Select2Inst* inst) = 0;
-        virtual StatementInst* visit(IfInst* inst) = 0;
-        virtual StatementInst* visit(SwitchInst* inst) = 0;
+    // Conditionnal
+    virtual ValueInst* visit(Select2Inst* inst) = 0;
+    virtual StatementInst* visit(IfInst* inst) = 0;
+    virtual StatementInst* visit(SwitchInst* inst) = 0;
 
-        // Loops
-        virtual StatementInst* visit(ForLoopInst* inst) = 0;
-        virtual StatementInst* visit(WhileLoopInst* inst) = 0;
+    // Loops
+    virtual StatementInst* visit(ForLoopInst* inst) = 0;
+    virtual StatementInst* visit(WhileLoopInst* inst) = 0;
 
-        // Block
-        virtual StatementInst* visit(BlockInst* inst) = 0;
+    // Block
+    virtual StatementInst* visit(BlockInst* inst) = 0;
 
-        // User interface
-        virtual StatementInst* visit(AddMetaDeclareInst* inst) = 0;
-        virtual StatementInst* visit(OpenboxInst* inst) = 0;
-        virtual StatementInst* visit(CloseboxInst* inst) = 0;
-        virtual StatementInst* visit(AddButtonInst* inst) = 0;
-        virtual StatementInst* visit(AddSliderInst* inst) = 0;
-        virtual StatementInst* visit(AddBargraphInst* inst) = 0;
-        virtual StatementInst* visit(LabelInst* inst) = 0;
+    // User interface
+    virtual StatementInst* visit(AddMetaDeclareInst* inst) = 0;
+    virtual StatementInst* visit(OpenboxInst* inst) = 0;
+    virtual StatementInst* visit(CloseboxInst* inst) = 0;
+    virtual StatementInst* visit(AddButtonInst* inst) = 0;
+    virtual StatementInst* visit(AddSliderInst* inst) = 0;
+    virtual StatementInst* visit(AddBargraphInst* inst) = 0;
+    virtual StatementInst* visit(LabelInst* inst) = 0;
 
-        // Types
-        virtual Typed* visit(BasicTyped* type) = 0;
-        virtual Typed* visit(NamedTyped* type) = 0;
-        virtual Typed* visit(FunTyped* type) = 0;
-        virtual Typed* visit(ArrayTyped* type) = 0;
-        virtual Typed* visit(StructTyped* type) = 0;
-        virtual Typed* visit(VectorTyped* type) = 0;
+    // Types
+    virtual Typed* visit(BasicTyped* type) = 0;
+    virtual Typed* visit(NamedTyped* type) = 0;
+    virtual Typed* visit(FunTyped* type) = 0;
+    virtual Typed* visit(ArrayTyped* type) = 0;
+    virtual Typed* visit(StructTyped* type) = 0;
+    virtual Typed* visit(VectorTyped* type) = 0;
 };
 
 // ============================

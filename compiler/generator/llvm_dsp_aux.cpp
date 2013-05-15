@@ -33,12 +33,12 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-static Module* LoadModule(const std::string filename, LLVMContext& context)
+static Module* LoadModule(const std::string filename, LLVMContext* context)
 {
     //printf("Load module : %s \n", filename.c_str());
     
     SMDiagnostic err;
-    Module* res = ParseIRFile(filename, err, context);
+    Module* res = ParseIRFile(filename, err, *context);
     if (!res) {
     #if defined(LLVM_31) || defined(LLVM_32) 
         err.print("LoadModule", errs());
@@ -213,8 +213,7 @@ bool llvm_dsp_factory::initJIT()
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
 #endif
-    //fResult->fModule->dump();
-
+  
     // Set up the optimizer pipeline. Start with registering info about how the
     // target lays out data structures.
     PassManager pm;
@@ -225,12 +224,11 @@ bool llvm_dsp_factory::initJIT()
     pm.add(new TargetData(*fJIT->getTargetData()));
     fpm.add(new TargetData(*fJIT->getTargetData()));
 #endif
+
     // Link with "scheduler" code
     if (fScheduler) {
-        LLVMContext context;
-        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", context);
+        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
-            //scheduler->dump();
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
                 printf("Cannot link scheduler module : %s\n", err.c_str());
             }
@@ -317,6 +315,11 @@ void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
     buildMetaGlue(&glue, meta);
     fMetadata(&glue);
 }
+
+void llvm_dsp_factory::classInitDSPFactory(int samplingFreq)
+{
+    fClassInit(samplingFreq);
+}
   
 // Instance 
 
@@ -341,11 +344,6 @@ int llvm_dsp_aux::getNumInputs()
 int llvm_dsp_aux::getNumOutputs()
 {
     return fDSPFactory->fGetNumOutputs(fDSP);
-}
-
-void llvm_dsp_aux::classInit(int samplingFreq)
-{
-    fDSPFactory->fClassInit(samplingFreq);
 }
 
 void llvm_dsp_aux::instanceInit(int samplingFreq)
@@ -544,6 +542,11 @@ EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
     factory->metadataDSPFactory(m);
 }
 
+void classInitDSPFactory(llvm_dsp_factory* factory, int samplingFreq)
+{
+    factory->classInitDSPFactory(samplingFreq);
+}
+
 // Instance
 
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
@@ -566,11 +569,6 @@ EXPORT int llvm_dsp::getNumInputs()
 int EXPORT llvm_dsp::getNumOutputs()
 {
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumOutputs();
-}
-
-EXPORT void llvm_dsp::classInit(int samplingFreq)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->classInit(samplingFreq);
 }
 
 EXPORT void llvm_dsp::instanceInit(int samplingFreq)

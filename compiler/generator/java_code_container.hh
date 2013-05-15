@@ -28,7 +28,7 @@
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
-using namespace std;
+using namespace std;           
 
 class JAVACodeContainer : public virtual CodeContainer {
 
@@ -47,6 +47,10 @@ class JAVACodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
+            
+            if (!JAVAInstVisitor::fGlobalVisitor) {
+                JAVAInstVisitor::fGlobalVisitor = new JAVAInstVisitor(new stringstream(), 0);   
+            }
         }
         virtual ~JAVACodeContainer()
         {}

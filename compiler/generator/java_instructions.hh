@@ -32,9 +32,12 @@ class JAVAInstVisitor : public TextInstVisitor {
  
         static map <string, string> fMathLibTable;
         Typed::VarType fCurType;
-  
+   
     public:
-
+    
+        // Only one shared visitor
+        static JAVAInstVisitor* fGlobalVisitor;
+  
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :TextInstVisitor(out, ".", ifloat(), "[]", tab), fCurType(Typed::kNoType)
         {
@@ -303,15 +306,11 @@ class JAVAInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kBool;
             } else {
                 
-                // Only one shared visitor
-                static stringstream str;
-                static JAVAInstVisitor visitor(&str, 0);
-              
-                inst->fInst1->accept(&visitor);
-                Typed::VarType type1 = visitor.fCurType;
+                inst->fInst1->accept(fGlobalVisitor);
+                Typed::VarType type1 = fGlobalVisitor->fCurType;
                  
-                inst->fInst2->accept(&visitor);
-                Typed::VarType type2 = visitor.fCurType;
+                inst->fInst2->accept(fGlobalVisitor);
+                Typed::VarType type2 = fGlobalVisitor->fCurType;
                              
                 *fOut << "(";
                 
@@ -405,12 +404,10 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         virtual void visit(CastNumInst* inst)
         {
-            stringstream str;
-            JAVAInstVisitor visitor(&str, 0);
-            inst->fInst->accept(&visitor);
+            inst->fInst->accept(fGlobalVisitor);
                 
             if (generateType(inst->fType) == "int") {
-                switch (visitor.fCurType) {
+                switch (fGlobalVisitor->fCurType) {
                     case Typed::kDouble:
                     case Typed::kFloat:
                     case Typed::kFloatMacro:
@@ -423,13 +420,13 @@ class JAVAInstVisitor : public TextInstVisitor {
                         *fOut << "(("; inst->fInst->accept(this); *fOut << ")?1:0)";
                         break;
                     default:
-                        printf("visitor.fCurType %d\n", visitor.fCurType);
+                        printf("visitor.fCurType %d\n", fGlobalVisitor->fCurType);
                         assert(false);
                         break;
                 }
                 fCurType = Typed::kInt;
             } else {
-                switch (visitor.fCurType) {
+                switch (fGlobalVisitor->fCurType) {
                     case Typed::kDouble:
                     case Typed::kInt:
                         *fOut << "(float)"; inst->fInst->accept(this);
@@ -442,7 +439,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                         *fOut << "(("; inst->fInst->accept(this); *fOut << ")?1.f:0.f)";
                         break;
                     default:
-                        printf("visitor.fCurType %d\n", visitor.fCurType);
+                        printf("visitor.fCurType %d\n", fGlobalVisitor->fCurType);
                         assert(false);
                         break;
                 }
@@ -458,11 +455,9 @@ class JAVAInstVisitor : public TextInstVisitor {
       
         virtual void visit(Select2Inst* inst)
         {
-            stringstream str;
-            JAVAInstVisitor visitor(&str, 0);
-            inst->fCond->accept(&visitor);
+            inst->fCond->accept(fGlobalVisitor);
             
-            switch (visitor.fCurType) {
+            switch (fGlobalVisitor->fCurType) {
                 case Typed::kDouble:
                 case Typed::kInt:
                     *fOut << "((("; inst->fCond->accept(this); *fOut << "==0)?true:false)";

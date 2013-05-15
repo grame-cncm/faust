@@ -50,7 +50,6 @@ struct llvm_dsp_factory {};
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
 
-
 llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
@@ -181,7 +180,6 @@ class llvm_dsp : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
 
-        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
 

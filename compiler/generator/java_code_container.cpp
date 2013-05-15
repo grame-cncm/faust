@@ -28,6 +28,7 @@
 using namespace std;
 
 map <string, string> JAVAInstVisitor::fMathLibTable;
+JAVAInstVisitor* JAVAInstVisitor::fGlobalVisitor = 0; 
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -133,13 +134,10 @@ void JAVACodeContainer::produceClass()
    
     tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
 
-        tab(n+1, *fOut);
-        
         // Global declarations
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateGlobalDeclarations(&fCodeProducer);
-        tab(n+1, *fOut);
       
         // Sub containers
         generateSubContainers();

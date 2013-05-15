@@ -18,11 +18,8 @@
 
 #include <cmath>
 
-#include "faust/gui/meta.h"
-#include "faust/gui/GUI.h"
+#include "faust/gui/UI.h"
 #include "faust/gui/CUI.h"
-#include "faust/audio/dsp.h"
-#include "faust/misc.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -47,3 +44,9 @@
 //----------------------------------------------------------------------------
 
 <<includeclass>>
+
+int main(int argc, char *argv[])
+{
+    mydsp* dsp = newmydsp();
+    deletemydsp(dsp);
+}

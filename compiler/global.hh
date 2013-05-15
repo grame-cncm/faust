@@ -77,6 +77,7 @@ struct global {
 
     //-- command line arguments
     bool            gDetailsSwitch;
+    bool            gTimingSwitch;
     bool            gDrawSignals;
     bool            gShadowBlur;        // note: svg2pdf doesn't like the blur filter
     bool			gStripDocSwitch;	// Strip <mdoc> content from doc listings.
@@ -170,7 +171,9 @@ struct global {
     Tree                    DEBRUIJN2SYM;
     Tree                    DEFNAMEPROPERTY;
     Tree                    NICKNAMEPROPERTY;
-    Tree                    BCOMPLEXITY;
+    Tree                    BCOMPLEXITY;        // Node used for memoization purposes
+    
+    Node                    PROPAGATEPROPERTY;
     
     xtended*                gAbsPrim;
     xtended*                gAcosPrim;
@@ -394,6 +397,11 @@ struct global {
     // GC
     static list<Garbageable*> gObjectTable;
 	static bool gHeapCleanup;
+    
+    // timing
+    int		gIndex;
+    double 	gStartTime[1024];
+    double 	gEndTime[1024];
     
     global();
     ~global();
