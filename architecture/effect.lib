@@ -618,7 +618,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 };
 
 //-------------------- compressor_mono, compressor_stereo ----------------------
-// Mono and stereo dynamic range compressor_s
+// Mono and stereo dynamic range compressors
 //
 // USAGE:
 //    _ : compressor_mono(ratio,thresh,att,rel)   : _
@@ -627,7 +627,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 //
 // where
 //  ratio  = compression ratio (1 = no compression, >1 means compression)
-//  thresh = dB level threshold above which compression kicks in
+//  thresh = dB level threshold above which compression kicks in (0 dB = max level)
 //  att    = attack time = time constant (sec) when level & compression going up
 //  rel    = release time = time constant (sec) coming out of compression
 //

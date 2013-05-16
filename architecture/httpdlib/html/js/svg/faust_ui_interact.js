@@ -28,20 +28,20 @@ _f4u$t.devnull = function devnull() { }
 
 _f4u$t.generic_translate = function(id, x, y) {
   var elt = document.getElementById(id);
-  var transform = _f4u$t.transformToArray(elt.getAttribute("transform"));
+  var transform = _f4u$t.transform_to_array(elt.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
   transform[0][1] = x;
   transform[0][2] = y;
-  var movetothis = _f4u$t.arrayToTransform(transform);
+  var movetothis = _f4u$t.array_to_transform(transform);
   elt.setAttribute("transform", movetothis);
 }
 
 // parser of an object's transform
 
-_f4u$t.transformToArray = function(transform) {
+_f4u$t.transform_to_array = function(transform) {
   var out = [];
   var flre = "[-+]?[0-9]*\\.?[0-9]*(?:[eE][-+]?[0-9]+)?";
   var matrix = new RegExp("^\\s*matrix\\s*\\(\\s*("+flre+")\\s*[,]\\s*("+flre+")\\s*[,]\\s*("+flre+")\\s*[,]\\s*("+flre+")\\s*[,]\\s*("+flre+")\\s*[,]\\s*("+flre+")\\s*\\)");
@@ -102,7 +102,7 @@ _f4u$t.transformToArray = function(transform) {
 
 // takes an array, turns it to a transform
 
-_f4u$t.arrayToTransform = function(array) {
+_f4u$t.array_to_transform = function(array) {
   var out = "";
   while (array.length > 0)
   {
@@ -344,7 +344,7 @@ _f4u$t.activate_moving_object = function(ee) {
   $('body').bind('touchmove', function(event) { event.preventDefault() });
   // if we touch a groove, we want the object to snap to the correct position, so
   // we need to call the move function.
-  _f4u$t.moveActiveObject(ee);
+  _f4u$t.move_active_object(ee);
 }
 
 _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
@@ -363,7 +363,7 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
 */
 
 // main function to move currently-selected slider
-_f4u$t.moveActiveObject = function(ee) {
+_f4u$t.move_active_object = function(ee) {
   for (var elt in _f4u$t._I) {
     if (_f4u$t._I[elt] && (elt.indexOf('orientation') == -1)) {
       var touches = ee.touches || [ee];
@@ -371,7 +371,7 @@ _f4u$t.moveActiveObject = function(ee) {
         touches = ee.originalEvent.touches || [ee];
       }
       for (var i = 0; i < touches.length; i++) {
-        _f4u$t.internalMoveActiveObject(touches[i], touches[0] == ee ? 0 : touches[i].identifier);
+        _f4u$t.internal_move_active_object(touches[i], touches[0] == ee ? 0 : touches[i].identifier);
       }
       // breaks loop, as we just need one active element for this to work
       return true;
@@ -381,22 +381,12 @@ _f4u$t.moveActiveObject = function(ee) {
   return true;
 }
 
-_f4u$t.internalMoveActiveObject = function(e, identifier) {
+// TODO
+// Does this really need to be a separate function.
+// Helps for readability, but not necessary
+_f4u$t.internal_move_active_object = function(e, identifier) {
   _f4u$t.clog_key_sink();
-  //_f4u$t.BUSY = true; // deprecated
-  var hslider_token = "faust_hslider";
-  var vslider_token = "faust_vslider";
-  var rotating_button_token = "faust_rbutton";
-  var now = null;
-  if (_f4u$t._I[identifier]['id'].substring(0, hslider_token.length) == hslider_token) {
-    now = _f4u$t.moveActiveSlider(e, identifier);
-  }
-  else if (_f4u$t._I[identifier]['id'].substring(0, vslider_token.length) == vslider_token) {
-    now = _f4u$t.moveActiveSlider(e, identifier);
-  }
-  else if (_f4u$t._I[identifier]['id'].substring(0, rotating_button_token.length) == rotating_button_token) {
-    now = _f4u$t.moveActiveRotatingButton(e, identifier);
-  }
+  var now = _f4u$t['move_active_'+_f4u$t.type(_f4u$t._I[identifier]['id'])](e, identifier);
 
   // UI2DSP
   if (now != null && now != _f4u$t._I[identifier]['value']) {
@@ -408,29 +398,7 @@ _f4u$t.internalMoveActiveObject = function(e, identifier) {
   return now;
 }
 
-_f4u$t.genericMovingPartUpdate = function(aval, pval, l, h) {
-  if (l > aval) {
-    if (pval != h) {
-      return l;
-    }
-  }
-
-  else if (aval > h) {
-    if (pval != l) {
-      return h;
-    }
-  }
-
-  // if neither of the above are true, free to move by the difference
-  else {
-    return aval;
-  }
-
-  // corner case - we avoid large leaps
-  return pval;
-}
-
-_f4u$t.redrawSliderGroove = function(id, axis, length, perc) {
+_f4u$t.redraw_slider_groove = function(id, axis, length, perc) {
   perc = _f4u$t.bound(perc, 0, 1); // to avoid mouse spillover on either side of slider
   var groove = document.getElementById('faust_'+(_f4u$t.xy(axis,'hslider','vslider'))+'_groove_'+id);
   if (axis == _f4u$t.X_AXIS) {
@@ -442,7 +410,7 @@ _f4u$t.redrawSliderGroove = function(id, axis, length, perc) {
   }
 }
 
-_f4u$t.moveActiveSlider = function(e,identifier)
+_f4u$t.move_active_slider = function(e,identifier)
 {
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
@@ -464,26 +432,29 @@ _f4u$t.moveActiveSlider = function(e,identifier)
 
   pos -= (length * pctsliding / 2.0);
   //var diff = pos - _f4u$t.PREV[axis][identifier];
-  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
+  var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
   var aval = pos;//transform[0][axis + 1] + diff;
   // minimum of the slider is to the bottom / left
-  transform[0][axis + 1] = _f4u$t.genericMovingPartUpdate(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
-  _f4u$t.redrawSliderGroove(
+  transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
+  _f4u$t.redraw_slider_groove(
     id,
     axis,
     length,
     aval / length
   );
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
-  var movetothis = _f4u$t.arrayToTransform(transform);
+  var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
   _f4u$t.updateXY([e]);
   return now;
 }
+
+_f4u$t.move_active_vslider = _f4u$t.move_active_slider;
+_f4u$t.move_active_hslider = _f4u$t.move_active_slider;
 
 _f4u$t.respondToOrientationChange = function(e) {
   for (var id in _f4u$t.IDS_TO_ATTRIBUTES) {
@@ -522,22 +493,22 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
                          _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high,
                          0,
                          length - (length * pctsliding));
-  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
+  var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
 
   var aval = pos;
   // minimum of the slider is to the bottom / left
-  transform[0][axis + 1] = _f4u$t.genericMovingPartUpdate(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
-  _f4u$t.redrawSliderGroove(
+  transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
+  _f4u$t.redraw_slider_groove(
     id,
     axis,
     length,
     aval / length
   );
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
-  var movetothis = _f4u$t.arrayToTransform(transform);
+  var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
   // no updating XY as there is no event specific to this object
   //_f4u$t.updateXY([e]);
@@ -574,7 +545,7 @@ _f4u$t.redrawRotatingButtonMeter = function(id, initangle, sweepangle, radius, k
   meter.setAttribute("d", d);
 }
 
-_f4u$t.moveActiveRotatingButton = function(e, identifier)
+_f4u$t.move_active_rbutton = function(e, identifier)
 {
   var id = _f4u$t.unique(_f4u$t._I[identifier].id);
   var sliding_part = document.getElementById('faust_rbutton_handle_'+id);
@@ -584,17 +555,22 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   var os = $(anchor).offset();
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
-  var transform = _f4u$t.transformToArray(sliding_part.getAttribute("transform"));
+  var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
 
   var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
-  // we wind diff around to give it best shot of falling between two values:
-  if (diff < initangle) {
+  while (diff < 0) {
     diff += 360;
   }
-  else if (diff > initangle + sweepangle) {
-    diff -= 360;
+  diff = diff % 360;
+  // put it between the values if necessary
+  if (((360 + diff) >= initangle) && ((360 + diff) <= (initangle + sweepangle))) {
+    diff += 360;
   }
-  
+
+  if (e.target.id.indexOf('dot') != -1) {
+    // if it is a panoramic dot, snap to the multiple of 45
+    diff = parseInt((diff / 45) + 0.5) * 45;
+  }
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
   // actually, just make sure not to make things more complicated...
@@ -603,22 +579,26 @@ _f4u$t.moveActiveRotatingButton = function(e, identifier)
   var rotation = transform[2][1];
   // always change rotation if we're starting with a click
   if (_f4u$t.PREV[_f4u$t.X_AXIS][identifier] == null) {
-    rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
-  } else if (((aval > initangle) || (aval < initangle + sweepangle))
-             && (Math.abs(aval - rotation) < 35)) { // only change rotation if we're in bounds and the difference is small
-    rotation = _f4u$t.genericMovingPartUpdate(aval, transform[2][1], initangle, initangle + sweepangle);
+    rotation = _f4u$t.bound_and_avoid_large_leaps(aval, transform[2][1], initangle, initangle + sweepangle);
+  } else if (((aval >= initangle) && (aval <= (initangle + sweepangle)))
+             && ((Math.abs(aval - rotation) < 35)
+                 || (Math.abs (360 - Math.abs(aval - rotation)) < 35))) {
+    // only change rotation if we're in bounds and the difference is small
+    rotation = _f4u$t.bound_and_avoid_large_leaps(aval, transform[2][1], initangle, initangle + sweepangle);
   }
   transform[2][1] = rotation;
-  _f4u$t.redrawRotatingButtonMeter(
-    id,
-    initangle,
-    sweepangle,
-    _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
-    _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
-    transform[2][1]
-  );
+  if (sweepangle != 360) {
+    _f4u$t.redrawRotatingButtonMeter(
+      id,
+      initangle,
+      sweepangle,
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+      transform[2][1]
+    );
+  }
   var now = _f4u$t.generic_label_update(id, rotation, initangle, initangle + sweepangle);
-  var movetothis = _f4u$t.arrayToTransform(transform);
+  var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
   _f4u$t.updateXY([e]);
   return now;
@@ -641,9 +621,6 @@ _f4u$t.clearIdCache = function(ee) {
         }
         delete _f4u$t._I[touches[i].identifier || 0];
       }
-    }
-    if (!_f4u$t._N) {
-      //_f4u$t.BUSY = false; // deprecated
     }
     // exit function before unbinding if there are still active elements
     for (var elt in _f4u$t._I) {
@@ -715,7 +692,7 @@ _f4u$t.touch_checkbox = function(I) {
 _f4u$t.change_checkbox = function(I, touch) {
   var id = _f4u$t.unique(I)
   var now = new Date().getTime();
-  if (touch && (now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] < 1000)) {
+  if (touch && ((now - _f4u$t.IDS_TO_ATTRIBUTES[id]["time"]) < 1000)) {
     return;
   }
   _f4u$t.IDS_TO_ATTRIBUTES[id]["time"] = now;
@@ -777,7 +754,6 @@ _f4u$t.clog_key_sink = function() {
     var box = document.getElementById("faust_value_box_"+_f4u$t.unique(_f4u$t._N));
     box.style.stroke = "black";
     _f4u$t.ajax_queue_busy = false;
-    //_f4u$t.BUSY = false; // deprecated
   }
   _f4u$t._N = 0;
 }
@@ -842,7 +818,6 @@ _f4u$t.keys_to_sink = function(e) {
 }
 
 _f4u$t.make_key_sink = function(I) {
-  //if (_f4u$t.BUSY) { // deprecated
   if (_f4u$t.ajax_queue_busy) {
     return false;
   }
@@ -851,7 +826,6 @@ _f4u$t.make_key_sink = function(I) {
   var box = document.getElementById("faust_value_box_"+I);
   box.style.stroke = "red";
   _f4u$t.ajax_queue_busy = true;
-  //_f4u$t.BUSY = true; // deprecated
   // below is a hack for text inputs that should only be activated
   // after some work is done to figure out how to prevent auto zooming
   // in mobile devices
@@ -910,15 +884,15 @@ _f4u$t.actualize_incremental_object = function(id) {
     var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
     var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
     val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, length - (length * pctsliding));
-    var transform = _f4u$t.transformToArray(maybe_slider.getAttribute("transform"));
+    var transform = _f4u$t.transform_to_array(maybe_slider.getAttribute("transform"));
     transform[0][axis + 1] = val;
-    _f4u$t.redrawSliderGroove(
+    _f4u$t.redraw_slider_groove(
       id,
       axis,
       length,
       val / length
     );
-    var movetothis = _f4u$t.arrayToTransform(transform);
+    var movetothis = _f4u$t.array_to_transform(transform);
     maybe_slider.setAttribute("transform", movetothis);
     return 0;
   }
@@ -928,17 +902,19 @@ _f4u$t.actualize_incremental_object = function(id) {
     var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
     var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
     val = _f4u$t.remap(val, minval, maxval, initangle, initangle + sweepangle);
-    var transform = _f4u$t.transformToArray(maybe_button.getAttribute("transform"));
+    var transform = _f4u$t.transform_to_array(maybe_button.getAttribute("transform"));
     transform[2][1] = val;
-    _f4u$t.redrawRotatingButtonMeter(
-      id,
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
-      _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
-      transform[2][1]
-    );
-    var movetothis = _f4u$t.arrayToTransform(transform);
+    if (sweepangle != 360) {
+      _f4u$t.redrawRotatingButtonMeter(
+        id,
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["radius"],
+        _f4u$t.IDS_TO_ATTRIBUTES[id]["knobpercentage"],
+        transform[2][1]
+      );
+    }
+    var movetothis = _f4u$t.array_to_transform(transform);
     maybe_button.setAttribute("transform", movetothis);
     return 0;
   }
@@ -976,9 +952,9 @@ _f4u$t.alert = function () { alert("moved"); }
 document.onkeypress = _f4u$t.keys_to_sink;
 document.onkeydown = _f4u$t.make_delete_key_work;
 document.onmouseup = _f4u$t.clearIdCache;
-document.onmousemove = _f4u$t.moveActiveObject;
+document.onmousemove = _f4u$t.move_active_object;
 document.ontouchend = _f4u$t.clearIdCache;
-document.ontouchmove = _f4u$t.moveActiveObject;
+document.ontouchmove = _f4u$t.move_active_object;
 window.ondeviceorientation = _f4u$t.respondToOrientationChange;
 // make the entire document clickable for mobile devices
 document.onclick = _f4u$t.devnull;

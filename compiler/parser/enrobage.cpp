@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include "enrobage.hh"
 #include <vector>
 #include <set>
@@ -29,6 +27,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "compatibility.hh"
+#include "sourcefetcher.hh"
 #include <climits>
 
 extern string gFaustSuperSuperDirectory;
@@ -40,7 +39,6 @@ extern bool	  gInlineArchSwitch;
 
 //----------------------------------------------------------------
 
-
 /**
  * Returns true is a line is blank (contains only white caracters)
  */
@@ -50,7 +48,6 @@ static bool isBlank(const string& s) {
     }
     return true;
 }
-
 
 /**
  * Replace every occurrence of oldstr by newstr inside str. str is modified
@@ -62,13 +59,12 @@ static string& replaceOccurences(string& str, const string& oldstr, const string
     string::size_type l2 = newstr.length();
 
     string::size_type pos = str.find(oldstr);
-    while ( pos != string::npos) {
+    while (pos != string::npos) {
         str.replace(pos, l1, newstr);
         pos = str.find(oldstr, pos + l2);
     }
     return str;
 }
-
 
 /**
  * Used when copying architecture files to replace default mydsp
@@ -78,7 +74,6 @@ static string& replaceClassName(string& str)
 {
     return replaceOccurences(str, "mydsp", gClassName);
 }
-
 
 /**
  * Copy or remove license header. Architecture files can contain a header specifying
@@ -101,7 +96,7 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
     bool remove = false;
     H.push_back(s);
 
-    while (getline(src,s) && s.find("*/")==string::npos) {
+    while (getline(src,s) && s.find("*/") == string::npos) {
         H.push_back(s);
         if (s.find(exceptiontag) != string::npos) remove=true;
     }
@@ -115,8 +110,6 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
         dst << s << endl;
     }
 }
-
-
 
 /**
  * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
@@ -147,7 +140,6 @@ public:
     }
 };
 
-
 /**
  * True if string s match '#include <faust/fname>'
  */
@@ -161,9 +153,6 @@ bool isFaustInclude(const string& s, string& fname)
         return false;
     }
 }
-
-
-
 
 /**
  * Inject file fname into dst ostream if not already done
@@ -216,7 +205,6 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
     streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
-
 
 /**
  * Try to open an architecture file searching in various directories
@@ -302,27 +290,41 @@ ifstream* open_arch_stream(const char* filename)
 	return 0;
 }
 
-
-
 /*---------------------------------------------*/
 
+const char* strip_start(const char* filename)
+{
+    const char* start = "file://";
+    if (strstr(filename, start) != NULL) {
+        return &filename[strlen(start)];
+    }  else {
+        return filename;
+    }
+}
+
 /**
- * Check if a file exists.
- * @return true if the file exist, false otherwise
+ * Check if an URL exists.
+ * @return true if the URL exist, false otherwise
  */
 		
-bool check_file(const char* filename)
+bool check_url(const char* filename)
 {
-	FILE* f = fopen(filename, "r");
-	
-	if (f == NULL) {
-		fprintf(stderr, "faust: "); perror(filename);
-	} else {
-		fclose(f);
-	}
-	return f != NULL;
+    char* fileBuf = 0;
+     
+    // Tries to open as a http URL
+    if (http_fetch(filename, &fileBuf) != -1) {
+        return true;
+    } else {
+        // Otherwise tries to open as a regular file
+        FILE* f = fopen(filename, "r");
+        if (f == NULL) {
+            fprintf(stderr, "faust: "); perror(filename);
+        } else {
+            fclose(f);
+        }
+        return f != NULL;
+    }
 }
-		
 
 /**
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname

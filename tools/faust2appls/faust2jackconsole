@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #-------------------------------------------------------------------
-# Set Faust include path
+# Set Faust library (architecture-file) path
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
@@ -16,6 +16,21 @@ else
   error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
 fi
 
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_INC_PATH/gui/GUI.h ]
+then
+  FAUSTINC=$FAUST_INC_PATH
+elif [ -f /usr/local/include/faust/gui/GUI.h ]
+then
+  FAUSTINC=/usr/local/include/faust/
+elif [ -f /usr/include/faust/gui/GUI.h ]
+then
+  FAUSTINC=/usr/include/faust/
+else
+  error "$0: Cannot find Faust include dir (usually /usr/local/include/faust)"
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -37,12 +52,11 @@ for p in $@; do
 	fi
 done
 
-
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 for f in $FILES; do
     faust -a jack-console.cpp $OPTIONS $f -o $f.cpp
-    g++  $f.cpp -ljack $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
+    g++  $f.cpp -I$FAUSTINC -ljack $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
     rm $f.cpp
 done

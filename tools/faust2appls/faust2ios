@@ -7,6 +7,8 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+
 
 #PHASE 1 : collects files and options from the command line
 
@@ -23,10 +25,10 @@ for p in $@; do
 	ignore=" "
     elif [ $p = "-osc" ]; then
 	OSCDEFS="DEFINES += OSCCTRL"
-	OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+	OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ "$p" = "-httpd" ]; then
 	HTTPDEFS="DEFINES += HTTPCTRL"
-	HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
+	HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
 	JACK="1"
     elif [ ${p:0:1} = "-" ]; then
