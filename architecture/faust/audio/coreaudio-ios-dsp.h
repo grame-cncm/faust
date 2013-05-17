@@ -33,6 +33,10 @@
 
  ************************************************************************
  ************************************************************************/
+ 
+#ifndef __coreaudio_ios_dsp__
+#define __coreaudio_ios_dsp__
+
 /* link with  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -670,6 +674,7 @@ public:
     
 };
 
+#endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
