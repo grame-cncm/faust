@@ -95,7 +95,16 @@ faustgen_factory::faustgen_factory(const string& name)
 		// Built the complete resource path
 		fLibraryPath = string(str_name) + string(FAUST_LIBRARY_PATH);
 		// Draw path in temporary folder
-		fDrawPath = string(str_name) + string(FAUST_DRAW_PATH);
+        TCHAR lpTempPathBuffer[MAX_PATH];
+        // Gets the temp path env string (no guarantee it's a valid path).
+        DWORD dwRetVal = GetTempPath(MAX_PATH, lpTempPathBuffer); 
+        if (dwRetVal > MAX_PATH || (dwRetVal == 0)) {
+            post("GetTempPath failed...");
+            // Try our value instead...  
+            fDrawPath = string(str_name) + string(FAUST_DRAW_PATH);
+        } else {
+            fDrawPath = string(str_name) + string(lpTempPathBuffer);
+        }
 		FreeLibrary(handle);
 	} else {
 		post("Error : cannot locate faustgen~.mxe...");
