@@ -75,7 +75,7 @@ class Log10Prim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        return container->pushFunction(subst("log10$0", isuffix()), result_type, arg_types, args);
+        return container->pushFunction(subst("log10$0", isuffix()), result_type, arg_types, casted_args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
