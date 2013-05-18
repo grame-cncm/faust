@@ -56,7 +56,7 @@ CXXFLAGS += $(ARCHFLAGS)
 ifeq ($(system), Darwin)
 all : faust libfaust.a libfaust.$(LIB_EXT)
 else
-all : faust libfaust.a libfaust.$(LIB_EXT)
+all : faust libfaust.a
 endif
 
 libmain.o : libmain.cpp
