@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash -e
 
 if [[ $(uname) == Darwin ]]; then
 	#On Darwin build a Jack internal client

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash -e
 for f in $@; do
     faust -svg $f -o /dev/null
 done

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash -e
 if [[ $(uname) == Darwin ]]; then
 	APPL='open -a Safari'
 else
