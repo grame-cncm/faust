@@ -1277,11 +1277,19 @@ class WorkStealingScheduler {
             fTaskGraph->GetReadyTask(fTaskQueueList[cur_thread], task_num);
         }
         
-        void InitTaskList()
+        void InitTaskList(int cur_thread)
         {
             TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
-             for (int cur_thread = 0; cur_thread < fDynamicNumThreads; cur_thread++) {
-                fTaskQueueList[cur_thread].InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, cur_thread);
+            if (cur_thread == -1) {
+                // Dispatch on all WSQ
+                for (int i = 0; i < fDynamicNumThreads; i++) {
+                    fTaskQueueList[i].InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, i);
+                }
+            } else {
+                // Otherwise push all ready tasks in cur_thread WSQ
+                for (int i = 0; i < fReadyTaskListSize; i++) {
+                    fTaskQueueList[cur_thread].PushHead(fReadyTaskList[i]);
+                }
             }
         }
 
@@ -1361,10 +1369,10 @@ void getReadyTask(void* scheduler, int cur_thread, int* task_num)
     static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
 
-void initTaskList(void* scheduler)
+void initTaskList(void* scheduler, int cur_thread)
 {
     //printf("initTaskList %x\n", pthread_self());
-    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList();
+    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList(cur_thread);
 }
 
 void addReadyTask(void* scheduler, int task_num)
