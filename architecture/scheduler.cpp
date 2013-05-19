@@ -62,11 +62,11 @@
 
 // handle 32/64 bits int size issues
 #ifdef __x86_64__
-#define UInt32	unsigned int
-#define UInt64	unsigned long int
+#define UInt32 unsigned int
+#define UInt64 unsigned long int
 #else
-#define UInt32	unsigned int
-#define UInt64	unsigned long long int
+#define UInt32 unsigned int
+#define UInt64 unsigned long long int
 #endif
 
 #endif
@@ -114,58 +114,54 @@
 
 class Semaphore
 {
-public:
-	/**
-	   Create a new semaphore.
-	   Chances are you want 1 wait() per 1 post(), an initial value of 0.
-	*/
-	inline Semaphore(unsigned initial);
+    public:
+        /**
+           Create a new semaphore.
+           Chances are you want 1 wait() per 1 post(), an initial value of 0.
+        */
+        inline Semaphore(unsigned initial);
 
-	inline ~Semaphore();
+        inline ~Semaphore();
 
-	/** Post/Increment/Signal */
-	inline void post();
+        /** Post/Increment/Signal */
+        inline void post();
 
-	/** Wait/Decrement.  Returns false on error. */
-	inline bool wait();
+        /** Wait/Decrement.  Returns false on error. */
+        inline bool wait();
 
-	/** Attempt Wait/Decrement.  Returns true iff a decrement occurred. */
-	inline bool try_wait();
+        /** Attempt Wait/Decrement.  Returns true iff a decrement occurred. */
+        inline bool try_wait();
 
-private:
-#if defined(__APPLE__)
-	semaphore_t _sem;  // sem_t is a worthless broken mess on OSX
-#elif defined(_WIN32)
-	HANDLE _sem;  // types are overrated anyway
-#else
-	sem_t _sem;
-#endif
+    private:
+    #if defined(__APPLE__)
+        semaphore_t _sem;  // sem_t is a worthless broken mess on OSX
+    #elif defined(_WIN32)
+        HANDLE _sem;  // types are overrated anyway
+    #else
+        sem_t _sem;
+    #endif
 };
 
 #ifdef __APPLE__
 
-inline
-Semaphore::Semaphore(unsigned initial)
+inline Semaphore::Semaphore(unsigned initial)
 {
 	if (semaphore_create(mach_task_self(), &_sem, SYNC_POLICY_FIFO, initial)) {
 		throw -1;
 	}
 }
 
-inline
-Semaphore::~Semaphore()
+inline Semaphore::~Semaphore()
 {
 	semaphore_destroy(mach_task_self(), _sem);
 }
 
-inline void
-Semaphore::post()
+inline void Semaphore::post()
 {
 	semaphore_signal(_sem);
 }
 
-inline bool
-Semaphore::wait()
+inline bool Semaphore::wait()
 {
 	if (semaphore_wait(_sem) != KERN_SUCCESS) {
 		return false;
@@ -173,8 +169,7 @@ Semaphore::wait()
 	return true;
 }
 
-inline bool
-Semaphore::try_wait()
+inline bool Semaphore::try_wait()
 {
 	const mach_timespec_t zero = { 0, 0 };
 	return semaphore_timedwait(_sem, zero) == KERN_SUCCESS;
@@ -182,28 +177,24 @@ Semaphore::try_wait()
 
 #elif defined(_WIN32)
 
-inline
-Semaphore::Semaphore(unsigned initial)
+inline Semaphore::Semaphore(unsigned initial)
 {
 	if (!(_sem = CreateSemaphore(NULL, initial, LONG_MAX, NULL))) {
 		throw -1;
 	}
 }
 
-inline
-Semaphore::~Semaphore()
+inline Semaphore::~Semaphore()
 {
 	CloseHandle(_sem);
 }
 
-inline void
-Semaphore::post()
+inline void Semaphore::post()
 {
 	ReleaseSemaphore(_sem, 1, NULL);
 }
 
-inline bool
-Semaphore::wait()
+inline bool Semaphore::wait()
 {
 	if (WaitForSingleObject(_sem, INFINITE) != WAIT_OBJECT_0) {
 		return false;
@@ -211,8 +202,7 @@ Semaphore::wait()
 	return true;
 }
 
-inline bool
-Semaphore::try_wait()
+inline bool Semaphore::try_wait()
 {
 	return WaitForSingleObject(_sem, 0) == WAIT_OBJECT_0;
 }
@@ -226,20 +216,17 @@ Semaphore::Semaphore(unsigned initial)
 	}
 }
 
-inline
-Semaphore::~Semaphore()
+inline Semaphore::~Semaphore()
 {
 	sem_destroy(&_sem);
 }
 
-inline void
-Semaphore::post()
+inline void Semaphore::post()
 {
 	sem_post(&_sem);
 }
 
-inline bool
-Semaphore::wait()
+inline bool Semaphore::wait()
 {
 	while (sem_wait(&_sem)) {
 		if (errno != EINTR) {
@@ -251,8 +238,7 @@ Semaphore::wait()
 	return true;
 }
 
-inline bool
-Semaphore::try_wait()
+inline bool Semaphore::try_wait()
 {
 	return (sem_trywait(&_sem) == 0);
 }
@@ -389,8 +375,6 @@ struct AtomicCounter
 
 int get_max_cpu()
 {
-    //return sysconf(_SC_NPROCESSORS_ONLN);
-
     int physical_count = 0;
     size_t size = sizeof(physical_count);
     sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
@@ -406,7 +390,7 @@ int get_max_cpu()
 static int GetPID()
 {
 #ifdef WIN32
-    return  _getpid();
+    return _getpid();
 #else
     return getpid();
 #endif
@@ -431,7 +415,7 @@ static void get_affinity(pthread_t thread)
     mach_msg_type_number_t count = THREAD_AFFINITY_POLICY_COUNT;
     boolean_t get_default = false;
     kern_return_t res = thread_policy_get(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, &count, &get_default);
-    if (res == KERN_SUCCESS)  {
+    if (res == KERN_SUCCESS) {
         printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
     }
 }
@@ -441,7 +425,7 @@ static void set_affinity(pthread_t thread, int tag)
     thread_affinity_policy theTCPolicy;
     theTCPolicy.affinity_tag = tag;
     kern_return_t res = thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, THREAD_AFFINITY_POLICY_COUNT);
-    if (res == KERN_SUCCESS)  {
+    if (res == KERN_SUCCESS) {
         printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
     }
 }
@@ -1006,7 +990,6 @@ class DSPThread {
             DSPThread* thread = static_cast<DSPThread*>(arg);
             
             AVOIDDENORMALS;
-            
             get_affinity(thread->fThread);
             
             // One "dummy" cycle to setup thread
@@ -1143,7 +1126,6 @@ DSPThreadPool::~DSPThreadPool()
     fThreadCount = 0;
     delete[] fThreadPool;
 }
-
 
 void DSPThreadPool::StartAll(int num_thread, bool realtime, void* dsp)
 {
