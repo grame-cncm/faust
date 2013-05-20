@@ -12,6 +12,7 @@
 #define kPortsViewItemHeight 50
 #define kPortsArrowHeight 30
 #define kPortsViewArrowWidth 50
+#define kPortsViewMinXBetweenItems 50
 
 
 @class JackViewButton;

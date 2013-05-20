@@ -126,7 +126,7 @@
             }
             else if (currentAppPortName && portsView.clientButton.inputOutput == 2)
             {
-                [jackView disconnectPort:currentAppPortName withPort:self.longName];
+                [jackView connectPort:currentAppPortName withPort:self.longName];
             }
             
             self.selected = YES;
@@ -337,13 +337,13 @@
     NSString* srcName = nil;
     NSString* dstName = nil;
     NSArray* dstArray = nil;
-    
+
     [_links removeAllObjects];
     
     for (i = 0; i < [buttons count]; ++i)
     {
-        srcItem = (JackViewPortsViewItem*)[buttons objectAtIndex:i];
-        if (srcItem.frame.origin.x == clientX)
+        srcItem = ((JackViewPortsViewItem*)([buttons objectAtIndex:i]));
+        if ([srcItem isKindOfClass:[JackViewPortsViewItem class]] && srcItem.frame.origin.x == clientX)
         {
             if ([jackView isPort:[jackView portWithName:srcItem.longName] connectedToCurrentClientInputOutput:self.clientButton.inputOutput audioMidi:self.clientButton.audioMidi])
             {
@@ -387,6 +387,7 @@
 {
     int i = 0;
     JackViewPortsLink* link = nil;
+    JackView* jackView = self.clientButton.jackView;
     
     for (i = 0; i < [_links count]; ++i)
     {
@@ -395,6 +396,9 @@
         if (link.selected)
         {
             [clientButton.jackView disconnectPort:link.srcName withPort:link.dstName];
+            [clientButton.jackView disconnectPort:link.dstName withPort:link.srcName];
+            
+            clientButton.selected = [jackView isClient:clientButton.jackViewClient connectedToCurrentClientInputOutput:clientButton.inputOutput audioMidi:clientButton.audioMidi];
         }
     }
     
@@ -477,10 +481,17 @@
     
     if (minLinkIndex != -1)
     {
+        float x = 0.f;
+        float y = 0.f;
+        
         link = [_links objectAtIndex:minLinkIndex];
         link.selected = YES;
         
-        [_deleteButton setFrame:CGRectMake(link.dstPt.x - 80, (link.dstPt.y - 20) * 0.8 + (link.srcPt.y - 20) * 0.2, 20, 20)];
+        x = fmaxf(link.dstPt.x, link.srcPt.x);
+        if (x == link.dstPt.x) y = link.dstPt.y;
+        else y = link.srcPt.y;
+        
+        [_deleteButton setFrame:CGRectMake(x - 70, (y - 20) * 0.8 + (y - 20) * 0.2, 20, 20)];
         _deleteButton.hidden = NO;
     }
     
