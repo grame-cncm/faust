@@ -209,7 +209,6 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 ///////////////////////////////////////////////////////////////////
 // Constants
 ///////////////////////////////////////////////////////////////////
-const VstInt32 ALL_NOTES_OFF = -1;
 
 //----------------------------------------------------------------------------
 // Faust class prototype
@@ -716,7 +715,7 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 	// normalize sample by number of playing voices
 	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		for (unsigned int frame = 0; frame < sampleFrames; ++frame) {
-			outputs[i][frame] /= (float) MAX_POLYPHONY;;
+			outputs[i][frame] /= sqrt(MAX_POLYPHONY);
 		}
 	}
 } // end of compute
@@ -783,7 +782,7 @@ VstInt32 Faust::processEvents (VstEvents* ev)
 			  fprintf(stderr,"=== Faust vsti: ALL NOTES OFF!\n");
 
 			  //TODO: figure out how to signal all notes off
-			  noteOff(ALL_NOTES_OFF); // why is all-notes-off inside a "control change" event?
+			  allNotesOff(); // why is all-notes-off inside a "control change" event?
 		  }
 		  //      } else if (status == 0xC0) { // program change
 		  //      } else if (status == 0xD0) { // mono aftertouch
@@ -843,10 +842,6 @@ void Faust::noteOff (VstInt32 note)
 	TRACE( fprintf(stderr,"=== Faust vsti: noteOff\n") );
   if (noteIsOn) {
 	
-		if (ALL_NOTES_OFF == note) {
-			// TODO: turn off all notes	
-		}
-
 		const std::map<VstInt32, int>::iterator& voice_iter = m_playingVoices.find(note);
 		if (m_playingVoices.end() == voice_iter) {
 			TRACE( fprintf(stderr, "Voice not found for note %d\n", note) );
@@ -864,7 +859,24 @@ void Faust::noteOff (VstInt32 note)
     TRACE( fprintf(stderr,"=== Faust vsti: noteOff IGNORED"
 									 " (note was not on)\n") );
   }
-} // end of noteOff
+} // end of nToteOff
+
+void Faust::allNotesOff( void )
+{
+	TRACE( fprintf(stderr, "All notes off\n") );
+	
+	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
+		m_voices[i]->setGate(0);
+	}
+
+	std::map<VstInt32, int>::iterator voice_iter = m_playingVoices.begin();
+	while (voice_iter != m_playingVoices.end()) {
+		int voice = voice_iter->second;
+		m_playingVoices.erase(voice_iter);
+		m_freeVoices.push_back(voice);
+		voice_iter = m_playingVoices.begin();
+	}
+} // end of Faust::allNotesOff
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
