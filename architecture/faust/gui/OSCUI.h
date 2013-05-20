@@ -5,6 +5,9 @@
    modification, are permitted.
 */
 
+#ifndef __OSCUI__
+#define __OSCUI__
+
 #include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
 #include <vector>
@@ -124,3 +127,5 @@ const char* OSCUI::tr(const char* label) const
 	*ptr = 0;
 	return buffer;
 }
+
+#endif
