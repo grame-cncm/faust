@@ -121,6 +121,40 @@
     if (self.inputOutput == 1) [jackView displayCurrentAppPortsWithInputOutput:2 audioMidi:self.audioMidi];
     else if (self.inputOutput == 2) [jackView displayCurrentAppPortsWithInputOutput:1 audioMidi:self.audioMidi];
     
+    // Re adapt layout ?
+    if (fabs(jackView.portsView.clientX - jackView.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewWidth)
+    {
+        //float newClientX = 0.f;
+        float newCurrentAppX = 0.f;
+        
+        if (jackView.portsView.currentAppX < jackView.portsView.clientX)
+        {
+            newCurrentAppX = fmaxf(jackView.portsView.clientX - kPortsViewMinXBetweenItems - kPortsViewWidth, 0.);
+
+            //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
+            
+            for (i = 0; i < [jackView.portsView.subviews count]; ++i)
+            {
+                JackViewPortsViewItem* item = ((JackViewPortsViewItem*)([jackView.portsView.subviews objectAtIndex:i]));
+                
+                if ([item isKindOfClass:[JackViewPortsViewItem class]])
+                {                    
+                    if (item.frame.origin.x == jackView.portsView.currentAppX)
+                    {
+                        [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                    }
+                    /*else if (item.frame.origin.x == jackView.portsView.currentAppX)
+                    {
+                        [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                        jackView.portsView.currentAppX = newCurrentAppX;
+                    }*/
+                }
+            }
+            
+            jackView.portsView.currentAppX = newCurrentAppX;
+        }
+    }
+    
     [jackView.superview addSubview:jackView.portsView];
     [jackView.portsView createLinks];
     [jackView.portsView setNeedsDisplay];
@@ -149,6 +183,8 @@
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
     
+    if (self == jackView.currentClientButton) return;
+    
     jackView.linking = YES;
     
     while ((touch = (UITouch*)[enumerator nextObject]))
@@ -163,6 +199,8 @@
 {
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
+    
+    if (self == jackView.currentClientButton) return;
     
     if (jackView.portsView)
     {
@@ -185,6 +223,8 @@
 {
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
+    
+    if (self == jackView.currentClientButton) return;
     
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
@@ -228,6 +268,8 @@
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    if (self == jackView.currentClientButton) return;
+    
     jackView.linking = NO;
     [jackView setNeedsDisplay];    
 }
@@ -414,6 +456,10 @@
         _jackClient = nil;
         self.currentClientButton = nil;
         self.backgroundColor = [UIColor colorWithWhite:0.1 alpha:0.7];
+        
+        _singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(viewClicked)];
+        _singleTapRecognizer.numberOfTapsRequired = 1;
+        [self addGestureRecognizer:_singleTapRecognizer];
                 
         _audioInputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins,
                                                                                 kJackViewExtVMargins,
@@ -1196,7 +1242,6 @@
     JackViewPort* port = nil;
     int nbPorts = [client.ports count];
     int i = 0;
-    NSMutableArray* portsArray = [NSMutableArray arrayWithCapacity:0];
     int cpt = 0;
     
     // Find ports to display
@@ -1233,7 +1278,7 @@
             [portsArray addObject:port];
         }
     }
-        
+
     for (i = 0; i < [portsArray count]; ++i)
     {
         JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(self.portsView.currentAppX, i * kPortsViewItemHeight, kPortsViewWidth, kPortsViewItemHeight)];
@@ -1248,6 +1293,16 @@
     }
 }
 
+- (void)viewClicked
+{
+    if (portsView)
+    {
+        [portsView removeFromSuperview];
+        [portsView release];
+        portsView = nil;
+        [self.superview setNeedsDisplay];
+    }
+}
 
 @end
 

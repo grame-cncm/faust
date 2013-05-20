@@ -90,6 +90,8 @@
     UIScrollView*           _midiOutputsScrollView;
     
     JackViewDrawingView*    _drawingView;
+    
+    UITapGestureRecognizer* _singleTapRecognizer;
 }
 
 @property (assign, nonatomic) BOOL linking;
@@ -136,5 +138,7 @@ connectedToCurrentClientInputOutput:(int)inputOutput
                                     audioMidi:(int)audioMidi;
 - (void)displayCurrentAppPortsWithInputOutput:(int)inputOutput
                                     audioMidi:(int)audioMidi;
+
+- (void)viewClicked;
 
 @end
