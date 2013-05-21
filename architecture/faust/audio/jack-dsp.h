@@ -87,8 +87,8 @@ class jackaudio : public audio {
             }
         }
 
-        // Restore previous client connections
-        void restore_connections()
+        // Load previous client connections
+        void load_connections()
         {
             list<pair<string, string> >::const_iterator it;
             for (it = fConnections.begin(); it != fConnections.end(); it++) {
@@ -189,7 +189,7 @@ class jackaudio : public audio {
             }
             
             if (fConnections.size() > 0) {
-                restore_connections();
+                load_connections();
             } else if (fAutoConnect) {
                 default_connections();
             }

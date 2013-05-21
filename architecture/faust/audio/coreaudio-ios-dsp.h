@@ -33,6 +33,10 @@
 
  ************************************************************************
  ************************************************************************/
+ 
+#ifndef __coreaudio_ios_dsp__
+#define __coreaudio_ios_dsp__
+
 /* link with  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -241,8 +245,20 @@ void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 i
 
 int TiPhoneCoreAudioRenderer::SetupMixing()
 {
+    CFStringRef route;
+    UInt32 routesize = sizeof(route);
+    OSStatus err  = AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &routesize, &route);
+    if (err == noErr) {
+        if (CFStringCompare(route, CFSTR("ReceiverAndMicrophone"), 0) == kCFCompareEqualTo || CFStringCompare(route,CFSTR("Receiver"), 0) == kCFCompareEqualTo) {
+            // Re-route audio to the speaker (not the receiver, which no music app will ever want)
+            printf("Rerouting audio to speaker\n");
+            UInt32 newRoute = kAudioSessionOverrideAudioRoute_Speaker;
+            AudioSessionSetProperty(kAudioSessionProperty_OverrideAudioRoute, sizeof(newRoute), &newRoute);
+        }
+    }
+    
     UInt32 allowMixing = true;
-    OSStatus err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+    err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
     if (err != noErr) {
         printf("Could not set audio session mixing\n");
         printError(err);
@@ -658,6 +674,7 @@ public:
     
 };
 
+#endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

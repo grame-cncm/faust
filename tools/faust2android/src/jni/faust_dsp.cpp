@@ -129,7 +129,6 @@ void faust::startAudio(){
 
 void faust::stopAudio(){
 	android_CloseAudioDevice(p);
-	delete [] *bufferin;
 	delete [] bufferin;
 	delete [] *bufferout;
 	delete [] bufferout;
@@ -143,15 +142,12 @@ void faust::setParam(float *params){
 
 void faust::processDSP(){
 	float out[VECSAMPS*2];
-	FAUSTFLOAT **bufIn, **bufOut;
-	bufIn = (FAUSTFLOAT**) bufferin;
-	bufOut = (FAUSTFLOAT**) bufferout;
 
 	// getting input signal
 	if(inChanNumb>=1) android_AudioIn(p,bufferin[0],VECSAMPS);
 
 	// computing...
-	DSP->compute(VECSAMPS,bufIn,bufOut);
+	DSP->compute(VECSAMPS,bufferin,bufferout);
 
 	// sending output signal
 	if(outChanNumb == 1) android_AudioOut(p,bufferout[0],VECSAMPS);
@@ -164,4 +160,3 @@ void faust::processDSP(){
 		android_AudioOut(p,out,VECSAMPS*2);
 	}
 }
-

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
 
-	GUI* interface = new QTGUI(argc, argv);
+	QTGUI* interface = new QTGUI(argc, argv);
 	DSP.buildUserInterface(interface);
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(finterface);
@@ -116,6 +116,9 @@ int main(int argc, char *argv[])
 
 #ifdef HTTPCTRL
 	httpdinterface->run();
+#ifdef QRCODECTRL
+    interface->displayQRCode( httpdinterface->getTCPPort() );
+#endif
 #endif
 
 #ifdef OSCCTRL

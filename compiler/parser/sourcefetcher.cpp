@@ -39,8 +39,8 @@
 
 /* Globals */
 int		timeout = DEFAULT_READ_TIMEOUT;
-char           *userAgent = NULL;
-char           *referer = NULL;
+char    *userAgent = NULL;
+char    *referer = NULL;
 int		hideUserAgent = 0;
 int		hideReferer = 1;
 static int	followRedirects = DEFAULT_REDIRECTS;	/* # of redirects to
@@ -84,12 +84,12 @@ char		convertedError[128];
  */
 int http_fetch(const char *url_tmp, char **fileBuf)
 {
-	fd_set		rfds;
+	fd_set	rfds;
 	struct timeval	tv;
-	char		headerBuf [HEADER_BUF_SIZE];
-	char           *tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
-	int		sock      , bytesRead = 0, contentLength = -1, bufsize = REQUEST_BUF_SIZE;
-	int		i         , ret = -1, tempSize, selectRet, found = 0,	/* For redirects */
+	char	headerBuf [HEADER_BUF_SIZE];
+	char    *tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
+	int		sock, bytesRead = 0, contentLength = -1, bufsize = REQUEST_BUF_SIZE;
+	int		i, ret = -1, tempSize, selectRet, found = 0,	/* For redirects */
 			redirectsFollowed = 0;
 
 

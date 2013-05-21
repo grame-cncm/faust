@@ -7,8 +7,9 @@
 
 using namespace std;
 
+extern bool gTimingSwitch;
 
-#if 0
+#if 1
 double mysecond()
 {
         struct timeval tp;
@@ -31,16 +32,20 @@ static void tab (int n, ostream& fout)
 
 void startTiming (const char* msg)
 {
-	assert(lIndex < 1023);
-	tab(lIndex, cerr); cerr << "start " << msg << endl;
-	lStartTime[lIndex++] = mysecond();
+    if (gTimingSwitch) {
+        assert(lIndex < 1023);
+        tab(lIndex, cerr); cerr << "start " << msg << endl;
+        lStartTime[lIndex++] = mysecond();
+    }
 }
 
 void endTiming (const char* msg)
 {
-	assert(lIndex>0);
-	lEndTime[--lIndex] = mysecond();
-	tab(lIndex, cerr); cerr << "end " << msg << " (duration : " << lEndTime[lIndex] - lStartTime[lIndex] << ")" << endl;
+    if (gTimingSwitch) {
+        assert(lIndex>0);
+        lEndTime[--lIndex] = mysecond();
+        tab(lIndex, cerr); cerr << "end " << msg << " (duration : " << lEndTime[lIndex] - lStartTime[lIndex] << ")" << endl;
+    }
 }
 
 #else

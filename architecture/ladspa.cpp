@@ -49,20 +49,6 @@
 #include "faust/misc.h"
 #include "faust/audio/dsp.h"
 
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-    #warning *** ladspa.cpp: NO SSE FLAG (denormals may slow things down) ***
-    #define AVOIDDENORMALS
-#endif
-
 #define sym(name) xsym(name)
 #define xsym(name) #name
 
