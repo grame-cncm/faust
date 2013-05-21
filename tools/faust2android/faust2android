@@ -73,7 +73,9 @@ echo 'const int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' | cat
 
 cd $TMPFILES
 
-APPNAME=$(echo $f | sed 's/.\{4\}$//')
+APPNAME=$(basename "$f")
+APPNAME="${APPNAME%.dsp}"
+
 mv res/values/strings.xml res/values/stringsN.xml 
 sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
 rm res/values/stringsN.xml
