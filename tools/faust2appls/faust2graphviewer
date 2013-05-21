@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash -e
 
 # Usage.
 print_usage() 

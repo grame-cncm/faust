@@ -36,7 +36,7 @@ class WSSCodeContainer : public virtual CodeContainer {
         void generateLocalOutputs(BlockInst* loop_code, const string& index_string);
 
         StatementInst* generateDAGLoopWSS(lclgraph dag);
-        void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code);
+        void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
         void generateDAGLoopWSSAux2(lclgraph dag, const string& counter);
         void generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
 

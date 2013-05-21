@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash -e
 for f in $@; do
     faust -sg $f -o /dev/null
 	dot -Tpdf $f-sig.dot -o $f-sig.pdf

@@ -871,7 +871,6 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
         throw faustexception(""); 
     }
 
-    initFaustDirectories();
 #ifndef WIN32
     alarm(gTimeout);
 #endif
@@ -884,6 +883,8 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
         gGlobal->gInputFiles.push_back(name);
     }
     parseSourceFiles();
+    
+    initFaustDirectories();
 
     /****************************************************************
      3 - evaluate 'process' definition

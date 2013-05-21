@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <math.h>
 
+// For AVOIDDENORMALS
 #include "faust/audio/dsp.h"
 
 // Globals
@@ -52,6 +53,9 @@
 #define JACK_SCHED_POLICY SCHED_FIFO
 #define KDSPMESURE 50
 
+#define MEAN_TRESHOLD 0.1f   // in percentage
+
+
 #ifdef __ICC
 #define INLINE __forceinline
 #else
@@ -62,11 +66,11 @@
 
 // handle 32/64 bits int size issues
 #ifdef __x86_64__
-#define UInt32	unsigned int
-#define UInt64	unsigned long int
+#define UInt32 unsigned int
+#define UInt64 unsigned long int
 #else
-#define UInt32	unsigned int
-#define UInt64	unsigned long long int
+#define UInt32 unsigned int
+#define UInt64 unsigned long long int
 #endif
 
 #endif
@@ -114,58 +118,54 @@
 
 class Semaphore
 {
-public:
-	/**
-	   Create a new semaphore.
-	   Chances are you want 1 wait() per 1 post(), an initial value of 0.
-	*/
-	inline Semaphore(unsigned initial);
+    public:
+        /**
+           Create a new semaphore.
+           Chances are you want 1 wait() per 1 post(), an initial value of 0.
+        */
+        inline Semaphore(unsigned initial);
 
-	inline ~Semaphore();
+        inline ~Semaphore();
 
-	/** Post/Increment/Signal */
-	inline void post();
+        /** Post/Increment/Signal */
+        inline void post();
 
-	/** Wait/Decrement.  Returns false on error. */
-	inline bool wait();
+        /** Wait/Decrement.  Returns false on error. */
+        inline bool wait();
 
-	/** Attempt Wait/Decrement.  Returns true iff a decrement occurred. */
-	inline bool try_wait();
+        /** Attempt Wait/Decrement.  Returns true iff a decrement occurred. */
+        inline bool try_wait();
 
-private:
-#if defined(__APPLE__)
-	semaphore_t _sem;  // sem_t is a worthless broken mess on OSX
-#elif defined(_WIN32)
-	HANDLE _sem;  // types are overrated anyway
-#else
-	sem_t _sem;
-#endif
+    private:
+    #if defined(__APPLE__)
+        semaphore_t _sem;  // sem_t is a worthless broken mess on OSX
+    #elif defined(_WIN32)
+        HANDLE _sem;  // types are overrated anyway
+    #else
+        sem_t _sem;
+    #endif
 };
 
 #ifdef __APPLE__
 
-inline
-Semaphore::Semaphore(unsigned initial)
+inline Semaphore::Semaphore(unsigned initial)
 {
 	if (semaphore_create(mach_task_self(), &_sem, SYNC_POLICY_FIFO, initial)) {
 		throw -1;
 	}
 }
 
-inline
-Semaphore::~Semaphore()
+inline Semaphore::~Semaphore()
 {
 	semaphore_destroy(mach_task_self(), _sem);
 }
 
-inline void
-Semaphore::post()
+inline void Semaphore::post()
 {
 	semaphore_signal(_sem);
 }
 
-inline bool
-Semaphore::wait()
+inline bool Semaphore::wait()
 {
 	if (semaphore_wait(_sem) != KERN_SUCCESS) {
 		return false;
@@ -173,8 +173,7 @@ Semaphore::wait()
 	return true;
 }
 
-inline bool
-Semaphore::try_wait()
+inline bool Semaphore::try_wait()
 {
 	const mach_timespec_t zero = { 0, 0 };
 	return semaphore_timedwait(_sem, zero) == KERN_SUCCESS;
@@ -182,28 +181,24 @@ Semaphore::try_wait()
 
 #elif defined(_WIN32)
 
-inline
-Semaphore::Semaphore(unsigned initial)
+inline Semaphore::Semaphore(unsigned initial)
 {
 	if (!(_sem = CreateSemaphore(NULL, initial, LONG_MAX, NULL))) {
 		throw -1;
 	}
 }
 
-inline
-Semaphore::~Semaphore()
+inline Semaphore::~Semaphore()
 {
 	CloseHandle(_sem);
 }
 
-inline void
-Semaphore::post()
+inline void Semaphore::post()
 {
 	ReleaseSemaphore(_sem, 1, NULL);
 }
 
-inline bool
-Semaphore::wait()
+inline bool Semaphore::wait()
 {
 	if (WaitForSingleObject(_sem, INFINITE) != WAIT_OBJECT_0) {
 		return false;
@@ -211,8 +206,7 @@ Semaphore::wait()
 	return true;
 }
 
-inline bool
-Semaphore::try_wait()
+inline bool Semaphore::try_wait()
 {
 	return WaitForSingleObject(_sem, 0) == WAIT_OBJECT_0;
 }
@@ -226,20 +220,17 @@ Semaphore::Semaphore(unsigned initial)
 	}
 }
 
-inline
-Semaphore::~Semaphore()
+inline Semaphore::~Semaphore()
 {
 	sem_destroy(&_sem);
 }
 
-inline void
-Semaphore::post()
+inline void Semaphore::post()
 {
 	sem_post(&_sem);
 }
 
-inline bool
-Semaphore::wait()
+inline bool Semaphore::wait()
 {
 	while (sem_wait(&_sem)) {
 		if (errno != EINTR) {
@@ -251,8 +242,7 @@ Semaphore::wait()
 	return true;
 }
 
-inline bool
-Semaphore::try_wait()
+inline bool Semaphore::try_wait()
 {
 	return (sem_trywait(&_sem) == 0);
 }
@@ -389,8 +379,6 @@ struct AtomicCounter
 
 int get_max_cpu()
 {
-    //return sysconf(_SC_NPROCESSORS_ONLN);
-
     int physical_count = 0;
     size_t size = sizeof(physical_count);
     sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
@@ -401,12 +389,13 @@ int get_max_cpu()
     printf("logical cpu cores: %d\n", logical_count);
     
     return physical_count;
+    //return logical_count;
 }
 
 static int GetPID()
 {
 #ifdef WIN32
-    return  _getpid();
+    return _getpid();
 #else
     return getpid();
 #endif
@@ -421,6 +410,7 @@ static int GetPID()
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
+#include <mach/mach_time.h>
 
 #define THREAD_SET_PRIORITY         0
 #define THREAD_SCHEDULED_PRIORITY   1
@@ -431,7 +421,7 @@ static void get_affinity(pthread_t thread)
     mach_msg_type_number_t count = THREAD_AFFINITY_POLICY_COUNT;
     boolean_t get_default = false;
     kern_return_t res = thread_policy_get(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, &count, &get_default);
-    if (res == KERN_SUCCESS)  {
+    if (res == KERN_SUCCESS) {
         printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
     }
 }
@@ -441,7 +431,7 @@ static void set_affinity(pthread_t thread, int tag)
     thread_affinity_policy theTCPolicy;
     theTCPolicy.affinity_tag = tag;
     kern_return_t res = thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, THREAD_AFFINITY_POLICY_COUNT);
-    if (res == KERN_SUCCESS)  {
+    if (res == KERN_SUCCESS) {
         printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
     }
 }
@@ -560,13 +550,29 @@ static int GetParams(pthread_t thread, UInt64* period, UInt64* computation, UInt
     }
 }
 
+
+static double gTimeRatio = 0;
 static UInt64 gPeriod = 0;
 static UInt64 gComputation = 0;
 static UInt64 gConstraint = 0;
 
+/* This should only be called ONCE per process. */
+static void InitTime()
+{
+	mach_timebase_info_data_t info;
+	mach_timebase_info(&info);
+	gTimeRatio = ((double)info.numer / (double)info.denom) / 1000;
+}
+
+UInt64 GetMicroSeconds(void)
+{
+    return UInt64(mach_absolute_time() * gTimeRatio);
+}
+
 void GetRealTime()
 {
     if (gPeriod == 0) {
+        InitTime();
         GetParams(pthread_self(), &gPeriod, &gComputation, &gConstraint);
     }
 }
@@ -638,7 +644,7 @@ static INLINE int Range(int min, int max, int val)
     void computeThreadExternal(void* dsp, int num_thread);
 #endif
 
-class Runnable {
+class DynThreadAdapter {
     
     private:
         
@@ -650,16 +656,6 @@ class Runnable {
         int fOldfDynamicNumThreads;
         bool fDynAdapt;
         
-        virtual void computeThread(int cur_thread) = 0;
-    
-    public :
-    
-        Runnable():fCounter(0), fOldMean(1000000000.f), fOldfDynamicNumThreads(1)
-        {
-            memset(fTiming, 0, sizeof(long long int ) * KDSPMESURE);
-            fDynAdapt = getenv("OMP_DYN_THREAD") ? strtol(getenv("OMP_DYN_THREAD"), NULL, 10) : false;
-        }
-        
         INLINE float ComputeMean()
         {
             float mean = 0;
@@ -669,11 +665,20 @@ class Runnable {
             mean /= float(KDSPMESURE);
             return mean;
         }
+    
+    public :
+    
+        DynThreadAdapter():fCounter(0), fOldMean(1000000000.f), fOldfDynamicNumThreads(1)
+        {
+            memset(fTiming, 0, sizeof(long long int ) * KDSPMESURE);
+            fDynAdapt = getenv("OMP_DYN_THREAD") ? strtol(getenv("OMP_DYN_THREAD"), NULL, 10) : false;
+        }
         
         INLINE void StartMeasure()
         {
             if (fDynAdapt) {
-                fStart = DSP_rdtsc();
+                //fStart = DSP_rdtsc();
+                fStart = GetMicroSeconds();
             }
         }
          
@@ -683,13 +688,15 @@ class Runnable {
                 return;
             }
             
-            fStop = DSP_rdtsc();
+            //fStop = DSP_rdtsc();
+            fStop = GetMicroSeconds();
             fCounter = (fCounter + 1) % KDSPMESURE;
             if (fCounter == 0) {
                 float mean = ComputeMean();
-                if (fabs(mean - fOldMean) > 5000) {
+                // Recompute dynthreadnum is timing différence is sufficient...
+                //printf("mean = %f fOldMean = %f\n", mean, fOldMean);
+                if (fabs(mean - fOldMean) / fOldMean > MEAN_TRESHOLD) {
                     if (mean > fOldMean) { // Worse...
-                        //printf("Worse %f %f\n", mean, fOldMean);
                         if (fOldfDynamicNumThreads > dynthreadnum) {
                             fOldfDynamicNumThreads = dynthreadnum;
                             dynthreadnum += 1;
@@ -698,7 +705,6 @@ class Runnable {
                             dynthreadnum -= 1;
                         }
                      } else { // Better...
-                        //printf("Better %f %f\n", mean, fOldMean);
                         if (fOldfDynamicNumThreads > dynthreadnum) {
                             fOldfDynamicNumThreads = dynthreadnum;
                             dynthreadnum -= 1;
@@ -709,13 +715,13 @@ class Runnable {
                     }
                     fOldMean = mean;
                     dynthreadnum = Range(1, staticthreadnum, dynthreadnum);
-                    //printf("dynthreadnum %d\n", dynthreadnum);
+                    //printf("dynthreadnum = %d\n", dynthreadnum);
                 }
             }
+            // And keep computation time
             fTiming[fCounter] = fStop - fStart; 
         }
 };
-
 
 #define Value(e) (e).info.fValue
 
@@ -849,7 +855,6 @@ class TaskQueue
 			//if (cur_thread != MASTER_THREAD)
                 task_queue_list[cur_thread].MeasureStealingDur();
         #endif
-            //printf("GetNextTask WORK_STEALING_INDEX\n");
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
          
@@ -906,7 +911,6 @@ class TaskGraph
 
         INLINE void InitTask(int task, int val)
         {
-            //assert(task < fTaskQueueSize);
             fTaskList[task] = val;
         }
         
@@ -919,7 +923,6 @@ class TaskGraph
           
         INLINE void ActivateOutputTask(TaskQueue& queue, int task, int* tasknum)
         {
-            //assert(task < fTaskQueueSize);
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (*tasknum == WORK_STEALING_INDEX) {
                     *tasknum = task;
@@ -931,7 +934,6 @@ class TaskGraph
           
         INLINE void ActivateOutputTask(TaskQueue& queue, int task)
         {   
-            //assert(task < fTaskQueueSize);
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue.PushHead(task);
             }
@@ -939,7 +941,6 @@ class TaskGraph
          
         INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int* tasknum)
         {   
-            //assert(task < fTaskQueueSize);
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 *tasknum = task;
             } else {
@@ -996,7 +997,6 @@ class DSPThread {
         pthread_t fThread;
         DSPThreadPool* fThreadPool;
         Semaphore fSemaphore;
-        char fName[128];
         bool fRealTime;
         int fNumThread;
         void* fDSP;
@@ -1006,7 +1006,6 @@ class DSPThread {
             DSPThread* thread = static_cast<DSPThread*>(arg);
             
             AVOIDDENORMALS;
-            
             get_affinity(thread->fThread);
             
             // One "dummy" cycle to setup thread
@@ -1033,7 +1032,6 @@ class DSPThread {
         
         void Run()
         {
-            //printf("=====Run===== %x\n", pthread_self());
             fSemaphore.wait();
             computeThreadExternal(fDSP, fNumThread + 1);
             fThreadPool->SignalOne();
@@ -1144,7 +1142,6 @@ DSPThreadPool::~DSPThreadPool()
     delete[] fThreadPool;
 }
 
-
 void DSPThreadPool::StartAll(int num_thread, bool realtime, void* dsp)
 {
     if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
@@ -1184,7 +1181,10 @@ class WorkStealingScheduler {
         TaskQueue* fTaskQueueList;
         TaskGraph* fTaskGraph;
         
+        DynThreadAdapter fDynThreadAdapter;
+        
         int fDynamicNumThreads;
+        int fStaticNumThreads;
         
         int* fReadyTaskList;
         int fReadyTaskListSize;
@@ -1194,12 +1194,13 @@ class WorkStealingScheduler {
     
         WorkStealingScheduler(int task_queue_size, int init_task_list_size)
         {
-            fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : get_max_cpu();
+            fStaticNumThreads = get_max_cpu();
+            fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : fStaticNumThreads;
             
-            fThreadPool = new DSPThreadPool(fDynamicNumThreads);
+            fThreadPool = new DSPThreadPool(fStaticNumThreads);
             fTaskGraph = new TaskGraph(task_queue_size);
-            fTaskQueueList = new TaskQueue[fDynamicNumThreads];
-            for (int i = 0; i < fDynamicNumThreads; i++) {
+            fTaskQueueList = new TaskQueue[fStaticNumThreads];
+            for (int i = 0; i < fStaticNumThreads; i++) {
                 fTaskQueueList[i].Init(task_queue_size);
             }
             
@@ -1223,7 +1224,7 @@ class WorkStealingScheduler {
         
         void StartAll(void* dsp)
         {
-            fThreadPool->StartAll(fDynamicNumThreads - 1, true, dsp);
+            fThreadPool->StartAll(fStaticNumThreads - 1, true, dsp);
         }
         
         void StopAll()
@@ -1234,12 +1235,14 @@ class WorkStealingScheduler {
         void SignalAll()
         {
             GetRealTime();
+            fDynThreadAdapter.StartMeasure();
             fThreadPool->SignalAll(fDynamicNumThreads - 1);
         }
         
         void SyncAll()
         {
             while (!fThreadPool->IsFinished()) {}
+            fDynThreadAdapter.StopMeasure(fStaticNumThreads, fDynamicNumThreads);
         }
         
         void PushHead(int cur_thread, int task_num)
@@ -1277,11 +1280,19 @@ class WorkStealingScheduler {
             fTaskGraph->GetReadyTask(fTaskQueueList[cur_thread], task_num);
         }
         
-        void InitTaskList()
+        void InitTaskList(int cur_thread)
         {
             TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
-             for (int cur_thread = 0; cur_thread < fDynamicNumThreads; cur_thread++) {
-                fTaskQueueList[cur_thread].InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, cur_thread);
+            if (cur_thread == -1) {
+                // Dispatch on all WSQ
+                for (int i = 0; i < fDynamicNumThreads; i++) {
+                    fTaskQueueList[i].InitTaskList(fReadyTaskListSize, fReadyTaskList, fDynamicNumThreads, i);
+                }
+            } else {
+                // Otherwise push all ready tasks in cur_thread WSQ
+                for (int i = 0; i < fReadyTaskListSize; i++) {
+                    fTaskQueueList[cur_thread].PushHead(fReadyTaskList[i]);
+                }
             }
         }
 
@@ -1361,10 +1372,9 @@ void getReadyTask(void* scheduler, int cur_thread, int* task_num)
     static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
 
-void initTaskList(void* scheduler)
+void initTaskList(void* scheduler, int cur_thread)
 {
-    //printf("initTaskList %x\n", pthread_self());
-    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList();
+    static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList(cur_thread);
 }
 
 void addReadyTask(void* scheduler, int task_num)

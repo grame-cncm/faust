@@ -1,5 +1,13 @@
 version := 2.0.a9
 
+system	?= $(shell uname -s)
+
+ifeq ($(system), Darwin)
+LIB_EXT = dylib
+else
+LIB_EXT = so
+endif
+
 DESTDIR ?= 
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
@@ -69,7 +77,7 @@ install :
 	mkdir -p $(prefix)/lib/faust
 	install compiler/faust $(prefix)/bin/
 	install compiler/libfaust.a $(prefix)/lib/faust
-	install compiler/libfaust.dylib $(prefix)/lib/faust
+	[ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
 	# install architecture and faust library files

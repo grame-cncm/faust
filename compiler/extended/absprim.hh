@@ -103,7 +103,7 @@ class AbsPrim : public xtended
         if (t->nature() == kReal) {
             list<ValueInst*> casted_args;
             prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
+            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
         } else {
             // "Int" abs
             result_type = Typed::kInt; 

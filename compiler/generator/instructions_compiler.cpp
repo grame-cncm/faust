@@ -645,7 +645,8 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
         // Reversed...
-        BasicTyped* argtype = genBasicFIRTyped(ffargtype(ff, (ffarity(ff) - 1) - i));
+        int sig_argtype = ffargtype(ff, (ffarity(ff) - 1) - i);
+        BasicTyped* argtype = genBasicFIRTyped(sig_argtype);
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
         args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
     }
@@ -670,7 +671,6 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     fContainer->setInputRate(idx, rate);
 
     ValueInst* res = InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex());
-
     return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(res));
 }
 
@@ -808,12 +808,12 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     assert(load_value);
     
     // Check types and possibly cast written value
-    int t1 = getCertifiedSigType(tbl)->nature();
-    int t2 = getCertifiedSigType(data)->nature();
+    int table_type = getCertifiedSigType(tbl)->nature();
+    int date_type = getCertifiedSigType(data)->nature();
     ValueInst* casted_data = CS(data);
     
-    if (t1 != t2) {
-        casted_data = InstBuilder::genCastNumInst(casted_data, genBasicFIRTyped(t1));
+    if (table_type != date_type) {
+        casted_data = InstBuilder::genCastNumInst(casted_data, genBasicFIRTyped(table_type));
     }
     
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), CS(idx), casted_data));
