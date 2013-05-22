@@ -103,7 +103,7 @@ faustgen_factory::faustgen_factory(const string& name)
             // Try our value instead...  
             fDrawPath = string(str_name) + string(FAUST_DRAW_PATH);
         } else {
-            fDrawPath = string(str_name) + string(lpTempPathBuffer);
+            fDrawPath = string(lpTempPathBuffer);
         }
 		FreeLibrary(handle);
 	} else {

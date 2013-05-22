@@ -29,6 +29,7 @@
 
 using namespace std;
 
+#ifndef WIN32
 double mysecond()
 {
     struct timeval tp;
@@ -38,6 +39,9 @@ double mysecond()
     i = gettimeofday(&tp,&tzp);
     return ((double) tp.tv_sec + (double) tp.tv_usec * 1.e-6);
 }
+#else
+double mysecond() { return 0; }
+#endif
 
 /*
 static void tab (int n, ostream& fout)
