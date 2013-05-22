@@ -612,10 +612,16 @@ hbargraph		: HBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 				;
 
 /* Description of foreign functions */
+/* float sinhf|sinh|sinhl(float) */
 
-signature		: type fun LPAR typelist RPAR	{ $$ = cons($1, cons($2, $4)); }
-				| type fun LPAR RPAR			{ $$ = cons($1, cons($2, nil)); }
-				;
+signature		: type fun LPAR typelist RPAR               { $$ = cons($1, cons(cons($2,cons($2,cons($2,nil))), $4)); }
+                | type fun OR fun LPAR typelist RPAR        { $$ = cons($1, cons(cons($2,cons($4,cons($4,nil))), $6)); }
+                | type fun OR fun OR fun LPAR typelist RPAR	{ $$ = cons($1, cons(cons($2,cons($4,cons($6,nil))), $8)); }
+
+                | type fun LPAR RPAR                        { $$ = cons($1, cons(cons($2,cons($2,cons($2,nil))), nil)); }
+                | type fun OR fun LPAR RPAR                 { $$ = cons($1, cons(cons($2,cons($4,cons($4,nil))), nil)); }
+                | type fun OR fun OR fun LPAR RPAR			{ $$ = cons($1, cons(cons($2,cons($4,cons($6,nil))), nil)); }
+                ;
 
 fun				: IDENT							{ $$ = tree(yytext); }
 				;

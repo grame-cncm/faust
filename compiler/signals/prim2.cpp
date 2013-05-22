@@ -19,7 +19,8 @@
  ************************************************************************
  ************************************************************************/
  
- 
+extern int gFloatSize;
+
  
 #include "prim2.hh"
 #include "stdlib.h"
@@ -58,7 +59,9 @@ int ffrestype(Tree t)
 
 const char* ffname(Tree t)
 {
-	return tree2str(nth(ffsignature(t),1));
+    Tree namelist = nth(ffsignature(t),1);
+    //cerr << "ffname " << tree2str(nth(namelist,gFloatSize-1)) << endl;
+    return tree2str(nth(namelist,gFloatSize-1));
 }
 
 int ffarity(Tree t)
