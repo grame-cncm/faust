@@ -35,7 +35,7 @@ with '-' (hyphen).
 Space or tabulation are replaced with '_' (underscore)
 */
 
-using namespace std;
+//using namespace std;
 
 class httpdUI : public UI 
 {

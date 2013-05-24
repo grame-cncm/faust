@@ -74,7 +74,7 @@
 #define maxValue maximum
 
 
-using namespace std;
+///using namespace std;
 
 
 //==============================BEGIN QSYNTHKNOB=====================================
@@ -316,8 +316,8 @@ class dbAbstractDisplay : public AbstractDisplay
 
         FAUSTFLOAT      fScaleMin;
         FAUSTFLOAT      fScaleMax;
-        vector<int>     fLevel;
-        vector<QBrush>  fBrush;
+        std::vector<int>     fLevel;
+        std::vector<QBrush>  fBrush;
 
 
         /**
@@ -814,11 +814,11 @@ class dbHorizontalBargraph : public dbBargraph
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
  * (but not those in the middle of the string)
  */
-static string rmWhiteSpaces(const string& s)
+static std::string rmWhiteSpaces(const std::string& s)
 {
     size_t i = s.find_first_not_of(" \t");
     size_t j = s.find_last_not_of(" \t");
-  	if ( (i != string::npos) && (j != string::npos) ) {
+  	if ( (i != std::string::npos) && (j != std::string::npos) ) {
 		return s.substr(i, 1+j-i);
 	} else {
 		return "";
@@ -828,11 +828,11 @@ static string rmWhiteSpaces(const string& s)
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata(unit=dB)
  */
-static void extractMetadata(const string& fulllabel, string& label, map<string, string>& metadata)
+static void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::string>& metadata)
 {
     enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
     int state = kLabel; int deep = 0;
-    string key, value;
+    std::string key, value;
 
     for (unsigned int i=0; i < fulllabel.size(); i++) {
         char c = fulllabel[i];
@@ -916,7 +916,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
                 break;
 
             default :
-                cerr << "ERROR unrecognized state " << state << endl;
+                std::cerr << "ERROR unrecognized state " << state << std::endl;
         }
     }
     label = rmWhiteSpaces(label);
@@ -1163,17 +1163,17 @@ class uiNumEntry : public QObject, public uiItem
 class QTGUI : public QObject, public GUI
 {
     Q_OBJECT
-	QApplication		fAppl;
-	QTimer*				fTimer;
-	QStyle*			 	fStyle;
-	string				gGroupTooltip;
-	stack<QWidget* > 	fGroupStack;
+	QApplication            fAppl;
+	QTimer*                 fTimer;
+	QStyle*                 fStyle;
+    std::string				gGroupTooltip;
+    std::stack<QWidget* > 	fGroupStack;
 
-    map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
-    map<FAUSTFLOAT*, string>          fTooltip;       // map widget zone with tooltip strings
-    map<FAUSTFLOAT*, string>          fUnit;          // map widget zone to unit string (i.e. "dB")
-    set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
-    set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
+    std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
+    std::map<FAUSTFLOAT*, std::string>     fTooltip;       // map widget zone with tooltip strings
+    std::map<FAUSTFLOAT*, std::string>     fUnit;          // map widget zone to unit string (i.e. "dB")
+    std::set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
+    std::set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
 
 
     /**
@@ -1181,9 +1181,9 @@ class QTGUI : public QObject, public GUI
 	* return characters so that line width doesn't exceed n.
 	* Limitation : long words exceeding n are not cut
     */
-	virtual string formatTooltip(int n, const string& tt)
+	virtual std::string formatTooltip(int n, const std::string& tt)
 	{
-		string  ss = tt;	// ss string we are going to format
+		std::string  ss = tt;	// ss string we are going to format
 		int	lws = 0;	// last white space encountered
 		int 	lri = 0;	// last return inserted
 		for (int i=0; i< (int)tt.size(); i++) {
@@ -1257,9 +1257,9 @@ class QTGUI : public QObject, public GUI
     * containers were pushed on the stack).
     */
 
-    int checkLabelOptions(QWidget* widget, const string& fullLabel, string& simplifiedLabel)
+    int checkLabelOptions(QWidget* widget, const std::string& fullLabel, std::string& simplifiedLabel)
     {
-        map<string, string> metadata;
+        std::map<std::string, std::string> metadata;
         extractMetadata(fullLabel, simplifiedLabel, metadata);
 
         if (metadata.count("tooltip")) {
@@ -1294,8 +1294,8 @@ class QTGUI : public QObject, public GUI
 
 	void openBox(const char* fulllabel, QLayout* layout)
 	{
-		map<string, string> metadata;
-        string label;
+		std::map<std::string, std::string> metadata;
+        std::string label;
         extractMetadata(fulllabel, label, metadata);
   		layout->setMargin(5);
 		QWidget* box;
@@ -1322,9 +1322,9 @@ class QTGUI : public QObject, public GUI
 /*        if (metadata.count("tooltip")) {
             box->setToolTip(metadata["tooltip"].c_str());
         }*/
-        if (gGroupTooltip != string()) {
+        if (gGroupTooltip != std::string()) {
 			box->setToolTip(gGroupTooltip.c_str());
-			gGroupTooltip = string();
+			gGroupTooltip = std::string();
 		}
         insert(label.c_str(), box);
         fGroupStack.push(box);

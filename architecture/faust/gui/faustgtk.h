@@ -22,7 +22,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <assert.h>
 
-using namespace std;
+//using namespace std;
 
 
 #define stackSize 256

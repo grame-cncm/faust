@@ -47,7 +47,7 @@
 
 #include "faust/gui/GUI.h"
 
-using namespace std;
+//using namespace std;
 
 /******************************************************************************
 *******************************************************************************
@@ -64,6 +64,8 @@ struct param {
 
 class CMDUI : public UI
 {
+    using namespace std;
+    
 	int					fArgc;
 	char**				fArgv;
 	vector<char*>		fFiles;

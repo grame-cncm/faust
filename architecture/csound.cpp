@@ -52,9 +52,6 @@
 #include <new>
 #include <vector>
 #include "csdl.h"                       /* CSOUND plugin API header */
-#include "faust/audio/dsp.h"
-#include "faust/gui/meta.h"
-#include "faust/gui/UI.h"
 
 // used to transform a symbol in a string
 #define sym(name) xsym(name)
@@ -75,7 +72,10 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
-using namespace std;
+#include "faust/misc.h"
+#include "faust/audio/dsp.h"
+#include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -93,7 +93,7 @@ using namespace std;
  */
 class CSUI : public UI
 {
-    vector<FAUSTFLOAT*>  vZone;
+    std::vector<FAUSTFLOAT*>  vZone;
 
  public:
  

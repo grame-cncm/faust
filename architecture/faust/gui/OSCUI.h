@@ -44,11 +44,13 @@ all the other osc excluded characters with '-' (hyphen)
 This solution is implemented in the proposed OSC UI;
 */
 
-using namespace std;
+///using namespace std;
 
 //class oscfaust::OSCIO;
 class OSCUI : public GUI 
 {
+    using namespace std;
+    
 	oscfaust::OSCControler*	fCtrl;
 	vector<const char*>		fAlias;
 	
