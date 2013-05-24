@@ -540,7 +540,9 @@ string ScalarCompiler::generateButton(Tree sig, Tree path)
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = 0.0;", varname));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-	return generateCacheCode(sig, varname);
+
+    //return generateCacheCode(sig, varname);
+    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
 string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
@@ -549,7 +551,9 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = 0.0;", varname));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-	return generateCacheCode(sig, varname);
+
+    //return generateCacheCode(sig, varname);
+    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
 
@@ -559,7 +563,9 @@ string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, 
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-	return generateCacheCode(sig, varname);
+
+    //return generateCacheCode(sig, varname);
+    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
 string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -568,7 +574,9 @@ string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, 
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-	return generateCacheCode(sig, varname);
+
+    //return generateCacheCode(sig, varname);
+    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
 string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -577,7 +585,9 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-	return generateCacheCode(sig, varname);
+
+    //return generateCacheCode(sig, varname);
+    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
 
