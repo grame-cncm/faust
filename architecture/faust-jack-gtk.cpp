@@ -151,6 +151,40 @@ int main(int argc, char *argv[])
         metadataDSPFactory(factory3, &meta);
         printf("JSON %s\n", json.json());
         
+        error_msg3[256];
+        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
+        //printf("createDSPFactory %x\n", factory3);
+        if (factory3) {
+            DSP = createDSPInstance(factory3);
+            assert(DSP);
+         } else {
+            printf("Cannot create factory : %s\n", error_msg3);
+            return 1;
+        }
+        
+        meta;
+        DSP->buildUserInterface(&json);
+        metadataDSPFactory(factory3, &json);
+        metadataDSPFactory(factory3, &meta);
+        printf("JSON %s\n", json.json());
+        
+          error_msg3[256];
+        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
+        //printf("createDSPFactory %x\n", factory3);
+        if (factory3) {
+            DSP = createDSPInstance(factory3);
+            assert(DSP);
+         } else {
+            printf("Cannot create factory : %s\n", error_msg3);
+            return 1;
+        }
+        
+        meta;
+        DSP->buildUserInterface(&json);
+        metadataDSPFactory(factory3, &json);
+        metadataDSPFactory(factory3, &meta);
+        printf("JSON %s\n", json.json());
+        
         //deleteDSPInstance(DSP);
         //deleteDSPFactory(factory3);
                

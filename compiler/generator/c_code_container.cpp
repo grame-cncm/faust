@@ -213,7 +213,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "metadata" << fKlassName << "(MetaGlue* m) { ";
 
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {

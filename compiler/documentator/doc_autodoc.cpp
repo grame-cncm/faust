@@ -90,7 +90,7 @@ void declareAutoDoc()
 	if (! gGlobal->gMetaDataSet.empty()) {
 		autodoc = cons(docTxt("\\begin{tabular}{ll}\n"), autodoc);
 		autodoc = cons(docTxt("\t\\hline\n"), autodoc);
-		for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+		for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
 			string mtdkey = tree2str(i->first);
 			string mtdTranslatedKey = gGlobal->gDocMetadatasStringMap[mtdkey];
 			if (mtdTranslatedKey.empty()) {

@@ -55,6 +55,16 @@ class Garbageable;
 
 struct LLVMResult;
 
+struct comp_str
+{
+    bool operator()(Tree s1, Tree s2) const
+    {
+        return (strcmp(tree2str(s1), tree2str(s2)) < 0);    
+    }
+};
+
+typedef map<Tree, set<Tree>, comp_str> MetaDataSet;
+
 struct global {
 
     Tree 			gResult;
@@ -62,8 +72,8 @@ struct global {
 
     SourceReader	gReader;
 
-    map<Tree, set<Tree> >   gMetaDataSet;
-    string                  gDocLang;
+    MetaDataSet     gMetaDataSet;
+    string          gDocLang;
 
     //-- globals
     string          gFaustSuperSuperDirectory;

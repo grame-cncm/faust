@@ -148,7 +148,7 @@ void JAVAScriptCodeContainer::produceClass()
         // Print metadata declaration
         tab(n+1, *fOut); *fOut   << "this.metadata = function(m) { ";
 
-        for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
                 tab(n+2, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
             } else {
