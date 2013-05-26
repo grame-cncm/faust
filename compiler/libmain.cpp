@@ -454,7 +454,7 @@ static void printheader(ostream& dst)
     selectedKeys.insert(tree("version"));
 
     dst << "//-----------------------------------------------------" << endl;
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
             dst << "// " << *(i->first);
             const char* sep = ": ";
