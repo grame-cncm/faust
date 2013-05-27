@@ -142,6 +142,8 @@ class llvm_dsp_factory {
         
         void metadataDSPFactory(Meta* meta);
         
+        void metadataDSPFactory(MetaGlue* glue);
+        
         void classInitDSPFactory(int samplingFreq);
     
 };
@@ -167,12 +169,13 @@ class llvm_dsp_aux : public dsp {
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
+        void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
 };
 
-// Public interface
+// Public C++ interface
 
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
@@ -246,6 +249,49 @@ class EXPORT llvm_dsp : public dsp {
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
+
+// Public C interface
+
+EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* name, 
+                        const char* input, const char* target, 
+                        char* error_msg, int opt_level);
+
+EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
+
+EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level);
+
+EXPORT void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level);
+
+EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level);
+
+EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
+
+EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
+
+EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
+
+EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void initCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
+
+EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+
+EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
+
+EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
 #ifdef WIN32
 

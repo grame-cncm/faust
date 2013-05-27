@@ -56,17 +56,17 @@ struct llvm_dsp {};
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
+llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
                         const char* library_path, const char* draw_path, const char* name, 
                         const char* input, const char* target, 
-                        char* error_msg, int opt_level = 3);
+                        char* error_msg, int opt_level);
 
 /**
  * Destroy a Faust DSP factory.
  * 
  * @param factory - the DSP factory to be deleted.
 */                                 
-void deleteDSPFactory(llvm_dsp_factory* factory);
+void deleteCDSPFactory(llvm_dsp_factory* factory);
           
 /**
  * Create a Faust DSP factory from a LLVM bitcode string.
@@ -77,7 +77,7 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
-llvm_dsp_factory* readDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level = 0);
+llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 
 /**
  * Write a Faust DSP factory into a LLVM bitcode string.
@@ -86,7 +86,7 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const char* bit_code, const char* ta
  *
  * @return the LLVM bitcode as a string.
 */
-const char* writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
+const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a LLVM bitcode file.
@@ -95,7 +95,7 @@ const char* writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
 */
-llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level);
 
 /**
  * Write a Faust DSP factory into a LLVM bitcode file.
@@ -104,7 +104,7 @@ llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const char* bit_code_path, const
  * @param bit_code_path - the LLVM bitcode file pathname
  *
 */
-void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
+void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) string.
@@ -115,7 +115,7 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_cod
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
-llvm_dsp_factory* readDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level = 0);
+llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) string.
@@ -124,7 +124,7 @@ llvm_dsp_factory* readDSPFactoryFromIR(const char* ir_code, const char* target, 
  *
  * @return the LLVM IR (textual) as a string.
 */
-const char* writeDSPFactoryToIR(llvm_dsp_factory* factory);
+const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) file.
@@ -135,7 +135,7 @@ const char* writeDSPFactoryToIR(llvm_dsp_factory* factory);
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
-llvm_dsp_factory* readDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level = 0);
+llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) file.
@@ -144,7 +144,7 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const char* ir_code_path, const char*
  * @param ir_code_path - the LLVM bitcode file pathname.
  *
 */
-void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
+void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
 /**
  * Call global declarations with the given meta object.
@@ -153,22 +153,22 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path
  * @param meta - the meta object to be used.
  *
 */
-void metadataDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
+void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
 
 /**
 * Instance class
 */
-int getNumInputsDSPInstance(llvm_dsp* dsp);
+int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
-int getNumOutputsDSPInstance(llvm_dsp* dsp);
+int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
-void instanceInitDSPInstance(llvm_dsp* dsp);
+void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
-void initDSPInstance(llvm_dsp* dsp);
+void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
-void buildUserInterfaceDSPInstance(llvm_dsp* dsp, UIGlue* interface);
+void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
 
-void computeDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
 /**
  * Create a Faust DSP instance.
@@ -177,14 +177,14 @@ void computeDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT
  * 
  * @return the Faust DSP instance on success, otherwise a null pointer.
 */
-llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
+llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 /**
  * Destroy a Faust DSP instance.
  * 
  * @param dsp - the DSP instance to be deleted.
 */ 
-void deleteDSPInstance(llvm_dsp* dsp);
+void deleteCDSPInstance(llvm_dsp* dsp);
 
 #ifdef __cplusplus
 }

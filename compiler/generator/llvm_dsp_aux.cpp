@@ -317,6 +317,11 @@ void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
     fMetadata(&glue);
 }
 
+void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
+{
+    fMetadata(glue);
+}
+
 void llvm_dsp_factory::classInitDSPFactory(int samplingFreq)
 {
     fClassInit(samplingFreq);
@@ -362,6 +367,11 @@ void llvm_dsp_aux::buildUserInterface(UI* interface)
     UIGlue glue;
     buildUIGlue(&glue, interface);
     fDSPFactory->fBuildUserInterface(fDSP, &glue);
+}
+
+void llvm_dsp_aux::buildUserInterface(UIGlue* glue)
+{
+    fDSPFactory->fBuildUserInterface(fDSP, glue);
 }
 
 void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
@@ -590,4 +600,104 @@ EXPORT void llvm_dsp::buildUserInterface(UI* interface)
 EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
+}
+
+// Public C interface
+
+EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* name, 
+                        const char* input, const char* target, 
+                        char* error_msg, int opt_level)
+{
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
+}
+
+EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
+{
+    delete factory;
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level)
+{
+    return readDSPFactoryFromBitcode(bit_code, target, opt_level);
+}
+
+EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
+{
+    return writeDSPFactoryToBitcode(factory).c_str();
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level)
+{
+    return readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
+}
+
+EXPORT void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path)
+{
+    writeDSPFactoryToBitcodeFile(factory, bit_code_path);
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level)
+{
+    return readDSPFactoryFromIR(ir_code, target, opt_level);
+}
+
+EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
+{
+    return writeDSPFactoryToIR(factory).c_str();
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level)
+{
+    return readDSPFactoryFromIRFile(ir_code_path, target, opt_level);
+}
+
+EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path)
+{
+    writeDSPFactoryToIRFile(factory, ir_code_path);
+}
+
+EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
+{
+    factory->metadataDSPFactory(glue);
+}
+
+EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
+{
+    return dsp->getNumInputs();
+}
+
+EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
+{
+    return dsp->getNumOutputs();
+}
+
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq)
+{
+    dsp->instanceInit(samplingFreq);
+}
+
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq)
+{
+    dsp->init(samplingFreq);
+}
+
+EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
+{
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->buildUserInterface(glue);
+}
+
+EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
+    dsp->compute(count, input, output);
+}
+
+EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
+{
+    return reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
+}
+
+EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
+{
+    delete dsp; 
 }
