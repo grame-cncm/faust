@@ -95,7 +95,7 @@ const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
 */
-llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level);
+llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level);
 
 /**
  * Write a Faust DSP factory into a LLVM bitcode file.

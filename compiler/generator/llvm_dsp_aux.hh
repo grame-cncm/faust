@@ -250,6 +250,18 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
+#ifdef WIN32
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
@@ -263,7 +275,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
 
 EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level);
 
 EXPORT void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
 
@@ -281,9 +293,9 @@ EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp);
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp);
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
 
@@ -293,12 +305,8 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
-#ifdef WIN32
-
 #ifdef __cplusplus
 }
-#endif
-
 #endif
 
 #endif

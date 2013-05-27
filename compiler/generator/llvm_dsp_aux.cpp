@@ -627,7 +627,7 @@ EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
     return writeDSPFactoryToBitcode(factory).c_str();
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const std::string& target, int opt_level)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level)
 {
     return readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
 }
