@@ -49,10 +49,9 @@ This solution is implemented in the proposed OSC UI;
 //class oscfaust::OSCIO;
 class OSCUI : public GUI 
 {
-    using namespace std;
-    
+     
 	oscfaust::OSCControler*	fCtrl;
-	vector<const char*>		fAlias;
+	std::vector<const char*>		fAlias;
 	
 	const char* tr(const char* label) const;
 	
