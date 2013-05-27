@@ -717,7 +717,7 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				outputs[i][frame] += m_tempOutputs[i][frame];
 			}
 		}
-	}
+	} // end of signal computation and mixdown
 
 	// normalize sample by number of playing voices
 	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
@@ -731,84 +731,92 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 VstInt32 Faust::processEvents (VstEvents* ev)
 {
   if (ev->numEvents > 0) {
-#ifdef DEBUG
-	  fprintf(stderr,"=== Faust vsti: processEvents processing %d events\n",
-			  ev->numEvents);
-#endif
+	  TRACE( fprintf(stderr,"=== Faust vsti: processEvents processing %d "
+									 "events\n", ev->numEvents) );
   }
 
   for (VstInt32 i = 0; i < ev->numEvents; i++) {
+		TRACE( fprintf(stderr,"=== Faust vsti: event type = %d\n", 
+					(ev->events[i])->type) );
+		if ((ev->events[i])->type != kVstMidiType) {
+			TRACE( fprintf(stderr,"=== Faust vsti: EVENT IGNORED!\n") );
+			continue;
+		}
+
+		VstMidiEvent* event = (VstMidiEvent*)ev->events[i];
+		char* midiData = event->midiData;
+		VstInt32 chan = midiData[0] & 0xf;
+		VstInt32 status = midiData[0] & 0xf0;
+
 #ifdef DEBUG
-	  fprintf(stderr,"=== Faust vsti: event type = %d\n", 
-			  (ev->events[i])->type);
-#endif
-	  if ((ev->events[i])->type != kVstMidiType) {
-#ifdef DEBUG
-		  fprintf(stderr,"=== Faust vsti: EVENT IGNORED!\n");
-#endif
-		  continue;
-	  }
-	  VstMidiEvent* event = (VstMidiEvent*)ev->events[i];
-	  char* midiData = event->midiData;
-	  VstInt32 chan = midiData[0] & 0xf;
-	  VstInt32 status = midiData[0] & 0xf0;
-#ifdef DEBUG
-	  fprintf(stderr,"\n=== Faust vsti: event->midiData[0] = 0x%x\n", 
-			  event->midiData[0]);
-	  fprintf(stderr,"=== Faust vsti: midi channel = 0x%x\n", chan);
-	  fprintf(stderr,"=== Faust vsti: midi status = 0x%x\n", status);
-	  fprintf(stderr,"=== Faust vsti: event->midiData[1] = 0x%x\n", 
-			  event->midiData[1]);
-	  fprintf(stderr,"=== Faust vsti: event->midiData[2] = 0x%x\n", 
-			  event->midiData[2]);
+		fprintf(stderr,"\n=== Faust vsti: event->midiData[0] = 0x%x\n", 
+				event->midiData[0]);
+		fprintf(stderr,"=== Faust vsti: midi channel = 0x%x\n", chan);
+		fprintf(stderr,"=== Faust vsti: midi status = 0x%x\n", status);
+		fprintf(stderr,"=== Faust vsti: event->midiData[1] = 0x%x\n", 
+				event->midiData[1]);
+		fprintf(stderr,"=== Faust vsti: event->midiData[2] = 0x%x\n", 
+				event->midiData[2]);
 #endif
 
-	  VstInt32 note = midiData[1] & 0x7f;
+		VstInt32 note = midiData[1] & 0x7f;
 
-	  if (status == 0x90) { // note on
-		  VstInt32 velocity = midiData[2] & 0x7f;
-#ifdef DEBUG
-		  fprintf(stderr,
-				  "=== Faust vsti: note = %d, velocity = %d, delay = %d\n",
-				  note,velocity,event->deltaFrames);
-#endif
-		  if (velocity>0) {
-			  noteOn(note, velocity, event->deltaFrames);
-		  } 
+		if (status == 0x90) { // note on
+			VstInt32 velocity = midiData[2] & 0x7f;
+			TRACE( fprintf(stderr,
+						"=== Faust vsti: note = %d, velocity = %d, delay = %d\n",
+						note,velocity,event->deltaFrames) );
+			if (velocity > 0) {
+				noteOn(note, velocity, event->deltaFrames);
+			} 
 			else {
-			  noteOff(note);
-		  }
-	  } 
+				noteOff(note);
+			}
+		} 
 		else if (status == 0x80) { // note off
-		  noteOff(note);
-		  //      } else if (status == 0xA0) { // poly aftertouch
-  	  } else if (status == 0xB0) { // control change
-		  /* DO SOMETHING WITH THE CONTROLLER DATA */
-		  fprintf(stderr,"=== Faust vsti: CONTROL CHANGE (status 0xB0)!\n");
-		  if (midiData[1] == 0x7e || midiData[1] == 0x7b) { // all notes off
-			  fprintf(stderr,"=== Faust vsti: ALL NOTES OFF!\n");
+			noteOff(note);
+			//      } else if (status == 0xA0) { // poly aftertouch
+		} else if (status == 0xB0) { // control change
+			/* DO SOMETHING WITH THE CONTROLLER DATA */
+			fprintf(stderr,"=== Faust vsti: CONTROL CHANGE (status 0xB0)!\n");
+			if (midiData[1] == 0x7e || midiData[1] == 0x7b) { // all notes off
+				fprintf(stderr,"=== Faust vsti: ALL NOTES OFF!\n");
 
-			  //TODO: figure out how to signal all notes off
-			  allNotesOff(); // why is all-notes-off inside a "control change" event?
-		  }
-		  //      } else if (status == 0xC0) { // program change
-		  //      } else if (status == 0xD0) { // mono aftertouch
-		  //      } else if (status == 0xE0) { // pitch change
-		  //      } else if (status == 0xF0) { // SYSX ...
-  	  }
-	  // For a list, see 
-	  // http://www.alfred-j-faust.de/rft/midi%20status%20types.html
+				//TODO: figure out how to signal all notes off
+				// why is all-notes-off inside a "control change" event?
+				allNotesOff(); 
+			}
+		}
+		else if (status == 0xE0) { // pitch change
+			int val = midiData[1] | (midiData[2] << 7);
+			float bend = (val - 0x2000) / 8192.0f;
+			bendPitch(bend);
+		}
+		//      } else if (status == 0xF0) { // SYSX ...
+		//      } else if (status == 0xC0) { // program change
+		//      } else if (status == 0xD0) { // mono aftertouch
+		// For a list, see 
+		// http://www.alfred-j-faust.de/rft/midi%20status%20types.html
 
-#ifdef DEBUG
-	  fprintf(stderr,"=== Faust vsti: Going to next event\n", event->midiData[2]);
-#endif
+		TRACE( fprintf(stderr,"=== Faust vsti: Going to next event\n", 
+					event->midiData[2]) );
 
-	  event++;
-  }
-  return 1;
+		event++;
+	}
+
+	return 1;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+void Faust::bendPitch(float bend)
+{
+	TRACE( fprintf(stderr, "Bending pitch by %f\n", bend) );
+	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
+		m_voices[i]->setPitchBend(bend);
+	}
+} // end of Faust::bendPitch
+
 void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 {
 #ifdef DEBUG

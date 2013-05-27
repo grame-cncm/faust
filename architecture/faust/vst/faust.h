@@ -71,6 +71,7 @@ private:
 														 VstInt32 sampleFrames);
 
 	void compute(float** inputs, float** outputs, VstInt32 sampleFrames);
+	void bendPitch(float bend);
 
   dsp* m_dsp;
   vstUI*	m_dspUI;

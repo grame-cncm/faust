@@ -210,13 +210,16 @@ private:
 
 public:
 			
-  int freqIndex;
-  int gainIndex;
-  int gateIndex;
+  int freqIndex; // note frequency
+  int gainIndex; // note velocity
+  int gateIndex; // note on/off
 
 	// can be used for effects such as portamento where
 	// we have to know the previous note
 	int prevFreqIndex;
+
+	// pitchbend wheel
+	int pitchbendIndex;
 
   // Constructor
   vstUI()
@@ -288,6 +291,10 @@ public:
 		return getAny(freqIndex, "freq");	
 	}
 
+	void setPitchBend(float val) {
+		setAny(pitchbendIndex, val, "pitchbend");
+	}
+
   bool ckAnyMatch(const char* label, const char* indexName, int *index) {
     if (0 == strcmp(label,indexName)) { 
       TRACE( fprintf(stderr,"=== Faust vsti: label '%s' matches '%s'\n",label,indexName) );
@@ -302,6 +309,7 @@ public:
     ckAnyMatch(label,"gate",&gateIndex);
     ckAnyMatch(label,"freq",&freqIndex);
 		ckAnyMatch(label,"prevfreq", &prevFreqIndex);
+		ckAnyMatch(label,"pitchbend", &pitchbendIndex);
   }
 
   void addButton(const char* label, float* zone) {
