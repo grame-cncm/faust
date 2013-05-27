@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -25,8 +25,6 @@
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
-
-#include "faust/gui/meta.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,98 +75,8 @@ typedef struct {
 
 } UIGlue;
 
-void openTabBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openTabBox(label);
-}
-
-void openHorizontalBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openHorizontalBox(label);
-}
-
-void openVerticalBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openVerticalBox(label);
-}
-
-void closeBoxGlue(void* cpp_interface)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->closeBox();
-}
-
-void addButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addButton(label, zone);
-}
-
-void addCheckButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addCheckButton(label, zone);
-}
-
-void addVerticalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalSlider(label, zone, init, min, max, step);
-}
-
-void addHorizontalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalSlider(label, zone, init, min, max, step);
-}
-
-void addNumEntryGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addNumEntry(label, zone, init, min, max, step);
-}
-
-void addHorizontalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalBargraph(label, zone, min, max);
-}
-
-void addVerticalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalBargraph(label, zone, min, max);
-}
-
-void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const char* value)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->declare(zone, key, value);
-}
-
-void buildUIGlue(UIGlue* glue, UI* interface)
-{
-    glue->uiInterface = interface;
-    glue->openTabBox = openTabBoxGlue;
-    glue->openHorizontalBox = openHorizontalBoxGlue;
-    glue->openVerticalBox = openVerticalBoxGlue;
-    glue->closeBox = closeBoxGlue;
-    glue->addButton = addButtonGlue;
-    glue->addCheckButton = addCheckButtonGlue;
-    glue->addVerticalSlider = addVerticalSliderGlue;
-    glue->addHorizontalSlider = addHorizontalSliderGlue;
-    glue->addNumEntry = addNumEntryGlue;
-    glue->addHorizontalBargraph = addHorizontalBargraphGlue;
-    glue->addVerticalBargraph = addVerticalBargraphGlue;
-    glue->declare = declareGlue;
-}
 
 typedef void (* metaDeclareFun) (void* interface, const char* key, const char* value);
-
-struct Meta;
 
 typedef struct {
 
@@ -178,17 +86,7 @@ typedef struct {
 
 } MetaGlue;
 
-void declareMetaGlue(void* cpp_interface, const char* key, const char* value)
-{
-    Meta* interface = static_cast<Meta*>(cpp_interface);
-    interface->declare(key, value);
-}
-
-void buildMetaGlue(MetaGlue* glue, Meta* meta)
-{
-    glue->mInterface = meta;
-    glue->declare = declareMetaGlue;
-}
+void declareMetaGlue(void* cpp_interface, const char* key, const char* value);
 
 /***************************************
  *  Interface for the DSP object

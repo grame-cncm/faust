@@ -51,7 +51,7 @@ using namespace std;
 #endif
 
 #include "faust/gui/FUI.h"
-#include "faust/gui/CUI.h"
+#include "faust/gui/UIGlue.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/misc.h"
 #include "faust/audio/jack-dsp.h"

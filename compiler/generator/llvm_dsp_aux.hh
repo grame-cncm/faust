@@ -61,6 +61,7 @@
 #include <string>
 #include "faust/gui/UI.h"
 #include "faust/gui/CUI.h"
+#include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
 #include "libfaust.h"
 #include "export.hh"

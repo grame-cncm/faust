@@ -54,7 +54,7 @@
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
-#include "faust/gui/CUI.h"
+#include "faust/gui/UIGlue.h"
 
 using namespace std;
 

@@ -21,6 +21,7 @@
  
 #include <stdio.h>
 #include "llvm_dsp_aux.hh"
+#include "faust/gui/UIGlue.h"
 #include "libfaust.h"
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
