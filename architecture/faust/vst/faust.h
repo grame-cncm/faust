@@ -8,7 +8,7 @@
 #include "audioeffectx.h"
 #include "dsp.h"
 
-const int MAX_POLYPHONY = 10;
+const int MAX_POLYPHONY = 64;
 const int INITIAL_TEMP_OUTPUT_SIZE = 1024;
 
 //////////////////////////////////////////////////////////////////
