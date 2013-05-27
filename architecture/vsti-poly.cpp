@@ -10,7 +10,7 @@
 
 /************************************************************************
  ************************************************************************
-    FAUST Architecture File
+  FAUST VSTi Architecture File
 	Copyright (C) 2013 by Yan Michalevsy
 	All rights reserved.
     ----------------------------BSD License------------------------------
@@ -54,9 +54,10 @@
  *
  * Usage: faust -a vsti-poly.cpp myfaustprog.dsp
  *
- * By Yan Michalevsky based on vsti-mono.cpp by
+ * By Yan Michalevsky (http://www.stanford.edu/~yanm2/)
+ * based on vsti-mono.cpp by
  * Julius Smith (http://ccrma.stanford.edu/~jos/), based on vst.cpp
- * by remy muller <remy.muller at ircam.fr>
+ * by Remy Muller <remy.muller at ircam.fr>
  * (http://www.smartelectronix.com/~mdsp/).  Essentially, vst.cpp was
  * first edited to look more like the "again" programming sample that
  * comes with the VST-2.4 SDK from Steinberg. Next, features from the
@@ -242,7 +243,14 @@ AudioEffect* createEffectInstance (audioMasterCallback audioMaster)
 //-----------------------------------------------------------------------------
 Faust::Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi)
   : AudioEffectX(audioMaster, kNumPrograms, dspUIi->GetNumParams()),
-		m_dsp(dspi), m_dspUI(dspUIi), m_tempOutputSize(INITIAL_TEMP_OUTPUT_SIZE)
+		m_dsp(dspi), m_dspUI(dspUIi), 
+		noteIsOn(false),
+		m_voices(MAX_POLYPHONY, (Voice*)NULL),
+		m_playingVoices(),
+		m_freeVoices(),
+		m_prevVoice(-1),
+		m_tempOutputs(NULL),
+		m_tempOutputSize(INITIAL_TEMP_OUTPUT_SIZE)
 {
 #ifdef DEBUG
   fprintf(stderr,"=== Faust vsti: classInit:\n");
@@ -271,12 +279,11 @@ Faust::Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi)
 	TRACE( fprintf(stderr, "Faust VSTi: Initializing voices and temporary output buffers\n") );
 	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
 		m_voices[i] = new Voice((int)getSampleRate());
-		//m_voices[i]->m_dsp.buildUserInterface(dspUIi);
 		m_freeVoices.push_back(i);
 	}
 
-	TRACE( fprintf(stderr, "Faust VSTi: Allocating %d temporary output buffers\n",
-								 m_dsp->getNumOutputs()) );
+	TRACE( fprintf(stderr, "Faust VSTi: Allocating %d temporary output "
+								 "buffers\n", m_dsp->getNumOutputs()) );
 	m_tempOutputs = (FAUSTFLOAT**) malloc(sizeof(FAUSTFLOAT*) * m_dsp->getNumOutputs());
 	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		m_tempOutputs[i] = (FAUSTFLOAT*) malloc(sizeof(FAUSTFLOAT) * m_tempOutputSize);
@@ -286,7 +293,7 @@ Faust::Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi)
   if (m_dsp->getNumInputs() == 0) {
     suspend(); //  Synths start out quiet
   }
-}
+} // end of Faust constructor
 
 //----------------------------------------------------------------------------
 Faust::~Faust()
@@ -335,7 +342,7 @@ void Faust::setProgram (VstInt32 program)
 #endif
 
   curProgram = program; // curProgram defined in audioeffect.h
-}
+} // end of setProgram
 
 //----------------------------------------------------------------------------
 void Faust::setProgramName (const char* name)
@@ -475,7 +482,7 @@ const char* Faust::getMetadata(const char* key, const char* defaultString)
 	else {
 		return defaultString;
 	}
-}
+} // end of getMetadata
 
 //-----------------------------------------------------------------------------
 bool Faust::getEffectName (char* name)
@@ -504,8 +511,8 @@ bool Faust::getProductString (char* text)
 //-----------------------------------------------------------------------------
 VstInt32 Faust::getVendorVersion ()
 { 
-  // TODO: get version from Faust metadata
-  return 1000; 
+	const char* versionString = getMetadata("version", "0.0");
+  return atof(versionString);
 }
 
 //-----------------------------------------------------------------------------
@@ -811,7 +818,7 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
   currentVelocity = velocity;
   currentDelta = delta;
   noteIsOn = true;
-  float freq = 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
+  const float freq = 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
   float gain = velocity/127.0f;
 
 	if (m_freeVoices.empty()) {
@@ -823,42 +830,59 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 	int voice = m_freeVoices.front();
 	m_freeVoices.pop_front();
 
-	TRACE( fprintf(stderr, "Faust VSTi: Found free voice %d for new note %d\n",
-								 voice, note) );
+	TRACE( fprintf(stderr, "Faust VSTi: Found free voice %d for new note %d (freq %f)\n",
+								 voice, note, freq) );
+
+	// first set previous frequency for that voice
+	if (m_prevVoice >= 0) {
+		// get previous frequency from previously active voice
+		TRACE( fprintf(stderr, "Previous voice is %d\n", m_prevVoice) );
+		const float prevFreq = m_voices[m_prevVoice]->getFreq();
+		if (prevFreq < 0) {
+			TRACE( fprintf(stderr, "Previous freq control doesn't exist "
+										 "or previous freq was never set before\n") );
+			// setting previous frequency to be the same as current
+			m_voices[voice]->setPrevFreq(freq); // Hz - requires Faust control-signal "prevfreq"
+		} 
+		else {
+			TRACE( fprintf(stderr, "Setting previous frequency to %f\n",
+										 prevFreq) );
+			m_voices[voice]->setPrevFreq(prevFreq); // Hz - require Faust control-signal "prevfreq"
+		}
+	}
 
 	m_playingVoices[note] = voice;
-	m_voices[voice]->setFreq(freq);
-	m_voices[voice]->setGain(gain);
-	m_voices[voice]->setGate(1.0f);
+	m_voices[voice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
+	TRACE( fprintf(stderr, "=== Faust VSTi: Freq set to %f\n", 
+								 m_voices[voice]->getFreq()) );
+	m_voices[voice]->setGain(gain); // 0-1 - requires Faust control-signal "gain"
+	m_voices[voice]->setGate(1.0f); // 0 or 1 - requires Faust control-signal "gate"
 
-  m_dspUI->setFreq(freq); // Hz - requires Faust control-signal "freq"
-  m_dspUI->setGain(gain); // 0-1 - requires Faust control-signal "gain"
-  m_dspUI->setGate(1.0f); // 0 or 1 - requires Faust button-signal "gate"
+	m_prevVoice = voice;
 } // end of noteOn
 
 //-----------------------------------------------------------------------------
 void Faust::noteOff (VstInt32 note)
 {
 	TRACE( fprintf(stderr,"=== Faust vsti: noteOff\n") );
-  if (noteIsOn) {
-	
-		const std::map<VstInt32, int>::iterator& voice_iter = m_playingVoices.find(note);
-		if (m_playingVoices.end() == voice_iter) {
-			TRACE( fprintf(stderr, "Voice not found for note %d\n", note) );
-			return;
-		}
-		
-		int voice = voice_iter->second;
-		TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", note, voice) );
-    m_dspUI->setGate(0);
-		m_voices[voice]->setGate(0);
-		m_playingVoices.erase(voice_iter);
-		m_freeVoices.push_back(voice);
-  } 
-	else {
+  if (!noteIsOn) {
     TRACE( fprintf(stderr,"=== Faust vsti: noteOff IGNORED"
 									 " (note was not on)\n") );
-  }
+		return;
+	}
+
+	const std::map<VstInt32, int>::iterator& voice_iter = m_playingVoices.find(note);
+	if (m_playingVoices.end() == voice_iter) {
+		TRACE( fprintf(stderr, "Voice not found for note %d\n", note) );
+		return;
+	}
+
+	int voice = voice_iter->second;
+	TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", note, voice) );
+	m_dspUI->setGate(0);
+	m_voices[voice]->setGate(0);
+	m_playingVoices.erase(voice_iter);
+	m_freeVoices.push_back(voice);
 } // end of nToteOff
 
 void Faust::allNotesOff( void )

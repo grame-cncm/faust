@@ -1,16 +1,27 @@
 #ifndef __VST_FAUST_H__
 #define __VST_FAUST_H__
 
+#include <list>
+#include <map>
+#include <vector>
+
 #include "audioeffectx.h"
 #include "dsp.h"
 
 const int MAX_POLYPHONY = 10;
 const int INITIAL_TEMP_OUTPUT_SIZE = 1024;
 
-class Faust : public AudioEffectX
-{
+//////////////////////////////////////////////////////////////////
+// Faust class definition
+// This class implements the abstract methods of AudioEffectX
+// that define the VST instrument behavior.
+//////////////////////////////////////////////////////////////////
+class Faust : public AudioEffectX {
 public:
+	// Constructor
   Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi);
+
+	// Destructor
   virtual ~Faust();
 
   virtual void processReplacing (FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32 sampleFrames);
@@ -73,13 +84,16 @@ private:
   char programName[kVstMaxProgNameLen + 1];
 
   // Polyphony
-  Voice* m_voices[MAX_POLYPHONY];
-	
+	std::vector<Voice*> m_voices;
+
 	// Occupied voices - map note to voice index
 	std::map<VstInt32, int> m_playingVoices;
 
 	// Free voices - currently rot playing
 	std :: list< int > m_freeVoices;
+
+	// Previously played voice
+	int m_prevVoice;
 
 	FAUSTFLOAT** m_tempOutputs;
 	size_t m_tempOutputSize; // in float frames

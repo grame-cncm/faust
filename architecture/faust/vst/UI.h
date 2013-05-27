@@ -7,6 +7,12 @@
 #define DEBUG
 #endif
 
+#ifdef DEBUG
+#define TRACE(x) x
+#else
+#define TRACE(x)
+#endif
+
 class UI
 {
   bool	fStopped;
@@ -82,6 +88,10 @@ public:
 	}
 
   virtual float GetValue() {
+		return *fZone;
+	}
+
+	virtual float GetValueNoNormalization() {
 		return *fZone;
 	}
 
@@ -204,6 +214,10 @@ public:
   int gainIndex;
   int gateIndex;
 
+	// can be used for effects such as portamento where
+	// we have to know the previous note
+	int prevFreqIndex;
+
   // Constructor
   vstUI()
 		: freqIndex(-1), gainIndex(-1), gateIndex(-1)
@@ -243,6 +257,17 @@ public:
 		fUITable[anyIndex]->SetValueNoNormalization(val);
 	} // end of setAny
 
+
+	float getAny(int anyIndex, const char* str) {
+		if (anyIndex < 0) {
+			TRACE( fprintf(stderr, "=== Faust VSTi: %sIndex = %d never set!\n",
+							str, anyIndex) );
+			return -1;
+		}
+
+		return fUITable[anyIndex]->GetValueNoNormalization();
+	} // end of getAny
+
 	void setFreq(float val) {
 		setAny(freqIndex, val, "freq");
   }
@@ -255,11 +280,17 @@ public:
     setAny(gainIndex, val, "gain");
   }
 
+	void setPrevFreq(float val) {
+		setAny(prevFreqIndex, val, "prevfreq");
+	}
+
+	float getFreq( void ) {
+		return getAny(freqIndex, "freq");	
+	}
+
   bool ckAnyMatch(const char* label, const char* indexName, int *index) {
-    if (strcmp(label,indexName)==0) { 
-#ifdef DEBUG
-      fprintf(stderr,"=== Faust vsti: label '%s' matches '%s'\n",label,indexName);
-#endif
+    if (0 == strcmp(label,indexName)) { 
+      TRACE( fprintf(stderr,"=== Faust vsti: label '%s' matches '%s'\n",label,indexName) );
       *index = fUITable.size() - 1; 
       return true;
     }
@@ -270,14 +301,13 @@ public:
     ckAnyMatch(label,"gain",&gainIndex);
     ckAnyMatch(label,"gate",&gateIndex);
     ckAnyMatch(label,"freq",&freqIndex);
+		ckAnyMatch(label,"prevfreq", &prevFreqIndex);
   }
 
   void addButton(const char* label, float* zone) {
     vstButton* theButton = new vstButton(label, zone);
     fUITable.push_back(theButton);
-#ifdef DEBUG
-    fprintf(stderr,"=== Faust vsti: Adding Button with label '%s'\n",label);
-#endif
+    TRACE( fprintf(stderr,"=== Faust vsti: Adding Button with label '%s'\n",label) );
     ckAnyMatch(label,"gate",&gateIndex);
   }
 		
@@ -294,21 +324,17 @@ public:
   { 	
 		vstSlider* theSlider = new vstSlider(label, zone, init, min, max, step);
 		fUITable.push_back(theSlider);
-#ifdef DEBUG
-		fprintf(stderr,"=== Faust vsti: Adding VSlider (HSlider) "
-						"with label '%s'\n",label);
-#endif
+		TRACE( fprintf(stderr,"=== Faust vsti: Adding VSlider (HSlider) "
+						 			 "with label '%s'\n",label) );
 		ckAllMatches(label);
   }
-		
+	
   void addHorizontalSlider(const char* label, float* zone, float init, 
 													 float min, float max, float step) 
   {
 		vstSlider* theSlider = new vstSlider(label, zone, init, min, max, step);
 		fUITable.push_back(theSlider);
-#ifdef DEBUG
-		fprintf(stderr,"=== Faust vsti: Adding HSlider with label '%s'\n",label);
-#endif
+		TRACE( fprintf(stderr,"=== Faust vsti: Adding HSlider with label '%s'\n",label) );
 		ckAllMatches(label);
   }
 		
@@ -318,10 +344,8 @@ public:
 		/* Number entries converted to horizontal sliders */
 		vstSlider* theSlider = new vstSlider(label, zone, init, min, max, step);
     fUITable.push_back(theSlider);
-#ifdef DEBUG
-    fprintf(stderr,"=== Faust vsti: Adding NumEntry (HSlider) with "
-						"label '%s'\n",label);
-#endif
+    TRACE( fprintf(stderr,"=== Faust vsti: Adding NumEntry (HSlider) with "
+									 "label '%s'\n",label) );
 		ckAllMatches(label);
   }
 		

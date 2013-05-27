@@ -221,6 +221,10 @@ vst :
 	install -d vstdir
 	$(MAKE) DEST='vstdir/' ARCH='vsti-mono.cpp' LIB='' -f Makefile.vstcompile
 
+vsti :
+	install -d vstidir
+	$(MAKE) DEST='vstidir/' ARCH='vsti-poly.cpp' LIB='' -f Makefile.vsticompile
+
 iphone :
 	install -d iphonedir
 	$(MAKE) DEST='iphonedir/' ARCH='iphone-cocoa.cpp' LIB='' -f Makefile.iphonecompile
