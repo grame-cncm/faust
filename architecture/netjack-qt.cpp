@@ -71,7 +71,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp       DSP;
-list<GUI*>  GUI::fGuiList;
+std::list<GUI*>  GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
 {
 	char appname[256];
 	char rcfilename[256];
-	char* home = getenv("HOME");
+    const char* home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
-    char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
 	snprintf(appname, 255, "%s", basename(argv[0]));

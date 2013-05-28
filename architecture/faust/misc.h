@@ -52,7 +52,7 @@ long lopt(char *argv[], const char *name, long def)
 	return def;
 }
 
-char* lopts(char *argv[], const char *name, char* def)
+const char* lopts(char *argv[], const char *name, const char* def)
 {
 	int	i;
 	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
