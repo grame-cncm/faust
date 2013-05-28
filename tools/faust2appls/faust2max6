@@ -108,7 +108,7 @@ for p in $FILES; do
 	$CC  -Wfatal-errors -framework Carbon -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) 
 
-    #rm -rf "$SRCDIR/${f%.dsp}$EXT"
+    rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
     # Keep .dsp and .cpp files in the plug-in
     cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
