@@ -35,9 +35,9 @@ extern "C"
 
 /* Opaque types */
 
-struct llvm_dsp_factory {};
+typedef struct llvm_dsp_factory {};
 
-struct llvm_dsp {};
+typedef struct llvm_dsp {};
 
 /**
  * Create a Faust DSP factory from a DSP source code. The source code is either given :

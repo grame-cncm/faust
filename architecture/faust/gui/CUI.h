@@ -92,7 +92,7 @@ void declareMetaGlue(void* cpp_interface, const char* key, const char* value);
  *  Interface for the DSP object
  ***************************************/
 
-struct llvm_dsp_imp {};
+typedef struct llvm_dsp_imp {};
 
 typedef llvm_dsp_imp* (* newDspFun) ();
 typedef void (* deleteDspFun) (llvm_dsp_imp* dsp);
