@@ -1372,7 +1372,7 @@ class QTGUI : public QObject, public GUI
         } else {
             result = "localhost";
         }
-        stringstream ss; ss << portnum;
+        std::stringstream ss; ss << portnum;
         return result + ":" + ss.str().c_str();;
     }
 
