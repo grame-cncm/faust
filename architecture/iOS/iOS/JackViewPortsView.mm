@@ -60,13 +60,10 @@
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
-    //JackView* jackView = portsView.clientButton.jackView;
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
-    
-    if (self.frame.origin.x == portsView.currentAppX) return;
-    
-    portsView.linking = YES;
+        
+    portsView.linking = NO;
         
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
@@ -79,9 +76,7 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
-    
-    if (self.frame.origin.x == portsView.currentAppX) return;
-    
+        
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
     
@@ -98,9 +93,7 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
-    
-    if (self.frame.origin.x == portsView.currentAppX) return;
-    
+        
     JackView* jackView = portsView.clientButton.jackView;
 
     jackView.linking = NO;
@@ -108,7 +101,7 @@
     
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
-    NSString* currentAppPortName = nil;
+    NSString* dstAppPortName = nil;
     
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
@@ -118,16 +111,10 @@
         if (item)
         {
             // Connect new link
-            currentAppPortName = item.longName;
+            dstAppPortName = item.longName;
             
-            if (currentAppPortName && portsView.clientButton.inputOutput == 1)
-            {
-                [jackView connectPort:self.longName withPort:currentAppPortName];
-            }
-            else if (currentAppPortName && portsView.clientButton.inputOutput == 2)
-            {
-                [jackView connectPort:currentAppPortName withPort:self.longName];
-            }
+            [jackView connectPort:self.longName withPort:dstAppPortName];
+            [jackView connectPort:dstAppPortName withPort:self.longName];
             
             self.selected = YES;
             [self setNeedsDisplay];
@@ -145,9 +132,7 @@
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
-    
-    if (self.frame.origin.x == portsView.currentAppX) return;
-    
+        
     portsView.linking = NO;
     [portsView createLinks];
     [portsView setNeedsDisplay];
@@ -230,15 +215,30 @@
     [super dealloc];
 }
 
+- (float)computeXOffsetWithXItems:(float)xItems xIcon:(float)xIcon
+{
+    float xOffset = 0.;
+    
+    if (xItems + kPortsViewItemWidth <= xIcon)                          xOffset = kPortsViewItemWidth - kPortsViewArrowWidth;
+    else if (xItems <= xIcon && xItems + kPortsViewItemWidth >= xIcon)  xOffset = xIcon - xItems;
+    else if (xItems == xIcon)                                       xOffset = 0;
+    
+    return xOffset;
+}
 
 - (void)drawRect:(CGRect)rect
 {
     int i = 0;
+    JackView* jackView = self.clientButton.jackView;
+    float xItems = 0.;
+    float xIcon = 0.;
+    float xOffset = 0.;
     
     // Background
     self.backgroundColor = [UIColor clearColor];
+    
     [[UIColor darkGrayColor] set];
-    UIRectFill(CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height - kPortsArrowHeight));
+    UIRectFill(CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height - kPortsViewArrowHeight));
     
     // Ports
     for (i = 0; i < [[self subviews] count]; ++i)
@@ -247,46 +247,48 @@
     }
     
     // Client arrow
+    xItems = clientX;
+    xIcon = [clientButton convertPoint:CGPointMake(0, 0) toView:self].x;
+    
+    xOffset = [self computeXOffsetWithXItems:xItems xIcon:xIcon];
+    
     [[UIColor darkGrayColor] set];
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSaveGState(context);
     CGContextBeginPath(context);
     CGContextMoveToPoint(context,
-                         clientX,
-                         [[self subviews] count] * kPortsViewItemHeight);
+                         clientX + xOffset,
+                         self.frame.size.height - kPortsViewArrowHeight);
     CGContextAddLineToPoint(context,
-                            clientX + kPortsViewArrowWidth,
-                            [[self subviews] count] * kPortsViewItemHeight);
+                            fmin(clientX + kPortsViewArrowWidth + xOffset, clientX + kPortsViewItemWidth),
+                            self.frame.size.height - kPortsViewArrowHeight);
     CGContextAddLineToPoint(context,
-                            clientX + kPortsViewArrowWidth / 2.,
-                            rect.size.height);
+                            [clientButton convertPoint:CGPointMake(0, 0) toView:self].x,
+                            self.frame.size.height);
     CGContextClosePath(context);
     
     CGContextFillPath(context);
-    
-    CGContextRestoreGState(context);
-    
     
     // Current app arrow
+    xItems = currentAppX;
+    xIcon = jackView.currentClientButton.frame.origin.x;
+    
+    xOffset = [self computeXOffsetWithXItems:xItems xIcon:xIcon];
+    
     [[UIColor darkGrayColor] set];
-    context = UIGraphicsGetCurrentContext();
-    CGContextSaveGState(context);
     CGContextBeginPath(context);
     CGContextMoveToPoint(context,
-                         currentAppX,
-                         [[self subviews] count] * kPortsViewItemHeight);
+                         currentAppX + xOffset,
+                         self.frame.size.height - kPortsViewArrowHeight);
     CGContextAddLineToPoint(context,
-                            currentAppX + kPortsViewArrowWidth,
-                            [[self subviews] count] * kPortsViewItemHeight);
+                            fmin(currentAppX + kPortsViewArrowWidth + xOffset, currentAppX + kPortsViewItemWidth),
+                            self.frame.size.height - kPortsViewArrowHeight);
     CGContextAddLineToPoint(context,
-                            currentAppX + kPortsViewArrowWidth / 2.,
-                            rect.size.height);
+                            jackView.currentClientButton.frame.origin.x,
+                            self.frame.size.height);
     CGContextClosePath(context);
     
     CGContextFillPath(context);
-    
-    CGContextRestoreGState(context);
-    
+        
     // Links
     JackViewPortsLink* link = nil;
     
@@ -298,7 +300,11 @@
         
         CGContextRef c = UIGraphicsGetCurrentContext();
         
-        if (link.selected) [[UIColor redColor] set];
+        if (link.selected)
+        {
+            [[UIColor redColor] set];
+            _deleteButton.hidden = NO;
+        }
         else [[UIColor whiteColor] set];
         
         CGContextBeginPath(c);
@@ -492,7 +498,7 @@
         else y = link.srcPt.y;
         
         [_deleteButton setFrame:CGRectMake(x - 70, (y - 20) * 0.8 + (y - 20) * 0.2, 20, 20)];
-        _deleteButton.hidden = NO;
+        //_deleteButton.hidden = NO;
     }
     
     [self setNeedsDisplay];

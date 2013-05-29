@@ -8,11 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-#define kPortsViewWidth 100
+#define kPortsViewItemWidth 100
 #define kPortsViewItemHeight 50
-#define kPortsArrowHeight 30
-#define kPortsViewArrowWidth 50
-#define kPortsViewMinXBetweenItems 50
+#define kPortsViewArrowHeight 30
+#define kPortsViewArrowWidth 30
+#define kPortsViewMinXBetweenItems 120
 
 
 @class JackViewButton;
@@ -55,5 +55,6 @@
 - (void)deleteSelectedLink;
 - (JackViewPortsViewItem*)itemAtPoint:(CGPoint)pt;
 - (void)singleTap:(UIGestureRecognizer *)gestureRecognizer;
+- (float)computeXOffsetWithXItems:(float)xItems xIcon:(float)xIcon;
 
 @end

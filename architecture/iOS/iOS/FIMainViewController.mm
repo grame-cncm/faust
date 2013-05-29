@@ -63,15 +63,9 @@ BOOL openWidgetPanel = YES;
 
 static void jack_shutdown_callback(const char* message, void* arg)
 {
-    /*
     FIMainViewController* self = (FIMainViewController*)arg;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self closeJack :message];
-    });
-    */
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-       exit(1); // By default
     });
 }
 

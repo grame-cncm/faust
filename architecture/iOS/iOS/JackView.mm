@@ -66,39 +66,28 @@
     
     x = 0;
     w = jackView.frame.size.width;
-    h = fmaxf([compatiblePorts count] * kPortsViewItemHeight + kPortsArrowHeight,
-              [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight + kPortsArrowHeight);
+    h = fmaxf([compatiblePorts count] * kPortsViewItemHeight + kPortsViewArrowHeight,
+              [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight + kPortsViewArrowHeight);
     y = 0. - h;
-    
-    // TODO : add a max height
-    
+        
     if (jackView.portsView)
     {
-        if (jackView.portsView.clientButton == self)
-        {
-            [jackView.portsView removeFromSuperview];
-            [jackView.portsView release];
-            jackView.portsView = nil;
-            [jackView.superview setNeedsDisplay];
-            
-            return;
-        }
-        else
-        {
-            [jackView.portsView removeFromSuperview];
-            [jackView.portsView release];
-            jackView.portsView = nil;
-            [jackView.superview setNeedsDisplay];
-        }
+        [jackView.portsView removeFromSuperview];
+        [jackView.portsView release];
+        jackView.portsView = nil;
+        [jackView.superview setNeedsDisplay];
+        
+        if (self == self.jackView.currentClientButton) return;
     }
+    else if (self == self.jackView.currentClientButton) return;
     
     defPt = [self convertPoint:CGPointMake(x, y) toView:jackView.superview];
     
     jackView.portsView = [[JackViewPortsView alloc] initWithFrame:CGRectMake(x, defPt.y, w, h)];
     jackView.portsView.clientButton = self;
     
-    if (pt.x + kPortsViewWidth < jackView.frame.size.width) jackView.portsView.clientX = pt.x;
-    else jackView.portsView.clientX = jackView.frame.size.width - kPortsViewWidth;
+    if (pt.x + kPortsViewItemWidth < jackView.frame.size.width) jackView.portsView.clientX = pt.x;
+    else jackView.portsView.clientX = jackView.frame.size.width - kPortsViewItemWidth;
     
     jackView.portsView.currentAppX = [jackView convertPoint:jackView.currentClientButton.frame.origin toView:jackView.superview].x;
     
@@ -106,7 +95,7 @@
     {
         JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(jackView.portsView.clientX,
                                                                                               i * kPortsViewItemHeight,
-                                                                                              kPortsViewWidth,
+                                                                                              kPortsViewItemWidth,
                                                                                               kPortsViewItemHeight)];
         item.longName = ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name;
         item.alias = @"alias";
@@ -122,14 +111,14 @@
     else if (self.inputOutput == 2) [jackView displayCurrentAppPortsWithInputOutput:1 audioMidi:self.audioMidi];
     
     // Re adapt layout ?
-    if (fabs(jackView.portsView.clientX - jackView.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewWidth)
+    if (fabs(jackView.portsView.clientX - jackView.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
     {
         //float newClientX = 0.f;
         float newCurrentAppX = 0.f;
         
         if (jackView.portsView.currentAppX < jackView.portsView.clientX)
         {
-            newCurrentAppX = fmaxf(jackView.portsView.clientX - kPortsViewMinXBetweenItems - kPortsViewWidth, 0.);
+            newCurrentAppX = fmaxf(jackView.portsView.clientX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
 
             //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
             
@@ -1281,7 +1270,7 @@
 
     for (i = 0; i < [portsArray count]; ++i)
     {
-        JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(self.portsView.currentAppX, i * kPortsViewItemHeight, kPortsViewWidth, kPortsViewItemHeight)];
+        JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(self.portsView.currentAppX, i * kPortsViewItemHeight, kPortsViewItemWidth, kPortsViewItemHeight)];
         item.longName = ((JackViewPort*)([portsArray objectAtIndex:i])).name;
         item.alias = @"alias";
         
