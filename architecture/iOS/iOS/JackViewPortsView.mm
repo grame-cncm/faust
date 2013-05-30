@@ -124,7 +124,7 @@
     }
     
     portsView.linking = NO;
-    [portsView createLinks];
+    [portsView refreshLinks];
     [portsView setNeedsDisplay];
     [jackView setNeedsDisplay];
 }
@@ -134,7 +134,7 @@
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
         
     portsView.linking = NO;
-    [portsView createLinks];
+    [portsView refreshLinks];
     [portsView setNeedsDisplay];
 }
 
@@ -328,7 +328,7 @@
     }
 }
 
-- (void)createLinks
+- (void)refreshLinks
 {
     // Links
     int i = 0;
@@ -345,6 +345,7 @@
     NSArray* dstArray = nil;
 
     [_links removeAllObjects];
+    _deleteButton.hidden = YES;
     
     for (i = 0; i < [buttons count]; ++i)
     {
@@ -409,7 +410,7 @@
     }
     
     _deleteButton.hidden = YES;
-    [self createLinks];
+    [self refreshLinks];
     [self setNeedsDisplay];
 }
 
