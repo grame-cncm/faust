@@ -37,9 +37,11 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <cmath>
 
-#include "faust/gui/FUI.h"
+
 #include "faust/misc.h"
+#include "faust/gui/FUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/netjack-dsp.h"
 
@@ -70,7 +72,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp DSP;
-list<GUI*> GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -82,7 +84,7 @@ int main(int argc, char *argv[])
     char* home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
-    char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
     int latency = lopt(argv, "--l", 2);
 

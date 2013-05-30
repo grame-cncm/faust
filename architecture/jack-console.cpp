@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <math.h>
 #include <iostream>
+#include <list>
 #include <vector>
 
 #include "faust/gui/FUI.h"
@@ -70,7 +71,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
 mydsp		DSP;
-list<GUI*>	GUI::fGuiList;
+std::list<GUI*>	GUI::fGuiList;
 	
 //-------------------------------------------------------------------------
 // 									MAIN

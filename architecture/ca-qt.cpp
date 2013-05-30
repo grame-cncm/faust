@@ -38,6 +38,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <list>
 
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustqt.h"
@@ -72,7 +73,7 @@
 
 mydsp	DSP;
 
-list<GUI*>               GUI::fGuiList;
+std::list<GUI*>               GUI::fGuiList;
 
 /******************************************************************************
 *******************************************************************************

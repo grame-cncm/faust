@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <list>
 
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
@@ -71,7 +72,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
 mydsp		DSP;
-list<GUI*>	GUI::fGuiList;
+std::list<GUI*>	GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
 	DSP.buildUserInterface(httpdinterface);
-	cout << "HTTPD is on" << endl;
+	std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
