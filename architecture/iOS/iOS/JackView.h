@@ -100,6 +100,10 @@
 @property (assign, readwrite) JackViewPortsView* portsView;
 @property (assign, readwrite) JackViewButton* currentClientButton;
 
+- (void)orientationChanged:(NSNotification *)notification;
+- (void)resizeView;
+- (void)resizePortsView;
+
 - (void)loadJackClient:(jack_client_t*)jackClient;
 - (jack_client_t*)jackClient;
 
@@ -131,8 +135,6 @@ connectedToCurrentClientInputOutput:(int)inputOutput
 
 - (BOOL)isPointInsideCurrentAppIcon:(CGPoint)pt;
 - (BOOL)isPointInsideView:(CGPoint)pt;
-- (BOOL)isPointInsideCurrentAppPortsView:(CGPoint)pt;
-- (NSString*)getPortDefinedAtPoint:(CGPoint)pt;
 
 - (int)numberOfCurrentAppPortsWithInputOutput:(int)inputOutput
                                     audioMidi:(int)audioMidi;

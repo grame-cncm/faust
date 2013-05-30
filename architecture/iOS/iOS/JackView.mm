@@ -84,6 +84,7 @@
     defPt = [self convertPoint:CGPointMake(x, y) toView:jackView.superview];
     
     jackView.portsView = [[JackViewPortsView alloc] initWithFrame:CGRectMake(x, defPt.y, w, h)];
+    jackView.portsView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
     jackView.portsView.clientButton = self;
     
     if (pt.x + kPortsViewItemWidth < jackView.frame.size.width) jackView.portsView.clientX = pt.x;
@@ -110,42 +111,10 @@
     if (self.inputOutput == 1) [jackView displayCurrentAppPortsWithInputOutput:2 audioMidi:self.audioMidi];
     else if (self.inputOutput == 2) [jackView displayCurrentAppPortsWithInputOutput:1 audioMidi:self.audioMidi];
     
-    // Re adapt layout ?
-    if (fabs(jackView.portsView.clientX - jackView.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
-    {
-        //float newClientX = 0.f;
-        float newCurrentAppX = 0.f;
-        
-        if (jackView.portsView.currentAppX < jackView.portsView.clientX)
-        {
-            newCurrentAppX = fmaxf(jackView.portsView.clientX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
-
-            //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
-            
-            for (i = 0; i < [jackView.portsView.subviews count]; ++i)
-            {
-                JackViewPortsViewItem* item = ((JackViewPortsViewItem*)([jackView.portsView.subviews objectAtIndex:i]));
-                
-                if ([item isKindOfClass:[JackViewPortsViewItem class]])
-                {                    
-                    if (item.frame.origin.x == jackView.portsView.currentAppX)
-                    {
-                        [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
-                    }
-                    /*else if (item.frame.origin.x == jackView.portsView.currentAppX)
-                    {
-                        [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
-                        jackView.portsView.currentAppX = newCurrentAppX;
-                    }*/
-                }
-            }
-            
-            jackView.portsView.currentAppX = newCurrentAppX;
-        }
-    }
+    [jackView resizePortsView];
     
     [jackView.superview addSubview:jackView.portsView];
-    [jackView.portsView createLinks];
+    [jackView.portsView refreshLinks];
     [jackView.portsView setNeedsDisplay];
 }
 
@@ -486,13 +455,133 @@
         [self addSubview:_midiOutputsScrollView];
         
         _clients = [[NSMutableArray alloc] initWithCapacity:0];
+        
+        [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
+                                                     name:UIDeviceOrientationDidChangeNotification object:nil];
     }
     
     return self;
 }
 
+- (void)orientationChanged:(NSNotification *)notification
+{
+    [self resizeView];
+}
+
+- (void)resizeView
+{
+    CGRect frame = self.frame;
+    
+    [_audioInputsScrollView setFrame:CGRectMake(kJackViewExtHMargins,
+                                                kJackViewExtVMargins,
+                                                frame.size.width / 2. - kJackViewExtHMargins - kJackViewIntHMargins / 2.,
+                                                frame.size.height / 2. - kJackViewExtVMargins - kJackViewIntVMargins / 2.)];
+    
+    [_audioOutputsScrollView setFrame:CGRectMake(frame.size.width / 2. + kJackViewIntHMargins / 2.,
+                                                 kJackViewExtVMargins,
+                                                 frame.size.width / 2. - kJackViewExtHMargins - kJackViewIntHMargins / 2.,
+                                                 frame.size.height / 2. - kJackViewExtVMargins - kJackViewIntVMargins / 2.)];
+    
+    [_midiInputsScrollView setFrame:CGRectMake(kJackViewExtHMargins,
+                                               frame.size.height / 2. + kJackViewIntVMargins / 2.,
+                                               frame.size.width / 2. - kJackViewExtHMargins - kJackViewIntHMargins / 2.,
+                                               frame.size.height / 2. - kJackViewExtVMargins - kJackViewIntVMargins / 2.)];
+    
+    [_midiOutputsScrollView setFrame:CGRectMake(frame.size.width / 2. + kJackViewIntHMargins / 2.,
+                                                frame.size.height / 2. + kJackViewIntVMargins / 2.,
+                                                frame.size.width / 2. - kJackViewExtHMargins - kJackViewIntHMargins / 2.,
+                                                frame.size.height / 2. - kJackViewExtVMargins - kJackViewIntVMargins / 2.)];
+    
+    if (self.currentClientButton)
+    {
+        [self.currentClientButton setFrame:CGRectMake(frame.size.width / 2. - kJackViewCurrentAppIconDimension / 2.,
+                                                      frame.size.height - kJackViewCurrentAppIconBottomMargin - kJackViewCurrentAppIconDimension,
+                                                      kJackViewCurrentAppIconDimension,
+                                                      kJackViewCurrentAppIconDimension)];
+    }
+    
+    if (self.portsView)
+    {
+        [self resizePortsView];
+        [self.portsView refreshLinks];
+        [self.portsView setNeedsDisplay];
+    }
+}
+
+- (void)resizePortsView
+{
+    int i = 0;
+    CGPoint pt = [self.portsView.clientButton convertPoint:CGPointMake(0., 0.) toView:self.superview];
+    float oldClientX = self.portsView.clientX;
+    float oldCurrentAppX = self.portsView.currentAppX;
+    
+    if (pt.x + kPortsViewItemWidth < self.frame.size.width) self.portsView.clientX = pt.x;
+    else self.portsView.clientX = self.frame.size.width - kPortsViewItemWidth;
+    
+    self.portsView.currentAppX = [self convertPoint:self.currentClientButton.frame.origin toView:self.superview].x;
+
+    for (i = 0; i < [self.portsView.subviews count]; ++i)
+    {
+        if ([[self.portsView.subviews objectAtIndex:i] isKindOfClass:[JackViewPortsViewItem class]])
+        {
+            JackViewPortsViewItem* item = ((JackViewPortsViewItem*)[self.portsView.subviews objectAtIndex:i]);
+            if (item.frame.origin.x == oldClientX)
+            {
+                [item setFrame:CGRectMake(self.portsView.clientX,
+                                          item.frame.origin.y,
+                                          kPortsViewItemWidth,
+                                          kPortsViewItemHeight)];
+            }
+            else if (item.frame.origin.x == oldCurrentAppX)
+            {
+                [item setFrame:CGRectMake(self.portsView.currentAppX,
+                                          item.frame.origin.y,
+                                          kPortsViewItemWidth,
+                                          kPortsViewItemHeight)];
+            }
+        }
+    }
+    
+    if (fabs(self.portsView.clientX - self.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
+    {
+        //float newClientX = 0.f;
+        float newCurrentAppX = 0.f;
+        
+        if (self.portsView.currentAppX < self.portsView.clientX)
+        {
+            newCurrentAppX = fmaxf(self.portsView.clientX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
+            
+            //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
+            
+            for (i = 0; i < [self.portsView.subviews count]; ++i)
+            {
+                JackViewPortsViewItem* item = ((JackViewPortsViewItem*)([self.portsView.subviews objectAtIndex:i]));
+                
+                if ([item isKindOfClass:[JackViewPortsViewItem class]])
+                {
+                    if (item.frame.origin.x == self.portsView.currentAppX)
+                    {
+                        [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                    }
+                    /*else if (item.frame.origin.x == jackView.portsView.currentAppX)
+                     {
+                     [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                     jackView.portsView.currentAppX = newCurrentAppX;
+                     }*/
+                }
+            }
+            
+            self.portsView.currentAppX = newCurrentAppX;
+        }
+    }
+}
+
 - (void)dealloc
 {
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     [_clients release];
     [_audioInputsScrollView release];
     [_audioOutputsScrollView release];
@@ -1166,48 +1255,6 @@
             && pt.y <= self.frame.size.height);
 }
 
-- (BOOL)isPointInsideCurrentAppPortsView:(CGPoint)pt
-{    
-    /*return (pt.x >= self.currentAppPortsView.frame.origin.x
-            && pt.x <= self.currentAppPortsView.frame.origin.x + self.currentAppPortsView.frame.size.width
-            && pt.y >= self.currentAppPortsView.frame.origin.y
-            && pt.y <= self.currentAppPortsView.frame.origin.y + self.currentAppPortsView.frame.size.height);*/
-    return NO;
-}
-
-- (NSString*)getPortDefinedAtPoint:(CGPoint)pt
-{
-    NSArray* items = nil;
-    JackViewPortsViewItem* item = nil;
-    int i = 0;
-    CGRect frame;
-    
-    /*if (self.currentAppPortsView)
-    {
-        NSLog(@"scan %f %f", pt.x, pt.y);
-        items = [self.currentAppPortsView subviews];
-        
-        for (i = 0; i < [items count]; ++i)
-        {
-            item = (JackViewPortsViewItem*)([items objectAtIndex:i]);
-            frame = [item convertRect:item.frame toView:self.superview];
-            
-            NSLog(@"  %@", item.longName);
-            NSLog(@"  %f %f %f %f", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-            
-            if (pt.x >= frame.origin.x
-                && pt.x <= frame.origin.x + frame.size.width
-                && pt.y >= frame.origin.y
-                && pt.y <= frame.origin.y + frame.size.height)
-            {
-                NSLog(@"      >> connect");
-                return item.longName;
-            }
-        }
-    }*/
-    
-    return nil;
-}
 
 // Refresh view
 - (void)drawRect:(CGRect)rect
@@ -1292,6 +1339,7 @@
         [self.superview setNeedsDisplay];
     }
 }
+
 
 @end
 

@@ -51,7 +51,7 @@
 @property (assign, readwrite) CGPoint srcPt;
 @property (assign, readwrite) CGPoint dstPt;
 
-- (void)createLinks;
+- (void)refreshLinks;
 - (void)deleteSelectedLink;
 - (JackViewPortsViewItem*)itemAtPoint:(CGPoint)pt;
 - (void)singleTap:(UIGestureRecognizer *)gestureRecognizer;
