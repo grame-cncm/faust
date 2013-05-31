@@ -13,6 +13,8 @@
 #define kPortsViewArrowHeight 30
 #define kPortsViewArrowWidth 30
 #define kPortsViewMinXBetweenItems 120
+#define kPortsViewFSButtonWidth 100
+#define kPortsViewFSButtonHeight 20
 
 
 @class JackViewButton;
@@ -45,6 +47,7 @@
 }
 
 @property (assign, nonatomic) JackViewButton* clientButton;
+@property (assign, nonatomic) UIButton* fsButton;
 @property (assign, nonatomic) float clientX;
 @property (assign, nonatomic) float currentAppX;
 @property (assign, nonatomic) BOOL linking;
