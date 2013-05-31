@@ -67,7 +67,8 @@
     x = 0;
     w = jackView.frame.size.width;
     h = fmaxf([compatiblePorts count] * kPortsViewItemHeight + kPortsViewArrowHeight,
-              [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight + kPortsViewArrowHeight);
+              [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight + kPortsViewArrowHeight)
+        + kPortsViewFSButtonHeight;
     y = 0. - h;
         
     if (jackView.portsView)
@@ -113,15 +114,23 @@
     
     [jackView resizePortsView];
     
+    jackView.portsView.fsButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [jackView.portsView.fsButton setFrame:CGRectMake(jackView.portsView.clientX,
+                                                     jackView.portsView.frame.size.height - kPortsViewArrowHeight - kPortsViewFSButtonHeight,
+                                                     kPortsViewFSButtonWidth,
+                                                     kPortsViewFSButtonHeight)];
+    [jackView.portsView.fsButton setTitle:@"Expand" forState:UIControlStateNormal];
+    [jackView.portsView.fsButton addTarget:jackView action:@selector(fsToClient) forControlEvents:UIControlEventTouchUpInside];
+    
+    [jackView.portsView addSubview:jackView.portsView.fsButton];
+    
     [jackView.superview addSubview:jackView.portsView];
     [jackView.portsView refreshLinks];
     [jackView.portsView setNeedsDisplay];
 }
 
 - (void)buttonDoubleClicked
-{
-    //if (self == jackView.currentAppPortsView) return;
-    
+{    
     // Switch to Jack server
     if ([self.jackViewClient.name compare:@"system"] == NSOrderedSame
         || [self.jackViewClient.name compare:@"system_midi"] == NSOrderedSame)
@@ -574,6 +583,14 @@
             
             self.portsView.currentAppX = newCurrentAppX;
         }
+    }
+    
+    if (self.portsView.fsButton)
+    {
+        [self.portsView.fsButton setFrame:CGRectMake(self.portsView.clientX,
+                                                     self.portsView.fsButton.frame.origin.y,
+                                                     self.portsView.fsButton.frame.size.width,
+                                                     self.portsView.fsButton.frame.size.height)];
     }
 }
 
@@ -1340,6 +1357,25 @@
     }
 }
 
+- (void)fsToClient
+{    
+    if (!self.portsView) return;
+    
+    NSString* clientName = self.portsView.clientButton.jackViewClient.name;
+    
+    // Switch to Jack server
+    if ([clientName compare:@"system"] == NSOrderedSame
+        || [clientName compare:@"system_midi"] == NSOrderedSame)
+    {
+        jack_gui_switch_to_client([self jackClient], "jack");
+    }
+    
+    // Switch to other client
+    else
+    {
+        jack_gui_switch_to_client([self jackClient], [clientName cStringUsingEncoding:NSUTF8StringEncoding]);
+    }
+}
 
 @end
 

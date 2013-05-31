@@ -143,4 +143,6 @@ connectedToCurrentClientInputOutput:(int)inputOutput
 
 - (void)viewClicked;
 
+- (void)fsToClient;
+
 @end
