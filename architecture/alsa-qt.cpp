@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <list>
 
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
@@ -72,7 +73,7 @@
 					
 mydsp*	DSP;
 
-list<GUI*>               GUI::fGuiList;
+std::list<GUI*>               GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -86,7 +87,7 @@ int main(int argc, char *argv[] )
 	
 	DSP = new mydsp();
 	if (DSP==0) {
-		cerr << "Unable to allocate Faust DSP object" << endl;
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
 	}
 
@@ -98,7 +99,7 @@ int main(int argc, char *argv[] )
 #ifdef HTTPCTRL
 	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
 	DSP->buildUserInterface(httpdinterface);
-	cout << "HTTPD is on" << endl;
+    std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL

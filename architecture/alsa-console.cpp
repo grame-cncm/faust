@@ -10,7 +10,7 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 Thomas Charbonnel and GRAME
+	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
@@ -41,8 +41,8 @@
 
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
-#include "faust/gui/faustgtk.h"
-#include "faust/audio/jack-dsp.h"
+#include "faust/gui/console.h"
+#include "faust/audio/alsa-dsp.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -52,8 +52,8 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-/**************************BEGIN USER SECTION **************************/
 
+/**************************BEGIN USER SECTION **************************/
 /******************************************************************************
 *******************************************************************************
 
@@ -71,46 +71,51 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp		DSP;
-std::list<GUI*>	GUI::fGuiList;
+mydsp*	DSP;
+
+std::list<GUI*>               GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[])
+int main(int argc, char *argv[] )
 {
-	char appname[256];
-	char rcfilename[256];
+	char* appname = basename (argv [0]);
+    char  rcfilename[256];
 	char* home = getenv("HOME");
-	
-	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	
+	DSP = new mydsp();
+	if (DSP==0) {
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+		exit(1);
+	}
 
-	GUI* interface 	= new GTKUI (appname, &argc, &argv);
+	CMDUI* interface = new CMDUI(argc, argv);
 	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
+	DSP->buildUserInterface(interface);
+	DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
-	DSP.buildUserInterface(httpdinterface);
-	std::cout << "HTTPD is on" << std::endl;
+	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+	DSP->buildUserInterface(httpdinterface);
+    std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
 	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+	DSP->buildUserInterface(oscinterface);
 #endif
 
-	jackaudio audio;
-	audio.init(appname, &DSP);
+	alsaaudio audio (argc, argv, DSP);
+	audio.init(appname, DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef HTTPCTRL
 	httpdinterface->run();
 #endif
-
+	
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
@@ -120,7 +125,5 @@ int main(int argc, char *argv[])
 	finterface->saveState(rcfilename);
   	return 0;
 }
-
-		
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
