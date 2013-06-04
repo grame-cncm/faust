@@ -67,6 +67,7 @@
 #include "cpp_gpu_code_container.hh"
 #include "java_code_container.hh"
 #include "js_code_container.hh"
+#include "asmjs_code_container.hh"
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
 #include "schema.h"
@@ -429,7 +430,7 @@ static void printhelp()
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, llvm, fir (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, fir (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -659,6 +660,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         } else if (strcmp(gOutputLang, "js") == 0) {
 
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+        
+        } else if (strcmp(gOutputLang, "ajs") == 0) {
+
+            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (strcmp(gOutputLang, "fir") == 0) {
        
