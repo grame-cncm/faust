@@ -119,20 +119,9 @@ _f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id
     var box = this.make_tooltip_box(svg, container, id);
     var text = this.make_tooltip_text(svg, container, id);
     _f4u$t.move_to_ridiculous_negative(full_id);
-    // ugh, interactivity should maybe go in ui_interact?
-    var mouseoverwrapper = function(e) {
-      document.getElementById(full_id).setAttribute("style","opacity:1.0");
-      setTimeout(function () {
-        //var crect = $(document.getElementById(linked_obj_id)).offset();
-        _f4u$t.generic_translate(full_id, 0 /*_f4u$t.getClientX(e)*/ /*- offset.left*/, 0 /*_f4u$t.getClientY(e)*/ /*- offset.top*/);
-      }, 500);
-    }
-    var mouseout = function() {
-      _f4u$t.move_to_ridiculous_negative(full_id);
-      document.getElementById(full_id).setAttribute("style","opacity:0.0");
-    }
-    $('#'+linked_obj_id).bind('mouseover', mouseoverwrapper);
-    $('#'+linked_obj_id).bind('mouseout', mouseout);
+
+    $('#'+linked_obj_id).bind('mouseover', _f4u$t.tooltip_mouseover);
+    $('#'+linked_obj_id).bind('mouseout', _f4u$t.tooltip_mouseout);
 
     return container;
   }
