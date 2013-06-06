@@ -708,6 +708,8 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 		}
 	}
 	
+	// TODO: find a method of processing only the voices that are actually playing
+	// to prevent CPU overload and distortion of the produced sound
 	for (unsigned int voice = 0; voice < MAX_POLYPHONY; ++voice) {;
 		m_voices[voice]->m_dsp.compute(sampleFrames, inputs, m_tempOutputs);
 

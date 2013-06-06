@@ -8,7 +8,10 @@
 #include "audioeffectx.h"
 #include "dsp.h"
 
+// Increasing MAX_POLYPHONY can increase processing time a lot
+// which can as well distort the sound making it sound like noise
 const int MAX_POLYPHONY = 10;
+
 const int INITIAL_TEMP_OUTPUT_SIZE = 1024;
 
 //////////////////////////////////////////////////////////////////
