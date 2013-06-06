@@ -120,12 +120,12 @@ _f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id
     var text = this.make_tooltip_text(svg, container, id);
     _f4u$t.move_to_ridiculous_negative(full_id);
     // ugh, interactivity should maybe go in ui_interact?
-    var mouseover = function() {
-      _f4u$t.generic_translate(full_id, 0, 0);
-    };
-    var mouseoverwrapper = function() {
+    var mouseoverwrapper = function(e) {
       document.getElementById(full_id).setAttribute("style","opacity:1.0");
-      setTimeout(mouseover, 500);
+      setTimeout(function () {
+        //var crect = $(document.getElementById(linked_obj_id)).offset();
+        _f4u$t.generic_translate(full_id, 0 /*_f4u$t.getClientX(e)*/ /*- offset.left*/, 0 /*_f4u$t.getClientY(e)*/ /*- offset.top*/);
+      }, 500);
     }
     var mouseout = function() {
       _f4u$t.move_to_ridiculous_negative(full_id);
@@ -492,6 +492,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -948,6 +949,7 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
   this.make_box(svg, g, id);
   this.make_check(svg, g, id);
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -1048,6 +1050,7 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 
   this.make_button_box(svg, g, id);
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -1228,6 +1231,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
