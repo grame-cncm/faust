@@ -14,6 +14,7 @@ help:
 install:
 	mkdir -p $(dest)
 	install faustpath $(dest)
+	install faustoptflags $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2caqt $(dest)
@@ -54,6 +55,7 @@ install:
 
 uninstall:
 	rm -f $(dest)/faustpath
+	rm -f $(dest)/faustoptflags
 	rm -f $(dest)/faust2alqt
 	rm -f $(dest)/faust2alsa 
 	rm -f $(dest)/faust2caqt
