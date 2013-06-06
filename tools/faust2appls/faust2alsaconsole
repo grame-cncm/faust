@@ -15,8 +15,6 @@ OSCDEFS=""
 #
 if [[ $(uname -m) == armv6l ]]; then
 	MYGCCFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
-elif [[ $(uname -s) == Darwin ]]; then
-	MYGCCFLAGS="-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 else
 	MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 fi
@@ -79,11 +77,11 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a jack-console.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a alsa-console.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP "$f.cpp" -ljack $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 

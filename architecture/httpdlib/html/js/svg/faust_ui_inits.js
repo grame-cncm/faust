@@ -11,6 +11,7 @@ _f4u$t.checkbox_inits = {
   init : false,
   lpadding_y : _f4u$t.TEXT_HEIGHT,
   box_padding : _f4u$t.TEXT_BOX_PADDING,
+  tooltip : '',
   address : ''
 };
 
@@ -25,6 +26,7 @@ _f4u$t.button_inits = {
   fill_off : "url(#buttonUpGradient)",
   stroke : _f4u$t.GREY,
   baseline_skip : 5,
+  tooltip : '',
   address : ''
 };
 
@@ -75,6 +77,7 @@ _f4u$t.rbutton_inits = {
   handle_width : 6,
   value_box_w : _f4u$t.VALUE_BOX_W,
   value_box_h : _f4u$t.VALUE_BOX_H,
+  tooltip : '',
   address : ''
 }
 
@@ -98,6 +101,7 @@ _f4u$t.slidingobject_inits = {
   value_box_w : _f4u$t.VALUE_BOX_W,
   value_box_h : _f4u$t.VALUE_BOX_H,
   address :  '',
+  tooltip : '',
   type : ''
 };
 
@@ -149,6 +153,7 @@ _f4u$t.nentry_inits = {
   value_box_w : _f4u$t.VALUE_BOX_W,
   value_box_h : _f4u$t.VALUE_BOX_H,
   type : 'nentry',
+  tooltip : '',
   address : ''
 }
 

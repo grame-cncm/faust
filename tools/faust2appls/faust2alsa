@@ -4,7 +4,7 @@ OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2011                                #
+#               (c) Grame, 2009-2013                                #
 #                                                                   #
 #####################################################################
 
@@ -13,7 +13,12 @@ OSCDEFS=""
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+if [[ $(uname -m) == armv6l ]]; then
+	MYGCCFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
+else
+	MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+fi
+
 MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 

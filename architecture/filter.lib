@@ -1476,8 +1476,8 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
      meter(N-i-1);
     meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB] 
      [tooltip: Spectral Band Level in dB]", -50, 10));
-  // Can M be included in the label string somehow?
-  speclevel_group(x)  = hgroup("[0] CONSTANT-Q SPECTRUM ANALYZER (6E)
+  O = (N-2)*M;
+  speclevel_group(x)  = hgroup("[0] CONSTANT-Q SPECTRUM ANALYZER (6E), %N bands spanning LP, %O octaves below %ftop Hz, HP
      [tooltip: See Faust's filter.lib for documentation and references]", x);
 };
 

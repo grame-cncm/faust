@@ -105,9 +105,9 @@ for p in $FILES; do
         if [ $(which faust2pd) ]; then
         	faust2pd -s $f.xml
         fi
-    ) #> /dev/null
+    ) > /dev/null
 
-    ##rm -rf "$SRCDIR/${f%.dsp}$EXT"
+    rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     # collects all the files produced
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"

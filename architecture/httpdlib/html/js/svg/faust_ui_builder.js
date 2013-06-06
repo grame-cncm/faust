@@ -18,6 +18,10 @@ _f4u$t.get_unit = function(dct) {
   return _f4u$t.meta_info(dct, 'unit', '', function(prop) { return prop; });
 }
 
+_f4u$t.get_tooltip = function(dct) {
+  return _f4u$t.meta_info(dct, 'tooltip', '', function(prop) { return prop; });
+}
+
 _f4u$t.get_orientation = function(dct) {
   return _f4u$t.meta_info(dct, 'orientation', {}, _f4u$t.parse_orientation);
 }
@@ -78,6 +82,7 @@ _f4u$t.make_rbutton = function(dct) {
   options.ndec = numspecs["ndec"];
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
+  options.tooltip = _f4u$t.get_tooltip(dct);
   options.orientation = _f4u$t.get_orientation(dct);
   if (_f4u$t.is_panoramic(dct)) {
     options.a0 = 0;
@@ -112,6 +117,8 @@ _f4u$t.make_slider = function(kls, dct) {
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   options.orientation = _f4u$t.get_orientation(dct);
+  options.tooltip = _f4u$t.get_tooltip(dct);
+  console.log(options.tooltip);
   var size = _f4u$t.get_size(dct);
   options.girth *= size;
   options.length *= size;
@@ -135,6 +142,7 @@ _f4u$t.make_bargraph = function(kls, dct) {
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   var size = _f4u$t.get_size(dct);
+  options.tooltip = _f4u$t.get_tooltip(dct);
   options.girth *= size;
   options.length *= size;
   return new kls(options);
@@ -145,6 +153,7 @@ _f4u$t.make_button = function(dct) {
   var options = $.extend(true, {}, _f4u$t.button_inits);
   options.label = dct.label;
   options.address = dct.address;
+  options.tooltip = _f4u$t.get_tooltip(dct);
   return new _f4u$t.Button(options);
 }
 
@@ -154,6 +163,7 @@ _f4u$t.make_checkbox = function(dct) {
   options.address = dct.address;
   options.init = (dct.init == "1" ? true : false);
   var size = _f4u$t.get_size(dct);
+  options.tooltip = _f4u$t.get_tooltip(dct);
   options.d *= size;
   return new _f4u$t.CheckBox(options);
 }
@@ -172,7 +182,8 @@ _f4u$t.make_nentry = function(dct) {
     integer : numspecs["integer"],
     ndec : numspecs["ndec"],
     address : dct["address"],
-    unit : _f4u$t.get_unit(dct)
+    unit : _f4u$t.get_unit(dct),
+    tooltip : _f4u$t.get_tooltip(dct)
   });
 }
 
