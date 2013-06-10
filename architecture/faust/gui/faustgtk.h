@@ -112,16 +112,16 @@ static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, GdkEventExpos
 	double angle = scale_zero + knobstate * 2 * (M_PI - scale_zero);
 	double knobstate1 = (0. - adj->lower) / (adj->upper - adj->lower);
 	double pointer_off = knob_x/6;
-	double radius = min(knob_x-pointer_off, knob_y-pointer_off) / 2;
+	double radius = std::min(knob_x-pointer_off, knob_y-pointer_off) / 2;
 	double lengh_x = (knobx+radius+pointer_off/2) - radius * sin(angle);
 	double lengh_y = (knoby+radius+pointer_off/2) + radius * cos(angle);
-	double radius1 = min(knob_x, knob_y) / 2 ;
+	double radius1 = std::min(knob_x, knob_y) / 2 ;
 
 	/** get widget forground color convert to cairo **/
 	GtkStyle *style = gtk_widget_get_style (widget);
-	double r = min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
-		   g = min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
-		   b = min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
+	double r = std::min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
+		   g = std::min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
+		   b = std::min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
 
 	/** paint focus **/
 	if (GTK_WIDGET_HAS_FOCUS(widget)== TRUE) {
@@ -160,14 +160,14 @@ static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, GdkEventExpos
 
 	/** create a rotating pointer on the kob**/
 	cairo_set_source_rgb(cr,  0.1, 0.1, 0.1);
-	cairo_set_line_width(cr,max(3, min(7, knob_x/15)));
+	cairo_set_line_width(cr,std::max(3, std::min(7, knob_x/15)));
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND); 
 	cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
 	cairo_set_source_rgb(cr,  0.9, 0.9, 0.9);
-	cairo_set_line_width(cr,min(5, max(1,knob_x/30)));
+	cairo_set_line_width(cr,std::min(5, std::max(1,knob_x/30)));
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
@@ -266,7 +266,7 @@ static void knob_pointer_event(GtkWidget *widget, gdouble x, gdouble y, int knob
 	static double last_y = 2e20;
 	GtkKnob *knob = GTK_KNOB(widget);
 	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
-	double radius =  min(knob_x, knob_y) / 2;
+	double radius =  std::min(knob_x, knob_y) / 2;
 	int  knobx = (widget->allocation.width - knob_x) / 2;
 	int  knoby = (widget->allocation.height - knob_y) / 2;
 	double posx = (knobx + radius) - x; // x axis right -> left
