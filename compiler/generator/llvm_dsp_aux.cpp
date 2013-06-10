@@ -376,6 +376,7 @@ void llvm_dsp_aux::buildUserInterface(UIGlue* glue)
 
 void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
+    //printf("llvm_dsp_aux::compute %x  %x %d\n", fDSP, fDSPFactory->fCompute, count);
     AVOIDDENORMALS;
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
@@ -569,7 +570,7 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) { delete factory; }
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
 {
-    delete dsp; 
+    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }
 
 EXPORT int llvm_dsp::getNumInputs()
@@ -664,22 +665,22 @@ EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
-    return dsp->getNumInputs();
+    return reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumInputs();
 }
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
 {
-    return dsp->getNumOutputs();
+    return reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumOutputs();
 }
 
 EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq)
 {
-    dsp->instanceInit(samplingFreq);
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceInit(samplingFreq);
 }
 
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq)
 {
-    dsp->init(samplingFreq);
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingFreq);
 }
 
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
@@ -689,7 +690,8 @@ EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    dsp->compute(count, input, output);
+    //printf("computeCDSPInstance %x %d\n", dsp, count);
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
@@ -699,5 +701,5 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
-    delete dsp; 
+    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }

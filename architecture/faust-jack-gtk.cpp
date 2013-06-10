@@ -23,7 +23,6 @@
 
  ************************************************************************
  ************************************************************************/
-
 #include <libgen.h>
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
@@ -52,7 +51,7 @@ extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* li
 //----------------------------------------------------------------------------
 
 llvm_dsp* DSP;
-list<GUI*> GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
 {
@@ -132,7 +131,7 @@ int main(int argc, char *argv[])
         }
         */
         
-        
+        /*
         char error_msg3[256];
         factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
         //printf("createDSPFactory %x\n", factory3);
@@ -167,8 +166,9 @@ int main(int argc, char *argv[])
         metadataDSPFactory(factory3, &json);
         metadataDSPFactory(factory3, &meta);
         printf("JSON %s\n", json.json());
+        */
         
-          error_msg3[256];
+        char error_msg3[256];
         factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
         //printf("createDSPFactory %x\n", factory3);
         if (factory3) {
@@ -179,11 +179,13 @@ int main(int argc, char *argv[])
             return 1;
         }
         
+        /*
         meta;
         DSP->buildUserInterface(&json);
         metadataDSPFactory(factory3, &json);
         metadataDSPFactory(factory3, &meta);
         printf("JSON %s\n", json.json());
+        */
         
         //deleteDSPInstance(DSP);
         //deleteDSPFactory(factory3);
