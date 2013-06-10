@@ -5,7 +5,6 @@
 #include <list>
 #include <map>
 
-using namespace std;
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
@@ -18,13 +17,14 @@ typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 
 class GUI : public UI
 {
-	typedef list<uiItem*> clist;
-	typedef map<FAUSTFLOAT*, clist*> zmap;
+    
+	typedef std::list<uiItem*> clist;
+	typedef std::map<FAUSTFLOAT*, clist*> zmap;
 	
  private:
- 	static list<GUI*>	fGuiList;
-	zmap				fZoneMap;
-	bool				fStopped;
+ 	static std::list<GUI*>	fGuiList;
+	zmap                    fZoneMap;
+	bool                    fStopped;
 	
  public:
 		
@@ -52,7 +52,7 @@ class GUI : public UI
 	
 	static void updateAllGuis()
 	{
-		list<GUI*>::iterator g;
+		std::list<GUI*>::iterator g;
 		for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
 			(*g)->updateAllZones();
 		}

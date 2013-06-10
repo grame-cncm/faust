@@ -1,48 +1,56 @@
 #! /bin/bash -e
 
-#-------------------------------------------------------------------
-# Set Faust library (architecture-file) path
+OSCDEFS=""
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to alsa-gtk                 #
+#               (c) Grame, 2009-2011                                #
+#                                                                   #
+#####################################################################
 
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-  FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/lib/faust/music.lib ]
-then
-  FAUSTLIB=/usr/local/lib/faust/
-elif [ -f /usr/lib/faust/music.lib ]
-then
-  FAUSTLIB=/usr/lib/faust/
-else
-  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
-fi
+. faustpath
 
-#-------------------------------------------------------------------
-# Set Faust include path
+. faustoptflags
 
-if [ -f $FAUST_INC_PATH/gui/GUI.h ]
-then
-  FAUSTINC=$FAUST_INC_PATH
-elif [ -f /usr/local/include/faust/gui/GUI.h ]
-then
-  FAUSTINC=/usr/local/include/faust/
-elif [ -f /usr/include/faust/gui/GUI.h ]
-then
-  FAUSTINC=/usr/include/faust/
-else
-  error "$0: Cannot find Faust include dir (usually /usr/local/include/faust)"
-fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
 
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+CXX=g++
+CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
-    if [ $p = "-osc" ]; then
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS=$MYICCFLAGS
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-osc" ]; then
 	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
 	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -52,11 +60,28 @@ for p in $@; do
 	fi
 done
 
+
+
+	
 #-------------------------------------------------------------------
-# compile the *.dsp files
+# compile the *.dsp files using ALSA and GTK on linux
 #
 for f in $FILES; do
-    faust -a jack-console.cpp $OPTIONS $f -o $f.cpp
-    g++  $f.cpp -I$FAUSTINC -ljack $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
-    rm $f.cpp
+	
+	# compile faust to c++
+	faust -i -a jack-console.cpp $OPTIONS "$f" -o "$f.cpp"
+
+	# compile c++ to binary
+	(
+		$CXX $CXXFLAGS $OMP "$f.cpp" -ljack $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+	) > /dev/null
+	rm "$f.cpp"
+
+	# collect binary file name for FaustWorks
+	BINARIES="$BINARIES${f%.dsp};"
 done
+
+
+echo $BINARIES
+
+

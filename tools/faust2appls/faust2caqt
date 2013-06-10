@@ -8,6 +8,8 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
+CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="ca-qt.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
@@ -19,9 +21,6 @@ PATH=$PATH:/usr/local/bin
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
-#CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
-CXXFLAGS='-Wall -Wno-unused-parameter -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS

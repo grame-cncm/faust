@@ -46,7 +46,7 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-		 OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
+		 OSCINC="INCLUDEPATH+=/usr/local/include/faust/osclib"
 		 QTDEFS="DEFINES += OSCCTRL"
 		 OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
@@ -88,7 +88,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-lportaudio $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
+        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/include/faust/" "$OSCINC" "LIBS+=-lportaudio $OSCLIB" "HEADERS+=/usr/local/include/faust/gui/faustqt.h" "$QTDEFS"
 	    $QMAKE $SPEC
         make
     ) > /dev/null

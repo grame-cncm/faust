@@ -60,6 +60,73 @@ _f4u$t.UIObject.prototype.get_root_svg = function() {
   return (this.mom.svg ? this.mom.svg : this.mom.get_root_svg());
 }
 
+_f4u$t.UIObject.prototype.tooltip_text = function() {
+  return this.tooltip;
+}
+
+_f4u$t.UIObject.prototype.tooltip_text_dims = function() {
+  return _f4u$t.get_text_bbox(this.get_root_svg(), this.tooltip_text());
+}
+
+_f4u$t.UIObject.prototype.make_tooltip_text = function(svg, parent, id) {
+  var text = this.tooltip_text();
+  var full_id = 'faust_tooltip_text_'+id;
+  var tttext = svg.text(
+    parent,
+    0,
+    0,
+    text,
+    {
+      id: full_id,
+      'class': 'faust-tooltip-text'
+    }
+  );
+
+  return tttext;
+}
+
+_f4u$t.UIObject.prototype.make_tooltip_box = function(svg, parent, id) {
+  var full_id = 'faust_tooltip_box_'+id;
+  var textdims = this.tooltip_text_dims();
+  var ttbox = _f4u$t.make_rectangle_via_rect(
+    svg,
+    parent,
+    2,
+    -textdims.width*0.05,
+    -(textdims.height*1.4),
+    textdims.width*1.1,
+    textdims.height*1.6,
+    {
+      id: full_id,
+      fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
+      stroke : _f4u$t.color_to_rgb(_f4u$t.BLACK),
+      'class': 'faust-tooltip-box'
+    });
+
+  return ttbox;
+}
+
+_f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id) {
+  if (this.tooltip != "") {
+    var full_id = 'faust_tooltip_'+id;
+    var container = svg.group(
+      parent,
+      full_id,
+      {
+        transform: "translate(0,0)"
+      }
+    );
+    var box = this.make_tooltip_box(svg, container, id);
+    var text = this.make_tooltip_text(svg, container, id);
+    _f4u$t.move_to_ridiculous_negative(full_id);
+
+    $('#'+linked_obj_id).bind('mouseover', _f4u$t.tooltip_mouseover);
+    $('#'+linked_obj_id).bind('mouseout', _f4u$t.tooltip_mouseout);
+
+    return container;
+  }
+}
+
 /*
   DEFINES THE FAUST INCREMENTAL OBJECT CLASS.
   All objects that go up in increments inherit from this.
@@ -185,6 +252,7 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_width');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_w');
   _f4u$t.init_prop(this, options, 'rbutton', 'value_box_h');
+  _f4u$t.init_prop(this, options, 'rbutton', 'tooltip');
   _f4u$t.init_prop(this, options, 'rbutton', 'address');
 }
 
@@ -413,6 +481,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -442,6 +511,7 @@ _f4u$t.SlidingObject = function(options, type) {
   _f4u$t.init_prop(this, options, type, 'value_box_h');
   _f4u$t.init_prop(this, options, type, 'address');
   _f4u$t.init_prop(this, options, type, 'type');
+  _f4u$t.init_prop(this, options, type, 'tooltip');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.SlidingObject);
@@ -472,10 +542,10 @@ _f4u$t.Slider = function(options, type) {
   _f4u$t.SlidingObject.call(this, options, type);
   _f4u$t.init_prop(this, options, type,'sp');
   _f4u$t.init_prop(this, options, type, 'orientation');
-  _f4u$t.init_prop(this, options, type,'groove_fill');
-  _f4u$t.init_prop(this, options, type,'groove_stroke');
-  _f4u$t.init_prop(this, options, type,'handle_fill');
-  _f4u$t.init_prop(this, options, type,'handle_stroke');
+  _f4u$t.init_prop(this, options, type, 'groove_fill');
+  _f4u$t.init_prop(this, options, type, 'groove_stroke');
+  _f4u$t.init_prop(this, options, type, 'handle_fill');
+  _f4u$t.init_prop(this, options, type, 'handle_stroke');
 }
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
@@ -616,6 +686,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     '_f4u$t["'+this.type+'_key_sink"]("'+id+'")'
   );
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
   return g;
 }
 
@@ -770,6 +841,7 @@ _f4u$t.CheckBox = function(options) {
   _f4u$t.init_prop(this, options, 'checkbox', 'stretchable');
   _f4u$t.init_prop(this, options, 'checkbox','lpadding_y');
   _f4u$t.init_prop(this, options, 'checkbox','box_padding');
+  _f4u$t.init_prop(this, options, 'checkbox', 'tooltip');
   _f4u$t.init_prop(this, options, 'checkbox','address');
 }
 
@@ -866,6 +938,7 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
   this.make_box(svg, g, id);
   this.make_check(svg, g, id);
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -879,6 +952,7 @@ _f4u$t.Button = function(options) {
   _f4u$t.init_prop(this, options, 'button','label');
   _f4u$t.init_prop(this, options, 'button','ideal_width');
   _f4u$t.init_prop(this, options, 'button','ideal_height');
+  _f4u$t.init_prop(this, options, 'button', 'tooltip');
   this._w = this.ideal_width;
   this._h = this.ideal_height;
   _f4u$t.init_prop(this, options, 'button','gravity');
@@ -965,6 +1039,7 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 
   this.make_button_box(svg, g, id);
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -996,6 +1071,7 @@ _f4u$t.NumericalEntry = function(options) {
   _f4u$t.init_prop(this, options, 'nentry', 'button_stroke');
   _f4u$t.init_prop(this, options, 'nentry', 'operation_stroke');
   _f4u$t.init_prop(this, options, 'nentry', 'padding');
+  _f4u$t.init_prop(this, options, 'button', 'tooltip');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.NumericalEntry);
@@ -1144,6 +1220,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }

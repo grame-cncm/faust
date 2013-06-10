@@ -70,62 +70,62 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp       DSP;
-list<GUI*>  GUI::fGuiList;
+std::list<GUI*>  GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-	char appname[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
+    char appname[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
-    char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
+    int latency = lopt(argv, "--l", 2);
 
-	snprintf(appname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
-  
-	GUI* interface = new QTGUI(argc, argv);
-	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
+    snprintf(appname, 255, "%s", basename(argv[0]));
+    snprintf(rcfilename, 255, "%s/.%src", home, appname);
+
+    GUI* interface = new QTGUI(argc, argv);
+    FUI* finterface	= new FUI();
+    DSP.buildUserInterface(interface);
+    DSP.buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
-	DSP->buildUserInterface(httpdinterface);
+    httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+    DSP.buildUserInterface(httpdinterface);
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+    GUI* oscinterface = new OSCUI(appname, argc, argv);
+    DSP.buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(appname, &DSP)) {
+    netjackaudio audio(celt, master_ip, master_port, latency);
+    if (!audio.init(appname, &DSP)) {
         return 0;
     }
-	finterface->recallState(rcfilename);
-	if (!audio.start()) {
+    finterface->recallState(rcfilename);
+    if (!audio.start()) {
         return 0;
     }
 
 #ifdef HTTPCTRL
-	httpdinterface->run();
+    httpdinterface->run();
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+    oscinterface->run();
 #endif
-	interface->run();
+    interface->run();
 
-	audio.stop();
-	finterface->saveState(rcfilename);
-  	return 0;
+    audio.stop();
+    finterface->saveState(rcfilename);
+    return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
