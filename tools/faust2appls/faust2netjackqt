@@ -9,6 +9,10 @@
 
 . faustpath
 
+. faustoptflags
+
+CXXFLAGS=$MYCXXFLAGS
+
 ARCHFILE="netjack-qt.cpp"
 ARCHLIB="-ljacknet"
 
@@ -26,7 +30,6 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS

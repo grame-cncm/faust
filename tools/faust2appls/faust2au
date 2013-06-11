@@ -1,0 +1,119 @@
+#!/bin/sh
+
+#####################################################################
+#                                                                   
+#               Compiles Faust programs to Audio Unit       	      
+#               (c) Grame 2013                           	               
+#                                                                   
+#####################################################################
+
+# INSTALLATION:
+# - copy the contents of the 'architecture' and 'tools' folders into the similar faust folders
+# - if needed, change FAUST_DIR variable in the 'tools/faust2appls/faust2au' file
+# - in the terminal window, run  'install FAUST_DIR/faust2au /usr/local/bin' (FAUST_DIR is your faust folder)
+# - Xcode should also be installed on your system (https://developer.apple.com/xcode/)
+
+# USAGE: 
+# - with the default arguments:
+# faust2au filename
+# (e.g. faust2au echo.dsp)
+# - with some extra arguments:
+# faust2au filename manufacturer STYP MANF
+# 'manufacturer' is the manufacturer of the AU (The default value is 'Grame')
+# 'STYP' is a four-charachter subtype (The default is the first four characters of the 'filename')
+# 'MANF' is a four-charachter manufacturer (The default is the first four characters of the 'manufacturer')
+
+# OUTPUT:
+# ~/Library/Audio/Plug-Ins/Components/'filename'.component  
+# AU Name will be: 'manufacturer: filename'  ('filename' is used as the AU name). 
+# The names are case-sensitive, e.g. 'faust2au Echo.dsp' results in 'Echo' as the AU name
+
+######################################################
+
+FAUST_DIR=/Applications/faust-0.9.58
+
+######################################################
+
+AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
+
+FAUST_AU_DIR=$FAUST_DIR/architecture/AU/
+cd $FAUST_AU_DIR
+
+if [ $# -lt 1 ]
+then
+	echo faust dsp file not specified
+	exit
+fi
+
+if [ ! -f $1 ]
+then
+    echo input file does not exist
+    exit
+fi
+
+faust -a $FAUST_DIR/architecture/au.cpp $1 -o Source/au-output.cpp
+
+FULL_FILE_NAME=$1
+
+FILE_NAME=$(BASENAME "$FULL_FILE_NAME")
+EXTENSION="${FILE_NAME##*.}"
+FILE_NAME="${FILE_NAME%.*}"
+
+if [ $# -lt 2 ]
+then
+	MANUFACTURER="Grame"
+else
+	MANUFACTURER=$2
+fi
+
+NAME=$MANUFACTURER:' '"$FILE_NAME"
+
+if [ $# -lt 3 ]
+then
+	SUB_TYPE=${FILE_NAME:0:4}
+else
+	SUB_TYPE=$3
+fi
+
+if [ $# -lt 4 ]
+then
+	MANF=${MANUFACTURER:0:4}
+else
+	MANF=$4
+fi
+
+perl -pi -e 's/_NAME_/'"$NAME"'/g' Info.plist
+perl -pi -e 's/_DESC_/'"$NAME"'/g' Info.plist
+perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g'  Info.plist
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Info.plist 
+perl -pi -e 's/_BUNDLE_ID_/'"$FILE_NAME"'/g' Info.plist 
+
+perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings 
+perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings 
+
+perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAU.r
+perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r 
+
+perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h 
+
+xcodebuild ARCHS="i386 x86_64" CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null 2> ./build_errors.log
+
+rm Info.plist
+cp Info-template.plist Info.plist
+
+rm English.lproj/InfoPlist.strings
+cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
+
+rm Source/AUSource/FaustAU.r
+cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
+
+rm Source/AUSource/FaustAUVersion.h
+cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
+
+rm -r $AU_DIR/"$FILE_NAME".component/
+cp -r $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component/
+rm -r $AU_DIR/FaustAU.component/
+
+echo "'$NAME'" AU generated and installed successfully 
+

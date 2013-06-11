@@ -362,6 +362,27 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
   Functions that take care of moving the active object on the screen.
 */
 
+// ugh, interactivity should maybe go in ui_interact?
+_f4u$t.tooltip_mouseover = function(e) {
+  var id = _f4u$t.unique(e.target.id);
+  var full_id = 'faust_tooltip_'+id
+  document.getElementById(full_id).setAttribute("style","opacity:1.0");
+  setTimeout(function () {
+    _f4u$t.generic_translate(full_id, 0, 0);
+    var os = $(document.getElementById(id)).offset();
+    var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
+    var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
+    _f4u$t.generic_translate(full_id, _f4u$t.getClientX(e) - my_x, _f4u$t.getClientY(e) - my_y);
+  }, 500);
+}
+
+_f4u$t.tooltip_mouseout = function(e) {
+  var id = _f4u$t.unique(e.target.id);
+  var full_id = 'faust_tooltip_'+id
+  _f4u$t.move_to_ridiculous_negative(full_id);
+  document.getElementById(full_id).setAttribute("style","opacity:0.0");
+}
+
 // main function to move currently-selected slider
 _f4u$t.move_active_object = function(ee) {
   for (var elt in _f4u$t._I) {
@@ -420,8 +441,8 @@ _f4u$t.move_active_slider = function(e,identifier)
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
   var os = $(anchor).offset();
-  var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
+  var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   // we only care about the axis of the slider
   if (axis == _f4u$t.X_AXIS) {
     pos = _f4u$t.getClientX(e) - my_x;
@@ -553,8 +574,8 @@ _f4u$t.move_active_rbutton = function(e, identifier)
   var initangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["initangle"];
   var sweepangle = _f4u$t.IDS_TO_ATTRIBUTES[id]["sweepangle"];
   var os = $(anchor).offset();
-  var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
+  var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
 
   var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;

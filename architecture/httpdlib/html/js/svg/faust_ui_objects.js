@@ -119,20 +119,9 @@ _f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id
     var box = this.make_tooltip_box(svg, container, id);
     var text = this.make_tooltip_text(svg, container, id);
     _f4u$t.move_to_ridiculous_negative(full_id);
-    // ugh, interactivity should maybe go in ui_interact?
-    var mouseover = function() {
-      _f4u$t.generic_translate(full_id, 0, 0);
-    };
-    var mouseoverwrapper = function() {
-      document.getElementById(full_id).setAttribute("style","opacity:1.0");
-      setTimeout(mouseover, 500);
-    }
-    var mouseout = function() {
-      _f4u$t.move_to_ridiculous_negative(full_id);
-      document.getElementById(full_id).setAttribute("style","opacity:0.0");
-    }
-    $('#'+linked_obj_id).bind('mouseover', mouseoverwrapper);
-    $('#'+linked_obj_id).bind('mouseout', mouseout);
+
+    $('#'+linked_obj_id).bind('mouseover', _f4u$t.tooltip_mouseover);
+    $('#'+linked_obj_id).bind('mouseout', _f4u$t.tooltip_mouseout);
 
     return container;
   }
@@ -492,6 +481,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -948,6 +938,7 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
   this.make_box(svg, g, id);
   this.make_check(svg, g, id);
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -1048,6 +1039,7 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 
   this.make_button_box(svg, g, id);
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
@@ -1228,6 +1220,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
   this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
   this.make_label(svg, g, id);
+  this.make_tooltip(svg, g, id, id);
 
   return g;
 }
