@@ -137,33 +137,35 @@ extern int yydebug;
      ISEQ = 346,
      ISUM = 347,
      IPROD = 348,
-     STRING = 349,
-     FSTRING = 350,
-     IDENT = 351,
-     EXTRA = 352,
-     DECLARE = 353,
-     CASE = 354,
-     ARROW = 355,
-     BDOC = 356,
-     EDOC = 357,
-     BEQN = 358,
-     EEQN = 359,
-     BDGM = 360,
-     EDGM = 361,
-     BLST = 362,
-     ELST = 363,
-     BMETADATA = 364,
-     EMETADATA = 365,
-     DOCCHAR = 366,
-     NOTICE = 367,
-     LISTING = 368,
-     LSTTRUE = 369,
-     LSTFALSE = 370,
-     LSTDEPENDENCIES = 371,
-     LSTMDOCTAGS = 372,
-     LSTDISTRIBUTED = 373,
-     LSTEQ = 374,
-     LSTQ = 375
+     INPUTS = 349,
+     OUTPUTS = 350,
+     STRING = 351,
+     FSTRING = 352,
+     IDENT = 353,
+     EXTRA = 354,
+     DECLARE = 355,
+     CASE = 356,
+     ARROW = 357,
+     BDOC = 358,
+     EDOC = 359,
+     BEQN = 360,
+     EEQN = 361,
+     BDGM = 362,
+     EDGM = 363,
+     BLST = 364,
+     ELST = 365,
+     BMETADATA = 366,
+     EMETADATA = 367,
+     DOCCHAR = 368,
+     NOTICE = 369,
+     LISTING = 370,
+     LSTTRUE = 371,
+     LSTFALSE = 372,
+     LSTDEPENDENCIES = 373,
+     LSTMDOCTAGS = 374,
+     LSTDISTRIBUTED = 375,
+     LSTEQ = 376,
+     LSTQ = 377
    };
 #endif
 
@@ -181,7 +183,7 @@ typedef union YYSTYPE
 
 
 /* Line 2053 of yacc.c  */
-#line 185 "parser/faustparser.hpp"
+#line 187 "parser/faustparser.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

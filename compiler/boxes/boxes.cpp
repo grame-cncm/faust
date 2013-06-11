@@ -133,6 +133,16 @@ bool isBoxISum(Tree t, Tree& x, Tree& y, Tree& z)		{ return isTree(t, gGlobal->B
 bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z)		{ return isTree(t, gGlobal->BOXIPROD, x, y, z);   }
 
 /*****************************************************************************
+                        Static information on Boxes
+*****************************************************************************/
+
+Tree boxInputs(Tree x)                                  { return tree(gGlobal->BOXINPUTS, x); 		}
+Tree boxOutputs(Tree x)                                 { return tree(gGlobal->BOXOUTPUTS, x); 		}
+
+bool isBoxInputs(Tree t, Tree& x)                       { return isTree(t, gGlobal->BOXINPUTS, x);   }
+bool isBoxOutputs(Tree t, Tree& x)                      { return isTree(t, gGlobal->BOXOUTPUTS, x);  }
+
+/*****************************************************************************
 							  Lambda-Calculus of Boxes
 *****************************************************************************/
 
@@ -153,6 +163,7 @@ Tree buildBoxAbstr	(Tree largs, Tree body)
 		return buildBoxAbstr(tl(largs), boxAbstr(hd(largs), body));
 	}
 }
+
 #if 0
 Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
@@ -432,6 +443,10 @@ static Tree preparePattern(Tree box)
         else if (isBoxISeq(box, t1, t2, t3)) 	return boxISeq ( t1, t2, preparePattern(t3) );
         else if (isBoxISum(box, t1, t2, t3)) 	return boxISum ( t1, t2, preparePattern(t3) );
         else if (isBoxIProd(box, t1, t2, t3)) 	return boxIProd( t1, t2, preparePattern(t3) );
+
+        // static informatio
+        else if (isBoxInputs(box, t1))          return boxInputs ( preparePattern(t1) );
+        else if (isBoxOutputs(box, t1))         return boxOutputs( preparePattern(t1) );
 
         // user interface
         else if (isBoxButton(box, label))       return box;

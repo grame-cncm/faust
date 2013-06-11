@@ -185,6 +185,9 @@ Tree unquote(char* str)
 %token ISUM
 %token IPROD
 
+%token INPUTS
+%token OUTPUTS
+
 %token STRING
 %token FSTRING
 %token IDENT
@@ -256,6 +259,9 @@ Tree unquote(char* str)
 %type <exp> fseq
 %type <exp> fsum
 %type <exp> fprod
+
+%type <exp> finputs
+%type <exp> foutputs
 
 %type <exp> button
 %type <exp> checkbox
@@ -507,6 +513,10 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| fseq							{ $$ = $1; }
 				| fsum							{ $$ = $1; }
 				| fprod							{ $$ = $1; }
+				
+				| finputs						{ $$ = $1; }
+				| foutputs						{ $$ = $1; }
+				
 				;
 
 
@@ -557,6 +567,14 @@ fprod			: IPROD LPAR ident PAR argument PAR expression RPAR
 												{ $$ = boxIProd($3,$5,$7); }
 				;
 
+
+finputs			: INPUTS LPAR expression RPAR { $$ = boxInputs($3); }
+				;
+
+foutputs		: OUTPUTS LPAR expression RPAR { $$ = boxOutputs($3); }
+				;
+
+				
 
 /* description of foreign functions */
 

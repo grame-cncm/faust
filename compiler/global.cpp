@@ -202,6 +202,9 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     BOXCASE = symbol ("BoxCase");
     BOXPATMATCHER = symbol ("BoxPatMatcher");
     BOXPATVAR = symbol ("BoxPatVar");
+    BOXINPUTS = symbol ("BoxInputs");
+    BOXOUTPUTS = symbol ("BoxOutputs");
+ 
     DOCEQN = symbol ("DocEqn");
     DOCDGM = symbol ("DocDgm");
     DOCNTC = symbol ("DocNtc");

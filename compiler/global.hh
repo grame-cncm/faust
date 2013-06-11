@@ -253,6 +253,8 @@ struct global {
     Sym BOXCASE;
     Sym BOXPATMATCHER;
     Sym BOXPATVAR;
+    Sym BOXINPUTS;
+    Sym BOXOUTPUTS;
     Sym DOCEQN;
     Sym DOCDGM;
     Sym DOCNTC;

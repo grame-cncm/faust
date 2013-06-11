@@ -159,6 +159,9 @@ vst :
 	install -d vstdir
 	$(MAKE) DEST='vstdir/' ARCH='vst2p4.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.vstcompile
 
+vsti:
+	install -d vstidir
+	$(MAKE) DEST='vstidir/' ARCH='vsti-poly.cpp' LIB='' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.vsticompile
 
 sndfile :
 	install -d sndfiledir

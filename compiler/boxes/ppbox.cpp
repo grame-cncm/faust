@@ -167,6 +167,9 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxISum(box, t1, t2, t3)) 	fout << "sum(" << boxpp(t1) << ", " << boxpp(t2) << ") {" << boxpp(t3) << "}";
 	else if (isBoxIProd(box, t1, t2, t3)) 	fout << "prod(" << boxpp(t1) << ", " << boxpp(t2) << ") {" << boxpp(t3) << "}";
 
+    else if (isBoxInputs(box, t1))          fout << "inputs(" << boxpp(t1) << ")";
+    else if (isBoxOutputs(box, t1))         fout << "outputs(" << boxpp(t1) << ")";
+
 	// user interface
 	else if (isBoxButton(box, label))	fout << "button(" << tree2str(label) << ')';
 	else if (isBoxCheckbox(box, label))	fout << "checkbox(" << tree2str(label) << ')';
