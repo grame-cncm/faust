@@ -691,13 +691,17 @@ _f4u$t.nentry_class_changer = function(id, down, dir) {
 }
 
 _f4u$t.button_hover = function(id) {
-  document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'orange';
-  document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'orange';
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'orange';
+    document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'orange';
+  }
 }
 
 _f4u$t.button_unhover = function(id) {
-  document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'black';
-  document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'black';
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'black';
+    document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'black';
+  }
 }
 
 _f4u$t.button_up = function(I) {
