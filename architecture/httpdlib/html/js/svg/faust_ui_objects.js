@@ -998,6 +998,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.fill_off),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-box',
+      onmouseover : '_f4u$t.button_hover("'+full_id+'")',
+      onmouseout : '_f4u$t.button_unhover("'+full_id+'")'
     });
 
   return button;
@@ -1029,9 +1031,9 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
   svg.configure(g,
   {
     onmousedown : mousedown,
-    ontouchstart : mousedown,
+    //ontouchstart : mousedown,
     onmouseup : mouseup,
-    ontouchend : mouseup
+    //ontouchend : mouseup
   },
   false);
   _f4u$t.initiate_button(

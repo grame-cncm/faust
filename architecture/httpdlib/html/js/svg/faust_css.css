@@ -30,10 +30,6 @@ text {
 	fill: rgba(0,182,253,0.6);
 }
 
-.faust-button-label:hover {
-  fill : orange;
-}
-
 .faust-label {
 	font-family: Arial, Verdana, Helvetica, sans;
 	font-size: 13px;
@@ -287,21 +283,13 @@ path.faust-button-up {
   stroke : black;
 }
 
-path.faust-button-down:hover {
-  stroke : orange;
-}
-
-path.faust-button-up:hover {
+path.faust-button-hover {
   stroke : orange;
 }
 
 // hovers
 
-rect.faust-button-down:hover {
-  stroke : orange;
-}
-
-rect.faust-button-up:hover {
+rect.faust-button-hover {
   stroke : orange;
 }
 
