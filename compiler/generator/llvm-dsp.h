@@ -54,6 +54,11 @@ llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
                         const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
+                        
+llvm_dsp_factory* createDSPFactory1(int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* name, 
+                        const char* input, const char* target, 
+                        char* error_msg, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory.

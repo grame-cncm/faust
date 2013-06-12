@@ -76,7 +76,7 @@
 #include "garbageable.hh"
 #include "export.hh"
 
-#define FAUSTVERSION "2.0.a9"
+#define FAUSTVERSION "2.0.a10"
 
 // Same as libfaust.h 
 typedef struct LLVMResult {
