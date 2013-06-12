@@ -85,7 +85,7 @@ _f4u$t.slidingobject_inits = {
   mom : null,
   axis : _f4u$t.X_AXIS,
   girth : 40,
-  length : 200,
+  length : 175,
   label : '',
   unit : null,
   min : 0,
@@ -106,7 +106,7 @@ _f4u$t.slidingobject_inits = {
 };
 
 _f4u$t.slider_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
-_f4u$t.slider_inits.sp = 0.15;
+_f4u$t.slider_inits.sp = 30;
 _f4u$t.slider_inits.groove_fill = 'red';
 _f4u$t.slider_inits.groove_stroke = _f4u$t.BLACK;
 _f4u$t.slider_inits.handle_stroke = _f4u$t.BLACK;
