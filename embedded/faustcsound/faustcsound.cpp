@@ -39,16 +39,16 @@
  3) Csound 6 headers, http://sourceforge.net/projects/csound
 
  On OSX:
- g++ -O3 -dynamiclib -o libfaustgen.dylib ../Opcodes/faustcsound.cpp -g 
+ g++ -O3 -dynamiclib -o libfaustcsound.dylib ../Opcodes/faustcsound.cpp -g 
      -DFAUSTFLOAT=double -DUSE_DOUBLE -I<path_to_csound_headers>
       -L/usr/local/lib/faust -lfaust 
-      `llvm-condig --ldflags --libs all`
+      `llvm-config --ldflags --libs all`
 
  On Linux:
- g++ -O3 -shared -o libfaustgen.dylib ../Opcodes/faustcsound.cpp -g 
+ g++ -O3 -shared -o libfaustcsound.so ../Opcodes/faustcsound.cpp -g 
      -DFAUSTFLOAT=double -DUSE_DOUBLE -I<path_to_csound_headers>
       -L/usr/local/lib/faust -lfaust 
-      `llvm-condig --ldflags --libs all`
+      `llvm-config --ldflags --libs all`
 
 */
 
