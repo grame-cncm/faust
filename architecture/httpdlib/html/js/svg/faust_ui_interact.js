@@ -660,11 +660,13 @@ _f4u$t.clearIdCache = function(ee) {
 }
 
 _f4u$t.button_class_changer = function(id, down) {
-  if (down) {
-    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
-  }
-  else {
-    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    if (down) {
+      $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
+    }
+    else {
+      $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+    }
   }
 }
 
@@ -681,12 +683,14 @@ _f4u$t.tgroup_class_changer = function(id, down) {
 
 // DITTO - slight variation on function above
 _f4u$t.nentry_class_changer = function(id, down, dir) {
-  var dirtext = dir == -1 ? 'minus' : 'plus';
-  if (down) {
-    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-up').addClass('faust-nentry-down');
-  }
-  else {
-    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-down').addClass('faust-nentry-up');
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    var dirtext = dir == -1 ? 'minus' : 'plus';
+    if (down) {
+      $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-up').addClass('faust-nentry-down');
+    }
+    else {
+      $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-down').addClass('faust-nentry-up');
+    }
   }
 }
 
