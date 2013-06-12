@@ -1119,9 +1119,9 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 			break;
 	}
 
-    return generateCacheCode(sig, (t->nature() == kReal)
-        ? InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname))
-        : InstBuilder::genCastNumIntInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, (t->nature() == kInt)
+        ? InstBuilder::genCastNumIntInst(InstBuilder::genLoadStructVar(varname))
+        : InstBuilder::genLoadStructVar(varname));
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
