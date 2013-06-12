@@ -8,12 +8,12 @@
 /*
   UTILITY FUNCTIONS
 */
-_f4u$t.getClientX = function(e) {
-  return e.clientX / _f4u$t.VIEWPORT_SCALE;
+_f4u$t.getOperativeX = function(e) {
+  return (e.clientX + $(document).scrollLeft()) / _f4u$t.VIEWPORT_SCALE;
 }
 
-_f4u$t.getClientY = function(e) {
-  return e.clientY / _f4u$t.VIEWPORT_SCALE;
+_f4u$t.getOperativeY = function(e) {
+  return (e.clientY + $(document).scrollTop()) / _f4u$t.VIEWPORT_SCALE;
 }
 
 _f4u$t.move_to_ridiculous_negative = function(id) {
@@ -125,8 +125,8 @@ _f4u$t.array_to_transform = function(array) {
 // all this PREV stuff can likely be deprecated
 _f4u$t.updateXY = function(ee, initialize) {
   for (var i = 0; i < ee.length; i++) {
-    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientX(ee[i]);
-    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientY(ee[i]);
+    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getOperativeX(ee[i]);
+    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getOperativeY(ee[i]);
   }
 }
 
@@ -151,13 +151,13 @@ _f4u$t.initiate_nentry = function(fullid, minval, maxval, step, init, integer, n
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_slider = function(axis, fullid, length, pctsliding, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
+_f4u$t.initiate_slider = function(axis, fullid, length, sliderlen, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = (axis == _f4u$t.X_AXIS ? "hslider" : "vslider");
   _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"] = axis;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["length"] = length;
-  _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"] = pctsliding;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["sliderlen"] = sliderlen;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"] = minval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"] = maxval;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["step"] = step;
@@ -372,7 +372,7 @@ _f4u$t.tooltip_mouseover = function(e) {
     var os = $(document.getElementById(id)).offset();
     var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
     var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
-    _f4u$t.generic_translate(full_id, _f4u$t.getClientX(e) - my_x, _f4u$t.getClientY(e) - my_y);
+    _f4u$t.generic_translate(full_id, _f4u$t.getOperativeX(e) - my_x, _f4u$t.getOperativeY(e) - my_y);
   }, 500);
 }
 
@@ -437,21 +437,22 @@ _f4u$t.move_active_slider = function(e,identifier)
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
   var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
   var anchor = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_meter_', 'faust_vslider_meter_')+id);
-  var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
+  var sliderlen = _f4u$t.IDS_TO_ATTRIBUTES[id]["sliderlen"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
   var os = $(anchor).offset();
+  //console.log(os, anchor.getBoundingClientRect(), $(document).scrollTop());
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   // we only care about the axis of the slider
   if (axis == _f4u$t.X_AXIS) {
-    pos = _f4u$t.getClientX(e) - my_x;
+    pos = _f4u$t.getOperativeX(e) - my_x;
   }
   else {
-    pos = _f4u$t.getClientY(e) - my_y;
+    pos = _f4u$t.getOperativeY(e) - my_y;
   }
 
-  pos -= (length * pctsliding / 2.0);
+  pos -= (sliderlen / 2.0);
   //var diff = pos - _f4u$t.PREV[axis][identifier];
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
@@ -460,14 +461,14 @@ _f4u$t.move_active_slider = function(e,identifier)
 
   var aval = pos;//transform[0][axis + 1] + diff;
   // minimum of the slider is to the bottom / left
-  transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
+  transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - sliderlen);
   _f4u$t.redraw_slider_groove(
     id,
     axis,
     length,
     aval / length
   );
-  var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
+  var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - sliderlen);
   var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
   _f4u$t.updateXY([e]);
@@ -507,13 +508,13 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
   var id = _f4u$t.unique(longid);
   var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
   var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
-  var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
+  var sliderlen = _f4u$t.IDS_TO_ATTRIBUTES[id]["sliderlen"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = _f4u$t.remap(e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle],
                          _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.low,
                          _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high,
                          0,
-                         length - (length * pctsliding));
+                         length - sliderlen);
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
@@ -521,14 +522,14 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
 
   var aval = pos;
   // minimum of the slider is to the bottom / left
-  transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - (length * pctsliding));
+  transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - sliderlen);
   _f4u$t.redraw_slider_groove(
     id,
     axis,
     length,
     aval / length
   );
-  var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - (length * pctsliding));
+  var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - sliderlen);
   var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
   // no updating XY as there is no event specific to this object
@@ -578,7 +579,7 @@ _f4u$t.move_active_rbutton = function(e, identifier)
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
 
-  var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
+  var diff = 180. * Math.atan2(_f4u$t.getOperativeY(e) - my_y, _f4u$t.getOperativeX(e) - my_x) / Math.PI;
   while (diff < 0) {
     diff += 360;
   }
@@ -659,11 +660,13 @@ _f4u$t.clearIdCache = function(ee) {
 }
 
 _f4u$t.button_class_changer = function(id, down) {
-  if (down) {
-    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
-  }
-  else {
-    $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    if (down) {
+      $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
+    }
+    else {
+      $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
+    }
   }
 }
 
@@ -680,12 +683,28 @@ _f4u$t.tgroup_class_changer = function(id, down) {
 
 // DITTO - slight variation on function above
 _f4u$t.nentry_class_changer = function(id, down, dir) {
-  var dirtext = dir == -1 ? 'minus' : 'plus';
-  if (down) {
-    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-up').addClass('faust-nentry-down');
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    var dirtext = dir == -1 ? 'minus' : 'plus';
+    if (down) {
+      $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-up').addClass('faust-nentry-down');
+    }
+    else {
+      $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-down').addClass('faust-nentry-up');
+    }
   }
-  else {
-    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-down').addClass('faust-nentry-up');
+}
+
+_f4u$t.button_hover = function(id) {
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'orange';
+    document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'orange';
+  }
+}
+
+_f4u$t.button_unhover = function(id) {
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'black';
+    document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'black';
   }
 }
 
@@ -902,9 +921,9 @@ _f4u$t.actualize_incremental_object = function(id) {
     var minval = _f4u$t.IDS_TO_ATTRIBUTES[id]["minval"];
     var maxval = _f4u$t.IDS_TO_ATTRIBUTES[id]["maxval"];
     var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
-    var pctsliding = _f4u$t.IDS_TO_ATTRIBUTES[id]["pctsliding"];
+    var sliderlen = _f4u$t.IDS_TO_ATTRIBUTES[id]["sliderlen"];
     var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
-    val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, length - (length * pctsliding));
+    val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, length - sliderlen);
     var transform = _f4u$t.transform_to_array(maybe_slider.getAttribute("transform"));
     transform[0][axis + 1] = val;
     _f4u$t.redraw_slider_groove(

@@ -29,23 +29,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.MotionEvent;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -59,16 +58,18 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.lang.String;
+import java.net.InetAddress;
 import java.net.SocketException;
 
 import osc.OSCListener;
 import osc.OSCMessage;
+import osc.OSCPacket;
 import osc.OSCPortIn;
+import osc.OSCPortOut;
 
 public class faustApp extends Activity {
 	
@@ -86,6 +87,9 @@ public class faustApp extends Activity {
 	// UI layouts
 	LinearLayout[] currentGroup; // refers to the current group in the UI hierarchy
 	int groupLevel = 0;
+	
+	OSCPortIn receiver = null;
+	OSCPortOut sender = null;
 	
 	/****************************************************************
 	 TOOLS FUNCTIONS 
@@ -132,6 +136,18 @@ public class faustApp extends Activity {
 			receiver.addListener(address, listener);
 			receiver.startListening();
 	 }
+	
+	private class sendOSCmessage extends AsyncTask<OSCMessage,Void,Void> {
+		protected Void doInBackground(OSCMessage... msg) {
+			try {
+				sender.send((OSCPacket)msg[0]);
+			} catch (Exception e) {
+				Log.i("osc", "Couldn't send");
+				Log.i("osc", e.toString());
+			}
+			return null;
+	     }
+	}
 	
 	/****************************************************************
 	 UI FUNCTIONS 
@@ -295,7 +311,7 @@ public class faustApp extends Activity {
     }
 	
 	// add a button to the UI
-	private void addButton(final int n, final int m, final String label){ 
+	private void addButton(final int n, final int m, final String label, final String address){ 
 		UI.buttons[m] = new Button(this);
         LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         UI.buttons[m].setText(label);
@@ -311,13 +327,19 @@ public class faustApp extends Activity {
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 	parVals[n] = 0.f;
                 }
-                return true;
+                
+                Object OSCarg[] = new Object[1]; 
+				OSCarg[0] = new Float(parVals[n]);
+	          	OSCMessage msg = new OSCMessage(address,OSCarg);
+	          	new sendOSCmessage().execute(msg);
+                
+	          	return true;
             }
         });
 	}
 	
 	// add a check box to the UI
-	private void addCheckButton(final int n, final int m, final String label){
+	private void addCheckButton(final int n, final int m, final String label, final String address){
 		UI.checkBoxes[m] = new CheckBox(this);
         LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         UI.checkBoxes[m].setText(label);
@@ -332,12 +354,16 @@ public class faustApp extends Activity {
         			parVals[n] = 1.f;
         		}
         		else parVals[n] = 0.f;
+        		Object OSCarg[] = new Object[1]; 
+		    	OSCarg[0] = new Float(parVals[n]);
+		    	OSCMessage msg = new OSCMessage(address,OSCarg);
+		    	new sendOSCmessage().execute(msg);
         	}
         });
 	}
 	
 	// add a numerical entry to the UI
-	private void addNentry(final int n, final int m, final String label, final float init, final float min, final float max, final float step){
+	private void addNentry(final int n, final int m, final String label, final float init, final float min, final float max, final float step, final String address){
 		// slider's label and value display
 		UI.labels[n] = new TextView(this);
 		LayoutParams paramsText = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -369,6 +395,10 @@ public class faustApp extends Activity {
 		       if(isNumeric(value)){
 		    	   if(Float.parseFloat(value) >= min & Float.parseFloat(value) <= max) parVals[n] = Float.parseFloat(value);
 		    	   else parVals[n] = init;
+		    	   Object OSCarg[] = new Object[1]; 
+		    	   OSCarg[0] = new Float(parVals[n]);
+		    	   OSCMessage msg = new OSCMessage(address,OSCarg);
+		    	   new sendOSCmessage().execute(msg);
 		       }
 		    }
 		};
@@ -376,7 +406,7 @@ public class faustApp extends Activity {
 	}
 	
 	// add a slider to the UI
-	private void addSeekBar(final int n, final int m, final String label, final float init, final float min, final float max, final float step) {
+	private void addSeekBar(final int n, final int m, final String label, final float init, final float min, final float max, final float step, final String address) {
 		// slider's label and value display
 		UI.labels[n] = new TextView(this);
 		LinearLayout barLabel = new LinearLayout(this);
@@ -437,22 +467,19 @@ public class faustApp extends Activity {
 		else UI.sliders[m].setProgress(Math.round((init+min)*(1/step)));
 		currentGroup[groupLevel-1].addView(UI.sliders[m]);
 		
-		String OSCaddress = "/"+label.replaceAll(" ","_");
-		/*
-		try {
-			OSCreceiver(9001,OSCaddress);
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		
 		OnSeekBarChangeListener listener = new OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-	          		parVals[n] = (progress*step) + min;
-	          		UI.labels[n].setText(label+": " + Float.toString(parVals[n]));
-	          	}
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {					
+				parVals[n] = (progress*step) + min;	
+				
+				Object OSCarg[] = new Object[1]; 
+				OSCarg[0] = new Float(parVals[n]);
+	          	OSCMessage msg = new OSCMessage(address,OSCarg);
+	          	new sendOSCmessage().execute(msg);
+	          		
+	         	UI.labels[n].setText(label+": " + Float.toString(parVals[n]));
+	          }
 	    };
 	    UI.sliders[m].setOnSeekBarChangeListener(listener);
 	}
@@ -547,23 +574,36 @@ public class faustApp extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-	    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+	    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+	    int oscSendPort;
+        String oscIP;
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+	    oscSendPort = settings.getInt("OSCOutPort", 9002);
+        oscIP = settings.getString("OSCip", "127.0.0.1");
+        
+        try {
+        	InetAddress ipAdress =  InetAddress.getByName(oscIP);
+			sender = new OSCPortOut(ipAdress, oscSendPort);
+		} catch (Exception e) {
+            Log.i("osc", e.toString());
+		}
 	    on = true;
 	}
+	
+	/*
+	 * In case the status of the app would need to be saved even after
+	 * it is destroyed...
+	 */
 	
 	/*
 	@Override
 	protected void onSaveInstanceState(Bundle state) {
 	    super.onSaveInstanceState(state);
-	    state.putInt("starttime", 10);
 	}
 
 	@Override
-
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 	    super.onRestoreInstanceState(savedInstanceState);
-	    int startTime = savedInstanceState.getInt("starttime");
-	    System.out.println("Hello: " + startTime);
 	}
 	*/
 	
@@ -579,19 +619,28 @@ public class faustApp extends Activity {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         boolean firstOpen = true;
         firstOpen = settings.getBoolean("firstOpen", true);
-        int oscReceiverPort;
+        int oscReceiverPort, oscSendPort;
+        String oscIP;
         if(firstOpen){ 
         	SharedPreferences.Editor editor = settings.edit();
         	editor.putBoolean("firstOpen", false);
-        	editor.putInt("OSCport", 9001);
+        	editor.putInt("OSCInPort", 5511);
+        	editor.putInt("OSCOutPort", 5510);
+        	editor.putString("OSCip", "127.0.0.1");
         	editor.commit();
         	Intent intent = new Intent(this, DisplayWelcomeActivity.class);
         	startActivity(intent);
         }
-        else{ 
-        	System.out.println("Hello: didi");
-        }
-        oscReceiverPort = settings.getInt("OSCport", 9001);
+        oscReceiverPort = settings.getInt("OSCInport", 5511);
+        oscSendPort = settings.getInt("OSCOutPort", 5510);
+        oscIP = settings.getString("OSCip", "127.0.0.1");
+        
+        try {
+        	InetAddress ipAdress =  InetAddress.getByName(oscIP);
+			sender = new OSCPortOut(ipAdress, oscSendPort);
+		} catch (Exception e) {
+            Log.i("osc", e.toString());
+		}
         
         // init the parameters of the Faust object
         final Para parameters = f.initFaust();
@@ -664,10 +713,12 @@ public class faustApp extends Activity {
         i=0;
         int y=0;
         int z=0;
+        int oldGroupLevel = 0;
+        String OSCpath = "/";
+        String OSCPathLev[] = new String[nbLayParams];
         
         // loop to create the UI in function of the specification contained in the Faust code
         
-        final OSCPortIn receiver;
         try {
         	receiver = new OSCPortIn(oscReceiverPort);
     	
@@ -688,33 +739,51 @@ public class faustApp extends Activity {
         	}
         	
         	if(o.intArray_getitem(UIElType, j)==1){
+        		// create an OSC address respecting the Faust standards
+    			OSCpath = "/";
+    			if(groupLevel>2) OSCPathLev[groupLevel-2] = groupLabels[y-1-z].replaceAll(" ","_");
+    			OSCPathLev[0] = groupLabels[0].replaceAll(" ","_");
+    			oldGroupLevel = groupLevel;
+    			for(int lev=0;lev<=(groupLevel-2);lev++){
+    				OSCpath += OSCPathLev[lev];
+    				OSCpath += "/";
+    			}
+    			
         		if(i==0) paramLabel[i] = labels.substring(0,o.intArray_getitem(labelPos, i));
         		else paramLabel[i] = labels.substring(o.intArray_getitem(labelPos, i-1),o.intArray_getitem(labelPos, i));
 
         		if(o.intArray_getitem(paramsTypes, i) == 0){ 
-        			addButton(i,elemCnt[0],paramLabel[i]);
+        			OSCreceiver(receiver,OSCpath + paramLabel[i].replaceAll(" ","_"),i);
+        			addButton(i,elemCnt[0],paramLabel[i],OSCpath + paramLabel[i].replaceAll(" ","_"));
         			elemCnt[0]++;
         		}
         		if(o.intArray_getitem(paramsTypes, i) == 1){ 
-        			addCheckButton(i,elemCnt[1],paramLabel[i]);
+        			OSCreceiver(receiver,OSCpath + paramLabel[i].replaceAll(" ","_"),i);
+        			addCheckButton(i,elemCnt[1],paramLabel[i],OSCpath + paramLabel[i].replaceAll(" ","_"));
         			elemCnt[1]++;
         		}
         		if(o.intArray_getitem(paramsTypes, i) == 2){ 
+        			// create an OSC receiver for this parameter
+        			OSCreceiver(receiver,OSCpath + paramLabel[i].replaceAll(" ","_"),i);
+        			
         			addSeekBar(i,elemCnt[2],paramLabel[i],o.floatArray_getitem(paramsInit, i),
-        				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
+        				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i),OSCpath + paramLabel[i].replaceAll(" ","_"));
         			OSCreceiver(receiver,"/"+paramLabel[i].replaceAll(" ","_"),i);
         			elemCnt[2]++;
         			
         		}
         		if(o.intArray_getitem(paramsTypes, i) == 3){ 
+        			// create an OSC receiver for this parameter
+        			OSCreceiver(receiver,OSCpath + paramLabel[i].replaceAll(" ","_"),i);
+        			
         			addSeekBar(i,elemCnt[2],paramLabel[i],o.floatArray_getitem(paramsInit, i),
-        				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
-        			OSCreceiver(receiver,"/"+paramLabel[i].replaceAll(" ","_"),i);
+            				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i),OSCpath + paramLabel[i].replaceAll(" ","_"));
         			elemCnt[2]++;
         		}
         		if(o.intArray_getitem(paramsTypes, i) == 4){ 
+        			OSCreceiver(receiver,OSCpath + paramLabel[i].replaceAll(" ","_"),i);
         			addNentry(i,elemCnt[3],paramLabel[i],o.floatArray_getitem(paramsInit, i),
-        				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i));
+        				o.floatArray_getitem(paramsMin, i),o.floatArray_getitem(paramsMax, i),o.floatArray_getitem(paramsStep, i),OSCpath + paramLabel[i].replaceAll(" ","_"));
         			elemCnt[3]++;
         		}
         		i++;
@@ -742,14 +811,11 @@ public class faustApp extends Activity {
 				f.startAudio(); // start the audio engine, etc. (C++ function)
 				float old = 0.f; // here only for debugging
 				
+				float[] OSCvalOld = new float [nbParams];
+				
 				// processing loop
 				while(on){
 					SWIGTYPE_p_float paramValues = parameters.getZone();
-
-					/*
-					if(old != OSCval[0]) System.out.println("OSC: " + OSCval[0]);
-					old = OSCval[0];
-					*/
 					
 					// counters for the different UI elements
 					int[] elemCnt = new int [4];
@@ -771,8 +837,23 @@ public class faustApp extends Activity {
 					}
 					
 					// the values of the different parameters are sent to the audio process and are modified by the accelerometer
-					float[] OSCvalOld = new float [nbParams];
 					for(int i=0;i<nbParams;i++){
+						if(o.intArray_getitem(paramsTypes, i) == 0){
+							if(OSCval[i] != OSCvalOld[i]){
+								parVals[i] = OSCval[i];
+								OSCvalOld[i] = OSCval[i];
+							}
+							elemCnt[0]++;
+						}
+						if(o.intArray_getitem(paramsTypes, i) == 1){
+							if(OSCval[i] != OSCvalOld[i]){
+								parVals[i] = OSCval[i];
+								OSCvalOld[i] = OSCval[i];
+								//if(OSCval[i] >= 1) UI.checkBoxes[elemCnt[1]].setChecked(true);
+								//else UI.checkBoxes[elemCnt[1]].setChecked(false);
+							}
+							elemCnt[1]++;
+						}
 						if(o.intArray_getitem(paramsTypes, i) == 2 || o.intArray_getitem(paramsTypes, i) == 3){
 							// X, Y, or Z?
 							if(accel.paramAccelState[i][0] > 0){
@@ -801,6 +882,14 @@ public class faustApp extends Activity {
 							}
 							elemCnt[2]++;
 						}
+						if(o.intArray_getitem(paramsTypes, i) == 4){
+							if(OSCval[i] != OSCvalOld[i]){
+								//UI.nEntries[elemCnt[3]].setText(Float.toString(OSCval[i]));
+								parVals[i] = OSCval[i];
+								OSCvalOld[i] = OSCval[i];
+							}
+							elemCnt[3]++;
+						}
 						o.floatArray_setitem(paramValues, i, parVals[i]);
 					}
 					f.setParam(paramValues);
@@ -827,21 +916,8 @@ public class faustApp extends Activity {
 	protected void onPause() {
 		mSensorManager.unregisterListener(mSensorListener);
 		super.onPause();
+		sender.close();
 	}
-    
-    /*
-    @Override
-	protected void onStop() {
-    	super.onStop();
-    	on = false;
-    	try {
-			thread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-    	thread = null;
-	}
-	*/
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -873,6 +949,8 @@ public class faustApp extends Activity {
     
     public void onDestroy(){	
     	super.onDestroy();
+    	//receiver.close();
+    	sender.close();
     	on = false;
     	try {
 			thread.join();

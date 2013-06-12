@@ -550,15 +550,19 @@ _f4u$t.Slider = function(options, type) {
 
 _f4u$t.extend(_f4u$t.SlidingObject, _f4u$t.Slider);
 
+_f4u$t.Slider.prototype.skinny_girth = function() {
+  return this.girth * 2.0 / 5.0;
+}
+
 _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
   var dims = this.dims();
-  var w = _f4u$t.xy(this.axis, this.length, this.girth / 3.0);
-  var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
+  var w = _f4u$t.xy(this.axis, this.length, this.skinny_girth());
+  var h = _f4u$t.xy(this.axis, this.skinny_girth(), this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var slider_girth = this.length  * this.sp;
+  var slider_girth = this.sp;
   var half_slider_girth = slider_girth * 0.5;
   var startp = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0 + half_slider_girth, this.length - half_slider_girth);
-  var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
+  var trans = _f4u$t.xy(this.axis, 'translate(0,'+((this.girth - this.skinny_girth()) / 2)+')', 'translate('+xo+',0)');
   var full_id = 'faust_'+this.type+'_groove_'+id;
   var activate_fn = "activate_"+this.type;
   var mousedown = _f4u$t[activate_fn];
@@ -585,10 +589,10 @@ _f4u$t.Slider.prototype.make_groove = function(svg, parent, id) {
 
 _f4u$t.Slider.prototype.make_meter = function(svg, parent, id) {
   var dims = this.dims();
-  var w = _f4u$t.xy(this.axis, this.length, this.girth / 3.0);
-  var h = _f4u$t.xy(this.axis, this.girth / 3.0, this.length);
+  var w = _f4u$t.xy(this.axis, this.length, this.skinny_girth());
+  var h = _f4u$t.xy(this.axis, this.skinny_girth(), this.length);
   var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - w) / 2.0 : 0.0);
-  var trans = _f4u$t.xy(this.axis, 'translate(0,'+(this.girth / 3.0)+')', 'translate('+xo+',0)');
+  var trans = _f4u$t.xy(this.axis, 'translate(0,'+((this.girth - this.skinny_girth()) / 2)+')', 'translate('+xo+',0)');
   var full_id = 'faust_'+this.type+'_meter_'+id;
   var activate_fn = "activate_"+this.type;
   var mousedown = _f4u$t[activate_fn];
@@ -615,7 +619,7 @@ _f4u$t.Slider.prototype.make_meter = function(svg, parent, id) {
 
 _f4u$t.Slider.prototype.make_handle = function(svg, parent, id) {
   var dims = this.dims();
-  var slider_girth = this.length  * this.sp;
+  var slider_girth = this.sp;
   var half_slider_girth = slider_girth * 0.5;
   var startp = _f4u$t.xy(this.axis, _f4u$t.remap, _f4u$t.remap_and_flip)(this.init, this.min, this.max, 0 + half_slider_girth, this.length - half_slider_girth);
   var bottom = startp - half_slider_girth;
@@ -994,6 +998,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.fill_off),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       'class' : 'faust-button-box',
+      onmouseover : '_f4u$t.button_hover("'+full_id+'")',
+      onmouseout : '_f4u$t.button_unhover("'+full_id+'")'
     });
 
   return button;
@@ -1025,9 +1031,9 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
   svg.configure(g,
   {
     onmousedown : mousedown,
-    ontouchstart : mousedown,
+    //ontouchstart : mousedown,
     onmouseup : mouseup,
-    ontouchend : mouseup
+    //ontouchend : mouseup
   },
   false);
   _f4u$t.initiate_button(
