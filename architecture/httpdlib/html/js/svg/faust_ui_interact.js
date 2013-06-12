@@ -8,12 +8,12 @@
 /*
   UTILITY FUNCTIONS
 */
-_f4u$t.getClientX = function(e) {
-  return e.clientX / _f4u$t.VIEWPORT_SCALE;
+_f4u$t.getOperativeX = function(e) {
+  return (e.clientX + $(document).scrollLeft()) / _f4u$t.VIEWPORT_SCALE;
 }
 
-_f4u$t.getClientY = function(e) {
-  return e.clientY / _f4u$t.VIEWPORT_SCALE;
+_f4u$t.getOperativeY = function(e) {
+  return (e.clientY + $(document).scrollTop()) / _f4u$t.VIEWPORT_SCALE;
 }
 
 _f4u$t.move_to_ridiculous_negative = function(id) {
@@ -125,8 +125,8 @@ _f4u$t.array_to_transform = function(array) {
 // all this PREV stuff can likely be deprecated
 _f4u$t.updateXY = function(ee, initialize) {
   for (var i = 0; i < ee.length; i++) {
-    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientX(ee[i]);
-    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getClientY(ee[i]);
+    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getOperativeX(ee[i]);
+    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getOperativeY(ee[i]);
   }
 }
 
@@ -372,7 +372,7 @@ _f4u$t.tooltip_mouseover = function(e) {
     var os = $(document.getElementById(id)).offset();
     var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
     var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
-    _f4u$t.generic_translate(full_id, _f4u$t.getClientX(e) - my_x, _f4u$t.getClientY(e) - my_y);
+    _f4u$t.generic_translate(full_id, _f4u$t.getOperativeX(e) - my_x, _f4u$t.getOperativeY(e) - my_y);
   }, 500);
 }
 
@@ -441,14 +441,15 @@ _f4u$t.move_active_slider = function(e,identifier)
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
   var os = $(anchor).offset();
+  //console.log(os, anchor.getBoundingClientRect(), $(document).scrollTop());
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   // we only care about the axis of the slider
   if (axis == _f4u$t.X_AXIS) {
-    pos = _f4u$t.getClientX(e) - my_x;
+    pos = _f4u$t.getOperativeX(e) - my_x;
   }
   else {
-    pos = _f4u$t.getClientY(e) - my_y;
+    pos = _f4u$t.getOperativeY(e) - my_y;
   }
 
   pos -= (length * pctsliding / 2.0);
@@ -578,7 +579,7 @@ _f4u$t.move_active_rbutton = function(e, identifier)
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
 
-  var diff = 180. * Math.atan2(_f4u$t.getClientY(e) - my_y, _f4u$t.getClientX(e) - my_x) / Math.PI;
+  var diff = 180. * Math.atan2(_f4u$t.getOperativeY(e) - my_y, _f4u$t.getOperativeX(e) - my_x) / Math.PI;
   while (diff < 0) {
     diff += 360;
   }
