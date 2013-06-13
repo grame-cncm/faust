@@ -51,13 +51,6 @@
       `llvm-config --ldflags --libs all`
 
 */
-
-#include "csdl.h"
-#include "faust/llvm-dsp.h"
-#include "faust/gui/UI.h"
-
-#define MAXARG 40
-
 #include "csdl.h"
 #include "faust/llvm-dsp.h"
 #include "faust/gui/UI.h"
@@ -74,12 +67,12 @@ class controls : public UI {
     char label[64];
     MYFLT min, max;
     ctl  *nxt;
-  } anchor;   
+  } anchor;
 
-  void addctl(const char* label, FAUSTFLOAT* zone, 
-	      FAUSTFLOAT min, FAUSTFLOAT max){
+  void addctl(const char* label, FAUSTFLOAT* zone,
+              FAUSTFLOAT min, FAUSTFLOAT max){
     ctl *pctl = &anchor;
-    while(pctl->nxt) pctl = pctl->nxt;    
+    while(pctl->nxt) pctl = pctl->nxt;
     pctl->nxt = new ctl;
     pctl = pctl->nxt;
     strncpy(pctl->label,label, 63);
@@ -106,36 +99,36 @@ public:
   virtual void openVerticalBox(const char* label) {};
   virtual void closeBox() {};
 
-  virtual void addButton(const char* label, FAUSTFLOAT* zone) { 
+  virtual void addButton(const char* label, FAUSTFLOAT* zone) {
     addctl(label, zone, 0, 0);
   }
-  virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){ 
+  virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){
     addctl(label, zone, 0, 0);
   }
-  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, 
-				 FAUSTFLOAT init, FAUSTFLOAT min, 
-				 FAUSTFLOAT max, FAUSTFLOAT step){ 
+  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
+                                 FAUSTFLOAT init, FAUSTFLOAT min,
+                                 FAUSTFLOAT max, FAUSTFLOAT step){
     addctl(label, zone, min, max);
   }
   virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
-				   FAUSTFLOAT init, FAUSTFLOAT min,
-				   FAUSTFLOAT max, FAUSTFLOAT step) { 
+                                   FAUSTFLOAT init, FAUSTFLOAT min,
+                                   FAUSTFLOAT max, FAUSTFLOAT step) {
     addctl(label, zone, min, max);
   }
-  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, 
-			   FAUSTFLOAT init, FAUSTFLOAT min, 
-			   FAUSTFLOAT max, FAUSTFLOAT step) { 
+  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone,
+                           FAUSTFLOAT init, FAUSTFLOAT min,
+                           FAUSTFLOAT max, FAUSTFLOAT step) {
     addctl(label, zone, min, max);
   }
-  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, 
-				     FAUSTFLOAT min, FAUSTFLOAT max){};
-  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, 
-				   FAUSTFLOAT min, FAUSTFLOAT max) {};
+  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
+                                     FAUSTFLOAT min, FAUSTFLOAT max){};
+  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone,
+                                   FAUSTFLOAT min, FAUSTFLOAT max) {};
 
   MYFLT *getZone(char *label){
     ctl *pctl = &anchor;
     pctl = pctl->nxt;
-    while(pctl){ 
+    while(pctl){
       if(strcmp(pctl->label, label) == 0) break;
       pctl = pctl->nxt;
     }
@@ -146,7 +139,7 @@ public:
   MYFLT getMax(char *label){
     ctl *pctl = &anchor;
     pctl = pctl->nxt;
-    while(pctl){ 
+    while(pctl){
       if(strcmp(pctl->label, label) == 0) break;
       pctl = pctl->nxt;
     }
@@ -157,7 +150,7 @@ public:
   MYFLT getMin(char *label){
     ctl *pctl = &anchor;
     pctl = pctl->nxt;
-    while(pctl){ 
+    while(pctl){
       if(strcmp(pctl->label, label) == 0) break;
       pctl = pctl->nxt;
     }
@@ -176,20 +169,20 @@ struct faustobj  {
   void *obj;
   controls *ctls;
   faustobj *nxt;
-  int cnt;
+  unsigned long cnt;
 };
 
 /**
  * Faust compile opcode
- 
-   usage: 
-   ihandle  faustcompile Scode, Sargs
 
-   ihandle - handle to compiled code
-   Scode - Faust program
-   Sargs - Faust compiler args
+ usage:
+ ihandle  faustcompile Scode, Sargs
 
- **/
+ ihandle - handle to compiled code
+ Scode - Faust program
+ Sargs - Faust compiler args
+
+**/
 struct faustcompile {
   OPDS h;
   MYFLT *hptr;
@@ -204,7 +197,7 @@ char **parse_cmd(char *str, int *argc){
   if(str[i] != '\0') *argc = 1;
   while(str[i] != '\0'){
     if(str[i] == ' ') {
-      while (str[++i] == ' ');  
+      while (str[++i] == ' ');
       if(str[i] == '\0') break;
       (*argc)++;
     }
@@ -219,15 +212,16 @@ char **parse_cmd(char *str, int *argc){
     if(i >= end) break;
     str[i] = '\0';
     while(str[++i] == ' ' && i < end);
-  }  
+  }
   return argv;
 }
 
 int delete_faustcompile(CSOUND *csound, void *p) {
 
   faustcompile *pp = (faustcompile *) p;
-  faustobj *fobj, *prv;
-  fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::factory"));
+  faustobj *fobj, *prv, **pfobj;
+  pfobj = (faustobj **) csound->QueryGlobalVariable(csound,"::factory");
+  fobj = *pfobj;
   prv = fobj;
   while(fobj != NULL) {
     if(fobj->obj == (void *) pp->factory) {
@@ -238,6 +232,7 @@ int delete_faustcompile(CSOUND *csound, void *p) {
     fobj = fobj->nxt;
   }
   if(fobj != NULL) {
+    if(*pfobj == fobj) *pfobj = fobj->nxt;
     deleteDSPFactory(pp->factory);
     csound->Free(csound, fobj);
   }
@@ -251,31 +246,31 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   int argc = 0;
   char err_msg[256];
   char *cmd = (char *) malloc(p->args->size + 8);
-  
+
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
 #endif
   const char **argv = (const char **) parse_cmd(cmd, &argc);
   const char* varname = "::factory";
-  
+
 
   factory = createDSPFactory(argc, argv, "",
-			     "", "faustop", (const char *) p->code->data,
-			     "", err_msg, 3);
+                             "", "faustop", (const char *) p->code->data,
+                             "", err_msg, 3);
   if(factory == NULL) {
     free(argv);
-    free(cmd);    
+    free(cmd);
     return csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg);
-  } 
+  }
 
   pffactory = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-  if(pffactory == NULL) {  
+  if(pffactory == NULL) {
     csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
     pffactory = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-    ffactory = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    ffactory->obj = factory; 
+    ffactory = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    ffactory->obj = factory;
     ffactory->nxt = NULL;
     ffactory->cnt = 0;
     *pffactory = ffactory;
@@ -285,15 +280,14 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
     while(ffactory->nxt){
       ffactory = ffactory->nxt;
     }
-    ffactory->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    ffactory->nxt->cnt = ffactory->cnt++;
-    ffactory = ffactory->nxt;  
+    ffactory->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    ffactory->nxt->cnt = ffactory->cnt+1;
+    ffactory = ffactory->nxt;
     ffactory->obj = factory;
-  
   }
   p->factory = factory;
   *p->hptr = (MYFLT) ffactory->cnt;
-  csound->RegisterDeinitCallback(csound, p, delete_faustcompile);
+  csound->RegisterResetCallback(csound, p, delete_faustcompile);
   free(argv);
   free(cmd);
   return OK;
@@ -301,19 +295,19 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
 
 /**
  * faustgen and faustaudio opcodes
- 
-   usage:
-   ihandle[,asig1,...] faustgen    Scode[,ain1,...]
-   ihandle[,asig1,...] faustaudio  ifactory,[,ain1,...]
 
-   Scode - Faust program
-   ifactory - handle pointing to compiled code from faustcompile
-   asig1 ... - audio outputs from Faust program
-   ain1 ...  - audio inputs to Faust program
+ usage:
+ ihandle[,asig1,...] faustgen    Scode[,ain1,...]
+ ihandle[,asig1,...] faustaudio  ifactory,[,ain1,...]
 
-   ihandle - handle identifying this Faust DSP instance 
+ Scode - Faust program
+ ifactory - handle pointing to compiled code from faustcompile
+ asig1 ... - audio outputs from Faust program
+ ain1 ...  - audio inputs to Faust program
 
- **/
+ ihandle - handle identifying this Faust DSP instance
+
+**/
 struct faustgen {
   OPDS h;
   MYFLT *ohptr;
@@ -332,8 +326,9 @@ struct faustgen {
 */
 int delete_faustgen(CSOUND *csound, void *p) {
   faustgen *pp = (faustgen *) p;
-  faustobj *fobj, *prv;
-  fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::dsp"));
+  faustobj *fobj, *prv, **pfobj;
+  pfobj = (faustobj **) csound->QueryGlobalVariable(csound,"::dsp");
+  fobj = *pfobj;
   prv = fobj;
   while(fobj != NULL) {
     if(fobj->obj == (void *) pp->engine) {
@@ -343,101 +338,15 @@ int delete_faustgen(CSOUND *csound, void *p) {
     prv = fobj;
     fobj = fobj->nxt;
   }
-  if(fobj != NULL) {
-    csound->Free(csound, fobj);
-  }
-  delete pp->ctls;
-  deleteDSPInstance(pp->engine);
+  if(fobj == NULL) 
+    if(fobj != NULL) {
+      if(*pfobj == fobj) *pfobj = fobj->nxt;
+      csound->Free(csound, fobj);
+      delete pp->ctls;
+      deleteDSPInstance(pp->engine);
+    } else
+      csound->Warning(csound, "could not find DSP %p for deletion", pp->engine);
   if(pp->factory) delete pp->factory;
-  return OK;
-}
-
-int init_faustgen(CSOUND *csound, faustgen *p){
-  OPARMS parms;
-  char err_msg[256];
-  int size;
-  int argc = 3;
-  const char* argv[argc];
-  faustobj  **pfdsp, *fdsp;
-  llvm_dsp  *dsp;
-  controls  *ctls = new controls();
-  const char *varname = "::dsp";
-  argv[0] = "-vec";
-  argv[1] = "-lv";
-  argv[2] = " 1";
-
-#ifdef USE_DOUBLE
-  argv[3] = "-double";
-  argc += 1;
-#endif
-
-  p->factory = createDSPFactory(argc, argv, "",
-                                "", "faustop", (const char *) p->code->data,
-                                "", err_msg, 3);
-  if(p->factory == NULL)
-    return csound->InitError(csound,
-                             Str("Faust compilation problem: %s\n"), err_msg);
-
-  dsp = createDSPInstance(p->factory); 
-  if(dsp == NULL) 
-    return csound->InitError(csound, Str("Faust instantiation problem \n"));
-  
-  dsp->buildUserInterface(ctls);  
-
-  pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-  if(pfdsp == NULL) {  
-    csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
-    pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    fdsp->obj = dsp; 
-    fdsp->ctls = ctls;
-    fdsp->nxt = NULL;
-    fdsp->cnt = 0;
-    *pfdsp = fdsp;
-  }
-  else {
-    fdsp = *pfdsp;
-    while(fdsp->nxt){
-      fdsp = fdsp->nxt;
-    }
-    fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    fdsp->nxt->cnt = fdsp->cnt++;
-    fdsp = fdsp->nxt;  
-    fdsp->obj = dsp;
-    fdsp->ctls = ctls;
-  }   
-
-  p->engine = dsp;
-  dsp->buildUserInterface(ctls);
-  dsp->init(csound->GetSr(csound));
-
-  if(p->engine->getNumInputs() != p->INCOUNT-1) {
-    deleteDSPInstance(p->engine);
-    deleteDSPFactory(p->factory);
-    return csound->InitError(csound, Str("wrong number of input args\n"));
-  }
-  if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
-    deleteDSPInstance(p->engine);
-    deleteDSPFactory(p->factory);
-    return csound->InitError(csound, Str("wrong number of output args\n"));
-  }
-
-  /* memory for sampAccurate offsets */
-  csound->GetOParms(csound, &parms);
-  if(parms.sampleAccurate){
-    int size;
-    size = p->engine->getNumInputs()*sizeof(MYFLT *);
-    if(p->memin.auxp == NULL ||
-       p->memin.size < size)
-      csound->AuxAlloc(csound, size, &p->memin);
-    size = p->engine->getNumOutputs()*sizeof(MYFLT *);
-    if(p->memout.auxp == NULL ||
-       p->memout.size < size)
-      csound->AuxAlloc(csound, size, &p->memout);
-  }
-  p->ctls = ctls;
-  *p->ohptr = (MYFLT) fdsp->cnt;
-  csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   return OK;
 }
 
@@ -448,30 +357,29 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   llvm_dsp  *dsp;
   controls  *ctls = new controls();
   const char *varname = "::dsp";
-    
-  fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::factory"));
-  if(fobj == NULL) 
-    return csound->InitError(csound,
-			     "no factory available\n");
 
+  fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::factory"));
+  if(fobj == NULL)
+    return csound->InitError(csound,
+                             Str("no factory available\n"));
   while(fobj->cnt != factory) {
     fobj = fobj->nxt;
-    if(fobj == NULL) 
+    if(fobj == NULL)
       return csound->InitError(csound,
-			       "factory not found %d\n", (int) factory);
+                               Str("factory not found %d\n"), (int) factory);
   }
 
-  dsp = createDSPInstance((llvm_dsp_factory *)fobj->obj); 
-  if(dsp == NULL) 
+  dsp = createDSPInstance((llvm_dsp_factory *)fobj->obj);
+  if(dsp == NULL)
     return csound->InitError(csound, Str("Faust instantiation problem \n"));
-  
-  dsp->buildUserInterface(ctls);  
+
+  dsp->buildUserInterface(ctls);
   pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-  if(pfdsp == NULL) {  
+  if(pfdsp == NULL) {
     csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
     pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    fdsp->obj = dsp; 
+    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->obj = dsp;
     fdsp->ctls = ctls;
     fdsp->nxt = NULL;
     fdsp->cnt = 0;
@@ -482,15 +390,16 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
     while(fdsp->nxt){
       fdsp = fdsp->nxt;
     }
-    fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    fdsp->nxt->cnt = fdsp->cnt++;
-    fdsp = fdsp->nxt;  
+
+    fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->nxt->cnt = fdsp->cnt+1;
+    fdsp = fdsp->nxt;
     fdsp->obj = dsp;
     fdsp->ctls = ctls;
-  }   
-  
+  }
+
   p->factory = NULL;  // this opcode does not own the factory
-  p->engine = (llvm_dsp *) fdsp->obj;  
+  p->engine = (llvm_dsp *) fdsp->obj;
   p->engine->init(csound->GetSr(csound));
 
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
@@ -521,6 +430,94 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   return OK;
 }
 
+int init_faustgen(CSOUND *csound, faustgen *p){
+  OPARMS parms;
+  char err_msg[256];
+  int size;
+  int argc = 3;
+  const char* argv[argc];
+  faustobj  **pfdsp, *fdsp;
+  llvm_dsp  *dsp;
+  controls  *ctls = new controls();
+  const char *varname = "::dsp";
+  argv[0] = "-vec";
+  argv[1] = "-lv";
+  argv[2] = " 1";
+
+#ifdef USE_DOUBLE
+  argv[3] = "-double";
+  argc += 1;
+#endif
+
+  p->factory = createDSPFactory(argc, argv, "",
+                                "", "faustop", (const char *) p->code->data,
+                                "", err_msg, 3);
+  if(p->factory == NULL)
+    return csound->InitError(csound,
+                             Str("Faust compilation problem: %s\n"), err_msg);
+
+  dsp = createDSPInstance(p->factory);
+  if(dsp == NULL)
+    return csound->InitError(csound, Str("Faust instantiation problem \n"));
+
+  dsp->buildUserInterface(ctls);
+
+  pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
+  if(pfdsp == NULL) {
+    csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
+    pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
+    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->obj = dsp;
+    fdsp->ctls = ctls;
+    fdsp->nxt = NULL;
+    fdsp->cnt = 0;
+    *pfdsp = fdsp;
+  }
+  else {
+    fdsp = *pfdsp;
+    while(fdsp->nxt){
+      fdsp = fdsp->nxt;
+    }
+    fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->nxt->cnt = fdsp->cnt++;
+    fdsp = fdsp->nxt;
+    fdsp->obj = dsp;
+    fdsp->ctls = ctls;
+  }
+
+  p->engine = dsp;
+  dsp->buildUserInterface(ctls);
+  dsp->init(csound->GetSr(csound));
+  if(p->engine->getNumInputs() != p->INCOUNT-1) {
+    deleteDSPInstance(p->engine);
+    deleteDSPFactory(p->factory);
+    return csound->InitError(csound, Str("wrong number of input args\n"));
+  }
+  if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
+    deleteDSPInstance(p->engine);
+    deleteDSPFactory(p->factory);
+    return csound->InitError(csound, Str("wrong number of output args\n"));
+  }
+
+  /* memory for sampAccurate offsets */
+  csound->GetOParms(csound, &parms);
+  if(parms.sampleAccurate){
+    int size;
+    size = p->engine->getNumInputs()*sizeof(MYFLT *);
+    if(p->memin.auxp == NULL ||
+       p->memin.size < size)
+      csound->AuxAlloc(csound, size, &p->memin);
+    size = p->engine->getNumOutputs()*sizeof(MYFLT *);
+    if(p->memout.auxp == NULL ||
+       p->memout.size < size)
+      csound->AuxAlloc(csound, size, &p->memout);
+  }
+  p->ctls = ctls;
+  *p->ohptr = (MYFLT) fdsp->cnt;
+  csound->RegisterDeinitCallback(csound, p, delete_faustgen);
+  return OK;
+}
+
 int perf_faust(CSOUND *csound, faustgen *p){
   int nsmps = CS_KSMPS, i;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -548,7 +545,7 @@ int perf_faust(CSOUND *csound, faustgen *p){
     nsmps -= offset;
   }
   p->engine->compute(nsmps, p->ins, p->outs);
-  
+
   if(UNLIKELY(offset)) {
     /* restore pos  */
     for (i = 0; i < p->OUTCOUNT-1; i++)
@@ -561,15 +558,15 @@ int perf_faust(CSOUND *csound, faustgen *p){
 
 /**
  * faustctl opcode
- 
-   usage:
-   faustctl  idsp, Slabel, kval
 
-   idsp - handle from an existing Faust DSP instance
-   Slabel - name of control (in Faust program)
-   kval - value to be sent to control 
+ usage:
+ faustctl  idsp, Slabel, kval
 
- **/
+ idsp - handle from an existing Faust DSP instance
+ Slabel - name of control (in Faust program)
+ kval - value to be sent to control
+
+**/
 struct faustctl {
   OPDS h;
   MYFLT *inst;
@@ -583,22 +580,22 @@ int init_faustctl(CSOUND *csound, faustctl *p){
 
   faustobj *fobj;
   int instance = (int) *p->inst;
-  
+
   fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::dsp"));
-  if(fobj == NULL) 
+  if(fobj == NULL)
     return csound->InitError(csound,
-			     "no dsp instances available\n");
+                             Str("no dsp instances available\n"));
 
   while(fobj->cnt != instance) {
     fobj = fobj->nxt;
-    if(fobj == NULL) 
+    if(fobj == NULL)
       return csound->InitError(csound,
-			       "dsp instance not found %d\n", (int) *p->inst);
+                               Str("dsp instance not found %d\n"), (int) *p->inst);
   }
-  p->zone = fobj->ctls->getZone(p->label->data); 
+  p->zone = fobj->ctls->getZone(p->label->data);
   if(p->zone == NULL)
     return csound->InitError(csound,
-			     "dsp control %s not found\n", p->label->data);
+                             Str("dsp control %s not found\n"), p->label->data);
   p->max = fobj->ctls->getMax(p->label->data);
   p->min = fobj->ctls->getMin(p->label->data);
   return OK;
@@ -606,10 +603,10 @@ int init_faustctl(CSOUND *csound, faustctl *p){
 
 int perf_faustctl(CSOUND *csound, faustctl *p) {
   MYFLT val = *p->val;
-  if(p->min != p->max) 
+  if(p->min != p->max)
     val = val < p->min ? p->min : (val > p->max ? p->max : val);
   *p->zone = val;
-  return OK; 
+  return OK;
 }
 
 
@@ -624,7 +621,7 @@ static OENTRY localops[] = {
     (char *)"SS",(SUBR)init_faustcompile, NULL, NULL},
   { (char *) "faustaudio", S(faustgen), 0, 5,
     (char *) "immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    (char *)"iy",(SUBR)init_faustaudio, NULL, (SUBR)perf_faust},
+    (char *)"iM",(SUBR)init_faustaudio, NULL, (SUBR)perf_faust},
   { (char *) "faustctl", S(faustgen), 0, 3,
     (char *) "",
     (char *)"iSk",(SUBR)init_faustctl, (SUBR) perf_faustctl}
