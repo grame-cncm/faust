@@ -165,13 +165,14 @@ _f4u$t.make_slider = function(kls, dct) {
     var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
     lm_options.axis = _f4u$t.Y_AXIS;
     lm_options.gravity = _f4u$t.LEFT;
-    lm_options.stretchable = [false, false];
+    lm_options.stretchable = [true, false];
     lm = new _f4u$t.LayoutManager(lm_options);
     lm.objs.push(label);
     lm.objs.push(internal_lm);
   } else {
     var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
     lm_options.axis = _f4u$t.Y_AXIS;
+    lm_options.stretchable = [false, true];
     lm = new _f4u$t.LayoutManager(lm_options);
     lm.objs.push(label);
     lm.objs.push(slider);
@@ -229,13 +230,14 @@ _f4u$t.make_bargraph = function(kls, dct) {
     var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
     lm_options.axis = _f4u$t.Y_AXIS;
     lm_options.gravity = _f4u$t.LEFT;
-    lm_options.stretchable = [false, false];
+    lm_options.stretchable = [true, false];
     lm = new _f4u$t.LayoutManager(lm_options);
     lm.objs.push(label);
     lm.objs.push(internal_lm);
   } else {
     var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
     lm_options.axis = _f4u$t.Y_AXIS;
+    lm_options.stretchable = [false, true];
     lm = new _f4u$t.LayoutManager(lm_options);
     lm.objs.push(label);
     lm.objs.push(bargraph);
@@ -380,7 +382,7 @@ _f4u$t.make_group = function(axis, dct) {
 
   var options = $.extend(true, {}, _f4u$t.vgroup_inits);
   // needed for tab group
-  options.label = dct["label"];  options.stretchable = [false, true];
+  options.label = dct["label"];
   options.axis = _f4u$t.Y_AXIS;
 
   var lm = new _f4u$t.LayoutManager(options);

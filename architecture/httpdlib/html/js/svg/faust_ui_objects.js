@@ -43,9 +43,9 @@ _f4u$t.UIObject.prototype.setY = function(y) {
   this.y = y
 }
 
-_f4u$t.UIObject.prototype.do_spacing = function() { }
+_f4u$t.UIObject.prototype.do_spacing = function(leaf) { }
 
-_f4u$t.UIObject.prototype.stretch = function(a,x,y) {
+_f4u$t.UIObject.prototype.stretch = function(x,y) {
   /*
     the whole family
     all with white hair and canes
@@ -144,6 +144,7 @@ _f4u$t.ValueBox = function(options) {
   _f4u$t.init_prop(this, options, 'vbox', 'keysink');
   _f4u$t.init_prop(this, options, 'vbox', 'gravity');
   _f4u$t.init_prop(this, options, 'vbox', 'id');
+  _f4u$t.init_prop(this, options, 'label', 'stretchable');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.ValueBox);
@@ -178,7 +179,6 @@ _f4u$t.ValueBox.prototype.make_box = function(svg, parent) {
 _f4u$t.ValueBox.prototype.make_value = function(svg, parent) {
   var id = this.id;
   var mousedown = this.keysink ? '_f4u$t.rotating_button_key_sink("'+id+'")' : '_f4u$t.devnull()';
-  console.log("OR", _f4u$t.xy(this.get_layout_manager().axis, 'left', 'middle'), this.get_layout_manager().dims());
   var vv = svg.text(
     parent,
     _f4u$t.xy(this.get_layout_manager().axis, 4, this.width  / 2.0),
@@ -210,6 +210,7 @@ _f4u$t.Label = function(options) {
   _f4u$t.init_prop(this, options, 'label', 'label');
   _f4u$t.init_prop(this, options, 'label', 'id');
   _f4u$t.init_prop(this, options, 'label', 'gravity');
+  _f4u$t.init_prop(this, options, 'label', 'stretchable');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.Label);
@@ -557,10 +558,10 @@ _f4u$t.SlidingObject.prototype.dims = function() {
   return [x,y];
 }
 
-_f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
-  if (this.axis != a && this.stretchable[this.axis]) {
+_f4u$t.SlidingObject.prototype.stretch = function(x,y) {
+  if (this.stretchable[this.axis]) {
     dims = this.dims();
-    this.length = Math.max(dims[this.axis], _f4u$t.xy(this.axis, x, y) - (2 * this.mom.other_axis_padding));
+    this.length = Math.max(dims[this.axis], _f4u$t.xy(this.axis, x, y));
   }
 }
 
@@ -1284,25 +1285,53 @@ _f4u$t.LayoutManager.prototype.populate_objects = function() {
   }
 }
 
-_f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
-  var oap = this.mom.other_axis_padding;
-  oap = oap ? oap : 0;
-  if (this.axis != a && this.stretchable[a]) {
-    var dim = this.dims();
-    // space objects out via the padding
-    this.padding = this.padding + Math.max(0,
-                    (_f4u$t.xy(this.axis,x,y)  - dim[this.axis] - (2 * oap)) / (this.objs.length + 1));
+_f4u$t.LayoutManager.prototype.stretch = function(x,y) {
+  // This function could just do the dim change, but
+  // it would leave stuff clumped in the center.  We air
+  // things out if nothing stretches.
+  if (this.stretchable[this.axis]) {
+    var change_padding = true;
+    for (var i = 0; i < this.objs.length; i++) {
+      if (this.objs[i].stretchable[this.axis]) {
+        // if even a single object can be stretched,
+        // don't change the padding and let that object stretch
+        change_padding = false;
+        break;
+      }
+    }
+    if (change_padding) {
+      var dim = this.dims();
+      // if not a single object can be stretched, then we
+      // space objects out via the padding
+      this.padding = this.padding + Math.max(0,
+                      (_f4u$t.xy(this.axis,x,y)  - dim[this.axis]) / (this.objs.length + 1));
+    }
   }
-  else if (this.axis == a && this.stretchable[a]) {
-    // hijack dims function...
-    var dim = this.dims();
-    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w, this.mom.h) - (2 * oap);
-    this.dims = function() { return [_f4u$t.xy(a, dim[a], fill_to),
-                                     _f4u$t.xy(a, fill_to, dim[a])]; };
-  }
+
+  var dim = this.dims();
+  this.dims = function() { return [this.stretchable[_f4u$t.X_AXIS] ? x : dim[_f4u$t.X_AXIS],
+                                   this.stretchable[_f4u$t.Y_AXIS] ? y : dim[_f4u$t.Y_AXIS]]; };
 }
 
-_f4u$t.LayoutManager.prototype.do_spacing = function() {
+_f4u$t.LayoutManager.prototype.get_stretchable_coefficient = function(total) {
+  var stretchable = 0.0;
+  var unstretchable = 0.0;
+  for (var i = 0; i < this.objs.length; i++) {
+    if (this.objs[i].stretchable[this.axis]) {
+      stretchable += this.objs[i].dims()[this.axis];
+    } else {
+      unstretchable += this.objs[i].dims()[this.axis];
+    }
+  }
+  return (total - (this.padding * (this.objs.length + 1)) - unstretchable) / stretchable;
+}
+
+_f4u$t.nspaces = function(leaf) {
+  out = "";
+    for (var i = 0; i < leaf; i++) { out = out + " "; } return out;
+}
+
+_f4u$t.LayoutManager.prototype.do_spacing = function(leaf) {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
   var y = dims[_f4u$t.Y_AXIS];
@@ -1313,19 +1342,24 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
   // the first padding will need to account for any additional space, thus
   // use this.gravity, as object gravities will be used internally
   var running_count = padding;
+  var stretchable_coefficient = this.get_stretchable_coefficient(_f4u$t.xy(this.axis,x,y));
   for (var i = 0; i < this.objs.length; i++) {
     var obj = this.objs[i];
-    //commented out until this actually works...
-    //obj.stretch(this.axis, x - this.padding, y - this.padding);
-    obj.stretch(this.axis, x, y);
+    // the first time we calc the dim, we do it so that we can pass
+    // a proposition for stretching to the stretching algorithm
+    // the is the maximum space allowable for stretching
     var dim = obj.dims();
+    obj.stretch(_f4u$t.xy(this.axis, stretchable_coefficient * dim[_f4u$t.X_AXIS], x - (2 * this.other_axis_padding)), _f4u$t.xy(this.axis, y - (2 * this.other_axis_padding), stretchable_coefficient * dim[_f4u$t.Y_AXIS]));
+    // we need to calculate the dimensions a second time
+    // because they may have been stretched above
+    dim = obj.dims();
     var xv1 = _f4u$t.xy(this.axis, running_count, 0);
     var xv2 = _f4u$t.xy(this.axis, running_count, x - dim[_f4u$t.X_AXIS]);
     obj.setX(_f4u$t.linear_combination(obj.gravity[_f4u$t.X_AXIS], xv1, xv2));
     var yv1 = _f4u$t.xy(this.axis, 0, running_count);
     var yv2 = _f4u$t.xy(this.axis, y - dim[_f4u$t.Y_AXIS], running_count);
     obj.setY(_f4u$t.linear_combination(obj.gravity[_f4u$t.Y_AXIS], yv1, yv2));
-    obj.do_spacing();
+    obj.do_spacing(leaf + 1);
     running_count += padding + _f4u$t.xy(this.axis, dim[_f4u$t.X_AXIS], dim[_f4u$t.Y_AXIS]);
   }
 }
@@ -1437,11 +1471,11 @@ _f4u$t.TabGroup.prototype.dims = function() {
   return [Math.max(x, (this.x_width + this.x_padding) * this.objs.length - this.x_padding), y + this.headroom + this.headpadding];
 }
 
-_f4u$t.TabGroup.prototype.do_spacing = function() {
+_f4u$t.TabGroup.prototype.do_spacing = function(leaf) {
   for (var i = 0; i < this.objs.length; i++) {
     this.objs[i].x = 0;
     this.objs[i].y = this.headroom + this.headpadding;
-    this.objs[i].do_spacing();
+    this.objs[i].do_spacing(leaf + 1);
   }
 }
 
@@ -1593,7 +1627,7 @@ _f4u$t.SVG.prototype.make = function() {
     true);
   _f4u$t.ROOT = this.title;
   this.lm.populate_objects();
-  this.lm.do_spacing();
+  this.lm.do_spacing(0);
   this.lm.make(this.svg, this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
