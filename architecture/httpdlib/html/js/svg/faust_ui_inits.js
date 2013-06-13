@@ -37,13 +37,24 @@ _f4u$t.tgroup_inits = {
   fill_off : "url(#tabUpGradient)" // for now use the button gradient
 };
 
-_f4u$t.vgroup_inits = {
+_f4u$t.group_inits = {
+  mom : null,
+  axis : _f4u$t.X_AXIS,
+  padding : 10,
+  other_axis_padding : 10,
+  draw_background : true,
+  label : '',
+  objs : [],
+  gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
+  label : '',
+  fill : 'url(#groupBoxGradient)',
+  stretchable : [false, false],
+  stroke : _f4u$t.GREY,
   stretchable : [true, true]
-};
+}
 
-_f4u$t.hgroup_inits = {
-  stretchable : [true, true]
-};
+_f4u$t.vgroup_inits = $.extend(true, {}, _f4u$t.group_inits);
+_f4u$t.hgroup_inits = $.extend(true, {}, _f4u$t.group_inits);
 
 _f4u$t.rbutton_inits = {
   mom : null,

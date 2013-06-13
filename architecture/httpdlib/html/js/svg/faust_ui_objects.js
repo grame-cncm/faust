@@ -1231,23 +1231,23 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
 }
 
 _f4u$t.LayoutManager = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.axis = _f4u$t.initifnull(options.axis, _f4u$t.X_AXIS);
-  this.padding = _f4u$t.initifnull(options.padding, 10);
-  this.other_axis_padding = _f4u$t.initifnull(options.other_axis_padding, 10);
-  this.draw_background = _f4u$t.initifnull(options.draw_background, true);
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.objs = _f4u$t.initifnull(options.objs, []);
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  this.label = _f4u$t.initifnull(options.label, '');
-  this.stretchable = _f4u$t.initifnull(options.stretchable, [false, false]);
+  var type = _f4u$t.xy(options.axis, 'hgroup','vgroup');
+  _f4u$t.init_prop(this, options, type, 'mom');
+  _f4u$t.init_prop(this, options, type, 'axis');
+  _f4u$t.init_prop(this, options, type, 'padding');
+  _f4u$t.init_prop(this, options, type, 'other_axis_padding');
+  _f4u$t.init_prop(this, options, type, 'draw_background');
+  _f4u$t.init_prop(this, options, type, 'label');
+  _f4u$t.init_prop(this, options, type, 'objs');
+  _f4u$t.init_prop(this, options, type, 'gravity');
+  _f4u$t.init_prop(this, options, type, 'stretchable');
+  _f4u$t.init_prop(this, options, type, 'fill');
+  _f4u$t.init_prop(this, options, type, 'stroke');
   this.x = 0;
   this.y = 0;
   this.w = 0;
   this.h = 0;
   this.id = _f4u$t.randString();
-  this.fill = 'url(#groupBoxGradient)';//_f4u$t.magic_color();
-  this.stroke = _f4u$t.initifnull(options.stroke, _f4u$t.GREY);
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.LayoutManager);
