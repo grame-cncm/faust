@@ -31,10 +31,21 @@ _f4u$t.button_inits = {
 };
 
 _f4u$t.tgroup_inits = {
+  mom : null,
+  headroom : 40,
+  headpadding : 10,
+  x_padding : 10,
+  x_width : 80,
+  objs : [],
+  init : 0,
+  stretchable : [false, false],
+  gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
+  baseline_skip : 5,
+  stroke : 'orange',
   stretchable : [true, true],
   id : null,
-  fill_on : "url(#tabDownGradient)", // for now use the button gradient
-  fill_off : "url(#tabUpGradient)" // for now use the button gradient
+  fill_on : "url(#buttonDownGradient)",
+  fill_off : "url(#buttonUpGradient)"
 };
 
 _f4u$t.group_inits = {
@@ -266,52 +277,6 @@ _f4u$t.linear_gradient_inits = {
       x1 : "0%",
       y1 : "0%",
       x2 : "0%",
-      y2 : "100%",
-      settings : {
-        gradientUnits:'objectBoundingBox'
-      }
-    },
-/*
-  tabUpGradient :
-    {
-      stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
-      x1 : "0%",
-      y1 : "0%",
-      x2 : "0%",
-      y2 : "100%",
-      settings : {
-        gradientUnits:'objectBoundingBox'
-      }
-    },
-  tabDownGradient :
-    {
-      stops : [['0%', '#909090', 1], ['40%' ,'#888888', 1], ['50%','#808080', 1], ['100%','#909090', 1]],
-      x1 : "0%",
-      y1 : "100%",
-      x2 : "0%",
-      y2 : "0%",
-      settings : {
-        gradientUnits:'objectBoundingBox'
-      }
-    },
-*/
-  tabDownGradient :
-    {
-      stops : [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
-      x1 : "0%",
-      y1 : "0%",
-      x2 : "0%",
-      y2 : "100%",
-      settings : {
-        gradientUnits:'objectBoundingBox'
-      }
-    },
-  tabUpGradient :
-    {
-      stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
-      x1 : "0%",
-      y1 : "0%",
-      x2 : "100%",
       y2 : "100%",
       settings : {
         gradientUnits:'objectBoundingBox'

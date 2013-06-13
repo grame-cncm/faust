@@ -1416,22 +1416,22 @@ _f4u$t.LayoutManager.prototype.make = function(svg, parent) {
 }
 
 _f4u$t.TabGroup = function(options) {
-  this.mom = _f4u$t.initifnull(options.mom, null);
-  this.headroom = _f4u$t.initifnull(options.headroom, 40);
-  this.headpadding = _f4u$t.initifnull(options.headroom, 10);
-  this.x_padding = _f4u$t.initifnull(options.x_padding, 10);
-  this.x_width = _f4u$t.initifnull(options.x_width, 80);
-  this.objs= _f4u$t.initifnull(options.objs, []);
-  this.init = _f4u$t.initifnull(options.init, 0);
-  this.stretchable = _f4u$t.initifnull(options.stretchable, [false, false]);
-  this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
-  this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
-  _f4u$t.init_prop(this, options, 'button','fill_on');
-  _f4u$t.init_prop(this, options, 'button','fill_off');
+  _f4u$t.init_prop(this, options, 'tgroup', 'mom');
+  _f4u$t.init_prop(this, options, 'tgroup', 'headroom');
+  _f4u$t.init_prop(this, options, 'tgroup', 'headpadding');
+  _f4u$t.init_prop(this, options, 'tgroup', 'x_padding');
+  _f4u$t.init_prop(this, options, 'tgroup', 'x_width');
+  _f4u$t.init_prop(this, options, 'tgroup', 'objs');
+  _f4u$t.init_prop(this, options, 'tgroup', 'init');
+  _f4u$t.init_prop(this, options, 'tgroup', 'stretchable');
+  _f4u$t.init_prop(this, options, 'tgroup', 'gravity');
+  _f4u$t.init_prop(this, options, 'tgroup', 'baseline_skip');
+  _f4u$t.init_prop(this, options, 'tgroup', 'fill_on');
+  _f4u$t.init_prop(this, options, 'tgroup', 'fill_off');
+  _f4u$t.init_prop(this, options, 'tgroup', 'stroke');
   this.x = 0;
   this.y = 0;
   this.id = _f4u$t.randString();
-  this.stroke = _f4u$t.initifnull(options.stroke, 'orange');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.TabGroup);

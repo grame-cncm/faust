@@ -190,12 +190,12 @@ rect.faust-button-up {
 }
 
 rect.faust-tgroup-down {
-  fill : url(#tabDownGradient);
+  fill : url(#buttonDownGradient);
   stroke : orange;
 }
 
 rect.faust-tgroup-up {
-  fill : url(#tabUpGradient);
+  fill : url(#buttonUpGradient);
   stroke : black;
 }
 
