@@ -72,8 +72,9 @@ _f4u$t.getnumspecs = function(dct) {
 
 _f4u$t.make_rbutton = function(dct) {
   var numspecs = _f4u$t.getnumspecs(dct);
+  var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t.rbutton_inits);
-  options.label = dct["label"];
+  options.id = id;
   options.min = numspecs["min"];
   options.max = numspecs["max"];
   options.step = numspecs["step"];
@@ -90,7 +91,25 @@ _f4u$t.make_rbutton = function(dct) {
   }
   var size = _f4u$t.get_size(dct);
   options.ir *= size;
-  return new _f4u$t.RotatingButton(options);
+
+  var vbox_options = $.extend(true, {}, _f4u$t.vbox_inits);
+  vbox_options.init = numspecs["init"];
+  vbox_options.id = id;
+  var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+  lm_options.axis = _f4u$t.Y_AXIS;
+  lm_options.stretchable = [false, false];
+
+  /* make faust ui objects */
+  var rbutton = new _f4u$t.RotatingButton(options);
+  var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
+  var vbox = new _f4u$t.ValueBox(vbox_options);
+
+  var lm = new _f4u$t.LayoutManager(lm_options);
+  lm.objs.push(label);
+  lm.objs.push(rbutton);
+  lm.objs.push(vbox);
+
+  return lm;
 }
 
 _f4u$t.make_hslider = function(dct) {
@@ -106,8 +125,10 @@ _f4u$t.make_slider = function(kls, dct) {
     return _f4u$t.make_rbutton(dct);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
-  var options = $.extend(true, {}, _f4u$t[kls == _f4u$t.HorizontalSlider ? 'hslider_inits' : 'vslider_inits']);
-  options.label = dct["label"];
+  var horizontal = kls == _f4u$t.HorizontalSlider;
+  var id = _f4u$t.randString();
+  var options = $.extend(true, {}, _f4u$t[horizontal ? 'hslider_inits' : 'vslider_inits']);
+  options.id = id;
   options.min = numspecs["min"];
   options.max = numspecs["max"];
   options.step = numspecs["step"];
@@ -118,11 +139,46 @@ _f4u$t.make_slider = function(kls, dct) {
   options.unit = _f4u$t.get_unit(dct);
   options.orientation = _f4u$t.get_orientation(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
-  console.log(options.tooltip);
   var size = _f4u$t.get_size(dct);
   options.girth *= size;
   options.length *= size;
-  return new kls(options);
+
+  var vbox_options = $.extend(true, {}, _f4u$t.vbox_inits);
+  vbox_options.init = numspecs["init"];
+  vbox_options.id = id;
+
+  /* make faust ui objects */
+  var slider = new kls(options);
+  var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
+  var vbox = new _f4u$t.ValueBox(vbox_options);
+
+  var lm = 0;
+  if (horizontal) {
+    var internal_lm_options = $.extend(true, {}, _f4u$t.hgroup_inits);
+    internal_lm_options.axis = _f4u$t.X_AXIS
+    internal_lm_options.draw_background = false;
+    internal_lm_options.other_axis_padding = 0;
+    var internal_lm = new _f4u$t.LayoutManager(internal_lm_options);
+    internal_lm.objs.push(vbox);
+    internal_lm.objs.push(slider);
+
+    var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+    lm_options.axis = _f4u$t.Y_AXIS;
+    lm_options.gravity = _f4u$t.LEFT;
+    lm_options.stretchable = [false, false];
+    lm = new _f4u$t.LayoutManager(lm_options);
+    lm.objs.push(label);
+    lm.objs.push(internal_lm);
+  } else {
+    var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+    lm_options.axis = _f4u$t.Y_AXIS;
+    lm = new _f4u$t.LayoutManager(lm_options);
+    lm.objs.push(label);
+    lm.objs.push(slider);
+    lm.objs.push(vbox);
+  }
+
+  return lm;
 }
 
 _f4u$t.make_hbargraph = function(dct) {
@@ -134,9 +190,11 @@ _f4u$t.make_vbargraph = function(dct) {
 }
 
 _f4u$t.make_bargraph = function(kls, dct) {
-  var options = $.extend(true, {}, _f4u$t[kls == _f4u$t.HorizontalBarGraph ? 'hbargraph_inits' : 'vbargraph_inits']);
+  var horizontal = kls == _f4u$t.HorizontalBarGraph;
+  var id = _f4u$t.randString();
+  var options = $.extend(true, {}, _f4u$t[horizontal ? 'hbargraph_inits' : 'vbargraph_inits']);
+  options.id = id;
   //var numspecs = _f4u$t.getnumspecs(dct);
-  options.label = dct["label"];
   options.min = parseFloat(dct["min"]);
   options.max = parseFloat(dct["max"]);
   options.address = dct["address"];
@@ -145,12 +203,52 @@ _f4u$t.make_bargraph = function(kls, dct) {
   options.tooltip = _f4u$t.get_tooltip(dct);
   options.girth *= size;
   options.length *= size;
-  return new kls(options);
+
+  var vbox_options = $.extend(true, {}, _f4u$t.vbox_inits);
+  vbox_options.keysink = false;
+  vbox_options.id = id;
+  var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+  lm_options.axis = _f4u$t.Y_AXIS;
+
+  /* make faust ui objects */
+  var bargraph = new kls(options);
+  var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
+  var vbox = new _f4u$t.ValueBox(vbox_options);
+
+  var lm = 0;
+  // ugh...code dup from slider...
+  if (horizontal) {
+    var internal_lm_options = $.extend(true, {}, _f4u$t.hgroup_inits);
+    internal_lm_options.axis = _f4u$t.X_AXIS
+    internal_lm_options.draw_background = false;
+    internal_lm_options.other_axis_padding = 0;
+    var internal_lm = new _f4u$t.LayoutManager(internal_lm_options);
+    internal_lm.objs.push(vbox);
+    internal_lm.objs.push(bargraph);
+
+    var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+    lm_options.axis = _f4u$t.Y_AXIS;
+    lm_options.gravity = _f4u$t.LEFT;
+    lm_options.stretchable = [false, false];
+    lm = new _f4u$t.LayoutManager(lm_options);
+    lm.objs.push(label);
+    lm.objs.push(internal_lm);
+  } else {
+    var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+    lm_options.axis = _f4u$t.Y_AXIS;
+    lm = new _f4u$t.LayoutManager(lm_options);
+    lm.objs.push(label);
+    lm.objs.push(bargraph);
+    lm.objs.push(vbox);
+  }
+
+  return lm;
 }
 
-
 _f4u$t.make_button = function(dct) {
+  var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t.button_inits);
+  options.id = id;
   options.label = dct.label;
   options.address = dct.address;
   options.tooltip = _f4u$t.get_tooltip(dct);
@@ -158,14 +256,28 @@ _f4u$t.make_button = function(dct) {
 }
 
 _f4u$t.make_checkbox = function(dct) {
+  var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t.checkbox_inits);
-  options.label  = dct.label;
+  options.id = id;
   options.address = dct.address;
   options.init = (dct.init == "1" ? true : false);
   var size = _f4u$t.get_size(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
   options.d *= size;
-  return new _f4u$t.CheckBox(options);
+
+  var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+  lm_options.axis = _f4u$t.Y_AXIS;
+  lm_options.stretchable = [false, false];
+
+  /* make faust ui objects */
+  var checkbox = new _f4u$t.CheckBox(options);
+  var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
+
+  var lm = new _f4u$t.LayoutManager(lm_options);
+  lm.objs.push(label);
+  lm.objs.push(checkbox);
+
+  return lm;
 }
 
 _f4u$t.make_nentry = function(dct) {
@@ -173,7 +285,8 @@ _f4u$t.make_nentry = function(dct) {
     return _f4u$t.make_rbutton(dct);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
-  return new _f4u$t.NumericalEntry({
+  var id = _f4u$t.randString();
+  var options = {
     label : dct["label"],
     min : numspecs["min"],
     max : numspecs["max"],
@@ -184,7 +297,28 @@ _f4u$t.make_nentry = function(dct) {
     address : dct["address"],
     unit : _f4u$t.get_unit(dct),
     tooltip : _f4u$t.get_tooltip(dct)
-  });
+  };
+  options.id = id;
+
+  var nentry = new _f4u$t.NumericalEntry(options);
+
+  var vbox_options = $.extend(true, {}, _f4u$t.vbox_inits);
+  vbox_options.init = numspecs["init"];
+  vbox_options.id = id;
+  var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
+  lm_options.axis = _f4u$t.Y_AXIS;
+  lm_options.stretchable = [false, false];
+
+  /* make faust ui objects */
+  var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
+  var vbox = new _f4u$t.ValueBox(vbox_options);
+
+  var lm = new _f4u$t.LayoutManager(lm_options);
+  lm.objs.push(label);
+  lm.objs.push(nentry);
+  lm.objs.push(vbox);
+
+  return lm;
 }
 
 _f4u$t.make_hgroup = function(dct) {
@@ -196,48 +330,62 @@ _f4u$t.make_vgroup = function(dct) {
 }
 
 _f4u$t.make_group = function(axis, dct) {
-  var options = $.extend(true, {}, _f4u$t.xy(axis, _f4u$t.hgroup_inits, _f4u$t.vgroup_inits));
-  options.label = dct["label"];
-  options.axis = axis;
+  var internal_options = $.extend(true, {}, _f4u$t.xy(axis, _f4u$t.hgroup_inits, _f4u$t.vgroup_inits));
+  internal_options.axis = axis;
 
-  var lm = new _f4u$t.LayoutManager(options);
+  internal_options.draw_background = false;
+  internal_options.other_axis_padding = 0;
+  var id = _f4u$t.randString();
+  internal_options.id = id;
+
+  var internal_lm = new _f4u$t.LayoutManager(internal_options);
 
   for (var i = 0; i < dct["items"].length; i++) {
     if (dct["items"][i]["type"] == "hgroup") {
-      lm.objs.push(_f4u$t.make_hgroup(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_hgroup(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "vgroup") {
-      lm.objs.push(_f4u$t.make_vgroup(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_vgroup(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "tgroup") {
-      lm.objs.push(_f4u$t.make_tgroup(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_tgroup(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "hslider") {
-      lm.objs.push(_f4u$t.make_hslider(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_hslider(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "vslider") {
-      lm.objs.push(_f4u$t.make_vslider(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_vslider(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "hbargraph") {
-      lm.objs.push(_f4u$t.make_hbargraph(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_hbargraph(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "vbargraph") {
-      lm.objs.push(_f4u$t.make_vbargraph(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_vbargraph(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "button") {
-      lm.objs.push(_f4u$t.make_button(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_button(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "checkbox") {
-      lm.objs.push(_f4u$t.make_checkbox(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_checkbox(dct["items"][i]));
     }
     else if (dct["items"][i]["type"] == "nentry") {
-      lm.objs.push(_f4u$t.make_nentry(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_nentry(dct["items"][i]));
     }
     else {
       console.log("UFO: Unidentified Faust Object");
     }
   }
 
+  var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
+
+  var options = $.extend(true, {}, _f4u$t.vgroup_inits);
+  // needed for tab group
+  options.label = dct["label"];  options.stretchable = [false, true];
+  options.axis = _f4u$t.Y_AXIS;
+
+  var lm = new _f4u$t.LayoutManager(options);
+  lm.objs.push(label);
+  lm.objs.push(internal_lm);
   return lm;
 }
 

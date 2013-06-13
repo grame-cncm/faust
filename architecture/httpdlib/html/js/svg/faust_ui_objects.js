@@ -60,6 +60,13 @@ _f4u$t.UIObject.prototype.get_root_svg = function() {
   return (this.mom.svg ? this.mom.svg : this.mom.get_root_svg());
 }
 
+_f4u$t.UIObject.prototype.get_layout_manager = function() {
+  if (!this.mom) {
+    return null;
+  }
+  return (this.mom instanceof _f4u$t.LayoutManager ? this.mom : this.mom.get_layout_manager());
+}
+
 _f4u$t.UIObject.prototype.tooltip_text = function() {
   return this.tooltip;
 }
@@ -127,30 +134,39 @@ _f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id
   }
 }
 
-/*
-  DEFINES THE FAUST INCREMENTAL OBJECT CLASS.
-  All objects that go up in increments inherit from this.
-*/
+// Basic UI objects used all over the place
 
-_f4u$t.IncrementalObject = function () {}
-_f4u$t.extend(_f4u$t.UIObject, _f4u$t.IncrementalObject);
+_f4u$t.ValueBox = function(options) {
+  _f4u$t.init_prop(this, options, 'vbox', 'mom');
+  _f4u$t.init_prop(this, options, 'vbox', 'init');
+  _f4u$t.init_prop(this, options, 'vbox', 'width');
+  _f4u$t.init_prop(this, options, 'vbox', 'height');
+  _f4u$t.init_prop(this, options, 'vbox', 'keysink');
+  _f4u$t.init_prop(this, options, 'vbox', 'gravity');
+  _f4u$t.init_prop(this, options, 'vbox', 'id');
+}
 
-_f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mousedown) {
-  var dims = this.dims();
-  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] - this.value_box_w) / 2.0 : 0.0);
+_f4u$t.extend(_f4u$t.UIObject, _f4u$t.ValueBox);
+
+_f4u$t.ValueBox.prototype.dims = function() {
+  return [this.width, this.height];
+}
+
+_f4u$t.ValueBox.prototype.make_box = function(svg, parent) {
+  var id = this.id;
+  var mousedown = this.keysink ? '_f4u$t.rotating_button_key_sink("'+id+'")' : '_f4u$t.devnull()';
   var vb = _f4u$t.make_rectangle_via_rect(
     svg,
     parent,
     2,
     0,
     0,
-    this.value_box_w,
-    this.value_box_h,
+    this.width,
+    this.height,
     {
       id: 'faust_value_box_'+id,
       fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
       stroke : _f4u$t.color_to_rgb(_f4u$t.BLACK),
-      transform: 'translate('+xo+','+(this.internal_dims()[1] + this.box_padding)+')',
       'class': 'faust-vbox-box',
       onmousedown : mousedown,
       ontouchstart : mousedown
@@ -159,28 +175,53 @@ _f4u$t.IncrementalObject.prototype.make_value_box = function(svg, parent, id, mo
   return vb;
 }
 
-_f4u$t.IncrementalObject.prototype.make_value_value = function(svg, parent, id, mousedown) {
-  var dims = this.dims();
-  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? (dims[0] / 2.0) : this.box_padding);
-  var mymousedown = (mousedown ? mousedown : '_f4u$t.devnull()');
+_f4u$t.ValueBox.prototype.make_value = function(svg, parent) {
+  var id = this.id;
+  var mousedown = this.keysink ? '_f4u$t.rotating_button_key_sink("'+id+'")' : '_f4u$t.devnull()';
+  console.log("OR", _f4u$t.xy(this.get_layout_manager().axis, 'left', 'middle'), this.get_layout_manager().dims());
   var vv = svg.text(
     parent,
-    0,
-    0,
+    _f4u$t.xy(this.get_layout_manager().axis, 4, this.width  / 2.0),
+    this.height - 4,
     this.init.toString(),
     {
       id: 'faust_value_value_'+id,
-      "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
-      transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y)+')',
+      "text-anchor" : _f4u$t.xy(this.get_layout_manager().axis, 'left', 'middle'),
       'class': 'faust-value-text',
-      onmousedown : mymousedown,
-      ontouchstart : mymousedown
+      onmousedown : mousedown,
+      ontouchstart : mousedown
     }
   );
   return vv;
 }
 
-_f4u$t.IncrementalObject.prototype.label_text = function() {
+_f4u$t.ValueBox.prototype.make = function(svg, parent) {
+  var id = this.id;
+  var g = this.make_group(svg, parent, id);
+
+  this.make_box(svg, g, id);
+  this.make_value(svg, g, id);
+
+  return g;
+}
+
+_f4u$t.Label = function(options) {
+  _f4u$t.init_prop(this, options, 'label', 'mom');
+  _f4u$t.init_prop(this, options, 'label', 'label');
+  _f4u$t.init_prop(this, options, 'label', 'id');
+  _f4u$t.init_prop(this, options, 'label', 'gravity');
+}
+
+_f4u$t.extend(_f4u$t.UIObject, _f4u$t.Label);
+
+_f4u$t.Label.prototype.dims = function() {
+  var bbx = _f4u$t.get_text_bbox(this.get_root_svg(), this.label);
+  //return [bbx.width + 4, bbx.height + 4];
+  // ugggghhhh
+  return [0,10];
+}
+
+_f4u$t.Label.prototype.label_text = function() {
   var label = this.label;
   if (this.unit) {/* // deprecated
     label += this.unit;*/
@@ -188,25 +229,33 @@ _f4u$t.IncrementalObject.prototype.label_text = function() {
   return label;
 }
 
-_f4u$t.IncrementalObject.prototype.make_label = function(svg, parent, id) {
-  var dims = this.dims();
-  var xo = ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? dims[0] / 2.0 : 0.0);
+_f4u$t.Label.prototype.make = function(svg, parent) {
+  var id = this.id;
+  var g = this.make_group(svg, parent, id);
+
   var label = this.label_text();
   var vl = svg.text(
-    parent,
+    g,
     0,
-    0,
+    this.dims()[_f4u$t.Y_AXIS],
     label,
     {
       id: 'faust_label_'+id,
       "class" : "faust-label",
-      "text-anchor" : ((this.axis == _f4u$t.Y_AXIS) || (this instanceof _f4u$t.RotatingButton) ? 'middle' : 'left'),
-      transform: 'translate('+xo+','+(this.internal_dims()[1] + this.lpadding_y + this.lpadding_y)+')'
+      "text-anchor" : _f4u$t.xy(this.get_layout_manager().axis, 'left', 'middle'),
     }
   );
 
-  return vl;
+  return g;
 }
+
+/*
+  DEFINES THE FAUST INCREMENTAL OBJECT CLASS.
+  All objects that go up in increments inherit from this.
+*/
+
+_f4u$t.IncrementalObject = function () {}
+_f4u$t.extend(_f4u$t.UIObject, _f4u$t.IncrementalObject);
 
 /*
   DEFINES A ROTATING BUTTON.
@@ -228,7 +277,6 @@ _f4u$t.RotatingButton = function(options) {
   }
   _f4u$t.init_prop(this, options, 'rbutton', 'sp'); // percentage for white handle
   _f4u$t.init_prop(this, options, 'rbutton', 'kp'); // knob percentage
-  _f4u$t.init_prop(this, options, 'rbutton', 'label');
   _f4u$t.init_prop(this, options, 'rbutton', 'unit');
   _f4u$t.init_prop(this, options, 'rbutton', 'min');
   _f4u$t.init_prop(this, options, 'rbutton', 'max');
@@ -238,8 +286,6 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'ndec');
   _f4u$t.init_prop(this, options, 'rbutton', 'stretchable');
   _f4u$t.init_prop(this, options, 'rbutton', 'orientation');
-  _f4u$t.init_prop(this, options, 'rbutton', 'lpadding_y');
-  _f4u$t.init_prop(this, options, 'rbutton', 'box_padding');
   _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
   _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_fill');
   _f4u$t.init_prop(this, options, 'rbutton', 'meter_fill');
@@ -250,10 +296,9 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_stroke');
   _f4u$t.init_prop(this, options, 'rbutton', 'meter_stroke');
   _f4u$t.init_prop(this, options, 'rbutton', 'handle_width');
-  _f4u$t.init_prop(this, options, 'rbutton', 'value_box_w');
-  _f4u$t.init_prop(this, options, 'rbutton', 'value_box_h');
   _f4u$t.init_prop(this, options, 'rbutton', 'tooltip');
   _f4u$t.init_prop(this, options, 'rbutton', 'address');
+  _f4u$t.init_prop(this, options, 'rbutton', 'id');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.RotatingButton);
@@ -262,16 +307,10 @@ _f4u$t.RotatingButton.prototype.r = function() {
   return this._r;
 }
 
-_f4u$t.RotatingButton.prototype.internal_dims = function() {
+_f4u$t.RotatingButton.prototype.dims = function() {
   return [this.r() * 2, this.r() * 2];
 }
 
-
-_f4u$t.RotatingButton.prototype.dims = function() {
-  var ugh = this.internal_dims();
-  var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label_text()).width;
-  return [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
-}
 
 _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
   var full_id = 'faust_rbutton_mgroove_'+id;
@@ -447,7 +486,7 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
 }
 
 _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
-  var id = _f4u$t.randString();
+  var id = this.id;
   var g = this.make_group(svg, parent, id);
   _f4u$t.initiate_rbutton(
     id,
@@ -478,9 +517,9 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   }
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
-  this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
-  this.make_label(svg, g, id);
+  //this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
+  //this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
+  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
@@ -495,7 +534,6 @@ _f4u$t.SlidingObject = function(options, type) {
   _f4u$t.init_prop(this, options, type, 'axis');
   _f4u$t.init_prop(this, options, type, 'girth');
   _f4u$t.init_prop(this, options, type, 'length');
-  _f4u$t.init_prop(this, options, type, 'label');
   _f4u$t.init_prop(this, options, type, 'unit');
   _f4u$t.init_prop(this, options, type, 'min');
   _f4u$t.init_prop(this, options, type, 'max');
@@ -504,37 +542,25 @@ _f4u$t.SlidingObject = function(options, type) {
   _f4u$t.init_prop(this, options, type, 'integer');
   _f4u$t.init_prop(this, options, type, 'ndec');
   _f4u$t.init_prop(this, options, type, 'stretchable');
-  _f4u$t.init_prop(this, options, type, 'lpadding_y');
-  _f4u$t.init_prop(this, options, type, 'box_padding');
   _f4u$t.init_prop(this, options, type, 'gravity');
-  _f4u$t.init_prop(this, options, type, 'value_box_w');
-  _f4u$t.init_prop(this, options, type, 'value_box_h');
   _f4u$t.init_prop(this, options, type, 'address');
+  _f4u$t.init_prop(this, options, type, 'id');
   _f4u$t.init_prop(this, options, type, 'type');
   _f4u$t.init_prop(this, options, type, 'tooltip');
 }
 
 _f4u$t.extend(_f4u$t.IncrementalObject, _f4u$t.SlidingObject);
 
-_f4u$t.SlidingObject.prototype.internal_dims = function() {
+_f4u$t.SlidingObject.prototype.dims = function() {
   var x = _f4u$t.xy(this.axis, this.length, this.girth);
   var y = _f4u$t.xy(this.axis, this.girth, this.length);
   return [x,y];
 }
 
-_f4u$t.SlidingObject.prototype.dims = function() {
-  var ugh = this.internal_dims();
-  var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label_text()).width;
-  ugh = [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
-  return ugh;
-}
-
 _f4u$t.SlidingObject.prototype.stretch = function(a,x,y) {
-  if (this.axis != a && this.stretchable) {
-    dims = this.internal_dims();
-    this.length = Math.max(dims[this.axis],
-                           // todo - make adjustment for label width if it is huge
-                           _f4u$t.xy(this.axis, x - (2 * this.mom.other_axis_padding), y - (2 * this.lpadding_y) - this.mom.other_axis_padding - Math.max(this.mom.lpadding_y, this.mom.other_axis_padding)));
+  if (this.axis != a && this.stretchable[this.axis]) {
+    dims = this.dims();
+    this.length = Math.max(dims[this.axis], _f4u$t.xy(this.axis, x, y) - (2 * this.mom.other_axis_padding));
   }
 }
 
@@ -655,7 +681,7 @@ _f4u$t.Slider.prototype.make_handle = function(svg, parent, id) {
 }
 
 _f4u$t.Slider.prototype.make = function(svg, parent) {
-  var id = _f4u$t.randString();
+  var id = this.id;
   var g = this.make_group(svg, parent, id);
 
   _f4u$t["initiate_"+this.type](
@@ -677,6 +703,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
   this.make_meter(svg, g, id);
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
+  /*
   this.make_value_box(
     svg,
     g,
@@ -690,6 +717,7 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     '_f4u$t["'+this.type+'_key_sink"]("'+id+'")'
   );
   this.make_label(svg, g, id);
+  */
   this.make_tooltip(svg, g, id, id);
   return g;
 }
@@ -782,8 +810,9 @@ _f4u$t.BarGraph.prototype.make_meter = function(svg, parent, id) {
 }
 
 _f4u$t.BarGraph.prototype.make = function(svg, parent) {
-  var id = _f4u$t.randString();
+  var id = this.id;
   var g = this.make_group(svg, parent, id);
+
   _f4u$t['initiate_'+this.type](
     id,
     this.girth,
@@ -799,9 +828,9 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
 
   this.make_meter(svg, g, id);
   this.make_curtain(svg, g, id);
-  this.make_value_box(svg, g, id);
-  this.make_value_value(svg, g, id);
-  this.make_label(svg, g, id);
+  //this.make_value_box(svg, g, id);
+  //this.make_value_value(svg, g, id);
+  //this.make_label(svg, g, id);
 
   return g;
 }
@@ -835,7 +864,6 @@ _f4u$t.extend(_f4u$t.BarGraph, _f4u$t.VerticalBarGraph);
 _f4u$t.CheckBox = function(options) {
   _f4u$t.init_prop(this, options, 'checkbox','mom');
   _f4u$t.init_prop(this, options, 'checkbox','d');
-  _f4u$t.init_prop(this, options, 'checkbox','label');
   _f4u$t.init_prop(this, options, 'checkbox','gravity');
   _f4u$t.init_prop(this, options, 'checkbox','check_fill');
   _f4u$t.init_prop(this, options, 'checkbox','check_stroke');
@@ -843,22 +871,15 @@ _f4u$t.CheckBox = function(options) {
   _f4u$t.init_prop(this, options, 'checkbox','box_stroke');
   _f4u$t.init_prop(this, options, 'checkbox','init');
   _f4u$t.init_prop(this, options, 'checkbox', 'stretchable');
-  _f4u$t.init_prop(this, options, 'checkbox','lpadding_y');
-  _f4u$t.init_prop(this, options, 'checkbox','box_padding');
   _f4u$t.init_prop(this, options, 'checkbox', 'tooltip');
   _f4u$t.init_prop(this, options, 'checkbox','address');
+  _f4u$t.init_prop(this, options, 'checkbox', 'id');
 }
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.CheckBox);
 
-_f4u$t.CheckBox.prototype.internal_dims = function() {
-  return [this.d, this.d];
-}
-
 _f4u$t.CheckBox.prototype.dims = function() {
-  var ugh = this.internal_dims();
-  var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label).width;
-  return [Math.max(ugh[0], text_w), ugh[1] + this.lpadding_y]
+  return [this.d, this.d];
 }
 
 // DON'T FORGET TO SPECIFY CHECK IN CALLBACK
@@ -918,30 +939,15 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   return box;
 }
 
-_f4u$t.CheckBox.prototype.make_label = function(svg, parent, id) {
-  var vl = svg.text(
-    parent,
-    0,
-    0,
-    this.label,
-    {
-      id: 'faust_label_'+id,
-      'class' : 'faust-label',
-      transform: 'translate(0,'+(this.internal_dims()[1] + this.lpadding_y)+')'
-    }
-  );
-
-  return vl;
-}
-
 _f4u$t.CheckBox.prototype.make = function(svg, parent) {
-  var id = _f4u$t.randString();
+  var id = this.id;
   var g = this.make_group(svg, parent, id);
+
   _f4u$t.initiate_checkbox(id, this.address);
 
   this.make_box(svg, g, id);
   this.make_check(svg, g, id);
-  this.make_label(svg, g, id);
+  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
@@ -953,10 +959,10 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
 
 _f4u$t.Button = function(options) {
   _f4u$t.init_prop(this, options, 'button','mom');
-  _f4u$t.init_prop(this, options, 'button','label');
   _f4u$t.init_prop(this, options, 'button','ideal_width');
   _f4u$t.init_prop(this, options, 'button','ideal_height');
   _f4u$t.init_prop(this, options, 'button', 'tooltip');
+  _f4u$t.init_prop(this, options, 'button', 'label');
   this._w = this.ideal_width;
   this._h = this.ideal_height;
   _f4u$t.init_prop(this, options, 'button','gravity');
@@ -965,6 +971,7 @@ _f4u$t.Button = function(options) {
   _f4u$t.init_prop(this, options, 'button','stroke');
   _f4u$t.init_prop(this, options, 'button', 'stretchable');
   _f4u$t.init_prop(this, options, 'button','baseline_skip');
+  _f4u$t.init_prop(this, options, 'button', 'id');
   _f4u$t.init_prop(this, options, 'button','address');
 }
 
@@ -978,7 +985,7 @@ _f4u$t.Button.prototype.h = function() {
   return this._h;
 }
 
-_f4u$t.Button.prototype.dims = function(coef) {
+_f4u$t.Button.prototype.dims = function() {
   return [this.w(), this.h()];
 }
 
@@ -1023,11 +1030,12 @@ _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
 }
 
 _f4u$t.Button.prototype.make = function(svg, parent) {
-  var id = _f4u$t.randString();
+  var id = this.id;
   var full_id = 'faust_button_box_'+id;
   var mousedown = '_f4u$t.button_down("'+full_id+'")';
   var mouseup = '_f4u$t.button_up("'+full_id+'")';
   var g = this.make_group(svg, parent, id);
+
   svg.configure(g,
   {
     onmousedown : mousedown,
@@ -1052,7 +1060,6 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 
 _f4u$t.NumericalEntry = function(options) {
   _f4u$t.init_prop(this, options, 'nentry', 'mom');
-  _f4u$t.init_prop(this, options, 'nentry', 'label');
   _f4u$t.init_prop(this, options, 'nentry', 'unit');
   _f4u$t.init_prop(this, options, 'nentry', 'ideal_width');
   _f4u$t.init_prop(this, options, 'nentry', 'ideal_height');
@@ -1064,12 +1071,9 @@ _f4u$t.NumericalEntry = function(options) {
   _f4u$t.init_prop(this, options, 'nentry', 'step');
   _f4u$t.init_prop(this, options, 'nentry', 'integer');
   _f4u$t.init_prop(this, options, 'nentry', 'ndec');
-  _f4u$t.init_prop(this, options, 'nentry', 'lpadding_y');
-  _f4u$t.init_prop(this, options, 'nentry', 'box_padding');
   _f4u$t.init_prop(this, options, 'nentry', 'gravity');
-  _f4u$t.init_prop(this, options, 'nentry', 'value_box_w');
-  _f4u$t.init_prop(this, options, 'nentry', 'value_box_h');
   _f4u$t.init_prop(this, options, 'nentry', 'address');
+  _f4u$t.init_prop(this, options, 'nentry', 'id');
   _f4u$t.init_prop(this, options, 'nentry', 'type');
   _f4u$t.init_prop(this, options, 'button', 'stretchable');
   _f4u$t.init_prop(this, options, 'nentry', 'button_fill');
@@ -1090,15 +1094,8 @@ _f4u$t.NumericalEntry.prototype.h = function() {
   return this._h;
 }
 
-_f4u$t.NumericalEntry.prototype.internal_dims = function() {
-  return [this.w(), this.h()];
-}
-
 _f4u$t.NumericalEntry.prototype.dims = function() {
-  var ugh = this.internal_dims();
-  var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label_text()).width;
-  ugh = [Math.max(ugh[0], this.value_box_w, text_w), ugh[1] + (2 * this.lpadding_y)];
-  return ugh;
+  return [this.w(), this.h()];
 }
 
 _f4u$t.NumericalEntry.prototype.make_left_button = function(svg, parent, id) {
@@ -1204,8 +1201,9 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
 }
 
 _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
-  var id = _f4u$t.randString();
+  var id = this.id;
   var g = this.make_group(svg, parent, id);
+
   _f4u$t.initiate_nentry(
     id,
     this.min,
@@ -1223,9 +1221,9 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_right_button(svg, g, id);
   this.make_minus(svg, g, id);
   this.make_plus(svg, g, id);
-  this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
-  this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
-  this.make_label(svg, g, id);
+  //this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
+  //this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
+  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
@@ -1236,12 +1234,12 @@ _f4u$t.LayoutManager = function(options) {
   this.axis = _f4u$t.initifnull(options.axis, _f4u$t.X_AXIS);
   this.padding = _f4u$t.initifnull(options.padding, 10);
   this.other_axis_padding = _f4u$t.initifnull(options.other_axis_padding, 10);
+  this.draw_background = _f4u$t.initifnull(options.draw_background, true);
+  this.label = _f4u$t.initifnull(options.label, '');
   this.objs = _f4u$t.initifnull(options.objs, []);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.label = _f4u$t.initifnull(options.label, '');
-  this.stretchable = _f4u$t.initifnull(options.stretchable, _f4u$t.faux);
-  this.lpadding_y = _f4u$t.initifnull(options.lpaddiny_y, (_f4u$t.TEXT_HEIGHT * 1.5));
-  this.box_padding = _f4u$t.initifnull(options.box_padding, _f4u$t.TEXT_BOX_PADDING);
+  this.stretchable = _f4u$t.initifnull(options.stretchable, [false, false]);
   this.x = 0;
   this.y = 0;
   this.w = 0;
@@ -1253,7 +1251,7 @@ _f4u$t.LayoutManager = function(options) {
 
 _f4u$t.extend(_f4u$t.UIObject, _f4u$t.LayoutManager);
 
-_f4u$t.LayoutManager.prototype.internal_dims = function() {
+_f4u$t.LayoutManager.prototype.dims = function() {
   var outx = [];
   var outy = [];
   for (var i = 0; i < this.objs.length; i++) {
@@ -1286,30 +1284,19 @@ _f4u$t.LayoutManager.prototype.populate_objects = function() {
   }
 }
 
-_f4u$t.LayoutManager.prototype.dims = function() {
-  var ugh = this.internal_dims();
-  // we make sure it is at least as wide as the label
-  var text_w = _f4u$t.get_text_bbox(this.get_root_svg(), this.label).width;
-  // if the label padding is bigger than the natural padding, we add the label padding
-  var out = [Math.max(ugh[0], text_w), ugh[1] + Math.max(this.lpadding_y - _f4u$t.xy(this.axis, this.other_axis_padding, this.padding), 0)];
-  return out;
-}
-
 _f4u$t.LayoutManager.prototype.stretch = function(a,x,y) {
   var oap = this.mom.other_axis_padding;
-  var lp = this.mom.lpadding_y;
   oap = oap ? oap : 0;
-  lp = lp ? lp : 0;
-  if (this.axis != a && this.stretchable) {
+  if (this.axis != a && this.stretchable[a]) {
     var dim = this.dims();
     // space objects out via the padding
     this.padding = this.padding + Math.max(0,
-                    (_f4u$t.xy(this.axis,x,y)  - dim[this.axis] - oap - _f4u$t.xy(this.axis, oap, Math.max(oap,lp))) / (this.objs.length + 1));
+                    (_f4u$t.xy(this.axis,x,y)  - dim[this.axis] - (2 * oap)) / (this.objs.length + 1));
   }
-  else if (this.axis == a && this.stretchable) {
+  else if (this.axis == a && this.stretchable[a]) {
     // hijack dims function...
     var dim = this.dims();
-    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w - (2 * oap), this.mom.h - oap - Math.max(oap, lp));
+    var fill_to = _f4u$t.xy(_f4u$t.other_axis(a), this.mom.w, this.mom.h) - (2 * oap);
     this.dims = function() { return [_f4u$t.xy(a, dim[a], fill_to),
                                      _f4u$t.xy(a, fill_to, dim[a])]; };
   }
@@ -1341,23 +1328,6 @@ _f4u$t.LayoutManager.prototype.do_spacing = function() {
     obj.do_spacing();
     running_count += padding + _f4u$t.xy(this.axis, dim[_f4u$t.X_AXIS], dim[_f4u$t.Y_AXIS]);
   }
-}
-
-_f4u$t.LayoutManager.prototype.make_label = function(svg, parent) {
-  var full_id = 'faust_label_'+this.id;
-  var vl = svg.text(
-    parent,
-    0,
-    0,
-    this.label,
-    {
-      id : full_id,
-      'class' : 'faust-group-label',
-      transform: 'translate(2,'+(this.dims()[1] - 3)+')'
-    }
-  );
-
-  return vl;
 }
 
 _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
@@ -1398,8 +1368,10 @@ _f4u$t.LayoutManager.prototype.make_dim_cross = function(svg, parent) {
 _f4u$t.LayoutManager.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, this.id);
 
-  this.make_background(svg, g);
-  this.make_label(svg, g);
+  if (this.draw_background) {
+    this.make_background(svg, g);
+  }
+  //this.make_label(svg, g);
 
   for (var i = 0; i < this.objs.length; i++) {
     this.objs[i].make(svg, g);
@@ -1417,7 +1389,7 @@ _f4u$t.TabGroup = function(options) {
   this.x_width = _f4u$t.initifnull(options.x_width, 80);
   this.objs= _f4u$t.initifnull(options.objs, []);
   this.init = _f4u$t.initifnull(options.init, 0);
-  this.stretchable = _f4u$t.initifnull(options.stretchable, _f4u$t.faux);
+  this.stretchable = _f4u$t.initifnull(options.stretchable, [false, false]);
   this.gravity = _f4u$t.initifnull(options.gravity, [_f4u$t.CENTER, _f4u$t.CENTER]);
   this.baseline_skip = _f4u$t.initifnull(options.baseline_skip, 5);
   _f4u$t.init_prop(this, options, 'button','fill_on');
@@ -1539,6 +1511,7 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
       parent,
       running_count + this.x_width / 2.0,
       this.headroom / 2.0 + this.baseline_skip,
+      // a bit of a hack...
       curobj.label,
       curobj.id,
       badidstr);
@@ -1550,6 +1523,7 @@ _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
 
 _f4u$t.TabGroup.prototype.make = function(svg, parent) {
   var g = this.make_group(svg, parent, this.id);
+
   this.make_tabs(svg, g);
   for (var i = 0; i < this.objs.length; i++) {
     this.objs[i].make(svg, g);

@@ -1,16 +1,15 @@
 _f4u$t.checkbox_inits = {
   mom : null,
   d : 19,
+  id : null,
   label : '',
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  stretchable : false,
+  stretchable : [false, false],
   check_fill : _f4u$t.BLACK,
   check_stroke : _f4u$t.BLACK,
   box_fill : _f4u$t.WHITE,
   box_stroke : _f4u$t.BLACK,
   init : false,
-  lpadding_y : _f4u$t.TEXT_HEIGHT,
-  box_padding : _f4u$t.TEXT_BOX_PADDING,
   tooltip : '',
   address : ''
 };
@@ -18,7 +17,8 @@ _f4u$t.checkbox_inits = {
 _f4u$t.button_inits = {
   mom : null,
   label : '',
-  stretchable : false,
+  id : null,
+  stretchable : [false, false],
   ideal_width : 80,
   ideal_height : 40,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
@@ -31,17 +31,18 @@ _f4u$t.button_inits = {
 };
 
 _f4u$t.tgroup_inits = {
-  stretchable : true,
+  stretchable : [true, true],
+  id : null,
   fill_on : "url(#tabDownGradient)", // for now use the button gradient
   fill_off : "url(#tabUpGradient)" // for now use the button gradient
 };
 
 _f4u$t.vgroup_inits = {
-  stretchable : true
+  stretchable : [true, true]
 };
 
 _f4u$t.hgroup_inits = {
-  stretchable : true
+  stretchable : [true, true]
 };
 
 _f4u$t.rbutton_inits = {
@@ -52,6 +53,7 @@ _f4u$t.rbutton_inits = {
   sweep : 270,
   sp : 0.9,
   kp : 0.7,
+  id : null,
   label : '',
   unit : null,
   min : 0,
@@ -60,9 +62,7 @@ _f4u$t.rbutton_inits = {
   step : 1,
   integer : false,
   ndec : 0,
-  stretchable : false,
-  lpadding_y : _f4u$t.TEXT_HEIGHT,
-  box_padding : _f4u$t.TEXT_BOX_PADDING,
+  stretchable : [false, false],
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
   meter_fill : 'rgb(50,50,50)',
   mgroove_fill : 'url(#rotatingButtonMeterGradient)',
@@ -75,14 +75,13 @@ _f4u$t.rbutton_inits = {
   handle_stroke : _f4u$t.WHITE,
   meter_stroke : _f4u$t.BLACK,
   handle_width : 6,
-  value_box_w : _f4u$t.VALUE_BOX_W,
-  value_box_h : _f4u$t.VALUE_BOX_H,
   tooltip : '',
   address : ''
 }
 
 _f4u$t.slidingobject_inits = {
   mom : null,
+  id : null,
   axis : _f4u$t.X_AXIS,
   girth : 40,
   length : 175,
@@ -94,12 +93,7 @@ _f4u$t.slidingobject_inits = {
   step : 1,
   integer : false,
   ndec : 0,
-  stretchable : true,
-  lpadding_y : _f4u$t.TEXT_HEIGHT,
-  box_padding : _f4u$t.TEXT_BOX_PADDING,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  value_box_w : _f4u$t.VALUE_BOX_W,
-  value_box_h : _f4u$t.VALUE_BOX_H,
   address :  '',
   tooltip : '',
   type : ''
@@ -114,9 +108,11 @@ _f4u$t.slider_inits.handle_stroke = _f4u$t.BLACK;
 _f4u$t.hslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
 _f4u$t.hslider_inits.handle_fill = 'url(#horizontalSliderHandleGradient)';
 _f4u$t.hslider_inits.meter_fill = 'url(#horizontalSliderMeterGradient)';
+_f4u$t.hslider_inits.stretchable = [true, false];
 _f4u$t.vslider_inits = $.extend(true, {}, _f4u$t.slider_inits);
 _f4u$t.vslider_inits.handle_fill = 'url(#verticalSliderHandleGradient)';
 _f4u$t.vslider_inits.meter_fill = 'url(#verticalSliderMeterGradient)';
+_f4u$t.vslider_inits.stretchable = [false, true];
 
 _f4u$t.bargraph_inits = $.extend(true, {}, _f4u$t.slidingobject_inits);
 _f4u$t.bargraph_inits.curtain_fill = _f4u$t.BLACK;
@@ -127,10 +123,13 @@ _f4u$t.bargraph_inits.init = null;
 _f4u$t.bargraph_inits.girth = 30;
 
 _f4u$t.hbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
+_f4u$t.hbargraph_inits.stretchable = [true, false];
 _f4u$t.vbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
+_f4u$t.vbargraph_inits.stretchable = [false, true];
 
 _f4u$t.nentry_inits = {
   mom : null,
+  id : null,
   ideal_width : _f4u$t.VALUE_BOX_W,
   ideal_height : _f4u$t.VALUE_BOX_H,
   label : '',
@@ -141,20 +140,35 @@ _f4u$t.nentry_inits = {
   step : 1,
   integer : false,
   ndec : 0,
-  stretchable : false,
+  stretchable : [false, false],
   button_fill : _f4u$t.GREY,
   operation_fill : _f4u$t.BLACK,
   button_stroke : _f4u$t.BLACK,
   operation_stroke : _f4u$t.BLACK,
   padding : 1,
-  lpadding_y : _f4u$t.TEXT_HEIGHT,
-  box_padding : _f4u$t.TEXT_BOX_PADDING,
   gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
-  value_box_w : _f4u$t.VALUE_BOX_W,
-  value_box_h : _f4u$t.VALUE_BOX_H,
   type : 'nentry',
   tooltip : '',
   address : ''
+}
+
+_f4u$t.vbox_inits = {
+  mom : null,
+  id : null,
+  width : _f4u$t.VALUE_BOX_W,
+  keysink : true,
+  height : _f4u$t.VALUE_BOX_H,
+  gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
+  stretchable : [false, false],
+  init : 50
+}
+
+_f4u$t.label_inits = {
+  mom : null,
+  label : '',
+  id : null,
+  gravity : [_f4u$t.CENTER, _f4u$t.CENTER],
+  stretchable : [false, false]
 }
 
 _f4u$t.linear_gradient_inits = {
