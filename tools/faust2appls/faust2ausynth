@@ -7,7 +7,8 @@
 #                                                                   
 #####################################################################
 
-ARCHFILE="au.cpp"
+
+ARCHFILE="ausynth.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
 
@@ -27,7 +28,6 @@ if [ -z "$FLIB" -o -z "$FINC" ]; then
 fi
 
 #-------------------------------------------------------------------------------
-
 #PHASE 1 : collects files and options from the command line
 
 for p in $@; do
@@ -56,7 +56,6 @@ for p in $@; do
 	fi
 done
 
-
 #-------------------------------------------------------------------------------
 
 #PHASE 2 : compile the *.dsp file
@@ -83,20 +82,19 @@ if [ -d $TEMP_DIR ]
 then
 	rm -r $TEMP_DIR
 fi
-
-
 mkdir $TEMP_DIR
-cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
+cp -r /usr/local/lib/faust/AUSynth/* $TEMP_DIR
 cd $TEMP_DIR
 
-faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
-if [ ! -f Source/au-output.cpp ]
+faust -a $FAUST_DIR/$ARCHFILE $1 -o Source/ausynth-output.cpp
+if [ ! -f Source/ausynth-output.cpp ]
 then
 	echo faust could not generate cpp file
 	cd ..
-	rm -r $TEMP_DIR
+	#rm -r $TEMP_DIR
 	exit	
 fi
+
 
 FULL_FILE_NAME=$1
 
@@ -136,30 +134,31 @@ perl -pi -e 's/_BUNDLE_ID_/'"$FILE_NAME"'/g' Info.plist
 perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings 
 perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings 
 
-perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAU.r
-perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r 
+perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAUSynth.r
+perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAUSynth.r 
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUSynth.r
 
-perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
-perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h 
+
+perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUSynthVersion.h
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUSynthVersion.h 
 
 xcodebuild ARCHS="i386 x86_64" CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
 
-rm Source/au-output.cpp
+rm Source/ausynth-output.cpp
 
 rm Info.plist
-
 cp Info-template.plist Info.plist
 
 rm English.lproj/InfoPlist.strings
 cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
 
-rm Source/AUSource/FaustAU.r
-cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
+rm Source/AUSource/FaustAUSynth.r
+cp Source/AUSource/FaustAUSynth-template.r Source/AUSource/FaustAUSynth.r
 
-rm Source/AUSource/FaustAUVersion.h
-cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
+rm Source/AUSource/FaustAUSynthVersion.h
+cp Source/AUSource/FaustAUSynthVersion-template.h Source/AUSource/FaustAUSynthVersion.h
 
-if [ ! -d $AU_DIR/FaustAU.component/ ]
+if [ ! -d $AU_DIR/FaustAUSynth.component/ ]
 then
 	echo unable to generate AU
 	cd ..
@@ -172,7 +171,7 @@ then
 	rm -r  $AU_DIR/"$FILE_NAME".component/
 fi
 
-mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
+mv $AU_DIR/FaustAUSynth.component $AU_DIR/"$FILE_NAME".component
 
 cd ..
 rm -r $TEMP_DIR
