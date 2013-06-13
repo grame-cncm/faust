@@ -741,4 +741,3 @@ OSStatus Faust::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
 	}
 	return noErr;
 }
-
