@@ -441,7 +441,6 @@ _f4u$t.move_active_slider = function(e,identifier)
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
   var pos = -1;
   var os = $(anchor).offset();
-  //console.log(os, anchor.getBoundingClientRect(), $(document).scrollTop());
   var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
   var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
   // we only care about the axis of the slider
@@ -691,13 +690,17 @@ _f4u$t.nentry_fill_changer = function(id, down, dir) {
 }
 
 _f4u$t.button_hover = function(id) {
-  $('#faust_button_box_'+_f4u$t.unique(id)).css('stroke', 'orange');
-  $('#faust_label_'+_f4u$t.unique(id)).css('fill', 'orange');
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    $('#faust_button_box_'+_f4u$t.unique(id)).css('stroke', 'orange');
+    $('#faust_label_'+_f4u$t.unique(id)).css('fill', 'orange');
+  }
 }
 
 _f4u$t.button_unhover = function(id) {
-  $('#faust_button_box_'+_f4u$t.unique(id)).css('stroke', 'black');
-  $('#faust_label_'+_f4u$t.unique(id)).css('fill', 'black');
+  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+    $('#faust_button_box_'+_f4u$t.unique(id)).css('stroke', 'black');
+    $('#faust_label_'+_f4u$t.unique(id)).css('fill', 'black');
+  }
 }
 
 _f4u$t.button_up = function(I) {
