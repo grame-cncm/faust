@@ -15,7 +15,7 @@
 #define kPortsViewMinXBetweenItems 120
 #define kPortsViewFSButtonWidth 100
 #define kPortsViewFSButtonHeight 20
-#define kPortsViewMaxHeight 50
+#define kPortsViewMaxHeight 150
 
 #import "JackViewPortsViewBackgroundView.h"
 
