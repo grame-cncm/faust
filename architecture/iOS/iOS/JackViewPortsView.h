@@ -15,7 +15,9 @@
 #define kPortsViewMinXBetweenItems 120
 #define kPortsViewFSButtonWidth 100
 #define kPortsViewFSButtonHeight 20
+#define kPortsViewMaxHeight 50
 
+#import "JackViewPortsViewBackgroundView.h"
 
 @class JackViewButton;
 
@@ -41,9 +43,7 @@
 @interface JackViewPortsView : UIView
 {
     UIScrollView*           _scrollView;
-    NSMutableArray*         _links;
     UITapGestureRecognizer* _tapRecognizer;
-    UIButton*               _deleteButton;
 }
 
 @property (assign, nonatomic) JackViewButton* clientButton;
@@ -53,11 +53,17 @@
 @property (assign, nonatomic) BOOL linking;
 @property (assign, readwrite) CGPoint srcPt;
 @property (assign, readwrite) CGPoint dstPt;
+@property (assign, readwrite) JackViewPortsViewBackgroundView* backgroundView;
+@property (assign, readwrite) NSMutableArray* links;
+@property (assign, readwrite) UIButton* deleteButton;
 
 - (void)refreshLinks;
 - (void)deleteSelectedLink;
 - (JackViewPortsViewItem*)itemAtPoint:(CGPoint)pt;
 - (void)singleTap:(UIGestureRecognizer *)gestureRecognizer;
 - (float)computeXOffsetWithXItems:(float)xItems xIcon:(float)xIcon;
-
+- (void)setUtilHeight:(float)h;
+- (void)addItem:(JackViewPortsViewItem*)item;
+- (void)refreshScrollViewOffset:(float)y;
+- (NSArray*)portsItems;
 @end

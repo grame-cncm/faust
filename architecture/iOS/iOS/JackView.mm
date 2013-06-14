@@ -59,6 +59,7 @@
     float y = 0.f;
     float w = 0.f;
     float h = 0.f;
+    float utilH = 0.f;
     int i = 0;
     NSArray* compatiblePorts = [self.jackViewClient compatiblePortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi];
     CGPoint pt = [self convertPoint:CGPointMake(0., 0.) toView:jackView.superview];
@@ -66,9 +67,9 @@
     
     x = 0;
     w = jackView.frame.size.width;
-    h = fmaxf([compatiblePorts count] * kPortsViewItemHeight + kPortsViewArrowHeight,
-              [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight + kPortsViewArrowHeight)
-        + kPortsViewFSButtonHeight;
+    utilH = fmaxf([compatiblePorts count] * kPortsViewItemHeight,
+                  [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight);
+    h = fminf(utilH, kPortsViewMaxHeight) + kPortsViewArrowHeight + kPortsViewFSButtonHeight;
     y = 0. - h;
         
     if (jackView.portsView)
@@ -85,6 +86,7 @@
     defPt = [self convertPoint:CGPointMake(x, y) toView:jackView.superview];
     
     jackView.portsView = [[JackViewPortsView alloc] initWithFrame:CGRectMake(x, defPt.y, w, h)];
+    [jackView.portsView setUtilHeight:utilH];
     jackView.portsView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
     jackView.portsView.clientButton = self;
     
@@ -106,7 +108,7 @@
             connectedToCurrentClientInputOutput:((JackViewPort*)([compatiblePorts objectAtIndex:i])).inputOutput
                                audioMidi:((JackViewPort*)([compatiblePorts objectAtIndex:i])).audioMidi];
         
-        [jackView.portsView addSubview:item];
+        [jackView.portsView addItem:item];
     }
     
     if (self.inputOutput == 1) [jackView displayCurrentAppPortsWithInputOutput:2 audioMidi:self.audioMidi];
@@ -127,6 +129,7 @@
     [jackView.superview addSubview:jackView.portsView];
     [jackView.portsView refreshLinks];
     [jackView.portsView setNeedsDisplay];
+    [jackView.portsView.backgroundView setNeedsDisplay];
 }
 
 - (void)buttonDoubleClicked
@@ -530,11 +533,11 @@
     
     self.portsView.currentAppX = [self convertPoint:self.currentClientButton.frame.origin toView:self.superview].x;
 
-    for (i = 0; i < [self.portsView.subviews count]; ++i)
+    for (i = 0; i < [[self.portsView portsItems] count]; ++i)
     {
-        if ([[self.portsView.subviews objectAtIndex:i] isKindOfClass:[JackViewPortsViewItem class]])
+        if ([[[self.portsView portsItems] objectAtIndex:i] isKindOfClass:[JackViewPortsViewItem class]])
         {
-            JackViewPortsViewItem* item = ((JackViewPortsViewItem*)[self.portsView.subviews objectAtIndex:i]);
+            JackViewPortsViewItem* item = ((JackViewPortsViewItem*)[[self.portsView portsItems] objectAtIndex:i]);
             if (item.frame.origin.x == oldClientX)
             {
                 [item setFrame:CGRectMake(self.portsView.clientX,
@@ -563,9 +566,9 @@
             
             //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
             
-            for (i = 0; i < [self.portsView.subviews count]; ++i)
+            for (i = 0; i < [[self.portsView portsItems] count]; ++i)
             {
-                JackViewPortsViewItem* item = ((JackViewPortsViewItem*)([self.portsView.subviews objectAtIndex:i]));
+                JackViewPortsViewItem* item = ((JackViewPortsViewItem*)([[self.portsView portsItems] objectAtIndex:i]));
                 
                 if ([item isKindOfClass:[JackViewPortsViewItem class]])
                 {
@@ -1242,7 +1245,7 @@
 
 - (void)connectPort:(NSString*)inputPort
            withPort:(NSString*)outputPort
-{
+{    
     jack_connect(_jackClient,
                  [inputPort cStringUsingEncoding:NSUTF8StringEncoding],
                  [outputPort cStringUsingEncoding:NSUTF8StringEncoding]);
@@ -1342,7 +1345,7 @@
      connectedToCurrentClientInputOutput:((JackViewPort*)([portsArray objectAtIndex:i])).inputOutput
                                audioMidi:((JackViewPort*)([portsArray objectAtIndex:i])).audioMidi];
         
-        [self.portsView addSubview:item];
+        [self.portsView addItem:item];
     }
 }
 
