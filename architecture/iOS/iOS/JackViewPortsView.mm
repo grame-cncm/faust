@@ -59,7 +59,7 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
+    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
         
@@ -67,7 +67,7 @@
         
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
-        portsView.srcPt = CGPointMake([touch locationInView:portsView].x, [touch locationInView:portsView].y);
+        portsView.srcPt = CGPointMake([touch locationInView:portsView.backgroundView].x, [touch locationInView:portsView.backgroundView].y);
     }
     
     [portsView setNeedsDisplay];
@@ -75,7 +75,7 @@
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
+    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
         
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
@@ -84,7 +84,8 @@
     
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
-        portsView.dstPt = CGPointMake([touch locationInView:portsView].x, [touch locationInView:portsView].y);
+        portsView.dstPt = CGPointMake([touch locationInView:portsView.backgroundView].x, [touch locationInView:portsView.backgroundView].y);
+        [portsView refreshScrollViewOffset:[touch locationInView:portsView.backgroundView].y];
     }
 
     [portsView setNeedsDisplay];
@@ -92,7 +93,7 @@
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
+    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
         
     JackView* jackView = portsView.clientButton.jackView;
 
@@ -105,10 +106,10 @@
     
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
-        JackViewPortsViewItem* item = [portsView itemAtPoint:CGPointMake([touch locationInView:portsView].x,
-                                                                         [touch locationInView:portsView].y)];
+        JackViewPortsViewItem* item = [portsView itemAtPoint:CGPointMake([touch locationInView:portsView.backgroundView].x,
+                                                                         [touch locationInView:portsView.backgroundView].y)];
 
-        if (item)
+        if (item && [item isKindOfClass:[JackViewPortsViewItem class]])
         {
             // Connect new link
             dstAppPortName = item.longName;
@@ -131,7 +132,7 @@
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview);
+    JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
         
     portsView.linking = NO;
     [portsView refreshLinks];
@@ -182,36 +183,51 @@
 @synthesize linking;
 @synthesize srcPt;
 @synthesize dstPt;
+@synthesize backgroundView;
+@synthesize links;
+@synthesize deleteButton;
 
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self)
     {
+        // Add scroll view
+        _scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0,
+                                                                     0,
+                                                                     frame.size.width,
+                                                                     frame.size.height - kPortsViewFSButtonHeight - kPortsViewArrowHeight)];
+        [self addSubview:_scrollView];
+        
+        // Add background view in scroll view
+        self.backgroundView = [[JackViewPortsViewBackgroundView alloc] initWithFrame:_scrollView.frame];
+        [_scrollView addSubview:self.backgroundView];
+        
         self.backgroundColor = [UIColor clearColor];
         self.clientButton = nil;
         self.clientX = 0.;
         self.currentAppX = 0.;
         self.linking = NO;
-        _links = [[NSMutableArray alloc] initWithCapacity:0];
+        self.links = [[NSMutableArray alloc] initWithCapacity:0];
         _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
         _tapRecognizer.numberOfTapsRequired = 1;
         [self addGestureRecognizer:_tapRecognizer];
-        _deleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_deleteButton setTitle:@"X" forState:UIControlStateNormal];
-        [_deleteButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-        [_deleteButton setFrame:CGRectMake(0, 0, 20, 20)];
-        _deleteButton.showsTouchWhenHighlighted = YES;
-        _deleteButton.hidden = YES;
-        [_deleteButton addTarget:self action:@selector(deleteSelectedLink) forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:_deleteButton];
+        self.deleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.deleteButton setTitle:@"X" forState:UIControlStateNormal];
+        [self.deleteButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+        [self.deleteButton setFrame:CGRectMake(0, 0, 20, 20)];
+        self.deleteButton.showsTouchWhenHighlighted = YES;
+        self.deleteButton.hidden = YES;
+        [self.deleteButton addTarget:self action:@selector(deleteSelectedLink) forControlEvents:UIControlEventTouchUpInside];
+        [_scrollView addSubview:self.deleteButton];
     }
     return self;
 }
 
 - (void)dealloc
 {
-    [_links release];
+    [self.links release];
+    [_scrollView release];
     [super dealloc];
 }
 
@@ -290,42 +306,7 @@
     CGContextFillPath(context);
         
     // Links
-    JackViewPortsLink* link = nil;
-    
-    for (i = 0; i < [_links count]; ++i)
-    {
-        link = [_links objectAtIndex:i];
-        
-        if (linking) link.selected = NO;
-        
-        CGContextRef c = UIGraphicsGetCurrentContext();
-        
-        if (link.selected)
-        {
-            [[UIColor redColor] set];
-            _deleteButton.hidden = NO;
-        }
-        else [[UIColor whiteColor] set];
-        
-        CGContextBeginPath(c);
-        CGContextMoveToPoint(c, link.srcPt.x, link.srcPt.y);
-        CGContextAddLineToPoint(c, link.dstPt.x, link.dstPt.y);
-        CGContextStrokePath(c);
-    }
-    
-    if (self.linking)
-    {
-        _deleteButton.hidden = YES;
-        
-        CGContextRef c = UIGraphicsGetCurrentContext();
-        
-        [[UIColor whiteColor] set];
-        
-        CGContextBeginPath(c);
-        CGContextMoveToPoint(c, self.srcPt.x, self.srcPt.y);
-        CGContextAddLineToPoint(c, self.dstPt.x, self.dstPt.y);
-        CGContextStrokePath(c);
-    }
+    [self.backgroundView setNeedsDisplay];
 }
 
 - (void)refreshLinks
@@ -334,7 +315,7 @@
     int i = 0;
     int j = 0;
     int k = 0;
-    NSArray* buttons = [self subviews];
+    NSArray* buttons = [_scrollView subviews];
     JackViewPortsViewItem* srcItem = nil;
     JackViewPortsViewItem* dstItem = nil;
     JackView* jackView = self.clientButton.jackView;
@@ -343,9 +324,9 @@
     NSString* srcName = nil;
     NSString* dstName = nil;
     NSArray* dstArray = nil;
-
-    [_links removeAllObjects];
-    _deleteButton.hidden = YES;
+    
+    [self.links removeAllObjects];
+    self.deleteButton.hidden = YES;
     
     for (i = 0; i < [buttons count]; ++i)
     {
@@ -380,7 +361,7 @@
                                 link.dstPt = CGPointMake(tmpDstPt.x, tmpDstPt.y);
                                 link.srcName = srcName;
                                 link.dstName = dstName;
-                                [_links addObject:link];
+                                [self.links addObject:link];
                             }
                         }
                     }
@@ -396,9 +377,9 @@
     JackViewPortsLink* link = nil;
     JackView* jackView = self.clientButton.jackView;
     
-    for (i = 0; i < [_links count]; ++i)
+    for (i = 0; i < [self.links count]; ++i)
     {
-        link = [_links objectAtIndex:i];
+        link = [self.links objectAtIndex:i];
 
         if (link.selected)
         {
@@ -409,21 +390,24 @@
         }
     }
     
-    _deleteButton.hidden = YES;
+    self.deleteButton.hidden = YES;
     [self refreshLinks];
     [self setNeedsDisplay];
 }
 
 - (JackViewPortsViewItem*)itemAtPoint:(CGPoint)pt
 {
-    NSArray* items = [self subviews];
+    NSArray* items = [_scrollView subviews];
     JackViewPortsViewItem* item = nil;
     int i = 0;
+    
+    pt.y = pt.y;
     
     for (i = 0; i < [items count]; ++i)
     {
         item = (JackViewPortsViewItem*)[items objectAtIndex:i];
-        if (pt.x >= item.frame.origin.x
+        if ([item isKindOfClass:[JackViewPortsViewItem class]]
+            && pt.x >= item.frame.origin.x
             && pt.x <= item.frame.origin.x +item.frame.size.width
             && pt.y >= item.frame.origin.y
             && pt.y <= item.frame.origin.y +item.frame.size.height)
@@ -437,7 +421,7 @@
 
 - (void)singleTap:(UIGestureRecognizer *)gestureRecognizer
 {
-    CGPoint pt = [gestureRecognizer locationInView:self];
+    CGPoint pt = [gestureRecognizer locationInView:self.backgroundView];
     float a = 0.f;
     float b = 0.f;
     float c = 0.f;
@@ -449,12 +433,12 @@
     float dist = 0.;
     float minDist = 100000.;
     
-    _deleteButton.hidden = YES;
+    self.deleteButton.hidden = YES;
     
     // Look for nearest link
-    for (i = 0; i < [_links count]; ++i)
+    for (i = 0; i < [self.links count]; ++i)
     {
-        link = [_links objectAtIndex:i];
+        link = [self.links objectAtIndex:i];
         link.selected = NO;
         
         if (pt.x > fminf(link.srcPt.x, link.dstPt.x)
@@ -491,18 +475,38 @@
         float x = 0.f;
         float y = 0.f;
         
-        link = [_links objectAtIndex:minLinkIndex];
+        link = [self.links objectAtIndex:minLinkIndex];
         link.selected = YES;
         
         x = fmaxf(link.dstPt.x, link.srcPt.x);
         if (x == link.dstPt.x) y = link.dstPt.y;
         else y = link.srcPt.y;
         
-        [_deleteButton setFrame:CGRectMake(x - 70, (y - 20) * 0.8 + (y - 20) * 0.2, 20, 20)];
-        //_deleteButton.hidden = NO;
+        [self.deleteButton setFrame:CGRectMake(x - 70, (y - 20) * 0.8 + (y - 20) * 0.2, 20, 20)];
     }
     
     [self setNeedsDisplay];
+}
+
+- (void)setUtilHeight:(float)h
+{
+    [backgroundView setFrame:CGRectMake(0, 0, self.frame.size.width, h)];
+    [_scrollView setContentSize:CGSizeMake(self.frame.size.width, h)];
+}
+
+- (void)addItem:(JackViewPortsViewItem*)item
+{
+    [_scrollView addSubview:item];
+}
+
+- (void)refreshScrollViewOffset:(float)y
+{
+    [_scrollView scrollRectToVisible:CGRectMake(0, y, 1, 1) animated:NO];
+}
+
+- (NSArray*)portsItems
+{
+    return [_scrollView subviews];
 }
 
 @end
