@@ -268,7 +268,7 @@ _f4u$t.make_checkbox = function(dct) {
   options.d *= size;
 
   var lm_options = $.extend(true, {}, _f4u$t.vgroup_inits);
-  lm_options.axis = _f4u$t.Y_AXIS;
+  lm_options.axis = _f4u$t.X_AXIS;
   lm_options.stretchable = [false, false];
 
   /* make faust ui objects */
@@ -276,8 +276,8 @@ _f4u$t.make_checkbox = function(dct) {
   var label = new _f4u$t.Label({label : dct["label"], id : id, mom : null});
 
   var lm = new _f4u$t.LayoutManager(lm_options);
-  lm.objs.push(label);
   lm.objs.push(checkbox);
+  lm.objs.push(label);
 
   return lm;
 }

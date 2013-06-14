@@ -217,9 +217,7 @@ _f4u$t.extend(_f4u$t.UIObject, _f4u$t.Label);
 
 _f4u$t.Label.prototype.dims = function() {
   var bbx = _f4u$t.get_text_bbox(this.get_root_svg(), this.label);
-  //return [bbx.width + 4, bbx.height + 4];
-  // ugggghhhh
-  return [0,10];
+  return [bbx.width, bbx.height];
 }
 
 _f4u$t.Label.prototype.label_text = function() {
@@ -243,7 +241,6 @@ _f4u$t.Label.prototype.make = function(svg, parent) {
     {
       id: 'faust_label_'+id,
       "class" : "faust-label",
-      "text-anchor" : _f4u$t.xy(this.get_layout_manager().axis, 'left', 'middle'),
     }
   );
 
