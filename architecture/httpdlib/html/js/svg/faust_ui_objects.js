@@ -1129,7 +1129,7 @@ _f4u$t.NumericalEntry.prototype.make_button = function(svg, parent, id, xo, incr
       stroke : _f4u$t.color_to_rgb(this.button_stroke),
       transform : 'translate('+xo+',0)',
       id : full_id,
-      'class' : 'faust-nentry-up'
+      'class' : 'faust-nentry-box'
     });
 
   $('#'+full_id).bind('mousedown', mousedown);
@@ -1510,7 +1510,7 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
     h,
     {
       transform: 'translate('+x+','+y+')',
-      'class' : 'faust-tgroup-'+(down ? 'down' : 'up'),
+      'class' : 'faust-tgroup-box',
       fill : _f4u$t.color_to_rgb(fill),
       stroke : _f4u$t.color_to_rgb(this.stroke),
       id : 'faust_tab_'+_f4u$t.unique(goodid),

@@ -283,7 +283,7 @@ _f4u$t.disactivate_nentry = function(ee, dir) {
   var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
   var longid = ee.target.id;
   var id = _f4u$t.unique(longid);
-  _f4u$t.nentry_class_changer(id, false, dir);
+  _f4u$t.nentry_fill_changer(id, false, dir);
 }
 
 _f4u$t.activate_nentry = function(ee, dir) {
@@ -294,7 +294,7 @@ _f4u$t.activate_nentry = function(ee, dir) {
   var identifier = ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches[0].identifier : 0;
   var longid = ee.target.id;
   var id = _f4u$t.unique(longid);
-  _f4u$t.nentry_class_changer(id, true, dir);
+  _f4u$t.nentry_fill_changer(id, true, dir);
   _f4u$t._I[identifier] = {id : longid, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
   _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
   _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
@@ -351,10 +351,10 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
   var strar = badids.split('#');
   for (var i = 0; strar.length > i; i++) {
     _f4u$t.move_to_ridiculous_negative(strar[i]);
-    _f4u$t.tgroup_class_changer(_f4u$t.unique(strar[i]), false);
+    _f4u$t.tgroup_fill_changer(_f4u$t.unique(strar[i]), false);
   }
   _f4u$t.generic_translate(goodid, x, y);
-  _f4u$t.tgroup_class_changer(_f4u$t.unique(goodid), true);
+  _f4u$t.tgroup_fill_changer(_f4u$t.unique(goodid), true);
 }
 
 /*
@@ -659,58 +659,50 @@ _f4u$t.clearIdCache = function(ee) {
   $('body').unbind('touchmove'); // turns on zooming for mobile devices
 }
 
-_f4u$t.button_class_changer = function(id, down) {
-  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
-    if (down) {
-      $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-up').addClass('faust-button-down');
-    }
-    else {
-      $('#faust_button_box_'+_f4u$t.unique(id)).removeClass('faust-button-down').addClass('faust-button-up');
-    }
+_f4u$t.button_fill_changer = function(id, down) {
+  if (down) {
+    $('#faust_button_box_'+_f4u$t.unique(id)).css('fill', 'url(#buttonDownGradient)');
+  }
+  else {
+    $('#faust_button_box_'+_f4u$t.unique(id)).css('fill', 'url(#buttonUpGradient)');
   }
 }
 
 // TODO : this is just a copy and paste of the above
 // if we need more of these, consolidate
-_f4u$t.tgroup_class_changer = function(id, down) {
+_f4u$t.tgroup_fill_changer = function(id, down) {
   if (down) {
-    $('#faust_tab_'+_f4u$t.unique(id)).removeClass('faust-tgroup-up').addClass('faust-tgroup-down');
+    $('#faust_tab_'+_f4u$t.unique(id)).css('fill', 'url(#tabGroupDownGradient)');
   }
   else {
-    $('#faust_tab_'+_f4u$t.unique(id)).removeClass('faust-tgroup-down').addClass('faust-tgroup-up');
+    $('#faust_tab_'+_f4u$t.unique(id)).css('fill', 'url(#tabGroupUpGradient)');
   }
 }
 
 // DITTO - slight variation on function above
-_f4u$t.nentry_class_changer = function(id, down, dir) {
-  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
-    var dirtext = dir == -1 ? 'minus' : 'plus';
-    if (down) {
-      $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-up').addClass('faust-nentry-down');
-    }
-    else {
-      $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).removeClass('faust-nentry-down').addClass('faust-nentry-up');
-    }
+_f4u$t.nentry_fill_changer = function(id, down, dir) {
+  var dirtext = dir == -1 ? 'minus' : 'plus';
+  if (down) {
+    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).css('fill', 'url(#numericalEntryDownGradient)');
+  }
+  else {
+    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).css('fill', 'url(#numericalEntryUpGradient)');
   }
 }
 
 _f4u$t.button_hover = function(id) {
-  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
-    document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'orange';
-    document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'orange';
-  }
+  $('#faust_button_box_'+_f4u$t.unique(id)).css('stroke', 'orange');
+  $('#faust_label_'+_f4u$t.unique(id)).css('fill', 'orange');
 }
 
 _f4u$t.button_unhover = function(id) {
-  if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
-    document.getElementById('faust_button_box_'+_f4u$t.unique(id)).style.stroke = 'black';
-    document.getElementById('faust_label_'+_f4u$t.unique(id)).style.fill = 'black';
-  }
+  $('#faust_button_box_'+_f4u$t.unique(id)).css('stroke', 'black');
+  $('#faust_label_'+_f4u$t.unique(id)).css('fill', 'black');
 }
 
 _f4u$t.button_up = function(I) {
   var id = _f4u$t.unique(I);
-  _f4u$t.button_class_changer(id, false);
+  _f4u$t.button_fill_changer(id, false);
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 0);
   _f4u$t.clearIdCache();
 }
@@ -718,7 +710,7 @@ _f4u$t.button_up = function(I) {
 _f4u$t.button_down = function(I) {
   var id = _f4u$t.unique(I);
   _f4u$t.clog_key_sink();
-  _f4u$t.button_class_changer(id, true);
+  _f4u$t.button_fill_changer(id, true);
   _f4u$t.fausthandler(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"], 1);
 }
 

@@ -44,8 +44,8 @@ _f4u$t.tgroup_inits = {
   stroke : 'orange',
   stretchable : [true, true],
   id : null,
-  fill_on : "url(#buttonDownGradient)",
-  fill_off : "url(#buttonUpGradient)"
+  fill_on : "url(#tabGroupDownGradient)",
+  fill_off : "url(#tabGroupUpGradient)"
 };
 
 _f4u$t.group_inits = {
@@ -206,6 +206,28 @@ _f4u$t.linear_gradient_inits = {
       }
     },
   buttonUpGradient :
+    {
+      stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "100%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  tabGroupDownGradient :
+    {
+      stops : [['0%', '#404040', 1],['100%', '#B0B0B0', 1]],
+      x1 : "0%",
+      y1 : "0%",
+      x2 : "0%",
+      y2 : "100%",
+      settings : {
+        gradientUnits:'objectBoundingBox'
+      }
+    },
+  tabGroupUpGradient :
     {
       stops : [['0%', '#B0B0B0', 1],['100%', '#404040', 1]],
       x1 : "0%",
