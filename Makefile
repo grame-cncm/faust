@@ -92,6 +92,11 @@ install :
 	rm -rf $(prefix)/lib/faust/iOS
 	cp -r architecture/iOS $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/iOS/DerivedData/
+	# install AU
+	rm -rf $(prefix)/lib/faust/AU/
+	cp -r architecture/AU $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust/AUSynth/
+	cp -r architecture/AUSynth $(prefix)/lib/faust/
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/
