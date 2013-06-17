@@ -407,7 +407,10 @@ _f4u$t.move_active_object = function(ee) {
 // Helps for readability, but not necessary
 _f4u$t.internal_move_active_object = function(e, identifier) {
   _f4u$t.clog_key_sink();
-  var now = _f4u$t['move_active_'+_f4u$t.type(_f4u$t._I[identifier]['id'])](e, identifier);
+  var fn = _f4u$t['move_active_'+_f4u$t.type(_f4u$t._I[identifier]['id'])];
+  if (fn) {
+    fn(e, identifier);
+  }
 
   // UI2DSP
   if (now != null && now != _f4u$t._I[identifier]['value']) {
@@ -658,36 +661,38 @@ _f4u$t.clearIdCache = function(ee) {
   $('body').unbind('touchmove'); // turns on zooming for mobile devices
 }
 
+_f4u$t.onoff_property_changer = function(id, down, property, value_down, value_up) {
+  if (down) {
+    $('#'+id).css(property, value_down);
+  }
+  else {
+    $('#'+id).css(property, value_up);
+  }
+}
+
+_f4u$t.onoff_fill_changer = function(id, down, value_down, value_up) {
+  _f4u$t.onoff_property_changer(id, down, 'fill', value_down, value_up);
+}
+
 _f4u$t.button_fill_changer = function(id, down) {
-  if (down) {
-    $('#faust_button_box_'+_f4u$t.unique(id)).css('fill', 'url(#buttonDownGradient)');
-  }
-  else {
-    $('#faust_button_box_'+_f4u$t.unique(id)).css('fill', 'url(#buttonUpGradient)');
-  }
+  _f4u$t.onoff_fill_changer('faust_button_box_'+_f4u$t.unique(id), down, 'url(#buttonDownGradient)', 'url(#buttonUpGradient)');
 }
 
-// TODO : this is just a copy and paste of the above
-// if we need more of these, consolidate
 _f4u$t.tgroup_fill_changer = function(id, down) {
-  if (down) {
-    $('#faust_tab_'+_f4u$t.unique(id)).css('fill', 'url(#tabGroupDownGradient)');
-  }
-  else {
-    $('#faust_tab_'+_f4u$t.unique(id)).css('fill', 'url(#tabGroupUpGradient)');
-  }
+  _f4u$t.onoff_fill_changer('faust_tab_'+_f4u$t.unique(id), down, 'url(#tabGroupDownGradient)', 'url(#tabGroupUpGradient)');
 }
 
-// DITTO - slight variation on function above
 _f4u$t.nentry_fill_changer = function(id, down, dir) {
   var dirtext = dir == -1 ? 'minus' : 'plus';
-  if (down) {
-    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).css('fill', 'url(#numericalEntryDownGradient)');
-  }
-  else {
-    $('#faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id)).css('fill', 'url(#numericalEntryUpGradient)');
-  }
+  _f4u$t.onoff_fill_changer('faust_nentry_button_'+dirtext+'_'+_f4u$t.unique(id), down, 'url(#numericalEntryDownGradient)', 'url(#numericalEntryUpGradient)');
 }
+
+/*
+  Note that hovering does not make sense for mobile devices.
+  Unfortunately, some mobile device translate hover instructions
+  as a sort of onclick command.
+  So we remove this for mobile devices after the callback fires.
+*/
 
 _f4u$t.button_hover = function(id) {
   if(! /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
