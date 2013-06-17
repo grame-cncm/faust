@@ -65,7 +65,7 @@ done
 
 FAUST_DIR=$FLIB
 AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
-TEMP_DIR=faust.XXX
+TEMP_DIR=./faust.XXX
 
 if [ $# -lt 1 ]
 then
@@ -87,6 +87,7 @@ fi
 
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
+cp $1 $TEMP_DIR
 cd $TEMP_DIR
 
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
