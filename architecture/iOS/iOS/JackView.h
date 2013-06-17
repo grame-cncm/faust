@@ -15,14 +15,16 @@
 
 #define kJackViewExtHMargins 30
 #define kJackViewExtVMargins 5
-#define kJackViewIntHMargins 100
-#define kJackViewIntVMargins 5
+#define kJackViewIntHMargins 5
 
-#define kJackViewCurrentAppIconDimension 90
+#define kJackViewBottomMargin 20
+#define kJackViewTitlesYOffset 20
+#define kJackViewStrokeYOffset 16
+
 #define kJackViewCurrentAppIconBottomMargin 30
 
-#define kJackViewIconDimension 70
-#define kJackViewIconMargins 5
+#define kJackViewButtonWidth 70
+#define kJackViewIconMargins 4
 
 
 @class JackViewClient;
