@@ -5,7 +5,7 @@
 #ifndef __VST_VOICE_H__
 #define __VST_VOICE_H__
 
-#include "dsp.h"
+#include "../audio/dsp.h"
 
 class Voice : public vstUI {
 public:

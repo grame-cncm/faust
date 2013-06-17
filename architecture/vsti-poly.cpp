@@ -185,7 +185,7 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 *****************************************************************************/
 
 #include "faust/vst/UI.h"
-#include "faust/vst/dsp.h"
+#include "faust/audio/dsp.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -819,6 +819,11 @@ void Faust::bendPitch(float bend)
 	}
 } // end of Faust::bendPitch
 
+static inline float note2freq(VstInt32 note) 
+{
+	return 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
+}
+
 void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 {
 #ifdef DEBUG
@@ -828,7 +833,7 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
   currentVelocity = velocity;
   currentDelta = delta;
   noteIsOn = true;
-  const float freq = 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
+  const float freq = note2freq(note); 
   float gain = velocity/127.0f;
 
 	if (m_freeVoices.empty()) {
