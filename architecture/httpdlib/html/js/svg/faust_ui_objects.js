@@ -100,9 +100,9 @@ _f4u$t.UIObject.prototype.make_tooltip_box = function(svg, parent, id) {
     parent,
     2,
     -textdims.width*0.05,
-    -(textdims.height*1.4),
+    -(textdims.height*1.1),
     textdims.width*1.1,
-    textdims.height*1.6,
+    textdims.height*1.3,
     {
       id: full_id,
       fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
@@ -126,7 +126,6 @@ _f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id
     var box = this.make_tooltip_box(svg, container, id);
     var text = this.make_tooltip_text(svg, container, id);
     _f4u$t.move_to_ridiculous_negative(full_id);
-
     $('#'+linked_obj_id).bind('mouseover', _f4u$t.tooltip_mouseover);
     $('#'+linked_obj_id).bind('mouseout', _f4u$t.tooltip_mouseout);
 
@@ -230,11 +229,10 @@ _f4u$t.Label.prototype.label_text = function() {
 
 _f4u$t.Label.prototype.make = function(svg, parent) {
   var id = this.id;
-  var g = this.make_group(svg, parent, id);
 
   var label = this.label_text();
   var vl = svg.text(
-    g,
+    parent,
     0,
     this.dims()[_f4u$t.Y_AXIS],
     label,
@@ -244,7 +242,6 @@ _f4u$t.Label.prototype.make = function(svg, parent) {
     }
   );
 
-  return g;
 }
 
 /*
