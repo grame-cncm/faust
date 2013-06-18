@@ -1097,8 +1097,11 @@ Finds the bounding box of a text node in an svg.
 @param {Object} text The text node.
 @return {Object} The bounding rectangle of the text node.
 **/
-_f4u$t.get_text_bbox = function(svg, text) {
-  var dummy = svg.text(0,0,text, {'class' : 'faust-label'});
+_f4u$t.get_text_bbox = function(svg, text, kls) {
+  if (!kls) {
+    kls = 'faust-label';
+  }
+  var dummy = svg.text(0,0,text, {'class' : kls});
   var bbox = dummy.getBBox();
   svg.remove(dummy);
   return bbox;
