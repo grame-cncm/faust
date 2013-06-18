@@ -81,6 +81,10 @@
  *   - Reference: 
  * http://ccrma.stanford.edu/realsimple/faust/Generating_VST_Plugin_Faust.html
  *
+ * Initial work on the polyphonic VSTi architecture was done as part
+ * of Music 420B class in Stanford University and in summarized in
+ * http://stanford.edu/~yanm2/files/mus420b.pdf
+ *
  * FAUST 
  * Copyright (C) 2003-2007 GRAME, Centre National de Creation Musicale
  * http://www.grame.fr/			     
