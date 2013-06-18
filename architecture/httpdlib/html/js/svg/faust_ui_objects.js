@@ -512,9 +512,6 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   }
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  //this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
-  //this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
-  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
@@ -698,21 +695,6 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
   this.make_meter(svg, g, id);
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  /*
-  this.make_value_box(
-    svg,
-    g,
-    id,
-    '_f4u$t["'+this.type+'_key_sink"]("'+id+'")'
-  );
-  this.make_value_value(
-    svg,
-    g,
-    id,
-    '_f4u$t["'+this.type+'_key_sink"]("'+id+'")'
-  );
-  this.make_label(svg, g, id);
-  */
   this.make_tooltip(svg, g, id, id);
   return g;
 }
@@ -823,9 +805,6 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
 
   this.make_meter(svg, g, id);
   this.make_curtain(svg, g, id);
-  //this.make_value_box(svg, g, id);
-  //this.make_value_value(svg, g, id);
-  //this.make_label(svg, g, id);
 
   return g;
 }
@@ -1216,9 +1195,6 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_right_button(svg, g, id);
   this.make_minus(svg, g, id);
   this.make_plus(svg, g, id);
-  //this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
-  //this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
-  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
