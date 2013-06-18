@@ -1323,11 +1323,6 @@ _f4u$t.LayoutManager.prototype.get_stretchable_coefficient = function(total) {
   return (total - (this.padding * (this.objs.length + 1)) - unstretchable) / stretchable;
 }
 
-_f4u$t.nspaces = function(leaf) {
-  out = "";
-    for (var i = 0; i < leaf; i++) { out = out + " "; } return out;
-}
-
 _f4u$t.LayoutManager.prototype.do_spacing = function(leaf) {
   var dims = this.dims();
   var x = dims[_f4u$t.X_AXIS];
