@@ -41,10 +41,10 @@
         
         if (link.selected)
         {
-            [[UIColor redColor] set];
+            [[UIColor blueColor] set];
             portsView.deleteButton.hidden = NO;
         }
-        else [[UIColor whiteColor] set];
+        else [[UIColor blackColor] set];
         
         CGContextBeginPath(c);
         CGContextMoveToPoint(c, link.srcPt.x, link.srcPt.y);
@@ -58,7 +58,7 @@
         
         CGContextRef c = UIGraphicsGetCurrentContext();
         
-        [[UIColor whiteColor] set];
+        [[UIColor blackColor] set];
         
         CGContextBeginPath(c);
         CGContextMoveToPoint(c, portsView.srcPt.x, portsView.srcPt.y);
