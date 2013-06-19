@@ -512,7 +512,9 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
   var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
   var sliderlen = _f4u$t.IDS_TO_ATTRIBUTES[id]["sliderlen"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
-  var pos = _f4u$t.remap(e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle],
+  var orientation = e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle];
+  orientation = orientation ? orientation : 0;
+  var pos = _f4u$t.remap(orientation,
                          _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.low,
                          _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high,
                          0,

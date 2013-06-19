@@ -490,7 +490,7 @@ _f4u$t.parse_orientation = function(s) {
   if (['alpha','beta','gamma'].indexOf(split[0]) < 0) {
     return {};
   }
-  var itor = {1 : Number.NEGATIVE_INFINITY, 2 : Number.POSITIVE_INFINITY };
+  var itor = {1 : _f4u$t.orientation_bounds[split[0]][0], 2 : _f4u$t.orientation_bounds[split[0]][1] };
 
   // this loop creates the rest of the array
   for (var i in itor) {
