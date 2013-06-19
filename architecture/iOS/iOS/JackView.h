@@ -14,11 +14,12 @@
 
 
 #define kJackViewExtHMargins 30
-#define kJackViewExtVMargins 5
+#define kJackViewExtTopVMargins 20
+#define kJackViewExtBottomVMargins 5
 #define kJackViewIntHMargins 5
 
 #define kJackViewBottomMargin 20
-#define kJackViewTitlesYOffset 20
+#define kJackViewTitlesYOffset 3
 #define kJackViewStrokeYOffset 16
 
 #define kJackViewCurrentAppIconBottomMargin 30

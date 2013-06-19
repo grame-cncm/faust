@@ -13,47 +13,79 @@
 @implementation JackViewPortsViewItem
 
 @synthesize longName;
-@synthesize alias;
 
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self)
     {
-        self.backgroundColor = [UIColor darkGrayColor];
+        self.backgroundColor = [UIColor clearColor];
         self.longName = nil;
-        self.alias = nil;
     }
     return self;
 }
 
 - (void)drawRect:(CGRect)rect
-{    
-    if (self.longName)
-    {
-        [[UIColor whiteColor] set];
+{
+    self.backgroundColor = [UIColor clearColor];
     
-        CGContextRef context = UIGraphicsGetCurrentContext();
-        CGContextSetShadow(context, CGSizeMake(1.0f, 1.0f), 5.0f);
+    // Background
+    /*CGContextRef context = UIGraphicsGetCurrentContext();
     
-        [[[self.longName componentsSeparatedByString:@":"] objectAtIndex:1] drawAtPoint:CGPointMake(1.0f, 14.f)
-                                                                               withFont:[UIFont boldSystemFontOfSize:16.0f]];
-    }
+    UIColor *lColor = [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:0.95];
+    UIColor *rColor = [UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:0.95];
     
+    CGFloat locations[2] = {0., 1.};
+    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lColor.CGColor,
+                                      (id)rColor.CGColor,
+                                      nil];
+    
+    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
+    
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    
+    CGContextDrawLinearGradient(context,
+                                gradient,
+                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.origin.y),
+                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.size.height),
+                                kCGGradientDrawsBeforeStartLocation);
+    
+    CGColorSpaceRelease(colorSpc);
+    CGGradientRelease(gradient);*/
+
     // Draw selection
     //if (self.selected)
     {
-        UIBezierPath* path = [UIBezierPath bezierPath];
+        UIBezierPath* path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(rect.origin.x + 1.,
+                                                                                rect.origin.y + 5.,
+                                                                                rect.size.width - 2.,
+                                                                                rect.size.height - 10.)
+                                                        cornerRadius:10.];
+        path.lineWidth = 1.5;
+        
+        /*[path moveToPoint:CGPointMake(rect.origin.x, rect.origin.y + 1)];
+        [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + 1)];
+        [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height - 1)];
+        [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height - 1)];
+        [path closePath];*/
+        
+        [[UIColor colorWithWhite:0.8 alpha:1.] set];
+        [path fillWithBlendMode:kCGBlendModeNormal alpha:1.];
         
         [[UIColor blackColor] set];
-        
-        [path moveToPoint:CGPointMake(rect.origin.x, rect.origin.y + 2)];
-        [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + 2)];
-        [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height - 2)];
-        [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height - 2)];
-        [path closePath];
-        path.lineWidth = 2;
         [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
+    }
+    
+    if (self.longName)
+    {
+        UIFont* font = [UIFont systemFontOfSize:16.0f];
+        NSString* str = [[self.longName componentsSeparatedByString:@":"] objectAtIndex:1];
+        CGSize stringBoundingBox = [str sizeWithFont:font];
+        [[UIColor blackColor] set];
+        
+        [str drawAtPoint:CGPointMake((rect.size.width - stringBoundingBox.width) / 2., 14.f)
+                withFont:font];
     }
 }
 
@@ -213,7 +245,8 @@
         _tapRecognizer.numberOfTapsRequired = 1;
         [self addGestureRecognizer:_tapRecognizer];
         self.deleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.deleteButton setTitle:@"X" forState:UIControlStateNormal];
+        //[self.deleteButton setTitle:@"X" forState:UIControlStateNormal];
+        [self.deleteButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Icon-Delete" ofType:@"png"]] forState:UIControlStateNormal];
         [self.deleteButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
         [self.deleteButton setFrame:CGRectMake(0, 0, 20, 20)];
         self.deleteButton.showsTouchWhenHighlighted = YES;
@@ -249,27 +282,62 @@
     float xItems = 0.;
     float xIcon = 0.;
     float xOffset = 0.;
-    
+    CGContextRef context;
+    UIBezierPath* path = [UIBezierPath bezierPath];
+
     // Background
     self.backgroundColor = [UIColor clearColor];
     
-    [[UIColor darkGrayColor] set];
-    UIRectFill(CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height - kPortsViewArrowHeight));
+    /*CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    UIColor *lColor = [UIColor colorWithRed:0.6 green:0.6 blue:0.6 alpha:0.95];
+    UIColor *rColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:0.95];
+    
+    CGFloat locations[2] = {0., 1.};
+    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lColor.CGColor,
+                                      (id)rColor.CGColor,
+                                      nil];
+    
+    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
+    
+    CGContextSetBlendMode(context, kCGBlendModeMultiply);
+    
+    CGContextDrawLinearGradient(context,
+                                gradient,
+                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.origin.y),
+                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.size.height - kPortsViewArrowHeight),
+                                kCGGradientDrawsBeforeStartLocation);
+    
+    CGColorSpaceRelease(colorSpc);
+    CGGradientRelease(gradient);
+    CGContextSetBlendMode(context, kCGBlendModeNormal);*/
+    
+    [[UIColor colorWithWhite:0.8 alpha:0.95] set];
+    
+    [path moveToPoint:CGPointMake(rect.origin.x, rect.origin.y)];
+    [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y)];
+    [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height - kPortsViewArrowHeight)];
+    [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height - kPortsViewArrowHeight)];
+    [path closePath];
+    [path fillWithBlendMode:kCGBlendModeNormal alpha:1.];
+    
+    //[[UIColor darkGrayColor] set];
+    //UIRectFill(CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height - kPortsViewArrowHeight));
     
     // Ports
     for (i = 0; i < [[self subviews] count]; ++i)
     {
         [[[self subviews] objectAtIndex:i] setNeedsDisplay];
     }
-    
+        
     // Client arrow
     xItems = clientX;
     xIcon = [clientButton convertPoint:CGPointMake(0, 0) toView:self].x;
     
     xOffset = [self computeXOffsetWithXItems:xItems xIcon:xIcon];
     
-    [[UIColor darkGrayColor] set];
-    CGContextRef context = UIGraphicsGetCurrentContext();
+    context = UIGraphicsGetCurrentContext();
     CGContextBeginPath(context);
     CGContextMoveToPoint(context,
                          clientX + xOffset,
@@ -278,7 +346,7 @@
                             fmin(clientX + kPortsViewArrowWidth + xOffset, clientX + kPortsViewItemWidth),
                             self.frame.size.height - kPortsViewArrowHeight);
     CGContextAddLineToPoint(context,
-                            [clientButton convertPoint:CGPointMake(0, 0) toView:self].x,
+                            [clientButton convertPoint:CGPointMake(0, 0) toView:self].x + kPortsViewArrowWidth / 2.,
                             self.frame.size.height);
     CGContextClosePath(context);
     
@@ -290,7 +358,6 @@
     
     xOffset = [self computeXOffsetWithXItems:xItems xIcon:xIcon];
     
-    [[UIColor darkGrayColor] set];
     CGContextBeginPath(context);
     CGContextMoveToPoint(context,
                          currentAppX + xOffset,
@@ -299,7 +366,7 @@
                             fmin(currentAppX + kPortsViewArrowWidth + xOffset, currentAppX + kPortsViewItemWidth),
                             self.frame.size.height - kPortsViewArrowHeight);
     CGContextAddLineToPoint(context,
-                            jackView.currentClientButton.frame.origin.x,
+                            jackView.currentClientButton.frame.origin.x + kPortsViewArrowWidth / 2.,
                             self.frame.size.height);
     CGContextClosePath(context);
     
