@@ -181,50 +181,28 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
-
-EXPORT llvm_dsp_factory* createDSPFactory1(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
-                        char* error_msg, int opt_level = 3);
-
                         
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
 
 // Bitcode <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode1(const char* bit_code, const char* target, int opt_level = 0);
-
 EXPORT std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
-
-EXPORT const char* writeDSPFactoryToBitcode1(llvm_dsp_factory* factory);
 
 // Bitcode <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 0);
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile1(const char* bit_code_path, const char* target, int opt_level = 0);
-
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
-
-EXPORT void writeDSPFactoryToBitcodeFile1(llvm_dsp_factory* factory, const char* bit_code_path);
 
 // IR <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR1(const char* ir_code, const char* target, int opt_level = 0);
-
 EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
-
-EXPORT const char* writeDSPFactoryToIR1(llvm_dsp_factory* factory);
 
 // IR <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile1(const char* ir_code_path, const char* target, int opt_level = 0);
-
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
-
-EXPORT void writeDSPFactoryToIRFile1(llvm_dsp_factory* factory, const char* ir_code_path);
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 

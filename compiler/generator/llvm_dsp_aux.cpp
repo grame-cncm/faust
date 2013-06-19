@@ -400,13 +400,6 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
 }
-EXPORT llvm_dsp_factory* createDSPFactory1(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
-                        char* error_msg, int opt_level)
-{
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
-}
     
 // Bitcode <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
@@ -426,19 +419,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode1(const char* bit_code, const char* target, int opt_level)
-{
-    return readDSPFactoryFromBitcode(bit_code, target, opt_level);
-}
-
 EXPORT std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToBitcode();
-}
-
-EXPORT const char* writeDSPFactoryToBitcode1(llvm_dsp_factory* factory)
-{
-    return writeDSPFactoryToBitcode(factory).c_str();
 }
 
 // Bitcode <==> file
@@ -463,19 +446,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile1(const char* bit_code_path, const char* target, int opt_level)
-{
-    return readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
-}
-
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path)
 {
     factory->writeDSPFactoryToBitcodeFile(bit_code_path);
-}
-
-EXPORT void writeDSPFactoryToBitcodeFile1(llvm_dsp_factory* factory, const char* bit_code_path)
-{
-    writeDSPFactoryToBitcodeFile(factory, bit_code_path);
 }
 
 // IR <==> string
@@ -499,19 +472,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR1(const char* ir_code, const char* target, int opt_level)
-{
-    return readDSPFactoryFromIR(ir_code, target, opt_level);
-}
-
 EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToIR();
-}
-
-EXPORT const char* writeDSPFactoryToIR1(llvm_dsp_factory* factory)
-{
-    return writeDSPFactoryToIR(factory).c_str();
 }
 
 // IR <==> file
@@ -534,19 +497,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile1(const char* ir_code_path, const char* target, int opt_level)
-{
-    return readDSPFactoryFromIRFile(ir_code_path, target, opt_level);
-}
-
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path)
 {
     factory->writeDSPFactoryToIRFile(ir_code_path);
-}
-
-EXPORT void writeDSPFactoryToIRFile1(llvm_dsp_factory* factory, const char* ir_code_path)
-{
-    writeDSPFactoryToIRFile(factory, ir_code_path);
 }
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
@@ -690,7 +643,6 @@ EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    //printf("computeCDSPInstance %x %d\n", dsp, count);
     reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
 }
 
