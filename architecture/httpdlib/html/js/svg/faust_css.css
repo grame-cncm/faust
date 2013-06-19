@@ -18,6 +18,11 @@ text {
 	fill: rgba(199,190,162,0.6);
 }
 
+.faust-tooltip-text {
+	font-family: Arial, Verdana, Helvetica, sans;
+	font-size: 13px;
+}
+
 .faust-button-label {
 	font-family: Arial, Verdana, Helvetica, sans;
 	font-size: 13px;

@@ -362,10 +362,9 @@ _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
   Functions that take care of moving the active object on the screen.
 */
 
-// ugh, interactivity should maybe go in ui_interact?
 _f4u$t.tooltip_mouseover = function(e) {
   var id = _f4u$t.unique(e.target.id);
-  var full_id = 'faust_tooltip_'+id
+  var full_id = 'faust_tooltip_'+id;
   document.getElementById(full_id).setAttribute("style","opacity:1.0");
   setTimeout(function () {
     _f4u$t.generic_translate(full_id, 0, 0);
@@ -408,8 +407,9 @@ _f4u$t.move_active_object = function(ee) {
 _f4u$t.internal_move_active_object = function(e, identifier) {
   _f4u$t.clog_key_sink();
   var fn = _f4u$t['move_active_'+_f4u$t.type(_f4u$t._I[identifier]['id'])];
+  var now = null;
   if (fn) {
-    fn(e, identifier);
+   now =  fn(e, identifier);
   }
 
   // UI2DSP

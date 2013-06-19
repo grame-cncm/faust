@@ -100,9 +100,9 @@ _f4u$t.UIObject.prototype.make_tooltip_box = function(svg, parent, id) {
     parent,
     2,
     -textdims.width*0.05,
-    -(textdims.height*1.4),
+    -(textdims.height*1.1),
     textdims.width*1.1,
-    textdims.height*1.6,
+    textdims.height*1.3,
     {
       id: full_id,
       fill : _f4u$t.color_to_rgb(_f4u$t.WHITE),
@@ -126,7 +126,6 @@ _f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id
     var box = this.make_tooltip_box(svg, container, id);
     var text = this.make_tooltip_text(svg, container, id);
     _f4u$t.move_to_ridiculous_negative(full_id);
-
     $('#'+linked_obj_id).bind('mouseover', _f4u$t.tooltip_mouseover);
     $('#'+linked_obj_id).bind('mouseout', _f4u$t.tooltip_mouseout);
 
@@ -230,11 +229,10 @@ _f4u$t.Label.prototype.label_text = function() {
 
 _f4u$t.Label.prototype.make = function(svg, parent) {
   var id = this.id;
-  var g = this.make_group(svg, parent, id);
 
   var label = this.label_text();
   var vl = svg.text(
-    g,
+    parent,
     0,
     this.dims()[_f4u$t.Y_AXIS],
     label,
@@ -244,7 +242,6 @@ _f4u$t.Label.prototype.make = function(svg, parent) {
     }
   );
 
-  return g;
 }
 
 /*
@@ -515,9 +512,6 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   }
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  //this.make_value_box(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
-  //this.make_value_value(svg, g, id, '_f4u$t.rotating_button_key_sink("'+id+'")');
-  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
@@ -701,21 +695,6 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
   this.make_meter(svg, g, id);
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  /*
-  this.make_value_box(
-    svg,
-    g,
-    id,
-    '_f4u$t["'+this.type+'_key_sink"]("'+id+'")'
-  );
-  this.make_value_value(
-    svg,
-    g,
-    id,
-    '_f4u$t["'+this.type+'_key_sink"]("'+id+'")'
-  );
-  this.make_label(svg, g, id);
-  */
   this.make_tooltip(svg, g, id, id);
   return g;
 }
@@ -826,9 +805,6 @@ _f4u$t.BarGraph.prototype.make = function(svg, parent) {
 
   this.make_meter(svg, g, id);
   this.make_curtain(svg, g, id);
-  //this.make_value_box(svg, g, id);
-  //this.make_value_value(svg, g, id);
-  //this.make_label(svg, g, id);
 
   return g;
 }
@@ -1219,9 +1195,6 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_right_button(svg, g, id);
   this.make_minus(svg, g, id);
   this.make_plus(svg, g, id);
-  //this.make_value_box(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
-  //this.make_value_value(svg, g, id, '_f4u$t.nentry_key_sink("'+id+'")');
-  //this.make_label(svg, g, id);
   this.make_tooltip(svg, g, id, id);
 
   return g;
@@ -1321,11 +1294,6 @@ _f4u$t.LayoutManager.prototype.get_stretchable_coefficient = function(total) {
     }
   }
   return (total - (this.padding * (this.objs.length + 1)) - unstretchable) / stretchable;
-}
-
-_f4u$t.nspaces = function(leaf) {
-  out = "";
-    for (var i = 0; i < leaf; i++) { out = out + " "; } return out;
 }
 
 _f4u$t.LayoutManager.prototype.do_spacing = function(leaf) {
