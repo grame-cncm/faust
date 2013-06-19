@@ -38,7 +38,7 @@ using namespace std;
     #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
 #endif
 
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
     #define VECTOR_OF_TYPES vector<llvm::Type*>
     #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
     #define LLVM_TYPE llvm::Type*
@@ -64,7 +64,7 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
     fResult->fModule = new Module("Faust LLVM backend", getContext());
     fBuilder = new IRBuilder<>(getContext());
 
-#if defined(LLVM_31) || defined(LLVM_32)
+#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
     fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #else
     fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
@@ -190,8 +190,10 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fResult->fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-
-#if defined(LLVM_32)
+#if defined(LLVM_33)
+    llvm_compute->setDoesNotAlias(3U);
+    llvm_compute->setDoesNotAlias(4U);
+#elif defined(LLVM_32) 
     AttrBuilder attr_builder;
     attr_builder.addAttribute(Attributes::NoAlias);
     Attributes attribute = Attributes::get(getContext(), attr_builder);

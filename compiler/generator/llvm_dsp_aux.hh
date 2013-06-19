@@ -30,12 +30,23 @@
 #include <fstream>
 #include <sstream>
 
+#if defined(LLVM_33)
+#include <llvm/IR/Module.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IRReader/IRReader.h>
+#else
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
+#include <llvm/Support/IRReader.h>
+#endif
+
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
-#if LLVM_32
+
+#if defined(LLVM_33)
+#include <llvm/IR/DataLayout.h>
+#elif LLVM_32
 #include <llvm/DataLayout.h>
 #else
 #include <llvm/Target/TargetData.h>
@@ -44,7 +55,7 @@
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
-#include <llvm/Support/IRReader.h>
+
 #include <llvm/Linker.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
@@ -54,7 +65,7 @@
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
 #include <llvm/Support/TargetSelect.h>
 #endif
 

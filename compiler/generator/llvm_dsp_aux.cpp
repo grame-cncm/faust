@@ -23,6 +23,13 @@
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
+
+#if defined(LLVM_33)
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Support/system_error.h>
+#endif
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
@@ -41,7 +48,7 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
     SMDiagnostic err;
     Module* res = ParseIRFile(filename, err, *context);
     if (!res) {
-    #if defined(LLVM_31) || defined(LLVM_32) 
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("LoadModule", errs());
     #else
         err.Print("LoadModule", errs());
@@ -168,7 +175,7 @@ bool llvm_dsp_factory::initJIT()
     if (fTarget != "") {
          fResult->fModule->setTargetTriple(fTarget);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     #else
         fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
@@ -209,7 +216,7 @@ bool llvm_dsp_factory::initJIT()
     fJIT->runStaticConstructorsDestructors(false);
     
     fJIT->DisableLazyCompilation(true);
-#ifdef LLVM_32
+#if defined(LLVM_32) || defined(LLVM_33)
     fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
@@ -219,7 +226,7 @@ bool llvm_dsp_factory::initJIT()
     // target lays out data structures.
     PassManager pm;
     FunctionPassManager fpm(fResult->fModule);
-#ifdef LLVM_32    
+#if defined(LLVM_32) || defined(LLVM_33)   
     // TODO
 #else
     pm.add(new TargetData(*fJIT->getTargetData()));
@@ -255,7 +262,13 @@ bool llvm_dsp_factory::initJIT()
     
     // We use '4' to activate de auto-vectorizer
     if (fOptLevel > 3) {
-    #if defined(LLVM_32) 
+    
+    #if defined(LLVM_33)
+        printf("Vectorize\n");
+        Builder.LoopVectorize = true;
+        Builder.SLPVectorize = true;
+    #elif defined(LLVM_32) 
+        printf("Vectorize\n");
         Builder.LoopVectorize = true;
         //Builder.Vectorize = true;
     #elif defined(LLVM_31)
@@ -462,7 +475,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) 
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("readDSPFactoryFromIR failed :", errs());
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());
@@ -487,7 +500,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     if (module) {
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) 
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("readDSPFactoryFromIR failed :", errs());
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());

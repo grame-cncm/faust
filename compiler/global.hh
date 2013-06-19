@@ -33,7 +33,11 @@
 #include <unistd.h>
 #endif
 
+#if defined(LLVM_33)
+#include <llvm/IR/Module.h>
+#else
 #include <llvm/Module.h>
+#endif
 #include "sourcereader.hh"
 #include "property.hh"
 #include "sigtype.hh"
@@ -41,8 +45,7 @@
 #include "occurrences.hh"
 #include "instructions.hh"
 
-
-class 	CTree;
+class CTree;
 typedef CTree* Tree;
 
 class Symbol;

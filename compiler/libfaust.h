@@ -22,7 +22,11 @@
 #ifndef __LIB_FAUST__
 #define __LIB_FAUST__
 
+#if defined(LLVM_33)
+#include <llvm/IR/Module.h>
+#else
 #include <llvm/Module.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
