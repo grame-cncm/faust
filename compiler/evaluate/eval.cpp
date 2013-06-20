@@ -525,7 +525,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
     // static
     } else if (isBoxInputs(exp, body)) {
         int ins, outs;
-        Tree b = eval(body, visited, localValEnv);
+        Tree b = a2sb(eval(body, visited, localValEnv));
         if (getBoxType (b, &ins, &outs)) {
             return boxInt(ins);
         } else {
@@ -535,7 +535,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxOutputs(exp, body)) {
         int ins, outs;
-        Tree b = eval(body, visited, localValEnv);
+        Tree b = a2sb(eval(body, visited, localValEnv));
         if (getBoxType (b, &ins, &outs)) {
             return boxInt(outs);
         } else {
