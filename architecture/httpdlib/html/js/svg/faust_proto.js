@@ -207,6 +207,19 @@ _f4u$t.extend = function(base, sub) {
 }
 
 /**
+Identity function.
+
+@method identity
+@for _f4u$t
+@static
+@param {Object} value The value to return
+@return {Object} The input value
+**/
+_f4u$t.identity = function(value) {
+  return value;
+}
+
+/**
 Enum-like constant for the X axis.
 
 @property X_AXIS

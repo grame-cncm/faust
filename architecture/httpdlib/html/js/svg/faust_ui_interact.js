@@ -151,7 +151,7 @@ _f4u$t.initiate_nentry = function(fullid, minval, maxval, step, init, integer, n
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_slider = function(axis, fullid, length, sliderlen, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
+_f4u$t.initiate_slider = function(axis, fullid, length, sliderlen, minval, maxval, step, init, integer, ndec, label, unit, orientation, orientation_mode, address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = (axis == _f4u$t.X_AXIS ? "hslider" : "vslider");
@@ -164,6 +164,8 @@ _f4u$t.initiate_slider = function(axis, fullid, length, sliderlen, minval, maxva
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"] = orientation;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["previousorientation"] = null;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["orientationmode"] = orientation_mode;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
@@ -171,12 +173,12 @@ _f4u$t.initiate_slider = function(axis, fullid, length, sliderlen, minval, maxva
   _f4u$t.path_to_id(address, fullid);
 }
 
-_f4u$t.initiate_hslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
-  _f4u$t.initiate_slider(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address);
+_f4u$t.initiate_hslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, orientation_mode, address) {
+  _f4u$t.initiate_slider(_f4u$t.X_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, orientation_mode, address);
 }
 
-_f4u$t.initiate_vslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address) {
-  _f4u$t.initiate_slider(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, address);
+_f4u$t.initiate_vslider = function(fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, orientation_mode, address) {
+  _f4u$t.initiate_slider(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, integer, ndec, label, unit, orientation, orientation_mode, address);
 }
 
 _f4u$t.initiate_bargraph = function(axis, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address) {
@@ -219,6 +221,8 @@ _f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercen
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["orientation"] = orientation;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["previousorientation"] = null;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["orientationmode"] = orientation_mode;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = integer;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = ndec;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
@@ -455,7 +459,6 @@ _f4u$t.move_active_slider = function(e,identifier)
   }
 
   pos -= (sliderlen / 2.0);
-  //var diff = pos - _f4u$t.PREV[axis][identifier];
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
   // we assume that there is only one element and that it is a transform
   // make sure to change this if things get more complicated
@@ -512,19 +515,26 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
   var sliding_part = document.getElementById(_f4u$t.xy(axis, 'faust_hslider_handle_', 'faust_vslider_handle_')+id);
   var sliderlen = _f4u$t.IDS_TO_ATTRIBUTES[id]["sliderlen"];
   var length = _f4u$t.IDS_TO_ATTRIBUTES[id]["length"];
-  var orientation = e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle];
-  orientation = orientation ? orientation : 0;
-  var pos = _f4u$t.remap(orientation,
-                         _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.low,
-                         _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high,
-                         0,
-                         length - sliderlen);
+  var orientation = e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle]
+                    ? e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle]
+                    : 0;
+  var prev_orientation = _f4u$t.IDS_TO_ATTRIBUTES[id].previousorientation != null
+                         ? _f4u$t.IDS_TO_ATTRIBUTES[id].previousorientation
+                         : e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle];
   var transform = _f4u$t.transform_to_array(sliding_part.getAttribute("transform"));
-  // we assume that there is only one element and that it is a transform
-  // make sure to change this if things get more complicated
-  // actually, just make sure not to make things more complicated...
-
-  var aval = pos;
+  _f4u$t.IDS_TO_ATTRIBUTES[id].previousorientation = e[_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.angle];
+  var aval = 0;
+  if (_f4u$t.IDS_TO_ATTRIBUTES[id].orientationmode == 'relative') {
+    var nudge = (orientation - prev_orientation) * (length - sliderlen) / (_f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high - _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.low);
+    aval = transform[0][axis + 1] + nudge;
+    
+  } else {
+    aval = _f4u$t.remap(orientation,
+                        _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.low,
+                        _f4u$t.IDS_TO_ATTRIBUTES[id].orientation.high,
+                        0,
+                        length - sliderlen);
+  }
   // minimum of the slider is to the bottom / left
   transform[0][axis + 1] = _f4u$t.bound_and_avoid_large_leaps(aval, transform[0][axis + 1], 0, length - sliderlen);
   _f4u$t.redraw_slider_groove(

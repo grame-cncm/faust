@@ -15,11 +15,15 @@ _f4u$t.has_knob = function(dct) {
 }
 
 _f4u$t.get_unit = function(dct) {
-  return _f4u$t.meta_info(dct, 'unit', '', function(prop) { return prop; });
+  return _f4u$t.meta_info(dct, 'unit', '', _f4u$t.identity);
 }
 
 _f4u$t.get_tooltip = function(dct) {
-  return _f4u$t.meta_info(dct, 'tooltip', '', function(prop) { return prop; });
+  return _f4u$t.meta_info(dct, 'tooltip', '', _f4u$t.identity);
+}
+
+_f4u$t.get_orientation_mode = function(dct) {
+  return _f4u$t.meta_info(dct, 'orientation-mode', 'absolute', _f4u$t.identity);
 }
 
 _f4u$t.get_orientation = function(dct) {
@@ -85,6 +89,7 @@ _f4u$t.make_rbutton = function(dct) {
   options.unit = _f4u$t.get_unit(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
   options.orientation = _f4u$t.get_orientation(dct);
+  options.orientation_mode = _f4u$t.get_orientation_mode(dct);
   if (_f4u$t.is_panoramic(dct)) {
     options.a0 = 0;
     options.sweep = 360;
@@ -138,6 +143,7 @@ _f4u$t.make_slider = function(kls, dct) {
   options.address = dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   options.orientation = _f4u$t.get_orientation(dct);
+  options.orientation_mode = _f4u$t.get_orientation_mode(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
   var size = _f4u$t.get_size(dct);
   options.girth *= size;
