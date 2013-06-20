@@ -135,7 +135,9 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 
 static bool process_cmdline(int argc, const char* argv[])
 {
-	int	i = 1; int err = 0;
+	int	i = 1; 
+    int err = 0;
+    stringstream parse_error;
     
     /*
     for (int i = 0; i < argc; i++) {
@@ -346,8 +348,12 @@ static bool process_cmdline(int argc, const char* argv[])
 			i++;
 
 		} else {
-			cerr << "faust: unrecognized option \"" << argv[i] <<"\"" << endl;
-			i++;
+            if (err == 0) {
+                parse_error << "unrecognized option(s) : \"" << argv[i] <<"\" ";
+            } else {
+                parse_error << "\"" << argv[i] <<"\"";
+            }
+            i++;
 			err++;
 		}
 	}
@@ -365,6 +371,10 @@ static bool process_cmdline(int argc, const char* argv[])
         stringstream error;
         error << "[-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
+    }
+    
+    if (err != 0) {
+        strncpy(gGlobal->gErrorMsg, parse_error.str().c_str(), 256);
     }
 
 	return err == 0;
@@ -849,14 +859,6 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
     *****************************************************************/
     process_cmdline(argc, argv);
     
-    /*
-    if (!process_cmdline(argc, argv)) {
-        stringstream error;
-        error << "faust: invalid options" << endl;
-        throw faustexception(error.str());
-    }
-    */
-
     if (gHelpSwitch) 		{ 
         printhelp(); 
         throw faustexception("");
