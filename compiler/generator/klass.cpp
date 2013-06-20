@@ -217,6 +217,8 @@ void Klass::printAdditionalCode(ostream& fout)
 {
     if (fNeedPowerDef) {
         // Add faustpower definition to C++ code
+        fout << "#ifndef FAUSTPOWER" << endl;
+        fout << "#define FAUSTPOWER" << endl;
         fout << "#include <cmath>" << endl;
         fout << "template <int N> inline float faustpower(float x)          { return powf(x,N); } " << endl;
         fout << "template <int N> inline double faustpower(double x)        { return pow(x,N); }"  << endl;
@@ -224,6 +226,7 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;
+        fout << "#endif" << endl;
     }
 
 }
