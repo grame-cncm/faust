@@ -15,7 +15,7 @@ ARCHFLAGS :=
 endif
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += -I../../../architecture -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 target := ../libHTTPDFaust.a
 
