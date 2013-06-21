@@ -13,6 +13,7 @@
 @implementation JackViewPortsViewItem
 
 @synthesize longName;
+@synthesize touching;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -21,6 +22,7 @@
     {
         self.backgroundColor = [UIColor clearColor];
         self.longName = nil;
+        self.touching = NO;
     }
     return self;
 }
@@ -94,12 +96,27 @@
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
-        
+    
+    if ([touches count] == 1)
+    {
+        portsView.dontDrawLinking = NO;
+    }
+    
     portsView.linking = NO;
-        
+    self.touching = YES;
+    
+    [portsView connectIfTouchingTwoItems];
+    
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
-        portsView.srcPt = CGPointMake([touch locationInView:portsView.backgroundView].x, [touch locationInView:portsView.backgroundView].y);
+        if (self.frame.origin.x == fminf(portsView.clientX, portsView.currentAppX))
+        {
+            portsView.srcPt = CGPointMake(self.frame.origin.x + self.frame.size.width, self.frame.origin.y + self.frame.size.height / 2.);
+        }
+        else
+        {
+            portsView.srcPt = CGPointMake(self.frame.origin.x, self.frame.origin.y + self.frame.size.height / 2.);
+        }
     }
     
     [portsView setNeedsDisplay];
@@ -112,12 +129,19 @@
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
     
-    portsView.linking = YES;
+    self.touching = YES;
     
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
-        portsView.dstPt = CGPointMake([touch locationInView:portsView.backgroundView].x, [touch locationInView:portsView.backgroundView].y);
-        [portsView refreshScrollViewOffset:[touch locationInView:portsView.backgroundView].y];
+        if ([touch locationInView:self].x < self.frame.origin.x
+            || [touch locationInView:self].x > self.frame.origin.x + self.frame.size.width
+            || [touch locationInView:self].y < self.frame.origin.y
+            || [touch locationInView:self].y > self.frame.origin.y + self.frame.size.height)
+        {
+            portsView.linking = YES;
+            portsView.dstPt = CGPointMake([touch locationInView:portsView.backgroundView].x, [touch locationInView:portsView.backgroundView].y);
+            [portsView refreshScrollViewOffset:[touch locationInView:portsView.backgroundView].y];
+        }
     }
 
     [portsView setNeedsDisplay];
@@ -126,15 +150,17 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
-        
     JackView* jackView = portsView.clientButton.jackView;
-
-    jackView.linking = NO;
+    
     [jackView setNeedsDisplay];
     
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
     NSString* dstAppPortName = nil;
+    if ([touches count] == 1)
+    {
+        self.touching = NO;
+    }
     
     while ((touch = (UITouch*)[enumerator nextObject]))
     {
@@ -165,8 +191,10 @@
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     JackViewPortsView* portsView = (JackViewPortsView*)(self.superview.superview);
-        
+    
     portsView.linking = NO;
+    self.touching = NO;
+    
     [portsView refreshLinks];
     [portsView setNeedsDisplay];
 }
@@ -218,6 +246,7 @@
 @synthesize backgroundView;
 @synthesize links;
 @synthesize deleteButton;
+@synthesize dontDrawLinking;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -240,6 +269,7 @@
         self.clientX = 0.;
         self.currentAppX = 0.;
         self.linking = NO;
+        self.dontDrawLinking = NO;
         self.links = [[NSMutableArray alloc] initWithCapacity:0];
         _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
         _tapRecognizer.numberOfTapsRequired = 1;
@@ -403,8 +433,17 @@
             if ([jackView isPort:[jackView portWithName:srcItem.longName] connectedToCurrentClientInputOutput:self.clientButton.inputOutput audioMidi:self.clientButton.audioMidi])
             {
                 srcName = srcItem.longName;
-                tmpSrcPt = CGPointMake(srcItem.frame.origin.x + srcItem.frame.size.width / 2.,
-                                       srcItem.frame.origin.y + srcItem.frame.size.height / 2.);
+                
+                if (srcItem.frame.origin.x == fminf(self.clientX, self.currentAppX))
+                {
+                    tmpSrcPt = CGPointMake(srcItem.frame.origin.x + srcItem.frame.size.width,
+                                           srcItem.frame.origin.y + srcItem.frame.size.height / 2.);
+                }
+                else
+                {
+                    tmpSrcPt = CGPointMake(srcItem.frame.origin.x,
+                                           srcItem.frame.origin.y + srcItem.frame.size.height / 2.);
+                }
                 
                 dstArray = [jackView getCurrentClientPortConnectedTo:srcName];
                 
@@ -420,8 +459,16 @@
                             
                             if ([dstItem.longName compare:dstName] == NSOrderedSame)
                             {
-                                tmpDstPt = CGPointMake(dstItem.frame.origin.x + dstItem.frame.size.width / 2.,
-                                                       dstItem.frame.origin.y + dstItem.frame.size.height / 2.);
+                                if (dstItem.frame.origin.x == fminf(self.clientX, self.currentAppX))
+                                {
+                                    tmpDstPt = CGPointMake(dstItem.frame.origin.x + dstItem.frame.size.width,
+                                                           dstItem.frame.origin.y + dstItem.frame.size.height / 2.);
+                                }
+                                else
+                                {
+                                    tmpDstPt = CGPointMake(dstItem.frame.origin.x,
+                                                           dstItem.frame.origin.y + dstItem.frame.size.height / 2.);
+                                }
                                 
                                 JackViewPortsLink* link = [[JackViewPortsLink alloc] init];
                                 link.srcPt = CGPointMake(tmpSrcPt.x, tmpSrcPt.y);
@@ -549,7 +596,10 @@
         if (x == link.dstPt.x) y = link.dstPt.y;
         else y = link.srcPt.y;
         
-        [self.deleteButton setFrame:CGRectMake(x - 70, (y - 20) * 0.8 + (y - 20) * 0.2, 20, 20)];
+        [self.deleteButton setFrame:CGRectMake(x - 30,
+                                               (y - 20) * 0.8 + (y - 20) * 0.2,
+                                               20,
+                                               20)];
     }
     
     [self setNeedsDisplay];
@@ -574,6 +624,46 @@
 - (NSArray*)portsItems
 {
     return [_scrollView subviews];
+}
+
+- (void)connectIfTouchingTwoItems
+{
+    JackViewPortsViewItem* item = nil;
+    JackViewPortsViewItem* item1 = nil;
+    JackViewPortsViewItem* item2 = nil;
+    int i = 0;
+    NSArray* items = [_scrollView subviews];
+    JackView* jackView = self.clientButton.jackView;
+    
+    for (i = 0; i < [items count]; ++i)
+    {
+        item = ((JackViewPortsViewItem*)[items objectAtIndex:i]);
+        if (item && [item isKindOfClass:[JackViewPortsViewItem class]] && item.touching)
+        {
+            if (!item1) item1 = item;
+            else if (!item2) item2 = item;
+        }
+    }
+    
+    if (item1 && item2)
+    {
+        if ([jackView isPort:item1.longName
+            connectedWithPort:item2.longName])
+        {
+            [jackView disconnectPort:item1.longName withPort:item2.longName];
+            [jackView disconnectPort:item2.longName withPort:item1.longName];
+        }
+        else
+        {
+            [jackView connectPort:item1.longName withPort:item2.longName];
+            [jackView connectPort:item2.longName withPort:item1.longName];
+        }
+        
+        self.linking = NO;
+        self.dontDrawLinking = YES;
+        
+        [self setNeedsDisplay];
+    }
 }
 
 @end

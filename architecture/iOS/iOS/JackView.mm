@@ -37,6 +37,9 @@
         
         [_singleTapRecognizer requireGestureRecognizerToFail:_doubleTapRecognizer];
         
+        _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(buttonLongPressed)];
+        [self addGestureRecognizer:_longPressRecognizer];
+        
         self.backgroundColor = [UIColor clearColor];
         self.frame = frame;
     }
@@ -56,6 +59,65 @@
 
 - (void)buttonClicked
 {
+    if (jackView.portsView) [jackView dismissPortsView];
+    else [self fastConnect];
+}
+
+- (void)buttonDoubleClicked
+{    
+    [self fastSwitch];
+}
+
+- (void)buttonLongPressed
+{
+    [self displayPortsView];
+}
+
+- (void)fastSwitch
+{
+    // Switch to Jack server
+    if ([self.jackViewClient.name compare:@"system"] == NSOrderedSame
+        || [self.jackViewClient.name compare:@"system_midi"] == NSOrderedSame)
+    {
+        jack_gui_switch_to_client([jackView jackClient], "jack");
+    }
+    
+    // Switch to other client
+    else
+    {
+        jack_gui_switch_to_client([jackView jackClient], [self.jackViewClient.name cStringUsingEncoding:NSUTF8StringEncoding]);
+    }
+}
+
+- (void)fastConnect
+{
+    // Connect
+    if (!self.isSelected)
+    {
+        if ([self.jackView quicklyConnectAppToClient:self.jackViewClient.name
+                                         inputOutput:inputOutput
+                                           audioMidi:audioMidi])
+        {
+            self.selected = YES;
+        }
+    }
+    
+    // Disconnect
+    else
+    {
+        if ([self.jackView quicklyDisconnectAppToClient:self.jackViewClient.name
+                                            inputOutput:inputOutput
+                                              audioMidi:audioMidi])
+        {
+            self.selected = NO;
+        }
+    }
+    
+    [self setNeedsDisplay];
+}
+
+- (void)displayPortsView
+{
     float x = 0.f;
     float y = 0.f;
     float w = 0.f;
@@ -72,7 +134,7 @@
                   [jackView numberOfCurrentAppPortsWithInputOutput:self.inputOutput audioMidi:self.audioMidi] * kPortsViewItemHeight);
     h = fminf(utilH, kPortsViewMaxHeight) + kPortsViewArrowHeight + kPortsViewFSButtonHeight;
     y = 0. - h;
-        
+    
     if (jackView.portsView)
     {
         [jackView.portsView removeFromSuperview];
@@ -104,7 +166,7 @@
                                                                                               kPortsViewItemHeight)];
         item.longName = ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name;
         item.selected = [jackView isPort:((JackViewPort*)([compatiblePorts objectAtIndex:i]))
-            connectedToCurrentClientInputOutput:((JackViewPort*)([compatiblePorts objectAtIndex:i])).inputOutput
+     connectedToCurrentClientInputOutput:((JackViewPort*)([compatiblePorts objectAtIndex:i])).inputOutput
                                audioMidi:((JackViewPort*)([compatiblePorts objectAtIndex:i])).audioMidi];
         
         [jackView.portsView addItem:item];
@@ -132,23 +194,7 @@
     [jackView.portsView.backgroundView setNeedsDisplay];
 }
 
-- (void)buttonDoubleClicked
-{    
-    // Switch to Jack server
-    if ([self.jackViewClient.name compare:@"system"] == NSOrderedSame
-        || [self.jackViewClient.name compare:@"system_midi"] == NSOrderedSame)
-    {
-        jack_gui_switch_to_client([jackView jackClient], "jack");
-    }
-    
-    // Switch to other client
-    else
-    {
-        jack_gui_switch_to_client([jackView jackClient], [self.jackViewClient.name cStringUsingEncoding:NSUTF8StringEncoding]);
-    }
-}
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+/*- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
@@ -163,9 +209,9 @@
     }
     
     [jackView setNeedsDisplay];
-}
+}*/
 
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+/*- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
@@ -187,9 +233,9 @@
     }
     
     [jackView setNeedsDisplay];
-}
+}*/
 
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+/*- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSEnumerator* enumerator = [touches objectEnumerator];
     UITouch* touch;
@@ -234,15 +280,15 @@
     
     jackView.linking = NO;
     [jackView setNeedsDisplay];
-}
+}*/
 
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+/*- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (self == jackView.currentClientButton) return;
     
     jackView.linking = NO;
     [jackView setNeedsDisplay];    
-}
+}*/
 
 // Refresh view
 - (void)drawRect:(CGRect)rect
@@ -408,7 +454,7 @@
 @end
 
 
-@implementation JackViewDrawingView : UIView
+/*@implementation JackViewDrawingView : UIView
 
 @synthesize jackView;
 
@@ -449,12 +495,11 @@
     }
 }
 
-@end
+@end*/
 
 
 @implementation JackView
 
-@synthesize linking;
 @synthesize srcPt;
 @synthesize dstPt;
 @synthesize portsView;
@@ -467,7 +512,6 @@
     if (self)
     {
         self.portsView = nil;
-        self.linking = NO;
         _jackClient = nil;
         self.currentClientButton = nil;
         self.backgroundColor = [UIColor clearColor];
@@ -656,7 +700,6 @@
     [_audioOutputsScrollView release];
     [_midiInputsScrollView release];
     [_midiOutputsScrollView release];
-    [_drawingView release];
     
     if (self.portsView)
     {
@@ -941,13 +984,6 @@
         selected = [self isClient:((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient connectedToCurrentClientInputOutput:2 audioMidi:2];
         ((JackViewButton*)([buttons objectAtIndex:i])).selected = selected;
     }
-
-    // Load drawing view
-    _drawingView = [[JackViewDrawingView alloc] initWithFrame:CGRectMake(0., -self.frame.origin.y, 2000, 2000)];
-    //_drawingView.autoresizingMask = self.autoresizingMask;
-    _drawingView.jackView = self;
-    [self addSubview:_drawingView];
-    [_drawingView setNeedsDisplay];
     
     // Free memory
     jack_free(ports);
@@ -1093,6 +1129,33 @@
             connectedClient = [[connection componentsSeparatedByString:@":"] objectAtIndex:0];
                         
             if ([connectedClient compare:_currentClientName] == NSOrderedSame)
+            {
+                jack_free (connections);
+                return YES;
+            }
+        }
+        jack_free (connections);
+    }
+    
+    return NO;
+}
+
+- (BOOL)isPort:(NSString*)portName1
+connectedWithPort:(NSString*)portName2
+{
+    const char **connections;
+    NSString* connection = nil;
+    int i = 0;
+    
+    if ((connections = jack_port_get_all_connections(_jackClient,
+                                                     jack_port_by_name(_jackClient,
+                                                                       [portName1 cStringUsingEncoding:NSUTF8StringEncoding]))) != 0)
+    {
+        for (i = 0; connections[i]; i++)
+        {
+            connection = [NSString stringWithCString:connections[i] encoding:NSUTF8StringEncoding];
+            
+            if ([connection compare:portName2] == NSOrderedSame)
             {
                 jack_free (connections);
                 return YES;
@@ -1403,17 +1466,6 @@
     [path closePath];
     [path fillWithBlendMode:kCGBlendModeNormal alpha:1.];
     
-    if (linking)
-    {
-        _drawingView.hidden = NO;
-        [_drawingView setNeedsDisplay];
-    }
-    else
-    {
-        _drawingView.hidden = YES;
-        [_drawingView setNeedsDisplay];
-    }
-    
     
     // Sections views
     UIFont* font = [UIFont systemFontOfSize:13.0f];
@@ -1574,6 +1626,11 @@
 }
 
 - (void)viewClicked
+{
+    [self dismissPortsView];
+}
+
+- (void)dismissPortsView
 {
     if (portsView)
     {
