@@ -122,14 +122,6 @@ _f4u$t.array_to_transform = function(array) {
   return out;
 }
 
-// all this PREV stuff can likely be deprecated
-_f4u$t.updateXY = function(ee, initialize) {
-  for (var i = 0; i < ee.length; i++) {
-    _f4u$t.PREV[_f4u$t.X_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getOperativeX(ee[i]);
-    _f4u$t.PREV[_f4u$t.Y_AXIS][ee[i].identifier || 0] = initialize ? null : _f4u$t.getOperativeY(ee[i]);
-  }
-}
-
 /*
   INITIALIZATION FUNCTIONS
 */
@@ -206,7 +198,7 @@ _f4u$t.initiate_vbargraph = function(fullid, weakaxis, strongaxis, minval, maxva
   _f4u$t.initiate_bargraph(_f4u$t.Y_AXIS, fullid, weakaxis, strongaxis, minval, maxval, step, init, label, unit, address);
 }
 
-_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label,unit,orientation,address) {
+_f4u$t.initiate_rbutton = function(fullid,initangle,sweepangle,radius,knobpercentage,minval,maxval,step,init,integer,ndec,label,unit,orientation,orientation_mode,address) {
   var id = _f4u$t.unique(fullid);
   _f4u$t.IDS_TO_ATTRIBUTES[id] = {};
   _f4u$t.IDS_TO_ATTRIBUTES[id]["type"] = "rbutton";
@@ -301,7 +293,6 @@ _f4u$t.activate_nentry = function(ee, dir) {
   _f4u$t.nentry_fill_changer(id, true, dir);
   _f4u$t._I[identifier] = {id : longid, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
   _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
-  _f4u$t.updateXY(ee.originalEvent.changedTouches ? ee.originalEvent.changedTouches : [ee]);
 
   var now = parseFloat(_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"]);
   if (dir == 1) {
@@ -343,7 +334,6 @@ _f4u$t.activate_moving_object = function(ee) {
   var id = _f4u$t.unique(longid);
   _f4u$t._I[identifier] = {id : longid, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
   _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
-  _f4u$t.updateXY(touches, true);
   // turns off zoom for mobile devices
   $('body').bind('touchmove', function(event) { event.preventDefault() });
   // if we touch a groove, we want the object to snap to the correct position, so
@@ -401,7 +391,6 @@ _f4u$t.move_active_object = function(ee) {
       return true;
     }
   }
-  _f4u$t.updateXY(ee.touches ? ee.touches[0] : [ee]);
   return true;
 }
 
@@ -476,7 +465,6 @@ _f4u$t.move_active_slider = function(e,identifier)
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - sliderlen);
   var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
-  _f4u$t.updateXY([e]);
   return now;
 }
 
@@ -546,8 +534,6 @@ _f4u$t.moveSliderViaAccelerometer = function(e, longid) {
   var now = _f4u$t[_f4u$t.xy(axis, "generic_label_update", "generic_flipped_label_update")](id, aval, 0, length - sliderlen);
   var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
-  // no updating XY as there is no event specific to this object
-  //_f4u$t.updateXY([e]);
   return now;
 }
 
@@ -613,14 +599,9 @@ _f4u$t.move_active_rbutton = function(e, identifier)
 
   var aval = diff;
   var rotation = transform[2][1];
-  // always change rotation if we're starting with a click
-  if (_f4u$t.PREV[_f4u$t.X_AXIS][identifier] == null) {
-    rotation = _f4u$t.bound_and_avoid_large_leaps(aval, transform[2][1], initangle, initangle + sweepangle);
-  } else if (((aval >= initangle) && (aval <= (initangle + sweepangle)))
-             && ((Math.abs(aval - rotation) < 35)
-                 || (Math.abs (360 - Math.abs(aval - rotation)) < 35))) {
-    // only change rotation if we're in bounds and the difference is small
-    rotation = _f4u$t.bound_and_avoid_large_leaps(aval, transform[2][1], initangle, initangle + sweepangle);
+  if ((aval >= initangle) && (aval <= (initangle + sweepangle))) {
+    // only change rotation if we're in bounds and the difference is small (choose 10 as epsilon)
+    rotation = _f4u$t.bound_and_avoid_large_leaps(aval, transform[2][1], initangle, initangle + sweepangle, 10);
   }
   transform[2][1] = rotation;
   if (sweepangle != 360) {
@@ -636,7 +617,6 @@ _f4u$t.move_active_rbutton = function(e, identifier)
   var now = _f4u$t.generic_label_update(id, rotation, initangle, initangle + sweepangle);
   var movetothis = _f4u$t.array_to_transform(transform);
   sliding_part.setAttribute("transform", movetothis);
-  _f4u$t.updateXY([e]);
   return now;
 }
 
@@ -668,8 +648,6 @@ _f4u$t.clearIdCache = function(ee) {
   // clear gunk out of cache
   _f4u$t._I = {};
   _f4u$t.active_addresses = [];
-  _f4u$t.PREV[_f4u$t.X_AXIS] = {};
-  _f4u$t.PREV[_f4u$t.Y_AXIS] = {};
   $('body').unbind('touchmove'); // turns on zooming for mobile devices
 }
 
@@ -889,8 +867,6 @@ _f4u$t.generic_key_sink = function(I) {
   _f4u$t.make_key_sink(id);
   _f4u$t._I = {};
   _f4u$t.active_addresses = [];
-  _f4u$t.PREV[_f4u$t.X_AXIS] = {};
-  _f4u$t.PREV[_f4u$t.Y_AXIS] = {};
 }
 
 _f4u$t.hslider_key_sink = function(I) {

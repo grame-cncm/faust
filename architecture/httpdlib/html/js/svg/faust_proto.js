@@ -438,20 +438,6 @@ _f4u$t.PATHS_TO_IDS = {};
 _f4u$t.IDS_TO_ATTRIBUTES = {};
 
 /**
-An array holding two objects: one keeping track of the
-X coordinate of moving objects and one keeping track of the Y
-coordinate.
-
-@property PREV
-@for _f4u$t
-@type Array
-@default []
-**/
-_f4u$t.PREV = new Array();
-_f4u$t.PREV[_f4u$t.X_AXIS] = {}
-_f4u$t.PREV[_f4u$t.Y_AXIS] = {}
-
-/**
 Returns a random, soft, pretty color, represented
 as 0-255 RGB values in an array, to act as a background
 for layout managers.
@@ -586,15 +572,18 @@ from a previous value
 @return {Number} The value bounded. If the previous value was the upper
 bound, we remain on this to avoid large leaps.
 **/
-_f4u$t.bound_and_avoid_large_leaps = function(aval, pval, l, h) {
+_f4u$t.bound_and_avoid_large_leaps = function(aval, pval, l, h, epsilon) {
+  if (!epsilon) {
+    epsilon = 0;
+  }
   if (l > aval) {
-    if (pval != h) {
+    if (Math.abs(pval - h) <= epsilon) {
       return l;
     }
   }
 
   else if (aval > h) {
-    if (pval != l) {
+    if (Math.abs(pval - l) <= epsilon) {
       return h;
     }
   }
