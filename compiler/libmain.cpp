@@ -150,7 +150,7 @@ static bool process_cmdline(int argc, const char* argv[])
 		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
 			i += 1;
-        } else if (isCmd(argv[i], "-lang", "--language")) {
+        } else if (isCmd(argv[i], "-lang", "--language") && (i+1 < argc)) {
 			gOutputLang = argv[i+1];
 			i += 2;
         } else if (isCmd(argv[i], "-v", "--version")) {
@@ -161,11 +161,11 @@ static bool process_cmdline(int argc, const char* argv[])
 			gGlobal->gDetailsSwitch = true;
 			i += 1;
 
-		} else if (isCmd(argv[i], "-a", "--architecture")) {
+		} else if (isCmd(argv[i], "-a", "--architecture") && (i+1 < argc)) {
 			gArchFile = argv[i+1];
 			i += 2;
 
-		} else if (isCmd(argv[i], "-o")) {
+		} else if (isCmd(argv[i], "-o") && (i+1 < argc)) {
 			gGlobal->gOutputFile = argv[i+1];
 			i += 2;
 
@@ -193,11 +193,11 @@ static bool process_cmdline(int argc, const char* argv[])
 			gDrawSVGSwitch = true;
 			i += 1;
 
-		} else if (isCmd(argv[i], "-f", "--fold")) {
+		} else if (isCmd(argv[i], "-f", "--fold") && (i+1 < argc)) {
 			gGlobal->gFoldThreshold = atoi(argv[i+1]);
 			i += 2;
 
-		} else if (isCmd(argv[i], "-mns", "--max-name-size")) {
+		} else if (isCmd(argv[i], "-mns", "--max-name-size") && (i+1 < argc)) {
 			gGlobal->gMaxNameSize = atoi(argv[i+1]);
 			i += 2;
 
@@ -221,7 +221,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			gGlobal->gLessTempSwitch = true;
 			i += 1;
 
-		} else if (isCmd(argv[i], "-mcd", "--max-copy-delay")) {
+		} else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i+1 < argc)) {
 			gGlobal->gMaxCopyDelay = atoi(argv[i+1]);
 			i += 2;
 
@@ -233,7 +233,7 @@ static bool process_cmdline(int argc, const char* argv[])
             gGlobal->gVectorSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-vls", "--vec-loop-size")) {
+        } else if (isCmd(argv[i], "-vls", "--vec-loop-size") && (i+1 < argc)) {
             gGlobal->gVecLoopSize = atoi(argv[i+1]);
             i += 2;
 
@@ -245,11 +245,11 @@ static bool process_cmdline(int argc, const char* argv[])
             gGlobal->gDeepFirstSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-vs", "--vec-size")) {
+        } else if (isCmd(argv[i], "-vs", "--vec-size") && (i+1 < argc)) {
             gGlobal->gVecSize = atoi(argv[i+1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-lv", "--loop-variant")) {
+        } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i+1 < argc)) {
             gGlobal->gVectorLoopVariant = atoi(argv[i+1]);
             if (gGlobal->gVectorLoopVariant < 0 ||
                 gGlobal->gVectorLoopVariant > 1) {
@@ -291,7 +291,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			gGlobal->gUIMacroSwitch = true;
 			i += 1;
 
-        } else if (isCmd(argv[i], "-t", "--timeout")) {
+        } else if (isCmd(argv[i], "-t", "--timeout") && (i+1 < argc)) {
             gTimeout = atoi(argv[i+1]);
             i += 2;
             
@@ -316,7 +316,7 @@ static bool process_cmdline(int argc, const char* argv[])
             gPrintDocSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang")) {
+        } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang") && (i+1 < argc)) {
             gGlobal->gDocLang = argv[i+1];
             i += 2;
 
@@ -332,7 +332,7 @@ static bool process_cmdline(int argc, const char* argv[])
             gGlobal->gDumpNorm = true;
             i += 1;
 
-		} else if (isCmd(argv[i], "-cn", "--class-name")) {
+		} else if (isCmd(argv[i], "-cn", "--class-name") && (i+1 < argc)) {
 			gGlobal->gClassName = argv[i+1];
 			i += 2;
 
