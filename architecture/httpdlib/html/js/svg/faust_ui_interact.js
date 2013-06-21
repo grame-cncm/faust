@@ -471,6 +471,16 @@ _f4u$t.move_active_slider = function(e,identifier)
 _f4u$t.move_active_vslider = _f4u$t.move_active_slider;
 _f4u$t.move_active_hslider = _f4u$t.move_active_slider;
 
+_f4u$t.touched = function(id) {
+  for (var identifier in _f4u$t._I) {
+    if ((identifier != ('orientation'+id))
+        && (_f4u$t._I[identifier].id.indexOf(id) != -1)) {
+      return true;
+    }
+  } 
+  return false;
+}
+
 _f4u$t.respondToOrientationChange = function(e) {
   for (var id in _f4u$t.IDS_TO_ATTRIBUTES) {
     if (_f4u$t.IDS_TO_ATTRIBUTES[id].orientation &&
@@ -480,8 +490,9 @@ _f4u$t.respondToOrientationChange = function(e) {
           _f4u$t._I['orientation'+id] = {id : id, moved : false, value : null, address : _f4u$t.IDS_TO_ATTRIBUTES[id]["address"]};
         }
         var now = null;
-        if ((_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'hslider')
-            || (_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'vslider')) {
+        if (((_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'hslider')
+             || (_f4u$t.IDS_TO_ATTRIBUTES[id]["type"] == 'vslider'))
+            && !_f4u$t.touched(id)) {
            // ugh...this means that they will not be disactivated...
            _f4u$t.active_addresses.push(_f4u$t.IDS_TO_ATTRIBUTES[id]["address"]);
           now = _f4u$t.moveSliderViaAccelerometer(e, id);
