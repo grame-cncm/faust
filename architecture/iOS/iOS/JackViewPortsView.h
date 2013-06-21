@@ -25,6 +25,7 @@
 
 @property (assign, nonatomic) NSString* longName;
 @property (assign, nonatomic) NSString* alias;
+@property (assign, nonatomic) BOOL touching;
 
 @end
 
@@ -51,6 +52,7 @@
 @property (assign, nonatomic) float clientX;
 @property (assign, nonatomic) float currentAppX;
 @property (assign, nonatomic) BOOL linking;
+@property (assign, nonatomic) BOOL dontDrawLinking;
 @property (assign, readwrite) CGPoint srcPt;
 @property (assign, readwrite) CGPoint dstPt;
 @property (assign, readwrite) JackViewPortsViewBackgroundView* backgroundView;
@@ -66,4 +68,6 @@
 - (void)addItem:(JackViewPortsViewItem*)item;
 - (void)refreshScrollViewOffset:(float)y;
 - (NSArray*)portsItems;
+- (void)connectIfTouchingTwoItems;
+
 @end

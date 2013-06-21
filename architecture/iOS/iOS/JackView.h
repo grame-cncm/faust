@@ -33,8 +33,9 @@
 
 @interface JackViewButton : UIControl
 {
-    UITapGestureRecognizer* _singleTapRecognizer;
-    UITapGestureRecognizer* _doubleTapRecognizer;
+    UITapGestureRecognizer*             _singleTapRecognizer;
+    UITapGestureRecognizer*             _doubleTapRecognizer;
+    UILongPressGestureRecognizer*       _longPressRecognizer;
 }
 
 @property (assign, nonatomic) JackViewClient* jackViewClient;
@@ -44,6 +45,11 @@
 
 - (void)buttonClicked;
 - (void)buttonDoubleClicked;
+- (void)buttonLongPressed;
+
+- (void)fastSwitch;
+- (void)fastConnect;
+- (void)displayPortsView;
 
 @end
 
@@ -73,11 +79,11 @@
 @end
 
 
-@interface JackViewDrawingView : UIView
+/*@interface JackViewDrawingView : UIView
 
 @property (assign, nonatomic) JackView* jackView;
 
-@end
+@end*/
 
 
 @interface JackView : UIView
@@ -92,12 +98,11 @@
     UIScrollView*           _midiInputsScrollView;
     UIScrollView*           _midiOutputsScrollView;
     
-    JackViewDrawingView*    _drawingView;
+    //JackViewDrawingView*    _drawingView;
     
     UITapGestureRecognizer* _singleTapRecognizer;
 }
 
-@property (assign, nonatomic) BOOL linking;
 @property (assign, readwrite) CGPoint srcPt;
 @property (assign, readwrite) CGPoint dstPt;
 @property (assign, readwrite) JackViewPortsView* portsView;
@@ -122,6 +127,8 @@ connectedToCurrentClientInputOutput:(int)inputOutput
 - (BOOL)isPort:(JackViewPort*)port
 connectedToCurrentClientInputOutput:(int)inputOutput
      audioMidi:(int)audioMidi;
+- (BOOL)isPort:(NSString*)portName1
+connectedWithPort:(NSString*)portName2;
 - (NSArray*)getCurrentClientPortConnectedTo:(NSString*)portName;
 
 - (BOOL)quicklyConnectAppToClient:(NSString*)clientName
@@ -145,6 +152,7 @@ connectedToCurrentClientInputOutput:(int)inputOutput
                                     audioMidi:(int)audioMidi;
 
 - (void)viewClicked;
+- (void)dismissPortsView;
 
 - (void)fsToClient;
 
