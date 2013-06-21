@@ -266,7 +266,8 @@ bool llvm_dsp_factory::initJIT()
     #if defined(LLVM_33)
         printf("Vectorize\n");
         Builder.LoopVectorize = true;
-        Builder.SLPVectorize = true;
+        Builder.SLPVectorize = false;
+        Builder.Vectorize = false;
     #elif defined(LLVM_32) 
         printf("Vectorize\n");
         Builder.LoopVectorize = true;
