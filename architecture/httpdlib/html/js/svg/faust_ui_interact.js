@@ -362,7 +362,7 @@ _f4u$t.tooltip_mouseover = function(e) {
   document.getElementById(full_id).setAttribute("style","opacity:1.0");
   setTimeout(function () {
     _f4u$t.generic_translate(full_id, 0, 0);
-    var os = $(document.getElementById(id)).offset();
+    var os = $(document.getElementById(full_id)).offset();
     var my_x = os['left'] / _f4u$t.VIEWPORT_SCALE;
     var my_y = os['top'] / _f4u$t.VIEWPORT_SCALE;
     _f4u$t.generic_translate(full_id, _f4u$t.getOperativeX(e) - my_x, _f4u$t.getOperativeY(e) - my_y);
