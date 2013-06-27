@@ -88,6 +88,7 @@ class uiBox;
     const   char*                       _name;
     
     BOOL                                _openPanelChanged;
+    
 
 #ifdef JACK_IOS
     // Test Jack

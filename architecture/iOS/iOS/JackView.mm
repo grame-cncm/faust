@@ -160,16 +160,22 @@
     
     for (i = 0; i < [compatiblePorts count]; ++i)
     {
-        JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(jackView.portsView.clientX,
-                                                                                              i * kPortsViewItemHeight,
-                                                                                              kPortsViewItemWidth,
-                                                                                              kPortsViewItemHeight)];
-        item.longName = ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name;
-        item.selected = [jackView isPort:((JackViewPort*)([compatiblePorts objectAtIndex:i]))
-     connectedToCurrentClientInputOutput:((JackViewPort*)([compatiblePorts objectAtIndex:i])).inputOutput
-                               audioMidi:((JackViewPort*)([compatiblePorts objectAtIndex:i])).audioMidi];
+        if ([[compatiblePorts objectAtIndex:i] isKindOfClass:[JackViewPort class]])
+        {
+            NSLog(@"%@", ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name);
+            
+            JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(jackView.portsView.clientX,
+                                                                                                  i * kPortsViewItemHeight,
+                                                                                                  kPortsViewItemWidth,
+                                                                                                  kPortsViewItemHeight)];
         
-        [jackView.portsView addItem:item];
+            item.longName = ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name;
+            item.selected = [jackView isPort:((JackViewPort*)([compatiblePorts objectAtIndex:i]))
+         connectedToCurrentClientInputOutput:((JackViewPort*)([compatiblePorts objectAtIndex:i])).inputOutput
+                                   audioMidi:((JackViewPort*)([compatiblePorts objectAtIndex:i])).audioMidi];
+        
+            [jackView.portsView addItem:item];
+        }
     }
     
     if (self.inputOutput == 1) [jackView displayCurrentAppPortsWithInputOutput:2 audioMidi:self.audioMidi];
@@ -620,7 +626,8 @@
     CGPoint pt = [self.portsView.clientButton convertPoint:CGPointMake(0., 0.) toView:self.superview];
     float oldClientX = self.portsView.clientX;
     float oldCurrentAppX = self.portsView.currentAppX;
-    
+    JackViewPortsViewItem* item = nil;
+        
     if (pt.x + kPortsViewItemWidth < self.frame.size.width) self.portsView.clientX = pt.x;
     else self.portsView.clientX = self.frame.size.width - kPortsViewItemWidth;
     
@@ -661,19 +668,19 @@
             
             for (i = 0; i < [[self.portsView portsItems] count]; ++i)
             {
-                JackViewPortsViewItem* item = ((JackViewPortsViewItem*)([[self.portsView portsItems] objectAtIndex:i]));
+                item = [[self.portsView portsItems] objectAtIndex:i];
                 
                 if ([item isKindOfClass:[JackViewPortsViewItem class]])
-                {
+                {                    
                     if (item.frame.origin.x == self.portsView.currentAppX)
                     {
                         [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
                     }
-                    /*else if (item.frame.origin.x == jackView.portsView.currentAppX)
-                     {
-                     [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
-                     jackView.portsView.currentAppX = newCurrentAppX;
-                     }*/
+                    //else if (item.frame.origin.x == jackView.portsView.currentAppX)
+                    //{
+                    //[item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                    //jackView.portsView.currentAppX = newCurrentAppX;
+                    //}
                 }
             }
             
@@ -1616,6 +1623,7 @@ connectedWithPort:(NSString*)portName2
     for (i = 0; i < [portsArray count]; ++i)
     {
         JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(self.portsView.currentAppX, i * kPortsViewItemHeight, kPortsViewItemWidth, kPortsViewItemHeight)];
+        
         item.longName = ((JackViewPort*)([portsArray objectAtIndex:i])).name;
         item.selected = [self isPort:((JackViewPort*)([portsArray objectAtIndex:i]))
      connectedToCurrentClientInputOutput:((JackViewPort*)([portsArray objectAtIndex:i])).inputOutput

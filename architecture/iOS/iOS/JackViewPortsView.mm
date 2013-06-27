@@ -451,7 +451,7 @@
                 {
                     dstItem = (JackViewPortsViewItem*)[buttons objectAtIndex:j];
                     
-                    if (dstItem.frame.origin.x == currentAppX)
+                    if ([dstItem isKindOfClass:[JackViewPortsViewItem class]] && dstItem.frame.origin.x == currentAppX)
                     {
                         for (k = 0; k < [dstArray count]; ++k)
                         {
