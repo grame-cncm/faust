@@ -85,6 +85,7 @@ fi
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AUSynth/* $TEMP_DIR
 cp $1 $TEMP_DIR
+cp *.lib $TEMP_DIR >& /dev/null
 cd $TEMP_DIR
 
 faust -a $FAUST_DIR/$ARCHFILE $1 -o Source/ausynth-output.cpp

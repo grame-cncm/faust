@@ -88,6 +88,7 @@ fi
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
 cp $1 $TEMP_DIR
+cp *.lib $TEMP_DIR >& /dev/null
 cd $TEMP_DIR
 
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
