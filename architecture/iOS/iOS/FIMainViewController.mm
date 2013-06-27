@@ -173,10 +173,20 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [_jackButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Icon-Jack" ofType:@"png"]]
                  forState:UIControlStateNormal];
     [_jackButton addTarget:self action:@selector(openJackView) forControlEvents:UIControlEventTouchUpInside];
-    [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
-                                     _dspScrollView.frame.size.height,
-                                     70,
-                                     32)];
+    /*if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+    {
+        [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 100,
+                                         _dspScrollView.frame.size.height,
+                                         70,
+                                         32)];
+    }
+    else
+    {
+        [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
+                                         _dspScrollView.frame.size.height,
+                                         70,
+                                         32)];
+    }*/
     _jackButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin & UIViewAutoresizingFlexibleTopMargin;
     [_dspScrollView.superview addSubview:_jackButton];
     
@@ -478,10 +488,10 @@ T findCorrespondingUiItem(FIResponder* sender)
             button->modifyZone((float)((FIButton*)sender).value);
 
             // If push button, force to zero just after to avoid an "anti-rebond" bug
-            if ((float)((FIButton*)sender).type == kPushButtonType && (float)((FIButton*)sender).value == 1.)
+            /*if ((float)((FIButton*)sender).type == kPushButtonType && (float)((FIButton*)sender).value == 1.)
             {
                 [self performSelector:@selector(buttonSetToZero:) withObject:sender afterDelay:0.1];
-            }
+            }*/
         }
     }
     else if ([sender isKindOfClass:[FITextField class]])
@@ -1662,10 +1672,20 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     if (_jackButton)
     {
-        [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
-                                         _dspScrollView.frame.size.height,
-                                         70,
-                                         32)];
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+        {
+            [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 50,
+                                             _dspScrollView.frame.size.height,
+                                             70,
+                                             32)];
+        }
+        else
+        {
+            [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
+                                             _dspScrollView.frame.size.height,
+                                             70,
+                                             32)];
+        }
     }
 }
 
