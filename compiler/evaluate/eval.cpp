@@ -518,10 +518,32 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		int n = eval2int(num, visited, localValEnv);
 		return iterateSum(var, n, body, visited, localValEnv);
 
-	} else if (isBoxIProd(exp, var, num, body)) {
-		int n = eval2int(num, visited, localValEnv);
-		return iterateProd(var, n, body, visited, localValEnv);
-		
+    } else if (isBoxIProd(exp, var, num, body)) {
+        int n = eval2int(num, visited, localValEnv);
+        return iterateProd(var, n, body, visited, localValEnv);
+
+    // static
+    } else if (isBoxInputs(exp, body)) {
+        int ins, outs;
+        Tree b = a2sb(eval(body, visited, localValEnv));
+        if (getBoxType (b, &ins, &outs)) {
+            return boxInt(ins);
+        } else {
+            cerr << "ERROR : can't evaluate ' : " << *exp << endl;
+            assert(false);
+        }
+
+    } else if (isBoxOutputs(exp, body)) {
+        int ins, outs;
+        Tree b = a2sb(eval(body, visited, localValEnv));
+        if (getBoxType (b, &ins, &outs)) {
+            return boxInt(outs);
+        } else {
+            cerr << "ERROR : can't evaluate ' : " << *exp << endl;
+            assert(false);
+        }
+
+
 	} else if (isBoxSlot(exp)) 		{ 
 		return exp; 
 	

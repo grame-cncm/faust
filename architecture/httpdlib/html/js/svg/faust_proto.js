@@ -207,6 +207,19 @@ _f4u$t.extend = function(base, sub) {
 }
 
 /**
+Identity function.
+
+@method identity
+@for _f4u$t
+@static
+@param {Object} value The value to return
+@return {Object} The input value
+**/
+_f4u$t.identity = function(value) {
+  return value;
+}
+
+/**
 Enum-like constant for the X axis.
 
 @property X_AXIS
@@ -425,20 +438,6 @@ _f4u$t.PATHS_TO_IDS = {};
 _f4u$t.IDS_TO_ATTRIBUTES = {};
 
 /**
-An array holding two objects: one keeping track of the
-X coordinate of moving objects and one keeping track of the Y
-coordinate.
-
-@property PREV
-@for _f4u$t
-@type Array
-@default []
-**/
-_f4u$t.PREV = new Array();
-_f4u$t.PREV[_f4u$t.X_AXIS] = {}
-_f4u$t.PREV[_f4u$t.Y_AXIS] = {}
-
-/**
 Returns a random, soft, pretty color, represented
 as 0-255 RGB values in an array, to act as a background
 for layout managers.
@@ -490,7 +489,7 @@ _f4u$t.parse_orientation = function(s) {
   if (['alpha','beta','gamma'].indexOf(split[0]) < 0) {
     return {};
   }
-  var itor = {1 : Number.NEGATIVE_INFINITY, 2 : Number.POSITIVE_INFINITY };
+  var itor = {1 : _f4u$t.orientation_bounds[split[0]][0], 2 : _f4u$t.orientation_bounds[split[0]][1] };
 
   // this loop creates the rest of the array
   for (var i in itor) {
@@ -573,15 +572,18 @@ from a previous value
 @return {Number} The value bounded. If the previous value was the upper
 bound, we remain on this to avoid large leaps.
 **/
-_f4u$t.bound_and_avoid_large_leaps = function(aval, pval, l, h) {
+_f4u$t.bound_and_avoid_large_leaps = function(aval, pval, l, h, epsilon) {
+  if (!epsilon) {
+    epsilon = 0;
+  }
   if (l > aval) {
-    if (pval != h) {
+    if (Math.abs(pval - h) <= epsilon) {
       return l;
     }
   }
 
   else if (aval > h) {
-    if (pval != l) {
+    if (Math.abs(pval - l) <= epsilon) {
       return h;
     }
   }
@@ -1097,8 +1099,11 @@ Finds the bounding box of a text node in an svg.
 @param {Object} text The text node.
 @return {Object} The bounding rectangle of the text node.
 **/
-_f4u$t.get_text_bbox = function(svg, text) {
-  var dummy = svg.text(0,0,text);
+_f4u$t.get_text_bbox = function(svg, text, kls) {
+  if (!kls) {
+    kls = 'faust-label';
+  }
+  var dummy = svg.text(0,0,text, {'class' : kls});
   var bbox = dummy.getBBox();
   svg.remove(dummy);
   return bbox;

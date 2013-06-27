@@ -8,6 +8,10 @@ faust2alqt <file.dsp>...       	: create ALSA/QT application for each input file
 
 faust2alsa <file.dsp>...       	: create ALSA/GTKk application for each input file
 
+faust2au <file.dsp>...		      : create Audio Unit Effect for each input file
+
+faust2ausynth <file.dsp>...           : create Audio Unit Synth for each input file
+
 faust2caqt  <file.dsp>... 		: create a CoreAudio/QT application for each input file
 
 faust2csound <file.dsp>...     	: create a CSOUND plugin for each input file

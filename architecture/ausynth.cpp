@@ -682,8 +682,8 @@ OSStatus FaustAUSynth::GetParameterInfo(AudioUnitScope inScope,
 				auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
 				slider->GetName(name);
                 
-				//TODO the default parameter name which is set by MIDI note in 
-				if (!strcmp(name, "Frequency")) {
+				//TODO the default parameter name which is set by MIDI note in
+				if (!strcmp(name, "freq")) {
 					frequencyParameterID = inParameterID;
 				}
                 
@@ -794,8 +794,8 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
                 (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
 			if (frequencySlider)
 				//TODO change the SetValue function call accordingly
-                //frequencySlider->SetValue(Frequency() / 24000.0);
-				frequencySlider->SetValue((float) GetMidiKey() / 88.0);
+                frequencySlider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
+				//frequencySlider->SetValue((float) GetMidiKey() / 88.0);
 		}
         
 		dsp->compute(inNumFrames, audioData, outBuffer);
@@ -829,4 +829,3 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-

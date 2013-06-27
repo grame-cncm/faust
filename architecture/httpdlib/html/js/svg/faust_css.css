@@ -18,6 +18,23 @@ text {
 	fill: rgba(199,190,162,0.6);
 }
 
+.faust-tooltip-text {
+	font-family: Arial, Verdana, Helvetica, sans;
+	font-size: 13px;
+}
+
+.faust-button-label {
+	font-family: Arial, Verdana, Helvetica, sans;
+	font-size: 13px;
+	fill: rgba(0,182,253,0.6);
+}
+
+.faust-tgroup-label {
+	font-family: Arial, Verdana, Helvetica, sans;
+	font-size: 13px;
+	fill: rgba(0,182,253,0.6);
+}
+
 .faust-label {
 	font-family: Arial, Verdana, Helvetica, sans;
 	font-size: 13px;
@@ -68,14 +85,14 @@ path.faust-rbutton-handle {
 
 rect.faust-hslider-meter {
   fill : url(#horizontalSliderMeterGradient);
-  width : 200;
+  width : 175;
   height : 40;
 }
 
 rect.faust-hslider-groove {
   fill : rgba(28,126,192,0.65);
   stroke : rgba(0,182,253,0.9);
-  width : 200;
+  width : 175;
   height : 40;
 }
 
@@ -88,7 +105,7 @@ rect.faust-hslider-handle {
 
 rect.faust-vslider-meter {
   fill : url(#verticalSliderMeterGradient);
-  height : 200;
+  height : 175;
   width : 40;
 }
 
@@ -96,7 +113,7 @@ rect.faust-vslider-groove {
   fill : rgba(28,126,192, 0.65);
   stroke : rgba(0,182,253,0.9);
   width : 40;
-  height : 200;
+  height : 175;
 }
 
 rect.faust-vslider-handle {
@@ -145,16 +162,9 @@ path.faust-checkbox-check {
   stroke : black;
 }
 
-rect.faust-nentry-up {
+rect.faust-nentry-box {
   fill : url(#numericalEntryUpGradient);
   stroke : black;
-  width : 60;
-  height : 20;
-}
-
-rect.faust-nentry-down {
-  fill : url(#numericalEntryDownGradient);
-  stroke : orange;
   width : 60;
   height : 20;
 }
@@ -163,27 +173,15 @@ path.faust-nentry-operation {
   stroke : black;
 }
 
-rect.faust-button-down {
-  fill : url(#buttonDownGradient);
-  stroke : black;
-  width : 80;
-  height : 40;
-}
-
-rect.faust-button-up {
+rect.faust-button-box {
   fill : url(#buttonUpGradient);
   stroke : black;
   width : 80;
   height : 40;
 }
 
-rect.faust-tgroup-down {
-  fill : url(#tabDownGradient);
-  stroke : orange;
-}
-
-rect.faust-tgroup-up {
-  fill : url(#tabUpGradient);
+rect.faust-tgroup-box {
+  fill : url(#tabGroupUpGradient);
   stroke : black;
 }
 
@@ -251,131 +249,12 @@ path.faust-checkbox-box {
   stroke : black;
 }
 
-path.faust-nentry-up {
+path.faust-nentry-box {
   fill : url(#numericalEntryUpGradient);
   stroke : black;
 }
 
-path.faust-nentry-down {
-  fill : url(#numericalEntryDownGradient);
-  stroke : orange;
-}
-
-path.faust-button-down {
-  fill : #404040;
-  stroke : black;
-}
-
-path.faust-button-up {
+path.faust-button-box {
   fill : #B0B0B0;
   stroke : black;
 }
-
-path.faust-button-down:hover {
-  stroke : orange;
-}
-
-path.faust-button-up:hover {
-  stroke : orange;
-}
-
-// hovers
-
-rect.faust-button-down:hover {
-  stroke : orange;
-}
-
-rect.faust-button-up:hover {
-  stroke : orange;
-}
-
-path.faust-rbutton-groove.hover {
-  stroke : orange;
-}
-
-rect.faust-hslider-groove.hover {
-  stroke : orange;
-}
-
-rect.faust-hslider-handle.hover {
-  stroke : orange;
-}
-
-rect.faust-vslider-groove.hover {
-  stroke : orange;
-}
-
-rect.faust-vslider-handle.hover {
-  stroke : orange;
-}
-
-rect.faust-hbargraph-curtain.hover {
-  stroke : orange;
-}
-
-rect.faust-checkbox-box.hover {
-  stroke : orange;
-}
-
-rect.faust-nentry-up.hover {
-  stroke : orange;
-}
-
-rect.faust-nentry-down.hover {
-  stroke : orange;
-}
-
-path.faust-nentry-operation.hover {
-  stroke : orange;
-}
-
-circle.faust-rbutton-groove.hover {
-  stroke : orange;
-}
-
-// as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
-
-path.faust-hslider-groove.hover {
-  stroke : orange;
-}
-
-path.faust-hslider-handle.hover {
-  stroke : orange;
-}
-
-path.faust-vslider-groove.hover {
-  stroke : orange;
-}
-
-path.faust-vslider-handle.hover {
-  stroke : orange;
-}
-
-path.faust-checkbox-box.hover {
-  stroke : orange;
-}
-
-path.faust-nentry-up.hover {
-  stroke : orange;
-}
-
-path.faust-nentry-down.hover {
-  stroke : orange;
-}
-
-path.faust-button-down.hover {
-  stroke : orange;
-}
-
-path.faust-button-up.hover {
-  stroke : orange;
-}
-
-path.faust-button-down:hover.hover {
-  stroke : orange;
-}
-
-path.faust-button-up:hover.hover {
-  stroke : orange;
-}
-

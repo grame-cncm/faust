@@ -130,33 +130,35 @@
      ISEQ = 346,
      ISUM = 347,
      IPROD = 348,
-     STRING = 349,
-     FSTRING = 350,
-     IDENT = 351,
-     EXTRA = 352,
-     DECLARE = 353,
-     CASE = 354,
-     ARROW = 355,
-     BDOC = 356,
-     EDOC = 357,
-     BEQN = 358,
-     EEQN = 359,
-     BDGM = 360,
-     EDGM = 361,
-     BLST = 362,
-     ELST = 363,
-     BMETADATA = 364,
-     EMETADATA = 365,
-     DOCCHAR = 366,
-     NOTICE = 367,
-     LISTING = 368,
-     LSTTRUE = 369,
-     LSTFALSE = 370,
-     LSTDEPENDENCIES = 371,
-     LSTMDOCTAGS = 372,
-     LSTDISTRIBUTED = 373,
-     LSTEQ = 374,
-     LSTQ = 375
+     INPUTS = 349,
+     OUTPUTS = 350,
+     STRING = 351,
+     FSTRING = 352,
+     IDENT = 353,
+     EXTRA = 354,
+     DECLARE = 355,
+     CASE = 356,
+     ARROW = 357,
+     BDOC = 358,
+     EDOC = 359,
+     BEQN = 360,
+     EEQN = 361,
+     BDGM = 362,
+     EDGM = 363,
+     BLST = 364,
+     ELST = 365,
+     BMETADATA = 366,
+     EMETADATA = 367,
+     DOCCHAR = 368,
+     NOTICE = 369,
+     LISTING = 370,
+     LSTTRUE = 371,
+     LSTFALSE = 372,
+     LSTDEPENDENCIES = 373,
+     LSTMDOCTAGS = 374,
+     LSTDISTRIBUTED = 375,
+     LSTEQ = 376,
+     LSTQ = 377
    };
 #endif
 /* Tokens.  */
@@ -251,33 +253,35 @@
 #define ISEQ 346
 #define ISUM 347
 #define IPROD 348
-#define STRING 349
-#define FSTRING 350
-#define IDENT 351
-#define EXTRA 352
-#define DECLARE 353
-#define CASE 354
-#define ARROW 355
-#define BDOC 356
-#define EDOC 357
-#define BEQN 358
-#define EEQN 359
-#define BDGM 360
-#define EDGM 361
-#define BLST 362
-#define ELST 363
-#define BMETADATA 364
-#define EMETADATA 365
-#define DOCCHAR 366
-#define NOTICE 367
-#define LISTING 368
-#define LSTTRUE 369
-#define LSTFALSE 370
-#define LSTDEPENDENCIES 371
-#define LSTMDOCTAGS 372
-#define LSTDISTRIBUTED 373
-#define LSTEQ 374
-#define LSTQ 375
+#define INPUTS 349
+#define OUTPUTS 350
+#define STRING 351
+#define FSTRING 352
+#define IDENT 353
+#define EXTRA 354
+#define DECLARE 355
+#define CASE 356
+#define ARROW 357
+#define BDOC 358
+#define EDOC 359
+#define BEQN 360
+#define EEQN 361
+#define BDGM 362
+#define EDGM 363
+#define BLST 364
+#define ELST 365
+#define BMETADATA 366
+#define EMETADATA 367
+#define DOCCHAR 368
+#define NOTICE 369
+#define LISTING 370
+#define LSTTRUE 371
+#define LSTFALSE 372
+#define LSTDEPENDENCIES 373
+#define LSTMDOCTAGS 374
+#define LSTDISTRIBUTED 375
+#define LSTEQ 376
+#define LSTQ 377
 
 
 
@@ -292,7 +296,7 @@ typedef union YYSTYPE
 	bool b;
 }
 /* Line 1529 of yacc.c.  */
-#line 296 "parser/faustparser.hpp"
+#line 300 "parser/faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -7,37 +7,65 @@
 #                                                                   
 #####################################################################
 
-# INSTALLATION:
-# - copy the contents of the 'architecture' and 'tools' folders into the similar faust folders
-# - if needed, change FAUST_DIR variable in the 'tools/faust2appls/faust2au' file
-# - in the terminal window, run  'install FAUST_DIR/faust2au /usr/local/bin' (FAUST_DIR is your faust folder)
-# - Xcode should also be installed on your system (https://developer.apple.com/xcode/)
+ARCHFILE="au.cpp"
+ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
+PATH=$PATH:/usr/local/bin
 
-# USAGE: 
-# - with the default arguments:
-# faust2au filename
-# (e.g. faust2au echo.dsp)
-# - with some extra arguments:
-# faust2au filename manufacturer STYP MANF
-# 'manufacturer' is the manufacturer of the AU (The default value is 'Grame')
-# 'STYP' is a four-charachter subtype (The default is the first four characters of the 'filename')
-# 'MANF' is a four-charachter manufacturer (The default is the first four characters of the 'manufacturer')
+#-------------------------------------------------------------------------------
+# Search where Faust is installed. Store '.../lib/faust/' in $FLIB
+# and '.../include/(faust)' in $FINC 
 
-# OUTPUT:
-# ~/Library/Audio/Plug-Ins/Components/'filename'.component  
-# AU Name will be: 'manufacturer: filename'  ('filename' is used as the AU name). 
-# The names are case-sensitive, e.g. 'faust2au Echo.dsp' results in 'Echo' as the AU name
+FLIB=""; FINC=""; 
+FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
+for f in $FPATH; do
+	if [ -e $f/lib/faust ]; 	then FLIB=$f/lib/faust;	fi
+	if [ -e $f/include/faust ];	then FINC=$f/include/; fi
+done
+if [ -z "$FLIB" -o -z "$FINC" ]; then 
+	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)"; 
+	exit 1;
+fi
 
-######################################################
+#-------------------------------------------------------------------------------
 
-FAUST_DIR=/Applications/faust-0.9.58
+#PHASE 1 : collects files and options from the command line
 
-######################################################
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
 
+    if [ "$p" = -icc ]; then
+		ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCDEFS="DEFINES += OSCCTRL"
+		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+	elif [ "$p" = "-httpd" ]; then
+		HTTPDEFS="DEFINES += HTTPCTRL"
+		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"
+	fi
+done
+
+
+#-------------------------------------------------------------------------------
+
+#PHASE 2 : compile the *.dsp file
+
+# could use FILES for handling multiple dap files, while other AU args like manufacturer and subtype should be handled in a way
+
+FAUST_DIR=$FLIB
 AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
-
-FAUST_AU_DIR=$FAUST_DIR/architecture/AU/
-cd $FAUST_AU_DIR
+TEMP_DIR=./faust.XXX
 
 if [ $# -lt 1 ]
 then
@@ -51,7 +79,26 @@ then
     exit
 fi
 
-faust -a $FAUST_DIR/architecture/au.cpp $1 -o Source/au-output.cpp
+if [ -d $TEMP_DIR ]
+then
+	rm -r $TEMP_DIR
+fi
+
+
+mkdir $TEMP_DIR
+cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
+cp $1 $TEMP_DIR
+cp *.lib $TEMP_DIR >& /dev/null
+cd $TEMP_DIR
+
+faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
+if [ ! -f Source/au-output.cpp ]
+then
+	echo faust could not generate cpp file
+	cd ..
+	rm -r $TEMP_DIR
+	exit	
+fi
 
 FULL_FILE_NAME=$1
 
@@ -97,9 +144,12 @@ perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h 
 
-xcodebuild ARCHS="i386 x86_64" CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null 2> ./build_errors.log
+xcodebuild ARCHS="i386 x86_64" CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
+
+rm Source/au-output.cpp
 
 rm Info.plist
+
 cp Info-template.plist Info.plist
 
 rm English.lproj/InfoPlist.strings
@@ -111,9 +161,23 @@ cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
 rm Source/AUSource/FaustAUVersion.h
 cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
 
-rm -r $AU_DIR/"$FILE_NAME".component/
-cp -r $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component/
-rm -r $AU_DIR/FaustAU.component/
+if [ ! -d $AU_DIR/FaustAU.component/ ]
+then
+	echo unable to generate AU
+	cd ..
+	rm -r $TEMP_DIR
+	exit	
+fi
+
+if [ -d $AU_DIR/"$FILE_NAME".component/ ]
+then
+	rm -r  $AU_DIR/"$FILE_NAME".component/
+fi
+
+mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
+
+cd ..
+rm -r $TEMP_DIR
 
 echo "'$NAME'" AU generated and installed successfully 
 
