@@ -60,11 +60,30 @@ _f4u$t.UIObject.prototype.get_root_svg = function() {
   return (this.mom.svg ? this.mom.svg : this.mom.get_root_svg());
 }
 
+_f4u$t.UIObject.prototype.get_root_tooltip_group = function() {
+  if (!this.mom) {
+    return null;
+  }
+  return (this.mom.tooltip_group ? this.mom.tooltip_group : this.mom.get_root_tooltip_group());
+}
+
 _f4u$t.UIObject.prototype.get_layout_manager = function() {
   if (!this.mom) {
     return null;
   }
   return (this.mom instanceof _f4u$t.LayoutManager ? this.mom : this.mom.get_layout_manager());
+}
+
+_f4u$t.delayed_tooltips = [];
+
+_f4u$t.UIObject.prototype.make_delayed_tooltips = function() {
+  for (var i = 0; i < _f4u$t.delayed_tooltips.length; i++) {
+    _f4u$t.delayed_tooltips[i][0].make_tooltip(
+      _f4u$t.delayed_tooltips[i][1],
+      _f4u$t.delayed_tooltips[i][2],
+      _f4u$t.delayed_tooltips[i][3]
+    );
+  }
 }
 
 _f4u$t.UIObject.prototype.tooltip_text = function() {
@@ -113,23 +132,21 @@ _f4u$t.UIObject.prototype.make_tooltip_box = function(svg, parent, id) {
   return ttbox;
 }
 
-_f4u$t.UIObject.prototype.make_tooltip = function(svg, parent, linked_obj_id, id) {
+_f4u$t.UIObject.prototype.make_delayed_tooltip = function(obj, svg, linked_obj_id, id) {
+  _f4u$t.delayed_tooltips.push([obj, svg, linked_obj_id, id]);
+}
+
+_f4u$t.UIObject.prototype.make_tooltip = function(svg, linked_obj_id, id) {
   if (this.tooltip != "") {
     var full_id = 'faust_tooltip_'+id;
-    var container = svg.group(
-      parent,
-      full_id,
-      {
-        transform: "translate(0,0)"
-      }
-    );
-    var box = this.make_tooltip_box(svg, container, id);
-    var text = this.make_tooltip_text(svg, container, id);
+    var root = this.get_root_tooltip_group();
+    var g = this.make_group(svg, root, full_id)
+    var box = this.make_tooltip_box(svg, g, id);
+    var text = this.make_tooltip_text(svg, g, id);
     _f4u$t.move_to_ridiculous_negative(full_id);
     $('#'+linked_obj_id).bind('mouseover', _f4u$t.tooltip_mouseover);
     $('#'+linked_obj_id).bind('mouseout', _f4u$t.tooltip_mouseout);
-
-    return container;
+    return g;
   }
 }
 
@@ -281,6 +298,7 @@ _f4u$t.RotatingButton = function(options) {
   _f4u$t.init_prop(this, options, 'rbutton', 'ndec');
   _f4u$t.init_prop(this, options, 'rbutton', 'stretchable');
   _f4u$t.init_prop(this, options, 'rbutton', 'orientation');
+  _f4u$t.init_prop(this, options, 'rbutton', 'orientation_mode');
   _f4u$t.init_prop(this, options, 'rbutton', 'gravity');
   _f4u$t.init_prop(this, options, 'rbutton', 'mgroove_fill');
   _f4u$t.init_prop(this, options, 'rbutton', 'meter_fill');
@@ -498,6 +516,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
     this.label,
     this.unit,
     this.orientation,
+    this.orientation_mode,
     this.address
   );
 
@@ -512,7 +531,7 @@ _f4u$t.RotatingButton.prototype.make = function(svg, parent) {
   }
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  this.make_tooltip(svg, g, id, id);
+  this.make_delayed_tooltip(this, svg, id, id);
 
   return g;
 }
@@ -560,6 +579,7 @@ _f4u$t.Slider = function(options, type) {
   _f4u$t.SlidingObject.call(this, options, type);
   _f4u$t.init_prop(this, options, type,'sp');
   _f4u$t.init_prop(this, options, type, 'orientation');
+  _f4u$t.init_prop(this, options, type, 'orientation_mode');
   _f4u$t.init_prop(this, options, type, 'groove_fill');
   _f4u$t.init_prop(this, options, type, 'groove_stroke');
   _f4u$t.init_prop(this, options, type, 'handle_fill');
@@ -689,13 +709,14 @@ _f4u$t.Slider.prototype.make = function(svg, parent) {
     this.label,
     this.unit,
     this.orientation,
+    this.orientation_mode,
     this.address
   );
 
   this.make_meter(svg, g, id);
   this.make_groove(svg, g, id);
   this.make_handle(svg, g, id);
-  this.make_tooltip(svg, g, id, id);
+  this.make_delayed_tooltip(this, svg, id, id);
   return g;
 }
 
@@ -922,7 +943,7 @@ _f4u$t.CheckBox.prototype.make = function(svg, parent) {
   this.make_box(svg, g, id);
   this.make_check(svg, g, id);
   //this.make_label(svg, g, id);
-  this.make_tooltip(svg, g, id, id);
+  this.make_delayed_tooltip(this, svg, id, id);
 
   return g;
 }
@@ -1027,7 +1048,7 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
 
   this.make_button_box(svg, g, id);
   this.make_label(svg, g, id);
-  this.make_tooltip(svg, g, id, id);
+  this.make_delayed_tooltip(this, svg, id, id);
 
   return g;
 }
@@ -1195,7 +1216,7 @@ _f4u$t.NumericalEntry.prototype.make = function(svg, parent) {
   this.make_right_button(svg, g, id);
   this.make_minus(svg, g, id);
   this.make_plus(svg, g, id);
-  this.make_tooltip(svg, g, id, id);
+  this.make_delayed_tooltip(this, svg, id, id);
 
   return g;
 }
@@ -1594,6 +1615,8 @@ _f4u$t.SVG.prototype.make = function() {
   this.lm.populate_objects();
   this.lm.do_spacing(0);
   this.lm.make(this.svg, this.svg);
+  this.tooltip_group = this.svg.group(this.svg,'faust_tooltip_group');
+  this.make_delayed_tooltips();
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
   this.svg.configure(
