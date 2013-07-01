@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
         */
         
         char error_msg3[256];
-        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 4);
+        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
         //printf("createDSPFactory %x\n", factory3);
         if (factory3) {
             DSP = createDSPInstance(factory3);

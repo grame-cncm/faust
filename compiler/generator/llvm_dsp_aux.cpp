@@ -243,6 +243,7 @@ bool llvm_dsp_factory::initJIT()
             delete scheduler;
         } else {
             printf("File scheduler.ll not found...\n");
+            return false;
         }
     }
     
