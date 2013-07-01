@@ -27,7 +27,6 @@ if [ -z "$FLIB" -o -z "$FINC" ]; then
 fi
 
 #-------------------------------------------------------------------------------
-
 #PHASE 1 : collects files and options from the command line
 
 for p in $@; do
@@ -56,7 +55,6 @@ for p in $@; do
 	fi
 done
 
-
 #-------------------------------------------------------------------------------
 
 #PHASE 2 : compile the *.dsp file
@@ -83,8 +81,6 @@ if [ -d $TEMP_DIR ]
 then
 	rm -r $TEMP_DIR
 fi
-
-
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
 cp $1 $TEMP_DIR
@@ -149,7 +145,6 @@ xcodebuild ARCHS="i386 x86_64" CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-
 rm Source/au-output.cpp
 
 rm Info.plist
-
 cp Info-template.plist Info.plist
 
 rm English.lproj/InfoPlist.strings
@@ -180,4 +175,3 @@ cd ..
 rm -r $TEMP_DIR
 
 echo "'$NAME'" AU generated and installed successfully 
-
