@@ -149,7 +149,7 @@ class llvm_dsp_factory {
         
         void writeDSPFactoryToIRFile(const std::string& ir_code_path);
         
-        bool initJIT();
+        bool initJIT(char* error_msg);
         
         void metadataDSPFactory(Meta* meta);
         

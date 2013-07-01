@@ -47,6 +47,7 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
     
     SMDiagnostic err;
     Module* res = ParseIRFile(filename, err, *context);
+    /*
     if (!res) {
     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("LoadModule", errs());
@@ -54,6 +55,7 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
         err.Print("LoadModule", errs());
     #endif
     }
+    */
     return res;
 }
 
@@ -161,7 +163,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
-bool llvm_dsp_factory::initJIT()
+bool llvm_dsp_factory::initJIT(char* error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -238,11 +240,14 @@ bool llvm_dsp_factory::initJIT()
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                printf("Cannot link scheduler module : %s\n", err.c_str());
+                snprintf(error_msg, 256, "Cannot link scheduler module : %s", err.c_str());
+                delete scheduler;
+                return false;
+            } else {
+                delete scheduler;
             }
-            delete scheduler;
         } else {
-            printf("File scheduler.ll not found...\n");
+            strncpy(error_msg, "File scheduler.ll not found...", 256);
             return false;
         }
     }
@@ -396,9 +401,9 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
 
-static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory)
+static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, char* error_msg)
 {
-    if (factory->initJIT()) {
+    if (factory->initJIT(error_msg)) {
         return factory;
     } else {
         delete factory;
@@ -413,7 +418,7 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
     const std::string& input, const std::string& target, 
     char* error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
     
 // Bitcode <==> string
@@ -426,7 +431,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     delete buffer;
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
         delete context;
@@ -453,7 +459,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
         delete context;
@@ -475,7 +482,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("readDSPFactoryFromIR failed :", errs());
@@ -500,7 +508,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     Module* module = ParseIRFile(ir_code_path, err, *context);
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("readDSPFactoryFromIR failed :", errs());
@@ -578,7 +587,7 @@ EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
                         const char* input, const char* target, 
                         char* error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
