@@ -598,10 +598,10 @@ VstInt32 Faust::getMidiProgramCategory (VstInt32 channel, MidiProgramCategory* c
 void Faust::setSampleRate(float sampleRate)
 {
   AudioEffect::setSampleRate(sampleRate);
-  m_dsp->instanceInit((int)getSampleRate()); // in case AudioEffect altered it
+  m_dsp->init((int)getSampleRate()); // in case AudioEffect altered it
 
 	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
-		m_voices[i]->m_dsp.instanceInit((int)getSampleRate());
+		m_voices[i]->m_dsp.init((int)getSampleRate());
 	}
 }
 
@@ -610,10 +610,10 @@ void Faust::initProcess ()
 {
   noteIsOn = false;
   currentDelta = currentNote = currentDelta = 0;
-  m_dsp->instanceInit((int)getSampleRate());
+  m_dsp->init((int)getSampleRate());
 
 	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
-		m_voices[i]->m_dsp.instanceInit((int)getSampleRate());
+		m_voices[i]->m_dsp.init((int)getSampleRate());
 	}
 }
 
