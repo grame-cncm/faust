@@ -471,6 +471,11 @@
         _midiInputsScrollView.hidden = YES;
         _midiOutputsScrollView.hidden = YES;
         
+        _audioInputsScrollView.delegate = self;
+        _audioOutputsScrollView.delegate = self;
+        _midiInputsScrollView.delegate = self;
+        _midiOutputsScrollView.delegate = self;
+        
         [self addSubview:_audioInputsScrollView];
         [self addSubview:_audioOutputsScrollView];
         [self addSubview:_midiInputsScrollView];
@@ -616,7 +621,7 @@
     
     if (fabs(self.portsView.clientX - self.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
     {
-        //float newClientX = 0.f;
+        float newClientX = 0.f;
         float newCurrentAppX = 0.f;
         
         if (self.portsView.currentAppX < self.portsView.clientX)
@@ -644,6 +649,32 @@
             }
             
             self.portsView.currentAppX = newCurrentAppX;
+        }
+        else if (self.portsView.clientX < self.portsView.currentAppX)
+        {
+            newClientX = fmaxf(self.portsView.currentAppX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
+            
+            //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
+            
+            for (i = 0; i < [[self.portsView portsItems] count]; ++i)
+            {
+                item = [[self.portsView portsItems] objectAtIndex:i];
+                
+                if ([item isKindOfClass:[JackViewPortsViewItem class]])
+                {
+                    if (item.frame.origin.x == self.portsView.currentAppX)
+                    {
+                        [item setFrame:CGRectMake(newClientX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                    }
+                    //else if (item.frame.origin.x == jackView.portsView.currentAppX)
+                    //{
+                    //[item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                    //jackView.portsView.currentAppX = newCurrentAppX;
+                    //}
+                }
+            }
+            
+            self.portsView.clientX = newClientX;
         }
     }
     
@@ -1540,6 +1571,11 @@ connectedWithPort:(NSString*)portName2
     {
         jack_gui_switch_to_client([self jackClient], [clientName cStringUsingEncoding:NSUTF8StringEncoding]);
     }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [self dismissPortsView];
 }
 
 @end
