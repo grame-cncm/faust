@@ -16,7 +16,7 @@
 #define kJackViewExtHMargins 5
 #define kJackViewExtTopVMargins 30
 #define kJackViewExtBottomVMargins 5
-#define kJackViewIntHMargins 5
+#define kJackViewIntHMargins 10
 
 #define kJackViewBottomMargin 20
 #define kJackViewTitlesYOffset 3
@@ -91,7 +91,7 @@
 @end*/
 
 
-@interface JackView : UIView
+@interface JackView : UIView <UIScrollViewDelegate>
 {
     jack_client_t*          _jackClient;
     
