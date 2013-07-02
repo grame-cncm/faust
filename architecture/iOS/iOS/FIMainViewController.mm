@@ -27,7 +27,7 @@
 #define kMotionUpdateRate           30
 
 // Test Jack
-#define kJackViewHeight 120
+#define kJackViewHeight 130
 #define kJackViewAnimationDuration 0.2
 
 

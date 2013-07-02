@@ -65,6 +65,42 @@
 		651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6534E20E17301716009A4FD2 /* JackViewPortsView.mm */; };
+		654EE64D17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
+		654EE64E17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
+		654EE64F17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
+		654EE65017832FB400175F2F /* jackview-audio-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64217832FB400175F2F /* jackview-audio-off@2x.png */; };
+		654EE65117832FB400175F2F /* jackview-audio-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64217832FB400175F2F /* jackview-audio-off@2x.png */; };
+		654EE65217832FB400175F2F /* jackview-audio-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64217832FB400175F2F /* jackview-audio-off@2x.png */; };
+		654EE65317832FB400175F2F /* jackview-audio-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64317832FB400175F2F /* jackview-audio-on.png */; };
+		654EE65417832FB400175F2F /* jackview-audio-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64317832FB400175F2F /* jackview-audio-on.png */; };
+		654EE65517832FB400175F2F /* jackview-audio-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64317832FB400175F2F /* jackview-audio-on.png */; };
+		654EE65617832FB400175F2F /* jackview-audio-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64417832FB400175F2F /* jackview-audio-on@2x.png */; };
+		654EE65717832FB400175F2F /* jackview-audio-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64417832FB400175F2F /* jackview-audio-on@2x.png */; };
+		654EE65817832FB400175F2F /* jackview-audio-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64417832FB400175F2F /* jackview-audio-on@2x.png */; };
+		654EE65917832FB400175F2F /* jackview-in.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64517832FB400175F2F /* jackview-in.png */; };
+		654EE65A17832FB400175F2F /* jackview-in.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64517832FB400175F2F /* jackview-in.png */; };
+		654EE65B17832FB400175F2F /* jackview-in.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64517832FB400175F2F /* jackview-in.png */; };
+		654EE65C17832FB400175F2F /* jackview-in@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64617832FB400175F2F /* jackview-in@2x.png */; };
+		654EE65D17832FB400175F2F /* jackview-in@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64617832FB400175F2F /* jackview-in@2x.png */; };
+		654EE65E17832FB400175F2F /* jackview-in@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64617832FB400175F2F /* jackview-in@2x.png */; };
+		654EE65F17832FB400175F2F /* jackview-midi-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64717832FB400175F2F /* jackview-midi-off.png */; };
+		654EE66017832FB400175F2F /* jackview-midi-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64717832FB400175F2F /* jackview-midi-off.png */; };
+		654EE66117832FB400175F2F /* jackview-midi-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64717832FB400175F2F /* jackview-midi-off.png */; };
+		654EE66217832FB400175F2F /* jackview-midi-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64817832FB400175F2F /* jackview-midi-off@2x.png */; };
+		654EE66317832FB400175F2F /* jackview-midi-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64817832FB400175F2F /* jackview-midi-off@2x.png */; };
+		654EE66417832FB400175F2F /* jackview-midi-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64817832FB400175F2F /* jackview-midi-off@2x.png */; };
+		654EE66517832FB400175F2F /* jackview-midi-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64917832FB400175F2F /* jackview-midi-on.png */; };
+		654EE66617832FB400175F2F /* jackview-midi-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64917832FB400175F2F /* jackview-midi-on.png */; };
+		654EE66717832FB400175F2F /* jackview-midi-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64917832FB400175F2F /* jackview-midi-on.png */; };
+		654EE66817832FB400175F2F /* jackview-midi-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64A17832FB400175F2F /* jackview-midi-on@2x.png */; };
+		654EE66917832FB400175F2F /* jackview-midi-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64A17832FB400175F2F /* jackview-midi-on@2x.png */; };
+		654EE66A17832FB400175F2F /* jackview-midi-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64A17832FB400175F2F /* jackview-midi-on@2x.png */; };
+		654EE66B17832FB400175F2F /* jackview-out.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64B17832FB400175F2F /* jackview-out.png */; };
+		654EE66C17832FB400175F2F /* jackview-out.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64B17832FB400175F2F /* jackview-out.png */; };
+		654EE66D17832FB400175F2F /* jackview-out.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64B17832FB400175F2F /* jackview-out.png */; };
+		654EE66E17832FB400175F2F /* jackview-out@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64C17832FB400175F2F /* jackview-out@2x.png */; };
+		654EE66F17832FB400175F2F /* jackview-out@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64C17832FB400175F2F /* jackview-out@2x.png */; };
+		654EE67017832FB400175F2F /* jackview-out@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64C17832FB400175F2F /* jackview-out@2x.png */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
 		655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
@@ -143,6 +179,18 @@
 		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
 		6534E20D17301716009A4FD2 /* JackViewPortsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JackViewPortsView.h; sourceTree = "<group>"; };
 		6534E20E17301716009A4FD2 /* JackViewPortsView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JackViewPortsView.mm; sourceTree = "<group>"; };
+		654EE64117832FB400175F2F /* jackview-audio-off.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off.png"; sourceTree = "<group>"; };
+		654EE64217832FB400175F2F /* jackview-audio-off@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off@2x.png"; sourceTree = "<group>"; };
+		654EE64317832FB400175F2F /* jackview-audio-on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-on.png"; sourceTree = "<group>"; };
+		654EE64417832FB400175F2F /* jackview-audio-on@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-on@2x.png"; sourceTree = "<group>"; };
+		654EE64517832FB400175F2F /* jackview-in.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-in.png"; sourceTree = "<group>"; };
+		654EE64617832FB400175F2F /* jackview-in@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-in@2x.png"; sourceTree = "<group>"; };
+		654EE64717832FB400175F2F /* jackview-midi-off.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-midi-off.png"; sourceTree = "<group>"; };
+		654EE64817832FB400175F2F /* jackview-midi-off@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-midi-off@2x.png"; sourceTree = "<group>"; };
+		654EE64917832FB400175F2F /* jackview-midi-on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-midi-on.png"; sourceTree = "<group>"; };
+		654EE64A17832FB400175F2F /* jackview-midi-on@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-midi-on@2x.png"; sourceTree = "<group>"; };
+		654EE64B17832FB400175F2F /* jackview-out.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-out.png"; sourceTree = "<group>"; };
+		654EE64C17832FB400175F2F /* jackview-out@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-out@2x.png"; sourceTree = "<group>"; };
 		65510E9314EEC1190014A01F /* FITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITextField.h; sourceTree = "<group>"; };
 		65510E9414EEC1190014A01F /* FITextField.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITextField.mm; sourceTree = "<group>"; };
 		6559E84514F2685A00D3AB9A /* FIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIKnob.h; sourceTree = "<group>"; };
@@ -268,6 +316,18 @@
 				65E3120F17722C10000E2AFA /* Icon-Delete@2x.png */,
 				65E3121017722C10000E2AFA /* Icon-Expand.png */,
 				65E3121117722C10000E2AFA /* Icon-Expand@2x.png */,
+				654EE64117832FB400175F2F /* jackview-audio-off.png */,
+				654EE64217832FB400175F2F /* jackview-audio-off@2x.png */,
+				654EE64317832FB400175F2F /* jackview-audio-on.png */,
+				654EE64417832FB400175F2F /* jackview-audio-on@2x.png */,
+				654EE64517832FB400175F2F /* jackview-in.png */,
+				654EE64617832FB400175F2F /* jackview-in@2x.png */,
+				654EE64717832FB400175F2F /* jackview-midi-off.png */,
+				654EE64817832FB400175F2F /* jackview-midi-off@2x.png */,
+				654EE64917832FB400175F2F /* jackview-midi-on.png */,
+				654EE64A17832FB400175F2F /* jackview-midi-on@2x.png */,
+				654EE64B17832FB400175F2F /* jackview-out.png */,
+				654EE64C17832FB400175F2F /* jackview-out@2x.png */,
 			);
 			path = pix;
 			sourceTree = SOURCE_ROOT;
@@ -524,6 +584,18 @@
 				65E3121517722C10000E2AFA /* Icon-Delete@2x.png in Resources */,
 				65E3121717722C10000E2AFA /* Icon-Expand.png in Resources */,
 				65E3121917722C10000E2AFA /* Icon-Expand@2x.png in Resources */,
+				654EE64F17832FB400175F2F /* jackview-audio-off.png in Resources */,
+				654EE65217832FB400175F2F /* jackview-audio-off@2x.png in Resources */,
+				654EE65517832FB400175F2F /* jackview-audio-on.png in Resources */,
+				654EE65817832FB400175F2F /* jackview-audio-on@2x.png in Resources */,
+				654EE65B17832FB400175F2F /* jackview-in.png in Resources */,
+				654EE65E17832FB400175F2F /* jackview-in@2x.png in Resources */,
+				654EE66117832FB400175F2F /* jackview-midi-off.png in Resources */,
+				654EE66417832FB400175F2F /* jackview-midi-off@2x.png in Resources */,
+				654EE66717832FB400175F2F /* jackview-midi-on.png in Resources */,
+				654EE66A17832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
+				654EE66D17832FB400175F2F /* jackview-out.png in Resources */,
+				654EE67017832FB400175F2F /* jackview-out@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -554,6 +626,18 @@
 				65E3121417722C10000E2AFA /* Icon-Delete@2x.png in Resources */,
 				65E3121617722C10000E2AFA /* Icon-Expand.png in Resources */,
 				65E3121817722C10000E2AFA /* Icon-Expand@2x.png in Resources */,
+				654EE64D17832FB400175F2F /* jackview-audio-off.png in Resources */,
+				654EE65017832FB400175F2F /* jackview-audio-off@2x.png in Resources */,
+				654EE65317832FB400175F2F /* jackview-audio-on.png in Resources */,
+				654EE65617832FB400175F2F /* jackview-audio-on@2x.png in Resources */,
+				654EE65917832FB400175F2F /* jackview-in.png in Resources */,
+				654EE65C17832FB400175F2F /* jackview-in@2x.png in Resources */,
+				654EE65F17832FB400175F2F /* jackview-midi-off.png in Resources */,
+				654EE66217832FB400175F2F /* jackview-midi-off@2x.png in Resources */,
+				654EE66517832FB400175F2F /* jackview-midi-on.png in Resources */,
+				654EE66817832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
+				654EE66B17832FB400175F2F /* jackview-out.png in Resources */,
+				654EE66E17832FB400175F2F /* jackview-out@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -562,6 +646,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				65E5EDC114DB037D00136CFC /* InfoPlist.strings in Resources */,
+				654EE64E17832FB400175F2F /* jackview-audio-off.png in Resources */,
+				654EE65117832FB400175F2F /* jackview-audio-off@2x.png in Resources */,
+				654EE65417832FB400175F2F /* jackview-audio-on.png in Resources */,
+				654EE65717832FB400175F2F /* jackview-audio-on@2x.png in Resources */,
+				654EE65A17832FB400175F2F /* jackview-in.png in Resources */,
+				654EE65D17832FB400175F2F /* jackview-in@2x.png in Resources */,
+				654EE66017832FB400175F2F /* jackview-midi-off.png in Resources */,
+				654EE66317832FB400175F2F /* jackview-midi-off@2x.png in Resources */,
+				654EE66617832FB400175F2F /* jackview-midi-on.png in Resources */,
+				654EE66917832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
+				654EE66C17832FB400175F2F /* jackview-out.png in Resources */,
+				654EE66F17832FB400175F2F /* jackview-out@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
