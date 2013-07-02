@@ -161,9 +161,7 @@
     for (i = 0; i < [compatiblePorts count]; ++i)
     {
         if ([[compatiblePorts objectAtIndex:i] isKindOfClass:[JackViewPort class]])
-        {
-            NSLog(@"%@", ((JackViewPort*)([compatiblePorts objectAtIndex:i])).name);
-            
+        {            
             JackViewPortsViewItem* item = [[JackViewPortsViewItem alloc] initWithFrame:CGRectMake(jackView.portsView.clientX,
                                                                                                   i * kPortsViewItemHeight,
                                                                                                   kPortsViewItemWidth,
@@ -200,101 +198,6 @@
     [jackView.portsView.backgroundView setNeedsDisplay];
 }
 
-/*- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    NSEnumerator* enumerator = [touches objectEnumerator];
-    UITouch* touch;
-    
-    if (self == jackView.currentClientButton) return;
-    
-    jackView.linking = YES;
-    
-    while ((touch = (UITouch*)[enumerator nextObject]))
-    {
-        jackView.srcPt = CGPointMake([touch locationInView:jackView].x, [touch locationInView:jackView].y);
-    }
-    
-    [jackView setNeedsDisplay];
-}*/
-
-/*- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    NSEnumerator* enumerator = [touches objectEnumerator];
-    UITouch* touch;
-    
-    if (self == jackView.currentClientButton) return;
-    
-    if (jackView.portsView)
-    {
-        [jackView.portsView removeFromSuperview];
-        [jackView.portsView release];
-        jackView.portsView = nil;
-    }
-    
-    jackView.linking = YES;
-    
-    while ((touch = (UITouch*)[enumerator nextObject]))
-    {
-        jackView.dstPt = CGPointMake([touch locationInView:jackView].x, [touch locationInView:jackView].y);
-    }
-    
-    [jackView setNeedsDisplay];
-}*/
-
-/*- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    NSEnumerator* enumerator = [touches objectEnumerator];
-    UITouch* touch;
-    
-    if (self == jackView.currentClientButton) return;
-    
-    while ((touch = (UITouch*)[enumerator nextObject]))
-    {
-        // Touch up inside current app icon : connect
-        if ([self.jackView isPointInsideCurrentAppIcon:CGPointMake([touch locationInView:jackView].x, [touch locationInView:jackView].y)])
-        {
-            if (!self.isSelected)
-            {
-                if ([self.jackView quicklyConnectAppToClient:self.jackViewClient.name
-                                                 inputOutput:inputOutput
-                                                   audioMidi:audioMidi])
-                {
-                    self.selected = YES;
-                }
-            }
-            
-            [self setNeedsDisplay];
-        }
-        
-        // Touch up outside view : disconnect
-        else if (![self.jackView isPointInsideView:CGPointMake([touch locationInView:jackView].x, [touch locationInView:jackView].y)])
-        {
-            if (self.isSelected)
-            {
-                // Do nothing
-                if ([self.jackView quicklyDisconnectAppToClient:self.jackViewClient.name
-                                                    inputOutput:inputOutput
-                                                      audioMidi:audioMidi])
-                {
-                    self.selected = NO;
-                }
-            }
-            
-            [self setNeedsDisplay];
-        }
-    }
-    
-    jackView.linking = NO;
-    [jackView setNeedsDisplay];
-}*/
-
-/*- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if (self == jackView.currentClientButton) return;
-    
-    jackView.linking = NO;
-    [jackView setNeedsDisplay];    
-}*/
 
 // Refresh view
 - (void)drawRect:(CGRect)rect
@@ -318,32 +221,7 @@
         [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height)];
         [path closePath];
         path.lineWidth = 2;
-        [path fillWithBlendMode:kCGBlendModeNormal alpha:1.];
-        
-        /*CGContextRef context = UIGraphicsGetCurrentContext();
-        
-        UIColor *lColor = [UIColor colorWithRed:0. green:0. blue:1. alpha:1.];
-        UIColor *rColor = [UIColor colorWithRed:0. green:0.3 blue:0.7 alpha:0.7];
-        
-        CGFloat locations[2] = {0., 1.};
-        CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lColor.CGColor,
-                                          (id)rColor.CGColor,
-                                          nil];
-        
-        CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
-        CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
-        
-        CGContextSetBlendMode(context, kCGBlendModeMultiply);
-        
-        CGContextDrawLinearGradient(context,
-                                    gradient,
-                                    CGPointMake(rect.origin.x + rect.size.width / 2., rect.origin.y),
-                                    CGPointMake(rect.origin.x + rect.size.width / 2., rect.size.height),
-                                    kCGGradientDrawsBeforeStartLocation);
-        
-        CGColorSpaceRelease(colorSpc);
-        CGGradientRelease(gradient);
-        CGContextSetBlendMode(context, kCGBlendModeNormal);*/
+        [path fillWithBlendMode:kCGBlendModeNormal alpha:0.7];
     }
     
     // Translucent background
@@ -510,6 +388,8 @@
 @synthesize dstPt;
 @synthesize portsView;
 @synthesize currentClientButton;
+@synthesize audioButton;
+@synthesize midiButton;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -526,37 +406,70 @@
         _singleTapRecognizer.numberOfTapsRequired = 1;
         [self addGestureRecognizer:_singleTapRecognizer];
         
-        float w = (frame.size.width - kJackViewButtonWidth - 4. * kJackViewIntHMargins - 2. * kJackViewExtHMargins) / 4.;
+        float w = (frame.size.width - kJackViewButtonWidth - 2. * kJackViewIntHMargins - 2. * kJackViewExtHMargins) / 2.;
         
+        self.audioButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.audioButton setFrame:CGRectMake((frame.size.width - kJackViewTabsWidth) / 2.,
+                                              kJackViewTabsY,
+                                              kJackViewTabsWidth / 2.,
+                                              kJackViewTabsHeight)];
+        [self.audioButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-audio-off" ofType:@"png"]]
+                          forState:UIControlStateNormal];
+        [self.audioButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-audio-on" ofType:@"png"]]
+                          forState:UIControlStateSelected];
+        [self.audioButton addTarget:self action:@selector(audioButtonClicked) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:self.audioButton];
+        
+        self.midiButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.midiButton setFrame:CGRectMake((frame.size.width - kJackViewTabsWidth) / 2. + kJackViewTabsWidth / 2.,
+                                              kJackViewTabsY,
+                                              kJackViewTabsWidth / 2.,
+                                              kJackViewTabsHeight)];
+        [self.midiButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-midi-off" ofType:@"png"]]
+                         forState:UIControlStateNormal];
+        [self.midiButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-midi-on" ofType:@"png"]]
+                         forState:UIControlStateSelected];
+        [self.midiButton addTarget:self action:@selector(midiButtonClicked) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:self.midiButton];
+        
+        self.audioButton.selected = YES;
+        self.midiButton.selected = NO;
+                
         _audioInputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins,
                                                                                 kJackViewExtTopVMargins,
                                                                                 w,
-                                                                                frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                                                kJackViewButtonHeight + 2. * kJackViewIconMargins)];
         
-        _audioOutputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins + 3. * w + 4. * kJackViewIntHMargins + kJackViewButtonWidth,
+        _audioOutputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins + 2. * kJackViewIntHMargins + kJackViewButtonWidth + w,
                                                                                  kJackViewExtTopVMargins,
                                                                                  w,
-                                                                                 frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                                                 kJackViewButtonHeight + 2. * kJackViewIconMargins)];
         
-        _midiInputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins + w + kJackViewIntHMargins,
+        _midiInputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins,
                                                                                kJackViewExtTopVMargins,
                                                                                w,
-                                                                               frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                                               kJackViewButtonHeight + 2. * kJackViewIconMargins)];
         
-        _midiOutputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins + 2. * w + 3. * kJackViewIntHMargins + kJackViewButtonWidth,
+        _midiOutputsScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(kJackViewExtHMargins + 2. * kJackViewIntHMargins + kJackViewButtonWidth + w,
                                                                                 kJackViewExtTopVMargins,
                                                                                 w,
-                                                                                frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                                                kJackViewButtonHeight + 2. * kJackViewIconMargins)];
         
-        _audioInputsScrollView.backgroundColor = [UIColor clearColor];
-        _audioOutputsScrollView.backgroundColor = [UIColor clearColor];
-        _midiInputsScrollView.backgroundColor = [UIColor clearColor];
-        _midiOutputsScrollView.backgroundColor = [UIColor clearColor];
+        UIColor* color = [UIColor clearColor];
+        _audioInputsScrollView.backgroundColor = color;
+        _audioOutputsScrollView.backgroundColor = color;
+        _midiInputsScrollView.backgroundColor = color;
+        _midiOutputsScrollView.backgroundColor = color;
         
         _audioInputsScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         _audioOutputsScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         _midiInputsScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         _midiOutputsScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
+        
+        _audioInputsScrollView.hidden = NO;
+        _audioOutputsScrollView.hidden = NO;
+        _midiInputsScrollView.hidden = YES;
+        _midiOutputsScrollView.hidden = YES;
         
         [self addSubview:_audioInputsScrollView];
         [self addSubview:_audioOutputsScrollView];
@@ -580,36 +493,79 @@
     [self resizeView];
 }
 
+- (void)audioButtonClicked
+{
+    if (!self.audioButton.selected)
+    {
+        self.audioButton.selected = YES;
+        self.midiButton.selected = NO;
+        
+        _audioInputsScrollView.hidden = NO;
+        _audioOutputsScrollView.hidden = NO;
+        _midiInputsScrollView.hidden = YES;
+        _midiOutputsScrollView.hidden = YES;
+    }
+    
+    [self setNeedsDisplay];
+}
+
+- (void)midiButtonClicked
+{
+    if (!self.midiButton.selected)
+    {
+        self.midiButton.selected = YES;
+        self.audioButton.selected = NO;
+        
+        _audioInputsScrollView.hidden = YES;
+        _audioOutputsScrollView.hidden = YES;
+        _midiInputsScrollView.hidden = NO;
+        _midiOutputsScrollView.hidden = NO;
+    }
+    
+    [self setNeedsDisplay];
+}
+
 - (void)resizeView
 {
     CGRect frame = self.frame;
-    float w = (frame.size.width - kJackViewButtonWidth - 4. * kJackViewIntHMargins - 2. * kJackViewExtHMargins) / 4.;
+    float w = (frame.size.width - kJackViewButtonWidth - 2. * kJackViewIntHMargins - 2. * kJackViewExtHMargins) / 2.;
     
     [_audioInputsScrollView setFrame:CGRectMake(kJackViewExtHMargins,
                                                 kJackViewExtTopVMargins,
                                                 w,
-                                                frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                kJackViewButtonHeight + 2. * kJackViewIconMargins)];
     
-    [_audioOutputsScrollView setFrame:CGRectMake(kJackViewExtHMargins + 3. * w + 4. * kJackViewIntHMargins + kJackViewButtonWidth,
+    [_audioOutputsScrollView setFrame:CGRectMake(kJackViewExtHMargins + 2. * kJackViewIntHMargins + kJackViewButtonWidth + w,
                                                  kJackViewExtTopVMargins,
                                                  w,
-                                                 frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                 kJackViewButtonHeight + 2. * kJackViewIconMargins)];
     
-    [_midiInputsScrollView setFrame:CGRectMake(kJackViewExtHMargins + w + kJackViewIntHMargins,
+    [_midiInputsScrollView setFrame:CGRectMake(kJackViewExtHMargins,
                                                kJackViewExtTopVMargins,
                                                w,
-                                               frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                               kJackViewButtonHeight + 2. * kJackViewIconMargins)];
     
-    [_midiOutputsScrollView setFrame:CGRectMake(kJackViewExtHMargins + 2. * w + 3. * kJackViewIntHMargins + kJackViewButtonWidth,
+    [_midiOutputsScrollView setFrame:CGRectMake(kJackViewExtHMargins + 2. * kJackViewIntHMargins + kJackViewButtonWidth + w,
                                                 kJackViewExtTopVMargins,
                                                 w,
-                                                frame.size.height - kJackViewExtBottomVMargins - kJackViewBottomMargin)];
+                                                kJackViewButtonHeight + 2. * kJackViewIconMargins)];
+    
+    [self.audioButton setFrame:CGRectMake((frame.size.width - kJackViewTabsWidth) / 2.,
+                                          kJackViewTabsY,
+                                          kJackViewTabsWidth / 2.,
+                                          kJackViewTabsHeight)];
+    
+    [self.midiButton setFrame:CGRectMake((frame.size.width - kJackViewTabsWidth) / 2. + kJackViewTabsWidth / 2.,
+                                         kJackViewTabsY,
+                                         kJackViewTabsWidth / 2.,
+                                         kJackViewTabsHeight)];
+    
     if (self.currentClientButton)
     {
-        [self.currentClientButton setFrame:CGRectMake(frame.size.width / 2. - kJackViewButtonWidth / 2.,
+        [self.currentClientButton setFrame:CGRectMake(self.frame.size.width / 2. - kJackViewButtonWidth / 2.,
                                                       kJackViewExtTopVMargins + kJackViewIconMargins,
-                                                      kJackViewExtTopVMargins,
-                                                      frame.size.height - 2. * kJackViewExtBottomVMargins - 2. * kJackViewIconMargins)];
+                                                      kJackViewButtonWidth,
+                                                      self.frame.size.height - 2. * kJackViewExtBottomVMargins - 2. * kJackViewIconMargins)];
     }
     
     if (self.portsView)
@@ -618,6 +574,9 @@
         [self.portsView refreshLinks];
         [self.portsView setNeedsDisplay];
     }
+    
+    [self makeButtonsSymetric];
+    [self setNeedsDisplay];
 }
 
 - (void)resizePortsView
@@ -838,7 +797,7 @@
             JackViewButton* button = [[JackViewButton alloc] initWithFrame:CGRectMake([[_audioInputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins) + kJackViewIconMargins,
                                                                                 kJackViewIconMargins,
                                                                                 kJackViewButtonWidth,
-                                                                                _audioInputsScrollView.frame.size.height - 2. * kJackViewIconMargins)];
+                                                                                kJackViewButtonHeight)];
             jackViewClient.audioInputButton = button;
             button.jackViewClient = jackViewClient;
             button.jackView = self;
@@ -851,7 +810,7 @@
             JackViewButton* button = [[JackViewButton alloc] initWithFrame:CGRectMake([[_audioOutputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins) + kJackViewIconMargins,
                                                                                 kJackViewIconMargins,
                                                                                 kJackViewButtonWidth,
-                                                                                _audioOutputsScrollView.frame.size.height - 2. * kJackViewIconMargins)];
+                                                                                kJackViewButtonHeight)];
             jackViewClient.audioOutputButton = button;
             button.jackViewClient = jackViewClient;
             button.jackView = self;
@@ -864,7 +823,7 @@
             JackViewButton* button = [[JackViewButton alloc] initWithFrame:CGRectMake([[_midiInputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins) + kJackViewIconMargins,
                                                                                 kJackViewIconMargins,
                                                                                 kJackViewButtonWidth,
-                                                                                _midiInputsScrollView.frame.size.height - 2. * kJackViewIconMargins)];
+                                                                                kJackViewButtonHeight)];
             jackViewClient.midiInputButton = button;
             button.jackViewClient = jackViewClient;
             button.jackView = self;
@@ -877,7 +836,7 @@
             JackViewButton* button = [[JackViewButton alloc] initWithFrame:CGRectMake([[_midiOutputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins) + kJackViewIconMargins,
                                                                                 kJackViewIconMargins,
                                                                                 kJackViewButtonWidth,
-                                                                                _midiOutputsScrollView.frame.size.height - 2. * kJackViewIconMargins)];
+                                                                                kJackViewButtonHeight)];
             jackViewClient.midiOutputButton = button;
             button.jackViewClient = jackViewClient;
             button.jackView = self;
@@ -895,46 +854,17 @@
         }
 	}
     
-    // Re-organize audio output scroll view icons
-    for (i = 0; i < [[_audioOutputsScrollView subviews] count]; ++i)
-    {
-        JackViewButton* button = ((JackViewButton*)[[_audioOutputsScrollView subviews] objectAtIndex:i]);
-        [button setFrame:CGRectMake(-(button.frame.origin.x + button.frame.size.width),
-                                    button.frame.origin.y,
-                                    button.frame.size.width,
-                                    button.frame.size.height)];
-    }
-    float offset = fmaxf(-((JackViewButton*)[[_audioOutputsScrollView subviews] objectAtIndex:[[_audioOutputsScrollView subviews] count] - 1]).frame.origin.x,
-                         _audioOutputsScrollView.frame.size.width);
-    for (i = 0; i < [[_audioOutputsScrollView subviews] count]; ++i)
-    {
-        JackViewButton* button = ((JackViewButton*)[[_audioOutputsScrollView subviews] objectAtIndex:i]);
-        [button setFrame:CGRectMake(button.frame.origin.x + offset,
-                                    button.frame.origin.y,
-                                    button.frame.size.width,
-                                    button.frame.size.height)];
-    }
+    [_audioInputsScrollView setContentSize:CGSizeMake([[_audioInputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins),
+                                                      _audioInputsScrollView.frame.size.height)];
+    [_audioOutputsScrollView setContentSize:CGSizeMake([[_audioOutputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins),
+                                                       _audioOutputsScrollView.frame.size.height)];
+    [_midiInputsScrollView setContentSize:CGSizeMake([[_midiInputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins),
+                                                     _midiInputsScrollView.frame.size.height)];
+    [_midiOutputsScrollView setContentSize:CGSizeMake([[_midiOutputsScrollView subviews] count] * (kJackViewButtonWidth + kJackViewIconMargins),
+                                                      _midiOutputsScrollView.frame.size.height)];
     
-    // Re-organize midi output scroll view icons
-    for (i = 0; i < [[_midiOutputsScrollView subviews] count]; ++i)
-    {
-        JackViewButton* button = ((JackViewButton*)[[_midiOutputsScrollView subviews] objectAtIndex:i]);
-        [button setFrame:CGRectMake(-(button.frame.origin.x + button.frame.size.width),
-                                    button.frame.origin.y,
-                                    button.frame.size.width,
-                                    button.frame.size.height)];
-    }
-    offset = fmaxf(-((JackViewButton*)[[_midiOutputsScrollView subviews] objectAtIndex:[[_midiOutputsScrollView subviews] count] - 1]).frame.origin.x,
-                         _midiOutputsScrollView.frame.size.width);
-    for (i = 0; i < [[_midiOutputsScrollView subviews] count]; ++i)
-    {
-        JackViewButton* button = ((JackViewButton*)[[_midiOutputsScrollView subviews] objectAtIndex:i]);
-        [button setFrame:CGRectMake(button.frame.origin.x + offset,
-                                    button.frame.origin.y,
-                                    button.frame.size.width,
-                                    button.frame.size.height)];
-    }
-        
+    [self makeButtonsSymetric];
+    
     // Add current app icon
     JackViewButton* button = [[JackViewButton alloc] initWithFrame:CGRectMake(self.frame.size.width / 2. - kJackViewButtonWidth / 2.,
                                                                               kJackViewExtTopVMargins + kJackViewIconMargins,
@@ -1054,6 +984,42 @@
     }
 
     return nil;
+}
+
+- (void)makeButtonsSymetric
+{
+    int i = 0;
+    float offset = 0.;
+    
+    // Re-organize audio output scroll view icons
+    if (_audioOutputsScrollView.contentSize.width < _audioOutputsScrollView.frame.size.width)
+    {
+        offset = _audioOutputsScrollView.frame.size.width - _audioOutputsScrollView.contentSize.width;
+        
+        for (i = 0; i < [[_audioOutputsScrollView subviews] count]; ++i)
+        {
+            JackViewButton* button = ((JackViewButton*)[[_audioOutputsScrollView subviews] objectAtIndex:i]);
+            [button setFrame:CGRectMake(i * kJackViewButtonWidth + offset,
+                                        button.frame.origin.y,
+                                        button.frame.size.width,
+                                        button.frame.size.height)];
+        }
+    }
+    
+    // Re-organize midi output scroll view icons
+    if (_midiOutputsScrollView.contentSize.width < _midiOutputsScrollView.frame.size.width)
+    {
+        offset = _midiOutputsScrollView.frame.size.width - _midiOutputsScrollView.contentSize.width;
+        
+        for (i = 0; i < [[_midiOutputsScrollView subviews] count]; ++i)
+        {
+            JackViewButton* button = ((JackViewButton*)[[_midiOutputsScrollView subviews] objectAtIndex:i]);
+            [button setFrame:CGRectMake(i * kJackViewButtonWidth + offset,
+                                        button.frame.origin.y,
+                                        button.frame.size.width,
+                                        button.frame.size.height)];
+        }
+    }
 }
 
 - (BOOL)hasCurrentClientCompatiblePortWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi
@@ -1439,141 +1405,48 @@ connectedWithPort:(NSString*)portName2
 - (void)drawRect:(CGRect)rect
 {
     UIBezierPath* path = [UIBezierPath bezierPath];
-    
-    /*CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    UIColor *lColor = [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:0.95];
-    UIColor *rColor = [UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:0.95];
-    
-    CGFloat locations[2] = {0., 1.};
-    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lColor.CGColor,
-                                      (id)rColor.CGColor,
-                                      nil];
-    
-    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
-    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
-    
-    CGContextSetBlendMode(context, kCGBlendModeNormal);
-    
-    CGContextDrawLinearGradient(context,
-                                gradient,
-                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.origin.y),
-                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.size.height),
-                                kCGGradientDrawsBeforeStartLocation);
-    
-    CGColorSpaceRelease(colorSpc);
-    CGGradientRelease(gradient);*/
+    CGPoint pt;
     
     [[UIColor colorWithWhite:0.8 alpha:0.95] set];
     
     [path moveToPoint:CGPointMake(rect.origin.x, rect.origin.y)];
     [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y)];
-    [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height + kJackViewStrokeYOffset)];
-    [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height + kJackViewStrokeYOffset)];
+    [path addLineToPoint:CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height)];
+    [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height)];
     [path closePath];
     [path fillWithBlendMode:kCGBlendModeNormal alpha:1.];
     
-    
-    // Sections views
-    UIFont* font = [UIFont systemFontOfSize:13.0f];
-    NSString* title = nil;
-    [[UIColor blackColor] set];
-    
-    title = @"audio input";
-    [title drawAtPoint:CGPointMake(_audioInputsScrollView.frame.origin.x + kJackViewIconMargins,
-                                   kJackViewTitlesYOffset)
-              withFont:font];
-    
-    title = @"midi input";
-    [title drawAtPoint:CGPointMake(_midiInputsScrollView.frame.origin.x + kJackViewIconMargins,
-                                   kJackViewTitlesYOffset)
-              withFont:font];
-    
-    title = @"midi output";
-    [title drawAtPoint:CGPointMake(_midiOutputsScrollView.frame.origin.x + _midiOutputsScrollView.frame.size.width - [title sizeWithFont:font].width - kJackViewIconMargins,
-                                   kJackViewTitlesYOffset)
-              withFont:font];
-    
-    title = @"audio output";
-    [title drawAtPoint:CGPointMake(_audioOutputsScrollView.frame.origin.x + _audioOutputsScrollView.frame.size.width - [title sizeWithFont:font].width - kJackViewIconMargins,
-                                   kJackViewTitlesYOffset)
-              withFont:font];
+    // In / Out
+    [[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-in" ofType:@"png"]] drawAtPoint:CGPointMake(kJackViewExtHMargins, 0)];
+    [[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-out" ofType:@"png"]] drawAtPoint:CGPointMake(rect.origin.x + rect.size.width - 75 - kJackViewExtHMargins, 0)];
     
     // Sections
-    //CGRect scrollViewRect;
+    [[UIColor colorWithWhite:0. alpha:0.6] set];
     
+    [path removeAllPoints];
+    [path moveToPoint:CGPointMake(0, kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
+    [path addLineToPoint:CGPointMake(rect.size.width, kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
+    [path stroke];
+
+    [[UIColor blackColor] set];
+    
+    pt = CGPointMake(currentClientButton.frame.origin.x,
+                     kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins);
+    [path removeAllPoints];
+    [path moveToPoint:CGPointMake(pt.x - 8, pt.y - 2.5)];
+    [path addLineToPoint:CGPointMake(pt.x + 2, pt.y)];
+    [path addLineToPoint:CGPointMake(pt.x - 8, pt.y + 2.5)];
     [path closePath];
-    [[UIColor colorWithWhite:0. alpha:0.7] set];
-    path.lineWidth = 1;
+    [path fill];
     
+    pt = CGPointMake(currentClientButton.frame.origin.x + currentClientButton.frame.size.width + 10,
+                     kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins);
     [path removeAllPoints];
-    [path moveToPoint:CGPointMake((_audioInputsScrollView.frame.origin.x + _audioInputsScrollView.frame.size.width + _midiInputsScrollView.frame.origin.x) / 2.,
-                                  0.)];
-    [path addLineToPoint:CGPointMake((_audioInputsScrollView.frame.origin.x + _audioInputsScrollView.frame.size.width + _midiInputsScrollView.frame.origin.x) / 2.,
-                                     self.frame.origin.y + self.frame.size.height)];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    [path removeAllPoints];
-    [path moveToPoint:CGPointMake((_midiInputsScrollView.frame.origin.x + _midiInputsScrollView.frame.size.width + self.currentClientButton.frame.origin.x) / 2.,
-                                  0.)];
-    [path addLineToPoint:CGPointMake((_midiInputsScrollView.frame.origin.x + _midiInputsScrollView.frame.size.width + self.currentClientButton.frame.origin.x) / 2.,
-                                     self.frame.origin.y + self.frame.size.height)];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    [path removeAllPoints];
-    [path moveToPoint:CGPointMake((self.currentClientButton.frame.origin.x + self.currentClientButton.frame.size.width + _midiOutputsScrollView.frame.origin.x) / 2.,
-                                  0.)];
-    [path addLineToPoint:CGPointMake((self.currentClientButton.frame.origin.x + self.currentClientButton.frame.size.width + _midiOutputsScrollView.frame.origin.x) / 2.,
-                                     self.frame.origin.y + self.frame.size.height)];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    [path removeAllPoints];
-    [path moveToPoint:CGPointMake((_midiOutputsScrollView.frame.origin.x + _midiOutputsScrollView.frame.size.width + _audioOutputsScrollView.frame.origin.x) / 2.,
-                                  0.)];
-    [path addLineToPoint:CGPointMake((_midiOutputsScrollView.frame.origin.x + _midiOutputsScrollView.frame.size.width + _audioOutputsScrollView.frame.origin.x) / 2.,
-                                     self.frame.origin.y + self.frame.size.height)];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    /*[path removeAllPoints];
-    [path moveToPoint:CGPointMake((_audioInputsScrollView.frame.origin.x + _audioInputsScrollView.frame.size.width + _midiInputsScrollView.frame.origin.x) / 2., 0.)];
-    [path addLineToPoint:CGPointMake((_audioInputsScrollView.frame.origin.x + _midiInputsScrollView.frame.origin.x) / 2.,
-                                     scrollViewRect.origin.y + scrollViewRect.size.height)];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];*/
-    
-    /*scrollViewRect = _audioInputsScrollView.frame;
-    [path moveToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
+    [path moveToPoint:CGPointMake(pt.x - 11, pt.y - 2.5)];
+    [path addLineToPoint:CGPointMake(pt.x - 1, pt.y)];
+    [path addLineToPoint:CGPointMake(pt.x - 11, pt.y + 2.5)];
     [path closePath];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    [path removeAllPoints];
-    scrollViewRect = _midiInputsScrollView.frame;
-    [path moveToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path closePath];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    [path removeAllPoints];
-    scrollViewRect = _midiOutputsScrollView.frame;
-    [path moveToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path closePath];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    [path removeAllPoints];
-    scrollViewRect = _audioOutputsScrollView.frame;
-    [path moveToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x + scrollViewRect.size.width, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path addLineToPoint:CGPointMake(scrollViewRect.origin.x, scrollViewRect.origin.y + scrollViewRect.size.height + kJackViewStrokeYOffset)];
-    [path closePath];
-    [path strokeWithBlendMode:kCGBlendModeNormal alpha:1.];*/
+    [path fill];
 }
 
 - (int)numberOfCurrentAppPortsWithInputOutput:(int)inputOutput

@@ -13,8 +13,8 @@
 #import "JackViewPortsView.h"
 
 
-#define kJackViewExtHMargins 30
-#define kJackViewExtTopVMargins 20
+#define kJackViewExtHMargins 5
+#define kJackViewExtTopVMargins 30
 #define kJackViewExtBottomVMargins 5
 #define kJackViewIntHMargins 5
 
@@ -25,8 +25,13 @@
 #define kJackViewCurrentAppIconBottomMargin 30
 
 #define kJackViewButtonWidth 70
+#define kJackViewButtonHeight 85
 #define kJackViewIconMargins 4
 
+#define kJackViewTabsX 5
+#define kJackViewTabsY 1
+#define kJackViewTabsWidth 150
+#define kJackViewTabsHeight 28
 
 @class JackViewClient;
 @class JackView;
@@ -107,10 +112,15 @@
 @property (assign, readwrite) CGPoint dstPt;
 @property (assign, readwrite) JackViewPortsView* portsView;
 @property (assign, readwrite) JackViewButton* currentClientButton;
+@property (assign, readwrite) UIButton* audioButton;
+@property (assign, readwrite) UIButton* midiButton;
 
 - (void)orientationChanged:(NSNotification *)notification;
 - (void)resizeView;
 - (void)resizePortsView;
+
+- (void)audioButtonClicked;
+- (void)midiButtonClicked;
 
 - (void)loadJackClient:(jack_client_t*)jackClient;
 - (jack_client_t*)jackClient;
@@ -118,6 +128,7 @@
 - (BOOL)doesClientExist:(NSString*)clientName;
 - (JackViewClient*)clientWithName:(NSString*)clientName;
 - (JackViewPort*)portWithName:(NSString*)portName;
+- (void)makeButtonsSymetric;
 
 - (BOOL)hasCurrentClientCompatiblePortWithInputOutput:(int)inputOutput audioMidi:(int)audioMidi;
 
