@@ -25,9 +25,9 @@ else
 all : $(target)  
 endif
 
-$(target) : html/jsscripts.o html/stylesheet.o $(objects)
+$(target) : $(objects)
 	rm -f $@
-	ar cq $@ html/jsscripts.o html/stylesheet.o $(objects)
+	ar cq $@ $(objects)
 	ranlib $@
 
 ifeq ($(system), Darwin)
@@ -39,8 +39,8 @@ depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
 	
 clean :
-	rm -f $(objects) html/jsscripts html/jsscripts.o html/jsscripts.cpp
-	rm -f $(objects) html/stylesheet html/stylesheet.o html/stylesheet.cpp
+	rm -f $(objects) html/jsscripts html/jsscripts.cpp
+	rm -f $(objects) html/stylesheet html/stylesheet.cpp
 	rm -f $(target)
 	rm -f libHTTPDFaust.dylib 
 	
