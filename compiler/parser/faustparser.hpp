@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
 /* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,15 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef YY_YY_PARSER_FAUSTPARSER_HPP_INCLUDED
+# define YY_YY_PARSER_FAUSTPARSER_HPP_INCLUDED
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -128,43 +137,43 @@
      ISEQ = 346,
      ISUM = 347,
      IPROD = 348,
-     STRING = 349,
-     FSTRING = 350,
-     IDENT = 351,
-     EXTRA = 352,
-     DECLARE = 353,
-     CASE = 354,
-     ARROW = 355,
-     BDOC = 356,
-     EDOC = 357,
-     BEQN = 358,
-     EEQN = 359,
-     BDGM = 360,
-     EDGM = 361,
-     BLST = 362,
-     ELST = 363,
-     BMETADATA = 364,
-     EMETADATA = 365,
-     DOCCHAR = 366,
-     NOTICE = 367,
-     LISTING = 368,
-     LSTTRUE = 369,
-     LSTFALSE = 370,
-     LSTDEPENDENCIES = 371,
-     LSTMDOCTAGS = 372,
-     LSTDISTRIBUTED = 373,
-     LSTEQ = 374,
-     LSTQ = 375
+     INPUTS = 349,
+     OUTPUTS = 350,
+     STRING = 351,
+     FSTRING = 352,
+     IDENT = 353,
+     EXTRA = 354,
+     DECLARE = 355,
+     CASE = 356,
+     ARROW = 357,
+     BDOC = 358,
+     EDOC = 359,
+     BEQN = 360,
+     EEQN = 361,
+     BDGM = 362,
+     EDGM = 363,
+     BLST = 364,
+     ELST = 365,
+     BMETADATA = 366,
+     EMETADATA = 367,
+     DOCCHAR = 368,
+     NOTICE = 369,
+     LISTING = 370,
+     LSTTRUE = 371,
+     LSTFALSE = 372,
+     LSTDEPENDENCIES = 373,
+     LSTMDOCTAGS = 374,
+     LSTDISTRIBUTED = 375,
+     LSTEQ = 376,
+     LSTQ = 377
    };
 #endif
-
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-
-/* Line 2068 of yacc.c  */
+/* Line 2053 of yacc.c  */
 #line 71 "parser/faustparser.y"
 
 	CTree* 	exp;
@@ -173,9 +182,8 @@ typedef union YYSTYPE
 	bool b;
 
 
-
-/* Line 2068 of yacc.c  */
-#line 179 "parser/faustparser.hpp"
+/* Line 2053 of yacc.c  */
+#line 187 "parser/faustparser.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -184,4 +192,18 @@ typedef union YYSTYPE
 
 extern YYSTYPE yylval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
+#endif /* !YY_YY_PARSER_FAUSTPARSER_HPP_INCLUDED  */

@@ -4,17 +4,15 @@ OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2011                                #
+#               (c) Grame, 2009-2013                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 
-#-------------------------------------------------------------------
-# Default compilation flags for gcc and icc :
-#
-MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
-MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
 
 
 #-------------------------------------------------------------------
@@ -27,7 +25,6 @@ MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 CXX=g++
-CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc

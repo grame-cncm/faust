@@ -123,16 +123,16 @@ class portCollector : public UI
 	const char* 			fPortNames[MAXPORT];		// table of port names to be used in a LADSPA_Descriptor
 	LADSPA_PortRangeHint 	fPortHints[MAXPORT];		// table of port hints to be used in a LADSPA_Descriptor
 
-	string					fPluginName;				// toplevel prefix used as plugin name
-	stack<string>			fPrefix;					// current prefix for controls name
+    std::string					fPluginName;				// toplevel prefix used as plugin name
+    std::stack<std::string>			fPrefix;					// current prefix for controls name
 
 
 	//--------------------------------------------------------------------------------------
-	string simplify(const string& src)
+    std::string simplify(const std::string& src)
 	{
 		int		i=0;
 		int		level=2;
-		string	dst;
+        std::string	dst;
 
 		while (src[i] ) {
 
@@ -195,7 +195,7 @@ class portCollector : public UI
 
 	void addPortDescr(int type, const char* label, int hint, float min=0.0, float max=0.0)
 	{
-		string fullname = simplify(fPrefix.top() + "-" + label);
+        std::string fullname = simplify(fPrefix.top() + "-" + label);
 		char * str = strdup(fullname.c_str());
 
 		fPortDescs[fInsCount + fOutsCount + fCtrlCount] = type;
@@ -214,7 +214,7 @@ class portCollector : public UI
 			fPrefix.push(label);
 
 		} else {
-			string s;
+            std::string s;
 			if (label && label[0]) {
 				s = fPrefix.top() + "-" + label;
 			} else {

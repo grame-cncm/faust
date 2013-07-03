@@ -171,6 +171,9 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "sum"		return ISUM;
 "prod"		return IPROD;
 
+"inputs"	return INPUTS;
+"outputs"	return OUTPUTS;
+
 "import"	return IMPORT;
 "component" return COMPONENT;
 "library"   return LIBRARY;

@@ -1103,22 +1103,25 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
  	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
 	::Type t = getCertifiedSigType(sig);
+    
 	switch (t->variability()) {
 
 		case kKonst:
-            pushInitMethod(InstBuilder::genStoreStructVar(varname, exp));
+            pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatInst(exp)));
 			break;
 
 		case kBlock:
-            pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, exp));
+            pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatInst(exp)));
 			break;
 
 		case kSamp:
-	        pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, exp));
+	        pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatInst(exp)));
 			break;
 	}
 
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, (t->nature() == kInt)
+        ? InstBuilder::genCastNumIntInst(InstBuilder::genLoadStructVar(varname))
+        : InstBuilder::genLoadStructVar(varname));
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)

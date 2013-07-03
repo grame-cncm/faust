@@ -18,10 +18,6 @@ FAUSTINC := $(if $(wildcard $(ck14)),$(FAUST_INC_PATH),$(FAUSTINC))
 
 LLVM_VERSION = $(shell llvm-config --version)
 
-ifeq ($(LLVM_VERSION), 2.9)
-LLVM_VERSION  = LLVM_29
-endif
-
 ifeq ($(LLVM_VERSION), 3.0)
 LLVM_VERSION  = LLVM_30
 CLANG = /opt/local/libexec/llvm-3.0/bin/clang++
@@ -32,9 +28,14 @@ LLVM_VERSION  = LLVM_31
 CLANG = /opt/local/libexec/llvm-3.1/bin/clang++
 endif
 
-ifeq ($(LLVM_VERSION), 3.2svn)
-LLVM_VERSION  = LLVM_31
+ifeq ($(LLVM_VERSION), 3.2)
+LLVM_VERSION  = LLVM_32
 CLANG = /opt/local/libexec/llvm-3.2/bin/clang++
+endif
+
+ifeq ($(LLVM_VERSION), 3.3)
+LLVM_VERSION  = LLVM_33
+CLANG = /opt/local/libexec/llvm-3.3/bin/clang++
 endif
 
 ifeq ($(OSC),1)
@@ -159,6 +160,9 @@ vst :
 	install -d vstdir
 	$(MAKE) DEST='vstdir/' ARCH='vst2p4.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.vstcompile
 
+vsti:
+	install -d vstidir
+	$(MAKE) DEST='vstidir/' ARCH='vsti-poly.cpp' LIB='' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.vsticompile
 
 sndfile :
 	install -d sndfiledir

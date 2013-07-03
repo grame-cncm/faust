@@ -22,8 +22,12 @@
 #include "binop.hh"
 #include "signals.hh"
 
+#if defined(LLVM_33)
+#include <llvm/IR/Instructions.h>
+#else
 #include <llvm/Instructions.h>
 #include <llvm/Instruction.h>
+#endif
 
 using namespace llvm;
 

@@ -56,7 +56,7 @@
 *******************************************************************************/
 
 class jackaudio : public audio {
-
+    
     private:
 
         dsp*			fDsp;               // FAUST DSP
@@ -102,7 +102,7 @@ class jackaudio : public audio {
                 const char** connected_port = jack_port_get_all_connections(fClient, fInputPorts[i]);
                 if (connected_port != NULL) {
                     for (int port = 0; connected_port[port]; port++) {
-                        fConnections.push_back(make_pair(connected_port[port], jack_port_name(fInputPorts[i])));
+                        fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputPorts[i])));
                         printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
                     }
                     jack_free(connected_port);
@@ -113,7 +113,7 @@ class jackaudio : public audio {
                 const char** connected_port = jack_port_get_all_connections(fClient, fOutputPorts[i]);
                 if (connected_port != NULL) {
                     for (int port = 0; connected_port[port]; port++) {
-                        fConnections.push_back(make_pair(jack_port_name(fOutputPorts[i]), connected_port[port]));
+                        fConnections.push_back(std::make_pair(jack_port_name(fOutputPorts[i]), connected_port[port]));
                         printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
                     }
                     jack_free(connected_port);
@@ -124,9 +124,9 @@ class jackaudio : public audio {
         // Load previous client connections
         void load_connections()
         {
-            list<pair<string, string> >::const_iterator it;
+            std::list<std::pair<std::string, std::string> >::const_iterator it;
             for (it = fConnections.begin(); it != fConnections.end(); it++) {
-                pair<string, string> connection = *it;
+                std::pair<std::string, std::string> connection = *it;
                 jack_connect(fClient, connection.first.c_str(), connection.second.c_str());
             }
         }

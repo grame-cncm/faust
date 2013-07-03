@@ -39,7 +39,7 @@
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-list<GUI*> GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
 
 static bool isopt(char *argv[], const char *name)
 {
@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
         factory = createDSPFactory(argc - 1 - inc_arg, (const char**)&argv[inc_arg + 1], "", "", "", "", "", error_msg);
         DSP = createDSPInstance(factory);
         if (!DSP) {
-            cerr << error_msg;
-            cerr << "Cannot load .dsp or .bc file" << endl;
+            std::cerr << error_msg;
+            std::cerr << "Cannot load .dsp or .bc file" << std::endl;
             exit(1);
         }
     }

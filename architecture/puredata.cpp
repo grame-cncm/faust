@@ -26,7 +26,6 @@
    then loaded dynamically by Pd as an external. */
 
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <string>
 
@@ -35,7 +34,7 @@
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
 
-using namespace std;
+//using namespace std;
 
 /******************************************************************************
 *******************************************************************************
@@ -76,7 +75,7 @@ public:
   virtual ~PdUI();
 
 protected:
-  string path;
+  std::string path;
   void add_elem(ui_elem_type_t type, const char *label = NULL);
   void add_elem(ui_elem_type_t type, const char *label, float *zone);
   void add_elem(ui_elem_type_t type, const char *label, float *zone,
@@ -102,10 +101,10 @@ public:
   virtual void run();
 };
 
-static string mangle(const char *s)
+static std::string mangle(const char *s)
 {
   const char *s0 = s;
-  string t = "";
+  std::string t = "";
   if (!s) return t;
   while (*s)
     if (isalnum(*s))
@@ -118,9 +117,9 @@ static string mangle(const char *s)
   return t;
 }
 
-static string normpath(string path)
+static std::string normpath(std::string path)
 {
-  path = string("/")+path;
+  path = std::string("/")+path;
   int pos = path.find("//");
   while (pos >= 0) {
     path.erase(pos, 1);
@@ -129,7 +128,7 @@ static string normpath(string path)
   return path;
 }
 
-static string pathcat(string path, string label)
+static std::string pathcat(std::string path, std::string label)
 {
   if (path.empty())
     return normpath(label);
@@ -170,7 +169,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label)
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = NULL;
@@ -188,7 +187,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -207,7 +206,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -226,7 +225,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -292,7 +291,7 @@ void PdUI::run() {}
 <<includeclass>>
 
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include "m_pd.h"
 
 #define faust_setup(name) xfaust_setup(name)
@@ -314,7 +313,7 @@ struct t_faust {
 #endif
   mydsp *dsp;
   PdUI *ui;
-  string *label;
+  std::string *label;
   int active, xfade, n_xfade, rate, n_in, n_out;
   t_sample **inputs, **outputs, **buf;
   t_outlet *out;
@@ -554,7 +553,7 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
   if (sr <= 0) sr = 44100;
   x->xfade = 0; x->n_xfade = (int)(sr*XFADE_TIME/64);
   x->inputs = x->outputs = x->buf = NULL;
-  x->label = new string(sym(mydsp) "~");
+    x->label = new std::string(sym(mydsp) "~");
   x->dsp = new mydsp();
   x->ui = new PdUI(id?id->s_name:NULL);
   if (!x->dsp || !x->ui || !x->label) goto error;

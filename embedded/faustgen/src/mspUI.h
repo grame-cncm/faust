@@ -128,7 +128,7 @@ class mspUI : public UI
         
     public:
         
-        typedef map<string,mspUIObject*>::iterator iterator;
+        typedef map<string, mspUIObject*>::iterator iterator;
         
         mspUI() {}
         virtual ~mspUI()
@@ -205,7 +205,14 @@ class mspUI : public UI
         }
         
         int itemsCount() { return fUITable.size(); }
-        void clear() { fUITable.clear(); }
+        void clear() 
+        { 
+            iterator it;
+            for (it = begin(); it != end(); it++) {
+                delete (*it).second;
+            }
+            fUITable.clear(); 
+        }
     
 };
 #endif

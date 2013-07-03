@@ -94,15 +94,15 @@ void declareMetaGlue(void* cpp_interface, const char* key, const char* value);
 
 typedef struct llvm_dsp_imp {};
 
-typedef llvm_dsp_imp* (* newDspFun) ();
-typedef void (* deleteDspFun) (llvm_dsp_imp* dsp);
-typedef int (* getNumInputsFun) (llvm_dsp_imp* dsp);
-typedef int (* getNumOutputsFun) (llvm_dsp_imp* dsp);
-typedef void (* buildUserInterfaceFun) (llvm_dsp_imp* dsp, UIGlue* ui);
-typedef void (* initFun) (llvm_dsp_imp* dsp, int freq);
+typedef struct llvm_dsp_imp* (* newDspFun) ();
+typedef void (* deleteDspFun) (struct llvm_dsp_imp* dsp);
+typedef int (* getNumInputsFun) (struct llvm_dsp_imp* dsp);
+typedef int (* getNumOutputsFun) (struct llvm_dsp_imp* dsp);
+typedef void (* buildUserInterfaceFun) (struct llvm_dsp_imp* dsp, UIGlue* ui);
+typedef void (* initFun) (struct llvm_dsp_imp* dsp, int freq);
 typedef void (* classInitFun) (int freq);
-typedef void (* instanceInitFun) (llvm_dsp_imp* dsp, int freq);
-typedef void (* computeFun) (llvm_dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef void (* instanceInitFun) (struct llvm_dsp_imp* dsp, int freq);
+typedef void (* computeFun) (struct llvm_dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
 
 #ifdef __cplusplus

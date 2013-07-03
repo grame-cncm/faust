@@ -14,8 +14,11 @@ help:
 install:
 	mkdir -p $(dest)
 	install faustpath $(dest)
+	install faustoptflags $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
+	install faust2au $(dest)
+	install faust2ausynth $(dest)
 	install faust2caqt $(dest)
 	install faust2csound $(dest)
 	install faust2ladspa $(dest)
@@ -52,11 +55,15 @@ install:
 	install faust2lv2synth $(dest)
 	install faust2javaswing $(dest)
 	install faust2webaudio $(dest)
+	install faust2alsaconsole $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
+	rm -f $(dest)/faustoptflags
 	rm -f $(dest)/faust2alqt
-	rm -f $(dest)/faust2alsa 
+	rm -f $(dest)/faust2alsa
+	rm -f $(dest)/faust2au
+	rm -f $(dest)/faust2ausynth
 	rm -f $(dest)/faust2caqt
 	rm -f $(dest)/faust2csound
 	rm -f $(dest)/faust2ladspa
@@ -93,4 +100,5 @@ uninstall:
 	rm -f $(dest)/faust2lv2synth
 	rm -f $(dest)/faust2javaswing
 	rm -f $(dest)/faust2webaudio
+	rm -f $(dest)/faust2alsaconsole
 

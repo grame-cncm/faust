@@ -39,6 +39,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <stack>
 #include <string>
@@ -48,7 +49,7 @@
 
 #include "faust/gui/GUI.h"
 
-using namespace std;
+//using namespace std;
 
 /******************************************************************************
 *******************************************************************************
@@ -65,15 +66,15 @@ struct param {
 
 class CMDUI : public UI
 {
-	int					fArgc;
-	char**				fArgv;
-	vector<char*>		fFiles;
-	stack<string>		fPrefix;
-	map<string, param>	fKeyParam;
+    int                             fArgc;
+    char**                          fArgv;
+    std::vector<char*>              fFiles;
+    std::stack<std::string>         fPrefix;
+	std::map<std::string, param>	fKeyParam;
 
 	void openAnyBox(const char* label)
 	{
-		string prefix;
+		std::string prefix;
 
 		if (label && label[0]) {
 			prefix = fPrefix.top() + "-" + label;
@@ -83,11 +84,11 @@ class CMDUI : public UI
 		fPrefix.push(prefix);
 	}
 
-	string simplify(const string& src)
+	std::string simplify(const std::string& src)
 	{
 		int		i=0;
 		int		level=0;
-		string	dst;
+		std::string	dst;
 
 		while (src[i] ) {
 
@@ -155,7 +156,7 @@ public:
 
 	void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max)
 	{
-		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
+		std::string fullname = "-" + simplify(fPrefix.top() + "-" + label);
 		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
 	}
 
@@ -207,29 +208,29 @@ public:
 
 	void printhelp_command()
 	{
-		map<string, param>::iterator i;
-		cout << fArgc << "\n";
-		cout << fArgv[0] << " option list : ";
+		std::map<std::string, param>::iterator i;
+		std::cout << fArgc << "\n";
+		std::cout << fArgv[0] << " option list : ";
 		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+			std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
 		}
-		cout << " infile outfile\n";
+		std::cout << " infile outfile\n";
 	}
     
     void printhelp_init()
 	{
-		map<string, param>::iterator i;
-		cout << fArgc << "\n";
-		cout << fArgv[0] << " option list : ";
+		std::map<std::string, param>::iterator i;
+		std::cout << fArgc << "\n";
+		std::cout << fArgv[0] << " option list : ";
 		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+			std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
 		}
-		cout << endl;
+		std::cout << std::endl;
 	}
 
 	void process_command()
 	{
-		map<string, param>::iterator p;
+		std::map<std::string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
 				if ((strcmp(fArgv[i], "-help") == 0)
@@ -240,7 +241,7 @@ public:
 				}
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
-					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+					std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
 					printhelp_command();
 					exit(1);
 				}
@@ -256,12 +257,12 @@ public:
 	int 	files()         { return fFiles.size(); }
 	char* 	file (int n)	{ return fFiles[n]; }
 
-	char* input_file ()     { cout << "input file " << fFiles[0]; return fFiles[0]; }
-	char* output_file() 	{ cout << "output file " << fFiles[1]; return fFiles[1]; }
+	char* input_file ()     { std::cout << "input file " << fFiles[0]; return fFiles[0]; }
+	char* output_file() 	{ std::cout << "output file " << fFiles[1]; return fFiles[1]; }
 
 	void process_init()
 	{
-		map<string, param>::iterator p;
+		std::map<std::string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
                 if ((strcmp(fArgv[i], "-help") == 0)
@@ -272,7 +273,7 @@ public:
 				}
 				p = fKeyParam.find(fArgv[i]);
 				if (p == fKeyParam.end()) {
-					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+					std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
                     printhelp_init();
 					exit(1);
 				}

@@ -30,8 +30,15 @@
 #include "lateq.hh"
 #include "garbageable.hh"
 
+#if defined(LLVM_33)
+#include <llvm/IR/Value.h>
+#else
 #include <llvm/Value.h>
-#if LLVM_32
+#endif
+
+#if LLVM_33
+#include <llvm/IR/IRBuilder.h>
+#elif LLVM_32
 #include <llvm/IRBuilder.h>
 #else
 #include <llvm/Support/IRBuilder.h>

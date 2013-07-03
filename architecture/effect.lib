@@ -560,7 +560,7 @@ with {
 //
 // REFERENCES:
 //  Musical Engineer's Handbook, Bernie Hutchins, Ithaca NY, 1975
-//  Elecronotes Newsletter, Bernie Hutchins
+//  Electronotes Newsletter, Bernie Hutchins
 
 amp_follower(rel) = abs : env with {
  p = tau2pole(rel);

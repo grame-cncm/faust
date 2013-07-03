@@ -23,6 +23,13 @@
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
+
+#if defined(LLVM_33)
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Support/system_error.h>
+#endif
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
@@ -36,18 +43,8 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 
 static Module* LoadModule(const std::string filename, LLVMContext* context)
 {
-    //printf("Load module : %s \n", filename.c_str());
-    
     SMDiagnostic err;
-    Module* res = ParseIRFile(filename, err, *context);
-    if (!res) {
-    #if defined(LLVM_31) || defined(LLVM_32) 
-        err.print("LoadModule", errs());
-    #else
-        err.Print("LoadModule", errs());
-    #endif
-    }
-    return res;
+    return ParseIRFile(filename, err, *context);
 }
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
@@ -154,7 +151,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
-bool llvm_dsp_factory::initJIT()
+bool llvm_dsp_factory::initJIT(char* error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -168,7 +165,7 @@ bool llvm_dsp_factory::initJIT()
     if (fTarget != "") {
          fResult->fModule->setTargetTriple(fTarget);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     #else
         fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
@@ -209,7 +206,7 @@ bool llvm_dsp_factory::initJIT()
     fJIT->runStaticConstructorsDestructors(false);
     
     fJIT->DisableLazyCompilation(true);
-#ifdef LLVM_32
+#if defined(LLVM_32) || defined(LLVM_33)
     fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
@@ -219,7 +216,7 @@ bool llvm_dsp_factory::initJIT()
     // target lays out data structures.
     PassManager pm;
     FunctionPassManager fpm(fResult->fModule);
-#ifdef LLVM_32    
+#if defined(LLVM_32) || defined(LLVM_33)   
     // TODO
 #else
     pm.add(new TargetData(*fJIT->getTargetData()));
@@ -231,11 +228,15 @@ bool llvm_dsp_factory::initJIT()
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                printf("Cannot link scheduler module : %s\n", err.c_str());
+                snprintf(error_msg, 256, "Cannot link scheduler module : %s", err.c_str());
+                delete scheduler;
+                return false;
+            } else {
+                delete scheduler;
             }
-            delete scheduler;
         } else {
-            printf("File scheduler.ll not found...\n");
+            strncpy(error_msg, "File scheduler.ll not found...", 256);
+            return false;
         }
     }
     
@@ -255,7 +256,14 @@ bool llvm_dsp_factory::initJIT()
     
     // We use '4' to activate de auto-vectorizer
     if (fOptLevel > 3) {
-    #if defined(LLVM_32) 
+    
+    #if defined(LLVM_33)
+        printf("Vectorize\n");
+        Builder.LoopVectorize = true;
+        Builder.SLPVectorize = false;
+        Builder.BBVectorize = false;
+    #elif defined(LLVM_32) 
+        printf("Vectorize\n");
         Builder.LoopVectorize = true;
         //Builder.Vectorize = true;
     #elif defined(LLVM_31)
@@ -380,9 +388,9 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
 
-static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory)
+static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, char* error_msg)
 {
-    if (factory->initJIT()) {
+    if (factory->initJIT(error_msg)) {
         return factory;
     } else {
         delete factory;
@@ -397,14 +405,7 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
     const std::string& input, const std::string& target, 
     char* error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
-}
-EXPORT llvm_dsp_factory* createDSPFactory1(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
-                        char* error_msg, int opt_level)
-{
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
     
 // Bitcode <==> string
@@ -417,7 +418,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     delete buffer;
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
         delete context;
@@ -425,19 +427,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode1(const char* bit_code, const char* target, int opt_level)
-{
-    return readDSPFactoryFromBitcode(bit_code, target, opt_level);
-}
-
 EXPORT std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToBitcode();
-}
-
-EXPORT const char* writeDSPFactoryToBitcode1(llvm_dsp_factory* factory)
-{
-    return writeDSPFactoryToBitcode(factory).c_str();
 }
 
 // Bitcode <==> file
@@ -454,7 +446,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
         delete context;
@@ -462,19 +455,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile1(const char* bit_code_path, const char* target, int opt_level)
-{
-    return readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
-}
-
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path)
 {
     factory->writeDSPFactoryToBitcodeFile(bit_code_path);
-}
-
-EXPORT void writeDSPFactoryToBitcodeFile1(llvm_dsp_factory* factory, const char* bit_code_path)
-{
-    writeDSPFactoryToBitcodeFile(factory, bit_code_path);
 }
 
 // IR <==> string
@@ -486,9 +469,10 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) 
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("readDSPFactoryFromIR failed :", errs());
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());
@@ -498,19 +482,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR1(const char* ir_code, const char* target, int opt_level)
-{
-    return readDSPFactoryFromIR(ir_code, target, opt_level);
-}
-
 EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToIR();
-}
-
-EXPORT const char* writeDSPFactoryToIR1(llvm_dsp_factory* factory)
-{
-    return writeDSPFactoryToIR(factory).c_str();
 }
 
 // IR <==> file
@@ -521,9 +495,10 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     Module* module = ParseIRFile(ir_code_path, err, *context);
     
     if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level));
+        char error_msg[256];
+        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) 
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
         err.print("readDSPFactoryFromIR failed :", errs());
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());
@@ -533,19 +508,9 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile1(const char* ir_code_path, const char* target, int opt_level)
-{
-    return readDSPFactoryFromIRFile(ir_code_path, target, opt_level);
-}
-
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path)
 {
     factory->writeDSPFactoryToIRFile(ir_code_path);
-}
-
-EXPORT void writeDSPFactoryToIRFile1(llvm_dsp_factory* factory, const char* ir_code_path)
-{
-    writeDSPFactoryToIRFile(factory, ir_code_path);
 }
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
@@ -569,7 +534,7 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) { delete factory; }
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
 {
-    delete dsp; 
+    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }
 
 EXPORT int llvm_dsp::getNumInputs()
@@ -605,11 +570,11 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
-                        char* error_msg, int opt_level)
+                                        const char* library_path, const char* draw_path, 
+                                        const char* name, const char* input, 
+                                        const char* target, char* error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
@@ -664,22 +629,22 @@ EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
-    return dsp->getNumInputs();
+    return reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumInputs();
 }
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
 {
-    return dsp->getNumOutputs();
+    return reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumOutputs();
 }
 
 EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq)
 {
-    dsp->instanceInit(samplingFreq);
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceInit(samplingFreq);
 }
 
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq)
 {
-    dsp->init(samplingFreq);
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingFreq);
 }
 
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
@@ -689,7 +654,7 @@ EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    dsp->compute(count, input, output);
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
@@ -699,5 +664,5 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
-    delete dsp; 
+    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }

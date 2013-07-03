@@ -12,7 +12,7 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
+//using namespace std;
 
 #if 1
 
@@ -25,17 +25,18 @@ using namespace std;
 
 class FUI : public UI
 {
-	stack<string>		fGroupStack;
-	vector<string>		fNameList;
-	map<string, FAUSTFLOAT*>	fName2Zone;
+    
+    std::stack<std::string>             fGroupStack;
+	std::vector<std::string>            fNameList;
+	std::map<std::string, FAUSTFLOAT*>	fName2Zone;
 
  protected:
 
  	// labels are normalized by replacing white spaces by underscores and by
  	// removing parenthesis
-	string normalizeLabel(const char* label)
+	std::string normalizeLabel(const char* label)
 	{
-		string 	s;
+		std::string 	s;
 		char 	c;
 
 		while ((c=*label++)) {
@@ -49,7 +50,7 @@ class FUI : public UI
 	// add an element by relating its full name and memory zone
 	virtual void addElement(const char* label, FAUSTFLOAT* zone)
 	{
-		string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
+		std::string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
 		fNameList.push_back(fullname);
 		fName2Zone[fullname] = zone;
 	}
@@ -79,31 +80,31 @@ class FUI : public UI
 	// save the zones values and full names
 	virtual void saveState(const char* filename)
 	{
-		ofstream f(filename);
+		std::ofstream f(filename);
 
 		for (unsigned int i=0; i<fNameList.size(); i++) {
-			string	n = fNameList[i];
+			std::string	n = fNameList[i];
 			FAUSTFLOAT*	z = fName2Zone[n];
-			f << *z << ' ' << n.c_str() << endl;
+			f << *z << ' ' << n.c_str() << std::endl;
 		}
 
-		f << endl;
+		f << std::endl;
 		f.close();
 	}
 
 	// recall the zones values and full names
 	virtual void recallState(const char* filename)
 	{
-		ifstream f(filename);
+		std::ifstream f(filename);
 		FAUSTFLOAT	v;
-		string	n;
+		std::string	n;
 
 		while (f.good()) {
 			f >> v >> n;
 			if (fName2Zone.count(n)>0) {
 				*(fName2Zone[n]) = v;
 			} else {
-				cerr << "recallState : parameter not found : " << n.c_str() << " with value : " << v << endl;
+				std::cerr << "recallState : parameter not found : " << n.c_str() << " with value : " << v << std::endl;
 			}
 		}
 		f.close();

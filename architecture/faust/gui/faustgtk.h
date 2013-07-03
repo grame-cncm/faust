@@ -22,7 +22,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <assert.h>
 
-using namespace std;
+//using namespace std;
 
 
 #define stackSize 256
@@ -112,16 +112,16 @@ static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, GdkEventExpos
 	double angle = scale_zero + knobstate * 2 * (M_PI - scale_zero);
 	double knobstate1 = (0. - adj->lower) / (adj->upper - adj->lower);
 	double pointer_off = knob_x/6;
-	double radius = min(knob_x-pointer_off, knob_y-pointer_off) / 2;
+	double radius = std::min(knob_x-pointer_off, knob_y-pointer_off) / 2;
 	double lengh_x = (knobx+radius+pointer_off/2) - radius * sin(angle);
 	double lengh_y = (knoby+radius+pointer_off/2) + radius * cos(angle);
-	double radius1 = min(knob_x, knob_y) / 2 ;
+	double radius1 = std::min(knob_x, knob_y) / 2 ;
 
 	/** get widget forground color convert to cairo **/
 	GtkStyle *style = gtk_widget_get_style (widget);
-	double r = min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
-		   g = min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
-		   b = min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
+	double r = std::min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
+		   g = std::min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
+		   b = std::min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
 
 	/** paint focus **/
 	if (GTK_WIDGET_HAS_FOCUS(widget)== TRUE) {
@@ -160,14 +160,14 @@ static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, GdkEventExpos
 
 	/** create a rotating pointer on the kob**/
 	cairo_set_source_rgb(cr,  0.1, 0.1, 0.1);
-	cairo_set_line_width(cr,max(3, min(7, knob_x/15)));
+	cairo_set_line_width(cr,std::max(3, std::min(7, knob_x/15)));
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND); 
 	cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
 	cairo_set_source_rgb(cr,  0.9, 0.9, 0.9);
-	cairo_set_line_width(cr,min(5, max(1,knob_x/30)));
+	cairo_set_line_width(cr,std::min(5, std::max(1,knob_x/30)));
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
@@ -266,7 +266,7 @@ static void knob_pointer_event(GtkWidget *widget, gdouble x, gdouble y, int knob
 	static double last_y = 2e20;
 	GtkKnob *knob = GTK_KNOB(widget);
 	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
-	double radius =  min(knob_x, knob_y) / 2;
+	double radius =  std::min(knob_x, knob_y) / 2;
 	int  knobx = (widget->allocation.width - knob_x) / 2;
 	int  knoby = (widget->allocation.height - knob_y) / 2;
 	double posx = (knobx + radius) - x; // x axis right -> left
@@ -486,12 +486,12 @@ gtk_knob::GtkKnob myGtkKnob;
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
  * (but not those in the middle of the string)
  */
-static string rmWhiteSpaces(const string& s)
+static std::string rmWhiteSpaces(const std::string& s)
 {
     size_t i = s.find_first_not_of(" \t");
     size_t j = s.find_last_not_of(" \t");
 
-    if (i != string::npos & j != string::npos) {
+    if (i != std::string::npos & j != std::string::npos) {
         return s.substr(i, 1+j-i);
     } else {
         return "";
@@ -501,11 +501,11 @@ static string rmWhiteSpaces(const string& s)
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
-static void extractMetadata(const string& fulllabel, string& label, map<string, string>& metadata)
+static void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::string>& metadata)
 {
     enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
     int state = kLabel; int deep = 0;
-    string key, value;
+    std::string key, value;
 
     for (unsigned int i=0; i < fulllabel.size(); i++) {
         char c = fulllabel[i];
@@ -589,7 +589,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
                 break;
 
             default :
-                cerr << "ERROR unrecognized state " << state << endl;
+                std::cerr << "ERROR unrecognized state " << state << std::endl;
         }
     }
     label = rmWhiteSpaces(label);
@@ -598,11 +598,11 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 class GTKUI : public GUI
 {
  private :
-    static bool                         fInitialized;
-    static map<FAUSTFLOAT*, FAUSTFLOAT> fGuiSize;       // map widget zone with widget size coef
-    static map<FAUSTFLOAT*, string>     fTooltip;       // map widget zone with tooltip strings
-    static set<FAUSTFLOAT*>             fKnobSet;       // set of widget zone to be knobs
-	string								gGroupTooltip;
+    static bool                         		fInitialized;
+    static std::map<FAUSTFLOAT*, FAUSTFLOAT> 	fGuiSize;       // map widget zone with widget size coef
+    static std::map<FAUSTFLOAT*, std::string>   fTooltip;       // map widget zone with tooltip strings
+    static std::set<FAUSTFLOAT*>             	fKnobSet;       // set of widget zone to be knobs
+	std::string									gGroupTooltip;
     
     bool isKnob(FAUSTFLOAT* zone) {return fKnobSet.count(zone) > 0;}
     
@@ -627,7 +627,7 @@ class GTKUI : public GUI
     // -- Labels and metadata
 
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value);
-    virtual int  checkLabelOptions(GtkWidget* widget, const string& fullLabel, string& simplifiedLabel);
+    virtual int  checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, std::string& simplifiedLabel);
     virtual void checkForTooltip(FAUSTFLOAT* zone, GtkWidget* widget);
     
     // -- layout groups
@@ -689,18 +689,18 @@ class GTKUI : public GUI
 // global static fields
 
 bool                             GTKUI::fInitialized = false;
-map<FAUSTFLOAT*, FAUSTFLOAT>     GTKUI::fGuiSize;
-map<FAUSTFLOAT*, string>         GTKUI::fTooltip;
-set<FAUSTFLOAT*>                 GTKUI::fKnobSet;       // set of widget zone to be knobs
+std::map<FAUSTFLOAT*, FAUSTFLOAT>     GTKUI::fGuiSize;
+std::map<FAUSTFLOAT*, std::string>    GTKUI::fTooltip;
+std::set<FAUSTFLOAT*>                 GTKUI::fKnobSet;       // set of widget zone to be knobs
 
 /**
 * Format tooltip string by replacing some white spaces by 
 * return characters so that line width doesn't exceed n.
 * Limitation : long words exceeding n are not cut 
 */
-static string formatTooltip(unsigned int n, const string& tt)
+static std::string formatTooltip(unsigned int n, const std::string& tt)
 {
-	string  ss = tt;	// ss string we are going to format
+	std::string  ss = tt;	// ss string we are going to format
 	unsigned int lws = 0;	// last white space encountered
 	unsigned int lri = 0;	// last return inserted
 	for (unsigned int i = 0; i < tt.size(); i++) {
@@ -711,7 +711,7 @@ static string formatTooltip(unsigned int n, const string& tt)
 			lri = lws;
 		}
 	}
-	cout << ss;
+	//std::cout << ss;
 	return ss;
 }
 
@@ -808,9 +808,9 @@ void GTKUI::declare(FAUSTFLOAT* zone, const char* key, const char* value)
  * containers were pushed on the stack). 
  */
 
-int GTKUI::checkLabelOptions(GtkWidget* widget, const string& fullLabel, string& simplifiedLabel)
+int GTKUI::checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, std::string& simplifiedLabel)
 {   
-    map<string, string> metadata;
+    std::map<std::string, std::string> metadata;
     extractMetadata(fullLabel, simplifiedLabel, metadata);
 
     if (metadata.count("tooltip")) {
@@ -822,9 +822,9 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const string& fullLabel, string&
     }
 
 	//---------------------
-	if (gGroupTooltip != string()) {
+	if (gGroupTooltip != std::string()) {
 		gtk_tooltips_set_tip (gtk_tooltips_new (), widget, gGroupTooltip.c_str(), NULL);
-		gGroupTooltip = string();
+		gGroupTooltip = std::string();
 	}
 	
 	//----------------------
@@ -854,7 +854,7 @@ void GTKUI::openFrameBox(const char* label)
 
 void GTKUI::openTabBox(const char* fullLabel)
 {
-    string label;
+    std::string label;
     GtkWidget* widget = gtk_notebook_new();
 
     int adjust = checkLabelOptions(widget, fullLabel, label);
@@ -867,7 +867,7 @@ void GTKUI::openTabBox(const char* fullLabel)
 
 void GTKUI::openHorizontalBox(const char* fullLabel)
 {   
-    string label;
+    std::string label;
     GtkWidget* box = gtk_hbox_new (homogene, 4);
     int adjust = checkLabelOptions(box, fullLabel, label);
 
@@ -888,7 +888,7 @@ void GTKUI::openHorizontalBox(const char* fullLabel)
 
 void GTKUI::openVerticalBox(const char* fullLabel)
 {
-    string  label;
+    std::string  label;
     GtkWidget * box = gtk_vbox_new (homogene, 4);
     int      adjust = checkLabelOptions(box, fullLabel, label);
 

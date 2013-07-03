@@ -44,7 +44,7 @@ typedef struct llvm_dsp {};
     - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
     - as a string (in which case the 'name' and 'input' parameter have to be used).
  * 
- * @param argc - the number of parameter in argv array
+ * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
  * @param draw_path - the place where to put output files like SVG, ps, dot...
