@@ -24,7 +24,6 @@
 
 int main(int argc, char* argv[])
 {
-    int res = 0;
     gGlobal = NULL;
    
     try {
@@ -41,11 +40,11 @@ int main(int argc, char* argv[])
         argv1[i++] = "-t";
         argv1[i++] = "120";
 
-        res = compile_faust_internal(argc1, argv1, "", "", 0, 0);
+        compile_faust_internal(argc1, argv1, "", "", 0, 0);
     } catch (faustexception& e) {
         e.PrintMessage();
     }
     
     global::destroy();
-    return res;
+    return 0;
 }
