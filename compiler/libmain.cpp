@@ -832,7 +832,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-int compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
+void compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
 {
     gHelpSwitch = false;
     gVersionSwitch = false;
@@ -864,11 +864,11 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
     *****************************************************************/
     process_cmdline(argc, argv);
     
-    if (gHelpSwitch) 		{ 
+    if (gHelpSwitch) { 
         printhelp(); 
         throw faustexception("");
     }
-    if (gVersionSwitch) 	{ 
+    if (gVersionSwitch) { 
         printversion(); 
         throw faustexception(""); 
     }
@@ -921,8 +921,6 @@ int compile_faust_internal(int argc, const char* argv[], const char* library_pat
      6 - generate xml description, documentation or dot files
     *****************************************************************/
     generateOutputFiles(comp_container.first, comp_container.second);
-          
-    return 0;
 }
 
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
@@ -946,18 +944,19 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
-    int result = 0;
     gLLVMOut = true;
     gGlobal = NULL;
+    int res = 0;
     
     try {
         global::allocate();        
-        result = compile_faust_internal(argc, argv, library_path, draw_path, name, input);
+        compile_faust_internal(argc, argv, library_path, draw_path, name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
+        res = -1;
     }
     
     global::destroy();
-    return result;
+    return res;
 }
