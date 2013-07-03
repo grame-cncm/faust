@@ -33,7 +33,7 @@ LLVM_VERSION  = LLVM_32
 CLANG = /opt/local/libexec/llvm-3.2/bin/clang++
 endif
 
-ifeq ($(LLVM_VERSION), 3.3svn)
+ifeq ($(LLVM_VERSION), 3.3)
 LLVM_VERSION  = LLVM_33
 CLANG = /opt/local/libexec/llvm-3.3/bin/clang++
 endif

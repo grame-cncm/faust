@@ -43,20 +43,8 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 
 static Module* LoadModule(const std::string filename, LLVMContext* context)
 {
-    //printf("Load module : %s \n", filename.c_str());
-    
     SMDiagnostic err;
-    Module* res = ParseIRFile(filename, err, *context);
-    /*
-    if (!res) {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
-        err.print("LoadModule", errs());
-    #else
-        err.Print("LoadModule", errs());
-    #endif
-    }
-    */
-    return res;
+    return ParseIRFile(filename, err, *context);
 }
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
@@ -396,7 +384,6 @@ void llvm_dsp_aux::buildUserInterface(UIGlue* glue)
 
 void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    //printf("llvm_dsp_aux::compute %x  %x %d\n", fDSP, fDSPFactory->fCompute, count);
     AVOIDDENORMALS;
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
@@ -583,9 +570,9 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
-                        char* error_msg, int opt_level)
+                                        const char* library_path, const char* draw_path, 
+                                        const char* name, const char* input, 
+                                        const char* target, char* error_msg, int opt_level)
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
