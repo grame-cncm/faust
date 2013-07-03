@@ -50,7 +50,8 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, c
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for ASMJavaScript\n");
     } else {
-        container = new ASMJAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        //container = new ASMJAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        throw faustexception("Scalar mode not (yet) supported for ASMJavaScript\n");
     }
 
     return container;
