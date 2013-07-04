@@ -555,8 +555,6 @@
     else self.portsView.clientX = self.frame.size.width - kPortsViewItemWidth;
     
     self.portsView.currentAppX = [self convertPoint:self.currentClientButton.frame.origin toView:self.superview].x;
-
-    NSLog(@"***** RESIZE PORTS VIEW - client x %f - current app x %f", self.portsView.clientX, self.portsView.currentAppX);
     
     for (i = 0; i < [[self.portsView portsItems] count]; ++i)
     {
@@ -582,14 +580,14 @@
     
     if (fabs(self.portsView.clientX - self.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
     {
+        float newClientX = 0.f;
         float newCurrentAppX = 0.f;
         
         if (self.portsView.currentAppX < self.portsView.clientX)
         {
+            // Re-position current app X
             newCurrentAppX = fmaxf(self.portsView.clientX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
-            
-            //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
-            
+                        
             for (i = 0; i < [[self.portsView portsItems] count]; ++i)
             {
                 item = [[self.portsView portsItems] objectAtIndex:i];
@@ -600,23 +598,38 @@
                     {
                         [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
                     }
-                    //else if (item.frame.origin.x == jackView.portsView.currentAppX)
-                    //{
-                    //[item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
-                    //jackView.portsView.currentAppX = newCurrentAppX;
-                    //}
                 }
             }
             
             self.portsView.currentAppX = newCurrentAppX;
+            
+            // If still not enough, re-position client x
+            if (fabs(self.portsView.clientX - self.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
+            {
+                newClientX = fminf(self.portsView.currentAppX + kPortsViewItemWidth + kPortsViewMinXBetweenItems, self.frame.size.width - kPortsViewItemWidth);
+                
+                for (i = 0; i < [[self.portsView portsItems] count]; ++i)
+                {
+                    item = [[self.portsView portsItems] objectAtIndex:i];
+                    
+                    if ([item isKindOfClass:[JackViewPortsViewItem class]])
+                    {
+                        if (item.frame.origin.x == self.portsView.clientX)
+                        {
+                            [item setFrame:CGRectMake(newClientX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                        }
+                    }
+                }
+                
+                self.portsView.clientX = newClientX;
+            }
         }
         
         else if (self.portsView.clientX < self.portsView.currentAppX)
         {
+            // Re-position current app X
             newCurrentAppX = fminf(self.portsView.clientX + kPortsViewMinXBetweenItems + kPortsViewItemWidth, self.frame.size.width - kPortsViewItemWidth);
-            
-            //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
-            
+                        
             for (i = 0; i < [[self.portsView portsItems] count]; ++i)
             {
                 item = [[self.portsView portsItems] objectAtIndex:i];
@@ -627,15 +640,31 @@
                     {
                         [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
                     }
-                    //else if (item.frame.origin.x == jackView.portsView.currentAppX)
-                    //{
-                    //[item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
-                    //jackView.portsView.currentAppX = newCurrentAppX;
-                    //}
                 }
             }
             
             self.portsView.currentAppX = newCurrentAppX;
+            
+            // If still not enough, re-position client x
+            if (fabs(self.portsView.clientX - self.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
+            {
+                newClientX = fmaxf(self.portsView.currentAppX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
+                
+                for (i = 0; i < [[self.portsView portsItems] count]; ++i)
+                {
+                    item = [[self.portsView portsItems] objectAtIndex:i];
+                    
+                    if ([item isKindOfClass:[JackViewPortsViewItem class]])
+                    {
+                        if (item.frame.origin.x == self.portsView.clientX)
+                        {
+                            [item setFrame:CGRectMake(newClientX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                        }
+                    }
+                }
+                
+                self.portsView.clientX = newClientX;
+            }
         }
     }
     
