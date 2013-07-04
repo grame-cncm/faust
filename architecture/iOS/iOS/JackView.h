@@ -106,6 +106,8 @@
     //JackViewDrawingView*    _drawingView;
     
     UITapGestureRecognizer* _singleTapRecognizer;
+    
+    UIDeviceOrientation     _realOrientation;
 }
 
 @property (assign, readwrite) CGPoint srcPt;

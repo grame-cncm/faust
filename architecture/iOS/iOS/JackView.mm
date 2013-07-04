@@ -6,7 +6,6 @@
 //
 //
 
-
 #import "JackView.h"
 
 @implementation JackViewButton
@@ -397,6 +396,7 @@
     
     if (self)
     {
+        _realOrientation = [UIDevice currentDevice].orientation;
         self.portsView = nil;
         _jackClient = nil;
         self.currentClientButton = nil;
@@ -495,7 +495,30 @@
 
 - (void)orientationChanged:(NSNotification *)notification
 {
-    [self resizeView];
+    UIDeviceOrientation newOrientation = UIDeviceOrientationUnknown;
+        
+    if ([UIDevice currentDevice].orientation == UIDeviceOrientationFaceUp
+        || [UIDevice currentDevice].orientation == UIDeviceOrientationFaceDown
+        || _realOrientation == UIDeviceOrientationFaceUp
+        || _realOrientation == UIDeviceOrientationFaceDown)
+    {
+        // Don't change anything
+        
+        if (_realOrientation == UIDeviceOrientationFaceUp
+            || _realOrientation == UIDeviceOrientationFaceDown)
+        {
+            _realOrientation = [UIDevice currentDevice].orientation;
+        }
+    }
+    else
+    {
+        newOrientation = [UIDevice currentDevice].orientation;
+        if (newOrientation != _realOrientation)
+        {
+            [self resizeView];
+        }
+        _realOrientation = newOrientation;
+    }
 }
 
 - (void)audioButtonClicked
@@ -575,9 +598,21 @@
     
     if (self.portsView)
     {
+        JackViewButton* clientButton = self.portsView.clientButton;
+        [self dismissPortsView];
+        
+        [clientButton performSelector:@selector(displayPortsView) withObject:nil afterDelay:0.1];
+        //[clientButton displayPortsView];
+        /*CGPoint pt = [self.portsView.clientButton convertPoint:CGPointMake(0., 0.) toView:self.superview];
+        
+        if (pt.x + kPortsViewItemWidth < self.frame.size.width) self.portsView.clientX = pt.x;
+        else self.portsView.clientX = self.frame.size.width - kPortsViewItemWidth;
+        
+        self.portsView.currentAppX = [self convertPoint:self.currentClientButton.frame.origin toView:self.superview].x;
+        
         [self resizePortsView];
         [self.portsView refreshLinks];
-        [self.portsView setNeedsDisplay];
+        [self.portsView setNeedsDisplay];*/
     }
     
     [self makeButtonsSymetric];
@@ -621,7 +656,6 @@
     
     if (fabs(self.portsView.clientX - self.portsView.currentAppX) <= kPortsViewMinXBetweenItems + kPortsViewItemWidth)
     {
-        float newClientX = 0.f;
         float newCurrentAppX = 0.f;
         
         if (self.portsView.currentAppX < self.portsView.clientX)
@@ -650,9 +684,10 @@
             
             self.portsView.currentAppX = newCurrentAppX;
         }
+        
         else if (self.portsView.clientX < self.portsView.currentAppX)
         {
-            newClientX = fmaxf(self.portsView.currentAppX - kPortsViewMinXBetweenItems - kPortsViewItemWidth, 0.);
+            newCurrentAppX = fminf(self.portsView.clientX + kPortsViewMinXBetweenItems + kPortsViewItemWidth, self.frame.size.width - kPortsViewItemWidth);
             
             //if (newCurrentAppX <= 0.) newClientX = kPortsViewMinXBetweenItems;
             
@@ -664,7 +699,7 @@
                 {
                     if (item.frame.origin.x == self.portsView.currentAppX)
                     {
-                        [item setFrame:CGRectMake(newClientX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
+                        [item setFrame:CGRectMake(newCurrentAppX, item.frame.origin.y, item.frame.size.width, item.frame.size.height)];
                     }
                     //else if (item.frame.origin.x == jackView.portsView.currentAppX)
                     //{
@@ -674,7 +709,7 @@
                 }
             }
             
-            self.portsView.clientX = newClientX;
+            self.portsView.currentAppX = newCurrentAppX;
         }
     }
     
