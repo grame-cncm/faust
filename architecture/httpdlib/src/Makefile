@@ -13,15 +13,15 @@ ARCHFLAGS :=
 endif
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += -I../../../architecture -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 target := ../libHTTPDFaust.a
 
 all : $(target)
 
-$(target) : $(objects)
+$(target) : html/jsscripts.o html/stylesheet.o $(objects)
 	rm -f $@
-	ar cq $@ $(objects)
+	ar cq $@ html/jsscripts.o html/stylesheet.o $(objects)
 	ranlib $@
 	
 	
@@ -29,10 +29,45 @@ depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
 	
 clean :
-	rm -f $(objects)
+	rm -f $(objects) html/jsscripts html/jsscripts.o html/jsscripts.cpp
+	rm -f $(objects) html/stylesheet html/stylesheet.o html/stylesheet.cpp
 	rm -f $(target)
 	
 
+html/jsscripts.o : html/jsscripts.cpp
+html/stylesheet.o : html/stylesheet.cpp
+
+html/jsscripts.cpp : html/jsscripts
+	cd html; xxd -i jsscripts jsscripts.cpp
+
+html/stylesheet.cpp : html/stylesheet
+	cd html; xxd -i stylesheet stylesheet.cpp
+
+html/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
+	cat ../html/js/svg/jquery-1.7.1.min.js > html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/jquerysvg/jquery.svg.min.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/jquerysvg/jquery.svgdom.min.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_proto.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_mobile.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_ui_inits.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_load_external_file.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_ui_objects.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_ui_builder.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_ui_interact.js >> html/jsscripts
+	echo " " >> html/jsscripts
+	cat ../html/js/svg/faust_server_communication.js >> html/jsscripts
+
+html/stylesheet : ../html/js/svg/faust_css.css
+	cat ../html/js/svg/faust_css.css > html/stylesheet
 
 # DO NOT DELETE
 
@@ -41,7 +76,7 @@ HTTPDControler.o: lib/smartpointer.h nodes/FaustNode.h msg/Message.h httpd/HTTPD
 HTTPDControler.o: json/jsonroot.h json/jsonnode.h json/jsoncontrol.h html/htmlfactory.h html/htmlpage.h
 HTTPDControler.o: nodes/RootNode.h
 html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
-html/htmlpage.o: lib/deelx.h html/htmlpage.h
+html/htmlpage.o: lib/deelx.h html/htmlpage.h html/jsscripts.h html/stylesheet.h
 html/htmlrow.o: html/htmlpage.h
 html/htmlui.o: html/htmlui.h html/htmlfactory.h html/htmlpage.h
 httpd/Address.o: httpd/Address.h
@@ -50,8 +85,9 @@ httpd/HTTPDSetup.o: httpd/HTTPDSetup.h httpd/HTTPDServer.h msg/MessageProcessor.
 json/jsoncontrol.o: json/jsoncontrol.h json/jsonnode.h lib/smartpointer.h
 json/jsonfactory.o: json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
 json/jsonfactory.o: json/jsongroup.h
-json/jsonfaustui.o: include/jsonfaustui.h include/UI.h json/jsonui.h json/jsonfactory.h json/jsonroot.h
-json/jsonfaustui.o: lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
+json/jsonfaustui.o: include/jsonfaustui.h ../../../architecture/faust/gui/meta.h ../../../architecture/faust/gui/UI.h
+json/jsonfaustui.o: json/jsonui.h json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h
+json/jsonfaustui.o: json/jsoncontrol.h
 json/jsongroup.o: json/jsongroup.h json/jsonnode.h lib/smartpointer.h
 json/jsonroot.o: json/jsonroot.h lib/smartpointer.h json/jsonnode.h
 json/jsonui.o: json/jsonui.h json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h

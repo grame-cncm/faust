@@ -26,37 +26,15 @@
    then loaded dynamically by Pd as an external. */
 
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <string>
 
-using namespace std;
+#include "faust/misc.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/meta.h"
+#include "faust/audio/dsp.h"
 
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-  #warning *** puredata.cpp: NO SSE FLAG (denormals may slow things down) ***
-  #define AVOIDDENORMALS
-#endif
-
-struct Meta 
-{
-    void declare (const char* key, const char* value) {}
-};
-
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
+//using namespace std;
 
 /******************************************************************************
 *******************************************************************************
@@ -66,48 +44,7 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
 <<includeIntrinsic>>
-
-/******************************************************************************
-*******************************************************************************
-
-			ABSTRACT USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-class UI
-{
-  bool	fStopped;
-public:
-		
-  UI() : fStopped(false) {}
-  virtual ~UI() {}
-	
-  virtual void addButton(const char* label, float* zone) = 0;
-  virtual void addCheckButton(const char* label, float* zone) = 0;
-  virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-
-  virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-  virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-	
-  virtual void openTabBox(const char* label) = 0;
-  virtual void openHorizontalBox(const char* label) = 0;
-  virtual void openVerticalBox(const char* label) = 0;
-  virtual void closeBox() = 0;
-	
-  virtual void run() = 0;
-	
-  void stop()	{ fStopped = true; }
-  bool stopped() 	{ return fStopped; }
-
-  virtual void declare(float* zone, const char* key, const char* value) {}
-};
 
 /***************************************************************************
    Pd UI interface
@@ -138,7 +75,7 @@ public:
   virtual ~PdUI();
 
 protected:
-  string path;
+  std::string path;
   void add_elem(ui_elem_type_t type, const char *label = NULL);
   void add_elem(ui_elem_type_t type, const char *label, float *zone);
   void add_elem(ui_elem_type_t type, const char *label, float *zone,
@@ -164,10 +101,10 @@ public:
   virtual void run();
 };
 
-static string mangle(const char *s)
+static std::string mangle(const char *s)
 {
   const char *s0 = s;
-  string t = "";
+  std::string t = "";
   if (!s) return t;
   while (*s)
     if (isalnum(*s))
@@ -180,9 +117,9 @@ static string mangle(const char *s)
   return t;
 }
 
-static string normpath(string path)
+static std::string normpath(std::string path)
 {
-  path = string("/")+path;
+  path = std::string("/")+path;
   int pos = path.find("//");
   while (pos >= 0) {
     path.erase(pos, 1);
@@ -191,7 +128,7 @@ static string normpath(string path)
   return path;
 }
 
-static string pathcat(string path, string label)
+static std::string pathcat(std::string path, std::string label)
 {
   if (path.empty())
     return normpath(label);
@@ -232,7 +169,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label)
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = NULL;
@@ -250,7 +187,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -269,7 +206,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -288,7 +225,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -347,34 +284,14 @@ void PdUI::run() {}
 *******************************************************************************
 *******************************************************************************/
 
-
-
-//----------------------------------------------------------------
-//  abstract definition of a signal processor
-//----------------------------------------------------------------
-			
-class dsp {
- protected:
-	int fSamplingFreq;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-	virtual int getNumInputs() = 0;
-	virtual int getNumOutputs() = 0;
-	virtual void buildUserInterface(UI* interface) = 0;
-	virtual void init(int samplingRate) = 0;
- 	virtual void compute(int len, float** inputs, float** outputs) = 0;
-};
-
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
 		
-
 <<includeclass>>
 
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include "m_pd.h"
 
 #define faust_setup(name) xfaust_setup(name)
@@ -396,7 +313,7 @@ struct t_faust {
 #endif
   mydsp *dsp;
   PdUI *ui;
-  string *label;
+  std::string *label;
   int active, xfade, n_xfade, rate, n_in, n_out;
   t_sample **inputs, **outputs, **buf;
   t_outlet *out;
@@ -636,7 +553,7 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
   if (sr <= 0) sr = 44100;
   x->xfade = 0; x->n_xfade = (int)(sr*XFADE_TIME/64);
   x->inputs = x->outputs = x->buf = NULL;
-  x->label = new string(sym(mydsp) "~");
+    x->label = new std::string(sym(mydsp) "~");
   x->dsp = new mydsp();
   x->ui = new PdUI(id?id->s_name:NULL);
   if (!x->dsp || !x->ui || !x->label) goto error;

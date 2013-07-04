@@ -42,30 +42,31 @@
 #include <string>
 #include <jack/net.h>
 
-class netjackaudio : public audio {
+class netjackaudio : public audio
+{
 
         dsp* fDsp;
         jack_net_slave_t* fNet;
         int fCelt;
         std::string fMasterIP;
         int fMasterPort;
+        int fLatency;
 
-        static void net_shutdown(void *)
+        static void net_shutdown(void *) 
         {
             printf("Network failure, restart...\n");
         }
 
         static int net_process(jack_nframes_t buffer_size,
-                                int,
-                                float** audio_input_buffer,
-                                int,
-                                void**,
-                                int,
-                                float** audio_output_buffer,
-                                int,
-                                void**,
-                                void* arg)
-        {
+                               int,
+                               float** audio_input_buffer,
+                               int,
+                               void**,
+                               int,
+                               float** audio_output_buffer,
+                               int,
+                               void**,
+                               void* arg) {
             AVOIDDENORMALS;
             netjackaudio* obj = (netjackaudio*)arg;
             obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
@@ -74,12 +75,11 @@ class netjackaudio : public audio {
 
     public:
 
-        netjackaudio(int celt, const std::string master_ip, int master_port)
-            :fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port)
+        netjackaudio(int celt, const std::string master_ip, int master_port, int latency = 2)
+            : fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
         {}
 
-        bool init(const char* name, dsp* DSP)
-        {
+        bool init(const char* name, dsp* DSP) {
             fDsp = DSP;
             jack_slave_t request = {
                 DSP->getNumInputs(),
@@ -87,9 +87,9 @@ class netjackaudio : public audio {
                 0, 0,
                 DEFAULT_MTU,
                 -1,
-                (fCelt > 0) ? JackCeltEncoder: JackFloatEncoder,
+                (fCelt > 0) ? JackCeltEncoder : JackFloatEncoder,
                 (fCelt > 0) ? fCelt : 0,
-                2
+                fLatency
             };
 
             jack_master_t result;
@@ -105,8 +105,7 @@ class netjackaudio : public audio {
             return true;
         }
 
-        bool start()
-        {
+        bool start() {
             if (jack_net_slave_activate(fNet)) {
                 printf("cannot activate net");
                 return false;
@@ -114,17 +113,14 @@ class netjackaudio : public audio {
             return true;
         }
 
-        void stop()
-        {
+        void stop() {
             jack_net_slave_deactivate(fNet);
             jack_net_slave_close(fNet);
         }
 
 };
 
-
 #endif
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

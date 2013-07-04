@@ -5,6 +5,9 @@
    modification, are permitted.
 */
 
+#ifndef __OSCUI__
+#define __OSCUI__
+
 #include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
 #include <vector>
@@ -41,13 +44,14 @@ all the other osc excluded characters with '-' (hyphen)
 This solution is implemented in the proposed OSC UI;
 */
 
-using namespace std;
+///using namespace std;
 
 //class oscfaust::OSCIO;
 class OSCUI : public GUI 
 {
+     
 	oscfaust::OSCControler*	fCtrl;
-	vector<const char*>		fAlias;
+	std::vector<const char*>		fAlias;
 	
 	const char* tr(const char* label) const;
 	
@@ -124,3 +128,5 @@ const char* OSCUI::tr(const char* label) const
 	*ptr = 0;
 	return buffer;
 }
+
+#endif

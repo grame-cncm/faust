@@ -192,6 +192,9 @@ Tree unquote(char* str)
 %token ISUM
 %token IPROD
 
+%token INPUTS
+%token OUTPUTS
+
 %token STRING
 %token FSTRING
 %token IDENT
@@ -263,6 +266,9 @@ Tree unquote(char* str)
 %type <exp> fseq
 %type <exp> fsum
 %type <exp> fprod
+
+%type <exp> finputs
+%type <exp> foutputs
 
 %type <exp> button
 %type <exp> checkbox
@@ -514,6 +520,10 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| fseq							{ $$ = $1; }
 				| fsum							{ $$ = $1; }
 				| fprod							{ $$ = $1; }
+				
+				| finputs						{ $$ = $1; }
+				| foutputs						{ $$ = $1; }
+				
 				;
 
 
@@ -565,6 +575,14 @@ fprod			: IPROD LPAR ident PAR argument PAR expression RPAR
 				;
 
 
+finputs			: INPUTS LPAR expression RPAR { $$ = boxInputs($3); }
+				;
+
+foutputs		: OUTPUTS LPAR expression RPAR { $$ = boxOutputs($3); }
+				;
+
+				
+
 /* description of foreign functions */
 
 ffunction		: FFUNCTION LPAR signature PAR fstring PAR string RPAR
@@ -612,10 +630,16 @@ hbargraph		: HBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 				;
 
 /* Description of foreign functions */
+/* float sinhf|sinh|sinhl(float) */
 
-signature		: type fun LPAR typelist RPAR	{ $$ = cons($1, cons($2, $4)); }
-				| type fun LPAR RPAR			{ $$ = cons($1, cons($2, nil)); }
-				;
+signature		: type fun LPAR typelist RPAR               { $$ = cons($1, cons(cons($2,cons($2,cons($2,nil))), $4)); }
+                | type fun OR fun LPAR typelist RPAR        { $$ = cons($1, cons(cons($2,cons($4,cons($4,nil))), $6)); }
+                | type fun OR fun OR fun LPAR typelist RPAR	{ $$ = cons($1, cons(cons($2,cons($4,cons($6,nil))), $8)); }
+
+                | type fun LPAR RPAR                        { $$ = cons($1, cons(cons($2,cons($2,cons($2,nil))), nil)); }
+                | type fun OR fun LPAR RPAR                 { $$ = cons($1, cons(cons($2,cons($4,cons($4,nil))), nil)); }
+                | type fun OR fun OR fun LPAR RPAR			{ $$ = cons($1, cons(cons($2,cons($4,cons($6,nil))), nil)); }
+                ;
 
 fun				: IDENT							{ $$ = tree(yytext); }
 				;

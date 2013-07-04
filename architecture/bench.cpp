@@ -34,9 +34,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-/* link with  */
-/* link with : "" */
 #include <stdlib.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -54,35 +51,15 @@
 #include <pthread.h>
 #include <sys/wait.h>
 #include <list>
-
 #include <iostream>
-
-
-using namespace std;
-
 #include <map>
+#include <sys/time.h>
+
+#include "faust/gui/UI.h"
+#include "faust/audio/dsp.h"
+#include "faust/misc.h"
 
 using namespace std;
-
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-    #define AVOIDDENORMALS 
-#endif
-
-struct Meta : map<const char*, const char*>
-{
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
-};
-
-
 
 float*          gBuffer = 0;        // a buffer of NV*VSize samples
 
@@ -91,18 +68,6 @@ unsigned int    NV      = 4096;     // number of vectors in BIG buffer (should e
 unsigned int    ITER    = 10;       // number of iterations per measure
 unsigned int    VSIZE   = 4096;     // size of a vector in samples
 unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
-
-
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
-
-
-// g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
-
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-
 
 bool setRealtimePriority ()
 {
@@ -125,16 +90,12 @@ bool setRealtimePriority ()
     return (err != -1);
 }
 
-#include <sys/time.h>
-
 double mysecond()
 {
-        struct timeval tp;
-        struct timezone tzp;
-        int i;
-
-        i = gettimeofday(&tp,&tzp);
-        return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+    struct timeval tp;
+    struct timezone tzp;
+    int i = gettimeofday(&tp,&tzp);
+    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
 }
 
 /******************************************************************************
@@ -145,86 +106,7 @@ double mysecond()
 *******************************************************************************
 *******************************************************************************/
 
-
-
 <<includeIntrinsic>>
-
-
-
-/******************************************************************************
-*******************************************************************************
-
-			ABSTRACT USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-class UI
-{
-	bool	fStopped;
-public:
-
-	UI() : fStopped(false) {}
-	virtual ~UI() {}
-
-	virtual void addButton(const char* label, float* zone) = 0;
-	virtual void addToggleButton(const char* label, float* zone) = 0;
-	virtual void addCheckButton(const char* label, float* zone) = 0;
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-
-        // -- passive widgets
-
-        virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-        virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
-        virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-
-	virtual void openFrameBox(const char* label) = 0;
-        virtual void openTabBox(const char* label) = 0;
-        virtual void openHorizontalBox(const char* label) = 0;
-        virtual void openVerticalBox(const char* label) = 0;
-
-        virtual void closeBox() = 0;
-
-        virtual void run() = 0;
-
-	void stop()	{ fStopped = true; }
-	bool stopped() 	{ return fStopped; }
-
-    virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
-
-
-
-/******************************************************************************
-*******************************************************************************
-
-								DSP
-
-*******************************************************************************
-*******************************************************************************/
-
-
-
-//----------------------------------------------------------------
-//  definition du processeur de signal
-//----------------------------------------------------------------
-
-class dsp {
- protected:
-	int fSamplingFreq;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
-};
 		
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -238,14 +120,13 @@ class dsp {
 					
 mydsp	DSP;
 
-
 #if 0
 
 static __inline__ unsigned long long int rdtsc(void)
 {
-  unsigned long long int x;
-     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-     return x;
+    unsigned long long int x;
+    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+    return x;
 }
 
 #endif
@@ -302,7 +183,6 @@ float* nextVect()
 
 void bench(const char* name)
 {
-
     int numInChan = DSP.getNumInputs();
     int numOutChan = DSP.getNumOutputs();
 
@@ -339,15 +219,15 @@ void bench(const char* name)
 //-------------------------------------------------------------------------
 
 // lopt : Scan Command Line long int Arguments
-
 long lopt (int argc, char *argv[], const char* longname, const char* shortname, long def)
 {
-	for (int i=2; i<argc; i++)
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 )
+	for (int i=2; i<argc; i++) {
+		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
 			return atoi(argv[i]);
+        }
+    }
 	return def;
 }
-
 
 int main(int argc, char *argv[] )
 {
@@ -360,7 +240,6 @@ int main(int argc, char *argv[] )
   	bench(argv[0]);
   	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

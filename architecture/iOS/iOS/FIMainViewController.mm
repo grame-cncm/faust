@@ -31,12 +31,15 @@
 @synthesize flipsidePopoverController = _flipsidePopoverController;
 @synthesize dspView = _dspView;
 @synthesize dspScrollView = _dspScrollView;
-
-TiPhoneCoreAudioRenderer* audio_device = NULL;
+audio* audio_device = NULL;
 CocoaUI* interface = NULL;
 FUI* finterface = NULL;
 MY_Meta metadata;
 char rcfilename[256];
+
+int sampleRate = 0;
+int	bufferSize = 0;
+BOOL openWidgetPanel = YES;
 
 - (void)didReceiveMemoryWarning
 {
@@ -51,8 +54,28 @@ char rcfilename[256];
     [super loadView];
 }
 
+#ifdef JACK_IOS
+
+static void jack_shutdown_callback(const char* message, void* arg)
+{
+    /*
+    FIMainViewController* self = (FIMainViewController*)arg;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self closeJack :message];
+    });
+    */
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+       exit(1); // By default
+    });
+}
+
+#endif
+
 - (void)viewDidLoad
 {
+    int tmp = 0;
+    
     // General UI initializations
     _widgetPreferencesView.hidden = YES;
     _viewLoaded = NO;
@@ -60,17 +83,25 @@ char rcfilename[256];
     UIView *contentView;
     [super viewDidLoad];
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
-
+    _openPanelChanged = YES;
+    
     // Faust initialization
     DSP.metadata(&metadata);
+    
+    // Read parameters values
+    const char* home = getenv ("HOME");
+    if (home == 0) {
+        home = ".";
+    }
+ 
+    if ((*metadata.find("name")).second) {
+        _name = (*metadata.find("name")).second;
+    } else {
+        _name = [[[NSProcessInfo processInfo] processName] UTF8String];
+    }
+       
     interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
     finterface = new FUI();
-    audio_device = new TiPhoneCoreAudioRenderer(DSP.getNumInputs(), DSP.getNumOutputs());
-    
-    [self displayTitle];
-    
-    int sampleRate = 0;
-    int	bufferSize = 0;
     
     // Read audio user preferences
     sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
@@ -79,32 +110,21 @@ char rcfilename[256];
     bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     if (bufferSize == 0) bufferSize = 256;
     
+    tmp = [[NSUserDefaults standardUserDefaults] integerForKey:@"openWidgetPanel"];
+    if (tmp == 0) openWidgetPanel = YES;
+    else openWidgetPanel = (BOOL)(tmp - 1);
+    
+    [self openAudio];
+    [self displayTitle];
+    
     // Build Faust interface
     DSP.init(long(sampleRate));
 	DSP.buildUserInterface(interface);
     DSP.buildUserInterface(finterface);
     
-    // Read parameters values
-    const char* home = getenv ("HOME");
-    const char* name = (*metadata.find("name")).second;
-    if (home == 0)
-        home = ".";
-    snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, name);
+    snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
     [self updateGui];
-    
-    // Start CoreAudio
-    if (audio_device->Open(bufferSize, sampleRate) < 0)
-    {
-        printf("Cannot open CoreAudio device\n");
-        goto error;
-    }
-    
-    if (audio_device->Start() < 0)
-    {
-        printf("Cannot start CoreAudio device\n");
-        goto error;
-    }
     
     // Notification when device orientation changed
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -137,13 +157,144 @@ char rcfilename[256];
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
     if (_assignatedWidgets.size() > 0) [self startMotion];
+}
 
-    return;
+#ifdef JACK_IOS
+
+- (BOOL)checkJack
+{
+    jackaudio audio;
+    
+    if (audio.init("dummy", &DSP)) {
+        audio.stop();
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+- (BOOL)openJack
+{
+    if (!audio_device) {
+        
+        NSString* iconFile;
+        if (DSP.getNumInputs() > 0 && DSP.getNumOutputs() > 0) {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Fx136" ofType:@"png"];
+        } else if (DSP.getNumOutputs() > 0) {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Output136" ofType:@"png"];
+        } else {
+            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Analyzer136" ofType:@"png"];
+        }
+        NSFileHandle* fileHandle = [NSFileHandle fileHandleForReadingAtPath:iconFile];
+        NSData* data = [fileHandle readDataToEndOfFile];
+        const void* icon_data = [data bytes];
+        const size_t size = [data length];
+        NSLog(@"publishAppIcon rawDataSize = %ld", size);
+        [fileHandle closeFile];
+        
+        audio_device = new jackaudio(icon_data, size, true);
+        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+            printf("Cannot connect to JACK server\n");
+            goto error;
+        }
+        
+        if (audio_device->start() < 0) {
+            printf("Cannot start JACK client\n");
+            goto error;
+        }
+    }
+    
+    audio_device->shutdown(jack_shutdown_callback, self);
+    return TRUE;
     
 error:
-    delete interface;
-    delete finterface;
-    delete audio_device;
+    
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio warning"
+                                                        message:@"JACK server is not running !" delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+    
+    [self closeAudio];
+    return FALSE;
+}
+
+// Save widgets values
+- (void)closeJack:(const char*)reason 
+{
+    
+    NSString* errorString = [[NSString alloc] initWithCString:reason encoding:NSASCIIStringEncoding];
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                        message:errorString delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+
+    [self closeAudio];
+}
+
+#endif
+
+- (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate
+{
+    if (!audio_device) {
+        audio_device = new iosaudio(sampleRate, bufferSize);
+        
+        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+            printf("Cannot init iOS audio device\n");
+            goto error;
+        }
+        
+        if (audio_device->start() < 0) {
+            printf("Cannot start iOS audio device\n");
+            goto error;
+        }
+    }
+    
+    return TRUE;
+    
+error:
+    
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                        message:@"CoreAudio device cannot be opened with the needed in/out parameters" delegate:self
+                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
+    
+    [self closeAudio];
+    return FALSE;
+}
+
+#ifdef JACK_IOS
+
+- (void)openAudio
+{
+    // If CA audio running and JACK server running, will switch to JACK
+    if (audio_device && dynamic_cast<iosaudio*>(audio_device) && [self checkJack]) {
+        [self closeAudio];
+    }
+    
+    if (![self openJack]) {
+        [self openCoreAudio:bufferSize :sampleRate];
+    }
+}
+
+#else
+
+- (void)openAudio
+{
+    [self openCoreAudio:bufferSize :sampleRate];
+}
+
+#endif
+
+- (void)closeAudio
+{
+    if (audio_device) {
+        audio_device->stop();
+        delete audio_device;
+        audio_device = NULL;
+    }
 }
 
 - (void)viewDidUnload
@@ -153,11 +304,13 @@ error:
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    if (!interface) return;
     [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated
-{    
+{
+    if (!interface) return;
     [super viewDidAppear:animated];
     [self orientationChanged:nil];
     [self zoomToLockedBox];
@@ -184,11 +337,9 @@ error:
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
     
     [_tapGesture release];
-    finterface->saveState(rcfilename);
     
-    audio_device->Stop();
-    audio_device->Close();
-    delete audio_device;
+    [self closeAudio];
+    
     delete interface;
     delete finterface;
     
@@ -357,20 +508,37 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Save widgets values
 - (void)saveGui
 {
-    finterface->saveState(rcfilename);
+    if (finterface) {
+        finterface->saveState(rcfilename);
+    }
+}
+
+// Load widgets values
+- (void)loadGui
+{
+    if (finterface) {
+        finterface->recallState(rcfilename);
+    }
 }
 
 // Reflect the whole patch
 - (void)updateGui
 {
     list<uiCocoaItem*>::iterator i;
-    
+        
     // Loop on uiCocoaItem elements
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
         // Refresh GUI
         (*i)->reflectZone();
+        
+        if (_openPanelChanged)
+        {
+            (*i)->enableLongPressGestureRecognizer(openWidgetPanel);
+        }
     }
+    
+    if (_openPanelChanged) _openPanelChanged = !_openPanelChanged;
 }
 
 // Force push button to go back to 0
@@ -658,6 +826,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
+- (void)setOpenWidgetPanel:(BOOL)openWidgetPanelOnLongTouch
+{
+    openWidgetPanel = openWidgetPanelOnLongTouch;
+    _openPanelChanged = YES;
+    [self updateGui];
+}
+
 
 #pragma mark - Audio
 
@@ -665,32 +840,17 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     finterface->saveState(rcfilename);
     
-    if (audio_device->Stop() < 0)
-    {
-        printf("Cannot stop CoreAudio device\n");
-        goto error;
+    if (dynamic_cast<iosaudio*>(audio_device)) {
+        
+        audio_device->stop();
+        audio_device = NULL;
+        
+        [self openCoreAudio:bufferSize :sampleRate];
+        
+        DSP.init(long(sampleRate));
     }
-    
-    DSP.init(long(sampleRate));
-    
-    if (audio_device->SetParameters(bufferSize, sampleRate) < 0)
-    {
-        printf("Cannot set parameters to CoreAudio device\n");
-        goto error;
-    }
-    
-    if (audio_device->Start() < 0)
-    {
-        printf("Cannot start CoreAudio device\n");
-        goto error;
-    }
-    
+   
     finterface->recallState(rcfilename);
-    
-    return;
-    
-error:
-    delete audio_device;
 }
 
 
@@ -731,14 +891,17 @@ error:
 
 - (IBAction)togglePopover:(id)sender
 {
-    if (self.flipsidePopoverController)
-    {
-        [self.flipsidePopoverController dismissPopoverAnimated:YES];
-        self.flipsidePopoverController = nil;
-    }
-    else
-    {
-        [self performSegueWithIdentifier:@"showAlternate" sender:sender];
+    // If running in CoreAudio mode...
+    if (dynamic_cast<iosaudio*>(audio_device)) {
+        if (self.flipsidePopoverController)
+        {
+            [self.flipsidePopoverController dismissPopoverAnimated:YES];
+            self.flipsidePopoverController = nil;
+        }
+        else
+        {
+            [self performSegueWithIdentifier:@"showAlternate" sender:sender];
+        }
     }
 }
 
@@ -749,7 +912,7 @@ error:
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture
 {
     list<uiCocoaItem*>::iterator    i;
-    
+        
     // Deselect all widgets
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
@@ -1333,7 +1496,7 @@ error:
 {
     list<uiCocoaItem*>::iterator    i = interface->fWidgetList.end();
     uiCocoaItem*                    currentWidget = widget;
-    NSString*                       result = [NSString stringWithString:@""];
+    NSString*                       result = @"";
     
     while (currentWidget != *interface->fWidgetList.begin())
     {

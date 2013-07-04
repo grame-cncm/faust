@@ -1,0 +1,90 @@
+declare name "HOA";
+declare title "High Order Ambisonics library";
+
+declare author "Pierre Guillot";
+declare author "Eliott Paris";
+declare author "Julien Colafrancesco";
+
+declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8";
+
+
+import("math.lib");
+
+
+//----------------------------------------------------------------------------
+// Ambisonic encoder 
+// usage : encoder(3,input,angle) where 3 is the order and the angle is in radiant
+encoder(0, x, a) = x;
+encoder(n, x, a) = encoder(n-1, x, a), x*sin(n*a), x*cos(n*a);
+
+//----------------------------------------------------------------------------
+// Ambisonic decoder 
+// usage : decoder(3,8) where 3 is the order and 8 the number of loudspeakers
+// the number of loudspeakers p must be greater or equal to 2*n+1
+decoder(n,p)	= par(i, 2*n+1, _) <: par(i, p, speaker(n, 2*PI*i/p))
+ with {
+   speaker(n,a)	= /(2), par(i, 2*n, _), encoder(n,2/(2*n+1),a) : dot(2*n+1);
+ };
+
+//----------------------------------------------------------------------------
+// Ambisonic Optim - Basic optimization - Useless
+// usage : Basic(3) where 3 is the order
+Basic(n)	= par(i, 2*n+1, _);
+
+//----------------------------------------------------------------------------
+// Ambisonic Optim - maxRe optimization
+// usage : maxRe(3) where 3 is the order
+
+maxRe(n)	= par(i, 2*n+1, optim(i, n))
+ with {
+   	optim(i, n) = _ * cos(indexabs  / (numberOfharmonics+1) * PI)
+	with {
+		numberOfharmonics = 2 *n + 1;
+		indexabs = (int)((i - 1) / 2 + 1);
+	};
+ };
+
+//----------------------------------------------------------------------------
+// Ambisonic Optim - inPhase optimization
+// usage : inPhase(3) where 3 is the order
+inPhase(n)	= par(i, 2*n+1, optim(i, n))
+ with {
+   optim(i, n) = _ * (fact(n)^2.) / (fact(n+indexabs) * fact(n-indexabs))
+	with {
+		indexabs = (int)((i - 1) / 2 + 1);
+		fact(0) = 1;
+		fact(n) = n * fact(n-1);
+		};
+ };
+
+//----------------------------------------------------------------------------
+// Ambisonic wider - Fractional order
+// usage : Wider(3, a) where 3 is the order and a the widen value between 0 - 1
+Wider(n, w)	= par(i, 2*n+1, perform(n, w, i))
+with 
+{	
+	perform(n, w, i) =  _ * (log(n+1) * (1 - w * (w >= 0)) + 1) * clipweight
+	with
+	{
+		clipweight = weighter(n, w, i) * (weighter(n, w, i) > 0) * (weighter(n, w, i) <= 1) + (weighter(n, w, i) > 1)
+		with
+		{
+			weighter(n, w, 0) = 1.;
+			weighter(n, w, i) = (((w * log(n+1)) - log(indexabs)) / (log(indexabs+1) - log(indexabs)))
+			with 
+				{
+					indexabs = (int)((i - 1) / 2 + 1);
+				};
+		};
+	};
+};
+
+//----------------------------------------------------------------------------
+// Ambisonic closer - Distance simulation
+// usage : closer(3, input, angle, radius) where 3 is the order, the angle is in radiant and the radius of the loudspeakers array is set at 1.
+closer(n, x, a, r)	= encoder(n, x * volume(r), a) : Wider(n, ouverture(r)) : inPhase(n)
+with
+{
+	volume(r) = (2. / ((r <= 0) + (r > 0) * r + 1)) * 0.5;
+	ouverture(r) = r * (r < 1) + (r >= 1);
+};

@@ -7,7 +7,7 @@ expressed as Faust metadata ready to be inserted in widget labels.
 
 [osc:/accxyz/0 -10 10]  	x-accelerometer
 [osc:/accxyz/1 -10 10]  	y-accelerometer
-[osc:/accxyz/Z -10 10]  	z-accelerometer
+[osc:/accxyz/2 -10 10]  	z-accelerometer
 
 
 

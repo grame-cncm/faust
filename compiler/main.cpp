@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.57"
+#define FAUSTVERSION "0.9.62"
 
 #include <stdio.h>
 #include <string.h>
@@ -112,6 +112,7 @@ Tree			gExpandedDefList;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
+bool            gTimingSwitch   = false;
 bool            gDrawSignals    = false;
 bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
 bool            gGraphSwitch 	= false;
@@ -173,8 +174,8 @@ bool process_cmdline(int argc, char* argv[])
 	int	i=1; int err=0;
 
 	while (i<argc) {
-
-		if        (isCmd(argv[i], "-h", "--help")) {
+   
+		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
 			i += 1;
 
@@ -293,7 +294,11 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-t", "--timeout")) {
             gTimeout = atoi(argv[i+1]);
             i += 2;
-
+            
+        } else if (isCmd(argv[i], "-time", "--compilation-time")) {
+            gTimingSwitch = true;
+            i += 1;
+            
         // double float options
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
             gFloatSize = 1;
@@ -336,9 +341,10 @@ bool process_cmdline(int argc, char* argv[])
             i += 1;
 			
        } else if (argv[i][0] != '-') {
-			if (check_file(argv[i])) {
-				gInputFiles.push_back(argv[i]);
-			}
+            const char* url = strip_start(argv[i]);
+            if (check_url(url)) {
+                gInputFiles.push_back(url);
+            }
 			i++;
 
 		} else {
@@ -403,6 +409,7 @@ void printhelp()
 	cout << "-i \t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
+	cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC++ output file\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";

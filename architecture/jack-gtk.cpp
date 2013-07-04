@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <list>
 
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
@@ -70,45 +71,39 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp*	DSP;
-
-list<GUI*>                   GUI::fGuiList;
+mydsp		DSP;
+std::list<GUI*>	GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-	char	appname[256];
-	char  	rcfilename[256];
-	char* 	home = getenv("HOME");
+	char appname[256];
+	char rcfilename[256];
+	char* home = getenv("HOME");
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	DSP = new mydsp();
-	if (DSP==0) {
-		cerr << "Unable to allocate Faust DSP object" << endl;
-		exit(1);
-	}
 	GUI* interface 	= new GTKUI (appname, &argc, &argv);
 	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
+	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
-	DSP->buildUserInterface(httpdinterface);
-	cout << "HTTPD is on" << endl;
+	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+	DSP.buildUserInterface(httpdinterface);
+	std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(appname, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	DSP.buildUserInterface(oscinterface);
 #endif
 
 	jackaudio audio;
-	audio.init(appname, DSP);
+	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
@@ -123,7 +118,6 @@ int main(int argc, char *argv[])
 	
 	audio.stop();
 	finterface->saveState(rcfilename);
-	delete DSP;
   	return 0;
 }
 

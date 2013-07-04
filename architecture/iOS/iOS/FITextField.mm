@@ -17,7 +17,6 @@
  ************************************************************************/
 
 #import "FITextField.h"
-#import "FIMainViewController.h"
 
 #define kAccViewHeight          40.0
 
@@ -126,7 +125,7 @@
 {
     if ([_messageTextView.text length] == 0)
     {
-        _messageTextView.text = [NSString stringWithString:@"-"];
+        _messageTextView.text = @"-";
     }
     else if ([_messageTextView.text characterAtIndex:0] != 45) //45 for minus
     {
@@ -213,7 +212,7 @@
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-    UIScrollView*     scrollView = self.superview.superview;
+    UIScrollView*     scrollView = (UIScrollView*)self.superview.superview;
     
     scrollView.scrollEnabled = NO;
     
@@ -222,7 +221,7 @@
 
 - (void)pan:(UIPanGestureRecognizer *)gesture
 {
-    UIScrollView*     scrollView = self.superview.superview;
+    UIScrollView*     scrollView = (UIScrollView*)self.superview.superview;
     float value = 0.f - [gesture velocityInView:scrollView].y;
     value = value / 200.;
         

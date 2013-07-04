@@ -24,6 +24,7 @@
 @synthesize delegate = _delegate;
 @synthesize sampleRate = _sampleRate;
 @synthesize bufferSize = _bufferSize;
+@synthesize openWidgetPanel = _openWidgetPanel;
 
 
 - (void)awakeFromNib
@@ -42,6 +43,7 @@
 
 - (void)viewDidLoad
 {
+    int tmp = 0;
     [super viewDidLoad];
     
     // Read user preferences
@@ -51,12 +53,18 @@
     _bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     if (_bufferSize == 0) _bufferSize = 256;
     
+    tmp = [[NSUserDefaults standardUserDefaults] integerForKey:@"openWidgetPanel"];
+    if (tmp == 0) _openWidgetPanel = YES;
+    else _openWidgetPanel = (BOOL)(tmp - 1);
+        
     // Update UI
     _sampleRateSlider.value = [self sampleRateToSliderValue:_sampleRate];
     _sampleRateLabel.text = [NSString stringWithFormat:@"%i Hz", _sampleRate];
     
     _bufferSizeSlider.value = [self bufferSizeToSliderValue:_bufferSize];
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i", _bufferSize];
+    
+    [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
 }
 
 - (void)viewDidUnload
@@ -101,13 +109,17 @@
 
 - (IBAction)done:(id)sender
 {
+    int tmp = (int)(_openWidgetPanel) + 1;
+    
     // Write user preferences
     [[NSUserDefaults standardUserDefaults] setInteger:_sampleRate forKey:@"sampleRate"];
     [[NSUserDefaults standardUserDefaults] setInteger:_bufferSize forKey:@"bufferSize"];
+    [[NSUserDefaults standardUserDefaults] setInteger:tmp forKey:@"openWidgetPanel"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
-    
-    // Update audio preferences
+        
+    // Update preferences
     [((FIMainViewController*)self.delegate) restartAudioWithBufferSize:_bufferSize sampleRate:_sampleRate];
+    [((FIMainViewController*)self.delegate) setOpenWidgetPanel:_openWidgetPanel];
     
     // Dismiss view
     [self.delegate flipsideViewControllerDidFinish:self];
@@ -123,6 +135,11 @@
 {
     _bufferSize = [self sliderValueToBufferSize:(int)floor(((UISlider*)sender).value)];
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i", _bufferSize];
+}
+
+- (IBAction)openWidgetPanelSwitchMoved:(id)sender
+{
+    _openWidgetPanel = ((UISwitch*)sender).on;
 }
 
 - (int)sampleRateToSliderValue:(int)sampleRate

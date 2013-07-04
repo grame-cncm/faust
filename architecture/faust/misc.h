@@ -22,11 +22,15 @@
 #ifndef __misc__
 #define __misc__
 
+#include <algorithm>
 #include <map>
 #include <string.h>
 #include <stdlib.h>
 
 #include "faust/gui/meta.h"
+
+using std::max;
+using std::min;
 
 struct XXXX_Meta : std::map<const char*, const char*>
 {
@@ -48,7 +52,7 @@ long lopt(char *argv[], const char *name, long def)
 	return def;
 }
 
-char* lopts(char *argv[], const char *name, char* def)
+const char* lopts(char *argv[], const char *name, const char* def)
 {
 	int	i;
 	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];

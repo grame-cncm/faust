@@ -37,10 +37,12 @@
 #include <libgen.h>
 #include <math.h>
 #include <iostream>
+#include <list>
 #include <vector>
 
-#include "faust/gui/console.h"
+#include "faust/gui/FUI.h"
 #include "faust/misc.h"
+#include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL
@@ -50,10 +52,6 @@
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
 #endif
-
-
-using namespace std;
-
 
 /******************************************************************************
 *******************************************************************************
@@ -65,13 +63,6 @@ using namespace std;
 
 <<includeIntrinsic>>
 
-/******************************************************************************
-*******************************************************************************
-
-								USER INTERFACE
-
-*******************************************************************************
-/**************************BEGIN USER SECTION **************************/
 		
 <<includeclass>>
 
@@ -80,31 +71,37 @@ using namespace std;
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
 mydsp		DSP;
-list<GUI*>	GUI::fGuiList;
+std::list<GUI*>	GUI::fGuiList;
 	
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
-	char	jackname[256];
-	snprintf(jackname, 255, "%s", basename(argv[0]));
+	char appname[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    
+	snprintf(appname, 255, "%s", basename(argv[0]));
+    snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
 	CMDUI* interface = new CMDUI(argc, argv);
+    FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(jackname, argc, argv);
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(jackname, argc, argv);
+	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
 	DSP.buildUserInterface(httpdinterface);
 #endif
 
 	jackaudio audio;
-	audio.init(jackname, &DSP);
+	audio.init(appname, &DSP);
 	interface->process_command();
 	audio.start();
 
@@ -118,6 +115,7 @@ int main(int argc, char *argv[] )
 	interface->run();
 	
 	audio.stop();
+    finterface->saveState(rcfilename);
 	return 0;
 } 
 

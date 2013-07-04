@@ -24,14 +24,15 @@
 #ifndef __jsonfaustui__
 #define __jsonfaustui__
 
-#include "UI.h"
+#include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
 
 namespace httpdfaust
 {
 
 template <typename C> class jsonui;
  
-class jsonfaustui : public UI
+class jsonfaustui : public UI, public Meta
 {
 	jsonui<FAUSTFLOAT>* fJSON;
 	public:

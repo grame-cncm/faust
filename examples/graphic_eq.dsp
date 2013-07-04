@@ -1,3 +1,6 @@
+
+declare name 		"graphic_eq";
+
 ol = library("oscillator.lib");
 fl = library("filter.lib");
 

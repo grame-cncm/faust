@@ -35,7 +35,7 @@ with '-' (hyphen).
 Space or tabulation are replaced with '_' (underscore)
 */
 
-using namespace std;
+//using namespace std;
 
 class httpdUI : public UI 
 {
@@ -76,6 +76,8 @@ class httpdUI : public UI
     virtual void declare (FAUSTFLOAT* , const char* key, const char* val ) { fCtrl->declare(key, val); }
 
 	void run()						{ fCtrl->run(); }
+	int getTCPPort()                { return fCtrl->getTCPPort(); }
+
 };
 
 					

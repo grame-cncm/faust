@@ -133,6 +133,17 @@ bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z);
 
 
 /*****************************************************************************
+                        Static information on Boxes
+*****************************************************************************/
+
+Tree boxInputs  (Tree x);
+Tree boxOutputs (Tree x);
+
+bool isBoxInputs  (Tree t, Tree& x);
+bool isBoxOutputs (Tree t, Tree& x);
+
+
+/*****************************************************************************
 							  Lambda-Calculus of Boxes
 *****************************************************************************/
 

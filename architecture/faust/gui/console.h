@@ -36,18 +36,19 @@
 #ifndef __faustconsole__
 #define __faustconsole__
 
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <stack>
 #include <string>
 #include <map>
+#include <vector>
 #include <iostream>
 
 #include "faust/gui/GUI.h"
 
-using namespace std;
+//using namespace std;
 
 /******************************************************************************
 *******************************************************************************
@@ -59,25 +60,20 @@ using namespace std;
 
 struct param {
 	FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
-	param(FAUSTFLOAT* z, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) {}
+	param(FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) { *z = init; }
 };
 
-class CMDUI : public GUI
+class CMDUI : public UI
 {
-	int					fArgc;
-	char**				fArgv;
-	stack<string>		fPrefix;
-	map<string, param>	fKeyParam;
-
-	void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-	{
-		string fullname = fPrefix.top() + label;
-		fKeyParam.insert(make_pair(fullname, param(zone, min, max)));
-	}
+    int                             fArgc;
+    char**                          fArgv;
+    std::vector<char*>              fFiles;
+    std::stack<std::string>         fPrefix;
+	std::map<std::string, param>	fKeyParam;
 
 	void openAnyBox(const char* label)
 	{
-		string prefix;
+		std::string prefix;
 
 		if (label && label[0]) {
 			prefix = fPrefix.top() + "-" + label;
@@ -87,38 +83,117 @@ class CMDUI : public GUI
 		fPrefix.push(prefix);
 	}
 
+	std::string simplify(const std::string& src)
+	{
+		int		i=0;
+		int		level=0;
+		std::string	dst;
+
+		while (src[i] ) {
+
+			switch (level) {
+
+				case 0 :
+				case 1 :
+				case 2 :
+					// Skip the begin of the label "--foo-"
+					// until 3 '-' have been read
+					if (src[i]=='-') { level++; }
+					break;
+
+				case 3 :
+					// copy the content, but skip non alphnum
+					// and content in parenthesis
+					switch (src[i]) {
+						case '(' :
+						case '[' :
+							level++;
+							break;
+
+						case '-' :
+							dst += '-';
+							break;
+
+						default :
+							if (isalnum(src[i])) {
+								dst+= tolower(src[i]);
+							}
+
+					}
+					break;
+
+				default :
+					// here we are inside parenthesis and
+					// we skip the content until we are back to
+					// level 3
+					switch (src[i]) {
+
+						case '(' :
+						case '[' :
+							level++;
+							break;
+
+						case ')' :
+						case ']' :
+							level--;
+							break;
+
+						default :
+							break;
+					}
+
+			}
+			i++;
+		}
+		return dst;
+	}
+
 public:
 
-	CMDUI(int argc, char *argv[]) : GUI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
+	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
 	virtual ~CMDUI() {}
 
-	virtual void openTabBox(const char* label)          { openAnyBox(label); }
-	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(const char* label)     { openAnyBox(label); }
-	virtual void closeBox()                             { fPrefix.pop(); }
+	void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max)
+	{
+		std::string fullname = "-" + simplify(fPrefix.top() + "-" + label);
+		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
+	}
 
-	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{};
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{};
+	virtual void addButton(const char* label, FAUSTFLOAT* zone)
+	{
+		addOption(label,zone,0,0,1);
+	}
+
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+	{
+		addOption(label,zone,0,0,1);
+	}
 
 	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,init,min,max);
 	}
 
 	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,init,min,max);
 	}
 
 	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,init,min,max);
 	}
 
 	// -- passive widgets
 
-	virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
+	virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 		{}
 	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
+
+	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
+	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
+	virtual void openVerticalBox(const char* label)		{ openAnyBox(label); }
+
+	virtual void closeBox() 							{ fPrefix.pop(); }
 
 	virtual void show() {}
 	virtual void run()
@@ -130,46 +205,78 @@ public:
 		}
 	}
 
-	void print()
+	void printhelp_command()
 	{
-		map<string, param>::iterator i;
-		cout << fArgc << "\n";
-		cout << fArgv[0] << " option list : ";
+		std::map<std::string, param>::iterator i;
+		std::cout << fArgc << "\n";
+		std::cout << fArgv[0] << " option list : ";
 		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+			std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
 		}
-        cout << endl;
+		std::cout << " infile outfile\n";
+	}
+    
+    void printhelp_init()
+	{
+		std::map<std::string, param>::iterator i;
+		std::cout << fArgc << "\n";
+		std::cout << fArgv[0] << " option list : ";
+		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
+			std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+		}
+		std::cout << std::endl;
 	}
 
 	void process_command()
 	{
-		map<string, param>::iterator p;
+		std::map<std::string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
-				p = fKeyParam.find(fArgv[i]);
-				if (p == fKeyParam.end()) {
-					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					print();
+				if ((strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0)) 	{
+					printhelp_command();
 					exit(1);
 				}
-				char*	end;
+				p = fKeyParam.find(fArgv[i]);
+				if (p == fKeyParam.end()) {
+					std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+					printhelp_command();
+					exit(1);
+				}
+				char* end;
 				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
+			} else {
+				fFiles.push_back(fArgv[i]);
 			}
 		}
 	}
 
+	int 	files()         { return fFiles.size(); }
+	char* 	file (int n)	{ return fFiles[n]; }
+
+	char* input_file ()     { std::cout << "input file " << fFiles[0]; return fFiles[0]; }
+	char* output_file() 	{ std::cout << "output file " << fFiles[1]; return fFiles[1]; }
+
 	void process_init()
 	{
-		map<string, param>::iterator p;
+		std::map<std::string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
-				p = fKeyParam.find(fArgv[i]);
-				if (p == fKeyParam.end()) {
-					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+                if ((strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0)) 	{
+					printhelp_init();
 					exit(1);
 				}
-				char*	end;
+				p = fKeyParam.find(fArgv[i]);
+				if (p == fKeyParam.end()) {
+					std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+                    printhelp_init();
+					exit(1);
+				}
+				char* end;
 				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			}

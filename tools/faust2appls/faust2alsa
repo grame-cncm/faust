@@ -4,32 +4,15 @@ OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2011                                #
+#               (c) Grame, 2009-2013                                #
 #                                                                   #
 #####################################################################
 
-#-------------------------------------------------------------------
-# Search Faust include path
+. faustpath
 
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-  FAUSTINC=$FAUST_LIB_PATH
-elif [ -f /usr/local/lib/faust/music.lib ]
-then
-  FAUSTINC=/usr/local/lib/faust/
-elif [ -f /usr/lib/faust/music.lib ]
-then
-  FAUSTINC=/usr/lib/faust/
-else
-  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
-fi
+. faustoptflags
 
-
-#-------------------------------------------------------------------
-# Default compilation flags for gcc and icc :
-#
-MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
-MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+CXXFLAGS=$MYGCCFLAGS
 
 
 #-------------------------------------------------------------------
@@ -42,7 +25,6 @@ MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 CXX=g++
-CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -63,9 +45,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTINC -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTINC -lHTTPDFaust -lmicrohttpd"
+	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
 	PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then

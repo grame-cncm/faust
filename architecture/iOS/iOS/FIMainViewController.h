@@ -24,6 +24,8 @@
 #import "FIScrollView.h"
 #import "FISensorFilter.h"
 
+//#define JACK_IOS 1
+
 using namespace std;
 class uiCocoaItem;
 class uiBox;
@@ -73,6 +75,10 @@ class uiBox;
     IBOutlet UISlider*                  _colorRSlider;
     IBOutlet UISlider*                  _colorGSlider;
     IBOutlet UISlider*                  _colorBSlider;
+    
+    const   char*                       _name;
+    
+    BOOL                                _openPanelChanged;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -82,7 +88,19 @@ class uiBox;
 // DSP view
 - (void)responderValueDidChange:(float)value sender:(id)sender;
 - (void)saveGui;
+- (void)loadGui;
 - (void)updateGui;
+
+#ifdef JACK_IOS
+- (BOOL)openJack;
+- (BOOL)checkJack;
+- (void)closeJack:(const char*)reason;
+#endif
+
+- (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate;
+
+- (void)openAudio;
+- (void)closeAudio;
 
 // Misc GUI
 - (void)orientationChanged:(NSNotification *)notification;
@@ -91,6 +109,8 @@ class uiBox;
 - (void)zoomToLockedBox;
 - (void)doubleTap;
 - (void)buttonSetToZero:(id)sender;
+- (void)zoomToWidget:(FIResponder*)widget;
+- (void)setOpenWidgetPanel:(BOOL)openWidgetPanelOnLongTouch;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;

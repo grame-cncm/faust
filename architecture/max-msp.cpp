@@ -67,13 +67,6 @@
 
 using namespace std;
 
-// There is a bug with powf() when cross compiling with mingw
-// the following macro avoid the problem
-#ifdef WIN32
-#define powf(x,y) pow(x,y)
-#define expf(x) exp(x)
-#endif
-
 /******************************************************************************
 *******************************************************************************
 
@@ -163,23 +156,9 @@ class mspUIObject {
 		mspUIObject(const char* label, float* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 
-		virtual void SetValue(double f) {*fZone = range(0.0,1.0,f);}
+		virtual void setValue(double f) {*fZone = range(0.0,1.0,f);}
 		virtual void toString(char* buffer) {}
-		virtual string GetName() {return fLabel;}
-};
-
-/*--------------------------------------------------------------------------*/
-class mspToggleButton : public mspUIObject {
-
-	public:
-
-		mspToggleButton(const char* label, float* zone):mspUIObject(label,zone) {}
-		virtual ~mspToggleButton() {}
-
-		void toString(char* buffer)
-		{
-            sprintf(buffer, "ToggleButton(float): %s", fLabel.c_str());
-		}
+		virtual string getName() {return fLabel;}
 };
 
 /*--------------------------------------------------------------------------*/
@@ -231,31 +210,44 @@ class mspSlider : public mspUIObject{
             sprintf(buffer, "Slider(float): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
 		}
 
-		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
+		void setValue(double f) {*fZone = range(fMin,fMax,f);}
 };
+
+#define MULTI_SIZE  256
 
 /*--------------------------------------------------------------------------*/
 class mspUI : public UI
 {
-	private:
+   private:
 
-		map<string,mspUIObject*> fUITable;
+		map<string, mspUIObject*> fUITable;
+        //float* fMultiTable[MULTI_SIZE];
 
 	public:
     
 		typedef map<string,mspUIObject*>::iterator iterator;
 
-		mspUI() {}
+		mspUI() 
+        {
+            /*
+     		for (int i = 0; i < MULTI_SIZE; i++) {
+                fMultiTable[i] = 0;
+            }
+            */
+        }
 		virtual ~mspUI()
 		{
 			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) {
                 delete (iter->second);
             }
    		}
+        
+        void openTabBox(const char* label) {}
+		void openHorizontalBox(const char* label) {}
+		void openVerticalBox(const char* label) {}
+		void closeBox() {}
 
 		void addButton(const char* label, float* zone) {fUITable[string(label)] = new mspButton(label, zone);}
-
-		void addToggleButton(const char* label, float* zone) {fUITable[string(label)] = new mspToggleButton(label, zone);}
 
 		void addCheckButton(const char* label, float* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
 
@@ -273,30 +265,45 @@ class mspUI : public UI
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
+        
+        // To be implemented
+        void addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
+		void addVerticalBargraph(const char* label, float* zone, float min, float max) {}
+        
+        virtual void declare(float* zone, const char* key, const char* val)
+        {
+            /*
+            if (strcmp(key,"multi") == 0) {
+                int index = atoi(val);
+                if (index >= 0 && index < MULTI_SIZE) {
+                    fMultiTable[index] = zone;
+                } else {
+                    post("Invalid multi index = %d", index);
+                }
+            }
+            */
+        }
+        /*
+        void setMultiValues(float* multi, int buffer_size)
+		{
+			if (fMultiTable[index]) {
+                *fMultiTable[index] = f;
+            }
+		}
+        */
 
-		void openFrameBox(const char* label) {}
-		void openTabBox(const char* label) {}
-		void openHorizontalBox(const char* label) {}
-		void openVerticalBox(const char* label) {}
-		void closeBox() {}
-
-		bool SetValue(string name, double f)
+		bool setValue(string name, double f)
 		{
 			if (fUITable.count(name)) {
-                fUITable[name]->SetValue(f);
+                fUITable[name]->setValue(f);
                 return true;
             } else {
                 return false;
             }
 		}
-		iterator begin()	{return fUITable.begin();}
-		iterator end()		{return fUITable.end();}
+		iterator begin()	{ return fUITable.begin(); }
+		iterator end()		{ return fUITable.end(); }
 
-		// To be implemented
-		void addNumDisplay(const char* label, float* zone, int precision) {}
-		void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {}
-        void addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
-		void addVerticalBargraph(const char* label, float* zone, float min, float max) {}
 };
 
 //--------------------------------------------------------------------------
@@ -319,16 +326,6 @@ static int count_digit(const string& name)
 
 void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
-    /*
-	if (ac < 0) return;
-    if (at[0].a_type != A_FLOAT) return;
-
-    string name = string((s)->s_name);
-    float value = at[0].a_w.w_float;
-
-  	obj->dspUI->SetValue(name, value); // doesn't have any effect if name is unknown
-    */
-    
     bool res = false;
     
     if (ac < 0) return;
@@ -339,8 +336,8 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
-        obj->dspUI->SetValue(name, off);
-        obj->dspUI->SetValue(name, on);
+        obj->dspUI->setValue(name, off);
+        obj->dspUI->setValue(name, on);
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
@@ -408,12 +405,12 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
             }
             
             //printf("param_name = %s value = %f\n", param_name, value);
-            res = obj->dspUI->SetValue(param_name, value); // Doesn't have any effect if name is unknown
+            res = obj->dspUI->setValue(param_name, value); // Doesn't have any effect if name is unknown
         }
     // Standard parameter
     } else {
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = obj->dspUI->SetValue(name, value); // Doesn't have any effect if name is unknown
+        res = obj->dspUI->setValue(name, value); // Doesn't have any effect if name is unknown
     }
     
     if (!res) {
@@ -505,7 +502,7 @@ t_int *faust_perform(t_int *w)
     } else {
         x->dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset+x->dsp->getNumInputs()]));
     }
-	return (w + (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2+1);
+	return (w + (x->dsp->getNumInputs()+x->dsp->getNumOutputs()) + 2 + 1);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -514,13 +511,13 @@ void  faust_dsp(t_faust* x, t_signal **sp, short* count)
 	x->args[0] = x;
 	x->args[1] = (void*)sp[0]->s_n;
 	for (int i = 0; i<(x->dsp->getNumInputs()+x->dsp->getNumOutputs()); i++) {
-		x->args[i+2] = sp[i]->s_vec;
+		x->args[i + 2] = sp[i]->s_vec;
     }
-	dsp_addv(faust_perform, (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, x->args);
+	dsp_addv(faust_perform, (x->dsp->getNumInputs()+x->dsp->getNumOutputs()) + 2, x->args);
 }
 
 /*--------------------------------------------------------------------------*/
-int main()
+extern "C" int main(void)
 {
 	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
@@ -532,7 +529,7 @@ int main()
 	// Add the same method for every parameters and use the symbol as a selector
 	// inside this method
 	for (mspUI::iterator it = dspUI.begin(); it != dspUI.end(); ++it) {
-		char* name = const_cast<char*>(it->second->GetName().c_str());
+		char* name = const_cast<char*>(it->second->getName().c_str());
 		addmess((method)faust_method, name, A_GIMME, 0);
 	}
 
@@ -542,7 +539,7 @@ int main()
 	dsp_initclass();
     
     post((char*)"Faust DSP object 32 bits v%s", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012 Grame");
+    post((char*)"Copyright (c) 2012-2013 Grame");
     Max_Meta1 meta1;
     mydsp::metadata(&meta1);
     if (meta1.fCount > 0) {
