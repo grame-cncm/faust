@@ -638,7 +638,7 @@ static INLINE int Range(int min, int max, int val)
     }
 }
 
-#if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
+#if defined(LLVM_33) || defined(LLVM_32) || defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
     extern "C" void computeThreadExternal(void* dsp, int num_thread) __attribute__((weak_import));
 #else
     void computeThreadExternal(void* dsp, int num_thread);
@@ -1034,7 +1034,7 @@ class DSPThread {
         {
             fSemaphore.wait();
             computeThreadExternal(fDSP, fNumThread + 1);
-            fThreadPool->SignalOne();
+            //fThreadPool->SignalOne();
         }
                 
         void Signal()
@@ -1241,7 +1241,7 @@ class WorkStealingScheduler {
         
         void SyncAll()
         {
-            while (!fThreadPool->IsFinished()) {}
+            //while (!fThreadPool->IsFinished()) {}
             fDynThreadAdapter.StopMeasure(fStaticNumThreads, fDynamicNumThreads);
         }
         
