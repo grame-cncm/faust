@@ -30,31 +30,6 @@
 - (void)drawRect:(CGRect)rect
 {
     self.backgroundColor = [UIColor clearColor];
-    
-    // Background
-    /*CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    UIColor *lColor = [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:0.95];
-    UIColor *rColor = [UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:0.95];
-    
-    CGFloat locations[2] = {0., 1.};
-    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lColor.CGColor,
-                                      (id)rColor.CGColor,
-                                      nil];
-    
-    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
-    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
-    
-    CGContextSetBlendMode(context, kCGBlendModeNormal);
-    
-    CGContextDrawLinearGradient(context,
-                                gradient,
-                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.origin.y),
-                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.size.height),
-                                kCGGradientDrawsBeforeStartLocation);
-    
-    CGColorSpaceRelease(colorSpc);
-    CGGradientRelease(gradient);*/
 
     // Draw selection
     //if (self.selected)
@@ -317,32 +292,7 @@
 
     // Background
     self.backgroundColor = [UIColor clearColor];
-    
-    /*CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    UIColor *lColor = [UIColor colorWithRed:0.6 green:0.6 blue:0.6 alpha:0.95];
-    UIColor *rColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:0.95];
-    
-    CGFloat locations[2] = {0., 1.};
-    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lColor.CGColor,
-                                      (id)rColor.CGColor,
-                                      nil];
-    
-    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
-    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
-    
-    CGContextSetBlendMode(context, kCGBlendModeMultiply);
-    
-    CGContextDrawLinearGradient(context,
-                                gradient,
-                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.origin.y),
-                                CGPointMake(rect.origin.x + rect.size.width / 2., rect.size.height - kPortsViewArrowHeight),
-                                kCGGradientDrawsBeforeStartLocation);
-    
-    CGColorSpaceRelease(colorSpc);
-    CGGradientRelease(gradient);
-    CGContextSetBlendMode(context, kCGBlendModeNormal);*/
-    
+        
     [[UIColor colorWithWhite:0.8 alpha:0.95] set];
     
     [path moveToPoint:CGPointMake(rect.origin.x, rect.origin.y)];
@@ -351,10 +301,7 @@
     [path addLineToPoint:CGPointMake(rect.origin.x, rect.origin.y + rect.size.height - kPortsViewArrowHeight)];
     [path closePath];
     [path fillWithBlendMode:kCGBlendModeNormal alpha:1.];
-    
-    //[[UIColor darkGrayColor] set];
-    //UIRectFill(CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height - kPortsViewArrowHeight));
-    
+        
     // Ports
     for (i = 0; i < [[self subviews] count]; ++i)
     {
