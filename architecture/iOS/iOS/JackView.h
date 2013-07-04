@@ -84,13 +84,6 @@
 @end
 
 
-/*@interface JackViewDrawingView : UIView
-
-@property (assign, nonatomic) JackView* jackView;
-
-@end*/
-
-
 @interface JackView : UIView <UIScrollViewDelegate>
 {
     jack_client_t*          _jackClient;
@@ -102,12 +95,8 @@
     UIScrollView*           _audioOutputsScrollView;
     UIScrollView*           _midiInputsScrollView;
     UIScrollView*           _midiOutputsScrollView;
-    
-    //JackViewDrawingView*    _drawingView;
-    
-    UITapGestureRecognizer* _singleTapRecognizer;
-    
-    UIDeviceOrientation     _realOrientation;
+        
+    UITapGestureRecognizer* _singleTapRecognizer;    
 }
 
 @property (assign, readwrite) CGPoint srcPt;
