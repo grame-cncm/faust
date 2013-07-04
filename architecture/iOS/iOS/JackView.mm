@@ -337,50 +337,6 @@
 @end
 
 
-/*@implementation JackViewDrawingView : UIView
-
-@synthesize jackView;
-
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    
-    if (self)
-    {
-    }
-    
-    return self;
-}
-
-- (void)dealloc
-{
-    
-    [super dealloc];
-}
-
-- (void)drawRect:(CGRect)rect
-{
-    CGPoint srcPt = [jackView convertPoint:jackView.srcPt toView:self];
-    CGPoint dstPt = [jackView convertPoint:jackView.dstPt toView:self];
-    
-    self.backgroundColor = [UIColor clearColor];
-    
-    if (jackView.linking)
-    {
-        CGContextRef c = UIGraphicsGetCurrentContext();
-        
-        CGFloat color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-        CGContextSetStrokeColor(c, color);
-        CGContextBeginPath(c);
-        CGContextMoveToPoint(c, srcPt.x, srcPt.y);
-        CGContextAddLineToPoint(c, dstPt.x, dstPt.y);
-        CGContextStrokePath(c);
-    }
-}
-
-@end*/
-
-
 @implementation JackView
 
 @synthesize srcPt;
@@ -396,7 +352,6 @@
     
     if (self)
     {
-        _realOrientation = [UIDevice currentDevice].orientation;
         self.portsView = nil;
         _jackClient = nil;
         self.currentClientButton = nil;
@@ -495,30 +450,7 @@
 
 - (void)orientationChanged:(NSNotification *)notification
 {
-    UIDeviceOrientation newOrientation = UIDeviceOrientationUnknown;
-        
-    if ([UIDevice currentDevice].orientation == UIDeviceOrientationFaceUp
-        || [UIDevice currentDevice].orientation == UIDeviceOrientationFaceDown
-        || _realOrientation == UIDeviceOrientationFaceUp
-        || _realOrientation == UIDeviceOrientationFaceDown)
-    {
-        // Don't change anything
-        
-        if (_realOrientation == UIDeviceOrientationFaceUp
-            || _realOrientation == UIDeviceOrientationFaceDown)
-        {
-            _realOrientation = [UIDevice currentDevice].orientation;
-        }
-    }
-    else
-    {
-        newOrientation = [UIDevice currentDevice].orientation;
-        if (newOrientation != _realOrientation)
-        {
-            [self resizeView];
-        }
-        _realOrientation = newOrientation;
-    }
+    [self resizeView];
 }
 
 - (void)audioButtonClicked
@@ -599,20 +531,7 @@
     if (self.portsView)
     {
         JackViewButton* clientButton = self.portsView.clientButton;
-        [self dismissPortsView];
-        
         [clientButton performSelector:@selector(displayPortsView) withObject:nil afterDelay:0.1];
-        //[clientButton displayPortsView];
-        /*CGPoint pt = [self.portsView.clientButton convertPoint:CGPointMake(0., 0.) toView:self.superview];
-        
-        if (pt.x + kPortsViewItemWidth < self.frame.size.width) self.portsView.clientX = pt.x;
-        else self.portsView.clientX = self.frame.size.width - kPortsViewItemWidth;
-        
-        self.portsView.currentAppX = [self convertPoint:self.currentClientButton.frame.origin toView:self.superview].x;
-        
-        [self resizePortsView];
-        [self.portsView refreshLinks];
-        [self.portsView setNeedsDisplay];*/
     }
     
     [self makeButtonsSymetric];
@@ -626,12 +545,19 @@
     float oldClientX = self.portsView.clientX;
     float oldCurrentAppX = self.portsView.currentAppX;
     JackViewPortsViewItem* item = nil;
-        
+    
+    [self.portsView setFrame:CGRectMake(self.portsView.frame.origin.x,
+                                        self.portsView.frame.origin.y,
+                                        self.frame.size.width,
+                                        self.portsView.frame.size.height)];
+    
     if (pt.x + kPortsViewItemWidth < self.frame.size.width) self.portsView.clientX = pt.x;
     else self.portsView.clientX = self.frame.size.width - kPortsViewItemWidth;
     
     self.portsView.currentAppX = [self convertPoint:self.currentClientButton.frame.origin toView:self.superview].x;
 
+    NSLog(@"***** RESIZE PORTS VIEW - client x %f - current app x %f", self.portsView.clientX, self.portsView.currentAppX);
+    
     for (i = 0; i < [[self.portsView portsItems] count]; ++i)
     {
         if ([[[self.portsView portsItems] objectAtIndex:i] isKindOfClass:[JackViewPortsViewItem class]])
