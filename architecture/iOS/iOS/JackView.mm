@@ -6,6 +6,7 @@
 //
 //
 
+#import <QuartzCore/QuartzCore.h>
 #import "JackView.h"
 
 @implementation JackViewButton
@@ -195,6 +196,15 @@
     [jackView.portsView refreshLinks];
     [jackView.portsView setNeedsDisplay];
     [jackView.portsView.backgroundView setNeedsDisplay];
+    
+    // Fade in
+    CATransition *animation = [CATransition animation];
+    [animation setDuration:0.3];
+    [animation setType:kCATransitionFade];
+    [animation setSubtype:kCATransitionFromLeft];
+    [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+    
+    [[self.window layer] addAnimation:animation forKey:@"DisplayPortsView"];
 }
 
 
@@ -688,13 +698,7 @@
     [_midiInputsScrollView release];
     [_midiOutputsScrollView release];
     
-    if (self.portsView)
-    {
-        [self.portsView removeFromSuperview];
-        [self.portsView release];
-        self.portsView = nil;
-        [self.superview setNeedsDisplay];
-    }
+    [self dismissPortsView];
     
     [super dealloc];
 }
@@ -1540,6 +1544,15 @@ connectedWithPort:(NSString*)portName2
         [portsView release];
         portsView = nil;
         [self.superview setNeedsDisplay];
+        
+        // Fade in
+        CATransition *animation = [CATransition animation];
+        [animation setDuration:0.3];
+        [animation setType:kCATransitionFade];
+        [animation setSubtype:kCATransitionFromLeft];
+        [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+        
+        [[self.window layer] addAnimation:animation forKey:@"DismissPortsView"];
     }
 }
 
