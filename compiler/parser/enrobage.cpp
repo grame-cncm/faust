@@ -30,7 +30,8 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "sourcefetcher.hh"
-#include <climits>
+#include "exception.hh"
+#include <errno.h>
 
 #include <climits>
 #include <iostream>
@@ -146,7 +147,7 @@ public:
 bool isFaustInclude(const string& s, string& fname)
 {
     myparser P(s);
-    if ( P.skip() && P.parse("#include") && P.skip() && P.filename(fname) ) {
+    if (P.skip() && P.parse("#include") && P.skip() && P.filename(fname)) {
         myparser Q(fname);
         return Q.parse("faust/");
     } else {
@@ -304,7 +305,7 @@ const char* strip_start(const char* filename)
 
 /**
  * Check if an URL exists.
- * @return true if the URL exist, false otherwise
+ * @return true if the URL exist, throw on exception otherxise 
  */
 		
 bool check_url(const char* filename)
@@ -312,17 +313,25 @@ bool check_url(const char* filename)
     char* fileBuf = 0;
      
     // Tries to open as a http URL
-    if (http_fetch(filename, &fileBuf) != -1) {
-        return true;
+    if (strstr(filename, "://") > 0) {
+        if (http_fetch(filename, &fileBuf) != -1) {
+            return true;
+        } else {
+            stringstream error;
+            error << "ERROR : unable to access URL '" << filename << "' : " << http_strerror() << "; for help type \"faust --help\"" << endl;
+            throw faustexception(error.str());
+        }
     } else {
         // Otherwise tries to open as a regular file
         FILE* f = fopen(filename, "r");
-        if (f == NULL) {
-            fprintf(stderr, "faust: "); perror(filename);
-        } else {
+        if (f) {
             fclose(f);
+            return true;
+        } else {
+            stringstream error;
+            error << "ERROR : cannot open file '" << filename << "' : " <<  strerror(errno) << "; for help type \"faust --help\"" << endl;
+            throw faustexception(error.str());
         }
-        return f != NULL;
     }
 }
 
@@ -332,11 +341,11 @@ bool check_url(const char* filename)
  */
 static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
 {
-	int 		err; 
-    char        olddirbuffer[FAUST_PATH_MAX];
-    char        newdirbuffer[FAUST_PATH_MAX];
+	int err; 
+    char olddirbuffer[FAUST_PATH_MAX];
+    char newdirbuffer[FAUST_PATH_MAX];
     
-    char* 		olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
 
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
@@ -365,11 +374,12 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
  */
 static FILE* fopenat(string& fullpath, const string& dir, const char* path, const char* filename)
 {
-	int			err;
-    char        olddirbuffer[FAUST_PATH_MAX];
-    char        newdirbuffer[FAUST_PATH_MAX];
+	int	err;
+    char olddirbuffer[FAUST_PATH_MAX];
+    char newdirbuffer[FAUST_PATH_MAX];
     
-    char* 		olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    
     if (chdir(dir.c_str()) == 0) {
         if (chdir(path) == 0) {            
             FILE* f = fopen(filename, "r");

@@ -255,7 +255,7 @@ static bool process_cmdline(int argc, const char* argv[])
             if (gGlobal->gVectorLoopVariant < 0 ||
                 gGlobal->gVectorLoopVariant > 1) {
                 stringstream error;
-                error << "faust: invalid loop variant: \"" << gGlobal->gVectorLoopVariant <<"\"" << endl;
+                error << "ERROR : invalid loop variant: \"" << gGlobal->gVectorLoopVariant <<"\"" << endl;
                 throw faustexception(error.str());
             }
             i += 2;
@@ -557,11 +557,13 @@ static void parseSourceFiles()
 
     if (gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
         stringstream error;
-        error << "ERROR: no files specified; for help type \"faust --help\"" << endl;
+        error << "ERROR : no files specified; for help type \"faust --help\"" << endl;
         throw faustexception(error.str());
     }
     for (s = gGlobal->gInputFiles.begin(); s != gGlobal->gInputFiles.end(); s++) {
-        if (s == gGlobal->gInputFiles.begin()) gGlobal->gMasterDocument = *s;
+        if (s == gGlobal->gInputFiles.begin()) {
+            gGlobal->gMasterDocument = *s;
+        }
         gGlobal->gResult2 = cons(importFile(tree(s->c_str())), gGlobal->gResult2);
     }
    
@@ -577,11 +579,11 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     Tree process = evalprocess(expandedDefList);
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
-        error << "Total of " << gGlobal->gErrorCount << " errors during the compilation of " << gGlobal->gMasterDocument << ";\n";
+        error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of " << gGlobal->gMasterDocument << ";\n";
         throw faustexception(error.str());
     }
 
-    if (gGlobal->gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
+    if (gGlobal->gDetailsSwitch) { cout << "process = " << boxpp(process) << ";\n"; }
 
     if (gDrawPSSwitch || gDrawSVGSwitch) {
         string projname = makeDrawPathNoExt();
@@ -591,12 +593,12 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
     if (!getBoxType(process, &numInputs, &numOutputs)) {
         stringstream error;
-        error << "ERROR during the evaluation of  process : " << boxpp(process) << endl;
+        error << "ERROR during the evaluation of process : " << boxpp(process) << endl;
         throw faustexception(error.str());
     }
 
     if (gGlobal->gDetailsSwitch) {
-        cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
+        cout <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
     }
 
     endTiming("evaluation");
@@ -902,10 +904,10 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
 
     if (gGlobal->gDetailsSwitch) {
-        cerr << "output signals are : " << endl;
+        cout << "output signals are : " << endl;
         Tree ls =  lsignals;
         while (! isNil(ls)) {
-            cerr << ppsig(hd(ls)) << endl;
+            cout << ppsig(hd(ls)) << endl;
             ls = tl(ls);
         }
     }

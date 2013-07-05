@@ -211,10 +211,9 @@ Tree SourceReader::parsefile(string fname)
     
         // We are requested to parse an URL file
         char* fileBuf = 0;
-        int ret = http_fetch(yyfilename, &fileBuf);
-        if (ret == -1) {
+        if (http_fetch(yyfilename, &fileBuf) == -1) {
             stringstream error;
-            error << "ERROR : Unable to access URL " << http_strerror() << endl;
+            error << "ERROR : unable to access URL '" << fname << "' : " << http_strerror() << endl;
             throw faustexception(error.str());
         }
         yy_scan_string(fileBuf);
