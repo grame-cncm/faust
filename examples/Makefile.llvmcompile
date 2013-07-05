@@ -12,12 +12,22 @@ endif
 
 ifeq ($(LLVM_VERSION), 3.0)
 LLVM_VERSION  = LLVM_30
-LLVM_PREFIX = /opt/local/libexec/llvm-3.0/bin/
+LLVM_PREFIX = /opt/local/libexec/llvm-3.0/bin
 endif
 
 ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
-LLVM_PREFIX = /opt/local/libexec/llvm-3.1/bin/
+LLVM_PREFIX = /opt/local/libexec/llvm-3.1/bin
+endif
+
+ifeq ($(LLVM_VERSION), 3.2)
+LLVM_VERSION  = LLVM_32
+LLVM_PREFIX = /opt/local/libexec/llvm-3.2/bin
+endif
+
+ifeq ($(LLVM_VERSION), 3.3)
+LLVM_VERSION  = LLVM_33
+LLVM_PREFIX = /opt/local/libexec/llvm-3.3/bin
 endif
 
 CLANG = $(LLVM_PREFIX)/clang++
@@ -28,8 +38,8 @@ LINK = $(LLVM_PREFIX)/llvm-link
 $(DEST)% : %.dsp
 	cp /usr/local/lib/faust/$(ARCH) $(DEST)
 	#faust -vec -lv 1  -lang llvm  -vs 64 -vls 4 $< -o $@.bc
-	#faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
-	faust -sch -vs 256  -lang llvm  -vs 64 $< -o $@.bc
+	#faust -vec -lv 1  -lang llvm  -vs 512 $< -o $@.bc
+	faust -sch  -lang llvm  -vs 64 $< -o $@.bc
 	#faust  -lang llvm  $< -o $@.bc
 	#faust -sch  -lang llvm  -vs 64 $< -o $@.bc
 	$(OPT) -S -O3 $@.bc -o $@.ll

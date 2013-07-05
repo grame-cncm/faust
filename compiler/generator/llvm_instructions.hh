@@ -271,7 +271,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         Module* fModule;
         IRBuilder<>* fBuilder;
-
+   
         // DSP structure creation
         std::map<string, int> fDSPFieldsNames;
         VECTOR_OF_TYPES fDSPFields;
@@ -748,7 +748,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         Module* fModule;
         IRBuilder<>* fBuilder;
-
+        IRBuilder<>* fAllocaBuilder;
+    
         map<string, LlvmValue> fUICallTable;
 
         // UI structure creation
@@ -766,13 +767,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     public:
 
-        LLVMInstVisitor(Module* module, IRBuilder<>* builder,
+        LLVMInstVisitor(Module* module, IRBuilder<>* builder, IRBuilder<>* alloca_builder,
                         const std::map<string, int>& field_names,
                         LlvmValue ui_ptr,
                         llvm::PointerType* dsp_ptr,
                         const string& prefix = "")
                         :fModule(module),
                         fBuilder(builder),
+                        fAllocaBuilder(alloca_builder),
                         fUIInterface_ptr(ui_ptr),
                         fStruct_DSP_ptr(dsp_ptr),
                         fDSPFieldsNames(field_names),
@@ -809,7 +811,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual ~LLVMInstVisitor()
         {}
-
+    
         void setBuilder(IRBuilder<>* builder) {fBuilder = builder; }
         IRBuilder<>* getBuilder() { return fBuilder; }
 
@@ -1117,8 +1119,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     fDSPStackVars[name] = fCurValue;
                 }
             } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
-
-                fCurValue = fBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
+                // If we have an explicit alloca builder, use it
+                if (fAllocaBuilder->GetInsertBlock()) {
+                    fAllocaBuilder->SetInsertPoint(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt());
+                    fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
+                } else {
+                    fCurValue = fBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
+                }
                 fCurValue->setName(name);
                 fDSPStackVars[name] = fCurValue; // Keep var
           

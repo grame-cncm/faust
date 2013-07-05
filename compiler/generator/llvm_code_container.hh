@@ -46,8 +46,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
         // UI structure creation
         llvm::PointerType* fStruct_DSP_ptr;
 
-        //Module* fModule;
         IRBuilder<>* fBuilder;
+        IRBuilder<>* fAllocaBuilder;
         LLVMInstVisitor* fCodeProducer;
         
         LLVMResult* fResult;

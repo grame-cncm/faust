@@ -62,7 +62,9 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fContext = new LLVMContext();
     fResult->fModule = new Module("Faust LLVM backend", getContext());
+    fResult->fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"); 
     fBuilder = new IRBuilder<>(getContext());
+    fAllocaBuilder = new IRBuilder<>(getContext());
 
 #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
     fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
@@ -81,6 +83,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fKlassName = name;
     fResult = result;
     fBuilder = new IRBuilder<>(getContext());
+    fAllocaBuilder = new IRBuilder<>(getContext());
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -155,7 +158,7 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
     //llvm_fill->dump();
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_fill));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_fill));
 }
 
 void LLVMCodeContainer::generateFillEnd()
@@ -220,7 +223,9 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     arg4->setName("outputs");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_compute));
+    BasicBlock* first_block = BasicBlock::Create(getContext(), "entry_block", llvm_compute);
+    fBuilder->SetInsertPoint(first_block);
+    fAllocaBuilder->SetInsertPoint(first_block);
 }
 
 void LLVMCodeContainer::generateComputeEnd()
@@ -238,6 +243,7 @@ void LLVMCodeContainer::generateComputeEnd()
     //llvm_compute->dump();
     verifyFunction(*llvm_compute);
     fBuilder->ClearInsertionPoint();
+    fAllocaBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateGetSampleRate(int field_index)
@@ -254,7 +260,7 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     Value* dsp = llvm_SR_args_it++;
     dsp->setName("dsp");
 
-    BasicBlock* block = BasicBlock::Create(getContext(), "entry", sr_fun);
+    BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
 
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
@@ -294,7 +300,7 @@ void LLVMCodeContainer::generateClassInitBegin()
     sample_freq->setName("samplingFreq");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_classInit));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_classInit));
 }
 
 void LLVMCodeContainer::generateClassInitEnd()
@@ -331,7 +337,7 @@ void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
     sample_freq->setName("samplingFreq");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_instanceInit));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_instanceInit));
 }
 
 void LLVMCodeContainer::generateInstanceInitEnd()
@@ -357,7 +363,7 @@ void LLVMCodeContainer::generateDestroyBegin()
     assert(llvm_destroy);
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_destroy));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_destroy));
 }
 
 void LLVMCodeContainer::generateDestroyEnd()
@@ -383,7 +389,7 @@ void LLVMCodeContainer::generateAllocateBegin()
     assert(llvm_allocate);
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry", llvm_allocate));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_allocate));
 }
 
 void LLVMCodeContainer::generateAllocateEnd()
@@ -420,7 +426,7 @@ void LLVMCodeContainer::generateInitFun()
     arg2->setName("samplingFreq");
 
     /// llvm_init block
-    BasicBlock* return_block2 = BasicBlock::Create(getContext(), "entry", llvm_init);
+    BasicBlock* return_block2 = BasicBlock::Create(getContext(), "entry_block", llvm_init);
     vector<Value*> params1;
     params1.push_back(arg2);
 
@@ -457,8 +463,8 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     Value* meta = llvm_metaData_args_it++;
     meta->setName("m");
 
-    BasicBlock* init_block = BasicBlock::Create(getContext(), "init", llvm_metaData);
-    fBuilder->SetInsertPoint(init_block);
+    BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_metaData);
+    fBuilder->SetInsertPoint(entry_block);
     
     Value* idx0[2];
     idx0[0] = genInt64(0);
@@ -514,8 +520,8 @@ void LLVMCodeContainer::generateBuildUserInterfaceBegin()
     Function* llvm_buildUserInterface = fResult->fModule->getFunction("buildUserInterface" + fKlassName);
 
     // Get the already created init block and insert in it.
-    BasicBlock* init_block = llvm_buildUserInterface->getBasicBlockList().begin();
-    fBuilder->SetInsertPoint(init_block);
+    BasicBlock* entry_block = llvm_buildUserInterface->getBasicBlockList().begin();
+    fBuilder->SetInsertPoint(entry_block);
 }
 
 void LLVMCodeContainer::generateBuildUserInterfaceEnd()
@@ -541,7 +547,7 @@ void LLVMCodeContainer::produceInternal()
     // Now we can create the DSP type
     fStruct_DSP_ptr = fTypeBuilder.getDSPType(true, false);
 
-    fCodeProducer = new LLVMInstVisitor(fResult->fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    fCodeProducer = new LLVMInstVisitor(fResult->fModule, fBuilder, fAllocaBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
     
     generateInfoFunctions(fKlassName, false);
   
@@ -590,7 +596,7 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
-    fCodeProducer = new LLVMInstVisitor(fResult->fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    fCodeProducer = new LLVMInstVisitor(fResult->fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
     
     generateInfoFunctions(fKlassName, true);
   
@@ -914,7 +920,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
     arg2->setName("num_thread");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_computethread));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_computethread));
 }
 
 void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
@@ -952,7 +958,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     arg2->setName("num_thread");
 
     // Add a first block
-    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "block_code", llvm_computethread));
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_computethread));
 
     Function* llvm_computethreadInternal = fResult->fModule->getFunction("computeThread");
     assert(llvm_computethreadInternal);
