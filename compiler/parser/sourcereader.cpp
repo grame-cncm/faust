@@ -193,7 +193,7 @@ Tree SourceReader::parse(string fname)
 	yyerr = 0;
 	
 	yyfilename = fname.c_str();
-    if (strstr(yyfilename,"://")>0) {
+    if (strstr(yyfilename,"://") > 0) {
         // We are requested to parse an URL file
         int ret = http_fetch(yyfilename, &fileBuf);
         if (ret == -1) {

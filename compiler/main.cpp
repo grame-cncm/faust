@@ -539,21 +539,21 @@ int main (int argc, char* argv[])
 
 	startTiming("parser");
 
-	
 	list<string>::iterator s;
 	gResult2 = nil;
 	yyerr = 0;
 
 	if (gInputFiles.begin() == gInputFiles.end()) {
-		cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
 		exit(1);
 	}
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-		if (s == gInputFiles.begin()) gMasterDocument = *s;
+		if (s == gInputFiles.begin()) {
+            gMasterDocument = *s;
+        }
 		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
 	}
 	if (yyerr > 0) {
-		//fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
+		cerr << "ERROR : paorsing count = " <<  yyerr << endl;
 		exit(1);
 	}
 	gExpandedDefList = gReader.expandlist(gResult2);
