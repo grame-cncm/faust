@@ -208,8 +208,7 @@ Tree SourceReader::parsefile(string fname)
   	yyfilename = fname.c_str();
     
     if (strstr(yyfilename,"://") > 0) {
-    
-        // We are requested to parse an URL file
+         // We are requested to parse an URL file
         char* fileBuf = 0;
         if (http_fetch(yyfilename, &fileBuf) == -1) {
             stringstream error;

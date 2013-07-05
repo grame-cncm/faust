@@ -374,7 +374,7 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
  */
 static FILE* fopenat(string& fullpath, const string& dir, const char* path, const char* filename)
 {
-	int	err;
+    int	err;
     char olddirbuffer[FAUST_PATH_MAX];
     char newdirbuffer[FAUST_PATH_MAX];
     
@@ -414,7 +414,7 @@ static bool isAbsolutePathname(const string& filename)
  */
 static void buildFullPathname(string& fullpath, const char* filename)
 {
-	char	old[FAUST_PATH_MAX];
+	char old[FAUST_PATH_MAX];
 
 	if (isAbsolutePathname(filename)) {
 		fullpath = filename;

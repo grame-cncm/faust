@@ -7,7 +7,6 @@
 #                                                                   
 #####################################################################
 
-
 ARCHFILE="ausynth.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
@@ -88,15 +87,14 @@ cp $1 $TEMP_DIR
 cp *.lib $TEMP_DIR >& /dev/null
 cd $TEMP_DIR
 
-faust -a $FAUST_DIR/$ARCHFILE $1 -o Source/ausynth-output.cpp
+faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/ausynth-output.cpp
 if [ ! -f Source/ausynth-output.cpp ]
 then
 	echo faust could not generate cpp file
 	cd ..
-	#rm -r $TEMP_DIR
+	rm -r $TEMP_DIR
 	exit	
 fi
-
 
 FULL_FILE_NAME=$1
 
@@ -140,7 +138,6 @@ perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAUSynth.r
 perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAUSynth.r 
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUSynth.r
 
-
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUSynthVersion.h
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUSynthVersion.h 
 
@@ -179,4 +176,3 @@ cd ..
 rm -r $TEMP_DIR
 
 echo "'$NAME'" AU generated and installed successfully 
-
