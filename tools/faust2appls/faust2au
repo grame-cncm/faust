@@ -140,7 +140,7 @@ perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h 
 
-xcodebuild ARCHS="i386 x86_64" CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
+xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
 
 rm Source/au-output.cpp
 
