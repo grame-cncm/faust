@@ -54,6 +54,11 @@
 #include <string>
 #include <vector>
 
+#include "faust/misc.h"
+#include "faust/audio/dsp.h"
+
+#include "faust/au/AUUI.h"
+
 #include "AUInstrumentBase.h"
 #include "FaustAUSynthVersion.h"
 
@@ -62,122 +67,16 @@ using namespace std;
 static const UInt32 kNumNotes = 32;
 static const UInt32 kMaxActiveNotes = 32;
 
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-#include <xmmintrin.h>
-#ifdef __SSE2__
-#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-#else
-#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-#endif
-#else
-#define AVOIDDENORMALS
-#endif
-
-struct Meta {
-	void declare(const char* key, const char* value) {
-	}
-};
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-inline int lsr(int x, int n) {
-	return int(((unsigned int) x) >> n);
-}
-
-inline int int2pow2(int x) {
-	int r = 0;
-	while ((1 << r) < x)
-		r++;
-	return r;
-}
-
 /******************************************************************************
  *******************************************************************************
  *
- *	ßVECTOR INTRINSICS
+ *	VECTOR INTRINSICS
  *
  *******************************************************************************
  *******************************************************************************/
-
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
-/******************************************************************************
- *******************************************************************************
- *
- *	USER INTERFACE
- *
- *******************************************************************************
- *******************************************************************************/
-
-class UI
-{
-	bool fStopped;
-    
-public:
-    
-	UI() : fStopped(false) {}
-	virtual ~UI() {}
-    
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
-    
-	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
-    
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
-	virtual void closeBox() = 0;
-    
-	virtual void run() {};
-    
-	void stop() {fStopped = true;}
-	bool stopped() {return fStopped;}
-    
-	virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
-/******************************************************************************
- *******************************************************************************
- *
- *	FAUST DSP
- *
- *******************************************************************************
- *******************************************************************************/
-
-class dsp {
-    
-protected:
-    
-	int fSamplingFreq;
-    
-public:
-    
-	dsp() {
-	}
-    
-	virtual ~dsp() {
-	}
-    
-	virtual int getNumInputs() = 0;
-	virtual int getNumOutputs() = 0;
-	virtual void buildUserInterface(UI* interface) = 0;
-	virtual void init(int samplingRate) = 0;
-	virtual void compute(int len, float** inputs, float** outputs) = 0;
-};
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -188,282 +87,6 @@ public:
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-/******************************************************************************
- *
- * AU wrapper
- *
- ******************************************************************************/
-
-class auUI;
-
-/**********************************************************************************/
-class auUIObject {
-public:
-	string fLabel;
-	float* fZone;
-    
-	float range(float min, float max, float val) { // AU parameters are normalized in the range [0;1]
-		val = min + val * (max - min);
-		return (val < min) ? min : (val > max) ? max : val;
-	}
-    
-public:
-	auUIObject(char* label, float* zone) :
-    fLabel(label), fZone(zone) {
-	}
-    
-	virtual ~auUIObject() {
-	}
-    
-	virtual void GetName(char *text) {
-		std::strcpy(text, fLabel.c_str());
-	}
-    
-	virtual void SetValue(double f) {
-		*fZone = range(0.0f, 1.0f, (float) f);
-	}
-    
-	virtual float GetValue() {
-		return *fZone;
-	}
-    
-	virtual void GetDisplay(char *text) {
-		std::sprintf(text, "%f", *fZone);
-	}
-    
-	virtual long GetID() { /* returns the sum of all the ASCII characters  contained in the parameter's label */
-		int i;
-		long acc;
-		for (i = 0, acc = 0; i < fLabel.length(); i++)
-			acc += (fLabel.c_str())[i];
-		return acc;
-	}
-};
-
-/**********************************************************************************/
-class auToggleButton: public auUIObject {
-    
-public:
-    
-	auToggleButton(char* label, float* zone) :
-    auUIObject(label, zone) {
-	}
-    
-	virtual ~auToggleButton() {
-	}
-    
-	virtual float GetValue() {
-		return *fZone;
-	}
-    
-	virtual void SetValue(double f) {
-		*fZone = (f > 0.5f) ? 1.0f : 0.0f;
-	}
-    
-	virtual void GetDisplay(char *text) {
-		(*fZone > 0.5f) ? std::strcpy(text, "ON") : std::strcpy(text, "OFF");
-	}
-};
-
-/**********************************************************************************/
-class auCheckButton: public auUIObject {
-    
-public:
-    
-	auCheckButton(char* label, float* zone) :
-    auUIObject(label, zone) {
-	}
-    
-	virtual ~auCheckButton() {
-	}
-    
-	virtual float GetValue() {
-		return *fZone;
-	}
-    
-	virtual void SetValue(double f) {
-		*fZone = (f > 0.5f) ? 1.0f : 0.0f;
-	}
-    
-	virtual void GetDisplay(char *text) {
-		(*fZone > 0.5f) ? std::strcpy(text, "ON") : std::strcpy(text, "OFF");
-	}
-};
-
-/**********************************************************************************/
-class auButton: public auUIObject {
-    
-public:
-    
-	auButton(char* label, float* zone) :
-    auUIObject(label, zone) {
-	}
-    
-	virtual ~auButton() {
-	}
-    
-	virtual float GetValue() {
-		return *fZone;
-	}
-    
-	virtual void SetValue(double f) {
-		*fZone = (f > 0.5f) ? 1.0f : 0.0f;
-	}
-    
-	virtual void GetDisplay(char *text) {
-		(*fZone > 0.5f) ? std::strcpy(text, "ON") : std::strcpy(text, "OFF");
-	}
-};
-
-/**********************************************************************************/
-class auSlider: public auUIObject {
-    
-public:
-	float fInit;
-	float fMin;
-	float fMax;
-	float fStep;
-    
-public:
-    
-	auSlider(char* label, float* zone, float init, float min, float max,
-             float step) :
-    auUIObject(label, zone), fInit(init), fMin(min), fMax(max), fStep(
-                                                                      step) {
-	}
-    
-	virtual ~auSlider() {
-	}
-    
-	virtual float GetValue() {
-		return (*fZone - fMin) / (fMax - fMin);
-	}	// normalize
-    
-	virtual void SetValue(double f) {
-		*fZone = range(fMin, fMax, (float) f);
-	} // expand
-};
-
-/**********************************************************************************/
-class auUI: public UI {
-public:
-    
-	vector<auUIObject*> fUITable;
-    
-public:
-    
-	auUI() {
-	}
-    
-	virtual ~auUI() {
-		for (vector<auUIObject*>::iterator iter = fUITable.begin();
-             iter != fUITable.end(); iter++)
-			delete *iter;
-	}
-    
-	void addButton(char* label, float* zone) {
-		fUITable.push_back(new auButton(label, zone));
-	}
-    
-	void addToggleButton(char* label, float* zone) {
-		fUITable.push_back(new auToggleButton(label, zone));
-	}
-    
-	void addCheckButton(char* label, float* zone) {
-		fUITable.push_back(new auCheckButton(label, zone));
-	}
-    
-	void addVerticalSlider(char* label, float* zone, float init, float min,
-                           float max, float step) {
-		fUITable.push_back(new auSlider(label, zone, init, min, max, step));
-	}
-    
-	void addHorizontalSlider(char* label, float* zone, float init, float min,
-                             float max, float step) {
-		fUITable.push_back(new auSlider(label, zone, init, min, max, step));
-	}
-    
-	void addNumEntry(char* label, float* zone, float init, float min, float max,
-                     float step) {
-		fUITable.push_back(new auSlider(label, zone, init, min, max, step));
-	}
-    
-	void openFrameBox(char* label) {
-	}
-    
-	void openTabBox(char* label) {
-	}
-    
-	void openHorizontalBox(char* label) {
-	}
-    
-	void openVerticalBox(char* label) {
-	}
-    
-	void closeBox() {
-	}
-    
-	void SetValue(int index, double f) {
-		assert(index < fUITable.size());
-		fUITable[index]->SetValue(f);
-	}
-    
-	float GetValue(long index) {
-		assert(index < fUITable.size());
-		return fUITable[index]->GetValue();
-	}
-    
-	void GetDisplay(long index, char *text) {
-		assert(index < fUITable.size());
-		fUITable[index]->GetDisplay(text);
-	}
-    
-	void GetName(long index, char *text) {
-		assert(index < fUITable.size());
-		fUITable[index]->GetName(text);
-	}
-    
-	long GetNumParams() {
-		return fUITable.size();
-	}
-    
-	long makeID()
-	/* Creates a (unique) id by summing all the parameter's labels,
-	 * then wrapping it in the range [0;maxNumberOfId] and adding
-	 * this number to the offset made by the Four Character ID: 'FAUS'
-	 */
-	{
-		const long maxNumberOfId = 128;
-		long baseid = 'FAUS';
-		long id = 0;
-		for (int i = 0; i < fUITable.size(); i++)
-			id += fUITable[i]->GetID();
-		return baseid + id % maxNumberOfId;
-	}
-    
-	void addNumDisplay(char* label, float* zone, int precision) {
-	}
-    
-	void addTextDisplay(char* label, float* zone, char* names[], float min,
-                        float max) {
-	}
-    
-	void addHorizontalBargraph(char* label, float* zone, float min, float max) {
-	}
-    
-	void addVerticalBargraph(char* label, float* zone, float min, float max) {
-	}
-};
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
-typedef long double quad;
-/* link with  */
-#include <math.h>
-
 class FaustAUSynth;
 
 struct FaustAUSynthNote: public SynthNote {
@@ -472,32 +95,25 @@ struct FaustAUSynthNote: public SynthNote {
 	virtual ~FaustAUSynthNote();
     
 	virtual OSStatus Initialize();
-    
-	virtual bool Attack(const MusicDeviceNoteParams &inParams) {
-		double sampleRate = SampleRate();
-        
-		amp = inParams.mVelocity / 127.;
-        
-		return true;
-	}
+	
+	virtual Float32 Amplitude();
+	virtual bool Attack(const MusicDeviceNoteParams &inParams);
 	virtual void Kill(UInt32 inFrame); // voice is being stolen.
 	virtual void Release(UInt32 inFrame);
 	virtual void FastRelease(UInt32 inFrame);
-	virtual Float32 Amplitude() {
-		return amp;
-	} // used for finding quietest note for voice stealing.
 	virtual OSStatus Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames,
                             AudioBufferList** inBufferList, UInt32 inOutBusCount);
     
 	FaustAUSynth* synth;
     
-	double amp;
-    
 public:
 	auUI* dspUI = NULL;
     
 	mydsp* dsp = NULL;
+	
+	double amp, maxAmp, upSlope, dnSlope;
 };
+
 
 class FaustAUSynth: public AUMonotimbralInstrumentBase {
 public:
@@ -540,6 +156,8 @@ public:
 	mydsp* dsp = NULL;
     
 	int frequencyParameterID = -1;
+	int attackParameterID = -1;
+	int releaseParameterID = -1;
     
 };
 
@@ -685,6 +303,10 @@ OSStatus FaustAUSynth::GetParameterInfo(AudioUnitScope inScope,
 				//TODO the default parameter name which is set by MIDI note in
 				if (!strcmp(name, "freq")) {
 					frequencyParameterID = inParameterID;
+				} else if (!strcmp(name, "attack")) {
+					attackParameterID = inParameterID;
+				} else if (!strcmp(name, "release")) {
+					releaseParameterID = inParameterID;
 				}
                 
 				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
@@ -754,16 +376,27 @@ FaustAUSynthNote::~FaustAUSynthNote() {
 		delete dspUI;
 }
 
+Float32 FaustAUSynthNote::Amplitude() {
+	return amp;
+}
+
+bool FaustAUSynthNote::Attack(const MusicDeviceNoteParams &inParams)
+{
+	amp = 0.;
+	maxAmp = inParams.mVelocity / 127.;
+	return true;
+}
+
 void FaustAUSynthNote::Release(UInt32 inFrame) {
 	SynthNote::Release(inFrame);
 }
 
-void FaustAUSynthNote::FastRelease(UInt32 inFrame) // voice is being stolen.
+void FaustAUSynthNote::FastRelease(UInt32 inFrame)
 {
-	SynthNote::Release(inFrame);
+	SynthNote::FastRelease(inFrame);
 }
 
-void FaustAUSynthNote::Kill(UInt32 inFrame) // voice is being stolen.
+void FaustAUSynthNote::Kill(UInt32 inFrame)
 {
 	SynthNote::Kill(inFrame);
 }
@@ -771,6 +404,11 @@ void FaustAUSynthNote::Kill(UInt32 inFrame) // voice is being stolen.
 OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
                                   UInt32 inNumFrames, AudioBufferList** inBufferList,
                                   UInt32 inOutBusCount) {
+	double sampleRate = SampleRate();
+	
+	float attack = 0;
+	float release = 0;
+	
 	int MAX_OUT_CHANNELS = 1000;
     
 	float* outBuffer[MAX_OUT_CHANNELS];
@@ -787,15 +425,29 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
 	}
     
 	if (synth) {
-		auSlider* frequencySlider = NULL;
+		auSlider* slider = NULL;
 		if (synth->frequencyParameterID != -1) {
 			if (dspUI)
-				frequencySlider =
+				slider =
                 (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
-			if (frequencySlider)
+			if (slider)
 				//TODO change the SetValue function call accordingly
-                frequencySlider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
-				//frequencySlider->SetValue((float) GetMidiKey() / 88.0);
+                slider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
+			//frequencySlider->SetValue((float) GetMidiKey() / 88.0);
+		}
+		if (synth->attackParameterID != -1) {
+			if (dspUI)
+				slider =
+                (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
+			if (slider)
+                attack = slider->GetValue();
+		}
+		if (synth->releaseParameterID != -1) {
+			if (dspUI)
+				slider =
+                (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
+			if (slider)
+                release = slider->GetValue();
 		}
         
 		dsp->compute(inNumFrames, audioData, outBuffer);
@@ -804,23 +456,47 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
         case kNoteState_Attacked:
         case kNoteState_Sostenutoed:
         case kNoteState_ReleasedButSostenutoed:
-        case kNoteState_ReleasedButSustained: {
-            for (int i = 0; i < outChannels; i++) {
+		case kNoteState_ReleasedButSustained :
+		{
+			if (attack)
+				upSlope = maxAmp / (attack / 1000. * sampleRate);
+			for (int i = 0; i < outChannels; i++) {
                 for (UInt32 frame = 0; frame < inNumFrames; ++frame) {
+					if (!attack)
+						amp = maxAmp;
+					else if (amp < maxAmp)
+						amp += upSlope;
                     audioData[i][frame] += outBuffer[i][frame] * amp;
                 }
             }
             break;
-            
-        }
-            
-        case kNoteState_Released:
-        case kNoteState_FastReleased: {
-            
-            NoteEnded(0xFFFFFFFF);
-            
-            break;
-        }
+		}
+			
+		case kNoteState_Released :
+		case kNoteState_FastReleased :
+		{
+			if (release)
+				dnSlope = -maxAmp / (release / 1000. * sampleRate);
+			
+			UInt32 endFrame = 0xFFFFFFFF;
+			for (int i = 0; i < outChannels; i++) {
+				
+				for (UInt32 frame=0; frame<inNumFrames; ++frame)
+				{
+					if (!release)
+						amp = 0;
+					else if (amp > 0.0)
+						amp += dnSlope;
+					if (amp == 0 && endFrame == 0xFFFFFFFF)
+						endFrame = frame;
+					audioData[i][frame] += outBuffer[i][frame] * amp;
+				}
+				if (endFrame != 0xFFFFFFFF) {
+					NoteEnded(endFrame);
+				}
+			}
+			
+		}
         default:
             break;
 	}
