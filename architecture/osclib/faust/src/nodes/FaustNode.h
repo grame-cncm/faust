@@ -62,7 +62,12 @@ template <typename C> class FaustNode : public MessageDriven
 	C *	fZone;			// the parameter memory zone
 	mapping<C>	fMapping;
 	
-	bool store (C val)			{ *fZone = fMapping.scale(val); return true; }
+	bool	store (C val)			{ *fZone = fMapping.scale(val); return true; }
+	void	send (unsigned long ipdest, int port) const {
+		oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone);
+		oscout.send(ipdest, port);
+	}
+
 
 	protected:
 		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix) 
@@ -101,6 +106,7 @@ template <typename C> class FaustNode : public MessageDriven
 			oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
 			oscout.setAddress(savedip);							// and restores the destination IP
 		}
+
 };
 
 

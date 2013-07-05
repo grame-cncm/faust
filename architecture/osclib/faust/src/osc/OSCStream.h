@@ -86,6 +86,7 @@ class OSCStream
 		
 		OSCStream&			start(const char * address);
 		OSCStream&			end();
+		void				send(unsigned long ipdest, int port);
 
 		void setPort (int port)							{ fPort = port; }
 		void setAddress (unsigned long address)			{ fAddress = address; }
