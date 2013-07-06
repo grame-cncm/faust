@@ -47,7 +47,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         llvm::PointerType* fStruct_DSP_ptr;
 
         IRBuilder<>* fBuilder;
-        IRBuilder<>* fAllocaBuilder;
+        IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
         LLVMInstVisitor* fCodeProducer;
         
         LLVMResult* fResult;

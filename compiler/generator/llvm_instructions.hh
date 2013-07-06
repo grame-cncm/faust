@@ -748,7 +748,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         Module* fModule;
         IRBuilder<>* fBuilder;
-        IRBuilder<>* fAllocaBuilder;
+        IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
     
         map<string, LlvmValue> fUICallTable;
 
@@ -1121,7 +1121,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
                 // If we have an explicit alloca builder, use it
                 if (fAllocaBuilder->GetInsertBlock()) {
-                    fAllocaBuilder->SetInsertPoint(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt());
+                    // Always at the begining since the block is already branched to next one...
+                    fAllocaBuilder->SetInsertPoint(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()); 
                     fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
                 } else {
                     fCurValue = fBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
@@ -1224,14 +1225,20 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // If there is a body, compile it
                 if (inst->fCode->fCode.size() > 0) {
 
-                    // Prepare a block to insert into
-                    BasicBlock* code_block = BasicBlock::Create(fModule->getContext(), "code_block", function);
-                    fBuilder->SetInsertPoint(code_block);
+                    // Prepare a entry_block to insert into
+                    BasicBlock* entry_block = BasicBlock::Create(fModule->getContext(), "entry_block", function);
+                    
+                    fBuilder->SetInsertPoint(entry_block);
+                    // "Alloca" in first "entry_bock" are mandatory so that vectorization passes correctly work. 
+                    fAllocaBuilder->SetInsertPoint(entry_block);
 
                     // Compile code in this block
                     inst->fCode->accept(this);
                     verifyFunction(*function);
+                    
+                    // Clear inserting points
                     fBuilder->ClearInsertionPoint();
+                    fAllocaBuilder->ClearInsertionPoint();
                 }
             }
 

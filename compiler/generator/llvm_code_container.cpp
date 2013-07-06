@@ -223,9 +223,10 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     arg4->setName("outputs");
 
     // Add a first block
-    BasicBlock* first_block = BasicBlock::Create(getContext(), "entry_block", llvm_compute);
-    fBuilder->SetInsertPoint(first_block);
-    fAllocaBuilder->SetInsertPoint(first_block);
+    BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_compute);
+    fBuilder->SetInsertPoint(entry_block);
+    // "Alloca" in first "entry_bock" are mandatory so that vectorization passes correctly work. 
+    fAllocaBuilder->SetInsertPoint(entry_block);
 }
 
 void LLVMCodeContainer::generateComputeEnd()
