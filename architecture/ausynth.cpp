@@ -308,7 +308,7 @@ OSStatus FaustAUSynth::GetParameterInfo(AudioUnitScope inScope,
 				} else if (!strcmp(name, "release")) {
 					releaseParameterID = inParameterID;
 				}
-                
+				
 				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
                 
 				AUBase::FillInParameterName(outParameterInfo, str, false);
@@ -406,8 +406,12 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
                                   UInt32 inOutBusCount) {
 	double sampleRate = SampleRate();
 	
-	float attack = 0;
-	float release = 0;
+	auSlider* frequencySlider = NULL;
+	auSlider* attackSlider = NULL;
+	auSlider* releaseSlider = NULL;
+	
+	double attack = 0, release = 0;
+	double channelAmp;
 	
 	int MAX_OUT_CHANNELS = 1000;
     
@@ -425,29 +429,24 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
 	}
     
 	if (synth) {
-		auSlider* slider = NULL;
 		if (synth->frequencyParameterID != -1) {
 			if (dspUI)
-				slider =
+				frequencySlider =
                 (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
-			if (slider)
-				//TODO change the SetValue function call accordingly
-                slider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
-			//frequencySlider->SetValue((float) GetMidiKey() / 88.0);
+			if (frequencySlider)
+                frequencySlider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
 		}
 		if (synth->attackParameterID != -1) {
 			if (dspUI)
-				slider =
-                (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
-			if (slider)
-                attack = slider->GetValue();
+				attackSlider = (auSlider*) dspUI->fUITable[synth->attackParameterID];
+			if (attackSlider)
+                attack = attackSlider->GetValue();
 		}
 		if (synth->releaseParameterID != -1) {
 			if (dspUI)
-				slider =
-                (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
-			if (slider)
-                release = slider->GetValue();
+				releaseSlider = (auSlider*) dspUI->fUITable[synth->releaseParameterID];
+			if (releaseSlider)
+                release = releaseSlider->GetValue();
 		}
         
 		dsp->compute(inNumFrames, audioData, outBuffer);
@@ -459,8 +458,11 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
 		case kNoteState_ReleasedButSustained :
 		{
 			if (attack)
-				upSlope = maxAmp / (attack / 1000. * sampleRate);
+				upSlope = maxAmp / (attackSlider->fMax * attack * sampleRate);
+			
+			channelAmp = amp;
 			for (int i = 0; i < outChannels; i++) {
+				amp = channelAmp;
                 for (UInt32 frame = 0; frame < inNumFrames; ++frame) {
 					if (!attack)
 						amp = maxAmp;
@@ -476,12 +478,14 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
 		case kNoteState_FastReleased :
 		{
 			if (release)
-				dnSlope = -maxAmp / (release / 1000. * sampleRate);
+				dnSlope = -maxAmp / (releaseSlider->fMax * release * sampleRate);
 			
 			UInt32 endFrame = 0xFFFFFFFF;
+			channelAmp = amp;
+
 			for (int i = 0; i < outChannels; i++) {
-				
-				for (UInt32 frame=0; frame<inNumFrames; ++frame)
+				amp = channelAmp;
+				for (UInt32 frame=0; frame < inNumFrames; ++frame)
 				{
 					if (!release)
 						amp = 0;
