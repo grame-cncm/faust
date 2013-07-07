@@ -67,6 +67,10 @@ using namespace std;
 static const UInt32 kNumNotes = 32;
 static const UInt32 kMaxActiveNotes = 32;
 
+static const char* FREQ_PARAM_NAME = "freq";
+static const char* ATTACK_PARAM_NAME = "attack";
+static const char* RELEASE_PARAM_NAME = "release";
+
 /******************************************************************************
  *******************************************************************************
  *
@@ -300,22 +304,30 @@ OSStatus FaustAUSynth::GetParameterInfo(AudioUnitScope inScope,
 				auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
 				slider->GetName(name);
                 
-				//TODO the default parameter name which is set by MIDI note in
-				if (!strcmp(name, "freq")) {
-					frequencyParameterID = inParameterID;
-				} else if (!strcmp(name, "attack")) {
+				if (!strcmp(name, ATTACK_PARAM_NAME)) {
 					attackParameterID = inParameterID;
-				} else if (!strcmp(name, "release")) {
+				} else if (!strcmp(name, RELEASE_PARAM_NAME)) {
 					releaseParameterID = inParameterID;
 				}
 				
-				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
-                
-				AUBase::FillInParameterName(outParameterInfo, str, false);
-				outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
-				outParameterInfo.minValue = slider->fMin;
-				outParameterInfo.maxValue = slider->fMax;
-				outParameterInfo.defaultValue = slider->fInit;
+				//TODO the default parameter name which is set by MIDI note in
+				if (!strcmp(name, FREQ_PARAM_NAME)) {
+					frequencyParameterID = inParameterID;
+
+					outParameterInfo.flags = 0; //do not show freq parameter
+				}
+				else {
+					outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
+					str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
+					
+					AUBase::FillInParameterName(outParameterInfo, str, false);
+					
+					outParameterInfo.minValue = slider->fMin;
+					outParameterInfo.maxValue = slider->fMax;
+					outParameterInfo.defaultValue = slider->fInit;
+
+				}
+
 			}
             
 		}
@@ -505,7 +517,6 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
             break;
 	}
 	return noErr;
-    
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
