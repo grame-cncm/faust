@@ -464,9 +464,12 @@ EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::s
 EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level)
 {
     SMDiagnostic err;
+    char* tmp_local = setlocale(LC_ALL, NULL);
+    setlocale(LC_ALL, "C");
     MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(ir_code));
     LLVMContext* context = new LLVMContext();
     Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
+    setlocale(LC_ALL, tmp_local);
     
     if (module) {
         char error_msg[256];
@@ -491,8 +494,11 @@ EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level)
 {
     SMDiagnostic err;
+    char* tmp_local = setlocale(LC_ALL, NULL);
+    setlocale(LC_ALL, "C");
     LLVMContext* context = new LLVMContext();
     Module* module = ParseIRFile(ir_code_path, err, *context);
+    setlocale(LC_ALL, tmp_local);
     
     if (module) {
         char error_msg[256];
