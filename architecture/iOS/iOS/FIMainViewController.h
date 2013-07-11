@@ -25,11 +25,8 @@
 #import "FISensorFilter.h"
 
 
-#define JACK_IOS 1
-
 
 #ifdef JACK_IOS
-// Test Jack
 #import "JackView.h"
 #endif
 

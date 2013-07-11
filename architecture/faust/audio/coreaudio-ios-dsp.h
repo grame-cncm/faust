@@ -300,7 +300,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
 	AudioStreamBasicDescription srcFormat, dstFormat;
     
     printf("OpenDefault fDevNumInChans = %d fDevNumOutChans = %d bufferSize = %d samplerate = %d\n", fDevNumInChans, fDevNumOutChans, bufferSize, samplerate);
-     
+    
     err = AudioSessionSetActive(true);
     if (err != noErr) {
         printf("Couldn't set audio session active\n");
@@ -313,9 +313,19 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     AudioSessionAddPropertyListener(kAudioSessionProperty_ServerDied, AudioSessionPropertyListener, this);
     
     UInt32 audioCategory;
-    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0)) {
+    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0))
+    {
         audioCategory = kAudioSessionCategory_PlayAndRecord;
         printf("kAudioSessionCategory_PlayAndRecord\n");
+        
+        UInt32 sessionMode = kAudioSessionMode_VoiceChat;
+        err = AudioSessionSetProperty(kAudioSessionProperty_Mode, sizeof (sessionMode), &sessionMode);        
+        if (err != noErr) {
+            printf("Couldn't set audio session mode\n");
+            printError(err);
+            return OPEN_ERR;
+        }
+        
     } else if (fDevNumInChans > 0) {
         audioCategory = kAudioSessionCategory_RecordAudio;
         printf("kAudioSessionCategory_RecordAudio\n");

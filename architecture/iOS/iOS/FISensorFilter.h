@@ -28,20 +28,20 @@
 
 @interface FISensorFilter : NSObject
 {
-    float       _x;
-    float       _y;
-    float       _z;
-    float       _h;
     double      _filterConstant;
 }
 
-@property(nonatomic, readonly) float x;
-@property(nonatomic, readonly) float y;
-@property(nonatomic, readonly) float z;
-@property(nonatomic, readonly) float h;
+@property(nonatomic, assign) float xAccel;
+@property(nonatomic, assign) float yAccel;
+@property(nonatomic, assign) float zAccel;
+@property(nonatomic, assign) float xGyro;
+@property(nonatomic, assign) float yGyro;
+@property(nonatomic, assign) float zGyro;
+@property(nonatomic, assign) float heading;
 
 - (id)initWithSampleRate:(double)rate cutoffFrequency:(double)freq;
 - (void)addAccelerationX:(float)x y:(float)y z:(float)z;
+- (void)addGyroX:(float)x y:(float)y z:(float)z;
 - (void)addHeading:(float)h;
 
 @end
