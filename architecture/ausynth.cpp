@@ -99,25 +99,33 @@ struct FaustAUSynthNote: public SynthNote {
 	virtual ~FaustAUSynthNote();
     
 	virtual OSStatus Initialize();
-	
-	virtual Float32 Amplitude();
-	virtual bool Attack(const MusicDeviceNoteParams &inParams);
+    
+	virtual bool Attack(const MusicDeviceNoteParams &inParams) {
+		double sampleRate = SampleRate();
+        
+		amp = inParams.mVelocity / 127.;
+        
+		return true;
+	}
 	virtual void Kill(UInt32 inFrame); // voice is being stolen.
 	virtual void Release(UInt32 inFrame);
 	virtual void FastRelease(UInt32 inFrame);
+	virtual Float32 Amplitude() {
+		return amp;
+	} // used for finding quietest note for voice stealing.
 	virtual OSStatus Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames,
                             AudioBufferList** inBufferList, UInt32 inOutBusCount);
     
 	FaustAUSynth* synth;
     
+	double amp, maxAmp, upSlope, dnSlope;
+
+	
 public:
 	auUI* dspUI = NULL;
     
 	mydsp* dsp = NULL;
-	
-	double amp, maxAmp, upSlope, dnSlope;
 };
-
 
 class FaustAUSynth: public AUMonotimbralInstrumentBase {
 public:
@@ -162,8 +170,11 @@ public:
 	int frequencyParameterID = -1;
 	int attackParameterID = -1;
 	int releaseParameterID = -1;
+	
     
 };
+
+
 
 /**********************************************************************************/
 
@@ -304,30 +315,18 @@ OSStatus FaustAUSynth::GetParameterInfo(AudioUnitScope inScope,
 				auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
 				slider->GetName(name);
                 
-				if (!strcmp(name, ATTACK_PARAM_NAME)) {
-					attackParameterID = inParameterID;
-				} else if (!strcmp(name, RELEASE_PARAM_NAME)) {
-					releaseParameterID = inParameterID;
-				}
-				
 				//TODO the default parameter name which is set by MIDI note in
-				if (!strcmp(name, FREQ_PARAM_NAME)) {
+				if (!strcmp(name, "freq")) {
 					frequencyParameterID = inParameterID;
-
-					outParameterInfo.flags = 0; //do not show freq parameter
 				}
-				else {
-					outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
-					str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
-					
-					AUBase::FillInParameterName(outParameterInfo, str, false);
-					
-					outParameterInfo.minValue = slider->fMin;
-					outParameterInfo.maxValue = slider->fMax;
-					outParameterInfo.defaultValue = slider->fInit;
-
-				}
-
+                
+				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
+                
+				AUBase::FillInParameterName(outParameterInfo, str, false);
+				outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
+				outParameterInfo.minValue = slider->fMin;
+				outParameterInfo.maxValue = slider->fMax;
+				outParameterInfo.defaultValue = slider->fInit;
 			}
             
 		}
@@ -388,27 +387,16 @@ FaustAUSynthNote::~FaustAUSynthNote() {
 		delete dspUI;
 }
 
-Float32 FaustAUSynthNote::Amplitude() {
-	return amp;
-}
-
-bool FaustAUSynthNote::Attack(const MusicDeviceNoteParams &inParams)
-{
-	amp = 0.;
-	maxAmp = inParams.mVelocity / 127.;
-	return true;
-}
-
 void FaustAUSynthNote::Release(UInt32 inFrame) {
 	SynthNote::Release(inFrame);
 }
 
-void FaustAUSynthNote::FastRelease(UInt32 inFrame)
+void FaustAUSynthNote::FastRelease(UInt32 inFrame) // voice is being stolen.
 {
-	SynthNote::FastRelease(inFrame);
+	SynthNote::Release(inFrame);
 }
 
-void FaustAUSynthNote::Kill(UInt32 inFrame)
+void FaustAUSynthNote::Kill(UInt32 inFrame) // voice is being stolen.
 {
 	SynthNote::Kill(inFrame);
 }
@@ -416,15 +404,6 @@ void FaustAUSynthNote::Kill(UInt32 inFrame)
 OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
                                   UInt32 inNumFrames, AudioBufferList** inBufferList,
                                   UInt32 inOutBusCount) {
-	double sampleRate = SampleRate();
-	
-	auSlider* frequencySlider = NULL;
-	auSlider* attackSlider = NULL;
-	auSlider* releaseSlider = NULL;
-	
-	double attack = 0, release = 0;
-	double channelAmp;
-	
 	int MAX_OUT_CHANNELS = 1000;
     
 	float* outBuffer[MAX_OUT_CHANNELS];
@@ -441,24 +420,15 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
 	}
     
 	if (synth) {
+		auSlider* frequencySlider = NULL;
 		if (synth->frequencyParameterID != -1) {
 			if (dspUI)
 				frequencySlider =
                 (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
 			if (frequencySlider)
+				//TODO change the SetValue function call accordingly
                 frequencySlider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
-		}
-		if (synth->attackParameterID != -1) {
-			if (dspUI)
-				attackSlider = (auSlider*) dspUI->fUITable[synth->attackParameterID];
-			if (attackSlider)
-                attack = attackSlider->GetValue();
-		}
-		if (synth->releaseParameterID != -1) {
-			if (dspUI)
-				releaseSlider = (auSlider*) dspUI->fUITable[synth->releaseParameterID];
-			if (releaseSlider)
-                release = releaseSlider->GetValue();
+			//frequencySlider->SetValue((float) GetMidiKey() / 88.0);
 		}
         
 		dsp->compute(inNumFrames, audioData, outBuffer);
@@ -467,56 +437,28 @@ OSStatus FaustAUSynthNote::Render(UInt64 inAbsoluteSampleFrame,
         case kNoteState_Attacked:
         case kNoteState_Sostenutoed:
         case kNoteState_ReleasedButSostenutoed:
-		case kNoteState_ReleasedButSustained :
-		{
-			if (attack)
-				upSlope = maxAmp / (attackSlider->fMax * attack * sampleRate);
-			
-			channelAmp = amp;
-			for (int i = 0; i < outChannels; i++) {
-				amp = channelAmp;
+        case kNoteState_ReleasedButSustained: {
+            for (int i = 0; i < outChannels; i++) {
                 for (UInt32 frame = 0; frame < inNumFrames; ++frame) {
-					if (!attack)
-						amp = maxAmp;
-					else if (amp < maxAmp)
-						amp += upSlope;
                     audioData[i][frame] += outBuffer[i][frame] * amp;
                 }
             }
             break;
-		}
-			
-		case kNoteState_Released :
-		case kNoteState_FastReleased :
-		{
-			if (release)
-				dnSlope = -maxAmp / (releaseSlider->fMax * release * sampleRate);
-			
-			UInt32 endFrame = 0xFFFFFFFF;
-			channelAmp = amp;
-
-			for (int i = 0; i < outChannels; i++) {
-				amp = channelAmp;
-				for (UInt32 frame=0; frame < inNumFrames; ++frame)
-				{
-					if (!release)
-						amp = 0;
-					else if (amp > 0.0)
-						amp += dnSlope;
-					if (amp == 0 && endFrame == 0xFFFFFFFF)
-						endFrame = frame;
-					audioData[i][frame] += outBuffer[i][frame] * amp;
-				}
-				if (endFrame != 0xFFFFFFFF) {
-					NoteEnded(endFrame);
-				}
-			}
-			
-		}
+            
+        }
+            
+        case kNoteState_Released:
+        case kNoteState_FastReleased: {
+            
+            NoteEnded(0xFFFFFFFF);
+            
+            break;
+        }
         default:
             break;
 	}
 	return noErr;
+    
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
