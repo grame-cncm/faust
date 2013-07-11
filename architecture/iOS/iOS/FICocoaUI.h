@@ -78,6 +78,9 @@ class uiBox;
 #define kAssignationAccelZ              3
 #define kAssignationShake               4
 #define kAssignationCompass             5
+#define kAssignationGyroX               6
+#define kAssignationGyroY               7
+#define kAssignationGyroZ               8
 
 // Current layout mode
 #define kHorizontalLayout               0
