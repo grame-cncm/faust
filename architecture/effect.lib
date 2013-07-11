@@ -96,17 +96,12 @@ with {
    cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl
         [tooltip: Reference:
          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
-//   bypass_group(x) = cnl_group(hgroup("[0]", x));
-   slider_group(x)  = cnl_group(hgroup("[1]", x));
-//   bp = bypass_group(checkbox("[0] Bypass
-   bp = slider_group(checkbox("[0] Bypass
+   bp = cnl_group(checkbox("[0] Bypass
         [tooltip: When this is checked, the nonlinearity has no effect]"));
-//   drive = slider_group(vslider("[1] Drive [style: knob]
-   drive = slider_group(hslider("[1] Drive
+   drive = cnl_group(hslider("[1] Drive
                        [tooltip: Amount of distortion]",
                        0, 0, 1, 0.01));
-//   offset = slider_group(vslider("[2] Offset [style: knob]
-   offset = slider_group(hslider("[2] Offset
+   offset = cnl_group(hslider("[2] Offset
                        [tooltip: Brings in even harmonics]",
                        0, 0, 1, 0.01));
 };
