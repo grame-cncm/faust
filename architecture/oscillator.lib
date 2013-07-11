@@ -338,20 +338,16 @@ oscw = oscwc;
 oscrs_demo = signal with { 
   osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs 
     [tooltip: Sine oscillator based on 2D vector rotation]",x);
-  knob_group(x)  = osc_group(hgroup("[1]", x));
-//  ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] 
-  ampdb  = knob_group(hslider("[1] Amplitude [unit:dB]
+  ampdb  = osc_group(hslider("[1] Amplitude [unit:dB]
     [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
   amp = ampdb : db2linear : smooth(0.999);
-  freq = knob_group(
-//  vslider("[2] Frequency [unit:PK] [style:knob] 
+  freq = osc_group(
   hslider("[2] Frequency [unit:PK]
      [tooltip: Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)]",
      49,1,88,0.01) : pianokey2hz);
   pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // (also defined in effect.lib)
-  portamento = knob_group(
-//    vslider("[3] Portamento [unit:sec] [style:knob] 
+  portamento = osc_group(
     hslider("[3] Portamento [unit:sec]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
       0.1,0,1,0.001));
