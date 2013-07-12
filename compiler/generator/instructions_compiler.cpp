@@ -112,7 +112,7 @@ void InstructionsCompiler::sharingAnalysis(Tree t)
 
 void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 {
-	Tree	c, x, y, z;
+	Tree c, x, y, z;
 
 	//cerr << "START sharing annotation of " << *sig << endl;
 	int count = getSharingCount(sig);

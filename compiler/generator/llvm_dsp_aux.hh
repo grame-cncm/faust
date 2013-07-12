@@ -125,6 +125,8 @@ class llvm_dsp_factory {
             const char* input_name, const char* input, char* error_msg);
             
         void Init();
+        
+        static int gInstance;
                    
   public:
   

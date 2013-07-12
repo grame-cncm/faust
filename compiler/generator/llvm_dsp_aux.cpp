@@ -24,12 +24,16 @@
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
 
+#include <llvm/Support/Threading.h>
+
 #if defined(LLVM_33)
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Support/system_error.h>
 #endif
+
+int llvm_dsp_factory::gInstance = 0;
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
@@ -123,6 +127,12 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, const char *argv[],
                                     const std::string& target, 
                                     char* error_msg, int opt_level)
 {
+    if (llvm_dsp_factory::gInstance++ == 0) {
+        if (!llvm_start_multithreaded()) {
+            printf("llvm_start_multithreaded error...\n");
+        }
+    }
+
     fOptLevel = opt_level;
     fTarget = target;
     Init();
@@ -315,6 +325,10 @@ llvm_dsp_factory::~llvm_dsp_factory()
     if (fResult) {
         delete fResult->fContext;
         free(fResult);
+    }
+    
+    if (--llvm_dsp_factory::gInstance == 0) {
+        llvm_stop_multithreaded();
     }
 }
 
