@@ -32,13 +32,23 @@
     return YES;
 }
 
+// Fast switch testing
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    return YES;
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application
 {
      [self.mainViewController saveGui];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
-{}
+{
+#ifdef JACK_IOS
+    [_mainViewController closeJackView];
+#endif
+}
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {

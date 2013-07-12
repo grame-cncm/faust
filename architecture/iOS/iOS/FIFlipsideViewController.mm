@@ -65,6 +65,15 @@
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i", _bufferSize];
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
+    
+#ifdef JACK_IOS
+    // Test Jack
+    if ([((FIMainViewController*)self.delegate) isJackAudio])
+    {
+        [self disableAudioWidgets];
+    }
+    
+#endif
 }
 
 - (void)viewDidUnload
@@ -278,6 +287,22 @@
     }
     
     return 256;
+}
+
+- (void)disableAudioWidgets
+{
+    _sampleRateSlider.enabled = NO;
+    _sampleRateLabel.enabled = NO;
+    _bufferSizeSlider.enabled = NO;
+    _bufferSizeLabel.enabled = NO;
+}
+
+- (void)enableAudioWidgets
+{
+    _sampleRateSlider.enabled = YES;
+    _sampleRateLabel.enabled = YES;
+    _bufferSizeSlider.enabled = YES;
+    _bufferSizeLabel.enabled = YES;
 }
 
 @end

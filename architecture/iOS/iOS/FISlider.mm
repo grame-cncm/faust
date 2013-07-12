@@ -140,7 +140,7 @@
 	CGPoint touchPosition = [touch locationInView:self];
 	CGFloat handleOrigin;
 	CGFloat valueInternal = (self.value - self.min) / (self.max - self.min);
-    
+        
     self.motionBlocked = YES;
     
 	if (self.isHorizontalSlider)

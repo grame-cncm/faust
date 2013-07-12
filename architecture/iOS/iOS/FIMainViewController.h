@@ -24,7 +24,13 @@
 #import "FIScrollView.h"
 #import "FISensorFilter.h"
 
-//#define JACK_IOS 1
+
+
+#ifdef JACK_IOS
+#import "JackView.h"
+#endif
+
+
 
 using namespace std;
 class uiCocoaItem;
@@ -79,6 +85,16 @@ class uiBox;
     const   char*                       _name;
     
     BOOL                                _openPanelChanged;
+    
+
+#ifdef JACK_IOS
+    // Test Jack
+    UISwipeGestureRecognizer*           _swipeRecognizer;
+    UITapGestureRecognizer*             _tapRecognizerToDismissJackView;
+    UIButton*                           _jackButton;
+    JackView*                           _jackView;
+    BOOL                                _orientationIsChanging;
+#endif
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -95,6 +111,7 @@ class uiBox;
 - (BOOL)openJack;
 - (BOOL)checkJack;
 - (void)closeJack:(const char*)reason;
+- (BOOL)isJackAudio;
 #endif
 
 - (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate;
@@ -127,5 +144,12 @@ class uiBox;
 - (void)updateMotion;
 - (void)endBlockShake;
 - (NSString*)urlForWidget:(uiCocoaItem*)widget;
+
+#ifdef JACK_IOS
+// Test Jack
+- (void)openJackView;
+- (void)closeJackView;
+- (void)autoResizeJackViews;
+#endif
 
 @end

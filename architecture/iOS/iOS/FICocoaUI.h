@@ -78,6 +78,9 @@ class uiBox;
 #define kAssignationAccelZ              3
 #define kAssignationShake               4
 #define kAssignationCompass             5
+#define kAssignationGyroX               6
+#define kAssignationGyroY               7
+#define kAssignationGyroZ               8
 
 // Current layout mode
 #define kHorizontalLayout               0
@@ -771,7 +774,7 @@ class uiButton : public uiCocoaItem
 public:
     
     FIButton*                       fButton;
-    UILongPressGestureRecognizer*   fLongPressGesture;
+    //UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
     : uiCocoaItem(ui, zone, controller, name)
@@ -786,15 +789,15 @@ public:
         fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         [controller.dspView addSubview:fButton];
         
-        fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
-        fLongPressGesture.delegate = controller;
-		[fButton addGestureRecognizer:fLongPressGesture];
+        //fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
+        //fLongPressGesture.delegate = controller;
+		//[fButton addGestureRecognizer:fLongPressGesture];
     }
     
     ~uiButton()
     {
         [fButton release];
-        [fLongPressGesture release];
+        //[fLongPressGesture release];
     }
 
     BOOL isHExpandable()
@@ -809,14 +812,14 @@ public:
     
     void enableLongPressGestureRecognizer(BOOL enable)
     {
-        if (enable)
+        /*if (enable)
         {
             [fButton addGestureRecognizer:fLongPressGesture];
         }
         else
         {
             [fButton removeGestureRecognizer:fLongPressGesture];
-        }
+        }*/
     }
     
     void setFrame(float x, float y, float w, float h)
