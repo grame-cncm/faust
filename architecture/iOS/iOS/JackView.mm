@@ -476,6 +476,7 @@
         _midiOutputsScrollView.hidden = YES;
     }
     
+    [self showHideScrollViews];
     [self setNeedsDisplay];
 }
 
@@ -492,6 +493,7 @@
         _midiOutputsScrollView.hidden = NO;
     }
     
+    [self showHideScrollViews];
     [self setNeedsDisplay];
 }
 
@@ -946,6 +948,8 @@
         selected = [self isClient:((JackViewButton*)([buttons objectAtIndex:i])).jackViewClient connectedToCurrentClientInputOutput:2 audioMidi:2];
         ((JackViewButton*)([buttons objectAtIndex:i])).selected = selected;
     }
+    
+    [self showHideScrollViews];
     
     // Free memory
     jack_free(ports);
@@ -1431,6 +1435,8 @@ connectedWithPort:(NSString*)portName2
 {
     UIBezierPath* path = [UIBezierPath bezierPath];
     CGPoint pt;
+    UIFont* font = [UIFont systemFontOfSize:11.0f];
+    NSString* str = nil;
     
     [[UIColor colorWithWhite:0.8 alpha:0.95] set];
     
@@ -1445,10 +1451,79 @@ connectedWithPort:(NSString*)portName2
     [[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-in" ofType:@"png"]] drawAtPoint:CGPointMake(kJackViewExtHMargins, 0)];
     [[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"jackview-out" ofType:@"png"]] drawAtPoint:CGPointMake(rect.origin.x + rect.size.width - 75 - kJackViewExtHMargins, 0)];
     
-    // Sections
-    [[UIColor colorWithWhite:0. alpha:0.6] set];
+    // Left section
+    //   Input(s)
+    if (!_audioInputsScrollView.hidden
+        || !_midiInputsScrollView.hidden)
+    {
+        [path removeAllPoints];
+        [[UIColor colorWithWhite:0. alpha:0.6] set];
+        [path moveToPoint:CGPointMake(0, kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
+        [path addLineToPoint:CGPointMake(rect.size.width / 2., kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
+        [path stroke];
+        
+        [[UIColor blackColor] set];
+        pt = CGPointMake(currentClientButton.frame.origin.x,
+                         kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins);
+        [path removeAllPoints];
+        [path moveToPoint:CGPointMake(pt.x - 8, pt.y - 2.5)];
+        [path addLineToPoint:CGPointMake(pt.x + 2, pt.y)];
+        [path addLineToPoint:CGPointMake(pt.x - 8, pt.y + 2.5)];
+        [path closePath];
+        [path fill];
+    }
     
-    [path removeAllPoints];
+    //   No input
+    else
+    {
+        if (self.audioButton.selected) str = @"no audio input";
+        else str = @"no midi input";
+        pt = CGPointMake((float)kJackViewExtHMargins,
+                         (float)(kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins));
+        [[UIColor blackColor] set];
+        [str drawAtPoint:pt
+                withFont:font];
+    }
+    
+    
+    // Right section
+    //   Output(s)
+    if (!_audioInputsScrollView.hidden
+        || !_midiInputsScrollView.hidden)
+    {
+        [path removeAllPoints];
+        [[UIColor colorWithWhite:0. alpha:0.6] set];
+        [path moveToPoint:CGPointMake(rect.size.width / 2., kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
+        [path addLineToPoint:CGPointMake(rect.size.width, kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
+        [path stroke];
+        
+        [[UIColor blackColor] set];
+        pt = CGPointMake(currentClientButton.frame.origin.x + currentClientButton.frame.size.width + 10,
+                         kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins);
+        [path removeAllPoints];
+        [path moveToPoint:CGPointMake(pt.x - 11, pt.y - 2.5)];
+        [path addLineToPoint:CGPointMake(pt.x - 1, pt.y)];
+        [path addLineToPoint:CGPointMake(pt.x - 11, pt.y + 2.5)];
+        [path closePath];
+        [path fill];
+    }
+    
+    //   No output
+    else
+    {
+        if (self.audioButton.selected) str = @"no audio output";
+        else str = @"no midi output";
+        CGSize stringBoundingBox = [str sizeWithFont:font];
+        pt = CGPointMake(self.frame.size.width - stringBoundingBox.width - kJackViewExtHMargins,
+                         kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins);
+        [[UIColor blackColor] set];
+        [str drawAtPoint:pt
+                withFont:font];
+    }
+    
+    // Right section
+    
+    /*[path removeAllPoints];
     [path moveToPoint:CGPointMake(0, kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
     [path addLineToPoint:CGPointMake(rect.size.width, kJackViewExtTopVMargins + kJackViewButtonWidth / 2. + kJackViewIconMargins)];
     [path stroke];
@@ -1471,7 +1546,7 @@ connectedWithPort:(NSString*)portName2
     [path addLineToPoint:CGPointMake(pt.x - 1, pt.y)];
     [path addLineToPoint:CGPointMake(pt.x - 11, pt.y + 2.5)];
     [path closePath];
-    [path fill];
+    [path fill];*/
 }
 
 - (int)numberOfCurrentAppPortsWithInputOutput:(int)inputOutput
@@ -1579,6 +1654,24 @@ connectedWithPort:(NSString*)portName2
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     [self dismissPortsView];
+}
+
+- (void)showHideScrollViews
+{
+    if (self.audioButton.selected)
+    {
+        _audioInputsScrollView.hidden = ![self hasCurrentClientCompatiblePortWithInputOutput:1 audioMidi:1];
+        _audioOutputsScrollView.hidden = ![self hasCurrentClientCompatiblePortWithInputOutput:2 audioMidi:1];
+        _midiInputsScrollView.hidden = YES;
+        _midiOutputsScrollView.hidden = YES;
+    }
+    else if (self.midiButton.selected)
+    {
+        _audioInputsScrollView.hidden = YES;
+        _audioOutputsScrollView.hidden = YES;
+        _midiInputsScrollView.hidden = ![self hasCurrentClientCompatiblePortWithInputOutput:1 audioMidi:2];
+        _midiOutputsScrollView.hidden = ![self hasCurrentClientCompatiblePortWithInputOutput:2 audioMidi:2];
+    }
 }
 
 @end

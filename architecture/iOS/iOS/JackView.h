@@ -158,4 +158,6 @@ connectedWithPort:(NSString*)portName2;
 
 - (void)fsToClient;
 
+- (void)showHideScrollViews;
+
 @end
