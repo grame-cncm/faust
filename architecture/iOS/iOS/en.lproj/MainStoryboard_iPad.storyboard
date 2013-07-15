@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="3084" systemVersion="12D78" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="2">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="3084" systemVersion="12E55" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="2">
     <dependencies>
         <deployment defaultVersion="1552" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="2083"/>
@@ -72,7 +72,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="WJX-8A-ivY">
-                                        <rect key="frame" x="354" y="129" width="79" height="27"/>
+                                        <rect key="frame" x="115" y="129" width="79" height="27"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                         <connections>
                                             <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="ccK-Dh-aui"/>
@@ -206,6 +206,20 @@
                                         <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                    <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="jPy-h5-RhB">
+                                        <rect key="frame" x="356" y="129" width="79" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="pPJ-QT-Kfw"/>
+                                        </connections>
+                                    </switch>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Filtered" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="rey-Sy-gI5">
+                                        <rect key="frame" x="259" y="129" width="90" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.75" colorSpace="calibratedRGB"/>
                             </view>
@@ -226,6 +240,7 @@
                         <outlet property="_dspView" destination="doz-xe-PRv" id="hey-J9-4L0"/>
                         <outlet property="_gLabel" destination="zFp-SI-iQf" id="PXU-NI-jpI"/>
                         <outlet property="_gyroAxisSegmentedControl" destination="Run-yt-9bc" id="VuE-Q7-yT1"/>
+                        <outlet property="_gyroFilteredSwitch" destination="jPy-h5-RhB" id="nRE-YQ-44z"/>
                         <outlet property="_gyroInvertedSwitch" destination="WJX-8A-ivY" id="ahf-N3-EsY"/>
                         <outlet property="_gyroInvertedTitleLabel" destination="MNy-AK-j5v" id="4cV-rD-hqg"/>
                         <outlet property="_gyroSensibilityLabel" destination="euO-NB-r62" id="F5h-nM-CT6"/>
@@ -383,6 +398,7 @@
                 <relationship kind="outlet" name="_dspView" candidateClass="UIView"/>
                 <relationship kind="outlet" name="_gLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="_gyroAxisSegmentedControl" candidateClass="UISegmentedControl"/>
+                <relationship kind="outlet" name="_gyroFilteredSwitch" candidateClass="UISwitch"/>
                 <relationship kind="outlet" name="_gyroInvertedSwitch" candidateClass="UISwitch"/>
                 <relationship kind="outlet" name="_gyroInvertedTitleLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="_gyroSensibilityLabel" candidateClass="UILabel"/>

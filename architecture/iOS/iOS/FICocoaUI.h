@@ -160,6 +160,7 @@ protected:
     float                   fAssignationRefPointX;
     float                   fAssignationRefPointY;
     BOOL                    fAssignationInverse;
+    BOOL                    fAssignationFiltered;
     float                   fAssignationSensibility;
     float                   fR;
     float                   fG;
@@ -176,6 +177,7 @@ public:
         fAssignationRefPointX = 0.;
         fAssignationRefPointY = 0.;
         fAssignationInverse = false;
+        fAssignationFiltered = false;
         fAssignationSensibility = 1.;
         fR = 0.f;
         fG = 0.f;
@@ -246,7 +248,10 @@ public:
     
     BOOL getAssignationInverse()                                    {return fAssignationInverse;}
     void setAssignationInverse(BOOL assignationInverse)             {fAssignationInverse = assignationInverse;}
-    
+
+    BOOL getAssignationFiltered()                                   {return fAssignationFiltered;}
+    void setAssignationFiltered(BOOL assignationFiltered)           {fAssignationFiltered = assignationFiltered;}
+
     float getAssignationSensibility()                               {return fAssignationSensibility;}
     void setAssignationSensibility(float assignationSensibility)    {fAssignationSensibility = assignationSensibility;}
 

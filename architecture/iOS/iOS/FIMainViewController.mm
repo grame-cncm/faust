@@ -247,13 +247,16 @@ error:
 // Save widgets values
 - (void)closeJack:(const char*)reason 
 {
-    
     NSString* errorString = [[NSString alloc] initWithCString:reason encoding:NSASCIIStringEncoding];
-    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
-                                                        message:errorString delegate:self
-                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    [alertView show];
-    [alertView release];
+    
+    if ([errorString compare:@"Client closed from JACK server!"] != NSOrderedSame)
+    {
+        UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                            message:errorString delegate:self
+                                                  cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alertView show];
+        [alertView release];
+    }
 
     [self closeAudio];
 }
@@ -832,7 +835,9 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+#ifdef JACK_IOS
     [self closeJackView];
+#endif
 }
 
 // Function called just after scroll view scrolled
@@ -854,8 +859,10 @@ T findCorrespondingUiItem(FIResponder* sender)
 // User just double tapped somewhere in the DSP view
 - (void)doubleTap
 {
+#ifdef JACK_IOS
     // Test Jack
     [self closeJackView];
+#endif
     
     uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
 
@@ -1053,6 +1060,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
         
         _gyroInvertedSwitch.hidden = NO;
+        _gyroFilteredSwitch.hidden = NO;
         _gyroInvertedTitleLabel.hidden = NO;
         _gyroSensibilityLabel.hidden = NO;
         _gyroSensibilitySlider.hidden = NO;
@@ -1070,6 +1078,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Shk" atIndex:1 animated:NO];
             
             _gyroInvertedSwitch.hidden = YES;
+            _gyroFilteredSwitch.hidden = YES;
             _gyroInvertedTitleLabel.hidden = YES;
             _gyroSensibilityLabel.hidden = YES;
             _gyroSensibilitySlider.hidden = YES;
@@ -1096,8 +1105,10 @@ T findCorrespondingUiItem(FIResponder* sender)
     [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];	
     
     [[_dspView.window layer] addAnimation:animation forKey:@"ShowWidgetPreferences"];
-    
+ 
+#ifdef JACK_IOS
     [self closeJackView];
+#endif
 }
 
 // Display right values for parameters
@@ -1107,7 +1118,8 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (dynamic_cast<uiKnob*>(_selectedWidget)
         || dynamic_cast<uiSlider*>(_selectedWidget))
     {
-        if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
+        if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
+        else if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelY) _gyroAxisSegmentedControl.selectedSegmentIndex = 2;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelZ) _gyroAxisSegmentedControl.selectedSegmentIndex = 3;
         else if (_selectedWidget->getAssignationType() == kAssignationGyroX) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
@@ -1130,6 +1142,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Common parameters for all types
     _gyroInvertedSwitch.on = _selectedWidget->getAssignationInverse();
+    _gyroFilteredSwitch.on = _selectedWidget->getAssignationFiltered();
     _gyroSensibilitySlider.value = _selectedWidget->getAssignationSensibility();
     _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getAssignationSensibility()];
     _colorRSlider.value = _selectedWidget->getR();
@@ -1239,6 +1252,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Write parameters in the widget object
     _selectedWidget->setAssignationInverse(_gyroInvertedSwitch.on);
+    _selectedWidget->setAssignationFiltered(_gyroFilteredSwitch.on);
     _selectedWidget->setAssignationSensibility(_gyroSensibilitySlider.value);
     _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _gyroSensibilitySlider.value];
     
@@ -1278,7 +1292,10 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() forKey:key];
-    
+
+    key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:_selectedWidget]];
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationFiltered() forKey:key];
+
     key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationSensibility() forKey:key];
     
@@ -1329,6 +1346,8 @@ T findCorrespondingUiItem(FIResponder* sender)
             (*i)->setAssignationType([[NSUserDefaults standardUserDefaults] integerForKey:key]);
             key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:(*i)]];
             (*i)->setAssignationInverse([[NSUserDefaults standardUserDefaults] boolForKey:key]);
+            key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:(*i)]];
+            (*i)->setAssignationFiltered([[NSUserDefaults standardUserDefaults] boolForKey:key]);
             key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:(*i)]];
             (*i)->setAssignationSensibility([[NSUserDefaults standardUserDefaults] floatForKey:key]);
             if ((*i)->getAssignationSensibility() == 0.) (*i)->setAssignationSensibility(1.);
@@ -1443,27 +1462,33 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationType() == kAssignationAccelX)
             {
-                coef = _sensorFilter.xAccel * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.x * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelY)
             {
-                coef = -_sensorFilter.yAccel * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = -_sensorFilter.yAccel * (*i)->getAssignationSensibility();
+                else coef = -_motionManager.accelerometerData.acceleration.y * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelZ)
             {
-                coef = _sensorFilter.zAccel * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.z * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroX)
             {
-                coef = _sensorFilter.xGyro * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.x * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroY)
             {
-                coef = _sensorFilter.yGyro * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.y * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroZ)
             {
-                coef = _sensorFilter.zGyro * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.z * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {
