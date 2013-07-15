@@ -332,7 +332,6 @@ OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID
     return CreateAggregateDeviceAux(captureDeviceIDArray, playbackDeviceIDArray, samplerate, outAggregateDevice);
 }
 
-
 OSStatus TCoreAudioRenderer::SRNotificationCallback(AudioDeviceID inDevice,
                                                     UInt32 /*inChannel*/,
                                                     Boolean	/*isInput*/,
@@ -798,7 +797,6 @@ OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
     return noErr;
 }
 
-
 int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int samplerate)
 {
 	OSStatus err = noErr;
@@ -844,14 +842,8 @@ int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int buffe
     err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyBufferFrameSize, outSize, &bufferSize);
     if (err != noErr) {
         printf("Cannot set buffer size %ld\n", bufferSize);
-        err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
-        if (err != noErr) {
-            printf("Cannot get buffer size %ld\n", bufferSize);
-            printError(err);
-            return OPEN_ERR;
-        } else {
-            //printf("Use fixed buffer size %ld\n", bufferSize);
-        }
+        printError(err);
+        return OPEN_ERR;
     }
 
     // Setting sample rate
