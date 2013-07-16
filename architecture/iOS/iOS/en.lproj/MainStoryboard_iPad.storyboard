@@ -72,8 +72,8 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="WJX-8A-ivY">
-                                        <rect key="frame" x="115" y="129" width="79" height="27"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                        <rect key="frame" x="82" y="129" width="79" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <connections>
                                             <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="ccK-Dh-aui"/>
                                         </connections>
@@ -207,14 +207,14 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="jPy-h5-RhB">
-                                        <rect key="frame" x="356" y="129" width="79" height="27"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                        <rect key="frame" x="246" y="129" width="79" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <connections>
                                             <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="pPJ-QT-Kfw"/>
                                         </connections>
                                     </switch>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Filtered" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="rey-Sy-gI5">
-                                        <rect key="frame" x="259" y="129" width="90" height="27"/>
+                                        <rect key="frame" x="186" y="129" width="90" height="27"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                         <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
@@ -385,6 +385,7 @@
             <relationships>
                 <relationship kind="action" name="dismissWidgetPreferencesView:"/>
                 <relationship kind="action" name="resetWidgetPreferences:"/>
+                <relationship kind="action" name="togglePopover:"/>
                 <relationship kind="action" name="widgetPreferencesChanged:"/>
                 <relationship kind="outlet" name="_bLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="_colorBLabel" candidateClass="UILabel"/>
