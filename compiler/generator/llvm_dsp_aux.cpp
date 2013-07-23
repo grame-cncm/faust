@@ -31,6 +31,9 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Support/system_error.h>
+#include <llvm/ADT/Triple.h>
+#include <llvm/Target/TargetLibraryInfo.h>
+#include <llvm/Support/TargetRegistry.h>
 #endif
 
 int llvm_dsp_factory::gInstance = 0;
@@ -160,6 +163,205 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     assert(fJIT);
     return new llvm_dsp_aux(this, fNew());
 }
+
+#if defined(LLVM_33)
+
+static void AddStandardCompilePasses(PassManagerBase &PM) 
+{
+  PM.add(createVerifierPass());  // Verify that input is correct
+
+  // -std-compile-opts adds the same module passes as -O3.
+  PassManagerBuilder Builder;
+  Builder.Inliner = createFunctionInliningPass();
+  Builder.OptLevel = 3;
+  Builder.DisableSimplifyLibCalls = false;
+  Builder.populateModulePassManager(PM);
+}
+
+/// AddOptimizationPasses - This routine adds optimization passes
+/// based on selected optimization level, OptLevel. This routine
+/// duplicates llvm-gcc behaviour.
+///
+/// OptLevel - Optimization Level
+static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
+                                    unsigned OptLevel, unsigned SizeLevel) 
+{
+    FPM.add(createVerifierPass());                  // Verify that input is correct
+
+    PassManagerBuilder Builder;
+    Builder.OptLevel = OptLevel;
+    Builder.SizeLevel = SizeLevel;
+
+    if (OptLevel > 1) {
+        unsigned Threshold = 225;
+        if (SizeLevel == 1)      // -Os
+            Threshold = 75;
+        else if (SizeLevel == 2) // -Oz
+            Threshold = 25;
+        if (OptLevel > 2)
+            Threshold = 275;
+        Builder.Inliner = createFunctionInliningPass(Threshold);
+    } else {
+        Builder.Inliner = createAlwaysInlinerPass();
+    }
+      
+    //Builder.DisableUnitAtATime = !UnitAtATime;
+    Builder.DisableUnrollLoops = OptLevel == 0;
+    Builder.DisableSimplifyLibCalls = false;
+      
+    if (OptLevel > 3) {
+        printf("Vectorize\n");
+        Builder.LoopVectorize = true;
+        Builder.SLPVectorize = true;
+        // Builder.BBVectorize = true;
+    }
+     
+    Builder.populateFunctionPassManager(FPM);
+    Builder.populateModulePassManager(MPM);
+}
+
+bool llvm_dsp_factory::initJIT(char* error_msg)
+{
+    // First check is Faust compilation succeeded... (valid LLVM module)
+    if (!fResult || !fResult->fModule) {
+        return false;
+    }
+    
+    InitializeAllTargets();
+    InitializeAllTargetMCs();
+  
+    InitializeNativeTarget();
+    InitializeNativeTargetAsmPrinter();
+    InitializeNativeTargetAsmParser();
+
+    // Initialize passes
+    PassRegistry &Registry = *PassRegistry::getPassRegistry();
+    initializeCore(Registry);
+    initializeScalarOpts(Registry);
+    initializeObjCARCOpts(Registry);
+    initializeVectorization(Registry);
+    initializeIPO(Registry);
+    initializeAnalysis(Registry);
+    initializeIPA(Registry);
+    initializeTransformUtils(Registry);
+    initializeInstCombine(Registry);
+    initializeInstrumentation(Registry);
+    initializeTarget(Registry);
+    
+    std::string err;
+    // Link with "scheduler" code
+    if (fScheduler) {
+        Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
+        if (scheduler) {
+            if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
+                snprintf(error_msg, 256, "Cannot link scheduler module : %s", err.c_str());
+                delete scheduler;
+                return false;
+            } else {
+                delete scheduler;
+            }
+        } else {
+            strncpy(error_msg, "File scheduler.ll not found...", 256);
+            return false;
+        }
+    }
+    
+    if (fTarget != "") {
+        fResult->fModule->setTargetTriple(fTarget);
+    } else {
+        fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+    }
+
+    EngineBuilder builder(fResult->fModule);
+    builder.setOptLevel(CodeGenOpt::Aggressive);
+    builder.setEngineKind(EngineKind::JIT);
+    // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
+    builder.setUseMCJIT(true);
+    //builder.setUseMCJIT(false);
+    builder.setCodeModel(CodeModel::JITDefault);
+    builder.setMCPU(llvm::sys::getHostCPUName());
+    
+    printf("getHostCPUName %s\n", llvm::sys::getHostCPUName().c_str());
+    
+    TargetOptions targetOptions;
+    targetOptions.NoFramePointerElim = true;
+    targetOptions.LessPreciseFPMADOption = true;
+    targetOptions.UnsafeFPMath = true;
+    targetOptions.NoInfsFPMath = true;
+    targetOptions.NoNaNsFPMath = true;
+    targetOptions.GuaranteedTailCallOpt = true;
+    
+    builder.setTargetOptions(targetOptions);
+    
+    TargetMachine* tm = builder.selectTarget();
+    
+    fJIT = builder.create(tm);
+    if (!fJIT) {
+        return false;
+    }
+    
+    // Run static constructors.
+    fJIT->runStaticConstructorsDestructors(false);
+    fJIT->DisableLazyCompilation(true);
+    
+    fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
+    
+    PassManager pm;
+    FunctionPassManager fpm(fResult->fModule);
+  
+    // Add an appropriate TargetLibraryInfo pass for the module's triple.
+    TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
+    pm.add(tli);
+    
+    const std::string &ModuleDataLayout = fResult->fModule->getDataLayout();
+    DataLayout* td = new DataLayout(ModuleDataLayout);
+    pm.add(td);
+  
+    // Add internal analysis passes from the target machine (mandatory for vectorization to work)
+    tm->addAnalysisPasses(pm);
+    
+    AddStandardCompilePasses(pm);
+    AddOptimizationPasses(pm, fpm, fOptLevel, 0);
+    
+    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+    
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+        fResult->fModule->dump();
+    }
+   
+    fpm.doInitialization();
+    for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
+        fpm.run(*F);
+    }
+    fpm.doFinalization();
+    
+    pm.add(createVerifierPass());
+    
+    // Now that we have all of the passes ready, run them.
+    pm.run(*fResult->fModule);
+    
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+        fResult->fModule->dump();
+    }
+    
+    try {
+        fNew = (newDspFun)LoadOptimize("new_mydsp");
+        fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
+        fInit = (initFun)LoadOptimize("init_mydsp");
+        fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
+        fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
+        fCompute = (computeFun)LoadOptimize("compute_mydsp");
+        fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
+        return true;
+    } catch (...) { // Module does not contain the Faust entry points...
+        return false;
+    }
+}
+
+#else
 
 bool llvm_dsp_factory::initJIT(char* error_msg)
 {
@@ -313,6 +515,8 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
         return false;
     }
 }
+
+#endif
 
 llvm_dsp_factory::~llvm_dsp_factory()
 {
