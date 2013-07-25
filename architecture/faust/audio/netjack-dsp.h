@@ -44,7 +44,6 @@
 
 class netjackaudio : public audio
 {
-
         dsp* fDsp;
         jack_net_slave_t* fNet;
         int fCelt;
@@ -52,9 +51,25 @@ class netjackaudio : public audio
         int fMasterPort;
         int fLatency;
 
-        static void net_shutdown(void *) 
+    #ifdef RESTART_CB_API
+        static int net_restart(void* arg) 
         {
             printf("Network failure, restart...\n");
+            return 0;
+        }
+    #else 
+        static void net_shutdown(void* arg) 
+        {
+            printf("Network failure, restart...\n");
+        }
+    #endif
+        
+        static int net_sample_rate(jack_nframes_t nframes, void* arg) 
+        {
+            netjackaudio* obj = (netjackaudio*)arg;
+            printf("New sample rate = %ld\n", nframes);
+            obj->fDsp->init(nframes);
+            return 0;
         }
 
         static int net_process(jack_nframes_t buffer_size,
@@ -76,7 +91,7 @@ class netjackaudio : public audio
     public:
 
         netjackaudio(int celt, const std::string master_ip, int master_port, int latency = 2)
-            : fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
+            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
         {}
 
         bool init(const char* name, dsp* DSP) {
@@ -99,7 +114,12 @@ class netjackaudio : public audio
             }
 
             jack_set_net_slave_process_callback(fNet, net_process, this);
-            jack_set_net_slave_shutdown_callback(fNet, net_shutdown, 0);
+        #ifdef RESTART_CB_API
+            jack_set_net_slave_restart_callback(fNet, net_restart, this);
+        #else
+            jack_set_net_slave_shutdown_callback(fNet, net_shutdown, this);
+        #endif
+            jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
 
             fDsp->init(result.sample_rate);
             return true;

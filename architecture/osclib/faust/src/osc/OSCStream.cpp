@@ -28,7 +28,7 @@ namespace oscfaust
 {
 
 OSCStream* _oscout = 0;				// OSC standard output stream
-OSCStream* _oscerr = 0;				// OSC standard input stream
+OSCStream* _oscerr = 0;				// OSC standard error stream
 
 static UdpSocket* _socket = 0;		// a shared transmit socket
 
@@ -86,6 +86,17 @@ OSCStream& OSCStream::end()
 		fState = kIdle;
 	}
 	return *this;
+}
+
+//--------------------------------------------------------------------------
+void OSCStream::send(unsigned long ipdest, int port)
+{
+	if (state() == kInProgress) {
+		stream() << osc::EndMessage;
+		if (fSocket) 
+			fSocket->SendTo (IpEndpointName (ipdest, port), stream().Data(), stream().Size() );
+		fState = kIdle;
+	}
 }
 
 //--------------------------------------------------------------------------

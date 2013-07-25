@@ -76,6 +76,13 @@
     [self setNeedsDisplay];
 }
 
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (self.type == kToggleButtonType) self.value = 1.f - self.value;
+    else if (self.type == kPushButtonType) self.value = 0.f;
+    [self setNeedsDisplay];
+}
+
 #pragma mark -
 #pragma mark Drawing
 
@@ -85,7 +92,7 @@
 	CGRect boundsRect = self.bounds;
 	const CGFloat* colorComponents = CGColorGetComponents(self.color.CGColor);
 	UIColor* backgroundColor;
-
+    
     // Tab buttons in gray
     if (self.type == kTabItemButtonType)
     {

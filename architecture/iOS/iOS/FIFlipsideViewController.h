@@ -58,4 +58,7 @@
 - (int)bufferSizeToSliderValue:(int)bufferSize;
 - (int)sliderValueToBufferSize:(int)sliderValue;
 
+- (void)disableAudioWidgets;
+- (void)enableAudioWidgets;
+
 @end

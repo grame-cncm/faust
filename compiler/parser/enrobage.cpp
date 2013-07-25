@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include "compatibility.hh"
 #include "sourcefetcher.hh"
+#include <errno.h>
 #include <climits>
 
 extern string gFaustSuperSuperDirectory;
@@ -312,17 +313,23 @@ bool check_url(const char* filename)
     char* fileBuf = 0;
      
     // Tries to open as a http URL
-    if (http_fetch(filename, &fileBuf) != -1) {
-        return true;
+    if (strstr(filename, "://") > 0) {
+        if (http_fetch(filename, &fileBuf) != -1) {
+            return true;
+        } else {
+            cerr << "ERROR : unable to access URL '" << filename << "' : " << http_strerror() << "; for help type \"faust --help\"" << endl;
+            return false;
+        }
     } else {
         // Otherwise tries to open as a regular file
         FILE* f = fopen(filename, "r");
-        if (f == NULL) {
-            fprintf(stderr, "faust: "); perror(filename);
-        } else {
+        if (f) {
             fclose(f);
+            return true;
+        } else {
+            cerr << "ERROR : cannot open file '" << filename << "' : " <<  strerror(errno) << "; for help type \"faust --help\"" << endl;
+            return false;
         }
-        return f != NULL;
     }
 }
 
@@ -332,11 +339,11 @@ bool check_url(const char* filename)
  */
 static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
 {
-	int 		err; 
-    char        olddirbuffer[FAUST_PATH_MAX];
-    char        newdirbuffer[FAUST_PATH_MAX];
+	int err; 
+    char olddirbuffer[FAUST_PATH_MAX];
+    char newdirbuffer[FAUST_PATH_MAX];
     
-    char* 		olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
 
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
@@ -365,11 +372,12 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
  */
 static FILE* fopenat(string& fullpath, const string& dir, const char* path, const char* filename)
 {
-	int			err;
-    char        olddirbuffer[FAUST_PATH_MAX];
-    char        newdirbuffer[FAUST_PATH_MAX];
+    int	err;
+    char olddirbuffer[FAUST_PATH_MAX];
+    char newdirbuffer[FAUST_PATH_MAX];
     
-    char* 		olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    
     if (chdir(dir.c_str()) == 0) {
         if (chdir(path) == 0) {            
             FILE* f = fopen(filename, "r");
@@ -407,7 +415,7 @@ static bool isAbsolutePathname(const string& filename)
  */
 static void buildFullPathname(string& fullpath, const char* filename)
 {
-	char	old[FAUST_PATH_MAX];
+	char old[FAUST_PATH_MAX];
 
 	if (isAbsolutePathname(filename)) {
 		fullpath = filename;
