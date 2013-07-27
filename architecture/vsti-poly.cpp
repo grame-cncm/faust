@@ -148,8 +148,16 @@ using namespace std ;
 struct Meta : std::map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key] = value; }
-};
-	
+		
+		const char* get(const char* key, const char* defaultString) {
+			if (this->find(key) != this->end()) {
+				return (*this)[key];
+			}
+			else {
+				return defaultString;
+			}
+		} // end of get
+}; // end of Meta
 
 // abs is now predefined
 //template<typename T> T abs (T a) { return (a<T(0)) ? -a : a; }
@@ -362,15 +370,22 @@ void Faust::getProgramName(char *name)
 
 //----------------------------------------------------------------------------
 void Faust::getParameterLabel(VstInt32 index, char *label)
-{
-  // We are not using parameter "units" display:
-  vst_strncpy (label, "", kVstMaxParamStrLen); // parameter units in Name
-}
+{	
+	const char* unit = "";
+	if (index < numParams) {
+		 unit = m_dspUI->getControlMetadata(index, "unit", "");
+	}
+
+	vst_strncpy (label, unit, kVstMaxParamStrLen); // parameter units in Name
+
+	TRACE( fprintf(stderr, "Called getParameterLabel for parameter %d, returning %s\n",
+								 index, label) );
+} // end of getParameterLabel
 
 //----------------------------------------------------------------------------
 void Faust::getParameterDisplay(VstInt32 index, char *text)
 {
-  if(index<numParams) {
+  if(index < numParams) {
     m_dspUI->GetDisplay(index,text); // get displayed float value as text
 	}
   else {
@@ -381,11 +396,12 @@ void Faust::getParameterDisplay(VstInt32 index, char *text)
 //----------------------------------------------------------------------------
 void Faust::getParameterName(VstInt32 index, char *label)
 {
-  if(index<numParams)
+  if(index < numParams) {
     m_dspUI->GetName(index,label); // parameter name, including units
-  else
+	} else {
     vst_strncpy (label, "IndexOutOfRange", kVstMaxParamStrLen);
-}
+	}
+} // end of getParamterName
 
 //--------------------
 
@@ -479,13 +495,7 @@ const char* Faust::getMetadata(const char* key, const char* defaultString)
 {
 	Meta meta;
 	mydsp::metadata(&meta);
-
-	if (meta.find(key) != meta.end()) {
-		return meta[key];
-	}
-	else {
-		return defaultString;
-	}
+	return meta.get(key, defaultString);
 } // end of getMetadata
 
 //-----------------------------------------------------------------------------
