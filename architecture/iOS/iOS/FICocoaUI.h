@@ -2059,6 +2059,9 @@ public:
                      || strcmp(key,"gyroz") == 0
                      || strcmp(key,"compass") == 0)
             {
+                float sensibility = 1.f;
+                bool filtered = true;
+                                   
                 if (strcmp(key,"accx") == 0) fAssignationType[zone] = kAssignationAccelX;
                 else if (strcmp(key,"accy") == 0) fAssignationType[zone] = kAssignationAccelY;
                 else if (strcmp(key,"accz") == 0) fAssignationType[zone] = kAssignationAccelZ;
@@ -2069,8 +2072,22 @@ public:
 
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];
-                float sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                bool filtered = [((NSString*)[arr objectAtIndex:1]) boolValue];
+                
+                if ([arr count] == 0)
+                {
+                    sensibility = 1.f;
+                    filtered = true;
+                }
+                else if ([arr count] == 1)
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    filtered = true;
+                }
+                else
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    filtered = [((NSString*)[arr objectAtIndex:1]) boolValue];
+                }
                 
                 if (sensibility < 0.)
                 {
