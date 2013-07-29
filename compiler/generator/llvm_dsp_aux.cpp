@@ -281,8 +281,6 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     builder.setCodeModel(CodeModel::JITDefault);
     builder.setMCPU(llvm::sys::getHostCPUName());
     
-    printf("getHostCPUName %s\n", llvm::sys::getHostCPUName().c_str());
-    
     TargetOptions targetOptions;
     targetOptions.NoFramePointerElim = true;
     targetOptions.LessPreciseFPMADOption = true;
@@ -320,8 +318,10 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     // Add internal analysis passes from the target machine (mandatory for vectorization to work)
     tm->addAnalysisPasses(pm);
     
-    AddStandardCompilePasses(pm);
-    AddOptimizationPasses(pm, fpm, fOptLevel, 0);
+    if (fOptLevel > 0) {
+        AddStandardCompilePasses(pm);
+        AddOptimizationPasses(pm, fpm, fOptLevel, 0);
+    }
     
     string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
     
@@ -392,7 +392,8 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     //builder.setUseMCJIT(true);
     builder.setUseMCJIT(false);
     builder.setMCPU(llvm::sys::getHostCPUName());
-    
+ 
+       
 #ifndef LLVM_30
     TargetMachine* tm = builder.selectTarget();
 #endif

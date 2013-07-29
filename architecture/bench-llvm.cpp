@@ -75,7 +75,7 @@ using namespace std;
 #endif
 
 #define KSKIP 20
-#define KMESURE 600
+#define KMESURE 20000
 
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #include <mach/thread_policy.h>
@@ -345,10 +345,31 @@ class FaustLLVMOptimizer {
         {
             // Scalar mode
             vector <string> t0;
-            fOptionsTable.push_back(t0);
+            //fOptionsTable.push_back(t0);
             
             fMeasure = 0;
             
+            /*
+            stringstream num;
+            num << 32;
+            vector <string> t1;
+            t1.push_back("-sch");
+            t1.push_back("-vs");
+            t1.push_back(num.str());
+            fOptionsTable.push_back(t1);
+            */
+            
+            stringstream num;
+            num << 512;
+            vector <string> t1;
+            t1.push_back("-vec");
+            t1.push_back("-lv");
+            t1.push_back("1");
+            t1.push_back("-vs");
+            t1.push_back(num.str());
+            fOptionsTable.push_back(t1);
+            
+            /*
             // vec -lv 0
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -374,6 +395,7 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
+            */
             
             /*
             // vec -lv 0 -dfs
@@ -468,6 +490,7 @@ class FaustLLVMOptimizer {
                 return fOptionsTable[0];
             }
         }
+    
         
         const char* getError() { return fError; }
         
@@ -475,6 +498,8 @@ class FaustLLVMOptimizer {
         {
             vector <string> item = fOptionsTable[index];
             
+            int opt_level = 4;
+    
             if (fInput == "") { 
             
                 int argc = item.size() + 1;
@@ -484,7 +509,7 @@ class FaustLLVMOptimizer {
                     argv[i + 1] = item[i].c_str();
                 }
             
-                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", "", fTarget, fError, 3);
+                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", "", fTarget, fError, opt_level);
                 
             } else {
                 
@@ -494,7 +519,7 @@ class FaustLLVMOptimizer {
                     argv[i] = item[i].c_str();
                 }
                 
-                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", fInput, fTarget, fError, 3);
+                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", fInput, fTarget, fError, opt_level);
             }
             
             if (!fFactory)  {
