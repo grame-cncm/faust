@@ -189,11 +189,9 @@ void JAVACodeContainer::produceClass()
         
         // Inits
         tab(n+1, *fOut); *fOut << "public void classInit(int samplingFreq) {";
-            if (fStaticInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fStaticInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);

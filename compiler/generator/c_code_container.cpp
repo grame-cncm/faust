@@ -241,13 +241,11 @@ void CCodeContainer::produceClass()
     // Inits
     //tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "classInit" << fKlassName << "(int samplingFreq) {";
-        if (fStaticInitInstructions->fCode.size() > 0) {
-            tab(n+1, *fOut);
-            // Local visitor here
-            CInstVisitor codeproducer(fOut, "");
-            codeproducer.Tab(n+1);
-            fStaticInitInstructions->accept(&codeproducer);
-        }
+        tab(n+1, *fOut);
+        // Local visitor here
+        CInstVisitor codeproducer(fOut, "");
+        codeproducer.Tab(n+1);
+        generateStaticInit(&codeproducer);
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);

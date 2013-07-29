@@ -105,6 +105,9 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         *dst << "======= Static Init ==========" << std::endl;
         *dst << std::endl;
         fStaticInitInstructions->accept(&firvisitor);
+        if (fPostStaticInitInstructions->fCode.size() > 0) {
+            fPostStaticInitInstructions->accept(&firvisitor);
+        }
         *dst << std::endl;
     }
 
