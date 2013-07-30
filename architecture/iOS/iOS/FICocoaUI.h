@@ -1905,6 +1905,11 @@ public:
         if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
         if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+        if (fAssignationOffset[zone])
+        {
+            item->setInitAssignationRefPointX(0.);
+            item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+        }
         
         insert(label, item);
     }
@@ -1920,6 +1925,11 @@ public:
         if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
         if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+        if (fAssignationOffset[zone])
+        {
+            item->setInitAssignationRefPointX(0.);
+            item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+        }
         
         insert(label, item);
     }
@@ -1941,6 +1951,11 @@ public:
             if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
             if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+            if (fAssignationOffset[zone])
+            {
+                item->setInitAssignationRefPointX(0.);
+                item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+            }
             
             insert(label, item);
         }
