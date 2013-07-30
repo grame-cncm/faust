@@ -166,18 +166,6 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 
 #if defined(LLVM_33)
 
-static void AddStandardCompilePasses(PassManagerBase &PM) 
-{
-  PM.add(createVerifierPass());  // Verify that input is correct
-
-  // -std-compile-opts adds the same module passes as -O3.
-  PassManagerBuilder Builder;
-  Builder.Inliner = createFunctionInliningPass();
-  Builder.OptLevel = 3;
-  Builder.DisableSimplifyLibCalls = false;
-  Builder.populateModulePassManager(PM);
-}
-
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
 /// duplicates llvm-gcc behaviour.
@@ -194,26 +182,29 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
 
     if (OptLevel > 1) {
         unsigned Threshold = 225;
-        if (SizeLevel == 1)      // -Os
+        if (SizeLevel == 1) {           // -Os
             Threshold = 75;
-        else if (SizeLevel == 2) // -Oz
+        } else if (SizeLevel == 2) {    // -Oz
             Threshold = 25;
-        if (OptLevel > 2)
+        }
+        if (OptLevel > 2) {
             Threshold = 275;
+        }
         Builder.Inliner = createFunctionInliningPass(Threshold);
     } else {
         Builder.Inliner = createAlwaysInlinerPass();
     }
       
-    //Builder.DisableUnitAtATime = !UnitAtATime;
     Builder.DisableUnrollLoops = OptLevel == 0;
     Builder.DisableSimplifyLibCalls = false;
       
     if (OptLevel > 3) {
-        printf("Vectorize\n");
         Builder.LoopVectorize = true;
         Builder.SLPVectorize = true;
-        // Builder.BBVectorize = true;
+        
+    }
+    if (OptLevel > 4) {
+        Builder.BBVectorize = true;
     }
      
     Builder.populateFunctionPassManager(FPM);
@@ -319,7 +310,6 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     tm->addAnalysisPasses(pm);
     
     if (fOptLevel > 0) {
-        AddStandardCompilePasses(pm);
         AddOptimizationPasses(pm, fpm, fOptLevel, 0);
     }
     
@@ -377,7 +367,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     if (fTarget != "") {
          fResult->fModule->setTargetTriple(fTarget);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
+    #if defined(LLVM_31) || defined(LLVM_32) 
         fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     #else
         fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
@@ -419,7 +409,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     fJIT->runStaticConstructorsDestructors(false);
     
     fJIT->DisableLazyCompilation(true);
-#if defined(LLVM_32) || defined(LLVM_33)
+#if defined(LLVM_32) 
     fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
@@ -429,7 +419,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     // target lays out data structures.
     PassManager pm;
     FunctionPassManager fpm(fResult->fModule);
-#if defined(LLVM_32) || defined(LLVM_33)   
+#if defined(LLVM_32)    
     // TODO
 #else
     pm.add(new TargetData(*fJIT->getTargetData()));
@@ -470,12 +460,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     // We use '4' to activate de auto-vectorizer
     if (fOptLevel > 3) {
     
-    #if defined(LLVM_33)
-        printf("Vectorize\n");
-        Builder.LoopVectorize = true;
-        Builder.SLPVectorize = true;
-        Builder.BBVectorize = true;
-    #elif defined(LLVM_32) 
+    #if defined(LLVM_32) 
         printf("Vectorize\n");
         Builder.LoopVectorize = true;
         //Builder.Vectorize = true;
