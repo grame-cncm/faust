@@ -77,7 +77,7 @@ install :
 	mkdir -p $(prefix)/lib/faust
 	install compiler/faust $(prefix)/bin/
 	install compiler/libfaust.a $(prefix)/lib/faust
-	[ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust || echo libfaust.$(LIB_EXT) not available
+	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust) || echo libfaust.$(LIB_EXT) not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-c-dsp.h  $(prefix)/include/faust/
@@ -101,7 +101,8 @@ install :
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/
 	# install additional binary libraries (osc, http,...)
-	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
+	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available
+	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
 	cp architecture/osclib/*.a $(prefix)/lib/faust/
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/

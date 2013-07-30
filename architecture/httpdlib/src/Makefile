@@ -32,7 +32,7 @@ $(target) : $(objects)
 
 ifeq ($(system), Darwin)
 libHTTPDFaust.dylib  :  $(objects)
-	libtool -dynamic $(objects) -lc -lstdc++ -L/opt/local/lib -lmicrohttpd.10 -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o libHTTPDFaust.dylib
+	libtool -dynamic $(objects) -lc -lstdc++ -L/opt/local/lib -lmicrohttpd.10 -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o ../libHTTPDFaust.dylib
 endif	
 	
 depend :
