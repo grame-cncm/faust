@@ -199,7 +199,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error);
+    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error, 4);
     
     if (factory) {
         return factory;
@@ -337,7 +337,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // Read bitcode size key
-    err = dictionary_getlong(d, gensym("bitcode_size"), &fBitCodeSize); 
+    err = dictionary_getlong(d, gensym("bitcode_size"), (t_atom_long*)&fBitCodeSize); 
     if (err != MAX_ERR_NONE) {
         fBitCodeSize = 0;
         goto read_sourcecode;
@@ -355,7 +355,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
 read_sourcecode:    
 
     // Read sourcecode size key
-    err = dictionary_getlong(d, gensym("sourcecode_size"), &fSourceCodeSize); 
+    err = dictionary_getlong(d, gensym("sourcecode_size"), (t_atom_long*)&fSourceCodeSize); 
     if (err != MAX_ERR_NONE) {
         goto default_sourcecode;
     }
@@ -576,14 +576,14 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     // No filename, so open load dialog
     if (s == gensym("")) {
         filename[0] = 0;
-        if (open_dialog(filename, &path, &type, &type, 1)) {
+        if (open_dialog(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file not found");
             return;
         }
     // Otherwise locate the file
     } else {
         strcpy(filename, s->s_name);
-        if (locatefile_extended(filename, &path, &type, &type, 1)) {
+        if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found", filename);
             return;
         }
@@ -602,7 +602,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     // Free the memory allocated for fBitCode
     free_bitcode();
 
-    err = sysfile_readtextfile(fh, fSourceCode, 0, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
+    err = sysfile_readtextfile(fh, fSourceCode, 0, (t_sysfile_text_flags)(TEXT_LB_UNIX | TEXT_NULL_TERMINATE));
     if (err) {
         post("Faust DSP file '%s' cannot be read", filename);
     }
@@ -641,7 +641,7 @@ void faustgen_factory::write(long inlet, t_symbol* s)
     // Otherwise locate or create the file
     } else {
         strcpy(filename, s->s_name);
-        if (locatefile_extended(filename, &path, &type, &type, 1)) {
+        if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found, so tries to create it", filename);
             err = path_createsysfile(filename, path, type, &fh);
             if (err) {
@@ -657,7 +657,7 @@ void faustgen_factory::write(long inlet, t_symbol* s)
         }
     }
     
-    err = sysfile_writetextfile(fh, fSourceCode, TEXT_LB_UNIX | TEXT_NULL_TERMINATE);
+    err = sysfile_writetextfile(fh, fSourceCode, (t_sysfile_text_flags)(TEXT_LB_UNIX | TEXT_NULL_TERMINATE));
     if (err) {
         post("Faust DSP file '%s' cannot be written", filename);
     }
