@@ -257,31 +257,37 @@ public:
     virtual void setSelected(BOOL selected)                             {fSelected = selected;}
 
     int getInitAssignationType()                                        {return fInitAssignationType;}
-    void setInitAssignationType(int assignationType)                    {fInitAssignationType = assignationType;}
+    void setInitAssignationType(int assignationType)                    {fInitAssignationType = assignationType; setAssignationType(assignationType);}
 
     int getAssignationType()                                            {return fAssignationType;}
     virtual void setAssignationType(int assignationType)                {fAssignationType = assignationType;}
-    
+
+    float getInitAssignationRefPointX()                                 {return fInitAssignationRefPointX;}
+    void setInitAssignationRefPointX(float assignationRefPointX)        {fInitAssignationRefPointX = assignationRefPointX; setAssignationRefPointX(assignationRefPointX);}
+
     float getAssignationRefPointX()                                     {return fAssignationRefPointX;}
     void setAssignationRefPointX(float assignationRefPointX)            {fAssignationRefPointX = assignationRefPointX;}
     
+    float getInitAssignationRefPointY()                                 {return fInitAssignationRefPointY;}
+    void setInitAssignationRefPointY(float assignationRefPointY)        {fInitAssignationRefPointY = assignationRefPointY; setAssignationRefPointY(assignationRefPointY);}
+
     float getAssignationRefPointY()                                     {return fAssignationRefPointY;}
     void setAssignationRefPointY(float assignationRefPointY)            {fAssignationRefPointY = assignationRefPointY;}
 
     BOOL getInitAssignationInverse()                                    {return fInitAssignationInverse;}
-    void setInitAssignationInverse(BOOL assignationInverse)             {fInitAssignationInverse = assignationInverse;}
+    void setInitAssignationInverse(BOOL assignationInverse)             {fInitAssignationInverse = assignationInverse; setAssignationInverse(assignationInverse);}
 
     BOOL getAssignationInverse()                                        {return fAssignationInverse;}
     void setAssignationInverse(BOOL assignationInverse)                 {fAssignationInverse = assignationInverse;}
 
     BOOL getInitAssignationFiltered()                                   {return fInitAssignationFiltered;}
-    void setInitAssignationFiltered(BOOL assignationFiltered)           {fInitAssignationFiltered = assignationFiltered;}
+    void setInitAssignationFiltered(BOOL assignationFiltered)           {fInitAssignationFiltered = assignationFiltered; setAssignationFiltered(assignationFiltered);}
 
     BOOL getAssignationFiltered()                                       {return fAssignationFiltered;}
     void setAssignationFiltered(BOOL assignationFiltered)               {fAssignationFiltered = assignationFiltered;}
 
     float getInitAssignationSensibility()                               {return fInitAssignationSensibility;}
-    void setInitAssignationSensibility(float assignationSensibility)    {fInitAssignationSensibility = assignationSensibility;}
+    void setInitAssignationSensibility(float assignationSensibility)    {fInitAssignationSensibility = assignationSensibility; setAssignationSensibility(assignationSensibility);}
 
     float getAssignationSensibility()                                   {return fAssignationSensibility;}
     void setAssignationSensibility(float assignationSensibility)        {fAssignationSensibility = assignationSensibility;}
@@ -289,11 +295,7 @@ public:
     float getInitR()                                                    {return fInitR;}
     float getInitG()                                                    {return fInitG;}
     float getInitB()                                                    {return fInitB;}
-    virtual void setInitColor(float r, float g, float b)
-    {
-        fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);
-        NSLog(@"COL %f %f %f", r, g, b);
-    }
+    virtual void setInitColor(float r, float g, float b)                {fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);}
 
     float getR()                                                        {return fR;}
     float getG()                                                        {return fG;}
@@ -1141,6 +1143,7 @@ private:
     map<float*, bool>               fAssignationFiltered;
     map<float*, float>              fAssignationSensibility;
     map<float*, bool>               fAssignationInverse;
+    map<float*, float>              fAssignationOffset;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
@@ -1960,6 +1963,11 @@ public:
             if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
             if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+            if (fAssignationOffset[zone])
+            {
+                item->setInitAssignationRefPointX(0.);
+                item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+            }
             
             insert(label, item);
         }
@@ -2061,6 +2069,7 @@ public:
             {
                 float sensibility = 1.f;
                 bool filtered = true;
+                float offset = 0.f;
                                    
                 if (strcmp(key,"accx") == 0) fAssignationType[zone] = kAssignationAccelX;
                 else if (strcmp(key,"accy") == 0) fAssignationType[zone] = kAssignationAccelY;
@@ -2076,17 +2085,26 @@ public:
                 if ([arr count] == 0)
                 {
                     sensibility = 1.f;
+                    offset = 0.f;
                     filtered = true;
                 }
                 else if ([arr count] == 1)
                 {
                     sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    offset = 0.f;
+                    filtered = true;
+                }
+                else if ([arr count] == 2)
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    offset = [((NSString*)[arr objectAtIndex:1]) floatValue];
                     filtered = true;
                 }
                 else
                 {
                     sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    filtered = [((NSString*)[arr objectAtIndex:1]) boolValue];
+                    offset = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    filtered = [((NSString*)[arr objectAtIndex:2]) boolValue];
                 }
                 
                 if (sensibility < 0.)
@@ -2100,7 +2118,8 @@ public:
                     fAssignationInverse[zone] = false;
                 }
                 
-                fAssignationFiltered[zone] = filtered;
+                fAssignationOffset[zone] = offset;
+                fAssignationFiltered[zone] = filtered;                
             }
             
 		}

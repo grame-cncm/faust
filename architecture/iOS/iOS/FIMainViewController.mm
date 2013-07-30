@@ -460,10 +460,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                     slider->setAssignationRefPointX(0.f);
                     slider->setAssignationRefPointY(slider->getAssignationRefPointY() * 360.f - _locationManager.heading.trueHeading);
                 }
-                else if (slider->getAssignationType() == kAssignationGyroX) slider->setAssignationRefPointX(0./*_motionManager.gyroData.rotationRate.x*/);
+                else if (slider->getAssignationType() == kAssignationGyroX) slider->setAssignationRefPointX(0.);
                 else if (slider->getAssignationType() == kAssignationGyroY) slider->setAssignationRefPointX(0.);
                 else if (slider->getAssignationType() == kAssignationGyroZ) slider->setAssignationRefPointX(0.);
-                
+                                
                 NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointX() + 1000. forKey:key];
                 
@@ -1368,12 +1368,12 @@ T findCorrespondingUiItem(FIResponder* sender)
             key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointX(floatValue - 1000.);
-            else (*i)->setAssignationRefPointX(0.);
+            else (*i)->setAssignationRefPointX((*i)->getInitAssignationRefPointX());
             
             key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointY(floatValue - 1000.);
-            else (*i)->setAssignationRefPointY(0.);
+            else (*i)->setAssignationRefPointY((*i)->getInitAssignationRefPointY());
             
             // Color
             key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
