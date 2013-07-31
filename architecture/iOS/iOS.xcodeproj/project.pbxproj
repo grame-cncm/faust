@@ -168,8 +168,8 @@
 		4B04365016E9E9AD00C0C02A /* Icon-Output136.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output136.png"; sourceTree = "<group>"; };
 		4B04365116E9E9AD00C0C02A /* Icon-Output@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output@2x.png"; sourceTree = "<group>"; };
 		4B06ECAF16E77D6A004D2F59 /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4B4AB48A16FDF0FC0066E1CA /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
-		4B4AB48C16FDF0FC0066E1CA /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		4B4AB48A16FDF0FC0066E1CA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		4B4AB48C16FDF0FC0066E1CA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
 		4BB0480516EA01EC00C0677C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -793,7 +793,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = JACK_IOS;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)\"";
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)\"",
+					../,
+				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_LDFLAGS = "";
@@ -813,7 +816,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = JACK_IOS;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)\"";
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)\"",
+					../,
+				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_LDFLAGS = "";
@@ -890,7 +896,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
-				HEADER_SEARCH_PATHS = /usr/local/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = "";
@@ -906,7 +915,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
-				HEADER_SEARCH_PATHS = /usr/local/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = "";
