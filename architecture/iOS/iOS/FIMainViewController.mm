@@ -1574,12 +1574,76 @@ T findCorrespondingUiItem(FIResponder* sender)
             //a = sign * (*i)->getAssignationSensibility() /*/ 2.*/; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
             //b = (*i)->getAssignationRefPointY();
             
-            a = sign * (*i)->getAssignationSensibility();
+            // CASE 1: two curves
+            float scale;
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                scale = (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                scale = (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
+            }
+            float x1 = 0.;
+            float y1 = 0.;
+            float x2 = 0.;
+            float y2 = 0.;
+            float va = sign * coef * (*i)->getAssignationSensibility();    // Accelerometer value
+            float la = -1. * (*i)->getAssignationSensibility();     // Down accelerometer limit
+            float ha = 1. * (*i)->getAssignationSensibility();      // Top accelerometer limit
+            float x = (*i)->getAssignationRefPointX() * (*i)->getAssignationSensibility(); // ref point x
+            float y = (*i)->getAssignationRefPointY() * scale; // ref point y
+            float ls; // Down slider limit
+            float hs; // TOp slider limit
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                ls = dynamic_cast<uiKnob*>(*i)->fKnob.min;
+                hs = dynamic_cast<uiKnob*>(*i)->fKnob.max;
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                ls = dynamic_cast<uiSlider*>(*i)->fSlider.min;
+                hs = dynamic_cast<uiSlider*>(*i)->fSlider.max;
+            }
+            
+            if (va <= x)
+            {
+                x1 = la;
+                x2 = x;
+                y1 = ls;
+                y2 = y;
+                a = (y2 - y1) / (x2 - x1);
+                b = y1 - a * x1;
+                value = a * va + b;
+            }
+            else if (va > x)
+            {
+                x1 = x;
+                x2 = ha;
+                y1 = y;
+                y2 = hs;
+                a = (y2 - y1) / (x2 - x1);
+                b = y1 - a * x1;
+                value = a * va + b;
+            }
+
+            if (x1 == x2) a = 0.;
+            else a = (y2 - y1) / (x2 - x1);
+            b = y1 - a * x1;
+            value = a * va + b;
+            
+            /*NSLog(@"va %f", va);
+            NSLog(@"la %f - ha %f - x %f - y %f - ls %f - hs %f", la, ha, x, y, ls, hs);
+            NSLog(@"%f %f %f %f", x1, x2, y1, y2);
+            NSLog(@"%f %f", a, b);*/
+            
+            // CASE 2: simple offset
+            /*a = sign * (*i)->getAssignationSensibility();
             b = (*i)->getAssignationRefPointY() - a * (*i)->getAssignationRefPointX();
             
-            value = a * coef + b;
+            value = a * coef + b;*/
             
-            if (dynamic_cast<uiKnob*>(*i))
+            /*if (dynamic_cast<uiKnob*>(*i))
             {
                 value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
             }
@@ -1602,8 +1666,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                     if (dynamic_cast<uiButton*>(*i)->fButton.value == 1) value = 0;
                     else if (dynamic_cast<uiButton*>(*i)->fButton.value == 0) value = 1;
                 }
-            }
+            }*/
 
+            //NSLog(@"VALUE %f", value);
+            
             (*i)->modifyZone(value);
             (*i)->reflectZone();
             
