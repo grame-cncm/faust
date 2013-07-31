@@ -401,7 +401,6 @@
             <relationships>
                 <relationship kind="action" name="dismissWidgetPreferencesView:"/>
                 <relationship kind="action" name="resetWidgetPreferences:"/>
-                <relationship kind="action" name="togglePopover:"/>
                 <relationship kind="action" name="widgetPreferencesChanged:"/>
                 <relationship kind="outlet" name="_bLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="_colorBLabel" candidateClass="UILabel"/>
