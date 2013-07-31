@@ -156,10 +156,21 @@ protected:
     float                   fAbstractW;
     float                   fAbstractH;
     BOOL                    fSelected;
+    
+    int                     fInitAssignationType;
+    float                   fInitAssignationRefPointX;
+    float                   fInitAssignationRefPointY;
+    BOOL                    fInitAssignationInverse;
+    BOOL                    fInitAssignationFiltered;
+    float                   fInitAssignationSensibility;
+    float                   fInitR;
+    float                   fInitG;
+    float                   fInitB;
     int                     fAssignationType;
     float                   fAssignationRefPointX;
     float                   fAssignationRefPointY;
     BOOL                    fAssignationInverse;
+    BOOL                    fAssignationFiltered;
     float                   fAssignationSensibility;
     float                   fR;
     float                   fG;
@@ -172,14 +183,15 @@ public:
     // Default widget parameter
     void resetParameters()
     {
-        fAssignationType = kAssignationNone;
-        fAssignationRefPointX = 0.;
-        fAssignationRefPointY = 0.;
-        fAssignationInverse = false;
-        fAssignationSensibility = 1.;
-        fR = 0.f;
-        fG = 0.f;
-        fB = 1.f;
+        fAssignationType = fInitAssignationType;
+        fAssignationRefPointX = fInitAssignationRefPointX;
+        fAssignationRefPointY = fInitAssignationRefPointY;
+        fAssignationInverse = fInitAssignationInverse;
+        fAssignationFiltered = fInitAssignationFiltered;
+        fAssignationSensibility = fInitAssignationSensibility;
+        fR = fInitR;
+        fG = fInitG;
+        fB = fInitB;
     }
     
     // Constructor / Destuctor
@@ -199,6 +211,15 @@ public:
         fAbstractH = 0.f;
         resetParameters();
         fSelected = false;
+        fInitAssignationType = kAssignationNone;
+        fInitAssignationRefPointX = 0.f;
+        fInitAssignationRefPointY = 0.f;
+        fInitAssignationInverse = false;
+        fInitAssignationFiltered = false;
+        fInitAssignationSensibility = 1.;
+        fInitR = 0.f;
+        fInitG = 0.f;
+        fInitB = 1.f;
     }
     
     ~uiCocoaItem()
@@ -206,55 +227,80 @@ public:
         [fName release];
     }
         
-    // Getters, setters
-    NSString* getName()                                             {return fName;}
+    // Getters, setters 
+    NSString* getName()                                                 {return fName;}
     
     virtual void setHidden(BOOL hidden) = 0;
-    BOOL isHidden()                                                 {return fHidden;}
+    BOOL isHidden()                                                     {return fHidden;}
     virtual BOOL isHExpandable() = 0;
     virtual BOOL isVExpandable() = 0;
     
     virtual void enableLongPressGestureRecognizer(BOOL enable) = 0;
     
-    float getX()                                                    {return fx;}
-    float getY()                                                    {return fy;}
-    float getW()                                                    {return fw;}
-    float getH()                                                    {return fh;}
-    virtual void setFrame(float x, float y, float w, float h)       {fx = x; fy = y; fw = w; fh = h;}
+    float getX()                                                        {return fx;}
+    float getY()                                                        {return fy;}
+    float getW()                                                        {return fw;}
+    float getH()                                                        {return fh;}
+    virtual void setFrame(float x, float y, float w, float h)           {fx = x; fy = y; fw = w; fh = h;}
     
-    float getAbstractX()                                            {return fAbstractX;}
-    float getAbstractY()                                            {return fAbstractY;}
-    float getAbstractW()                                            {return fAbstractW;}
-    float getAbstractH()                                            {return fAbstractH;}
-    void setAbstractFrame(float x, float y, float w, float h)       {fAbstractX = x; fAbstractY = y; fAbstractW = w; fAbstractH = h;}
+    float getAbstractX()                                                {return fAbstractX;}
+    float getAbstractY()                                                {return fAbstractY;}
+    float getAbstractW()                                                {return fAbstractW;}
+    float getAbstractH()                                                {return fAbstractH;}
+    void setAbstractFrame(float x, float y, float w, float h)           {fAbstractX = x; fAbstractY = y; fAbstractW = w; fAbstractH = h;}
     
-    void setParent(uiCocoaItem* parent)                             {fParent = parent;}
+    void setParent(uiCocoaItem* parent)                                 {fParent = parent;}
     
-    uiCocoaItem* getParent()                                        {return fParent;}
+    uiCocoaItem* getParent()                                            {return fParent;}
     
-    BOOL isSelected()                                               {return fSelected;}
-    virtual void setSelected(BOOL selected)                         {fSelected = selected;}
-    
-    int getAssignationType()                                        {return fAssignationType;}
-    virtual void setAssignationType(int assignationType)            {fAssignationType = assignationType;}
-    
-    float getAssignationRefPointX()                                 {return fAssignationRefPointX;}
-    void setAssignationRefPointX(float assignationRefPointX)        {fAssignationRefPointX = assignationRefPointX;}
-    
-    float getAssignationRefPointY()                                 {return fAssignationRefPointY;}
-    void setAssignationRefPointY(float assignationRefPointY)        {fAssignationRefPointY = assignationRefPointY;}
-    
-    BOOL getAssignationInverse()                                    {return fAssignationInverse;}
-    void setAssignationInverse(BOOL assignationInverse)             {fAssignationInverse = assignationInverse;}
-    
-    float getAssignationSensibility()                               {return fAssignationSensibility;}
-    void setAssignationSensibility(float assignationSensibility)    {fAssignationSensibility = assignationSensibility;}
+    BOOL isSelected()                                                   {return fSelected;}
+    virtual void setSelected(BOOL selected)                             {fSelected = selected;}
 
+    int getInitAssignationType()                                        {return fInitAssignationType;}
+    void setInitAssignationType(int assignationType)                    {fInitAssignationType = assignationType; setAssignationType(assignationType);}
+
+    int getAssignationType()                                            {return fAssignationType;}
+    virtual void setAssignationType(int assignationType)                {fAssignationType = assignationType;}
+
+    float getInitAssignationRefPointX()                                 {return fInitAssignationRefPointX;}
+    void setInitAssignationRefPointX(float assignationRefPointX)        {fInitAssignationRefPointX = assignationRefPointX; setAssignationRefPointX(assignationRefPointX);}
+
+    float getAssignationRefPointX()                                     {return fAssignationRefPointX;}
+    void setAssignationRefPointX(float assignationRefPointX)            {fAssignationRefPointX = assignationRefPointX;}
     
-    float getR()                                                    {return fR;}
-    float getG()                                                    {return fG;}
-    float getB()                                                    {return fB;}
-    virtual void setColor(float r, float g, float b)                {fR = r; fG = g; fB = b;}
+    float getInitAssignationRefPointY()                                 {return fInitAssignationRefPointY;}
+    void setInitAssignationRefPointY(float assignationRefPointY)        {fInitAssignationRefPointY = assignationRefPointY; setAssignationRefPointY(assignationRefPointY);}
+
+    float getAssignationRefPointY()                                     {return fAssignationRefPointY;}
+    void setAssignationRefPointY(float assignationRefPointY)            {fAssignationRefPointY = assignationRefPointY;}
+
+    BOOL getInitAssignationInverse()                                    {return fInitAssignationInverse;}
+    void setInitAssignationInverse(BOOL assignationInverse)             {fInitAssignationInverse = assignationInverse; setAssignationInverse(assignationInverse);}
+
+    BOOL getAssignationInverse()                                        {return fAssignationInverse;}
+    void setAssignationInverse(BOOL assignationInverse)                 {fAssignationInverse = assignationInverse;}
+
+    BOOL getInitAssignationFiltered()                                   {return fInitAssignationFiltered;}
+    void setInitAssignationFiltered(BOOL assignationFiltered)           {fInitAssignationFiltered = assignationFiltered; setAssignationFiltered(assignationFiltered);}
+
+    BOOL getAssignationFiltered()                                       {return fAssignationFiltered;}
+    void setAssignationFiltered(BOOL assignationFiltered)               {fAssignationFiltered = assignationFiltered;}
+
+    float getInitAssignationSensibility()                               {return fInitAssignationSensibility;}
+    void setInitAssignationSensibility(float assignationSensibility)    {fInitAssignationSensibility = assignationSensibility; setAssignationSensibility(assignationSensibility);}
+
+    float getAssignationSensibility()                                   {return fAssignationSensibility;}
+    void setAssignationSensibility(float assignationSensibility)        {fAssignationSensibility = assignationSensibility;}
+
+    float getInitR()                                                    {return fInitR;}
+    float getInitG()                                                    {return fInitG;}
+    float getInitB()                                                    {return fInitB;}
+    virtual void setInitColor(float r, float g, float b)                {fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);}
+
+    float getR()                                                        {return fR;}
+    float getG()                                                        {return fG;}
+    float getB()                                                        {return fB;}
+    virtual void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
 };
 
 
@@ -1090,6 +1136,14 @@ private:
     FIMainViewController*           fViewController;
     MY_Meta*                        fMetadata;
     map<float*, string>             fUnit;
+    map<float*, int>                fR;
+    map<float*, int>                fG;
+    map<float*, int>                fB;
+    map<float*, int>                fAssignationType;
+    map<float*, bool>               fAssignationFiltered;
+    map<float*, float>              fAssignationSensibility;
+    map<float*, bool>               fAssignationInverse;
+    map<float*, float>              fAssignationOffset;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
@@ -1805,7 +1859,7 @@ public:
             fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
         }
                 
-        if (box) parent = dynamic_cast<uiBox*>(box->getParent());    
+        if (box) parent = dynamic_cast<uiBox*>(box->getParent());
     }
     
     //virtual void adjustStack(int n);
@@ -1815,16 +1869,28 @@ public:
     virtual void addButton(const char* label, float* zone)
     {
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kPushButtonType);
+        
+        // Default parameters
+        if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        
         insert(label, item);
     }
     virtual void addToggleButton(const char* label, float* zone)
     {
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kToggleButtonType);
+        
+        // Default parameters
+        if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        
         insert(label, item);
     }
     virtual void addCheckButton(const char* label, float* zone)
     {
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kToggleButtonType);
+        
+        // Default parameters
+        if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        
         insert(label, item);
     }
     virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
@@ -1832,6 +1898,19 @@ public:
         uiCocoaItem* item = new uiKnob(this, fViewController, label, zone, init, min, max, step, false);
         if (dynamic_cast<uiKnob*>(item)->fKnob.suffixe) [dynamic_cast<uiKnob*>(item)->fKnob.suffixe release];
         dynamic_cast<uiKnob*>(item)->fKnob.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
+        
+        // Default parameters
+        if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
+        if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
+        if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
+        if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+        if (fAssignationOffset[zone])
+        {
+            item->setInitAssignationRefPointX(0.);
+            item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+        }
+        
         insert(label, item);
     }
     virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
@@ -1839,6 +1918,19 @@ public:
         uiCocoaItem* item = new uiKnob(this, fViewController, label, zone, init, min, max, step, true);
         if (dynamic_cast<uiKnob*>(item)->fKnob.suffixe) [dynamic_cast<uiKnob*>(item)->fKnob.suffixe release];
         dynamic_cast<uiKnob*>(item)->fKnob.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
+        
+        // Default parameters
+        if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
+        if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
+        if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
+        if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+        if (fAssignationOffset[zone])
+        {
+            item->setInitAssignationRefPointX(0.);
+            item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+        }
+        
         insert(label, item);
     }
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
@@ -1852,6 +1944,19 @@ public:
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
+            
+            // Default parameters
+            if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
+            if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
+            if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
+            if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+            if (fAssignationOffset[zone])
+            {
+                item->setInitAssignationRefPointX(0.);
+                item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+            }
+            
             insert(label, item);
         }
     }
@@ -1866,6 +1971,19 @@ public:
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
+            
+            // Default parameters
+            if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
+            if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
+            if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
+            if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
+            if (fAssignationOffset[zone])
+            {
+                item->setInitAssignationRefPointX(0.);
+                item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
+            }
+            
             insert(label, item);
         }
     }
@@ -1880,6 +1998,10 @@ public:
             uiCocoaItem* item = new uiNumEntry(this, fViewController, label, zone, init, min, max, step);
             if (dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe) [dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe release];
             dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
+            
+            // Default parameters
+            if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            
             insert(label, item);
         }
     }
@@ -1929,7 +2051,7 @@ public:
 			}
 			else if (strcmp(key,"unit") == 0)
             {
-				fUnit[zone] = value ;
+				fUnit[zone] = value;
 			}
 			else if (strcmp(key,"style") == 0)
             {
@@ -1943,6 +2065,78 @@ public:
 					//fLedSet.insert(zone);
 				}
 			}
+            else if (strcmp(key,"color") == 0)
+            {
+                NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+                
+                fR[zone] = (float)[((NSString*)[arr objectAtIndex:0]) integerValue] / 255.f + 1000.;
+                fG[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f + 1000.;
+                fB[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f + 1000.;
+            }
+            else if (strcmp(key,"accx") == 0
+                     || strcmp(key,"accy") == 0
+                     || strcmp(key,"accz") == 0
+                     || strcmp(key,"gyrox") == 0
+                     || strcmp(key,"gyroy") == 0
+                     || strcmp(key,"gyroz") == 0
+                     || strcmp(key,"compass") == 0)
+            {
+                float sensibility = 1.f;
+                bool filtered = true;
+                float offset = 0.f;
+                                   
+                if (strcmp(key,"accx") == 0) fAssignationType[zone] = kAssignationAccelX;
+                else if (strcmp(key,"accy") == 0) fAssignationType[zone] = kAssignationAccelY;
+                else if (strcmp(key,"accz") == 0) fAssignationType[zone] = kAssignationAccelZ;
+                else if (strcmp(key,"gyrox") == 0) fAssignationType[zone] = kAssignationGyroX;
+                else if (strcmp(key,"gyroy") == 0) fAssignationType[zone] = kAssignationGyroY;
+                else if (strcmp(key,"gyroz") == 0) fAssignationType[zone] = kAssignationGyroZ;
+                else if (strcmp(key,"compass") == 0) fAssignationType[zone] = kAssignationCompass;
+
+                NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+                
+                if ([arr count] == 0)
+                {
+                    sensibility = 1.f;
+                    offset = 0.f;
+                    filtered = true;
+                }
+                else if ([arr count] == 1)
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    offset = 0.f;
+                    filtered = true;
+                }
+                else if ([arr count] == 2)
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    offset = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    filtered = true;
+                }
+                else
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    offset = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    filtered = [((NSString*)[arr objectAtIndex:2]) boolValue];
+                }
+                
+                if (sensibility < 0.)
+                {
+                    fAssignationSensibility[zone] = -sensibility;
+                    fAssignationInverse[zone] = true;
+                }
+                else
+                {
+                    fAssignationSensibility[zone] = sensibility;
+                    fAssignationInverse[zone] = false;
+                }
+                
+                fAssignationOffset[zone] = offset;
+                fAssignationFiltered[zone] = filtered;                
+            }
+            
 		}
 	}
     
