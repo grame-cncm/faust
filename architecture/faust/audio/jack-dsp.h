@@ -134,13 +134,14 @@ class jackaudio : public audio {
         // Connect to physical inputs/outputs
         void default_connections()
         {
-            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
+            // To avoid feedback at launch time, don't connect hardware inputs
+            /*char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
             if (physicalOutPorts != NULL) {
                 for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
                     jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInputPorts[i]));
                 }
                 jack_free(physicalOutPorts);
-            }
+            }*/
             
             char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
             if (physicalInPorts != NULL) {
