@@ -468,7 +468,7 @@ T findCorrespondingUiItem(FIResponder* sender)
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointX() + 1000. forKey:key];
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
-                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
+                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];                
             }
             
             // Otherwise normal behaviour
@@ -1369,7 +1369,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointX(floatValue - 1000.);
             else (*i)->setAssignationRefPointX((*i)->getInitAssignationRefPointX());
-            
+                        
             key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointY(floatValue - 1000.);
@@ -1481,33 +1481,33 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationType() == kAssignationAccelX)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel * (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.x * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel;//* (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.x;//* (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelY)
             {
-                if ((*i)->getAssignationFiltered()) coef = -_sensorFilter.yAccel * (*i)->getAssignationSensibility();
-                else coef = -_motionManager.accelerometerData.acceleration.y * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yAccel;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.y;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelZ)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel * (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.z * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.z;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroX)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.x * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.x;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroY)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.y * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.y;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroZ)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.z * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.z;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {
@@ -1533,7 +1533,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationInverse()) sign = -1.;
             else sign = 1.;
-            
+                        
             // Case 1 : the ref point creates 2 line coeficients if sensibility > 1.
             /*
             float                           x1 = 0.;
@@ -1571,11 +1571,14 @@ T findCorrespondingUiItem(FIResponder* sender)
             else*/
             
             // Case 2 : the ref point only moves line offset
-            a = sign * (*i)->getAssignationSensibility() / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
-            b = (*i)->getAssignationRefPointY();
+            //a = sign * (*i)->getAssignationSensibility() /*/ 2.*/; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
+            //b = (*i)->getAssignationRefPointY();
+            
+            a = sign * (*i)->getAssignationSensibility();
+            b = (*i)->getAssignationRefPointY() - a * (*i)->getAssignationRefPointX();
             
             value = a * coef + b;
-
+            
             if (dynamic_cast<uiKnob*>(*i))
             {
                 value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;

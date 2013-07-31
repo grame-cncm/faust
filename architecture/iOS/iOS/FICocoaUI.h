@@ -1143,7 +1143,8 @@ private:
     map<float*, bool>               fAssignationFiltered;
     map<float*, float>              fAssignationSensibility;
     map<float*, bool>               fAssignationInverse;
-    map<float*, float>              fAssignationOffset;
+    map<float*, float>              fAssignationRefPointX;
+    map<float*, float>              fAssignationRefPointY;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
@@ -1905,11 +1906,8 @@ public:
         if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
         if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-        if (fAssignationOffset[zone])
-        {
-            item->setInitAssignationRefPointX(0.);
-            item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
-        }
+        if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
+        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
         
         insert(label, item);
     }
@@ -1925,11 +1923,8 @@ public:
         if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
         if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-        if (fAssignationOffset[zone])
-        {
-            item->setInitAssignationRefPointX(0.);
-            item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
-        }
+        if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
+        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
         
         insert(label, item);
     }
@@ -1951,11 +1946,8 @@ public:
             if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
             if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-            if (fAssignationOffset[zone])
-            {
-                item->setInitAssignationRefPointX(0.);
-                item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
-            }
+            if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
+            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
             
             insert(label, item);
         }
@@ -1978,11 +1970,8 @@ public:
             if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
             if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-            if (fAssignationOffset[zone])
-            {
-                item->setInitAssignationRefPointX(0.);
-                item->setInitAssignationRefPointY((fAssignationOffset[zone] - min) / (max - min));
-            }
+            if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
+            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
             
             insert(label, item);
         }
@@ -2084,7 +2073,8 @@ public:
             {
                 float sensibility = 1.f;
                 bool filtered = true;
-                float offset = 0.f;
+                float refPointX = 0.f;
+                float refPointY = 0.f;
                                    
                 if (strcmp(key,"accx") == 0) fAssignationType[zone] = kAssignationAccelX;
                 else if (strcmp(key,"accy") == 0) fAssignationType[zone] = kAssignationAccelY;
@@ -2100,25 +2090,36 @@ public:
                 if ([arr count] == 0)
                 {
                     sensibility = 1.f;
-                    offset = 0.f;
+                    refPointX = 0.f;
+                    refPointY = 0.f;
                     filtered = true;
                 }
                 else if ([arr count] == 1)
                 {
                     sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    offset = 0.f;
+                    refPointX = 0.f;
+                    refPointY = 0.f;
                     filtered = true;
                 }
                 else if ([arr count] == 2)
                 {
                     sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    offset = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    refPointY = 0.f;
+                    filtered = true;
+                }
+                else if ([arr count] == 3)
+                {
+                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
+                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
                     filtered = true;
                 }
                 else
                 {
                     sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    offset = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
+                    refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
                     filtered = [((NSString*)[arr objectAtIndex:2]) boolValue];
                 }
                 
@@ -2133,7 +2134,8 @@ public:
                     fAssignationInverse[zone] = false;
                 }
                 
-                fAssignationOffset[zone] = offset;
+                fAssignationRefPointX[zone] = refPointX;
+                fAssignationRefPointY[zone] = refPointY;
                 fAssignationFiltered[zone] = filtered;                
             }
             
