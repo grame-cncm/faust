@@ -27,6 +27,7 @@
 #include <llvm/Support/Threading.h>
 
 #if defined(LLVM_33)
+#include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Bitcode/ReaderWriter.h>
@@ -281,7 +282,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     targetOptions.NoInfsFPMath = true;
     targetOptions.NoNaNsFPMath = true;
     targetOptions.GuaranteedTailCallOpt = true;
-    
+     
     string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
     
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
@@ -332,13 +333,17 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     fpm.doFinalization();
     
     pm.add(createVerifierPass());
-    
-    // Now that we have all of the passes ready, run them.
-    pm.run(*fResult->fModule);
-    
+     
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
         fResult->fModule->dump();
     }
+    
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
+        tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
+    }
+    
+    // Now that we have all of the passes ready, run them.
+    pm.run(*fResult->fModule);
     
     try {
         fNew = (newDspFun)LoadOptimize("new_mydsp");

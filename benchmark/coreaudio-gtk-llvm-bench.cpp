@@ -81,7 +81,7 @@ static __inline__ uint64 rdtsc(void)
 }
 
 #define KSKIP 20
-#define KMESURE 600
+#define KMESURE 1000
 
 int mesure = 0;
 
@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
     UI* interface = new GTKUI(argv[0], &argc, &argv);
     
     char error[256];
-    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 4);
+    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 5);
     assert(factory);
     llvm_dsp* dsp = createDSPInstance(factory);
  	

@@ -82,7 +82,7 @@ static __inline__ uint64 rdtsc(void)
 }
 
 #define KSKIP 20
-#define KMESURE 600
+#define KMESURE 1000
 
 int mesure = 0;
 
