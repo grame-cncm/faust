@@ -72,7 +72,17 @@ typedef	UInt8	CAAudioHardwareDeviceSectionID;
 #define	kAudioDeviceSectionGlobal	((CAAudioHardwareDeviceSectionID)0x00)
 #define	kAudioDeviceSectionWildcard	((CAAudioHardwareDeviceSectionID)0xFF)
 
-class TCoreAudioRenderer
+struct TCoreAudioSharedRenderer {
+    static AudioDeviceID fAggregateDeviceID;
+    static AudioObjectID fAggregatePluginID;    // Used for aggregate device
+    static int fAggregateClients;
+};
+
+AudioDeviceID TCoreAudioSharedRenderer::fAggregateDeviceID = -1;
+AudioObjectID TCoreAudioSharedRenderer::fAggregatePluginID = -1;
+int TCoreAudioSharedRenderer::fAggregateClients = 0;
+
+class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 {
     
     protected:
@@ -84,50 +94,49 @@ class TCoreAudioRenderer
         float** fOutChannel;
         
         dsp* fDSP;
-   
-		AudioBufferList* fInputData;
-		AudioDeviceID fDeviceID;
-		AudioUnit fAUHAL;
-        AudioObjectID fPluginID;    // Used for aggregate device
+
+        AudioBufferList* fInputData;
+        AudioDeviceID fDeviceID;
+        AudioUnit fAUHAL;
         bool fState;
 
-		OSStatus GetDefaultDevice(int inChan, int outChan, int samplerate, AudioDeviceID* id);
+        OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& samplerate, AudioDeviceID* id);
 
-        OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice);
-        OSStatus CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice);
+        OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int& samplerate);
+        OSStatus CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int& samplerate);
         OSStatus DestroyAggregateDevice();
 
         OSStatus GetDeviceNameFromID(AudioDeviceID id, char* name);
 
-        int SetupSampleRateAux(AudioDeviceID inDevice, int samplerate);
+        int SetupSampleRateAux(AudioDeviceID inDevice, int& samplerate);
 
-		static OSStatus Render(void *inRefCon,
+        static OSStatus Render(void *inRefCon,
                                AudioUnitRenderActionFlags *ioActionFlags,
                                const AudioTimeStamp *inTimeStamp,
                                UInt32 inBusNumber,
                                UInt32 inNumberFrames,
                                AudioBufferList *ioData);
-    
+
         static OSStatus SRNotificationCallback(AudioDeviceID inDevice,
                                             UInt32 inChannel,
                                             Boolean	isInput,
                                             AudioDevicePropertyID inPropertyID,
                                             void* inClientData);
-    
-        OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
-                        const AudioTimeStamp *inTimeStamp,
-                        UInt32 inNumberFrames,
-                        AudioBufferList *ioData);
+
+        virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
+                                const AudioTimeStamp *inTimeStamp,
+                                UInt32 inNumberFrames,
+                                AudioBufferList *ioData);
     
     public:
 
         TCoreAudioRenderer()
-            :fInputData(0),fDeviceID(0),fAUHAL(0),fPluginID(0),fState(false),fDevNumInChans(0),fDevNumOutChans(0),fDSP(0)
+            :fInputData(0),fDeviceID(0),fAUHAL(0),fState(false),fDevNumInChans(0),fDevNumOutChans(0),fDSP(0)
         {}
         virtual ~TCoreAudioRenderer()
         {}
 
-        int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int sampleRate);
+        int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& sampleRate);
         int Close();
 
         int Start();
@@ -214,6 +223,20 @@ static void printError(OSStatus err)
     }
 }
 
+static Float64 GetNominalSampleRate(AudioDeviceID inDevice) 
+{
+    Float64 sampleRate = 0;
+    UInt32 outSize =  sizeof(Float64);
+    OSStatus err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
+    if (err != noErr) {
+        printf("Cannot get current sample rate\n");
+        printError(err);
+        return -1;
+    } else {
+        return sampleRate;
+    }
+}
+
 OSStatus TCoreAudioRenderer::Render(void *inRefCon,
                                      AudioUnitRenderActionFlags *ioActionFlags,
                                      const AudioTimeStamp *inTimeStamp,
@@ -240,7 +263,6 @@ OSStatus TCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFlags,
 	return 0;
 }
 
-
 static CFStringRef GetDeviceName(AudioDeviceID id)
 {
     UInt32 size = sizeof(CFStringRef);
@@ -255,47 +277,63 @@ OSStatus TCoreAudioRenderer::GetDeviceNameFromID(AudioDeviceID id, char* name)
     return AudioDeviceGetProperty(id, 0, false, kAudioDevicePropertyDeviceName, &size, name);
 }
 
-OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, int samplerate, AudioDeviceID* id)
+OSStatus TCoreAudioRenderer::GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& samplerate, AudioDeviceID* device)
 {
     UInt32 theSize = sizeof(UInt32);
     AudioDeviceID inDefault;
     AudioDeviceID outDefault;
 	OSStatus res;
-
+ 
     if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultInputDevice,
-                                        &theSize, &inDefault)) != noErr)
+                                        &theSize, &inDefault)) != noErr) {
         return res;
+    }
 
     if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
-                                        &theSize, &outDefault)) != noErr)
+                                        &theSize, &outDefault)) != noErr) {
         return res;
+    }
 
 	// Duplex mode
 	if (inChan > 0 && outChan > 0) {
 		// Get the device only if default input and output are the same
 		if (inDefault == outDefault) {
-			*id = inDefault;
-			return noErr;
+			*device = inDefault;
+            goto end;
 		} else {
-            //printf("GetDefaultDevice : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
-            if (CreateAggregateDevice(inDefault, outDefault, samplerate, id) != noErr) {
-                return kAudioHardwareBadDeviceError;
+            if (fAggregateClients++ == 0) {
+                //printf("GetDefaultDeviceAndSampleRate : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
+                if (CreateAggregateDevice(inDefault, outDefault, samplerate) != noErr) {
+                    return kAudioHardwareBadDeviceError;
+                } 
             }
-       	}
+            *device = fAggregateDeviceID;
+            goto end;
+        }
 	} else if (inChan > 0) {
-		*id = inDefault;
-		return noErr;
+		*device = inDefault;
+		goto end;
 	} else if (outChan > 0) {
-		*id = outDefault;
-		return noErr;
+		*device = outDefault;
+		goto end;
 	} else {
 		return kAudioHardwareBadDeviceError;
 	}
+ 
+end:   
+    
+    if (samplerate == -1) {
+        // Possible take the current sample rate
+        samplerate = int(GetNominalSampleRate(*device));
+    } else {
+        // Otherwise force the one we want...
+        SetupSampleRateAux(*device, samplerate);
+    }
 
 	return noErr;
 }
 
-OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice)
+OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int& samplerate)
 {
     OSStatus err = noErr;
     AudioObjectID sub_device[32];
@@ -329,9 +367,8 @@ OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID
         }
     }
 
-    return CreateAggregateDeviceAux(captureDeviceIDArray, playbackDeviceIDArray, samplerate, outAggregateDevice);
+    return CreateAggregateDeviceAux(captureDeviceIDArray, playbackDeviceIDArray, samplerate);
 }
-
 
 OSStatus TCoreAudioRenderer::SRNotificationCallback(AudioDeviceID inDevice,
                                                     UInt32 /*inChannel*/,
@@ -348,7 +385,7 @@ OSStatus TCoreAudioRenderer::SRNotificationCallback(AudioDeviceID inDevice,
             driver->fState = true;
             // Check new sample rate
             Float64 sampleRate;
-            UInt32 outSize =  sizeof(Float64);
+            UInt32 outSize = sizeof(Float64);
             OSStatus err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
             if (err != noErr) {
                 printf("Cannot get current sample rate\n");
@@ -363,27 +400,15 @@ OSStatus TCoreAudioRenderer::SRNotificationCallback(AudioDeviceID inDevice,
     return noErr;
 }
 
-int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerate)
+int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int& samplerate)
 {
     OSStatus err = noErr;
-    UInt32 outSize;
-    Float64 sampleRate;
-
-    // Get sample rate
-    outSize =  sizeof(Float64);
-    err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
-    if (err != noErr) {
-        printf("Cannot get current sample rate\n");
-        printError(err);
-        return -1;
-    } else {
-        //printf("Current sample rate = %f\n", sampleRate);
-    }
-
-    // If needed, set new sample rate
-    if (samplerate != (int)sampleRate) {
+    UInt32 outSize = sizeof(Float64);
+    Float64 sampleRate = GetNominalSampleRate(inDevice);
+ 
+    if (samplerate != -1 && samplerate != (int)sampleRate) {
         sampleRate = (Float64)samplerate;
-
+  
         // To get SR change notification
         err = AudioDeviceAddPropertyListener(inDevice, 0, true, kAudioDevicePropertyNominalSampleRate, SRNotificationCallback, this);
         if (err != noErr) {
@@ -406,7 +431,7 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
         }
 
         // Check new sample rate
-        outSize =  sizeof(Float64);
+        outSize = sizeof(Float64);
         err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
         if (err != noErr) {
             printf("Cannot get current sample rate\n");
@@ -419,15 +444,15 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
         AudioDeviceRemovePropertyListener(inDevice, 0, true, kAudioDevicePropertyNominalSampleRate, SRNotificationCallback);
     }
 
+    samplerate = int(sampleRate);
     return 0;
 }
 
-OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice)
+OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int& samplerate)
 {
     OSStatus osErr = noErr;
     UInt32 outSize;
     Boolean outWritable;
-
     bool fClockDriftCompensate = true;
 
     // Prepare sub-devices for clock drift compensation
@@ -520,8 +545,8 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
 
     pluginAVT.mInputData = &inBundleRef;
     pluginAVT.mInputDataSize = sizeof(inBundleRef);
-    pluginAVT.mOutputData = &fPluginID;
-    pluginAVT.mOutputDataSize = sizeof(fPluginID);
+    pluginAVT.mOutputData = &fAggregatePluginID;
+    pluginAVT.mOutputDataSize = sizeof(fAggregatePluginID);
 
     osErr = AudioHardwareGetProperty(kAudioHardwarePropertyPlugInForBundleID, &outSize, &pluginAVT);
     if (osErr != noErr) {
@@ -638,14 +663,14 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
     pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
     UInt32 outDataSize;
 
-    osErr = AudioObjectGetPropertyDataSize(fPluginID, &pluginAOPA, 0, NULL, &outDataSize);
+    osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
     if (osErr != noErr) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : AudioObjectGetPropertyDataSize error\n");
         printError(osErr);
         goto error;
     }
 
-    osErr = AudioObjectGetPropertyData(fPluginID, &pluginAOPA, sizeof(aggDeviceDict), &aggDeviceDict, &outDataSize, outAggregateDevice);
+    osErr = AudioObjectGetPropertyData(fAggregatePluginID, &pluginAOPA, sizeof(aggDeviceDict), &aggDeviceDict, &outDataSize, &fAggregateDeviceID);
     if (osErr != noErr) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : AudioObjectGetPropertyData error\n");
         printError(osErr);
@@ -664,7 +689,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
     pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
     pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
     outDataSize = sizeof(CFMutableArrayRef);
-    osErr = AudioObjectSetPropertyData(*outAggregateDevice, &pluginAOPA, 0, NULL, outDataSize, &subDevicesArray);
+    osErr = AudioObjectSetPropertyData(fAggregateDeviceID, &pluginAOPA, 0, NULL, outDataSize, &subDevicesArray);
     if (osErr != noErr) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : AudioObjectSetPropertyData for sub-device list error\n");
         printError(osErr);
@@ -684,7 +709,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
     pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
     pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
     outDataSize = sizeof(CFStringRef);
-    osErr = AudioObjectSetPropertyData(*outAggregateDevice, &pluginAOPA, 0, NULL, outDataSize, &captureDeviceUID[0]);  // First apture is master...
+    osErr = AudioObjectSetPropertyData(fAggregateDeviceID, &pluginAOPA, 0, NULL, outDataSize, &captureDeviceUID[0]);  // First apture is master...
     if (osErr != noErr) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : AudioObjectSetPropertyData for master device error\n");
         printError(osErr);
@@ -702,7 +727,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
             //printf("Clock drift compensation activated...\n");
 
             // Get the property data size
-            osErr = AudioObjectGetPropertyDataSize(*outAggregateDevice, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize);
+            osErr = AudioObjectGetPropertyDataSize(fAggregateDeviceID, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize);
             if (osErr != noErr) {
                 printf("TCoreAudioRenderer::CreateAggregateDevice kAudioObjectPropertyOwnedObjects error\n");
                 printError(osErr);
@@ -714,7 +739,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
             AudioObjectID subDevices[subDevicesNum];
             outSize = sizeof(subDevices);
 
-            osErr = AudioObjectGetPropertyData(*outAggregateDevice, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize, subDevices);
+            osErr = AudioObjectGetPropertyData(fAggregateDeviceID, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize, subDevices);
             if (osErr != noErr) {
                 printf("TCoreAudioRenderer::CreateAggregateDevice kAudioObjectPropertyOwnedObjects error\n");
                 printError(osErr);
@@ -760,7 +785,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(std::vector<AudioDeviceID>
         CFRelease(playbackDeviceUID[i]);
     }
 
-    //printf("New aggregate device %d\n", *outAggregateDevice);
+    //printf("New aggregate device %d\n", fAggregateDeviceID);
     return noErr;
 
 error:
@@ -777,28 +802,30 @@ OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
     pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
     UInt32 outDataSize;
 
-    if (fPluginID > 0)   {
+    if (--fAggregateClients == 0)   {
 
-        osErr = AudioObjectGetPropertyDataSize(fPluginID, &pluginAOPA, 0, NULL, &outDataSize);
+        osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
         if (osErr != noErr) {
             printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
             printError(osErr);
             return osErr;
         }
 
-        osErr = AudioObjectGetPropertyData(fPluginID, &pluginAOPA, 0, NULL, &outDataSize, &fDeviceID);
+        osErr = AudioObjectGetPropertyData(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize, &fAggregateDeviceID);
         if (osErr != noErr) {
             printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
             printError(osErr);
             return osErr;
         }
 
+        fAggregatePluginID = -1;
+        fAggregateDeviceID = -1;
     }
 
     return noErr;
 }
 
-int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int samplerate)
+int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& samplerate)
 {
 	OSStatus err = noErr;
     ComponentResult err1;
@@ -832,8 +859,8 @@ int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int buffe
             printError(osErr);
         }
     }
-
-	if (GetDefaultDevice(inChan, outChan, samplerate,&fDeviceID) != noErr) {
+    
+  	if (GetDefaultDeviceAndSampleRate(inChan, outChan, samplerate, &fDeviceID) != noErr) {
 		printf("Cannot open default device\n");
 		return OPEN_ERR;
 	}
@@ -845,25 +872,6 @@ int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int buffe
         printf("Cannot set buffer size %ld\n", bufferSize);
         err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
         return OPEN_ERR;
-    }
-
-    // Setting sample rate
-    outSize = sizeof(AudioStreamBasicDescription);
-    err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyStreamFormat, &outSize, &sampleRate);
-    if (err != noErr) {
-        printf("Cannot get current sample rate\n");
-        printError(err);
-        return OPEN_ERR;
-    }
-
-    if (samplerate != int(sampleRate.mSampleRate)) {
-        sampleRate.mSampleRate = (Float64)(samplerate);
-        err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyStreamFormat, outSize, &sampleRate);
-        if (err != noErr) {
-            printf("Cannot set sample rate = %ld\n", samplerate);
-            printError(err);
-            return OPEN_ERR;
-        }
     }
 
     // AUHAL
@@ -923,8 +931,8 @@ int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int buffe
 
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
     if (err1 != noErr) {
-        printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
-        printError(err1);
+        //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
+        //printError(err1);
     }
 
     in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
@@ -932,8 +940,8 @@ int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int buffe
 
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
     if (err1 != noErr) {
-        printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
-        printError(err1);
+        //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
+        //printError(err1);
     }
 
     out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
@@ -1145,14 +1153,17 @@ class coreaudio : public audio {
 
  public:
     coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
+    coreaudio(int fpb) : fSampleRate(-1), fFramesPerBuf(fpb) {}
 	virtual ~coreaudio() {}
 
-	virtual bool init(const char* /*name*/, dsp* DSP) {
-		DSP->init(fSampleRate);
+	virtual bool init(const char* /*name*/, dsp* DSP) 
+    {
 		if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
 			printf("Cannot open CoreAudio device\n");
 			return false;
 		}
+        // If -1 was given, fSampleRate will be changed by OpenDefault
+        DSP->init(fSampleRate);
         return true;
     }
 

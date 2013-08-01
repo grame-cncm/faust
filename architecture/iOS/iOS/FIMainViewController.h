@@ -58,6 +58,7 @@ class uiBox;
     IBOutlet UIView*                    _widgetPreferencesView;
     IBOutlet UISegmentedControl*        _gyroAxisSegmentedControl;
     IBOutlet UISwitch*                  _gyroInvertedSwitch;
+    IBOutlet UISwitch*                  _gyroFilteredSwitch;
     IBOutlet UISlider*                  _gyroSensibilitySlider;
     IBOutlet UILabel*                   _gyroSensibilityLabel;
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
