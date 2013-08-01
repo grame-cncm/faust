@@ -227,6 +227,8 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
 
     // Initialize passes
     PassRegistry &Registry = *PassRegistry::getPassRegistry();
+    
+    initializeCodeGen(Registry);
     initializeCore(Registry);
     initializeScalarOpts(Registry);
     initializeObjCARCOpts(Registry);
@@ -280,6 +282,12 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     targetOptions.NoNaNsFPMath = true;
     targetOptions.GuaranteedTailCallOpt = true;
     
+    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+    
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
+       targetOptions.PrintMachineCode = true;
+    }
+    
     builder.setTargetOptions(targetOptions);
     
     TargetMachine* tm = builder.selectTarget();
@@ -312,8 +320,6 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     if (fOptLevel > 0) {
         AddOptimizationPasses(pm, fpm, fOptLevel, 0);
     }
-    
-    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
     
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
         fResult->fModule->dump();
