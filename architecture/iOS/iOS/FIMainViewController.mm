@@ -1588,10 +1588,10 @@ T findCorrespondingUiItem(FIResponder* sender)
             float y1 = 0.;
             float x2 = 0.;
             float y2 = 0.;
-            float va = sign * coef * (*i)->getAssignationSensibility();    // Accelerometer value
-            float la = -1. * (*i)->getAssignationSensibility();     // Down accelerometer limit
-            float ha = 1. * (*i)->getAssignationSensibility();      // Top accelerometer limit
-            float x = (*i)->getAssignationRefPointX() * (*i)->getAssignationSensibility(); // ref point x
+            float va = sign * coef;//* (*i)->getAssignationSensibility();    // Accelerometer value
+            float la = -1.;//* (*i)->getAssignationSensibility();     // Down accelerometer limit
+            float ha = 1.;//* (*i)->getAssignationSensibility();      // Top accelerometer limit
+            float x = (*i)->getAssignationRefPointX();// * (*i)->getAssignationSensibility(); // ref point x
             float y = (*i)->getAssignationRefPointY() * scale; // ref point y
             float ls; // Down slider limit
             float hs; // TOp slider limit
@@ -1608,23 +1608,17 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if (va <= x)
             {
-                x1 = la;
+                x1 = la / (*i)->getAssignationSensibility();
                 x2 = x;
                 y1 = ls;
                 y2 = y;
-                a = (y2 - y1) / (x2 - x1);
-                b = y1 - a * x1;
-                value = a * va + b;
             }
             else if (va > x)
             {
                 x1 = x;
-                x2 = ha;
+                x2 = ha / (*i)->getAssignationSensibility();
                 y1 = y;
                 y2 = hs;
-                a = (y2 - y1) / (x2 - x1);
-                b = y1 - a * x1;
-                value = a * va + b;
             }
 
             if (x1 == x2) a = 0.;
@@ -1668,6 +1662,7 @@ T findCorrespondingUiItem(FIResponder* sender)
                 }
             }*/
 
+            //NSLog(@"va %f", va);
             //NSLog(@"VALUE %f", value);
             
             (*i)->modifyZone(value);
