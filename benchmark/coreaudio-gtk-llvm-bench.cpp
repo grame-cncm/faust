@@ -28,6 +28,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
+#include "faust/llvm-dsp.h"
 
 using namespace std;
 
@@ -60,8 +61,6 @@ using namespace std;
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
-
-<<includeIntrinsic>>
 
 #define BENCHMARKMODE
 #ifdef BENCHMARKMODE
@@ -172,7 +171,7 @@ static uint64 meanValue( vector<uint64>::const_iterator a, vector<uint64>::const
  * Print the median value (in Megabytes/second) of KMESURE
  * throughputs measurements
  */
-void printstats(const char* applname, int bsize, int ichans, int ochans)
+void printstats(const char* applname, const char* dspname, int bsize, int ichans, int ochans)
 {
     assert(mesure > KMESURE);
     vector<uint64> V(KMESURE);
@@ -191,7 +190,8 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
     uint64 meaval100 = meanValue(V.end() - 5, V.end());			
   
     //printing
-    cout << applname
+    cout << applname << " " 
+         << dspname
          << '\t' << megapersec(bsize, ichans+ochans, meaval00) 
          << '\t' << megapersec(bsize, ichans+ochans, meaval25) 
          << '\t' << megapersec(bsize, ichans+ochans, meaval50) 
@@ -206,8 +206,6 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
 #define STOPMESURE
 
 #endif
-		
-<<includeclass>>
 
 bool running = true;
 
@@ -238,8 +236,6 @@ class measure_dsp : public dsp {
         }
 
 };
-
-mydsp DSP;
 
 list<GUI*> GUI::fGuiList;
 
@@ -302,15 +298,20 @@ int main(int argc, char *argv[])
     int	fpb = lopt(argv, "--buffer", 512);
     
     UI* interface = new GTKUI(argv[0], &argc, &argv);
+    
+    char error[256];
+    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 4);
+    assert(factory);
+    llvm_dsp* dsp = createDSPInstance(factory);
  	
-    DSP.init(srate);
-    DSP.buildUserInterface(interface);
+    dsp->init(srate);
+    dsp->buildUserInterface(interface);
     
     pthread_create(&guithread, NULL, run_ui, interface);
 	
     openMesure();
       
-    measure_dsp measure(&DSP);
+    measure_dsp measure(dsp);
     coreaudio audio(srate, fpb);
     audio.init(name, &measure);
     audio.start();
@@ -321,7 +322,7 @@ int main(int argc, char *argv[])
 	closeMesure();
 
 #ifdef BENCHMARKMODE
-    printstats(argv[0], fpb, DSP.getNumInputs(), DSP.getNumOutputs());
+    printstats(argv[0], argv[1], fpb, dsp->getNumInputs(), dsp->getNumOutputs());
 #endif       
 
     audio.stop();

@@ -382,11 +382,11 @@ int get_max_cpu()
     int physical_count = 0;
     size_t size = sizeof(physical_count);
     sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
-    printf("physical cpu cores: %d\n", physical_count);
+    //printf("physical cpu cores: %d\n", physical_count);
     
     int logical_count = 0;
     sysctlbyname("hw.logicalcpu", &logical_count, &size, NULL, 0);
-    printf("logical cpu cores: %d\n", logical_count);
+    //printf("logical cpu cores: %d\n", logical_count);
     
     return physical_count;
     //return logical_count;
@@ -422,7 +422,7 @@ static void get_affinity(pthread_t thread)
     boolean_t get_default = false;
     kern_return_t res = thread_policy_get(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, &count, &get_default);
     if (res == KERN_SUCCESS) {
-        printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
+        //printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
     }
 }
 
@@ -432,7 +432,7 @@ static void set_affinity(pthread_t thread, int tag)
     theTCPolicy.affinity_tag = tag;
     kern_return_t res = thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, THREAD_AFFINITY_POLICY_COUNT);
     if (res == KERN_SUCCESS) {
-        printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
+        //printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
     }
 }
 
