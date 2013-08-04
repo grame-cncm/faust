@@ -3,7 +3,8 @@
 OSCDEFS=""
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to alsa-gtk                 #
+#               Crosscompiles Faust programs to RaspberryPi 		#
+#				alsa-console                 						#
 #               (c) Grame, 2009-2011                                #
 #                                                                   #
 #####################################################################
@@ -60,7 +61,7 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
 	 HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
@@ -76,14 +77,6 @@ for p in $@; do
 	fi
 done
 
-
-#-------------------------------------------------------------------
-# create, update, and remove the necessary links and cache for use by the 
-# run-time linker, ld.so to  the  most  recent  shared libraries  found
-# in the directories specified on the command line
-#
-
-#sudo ldconfig
 
 
 #-------------------------------------------------------------------

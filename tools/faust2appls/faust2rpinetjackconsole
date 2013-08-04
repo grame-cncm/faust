@@ -54,9 +54,9 @@ INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
 
 for p in $@; do
     if [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+	 HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -65,14 +65,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"
 	fi
 done
-
-#-------------------------------------------------------------------
-# create, update, and remove the necessary links and cache for use by the 
-# run-time linker, ld.so to  the  most  recent  shared libraries  found
-# in the directories specified on the command line
-#
-
-sudo ldconfig
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
