@@ -3,10 +3,8 @@
 OSCDEFS=""
 #####################################################################
 #                                                                   #
-#               Crosscompiles Faust programs to netjack-console     #
-#				for the rapsberry pi (needs ng crosscompiler)		#
-#               (c) Grame, 2009-2013								#
-#				Author : Pilar de la Cruz                           #
+#               Compiles Faust programs to alsa-gtk                 #
+#               (c) Grame, 2009-2011                                #
 #                                                                   #
 #####################################################################
 
@@ -14,14 +12,14 @@ OSCDEFS=""
 
 # base directory for tools
 
-BASE_DIR="/home/faust"
+BASE_DIR="/opt/rpicrosstool"
 
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
 
-CXXFLAGS="-Wall -g -D_debug_ -D_DEBUG_"
-
+#CXXFLAGS="-Wall -g -D_debug_ -D_DEBUG_"
+CXXFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
 #-------------------------------------------------------------------
 # Kernel Sources Dir
 
