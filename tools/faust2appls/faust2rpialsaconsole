@@ -4,8 +4,9 @@ OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Crosscompiles Faust programs to RaspberryPi 		#
-#				alsa-console                 						#
-#               (c) Grame, 2009-2011                                #
+#				alsa-console architecture     						#
+#               Author : Pilar de la Cruz                           #
+#               (c) Grame, 2009-2013                                #
 #                                                                   #
 #####################################################################
 

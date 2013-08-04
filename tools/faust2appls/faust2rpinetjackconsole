@@ -3,8 +3,10 @@
 OSCDEFS=""
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2011                                #
+#               Crosscompiles Faust programs to RaspberryPi 		#
+#				netjack-console architecture     					#
+#               Author : Pilar de la Cruz                           #
+#               (c) Grame, 2009-2013                                #
 #                                                                   #
 #####################################################################
 
