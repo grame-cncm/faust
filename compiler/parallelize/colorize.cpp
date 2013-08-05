@@ -190,7 +190,7 @@ static int colorsCount(Tree exp)
 	if (cset==0) {
 		return 0;
 	} else {
-		return cset->size();
+		return (int)cset->size();
 	}
 }
 

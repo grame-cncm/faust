@@ -121,13 +121,13 @@ void SVGDev::triangle(double x,double y,double l,double h, const char* color, co
     float r = 1.5; // circle radius
     float x0, x1, x2;
     if (leftright) {
-        x0 = x;
-        x1 = x+l-2*r;
-        x2 = x+l-r;
+        x0 = (float)x;
+        x1 = (float)(x+l-2*r);
+        x2 = (float)(x+l-r);
     } else {
-        x0 = x+l;
-        x1 = x+2*r;
-        x2 = x+r;
+        x0 = (float)(x+l);
+        x1 = (float)(x+2*r);
+        x2 = (float)(x+r);
     }
     fprintf(fic_repr,"<polygon fill=\"%s\" stroke=\"black\" stroke-width=\".25\" points=\"%f,%f %f,%f %f,%f\"/>\n", color, x0,y, x1,y+h/2.0, x0,y+h);
     fprintf(fic_repr,"<circle  fill=\"%s\" stroke=\"black\" stroke-width=\".25\" cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n", color, x2, y+h/2.0, r);

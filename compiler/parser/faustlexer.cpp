@@ -780,7 +780,7 @@ char *yytext;
 #line 6 "parser/faustlexer.l"
 #include "tree.hh"
 #include "faustparser.hpp"
-
+#include "compatibility.hh"
 
 
 #line 787 "parser/faustlexer.cpp"
@@ -790,7 +790,7 @@ char *yytext;
 #define doc 2
 #define lst 3
 
-#ifndef YY_NO_UNISTD_H
+#if !YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
  * down here because we want the user's section 1 to have been scanned first.
  * The user has a chance to override it with an option.

@@ -96,8 +96,10 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
             n = getSubSignals(sig, subsig);
             if (n > 0) {
                 if (n==1 && isList(subsig[0])) {
-                    Tree id, body;
+					Tree id, body;
                     assert(isRec(sig,id,body));
+					if (!isRec(sig,id,body)) {
+					}
                     // special recursion case, recreate a vector of subsignals instead of the
                     // list provided by getSubSignal
                     Tree L = subsig[0];

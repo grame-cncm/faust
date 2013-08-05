@@ -299,7 +299,7 @@ static void computeUseCount(Loop* l)
  */
 static void groupSeqLoops(Loop* l)
 {
-	int n = l->fBackwardLoopDependencies.size();
+	int n = (int)l->fBackwardLoopDependencies.size();
 	if (n==0) {
 		return;
 	} else if (n==1) {
@@ -347,7 +347,7 @@ void Klass::buildTasksList()
     addDeclCode("int fDynamicNumThreads;");
 
     // Compute forward dependencies
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             for (lset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin(); p1!=(*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
@@ -359,7 +359,7 @@ void Klass::buildTasksList()
 
     // Compute ready tasks list
     vector<int> task_num;
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         lset::const_iterator next;
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() == 0) {
@@ -375,7 +375,7 @@ void Klass::buildTasksList()
         addZone3("if (cur_thread == 0) {");
 
         Loop* keep = NULL;
-        for (int l=G.size()-1; l>=0; l--) {
+        for (int l=(int)G.size()-1; l>=0; l--) {
             lset::const_iterator next;
             for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
                 if ((*p)->fBackwardLoopDependencies.size() == 0) {
@@ -423,7 +423,7 @@ void Klass::buildTasksList()
 
     // Compute init section
     addZone2c("// Only initialize taks with more than one input");
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() > 1)  { // Only initialize taks with more than 1 input, since taks with one input are "directly" activated.
                 addZone2c(subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++), T((int)(*p)->fBackwardLoopDependencies.size())));
@@ -464,7 +464,7 @@ void Klass::printLoopGraphVector(int n, ostream& fout)
 #endif
 
     // normal mode
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             (*p)->println(n, fout);
@@ -486,9 +486,9 @@ void Klass::printLoopGraphOpenMP(int n, ostream& fout)
     sortGraph(fTopLoop, G);
 
     // OpenMP mode : add OpenMP directives
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         tab(n, fout); fout << "// SECTION : " << G.size() - l;
-        printLoopLevelOpenMP(n, G.size() - l, G[l], fout);
+        printLoopLevelOpenMP(n, (int)G.size() - l, G[l], fout);
     }
 }
 
@@ -506,12 +506,12 @@ void Klass::printLoopGraphScheduler(int n, ostream& fout)
     sortGraph(fTopLoop, G);
 
     // OpenMP mode : add OpenMP directives
-    for (int l=G.size()-1; l>0; l--) {
+    for (int l=(int)G.size()-1; l>0; l--) {
         tab(n, fout); fout << "// SECTION : " << G.size() - l;
-        printLoopLevelScheduler(n, G.size() - l, G[l], fout);
+        printLoopLevelScheduler(n, (int)G.size() - l, G[l], fout);
     }
 
-    printLastLoopLevelScheduler(n, G.size(), G[0], fout);
+    printLastLoopLevelScheduler(n, (int)G.size(), G[0], fout);
 }
 
 
@@ -529,7 +529,7 @@ void Klass::printGraphDotFormat(ostream& fout)
 
     int lnum = 0;       // used for loop numbers
     // for each level of the graph
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         // for each task in the level
         for (lset::const_iterator t =G[l].begin(); t!=G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
@@ -553,7 +553,7 @@ void Klass::printLoopGraphInternal(int n, ostream& fout)
     sortGraph(fTopLoop, G);
 
     // normal mode
-    for (int l=G.size()-1; l>=0; l--) {
+    for (int l=(int)G.size()-1; l>=0; l--) {
         if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             (*p)->printoneln(n, fout);

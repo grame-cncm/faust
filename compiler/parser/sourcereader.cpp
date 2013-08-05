@@ -29,7 +29,7 @@ extern bool gLatexDocSwitch;
 
 
 int yyparse();
-void* yy_scan_string (const char *yy_str  ); // In principle YY_BUFFER_STATE
+struct yy_buffer_state* yy_scan_string (const char *yy_str  ); // In principle YY_BUFFER_STATE
 
 extern int 		yyerr;
 extern int 		yydebug;

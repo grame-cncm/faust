@@ -144,7 +144,7 @@ bool isPiPower (double n, string& s)
 {
     assert(n>0);
     stringstream ss (stringstream::out|stringstream::in);
-    int k = floor(log(n)/log(M_PI));
+    int k = (int)floor(log(n)/log(M_PI));
     if ( AlmostEqual(n, exp(k * log(M_PI))) && (k!=0) && (abs(k)<5.0) ) {
         ss << "\\pi";
         if (k!=1)  ss << "^{"<< k <<"}";
@@ -164,7 +164,7 @@ bool isExpPower (double n, string& s)
 {
     assert(n>0);
     stringstream ss (stringstream::out|stringstream::in);
-    int k = floor(log(n));
+    int k = (int)floor(log(n));
     if ( AlmostEqual(n, exp(k)) && (k!=0) && (abs(k)<5.0) ) {
         ss << "e";
         if (k!=1)  ss << "^{"<< k <<"}";

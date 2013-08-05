@@ -47,7 +47,7 @@ Symbol* Symbol::get(const string& str)
 {
 	char 	buf[1024];
 	int		i;
-	int		n = str.length();
+	int		n = (int)str.length();
 	
 	if (n>1023) n = 1023;
 	for (i = 0; i < n; i++) { buf[i] = str[i]; }
@@ -157,7 +157,7 @@ unsigned int Symbol::calcHashKey (const char* str)
 
 Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 {
-	int len = strlen(str);
+	int len = (int)strlen(str);
 	
     fName = new char [len+1];
     memcpy(fName, str, len+1);

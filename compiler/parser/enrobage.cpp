@@ -556,7 +556,7 @@ const char* filebasename(const char* name)
 string filedirname(const string& name)
 {
     const char*         base = filebasename(name.c_str());
-    const unsigned int  size = base-name.c_str();
+    const unsigned int  size = (const unsigned int)(base-name.c_str());
     string              dirname;
 
     if (size==0) {
