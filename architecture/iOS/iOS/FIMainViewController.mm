@@ -1623,17 +1623,23 @@ T findCorrespondingUiItem(FIResponder* sender)
 
             if (va <= x)
             {
+                //NSLog(@"<=");
                 x1 = la / (*i)->getAssignationSensibility();
                 x2 = x;
                 y1 = ls;
                 y2 = y;
+                
+                if (x1 >= x || fabs(x1 - x) < 0.01) x1 = x - 0.01;
             }
             else if (va > x)
             {
+                //NSLog(@">");
                 x1 = x;
                 x2 = ha / (*i)->getAssignationSensibility();
                 y1 = y;
                 y2 = hs;
+                
+                if (x2 <= x || fabs(x2 - x) < 0.01) x2 = x + 0.01;
             }
 
             if (x1 == x2) a = 0.;
