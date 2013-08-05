@@ -192,6 +192,8 @@
         }
         
         [((FIMainViewController*)self.delegate) resetAllWidgetsPreferences];
+        
+        [[NSUserDefaults standardUserDefaults] synchronize];
 	}
 }
 

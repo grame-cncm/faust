@@ -469,6 +469,8 @@ T findCorrespondingUiItem(FIResponder* sender)
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
+                
+                [[NSUserDefaults standardUserDefaults] synchronize];
             }
             
             // Otherwise normal behaviour
@@ -534,6 +536,8 @@ T findCorrespondingUiItem(FIResponder* sender)
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:knob]];
                 [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() + 1000. forKey:key];
+                
+                [[NSUserDefaults standardUserDefaults] synchronize];
             }
             
             // Otherwise normal behaviour
@@ -1313,6 +1317,8 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     key = [NSString stringWithFormat:@"%@-b", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1000. forKey:key];
+    
+    [[NSUserDefaults standardUserDefaults] synchronize];
     
     // If assignation type is not kAssignationNone, we start motion
     if (_assignatedWidgets.size() > 0) [self startMotion];
