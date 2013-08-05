@@ -469,8 +469,6 @@ T findCorrespondingUiItem(FIResponder* sender)
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
-                
-                [[NSUserDefaults standardUserDefaults] synchronize];
             }
             
             // Otherwise normal behaviour
@@ -536,8 +534,6 @@ T findCorrespondingUiItem(FIResponder* sender)
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:knob]];
                 [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() + 1000. forKey:key];
-                
-                [[NSUserDefaults standardUserDefaults] synchronize];
             }
             
             // Otherwise normal behaviour
@@ -1318,8 +1314,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     key = [NSString stringWithFormat:@"%@-b", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1000. forKey:key];
     
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    
     // If assignation type is not kAssignationNone, we start motion
     if (_assignatedWidgets.size() > 0) [self startMotion];
     else [self stopMotion];
@@ -1597,7 +1591,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             float va = sign * coef;//* (*i)->getAssignationSensibility();    // Accelerometer value
             float la = -1.;//* (*i)->getAssignationSensibility();     // Down accelerometer limit
             float ha = 1.;//* (*i)->getAssignationSensibility();      // Top accelerometer limit
-            float x = (*i)->getAssignationRefPointX();// * (*i)->getAssignationSensibility(); // ref point x
+            float x = sign * (*i)->getAssignationRefPointX(); // (*i)->getAssignationSensibility(); // ref point x
             float y = (*i)->getAssignationRefPointY() * scale; // ref point y
             float ls; // Down slider limit
             float hs; // TOp slider limit
@@ -1612,6 +1606,8 @@ T findCorrespondingUiItem(FIResponder* sender)
                 hs = dynamic_cast<uiSlider*>(*i)->fSlider.max;
             }
             
+            //NSLog(@"%f %f", va, x);
+
             if (va <= x)
             {
                 x1 = la / (*i)->getAssignationSensibility();
@@ -1635,7 +1631,8 @@ T findCorrespondingUiItem(FIResponder* sender)
             /*NSLog(@"va %f", va);
             NSLog(@"la %f - ha %f - x %f - y %f - ls %f - hs %f", la, ha, x, y, ls, hs);
             NSLog(@"%f %f %f %f", x1, x2, y1, y2);
-            NSLog(@"%f %f", a, b);*/
+            NSLog(@"%f %f", a, b);
+            NSLog(@"assignation %f %f", (*i)->getAssignationRefPointX(), (*i)->getAssignationRefPointY());*/
             
             // CASE 2: simple offset
             /*a = sign * (*i)->getAssignationSensibility();
