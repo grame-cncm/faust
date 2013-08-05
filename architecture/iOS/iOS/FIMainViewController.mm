@@ -1327,6 +1327,19 @@ T findCorrespondingUiItem(FIResponder* sender)
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
 }
 
+- (void)resetAllWidgetsPreferences
+{
+    list<uiCocoaItem*>::iterator    i;
+    
+    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
+    {
+        (*i)->resetParameters();
+        _assignatedWidgets.erase(i);
+    }
+    
+    [self loadWidgetsPreferences];
+}
+
 // At application launch time, loading preferences for all widgets
 - (void)loadWidgetsPreferences
 {
