@@ -300,9 +300,10 @@ int main(int argc, char *argv[])
     UI* interface = new GTKUI(argv[0], &argc, &argv);
     
     char error[256];
-    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 5);
+    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 3);
     assert(factory);
     llvm_dsp* dsp = createDSPInstance(factory);
+    assert(dsp);
  	
     dsp->init(srate);
     dsp->buildUserInterface(interface);
@@ -316,7 +317,7 @@ int main(int argc, char *argv[])
     audio.init(name, &measure);
     audio.start();
     
-    while(running) {
+    while (running) {
         usleep(100000);
     }
 	closeMesure();

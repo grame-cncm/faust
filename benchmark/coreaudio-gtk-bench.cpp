@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
     audio.init(name, &measure);
     audio.start();
     
-    while(running) {
+    while (running) {
         usleep(100000);
     }
 	closeMesure();

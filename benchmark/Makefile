@@ -1,6 +1,27 @@
 system	:= $(shell uname -s)
 
-CXX=/opt/local/libexec/llvm-3.3/bin/clang++
+LLVM_VERSION = $(shell llvm-config --version)
+
+ifeq ($(LLVM_VERSION), 3.0)
+LLVM_VERSION  = LLVM_30
+CXX = /opt/local/libexec/llvm-3.0/bin/clang++
+endif
+
+ifeq ($(LLVM_VERSION), 3.1)
+LLVM_VERSION  = LLVM_31
+CXX = /opt/local/libexec/llvm-3.1/bin/clang++
+endif
+
+ifeq ($(LLVM_VERSION), 3.2)
+LLVM_VERSION  = LLVM_32
+CXX = /opt/local/libexec/llvm-3.2/bin/clang++
+endif
+
+ifeq ($(LLVM_VERSION), 3.3)
+LLVM_VERSION  = LLVM_33
+CXX = /opt/local/libexec/llvm-3.3/bin/clang++
+endif
+
 
 ifeq ($(system), Darwin)
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math '
@@ -112,7 +133,8 @@ galsaomp2 :
 # OSX 
 
 gcoreaudiollvm : coreaudio-gtk-bench.cpp
-	$(CXX) coreaudio-gtk-llvm-bench.cpp /usr/local/lib/faust/libfaust.a  -lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0` `llvm-config --ldflags --libs all`  -o gcoreaudiollvm
+	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
+	$(CXX) -O3 coreaudio-gtk-llvm-bench.cpp /usr/local/lib/faust/libfaust.a  -lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0` `llvm-config --ldflags --libs all`  -o gcoreaudiollvm
 
 
 gcoreaudioscal :
