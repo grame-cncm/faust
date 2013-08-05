@@ -2120,7 +2120,7 @@ public:
                     sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
                     refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
                     refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
-                    filtered = [((NSString*)[arr objectAtIndex:2]) boolValue];
+                    filtered = [((NSString*)[arr objectAtIndex:3]) boolValue];
                 }
                 
                 if (sensibility < 0.)
