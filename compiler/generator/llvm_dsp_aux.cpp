@@ -293,6 +293,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     
     TargetMachine* tm = builder.selectTarget();
     
+    /*
     fJIT = builder.create(tm);
     if (!fJIT) {
         return false;
@@ -303,6 +304,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     fJIT->DisableLazyCompilation(true);
     
     fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
+    */
     
     PassManager pm;
     FunctionPassManager fpm(fResult->fModule);
@@ -333,10 +335,6 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     fpm.doFinalization();
     
     pm.add(createVerifierPass());
-     
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-        fResult->fModule->dump();
-    }
     
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
         tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
@@ -344,6 +342,19 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     
     // Now that we have all of the passes ready, run them.
     pm.run(*fResult->fModule);
+    
+    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+        fResult->fModule->dump();
+    }
+    
+    fJIT = builder.create(tm);
+    if (!fJIT) {
+        return false;
+    }
+    
+    // Run static constructors.
+    fJIT->runStaticConstructorsDestructors(false);
+    fJIT->DisableLazyCompilation(true);
     
     try {
         fNew = (newDspFun)LoadOptimize("new_mydsp");
