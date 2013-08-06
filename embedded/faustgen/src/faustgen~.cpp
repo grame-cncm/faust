@@ -182,7 +182,6 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     
     // To be sure we get a correct SVG diagram...
     remove_svg();
-    
     print_compile_options();
     
     // Prepare compile options
