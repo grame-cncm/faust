@@ -42,7 +42,6 @@
 #include "compatibility.hh"
 #include "exception.hh"
 #include "global.hh"
-
 #include <assert.h>
 
 // History
@@ -551,6 +550,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		cerr << "ERROR : EVAL don't intercept : " << *exp << endl;
 		assert(false);
 	}
+	return NULL;
 }
 
 /* Deconstruct a (BDA) op pattern (YO). */
@@ -1256,7 +1256,8 @@ static void list2vec(Tree l, vector<Tree>& v)
 static Tree vec2list(const vector<Tree>& v)
 {
 	Tree l = gGlobal->nil;
-	int	 n = v.size();
+	int	 n = (int)v.size();
+
 	while (n--) { l = cons(v[n],l); }
 	return l;
 }

@@ -56,6 +56,8 @@ install:
 	install faust2javaswing $(dest)
 	install faust2webaudio $(dest)
 	install faust2alsaconsole $(dest)
+	install faust2rpialsaconsole $(dest)
+	install faust2rpinetjackconsole $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -101,4 +103,6 @@ uninstall:
 	rm -f $(dest)/faust2javaswing
 	rm -f $(dest)/faust2webaudio
 	rm -f $(dest)/faust2alsaconsole
+	rm -f $(dest)/faust2rpialsaconsole
+	rm -f $(dest)/faust2rpinetjackconsole
 

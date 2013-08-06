@@ -46,7 +46,7 @@
 //! mix une liste de signaux sur n bus				
 siglist mix(const siglist& lsig, int nbus)
 {
-	int nlines	= lsig.size();
+	int nlines	= (int)lsig.size();
 	
 	siglist dst(nbus);
 	
@@ -63,7 +63,7 @@ siglist mix(const siglist& lsig, int nbus)
 //! split une liste de signaux sur n bus				
 siglist split(const siglist& inputs, int nbus)
 {
-	int nlines	= inputs.size();
+	int nlines	= (int)inputs.size();
 	
 	siglist outputs(nbus);
 	
@@ -114,8 +114,8 @@ siglist listRange(const siglist& l, int i, int j)
 
 siglist listConcat(const siglist& a, const siglist& b)
 {
-	int n1 = a.size();
-	int n2 = b.size();
+	int n1 = (int)a.size();
+	int n2 = (int)b.size();
 	siglist r(n1+n2);
 	
 	for (int x=0; x<n1; x++) r[x] = a[x];
@@ -128,8 +128,9 @@ siglist listConcat(const siglist& a, const siglist& b)
  */
 Tree listConvert(const siglist& a)
 {
-	int 	n = a.size();
+	int 	n = (int)a.size();
 	Tree 	t=gGlobal->nil;
+
 	while (n--) t = cons(a[n],t);
 	return t;
 }
@@ -145,7 +146,7 @@ Tree listConvert(const siglist& a)
 
 siglist listLift(const siglist& l)
 {
-	int 		n = l.size();
+	int 		n = (int)l.size();
 	siglist		r(n);
 	
 	for(int i = 0; i<n; i++) r[i] = lift(l[i]);
@@ -307,7 +308,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	else if (isBoxSymbolic(box, slot, body)) 				{ 
 		assert(lsig.size()>0); 
-		return propagate(pushEnv(slot,lsig[0],slotenv), path, body, listRange(lsig, 1, lsig.size()));
+		return propagate(pushEnv(slot,lsig[0],slotenv), path, body, listRange(lsig, 1, (int)lsig.size()));
 	}
 	
 	// Primitives

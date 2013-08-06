@@ -50,6 +50,10 @@
 #ifndef     __NODE__
 #define     __NODE__
 
+#ifdef WIN32
+#define int64_t __int64
+#endif
+
 #include <iostream>
 #include "symbol.hh"
 #include "garbageable.hh"

@@ -332,7 +332,7 @@ class TupletType : public AudioType
 		  AudioType(n|mergenature(vt), v|mergevariability(vt), c|mergecomputability(vt), vec|mergevectorability(vt), b|mergeboolean(vt), i),
 		  fComponents(vt) {}
 
-	int arity()	const						{ return fComponents.size(); }
+	int arity()	const						{ return (int)fComponents.size(); }
 	Type operator[](unsigned int i) const	{ return fComponents[i]; }
 	virtual ostream& print(ostream& dst) const;
 

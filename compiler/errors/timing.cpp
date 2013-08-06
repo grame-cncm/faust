@@ -24,6 +24,7 @@
 #ifndef WIN32
 #include <sys/time.h>
 #endif
+#include "compatibility.hh"
 #include "timing.hh"
 #include "global.hh"
 

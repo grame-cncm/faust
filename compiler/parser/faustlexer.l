@@ -5,6 +5,7 @@
 %{
 #include "tree.hh"
 #include "faustparser.hpp"
+#include "compatibility.hh"
 %}
 
 DIGIT    [0-9]

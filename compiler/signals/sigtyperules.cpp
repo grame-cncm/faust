@@ -83,7 +83,10 @@ void typeAnnotation(Tree sig)
     //cerr << "Symlist " << *sl << endl;
     for (Tree l=sl; isList(l); l=tl(l)) {
         Tree    id, body;
-        assert(isRec(hd(l), id, body));
+		assert(isRec(hd(l), id, body));
+		if (!isRec(hd(l), id, body)) {
+			continue;
+		}
 
         vrec.push_back(hd(l));
         vdef.push_back(body);
