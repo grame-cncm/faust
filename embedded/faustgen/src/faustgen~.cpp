@@ -125,14 +125,7 @@ faustgen_factory::~faustgen_factory()
     free_sourcecode();
     free_bitcode();
    
-    // Possibly done by "compileoptions" or display_svg
-    char command[512];
-#ifdef WIN32
-    sprintf(command, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
-#else
-	sprintf(command, "rmd -r \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
-#endif
-    system(command);   
+    remove_svg();
     systhread_mutex_free(fDSPMutex);
 }
 
@@ -186,6 +179,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
 {
     char input_name[64];
     sprintf(input_name, "faustgen-%d", fFaustNumber);
+    
+    // To be sure we get a correct SVG diagram...
+    remove_svg();
     
     print_compile_options();
     
@@ -449,6 +445,18 @@ void faustgen_factory::open_svg()
 	sprintf(command, "open -a Safari \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
 	system(command);
+}
+
+void faustgen_factory::remove_svg()
+{
+    // Possibly done by "compileoptions" or display_svg
+    char command[512];
+#ifdef WIN32
+    sprintf(command, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+#else
+    sprintf(command, "rm -r \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+#endif
+    system(command); 
 }
 
 void faustgen_factory::display_svg()

@@ -172,7 +172,8 @@ class faustgen_factory {
            
         // Compile DSP with -svg option and display the SVG files
         bool try_open_svg();
-		void open_svg();
+        void open_svg();
+        void remove_svg();
         void display_svg();
         void display_pdf();
         void display_libraries();
