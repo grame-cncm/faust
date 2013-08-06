@@ -20,12 +20,15 @@ endif
 ifeq ($(LLVM_VERSION), 3.3)
 LLVM_VERSION  = LLVM_33
 CXX = /opt/local/libexec/llvm-3.3/bin/clang++
+LLC = /opt/local/libexec/llvm-3.3/bin/llc
 endif
 
 
 ifeq ($(system), Darwin)
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math '
-MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -fvectorize -fslp-vectorize'
+#MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -fvectorize -fslp-vectorize'
+
+MYGCCFLAGS := '-O3 -march=native -fvectorize -fslp-vectorize-aggressive'
 
 else
 MYGCCFLAGS := '-O3  -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
@@ -40,7 +43,8 @@ all : icc gcc
 icc : ialsascal ialsavec ialsavec2 ialsavec4 ialsaomp2 ialsasch ialsasch2
 gcc : galsascal galsavec galsavec2 galsavec4 galsaomp2 galsasch galsasch2
 #osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiovec3 gcoreaudiovec4 gcoreaudiosch gcoreaudiosch2
-osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiosch gcoreaudiollvm
+osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiosch gcoreaudiollvm  bscal bvec1 bvec2 bscalllvm
+#osx : bscal bvec1 bvec2 bscalllvm
 
 
 ### intel-compiler single-precision x {scalar, vector and openMP}
@@ -132,14 +136,31 @@ galsaomp2 :
 
 # OSX 
 
-gcoreaudiollvm : coreaudio-gtk-bench.cpp
+gcoreaudiollvm : 
 	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	$(CXX) -O3 coreaudio-gtk-llvm-bench.cpp /usr/local/lib/faust/libfaust.a  -lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0` `llvm-config --ldflags --libs all`  -o gcoreaudiollvm
+
+bscalllvm :
+	$(CXX) -O3 console-bench-llvm.cpp /usr/local/lib/faust/libfaust.a `llvm-config --ldflags --libs all` -o bscalllvm
+
+bscal :
+	install -d bscaldir
+	$(MAKE) DEST='bscaldir/' ARCH='console-bench.cpp' LIB='' CXX=$(CXX) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+bvec1 :
+	install -d bvec1dir
+	$(MAKE) DEST='bvec1dir/' ARCH='console-bench.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='' CXX=$(CXX) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+bvec2:
+	install -d bvec2dir
+	$(MAKE) DEST='bvec2dir/' ARCH='console-bench.cpp' VEC='-vec -dfs -vs $(VSIZE)' LIB='' CXX=$(CXX) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
 
 
 gcoreaudioscal :
 	install -d gcoreaudioscaldir
 	$(MAKE) DEST='gcoreaudioscaldir/' ARCH='coreaudio-gtk-bench.cpp' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX=$(CXX) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
 
 gcoreaudiovec1 :
 	install -d gcoreaudiovec1dir
@@ -198,4 +219,4 @@ iqalsaomp :
 
 clean :
 	rm -rf *dir
-	rm gcoreaudiollvm
+	rm gcoreaudiollvm bscalllvm
