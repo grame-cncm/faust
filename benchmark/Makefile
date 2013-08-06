@@ -219,4 +219,5 @@ iqalsaomp :
 
 clean :
 	rm -rf *dir
-	rm gcoreaudiollvm bscalllvm
+	rm gcoreaudiollvm
+	rm bscalllvm
