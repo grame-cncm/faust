@@ -246,7 +246,7 @@ public:
 			return;
 		}
 
-		if (anyIndex >= fUITable.size()) {
+		if (anyIndex >= (int)fUITable.size()) {
 #ifdef DEBUG
 			fprintf(stderr,"*** Faust vsti: %sIndex = %d too large!\n",
 					str,anyIndex);
@@ -364,22 +364,22 @@ public:
   void closeBox() {}
 		
   void  SetValue(VstInt32 index, double f) {
-		assert(index < fUITable.size()); 
+		assert(index < (VstInt32)fUITable.size()); 
 		fUITable[index]->SetValue(f);
 	}
 
   float GetValue(VstInt32 index) {
-		assert(index < fUITable.size()); 
+		assert(index < (VstInt32)fUITable.size()); 
 		return fUITable[index]->GetValue();
 	}
 
   void  GetDisplay(VstInt32 index, char *text) {
-		assert(index < fUITable.size()); 
+		assert(index < (VstInt32)fUITable.size()); 
 		fUITable[index]->GetDisplay(text);
   }
 
   void  GetName(VstInt32 index, char *text) {
-  	assert(index < fUITable.size()); 
+  	assert(index < (VstInt32)fUITable.size()); 
 		fUITable[index]->GetName(text);
   }
 
@@ -396,7 +396,7 @@ public:
     long baseid = 'FAUS';
     long id=0;
 
-    for(int i=0;i<fUITable.size();i++) {
+    for(int i=0;i<(int)fUITable.size();i++) {
 			id += fUITable[i]->GetID();
 		}
 
