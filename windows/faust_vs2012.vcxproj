@@ -1,0 +1,376 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>faust_vs2012</ProjectName>
+    <ProjectGuid>{5B179DA5-5826-46C2-AF2C-DBEF9181610D}</ProjectGuid>
+    <RootNamespace>faust_vs2008</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>faust</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>faust</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>faust</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>faust</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\compiler\boxes\boxcomplexity.cpp" />
+    <ClCompile Include="..\compiler\boxes\boxes.cpp" />
+    <ClCompile Include="..\compiler\boxes\boxtype.cpp" />
+    <ClCompile Include="..\compiler\boxes\ppbox.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_autodoc.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_compile.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_lang.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_metadatas.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_notice.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_sharing.cpp" />
+    <ClCompile Include="..\compiler\documentator\doc_Text.cpp" />
+    <ClCompile Include="..\compiler\documentator\lateq.cpp" />
+    <ClCompile Include="..\compiler\draw\drawschema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\connectorSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\sigToGraph.cpp" />
+    <ClCompile Include="..\compiler\draw\device\PSDev.cpp" />
+    <ClCompile Include="..\compiler\draw\device\SVGDev.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\blockSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\cableSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\collector.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\cutSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\decorateSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\enlargedSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\inverterSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\mergeSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\parSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\recSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\seqSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\splitSchema.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\topSchema.cpp" />
+    <ClCompile Include="..\compiler\errors\errormsg.cpp" />
+    <ClCompile Include="..\compiler\errors\timing.cpp" />
+    <ClCompile Include="..\compiler\evaluate\environment.cpp" />
+    <ClCompile Include="..\compiler\evaluate\eval.cpp" />
+    <ClCompile Include="..\compiler\evaluate\loopDetector.cpp" />
+    <ClCompile Include="..\compiler\extended\absprim.cpp" />
+    <ClCompile Include="..\compiler\extended\acosprim.cpp" />
+    <ClCompile Include="..\compiler\extended\asinprim.cpp" />
+    <ClCompile Include="..\compiler\extended\atan2prim.cpp" />
+    <ClCompile Include="..\compiler\extended\atanprim.cpp" />
+    <ClCompile Include="..\compiler\extended\ceilprim.cpp" />
+    <ClCompile Include="..\compiler\extended\cosprim.cpp" />
+    <ClCompile Include="..\compiler\extended\expprim.cpp" />
+    <ClCompile Include="..\compiler\extended\floorprim.cpp" />
+    <ClCompile Include="..\compiler\extended\fmodprim.cpp" />
+    <ClCompile Include="..\compiler\extended\log10prim.cpp" />
+    <ClCompile Include="..\compiler\extended\logprim.cpp" />
+    <ClCompile Include="..\compiler\extended\maxprim.cpp" />
+    <ClCompile Include="..\compiler\extended\minprim.cpp" />
+    <ClCompile Include="..\compiler\extended\powprim.cpp" />
+    <ClCompile Include="..\compiler\extended\remainderprim.cpp" />
+    <ClCompile Include="..\compiler\extended\rintprim.cpp" />
+    <ClCompile Include="..\compiler\extended\sinprim.cpp" />
+    <ClCompile Include="..\compiler\extended\sqrtprim.cpp" />
+    <ClCompile Include="..\compiler\extended\tanprim.cpp" />
+    <ClCompile Include="..\compiler\generator\compile.cpp" />
+    <ClCompile Include="..\compiler\generator\compile_scal.cpp" />
+    <ClCompile Include="..\compiler\generator\compile_sched.cpp" />
+    <ClCompile Include="..\compiler\generator\compile_vect.cpp" />
+    <ClCompile Include="..\compiler\generator\contextor.cpp" />
+    <ClCompile Include="..\compiler\generator\description.cpp" />
+    <ClCompile Include="..\compiler\generator\floats.cpp" />
+    <ClCompile Include="..\compiler\generator\klass.cpp" />
+    <ClCompile Include="..\compiler\generator\occurences.cpp" />
+    <ClCompile Include="..\compiler\generator\sharing.cpp" />
+    <ClCompile Include="..\compiler\generator\Text.cpp" />
+    <ClCompile Include="..\compiler\generator\uitree.cpp" />
+    <ClCompile Include="..\compiler\normalize\aterm.cpp" />
+    <ClCompile Include="..\compiler\normalize\mterm.cpp" />
+    <ClCompile Include="..\compiler\normalize\normalize.cpp" />
+    <ClCompile Include="..\compiler\normalize\privatise.cpp" />
+    <ClCompile Include="..\compiler\normalize\simplify.cpp" />
+    <ClCompile Include="..\compiler\parallelize\colorize.cpp" />
+    <ClCompile Include="..\compiler\parallelize\graphSorting.cpp" />
+    <ClCompile Include="..\compiler\parallelize\loop.cpp" />
+    <ClCompile Include="..\compiler\parser\enrobage.cpp" />
+    <ClCompile Include="..\compiler\parser\faustlexer.cpp" />
+    <ClCompile Include="..\compiler\parser\faustparser.cpp" />
+    <ClCompile Include="..\compiler\parser\sourcefetcher.cpp" />
+    <ClCompile Include="..\compiler\parser\sourcereader.cpp" />
+    <ClCompile Include="..\compiler\patternmatcher\patternmatcher.cpp" />
+    <ClCompile Include="..\compiler\propagate\labels.cpp" />
+    <ClCompile Include="..\compiler\propagate\propagate.cpp" />
+    <ClCompile Include="..\compiler\signals\binop.cpp" />
+    <ClCompile Include="..\compiler\signals\ppsig.cpp" />
+    <ClCompile Include="..\compiler\signals\prim2.cpp" />
+    <ClCompile Include="..\compiler\signals\recursivness.cpp" />
+    <ClCompile Include="..\compiler\signals\signals.cpp" />
+    <ClCompile Include="..\compiler\signals\sigorderrules.cpp" />
+    <ClCompile Include="..\compiler\signals\sigprint.cpp" />
+    <ClCompile Include="..\compiler\signals\sigtype.cpp" />
+    <ClCompile Include="..\compiler\signals\sigtyperules.cpp" />
+    <ClCompile Include="..\compiler\signals\sigvisitor.cpp" />
+    <ClCompile Include="..\compiler\signals\subsignals.cpp" />
+    <ClCompile Include="..\compiler\tlib\compatibility.cpp" />
+    <ClCompile Include="..\compiler\tlib\list.cpp" />
+    <ClCompile Include="..\compiler\tlib\node.cpp" />
+    <ClCompile Include="..\compiler\tlib\occurrences.cpp" />
+    <ClCompile Include="..\compiler\tlib\recursive-tree.cpp" />
+    <ClCompile Include="..\compiler\tlib\shlysis.cpp" />
+    <ClCompile Include="..\compiler\tlib\symbol.cpp" />
+    <ClCompile Include="..\compiler\tlib\tree.cpp" />
+    <ClCompile Include="..\compiler\utils\names.cpp" />
+    <ClCompile Include="..\compiler\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\compiler\boxes\boxcomplexity.h" />
+    <ClInclude Include="..\compiler\draw\device\device.h" />
+    <ClInclude Include="..\compiler\draw\device\devLib.h" />
+    <ClInclude Include="..\compiler\draw\device\PSDev.h" />
+    <ClInclude Include="..\compiler\draw\device\SVGDev.h" />
+    <ClInclude Include="..\compiler\draw\schema\blockSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\cableSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\connectorSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\cutSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\decorateSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\enlargedSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\inverterSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\mergeSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\parSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\recSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\schema.h" />
+    <ClInclude Include="..\compiler\draw\schema\seqSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\splitSchema.h" />
+    <ClInclude Include="..\compiler\draw\schema\topSchema.h" />
+    <ClInclude Include="..\compiler\parallelize\colorize.h" />
+    <ClInclude Include="..\compiler\parser\faustparser.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\compiler\boxes\boxes.hh" />
+    <None Include="..\compiler\boxes\ppbox.hh" />
+    <None Include="..\compiler\documentator\doc.hh" />
+    <None Include="..\compiler\documentator\doc_autodoc.hh" />
+    <None Include="..\compiler\documentator\doc_compile.hh" />
+    <None Include="..\compiler\documentator\doc_lang.hh" />
+    <None Include="..\compiler\documentator\doc_metadatas.hh" />
+    <None Include="..\compiler\documentator\doc_notice.hh" />
+    <None Include="..\compiler\documentator\doc_Text.hh" />
+    <None Include="..\compiler\documentator\lateq.hh" />
+    <None Include="..\compiler\draw\drawschema.hh" />
+    <None Include="..\compiler\draw\sigToGraph.hh" />
+    <None Include="..\compiler\errors\errormsg.hh" />
+    <None Include="..\compiler\errors\timing.hh" />
+    <None Include="..\compiler\evaluate\environment.hh" />
+    <None Include="..\compiler\evaluate\eval.hh" />
+    <None Include="..\compiler\evaluate\loopDetector.hh" />
+    <None Include="..\compiler\extended\xtended.hh" />
+    <None Include="..\compiler\generator\compile.hh" />
+    <None Include="..\compiler\generator\compile_scal.hh" />
+    <None Include="..\compiler\generator\compile_sched.hh" />
+    <None Include="..\compiler\generator\compile_vect.hh" />
+    <None Include="..\compiler\generator\contextor.hh" />
+    <None Include="..\compiler\generator\description.hh" />
+    <None Include="..\compiler\generator\floats.hh" />
+    <None Include="..\compiler\generator\klass.hh" />
+    <None Include="..\compiler\generator\occurences.hh" />
+    <None Include="..\compiler\generator\Text.hh" />
+    <None Include="..\compiler\generator\uitree.hh" />
+    <None Include="..\compiler\normalize\aterm.hh" />
+    <None Include="..\compiler\normalize\mterm.hh" />
+    <None Include="..\compiler\normalize\normalize.hh" />
+    <None Include="..\compiler\normalize\privatise.hh" />
+    <None Include="..\compiler\normalize\simplify.hh" />
+    <None Include="..\compiler\parallelize\graphSorting.hh" />
+    <None Include="..\compiler\parallelize\loop.hh" />
+    <None Include="..\compiler\parser\enrobage.hh" />
+    <None Include="..\compiler\parser\sourcefetcher.hh" />
+    <None Include="..\compiler\parser\sourcereader.hh" />
+    <None Include="..\compiler\patternmatcher\patternmatcher.hh" />
+    <None Include="..\compiler\propagate\labels.hh" />
+    <None Include="..\compiler\propagate\propagate.hh" />
+    <None Include="..\compiler\signals\binop.hh" />
+    <None Include="..\compiler\signals\interval.hh" />
+    <None Include="..\compiler\signals\ppsig.hh" />
+    <None Include="..\compiler\signals\prim2.hh" />
+    <None Include="..\compiler\signals\recursivness.hh" />
+    <None Include="..\compiler\signals\signals.hh" />
+    <None Include="..\compiler\signals\sigorderrules.hh" />
+    <None Include="..\compiler\signals\sigprint.hh" />
+    <None Include="..\compiler\signals\sigtype.hh" />
+    <None Include="..\compiler\signals\sigtyperules.hh" />
+    <None Include="..\compiler\signals\sigvisitor.hh" />
+    <None Include="..\compiler\tlib\compatibility.hh" />
+    <None Include="..\compiler\tlib\list.hh" />
+    <None Include="..\compiler\tlib\node.hh" />
+    <None Include="..\compiler\tlib\num.hh" />
+    <None Include="..\compiler\tlib\occurrences.hh" />
+    <None Include="..\compiler\tlib\property.hh" />
+    <None Include="..\compiler\tlib\shlysis.hh" />
+    <None Include="..\compiler\tlib\smartpointer.hh" />
+    <None Include="..\compiler\tlib\symbol.hh" />
+    <None Include="..\compiler\tlib\tlib.hh" />
+    <None Include="..\compiler\tlib\tree.hh" />
+    <None Include="..\compiler\utils\names.hh" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

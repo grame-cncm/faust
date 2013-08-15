@@ -61,7 +61,7 @@ typedef vector<int> Path;
 
 static Tree subtree(Tree X, int i, const Path& p)
 {
-  int n = p.size();
+  int n = (int)p.size();
   Node op(0);
   Tree x0, x1;
   if (i < n && isBoxPatternOp(X, op, x0, x1))
@@ -191,7 +191,7 @@ struct Automaton {
   Automaton() : state(vector<State*>()), rhs(vector<Tree>()), s(0) {}
 
   // number of rules
-  int n_rules() { return rhs.size(); }
+  int n_rules() { return (int)rhs.size(); }
   // markers of rules still active in state s
   const list<Rule>& rules(int s) { return state[s]->rules; }
   // transitions in state s
@@ -527,7 +527,7 @@ Automaton *make_pattern_matcher(Tree R)
      it is *not* enough to just check the rule lists of final states and
      determine whether they have multiple matched rules. */
   for (r = 0; r < n; r++) {
-    int s = 0, m = testpats[r].size();
+    int s = 0, m = (int)testpats[r].size();
     Tree C;
     vector<Tree> E(n, nil);
     /* try to match the lhs of rule #r */

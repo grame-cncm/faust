@@ -297,7 +297,7 @@ Faust::Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi)
 	TRACE( fprintf(stderr, "Faust VSTi: Allocating %d temporary output "
 								 "buffers\n", m_dsp->getNumOutputs()) );
 	m_tempOutputs = (FAUSTFLOAT**) malloc(sizeof(FAUSTFLOAT*) * m_dsp->getNumOutputs());
-	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		m_tempOutputs[i] = (FAUSTFLOAT*) malloc(sizeof(FAUSTFLOAT) * m_tempOutputSize);
 	}
 
@@ -312,7 +312,7 @@ Faust::~Faust()
 {
 	TRACE( fprintf(stderr, "Calling Faust VST destructor\n") );
 	
-	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		free(m_tempOutputs[i]);
 		m_tempOutputs[i] = NULL;
 	}
@@ -467,7 +467,7 @@ bool Faust::getInputProperties (VstInt32 index, VstPinProperties* properties)
 //-----------------------------------------------------------------------------
 bool Faust::getOutputProperties (VstInt32 index, VstPinProperties* properties)
 {
-  if(index < 0 || index<m_dsp->getNumOutputs() < 1) {
+  if(index < 0 || m_dsp->getNumOutputs() < 1) {
 		return false;
 	}
 
@@ -526,7 +526,7 @@ bool Faust::getProductString (char* text)
 VstInt32 Faust::getVendorVersion ()
 { 
 	const char* versionString = getMetadata("version", "0.0");
-  return atof(versionString);
+  return (VstInt32)atof(versionString);
 }
 
 //-----------------------------------------------------------------------------
@@ -711,7 +711,7 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 	return;
 #endif
 
-	if (sampleFrames > m_tempOutputSize) {
+	if (sampleFrames > (VstInt32)m_tempOutputSize) {
 		// if requested number of samples to synthesize exceeds current temporary buffer
 		TRACE( fprintf(stderr, "Faust VSTi: Increasing temporary buffer to %d frames\n",
 									 sampleFrames) );
@@ -728,17 +728,17 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 		m_voices[voice]->m_dsp.compute(sampleFrames, inputs, m_tempOutputs);
 
 		// mix current voice into output
-		for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
-			for (unsigned int frame = 0; frame < sampleFrames; ++frame) {
+		for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+			for (int frame = 0; frame < sampleFrames; ++frame) {
 				outputs[i][frame] += m_tempOutputs[i][frame];
 			}
 		}
 	} // end of signal computation and mixdown
 
 	// normalize sample by number of playing voices
-	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
-		for (unsigned int frame = 0; frame < sampleFrames; ++frame) {
-			outputs[i][frame] /= sqrt(MAX_POLYPHONY);
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+		for (int frame = 0; frame < sampleFrames; ++frame) {
+			outputs[i][frame] /= (FAUSTFLOAT)sqrt(MAX_POLYPHONY);
 		}
 	}
 } // end of compute

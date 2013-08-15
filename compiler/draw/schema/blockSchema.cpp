@@ -46,7 +46,7 @@ schema* makeBlockSchema (	unsigned int inputs,
 {
     // determine the optimal size of the box
     double minimal = 3*dWire;
-    double w = 2*dHorz + max( minimal, quantize(text.size()) );
+    double w = 2*dHorz + max( minimal, quantize((int)text.size()) );
     double h = 2*dVert + max( minimal, max(inputs, outputs) * dWire );
 
     return new blockSchema(inputs, outputs, w, h, text, color, link);

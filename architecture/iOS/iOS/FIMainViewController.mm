@@ -247,13 +247,16 @@ error:
 // Save widgets values
 - (void)closeJack:(const char*)reason 
 {
-    
     NSString* errorString = [[NSString alloc] initWithCString:reason encoding:NSASCIIStringEncoding];
-    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
-                                                        message:errorString delegate:self
-                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    [alertView show];
-    [alertView release];
+    
+    if ([errorString compare:@"Client closed from JACK server!"] != NSOrderedSame)
+    {
+        UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
+                                                            message:errorString delegate:self
+                                                  cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alertView show];
+        [alertView release];
+    }
 
     [self closeAudio];
 }
@@ -457,15 +460,15 @@ T findCorrespondingUiItem(FIResponder* sender)
                     slider->setAssignationRefPointX(0.f);
                     slider->setAssignationRefPointY(slider->getAssignationRefPointY() * 360.f - _locationManager.heading.trueHeading);
                 }
-                else if (slider->getAssignationType() == kAssignationGyroX) slider->setAssignationRefPointX(0./*_motionManager.gyroData.rotationRate.x*/);
+                else if (slider->getAssignationType() == kAssignationGyroX) slider->setAssignationRefPointX(0.);
                 else if (slider->getAssignationType() == kAssignationGyroY) slider->setAssignationRefPointX(0.);
                 else if (slider->getAssignationType() == kAssignationGyroZ) slider->setAssignationRefPointX(0.);
-                
+                                
                 NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:slider]];
-                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointX() forKey:key];
+                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointX() + 1000. forKey:key];
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
-                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() forKey:key];
+                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
             }
             
             // Otherwise normal behaviour
@@ -527,10 +530,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                 else if (knob->getAssignationType() == kAssignationGyroZ) knob->setAssignationRefPointX(0.);
                 
                 NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:knob]];
-                [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointX() forKey:key];
+                [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointX() + 1000. forKey:key];
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:knob]];
-                [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() forKey:key];
+                [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() + 1000. forKey:key];
             }
             
             // Otherwise normal behaviour
@@ -832,7 +835,9 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+#ifdef JACK_IOS
     [self closeJackView];
+#endif
 }
 
 // Function called just after scroll view scrolled
@@ -854,8 +859,10 @@ T findCorrespondingUiItem(FIResponder* sender)
 // User just double tapped somewhere in the DSP view
 - (void)doubleTap
 {
+#ifdef JACK_IOS
     // Test Jack
     [self closeJackView];
+#endif
     
     uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
 
@@ -1053,6 +1060,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
         
         _gyroInvertedSwitch.hidden = NO;
+        _gyroFilteredSwitch.hidden = NO;
         _gyroInvertedTitleLabel.hidden = NO;
         _gyroSensibilityLabel.hidden = NO;
         _gyroSensibilitySlider.hidden = NO;
@@ -1070,6 +1078,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Shk" atIndex:1 animated:NO];
             
             _gyroInvertedSwitch.hidden = YES;
+            _gyroFilteredSwitch.hidden = YES;
             _gyroInvertedTitleLabel.hidden = YES;
             _gyroSensibilityLabel.hidden = YES;
             _gyroSensibilitySlider.hidden = YES;
@@ -1096,8 +1105,10 @@ T findCorrespondingUiItem(FIResponder* sender)
     [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];	
     
     [[_dspView.window layer] addAnimation:animation forKey:@"ShowWidgetPreferences"];
-    
+ 
+#ifdef JACK_IOS
     [self closeJackView];
+#endif
 }
 
 // Display right values for parameters
@@ -1107,7 +1118,8 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (dynamic_cast<uiKnob*>(_selectedWidget)
         || dynamic_cast<uiSlider*>(_selectedWidget))
     {
-        if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
+        if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
+        else if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelY) _gyroAxisSegmentedControl.selectedSegmentIndex = 2;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelZ) _gyroAxisSegmentedControl.selectedSegmentIndex = 3;
         else if (_selectedWidget->getAssignationType() == kAssignationGyroX) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
@@ -1130,6 +1142,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Common parameters for all types
     _gyroInvertedSwitch.on = _selectedWidget->getAssignationInverse();
+    _gyroFilteredSwitch.on = _selectedWidget->getAssignationFiltered();
     _gyroSensibilitySlider.value = _selectedWidget->getAssignationSensibility();
     _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getAssignationSensibility()];
     _colorRSlider.value = _selectedWidget->getR();
@@ -1239,6 +1252,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Write parameters in the widget object
     _selectedWidget->setAssignationInverse(_gyroInvertedSwitch.on);
+    _selectedWidget->setAssignationFiltered(_gyroFilteredSwitch.on);
     _selectedWidget->setAssignationSensibility(_gyroSensibilitySlider.value);
     _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _gyroSensibilitySlider.value];
     
@@ -1274,28 +1288,31 @@ T findCorrespondingUiItem(FIResponder* sender)
 
     // Save parameters in user defaults
     key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationType() forKey:key];
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationType() + 1000 forKey:key];
     
     key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() forKey:key];
-    
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() + 1000 forKey:key];
+
+    key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:_selectedWidget]];
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationFiltered() + 1000 forKey:key];
+
     key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationSensibility() forKey:key];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationSensibility() + 1000. forKey:key];
     
     key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointX() forKey:key];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointX() + 1000. forKey:key];
     
     key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointY() forKey:key];
-    
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointY() + 1000. forKey:key];
+        
     key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getR() + 1. forKey:key];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getR() + 1000. forKey:key];
     
     key = [NSString stringWithFormat:@"%@-g", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getG() + 1. forKey:key];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getG() + 1000. forKey:key];
     
     key = [NSString stringWithFormat:@"%@-b", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1. forKey:key];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1000. forKey:key];
     
     // If assignation type is not kAssignationNone, we start motion
     if (_assignatedWidgets.size() > 0) [self startMotion];
@@ -1317,6 +1334,9 @@ T findCorrespondingUiItem(FIResponder* sender)
     NSString*                       key;
     NSString*                       key2;
     NSString*                       key3;
+    int                             intValue = 0;
+    float                           floatValue = 0.;
+    
     
     for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
     {
@@ -1326,31 +1346,49 @@ T findCorrespondingUiItem(FIResponder* sender)
         {
             // Sensor assignation
             key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
-            (*i)->setAssignationType([[NSUserDefaults standardUserDefaults] integerForKey:key]);
+            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            if (intValue != 0) (*i)->setAssignationType(intValue - 1000);
+            else (*i)->setAssignationType((*i)->getInitAssignationType());
+            
             key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:(*i)]];
-            (*i)->setAssignationInverse([[NSUserDefaults standardUserDefaults] boolForKey:key]);
+            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            if (intValue != 0) (*i)->setAssignationInverse((bool)(intValue - 1000));
+            else (*i)->setAssignationInverse((*i)->getInitAssignationInverse());
+            
+            key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:(*i)]];
+            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            if (intValue != 0) (*i)->setAssignationFiltered((bool)(intValue - 1000));
+            else (*i)->setAssignationFiltered((*i)->getInitAssignationFiltered());
+            
             key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:(*i)]];
-            (*i)->setAssignationSensibility([[NSUserDefaults standardUserDefaults] floatForKey:key]);
-            if ((*i)->getAssignationSensibility() == 0.) (*i)->setAssignationSensibility(1.);
+            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if (floatValue != 0.) (*i)->setAssignationSensibility(floatValue - 1000.);
+            else (*i)->setAssignationSensibility((*i)->getInitAssignationSensibility());
+            
             key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:(*i)]];
-            (*i)->setAssignationRefPointX([[NSUserDefaults standardUserDefaults] floatForKey:key]);
+            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if (floatValue != 0.) (*i)->setAssignationRefPointX(floatValue - 1000.);
+            else (*i)->setAssignationRefPointX((*i)->getInitAssignationRefPointX());
+            
             key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:(*i)]];
-            (*i)->setAssignationRefPointY([[NSUserDefaults standardUserDefaults] floatForKey:key]);
+            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if (floatValue != 0.) (*i)->setAssignationRefPointY(floatValue - 1000.);
+            else (*i)->setAssignationRefPointY((*i)->getInitAssignationRefPointY());
             
             // Color
             key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
             key2 = [NSString stringWithFormat:@"%@-g", [self urlForWidget:(*i)]];
             key3 = [NSString stringWithFormat:@"%@-b", [self urlForWidget:(*i)]];
-            (*i)->setColor([[NSUserDefaults standardUserDefaults] floatForKey:key] - 1.,
-                           [[NSUserDefaults standardUserDefaults] floatForKey:key2] - 1.,
-                           [[NSUserDefaults standardUserDefaults] floatForKey:key3] - 1.);
+            (*i)->setColor([[NSUserDefaults standardUserDefaults] floatForKey:key] - 1000.,
+                           [[NSUserDefaults standardUserDefaults] floatForKey:key2] - 1000.,
+                           [[NSUserDefaults standardUserDefaults] floatForKey:key3] - 1000.);
             
             // Default color
-            if ((*i)->getR() == -1
-                && (*i)->getG() == -1
-                && (*i)->getB() == -1)
+            if ((*i)->getR() == -1000
+                && (*i)->getG() == -1000
+                && (*i)->getB() == -1000)
             {
-                (*i)->setColor(0.f, 0.f, 1.f);
+                (*i)->setColor((*i)->getInitR(), (*i)->getInitG(), (*i)->getInitB());
             }
             
             // Add in assignation list if there is a sensor assignation and / or color is not default
@@ -1443,27 +1481,33 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationType() == kAssignationAccelX)
             {
-                coef = _sensorFilter.xAccel * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.x * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelY)
             {
-                coef = -_sensorFilter.yAccel * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = -_sensorFilter.yAccel * (*i)->getAssignationSensibility();
+                else coef = -_motionManager.accelerometerData.acceleration.y * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelZ)
             {
-                coef = _sensorFilter.zAccel * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.z * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroX)
             {
-                coef = _sensorFilter.xGyro * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.x * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroY)
             {
-                coef = _sensorFilter.yGyro * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.y * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroZ)
             {
-                coef = _sensorFilter.zGyro * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.z * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {

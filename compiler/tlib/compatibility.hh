@@ -24,15 +24,34 @@
 #define     __COMPATIBILITY__
 
 
-#if defined (WIN32)
-
-#include <windows.h>
-
 #ifdef WIN32
-	#undef min
-	#undef max
+#if !defined(INT) & !defined(FLOAT)
+#include <windows.h>
+#else
+#include <io.h>
 #endif
+#include <time.h>
+#include <assert.h>
 
+#undef min
+#undef max
+
+#define int64_t __int64
+#define YY_NO_UNISTD_H 1
+
+struct timezone 
+{
+	int  tz_minuteswest; /* minutes W of Greenwich */
+	int  tz_dsttime;     /* type of dst correction */
+};
+
+#define alarm(x)
+#define strdup _strdup
+#define isatty _isatty
+#define fileno _fileno
+#define snprintf _snprintf
+double  rint(double nr);
+int		gettimeofday(struct timeval *tv, struct timezone *tz);
 bool	chdir(const char* path);
 int		mkdir(const char* path, unsigned int attribute);
 char*	getcwd(char* str, unsigned int size);
@@ -40,7 +59,6 @@ int		isatty(int file);
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
 
-#include <assert.h>
 #ifdef  NDEBUG
 #undef assert
 #define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)

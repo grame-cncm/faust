@@ -24,15 +24,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <strings.h>
 #include <ctype.h>
 #include <errno.h>
+#include <sys/types.h>
+#ifndef WIN32
+#include <strings.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#else
+#include <winsock2.h>
+#define close closesocket
+#define write(s, buf, len) send(s, buf, (int)(len), 0)
+#define read(s, buf, len) recv(s, buf, (int)(len), 0)
+#define rindex strchr
+#define herror perror
+#endif
+#include "compatibility.hh"
 #include "sourcefetcher.hh"
 
 #define VERSION "0"
@@ -145,7 +155,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			 * The url has no '/' in it, assume the user is
 			 * making a root-level request
 			 */
-			tempSize = strlen("GET /") + strlen(HTTP_VERSION) + 2;
+			tempSize = (int)strlen("GET /") + (int)strlen(HTTP_VERSION) + 2;
 			if (_checkBufSize(&requestBuf, &bufsize, tempSize) ||
 			    snprintf(requestBuf, bufsize, "GET / %s\r\n", HTTP_VERSION) < 0) {
 				free(url);
@@ -154,8 +164,8 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 				return -1;
 			}
 		} else {
-			tempSize = strlen("GET ") + strlen(charIndex) +
-				strlen(HTTP_VERSION) + 4;
+			tempSize = (int)strlen("GET ") + (int)strlen(charIndex) +
+				(int)strlen(HTTP_VERSION) + 4;
 			/* + 4 is for ' ', '\r', '\n', and NULL */
 
 			if (_checkBufSize(&requestBuf, &bufsize, tempSize) ||
@@ -177,7 +187,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 		 * servers won't play nice if we don't send Host, and it
 		 * shouldn't hurt anything
 		 */
-		ret = bufsize - strlen(requestBuf);	/* Space left in buffer */
+		ret = (int)bufsize - (int)strlen(requestBuf);	/* Space left in buffer */
 		tempSize = (int)strlen("Host: ") + (int)strlen(host) + 3;
 		/* +3 for "\r\n\0" */
 		if (_checkBufSize(&requestBuf, &bufsize, tempSize + 128)) {
@@ -339,7 +349,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 				http_errno = HF_CANTREDIRECT;
 				return -1;
 			}
-			i = strcspn(charIndex, " \r\n");
+			i = (int)strcspn(charIndex, " \r\n");
 			if (i > 0) {
 				url = (char *)malloc(i + 1);
 				strncpy(url, charIndex, i);
@@ -793,7 +803,7 @@ int makeSocket(char *host)
 	sa.sin_family = hp->h_addrtype;	/* Set service sin_family to PF_INET */
 	sa.sin_port = htons(port);	/* Put portnum into sockaddr */
 
-	sock = socket(hp->h_addrtype, SOCK_STREAM, 0);
+	sock = (int)socket(hp->h_addrtype, SOCK_STREAM, 0);
 	if (sock == -1) {
 		errorSource = ERRNO;
 		return -1;
@@ -817,7 +827,7 @@ int makeSocket(char *host)
 int _checkBufSize(char **buf, int *bufsize, int more)
 {
 	char           *tmp;
-	int		roomLeft = *bufsize - (strlen(*buf) + 1);
+	int		roomLeft = (int)*bufsize - (int)(strlen(*buf) + 1);
 	if (roomLeft > more)
 		return 0;
 	tmp = (char *)realloc(*buf, *bufsize + more + 1);

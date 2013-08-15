@@ -1,0 +1,633 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="boxes">
+      <UniqueIdentifier>{df74490a-26bb-4f85-a2d5-72db3d4b6e02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="documentator">
+      <UniqueIdentifier>{1192a7e0-f5c5-473c-bba2-de918f6c886f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="draw">
+      <UniqueIdentifier>{d388d7f1-959d-4fbb-be24-ab09b6f88797}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="draw\device">
+      <UniqueIdentifier>{c4561880-9b84-4cf8-9b53-461f884086e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="draw\schema">
+      <UniqueIdentifier>{38ad8d6f-821f-4f36-989d-a7b9154fa468}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="errors">
+      <UniqueIdentifier>{34eee96a-4d99-470b-9b58-3e54b9ae8e46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="evaluate">
+      <UniqueIdentifier>{daecc64a-6d58-4b5c-b1f1-4f64138885e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extended">
+      <UniqueIdentifier>{f99c4568-b4c5-4d13-b97d-beb37af1c9a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="generator">
+      <UniqueIdentifier>{d87c524c-bd81-4fbf-85ca-887f85c0d4f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="normalize">
+      <UniqueIdentifier>{1f153ef7-0d56-4235-9375-299f9cd707e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="parallelize">
+      <UniqueIdentifier>{fa740d1e-dddb-4b4f-9fdd-b96986796040}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="parser">
+      <UniqueIdentifier>{0307cdbd-c886-4523-99a8-cdbb8e941ca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="patternmatcher">
+      <UniqueIdentifier>{cd89ffc2-9856-43e7-8815-7539ad266d62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="propagate">
+      <UniqueIdentifier>{3ab9b3fe-6d00-4c17-a484-eeb3b178cb3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="signals">
+      <UniqueIdentifier>{bddcdf65-cf56-4ac7-a070-7e8967c8d7b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tlib">
+      <UniqueIdentifier>{581749ba-b4c3-4875-9b85-afb44a3750d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{9e340713-4d42-49cf-976e-f1bcc63136c6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\compiler\boxes\boxcomplexity.cpp">
+      <Filter>boxes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\boxes\boxes.cpp">
+      <Filter>boxes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\boxes\boxtype.cpp">
+      <Filter>boxes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\boxes\ppbox.cpp">
+      <Filter>boxes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_autodoc.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_compile.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_lang.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_metadatas.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_notice.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_sharing.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\doc_Text.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\documentator\lateq.cpp">
+      <Filter>documentator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\drawschema.cpp">
+      <Filter>draw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\sigToGraph.cpp">
+      <Filter>draw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\device\PSDev.cpp">
+      <Filter>draw\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\device\SVGDev.cpp">
+      <Filter>draw\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\blockSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\cableSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\collector.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\cutSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\decorateSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\enlargedSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\inverterSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\mergeSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\parSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\recSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\seqSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\splitSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\draw\schema\topSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\errors\errormsg.cpp">
+      <Filter>errors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\errors\timing.cpp">
+      <Filter>errors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\evaluate\environment.cpp">
+      <Filter>evaluate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\evaluate\eval.cpp">
+      <Filter>evaluate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\evaluate\loopDetector.cpp">
+      <Filter>evaluate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\absprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\acosprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\asinprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\atan2prim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\atanprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\ceilprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\cosprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\expprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\floorprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\fmodprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\log10prim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\logprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\maxprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\minprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\powprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\remainderprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\rintprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\sinprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\sqrtprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\extended\tanprim.cpp">
+      <Filter>extended</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\compile.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\compile_scal.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\compile_sched.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\compile_vect.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\contextor.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\description.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\floats.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\klass.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\occurences.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\sharing.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\Text.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\uitree.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\normalize\aterm.cpp">
+      <Filter>normalize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\normalize\mterm.cpp">
+      <Filter>normalize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\normalize\normalize.cpp">
+      <Filter>normalize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\normalize\privatise.cpp">
+      <Filter>normalize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\normalize\simplify.cpp">
+      <Filter>normalize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parallelize\colorize.cpp">
+      <Filter>parallelize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parallelize\graphSorting.cpp">
+      <Filter>parallelize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parallelize\loop.cpp">
+      <Filter>parallelize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parser\enrobage.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parser\faustlexer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parser\faustparser.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parser\sourcereader.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\patternmatcher\patternmatcher.cpp">
+      <Filter>patternmatcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\propagate\labels.cpp">
+      <Filter>propagate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\propagate\propagate.cpp">
+      <Filter>propagate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\binop.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\ppsig.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\prim2.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\recursivness.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\signals.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\sigorderrules.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\sigprint.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\sigtype.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\sigtyperules.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\sigvisitor.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\signals\subsignals.cpp">
+      <Filter>signals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\compatibility.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\list.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\node.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\occurrences.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\recursive-tree.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\shlysis.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\symbol.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\tlib\tree.cpp">
+      <Filter>tlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\utils\names.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\main.cpp" />
+    <ClCompile Include="..\compiler\draw\schema\connectorSchema.cpp">
+      <Filter>draw\schema</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\parser\sourcefetcher.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\compiler\boxes\boxcomplexity.h">
+      <Filter>boxes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\device\device.h">
+      <Filter>draw\device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\device\devLib.h">
+      <Filter>draw\device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\device\PSDev.h">
+      <Filter>draw\device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\device\SVGDev.h">
+      <Filter>draw\device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\blockSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\cableSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\cutSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\decorateSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\enlargedSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\inverterSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\mergeSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\parSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\recSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\schema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\seqSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\splitSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\topSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\parallelize\colorize.h">
+      <Filter>parallelize</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\parser\faustparser.hpp">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\draw\schema\connectorSchema.h">
+      <Filter>draw\schema</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\compiler\boxes\boxes.hh">
+      <Filter>boxes</Filter>
+    </None>
+    <None Include="..\compiler\boxes\ppbox.hh">
+      <Filter>boxes</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc_autodoc.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc_compile.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc_lang.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc_metadatas.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc_notice.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\doc_Text.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\documentator\lateq.hh">
+      <Filter>documentator</Filter>
+    </None>
+    <None Include="..\compiler\draw\drawschema.hh">
+      <Filter>draw</Filter>
+    </None>
+    <None Include="..\compiler\draw\sigToGraph.hh">
+      <Filter>draw</Filter>
+    </None>
+    <None Include="..\compiler\errors\errormsg.hh">
+      <Filter>errors</Filter>
+    </None>
+    <None Include="..\compiler\errors\timing.hh">
+      <Filter>errors</Filter>
+    </None>
+    <None Include="..\compiler\evaluate\environment.hh">
+      <Filter>evaluate</Filter>
+    </None>
+    <None Include="..\compiler\evaluate\eval.hh">
+      <Filter>evaluate</Filter>
+    </None>
+    <None Include="..\compiler\evaluate\loopDetector.hh">
+      <Filter>evaluate</Filter>
+    </None>
+    <None Include="..\compiler\extended\xtended.hh">
+      <Filter>extended</Filter>
+    </None>
+    <None Include="..\compiler\generator\compile.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\compile_scal.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\compile_sched.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\compile_vect.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\contextor.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\description.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\floats.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\klass.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\occurences.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\Text.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\generator\uitree.hh">
+      <Filter>generator</Filter>
+    </None>
+    <None Include="..\compiler\normalize\aterm.hh">
+      <Filter>normalize</Filter>
+    </None>
+    <None Include="..\compiler\normalize\mterm.hh">
+      <Filter>normalize</Filter>
+    </None>
+    <None Include="..\compiler\normalize\normalize.hh">
+      <Filter>normalize</Filter>
+    </None>
+    <None Include="..\compiler\normalize\privatise.hh">
+      <Filter>normalize</Filter>
+    </None>
+    <None Include="..\compiler\normalize\simplify.hh">
+      <Filter>normalize</Filter>
+    </None>
+    <None Include="..\compiler\parallelize\graphSorting.hh">
+      <Filter>parallelize</Filter>
+    </None>
+    <None Include="..\compiler\parallelize\loop.hh">
+      <Filter>parallelize</Filter>
+    </None>
+    <None Include="..\compiler\parser\enrobage.hh">
+      <Filter>parser</Filter>
+    </None>
+    <None Include="..\compiler\parser\sourcereader.hh">
+      <Filter>parser</Filter>
+    </None>
+    <None Include="..\compiler\patternmatcher\patternmatcher.hh">
+      <Filter>patternmatcher</Filter>
+    </None>
+    <None Include="..\compiler\propagate\labels.hh">
+      <Filter>propagate</Filter>
+    </None>
+    <None Include="..\compiler\propagate\propagate.hh">
+      <Filter>propagate</Filter>
+    </None>
+    <None Include="..\compiler\signals\binop.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\interval.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\ppsig.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\prim2.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\recursivness.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\signals.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\sigorderrules.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\sigprint.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\sigtype.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\sigtyperules.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\signals\sigvisitor.hh">
+      <Filter>signals</Filter>
+    </None>
+    <None Include="..\compiler\tlib\compatibility.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\list.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\node.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\num.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\occurrences.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\property.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\shlysis.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\smartpointer.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\symbol.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\tlib.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\tlib\tree.hh">
+      <Filter>tlib</Filter>
+    </None>
+    <None Include="..\compiler\utils\names.hh">
+      <Filter>utils</Filter>
+    </None>
+    <None Include="..\compiler\parser\sourcefetcher.hh">
+      <Filter>parser</Filter>
+    </None>
+  </ItemGroup>
+</Project>

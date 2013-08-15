@@ -55,6 +55,8 @@ install:
 	install faust2lv2 $(dest)
 	install faust2lv2synth $(dest)
 	install faust2alsaconsole $(dest)
+	install faust2rpialsaconsole $(dest)
+	install faust2rpinetjackconsole $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -99,4 +101,6 @@ uninstall:
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2lv2synth
 	rm -f $(dest)/faust2alsaconsole
+	rm -f $(dest)/faust2rpialsaconsole
+	rm -f $(dest)/faust2rpinetjackconsole
 

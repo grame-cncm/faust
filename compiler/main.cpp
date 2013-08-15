@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #ifndef WIN32
+#include <unistd.h>
 #include <sys/time.h>
 #include "libgen.h"
 #endif
@@ -56,10 +57,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-#ifndef WIN32
-#include <unistd.h>
-#endif
 
 #include "sourcereader.hh"
 
@@ -483,7 +480,7 @@ static string fxname(const string& filename)
     }
 	
 	// determine position of the last '.'
-	unsigned int p2 = filename.size();
+	unsigned int p2 = (int)filename.size();
     for (unsigned int i=p1; i<filename.size(); i++) {
         if (filename[i] == '.')  { p2 = i; }
     }
@@ -528,9 +525,7 @@ int main (int argc, char* argv[])
 	if (gVersionSwitch) 	{ printversion(); exit(0); }
 
     initFaustDirectories();
-#ifndef WIN32
     alarm(gTimeout);
-#endif
 
 
 	/****************************************************************

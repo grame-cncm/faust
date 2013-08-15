@@ -141,7 +141,7 @@ class CTree
 
  	// Accessors
  	const Node& node() const		{ return fNode; 		}	///< return the content of the tree
- 	int 		arity() const		{ return fBranch.size();}	///< return the number of branches (subtrees) of a tree
+ 	int 		arity() const		{ return (int)fBranch.size();}	///< return the number of branches (subtrees) of a tree
 	Tree 		branch(int i) const	{ return fBranch[i];	}	///< return the ith branch (subtree) of a tree
  	unsigned int 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
  	int 		aperture() const	{ return fAperture; 	}	///< return how "open" is a tree in terms of free variables

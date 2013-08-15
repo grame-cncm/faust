@@ -5,16 +5,6 @@
 
 #include "floats.hh"
 
-#if defined(WIN32) && ! defined(__MINGW32__) 
-/* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
-inline double rint(double nr)
-{
-    double f = floor(nr);
-    double c = ceil(nr);
-    return (((c -nr) >= (nr - f)) ? f : c);
-}
-#endif
-
 class RintPrim : public xtended
 {
 

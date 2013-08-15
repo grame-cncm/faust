@@ -134,7 +134,7 @@ string subst (const string& model, const string& a0, const string& a1, const str
 static string substitution (const string& model, const vector<string>& args)
 {
     char 	c;
-    int 	i=0, ilast = model.length()-1;
+    int 	i=0, ilast = (int)model.length()-1;
     string 	result;
 
     while (i < ilast) {
