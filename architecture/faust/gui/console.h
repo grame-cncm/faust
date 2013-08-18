@@ -256,8 +256,8 @@ public:
 	int 	files()         { return fFiles.size(); }
 	char* 	file (int n)	{ return fFiles[n]; }
 
-	char* input_file ()     { std::cout << "input file " << fFiles[0]; return fFiles[0]; }
-	char* output_file() 	{ std::cout << "output file " << fFiles[1]; return fFiles[1]; }
+	char* input_file ()     { std::cout << "input file " << fFiles[0] << "\n"; return fFiles[0]; }
+	char* output_file() 	{ std::cout << "output file " << fFiles[1] << "\n"; return fFiles[1]; }
 
 	void process_init()
 	{
