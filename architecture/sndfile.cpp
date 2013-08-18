@@ -199,6 +199,11 @@ int main(int argc, char *argv[] )
 	DSP.buildUserInterface(interface);
 	interface->process_command();
 
+	if (argc != 3) {
+	  fprintf(stderr,"*** USAGE: %s input_soundfile output_soundfile\n",argv[0]);
+	  exit(1);
+	}
+
 	// open input file
 	in_info.format = 0;
 	in_sf = sf_open (interface->input_file(), SFM_READ, &in_info);
