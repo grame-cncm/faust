@@ -267,10 +267,9 @@ public:
 	/*
 		Return metadata for control (such as style, unit, etc...).
 	*/
-	const char* getControlMetadata(int index, const char* key, 
-																 const char* defaultString)
+	const char* getControlMetadata(int index, const char* key, const char* defaultString)
 	{
-		if (index < 0 || index > fUITable.size()) {
+		if (index < 0 || index > (int)fUITable.size()) {
 			TRACE(fprintf(stderr, "Illegal index (%d) accessed by getControlMetadata\n",
 										index));
 			return defaultString;
@@ -295,7 +294,7 @@ public:
 			return;
 		}
 
-		if (anyIndex >= fUITable.size()) {
+		if (anyIndex >= (int)fUITable.size()) {
 			TRACE(fprintf(stderr,"*** Faust vsti: %sIndex = %d too large!\n",
 						str,anyIndex));
 			return;

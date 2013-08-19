@@ -256,13 +256,15 @@ AudioEffect* createEffectInstance (audioMasterCallback audioMaster)
 Faust::Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi)
   : AudioEffectX(audioMaster, kNumPrograms, dspUIi->GetNumParams()),
 		m_dsp(dspi), m_dspUI(dspUIi), 
-		noteIsOn(false),
 		m_voices(MAX_POLYPHONY, (Voice*)NULL),
 		m_playingVoices(),
 		m_freeVoices(),
 		m_prevVoice(-1),
 		m_tempOutputs(NULL),
-		m_tempOutputSize(INITIAL_TEMP_OUTPUT_SIZE)
+		m_tempOutputSize(INITIAL_TEMP_OUTPUT_SIZE),
+		m_currentNotes(),
+		m_currentVelocities(),
+		m_currentDeltas()
 {
 #ifdef DEBUG
   fprintf(stderr,"=== Faust vsti: classInit:\n");
@@ -618,8 +620,7 @@ void Faust::setSampleRate(float sampleRate)
 //----------------------------------------------------------------------------
 void Faust::initProcess ()
 {
-  noteIsOn = false;
-  currentDelta = currentNote = currentDelta = 0;
+  currentVelocity = currentNote = currentDelta = 0;
   m_dsp->init((int)getSampleRate());
 
 	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
@@ -651,49 +652,68 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 	int i;
 	int nouts = m_dsp->getNumOutputs();
 
-	if (!noteIsOn) { 
-		// silence until NoteOn . . .
-		for (i=0; i<nouts; i++) {	
-			memset (outputs[i], 0, sampleFrames * sizeof (float));
-		}
-
-		return;
-	}
-
-	// note is on - we're synthesizing . . .
-	if (currentDelta > 0) {
-		// but waiting out a timestamp delay . . .
-		if (currentDelta >= sampleFrames) { 
-			// start time is after this chunk
-			currentDelta -= sampleFrames;
-			// According to the VST programming sample, we DON'T clear the output 
-			// buffers yet. Could this be a bug in the sample program? 
-			// I would like to add the following:
-			// for (i=0; i<nouts; i++) { 
-			//		memset (outptr[i], 0, sampleFrames * sizeof (float)); 
-			// }
-			return;
-		}
-		else {
-			// float* outptr[nouts];
-			float** outptr = (float **)malloc(nouts * sizeof(float*));
-
-#ifdef DEBUG
-			fprintf(stderr,"*** Faust vsti: currentDelta = %d\n",currentDelta);
-#endif
-
-			for (i=0; i<nouts; i++) {
-				outptr[i] = outputs[i]; // leaving caller's pointers alone
-				// According to the VST programming sample, we DO clear the output buffers now
-				// (since the start-time for the note is somewhere within the current chunk buf).
-				memset (outptr[i], 0, currentDelta * sizeof (float));
-				outptr[i] += currentDelta;
+	// we're synthesizing . . .
+	if (m_currentNotes.size() > 0) {
+		int previousDelta = 0;
+		while (m_currentNotes.size() > 0) { // a new note
+			currentDelta = m_currentDeltas.front();
+			// but waiting out a timestamp delay . . .
+			if (currentDelta >= sampleFrames) { 
+				// start time is after this chunk
+				for(std::list<VstInt32>::iterator it = m_currentDeltas.begin(); it != m_currentDeltas.end(); ++it) {
+					*it -= sampleFrames;
+				}
+				compute(inputs, outputs, sampleFrames);
+				return;
 			}
-			sampleFrames -= currentDelta;
-			currentDelta = 0;
-			compute(inputs, outptr, sampleFrames);
-			free(outptr);
+			else {
+				m_currentDeltas.pop_front();
+				currentNote = m_currentNotes.front();
+				m_currentNotes.pop_front();
+				currentVelocity = m_currentVelocities.front();
+				m_currentVelocities.pop_front();
+				// Reserve a free voice for the played 
+				int currentVoice;
+				if (m_freeVoices.size() > 0) {
+					currentVoice = m_freeVoices.front();
+					m_freeVoices.pop_front();
+					struct voice_node *n = new voice_node;
+					n->note = currentNote;
+					n->voice = currentVoice;
+					m_playingVoices.push_back(n);
+				}
+				else {
+					voice_node *front = m_playingVoices.front();
+					currentVoice = front->voice;
+					front->note = currentNote;
+					m_playingVoices.pop_front();
+					m_playingVoices.push_back(front);
+				}
+				float** outptr = (float **)malloc(nouts * sizeof(float*));
+				// Before the note starts
+				for (i = 0; i < nouts; i++) {
+					outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
+				}
+				compute(inputs, outptr, currentDelta - previousDelta);
+				free(outptr);
+				// Note start
+				float freq = 440.0f * powf(2.0f,(((float)currentNote)-69.0f)/12.0f);
+				m_voices[currentVoice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
+				float gain = currentVelocity/127.0f;
+				m_voices[currentVoice]->setGain(gain); // 0-1 - requires Faust control-signal "gain"
+				m_voices[currentVoice]->setGate(1.0f); // 0 or 1 - requires Faust control-signal "gate"
+				previousDelta = currentDelta;
+			}
 		}
+		float** outptr = (float **)malloc(nouts * sizeof(float*));
+		// Compute the left over time
+		int count = sampleFrames - currentDelta;
+		// Left over time in chunk
+		for (i = 0; i < nouts; i++) {
+			outptr[i] = outputs[i] + currentDelta; // leaving caller's pointers alone
+		}
+		compute(inputs, outptr, count);
+		free(outptr);
 	}
 	else {
 		compute(inputs, outputs, sampleFrames);
@@ -706,6 +726,13 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 {
 	const unsigned int output_buffer_size = sizeof(FAUSTFLOAT) * sampleFrames;
 
+	// Clear the buffers
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+		for (int frame = 0; frame < sampleFrames; ++frame) {
+			outputs[i][frame] = 0;
+		}
+	}
+
 #ifdef MONOPHONY
 	m_dsp->compute(sampleFrames, inputs, outputs);
 	return;
@@ -716,26 +743,46 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 		TRACE( fprintf(stderr, "Faust VSTi: Increasing temporary buffer to %d frames\n",
 									 sampleFrames) );
 		for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
-			m_tempOutputs[i] = (FAUSTFLOAT*) realloc(m_tempOutputs[i], 
-																							 output_buffer_size * m_dsp->getNumOutputs());
+			m_tempOutputs[i] = (FAUSTFLOAT*) realloc(m_tempOutputs[i], output_buffer_size * m_dsp->getNumOutputs());
 			m_tempOutputSize = sampleFrames;
 		}
 	}
 	
-	// TODO: find a method of processing only the voices that are actually playing
-	// to prevent CPU overload and distortion of the produced sound
-	for (unsigned int voice = 0; voice < MAX_POLYPHONY; ++voice) {;
+	std::list<voice_node*> removed;
+	std::list<voice_node*>::iterator voice_iter = m_playingVoices.begin();
+	for(;voice_iter != m_playingVoices.end(); voice_iter++) {
+		int voice = (*voice_iter)->voice;
 		m_voices[voice]->m_dsp.compute(sampleFrames, inputs, m_tempOutputs);
 
+		bool silent = true;
 		// mix current voice into output
 		for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 			for (int frame = 0; frame < sampleFrames; ++frame) {
 				outputs[i][frame] += m_tempOutputs[i][frame];
+				if (fabs(m_tempOutputs[i][frame]) > 1e-6) {
+					silent = false;
+				}
+			}
+		}
+		if (silent) {
+			std::vector<VstInt32>::iterator it;
+			it = std::find(m_releasedVoices.begin(), m_releasedVoices.end(), voice);
+			if (it != m_releasedVoices.end()) {
+				m_freeVoices.push_back(voice);
+				m_releasedVoices.erase(it);
+				removed.push_back(*voice_iter);
 			}
 		}
 	} // end of signal computation and mixdown
+	while (removed.size() > 0) {
+		std::list<voice_node*>::iterator it;
+		it = std::find(m_playingVoices.begin(), m_playingVoices.end(), removed.front());
+		free(*it);
+		m_playingVoices.erase(it);
+		removed.pop_front();
+	}
 
-	// normalize sample by number of playing voices
+	// normalize sample by the max polyphony
 	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		for (int frame = 0; frame < sampleFrames; ++frame) {
 			outputs[i][frame] /= (FAUSTFLOAT)sqrt(MAX_POLYPHONY);
@@ -833,85 +880,34 @@ void Faust::bendPitch(float bend)
 	}
 } // end of Faust::bendPitch
 
-static inline float note2freq(VstInt32 note) 
-{
-	return 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
-}
-
 void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 {
 #ifdef DEBUG
-  fprintf(stderr,"=== Faust vsti: noteOn: note = %d, vel = %d, del = %d\n",note,velocity,delta);
+    fprintf(stderr,"=== Faust vsti: noteOn: note = %d, vel = %d, del = %d\n",note,velocity,delta);
 #endif
-  currentNote = note;
-  currentVelocity = velocity;
-  currentDelta = delta;
-  noteIsOn = true;
-  const float freq = note2freq(note); 
-  float gain = velocity/127.0f;
-
-	if (m_freeVoices.empty()) {
-		TRACE( fprintf(stderr, "No free voices for new note\n") );
-		return;
-	}
-	
-	// reserve a free voice for the played note
-	int voice = m_freeVoices.front();
-	m_freeVoices.pop_front();
-
-	TRACE( fprintf(stderr, "Faust VSTi: Found free voice %d for new note %d (freq %f)\n",
-								 voice, note, freq) );
-
-	// first set previous frequency for that voice
-	if (m_prevVoice >= 0) {
-		// get previous frequency from previously active voice
-		TRACE( fprintf(stderr, "Previous voice is %d\n", m_prevVoice) );
-		const float prevFreq = m_voices[m_prevVoice]->getFreq();
-		if (prevFreq < 0) {
-			TRACE( fprintf(stderr, "Previous freq control doesn't exist "
-										 "or previous freq was never set before\n") );
-			// setting previous frequency to be the same as current
-			m_voices[voice]->setPrevFreq(freq); // Hz - requires Faust control-signal "prevfreq"
-		} 
-		else {
-			TRACE( fprintf(stderr, "Setting previous frequency to %f\n",
-										 prevFreq) );
-			m_voices[voice]->setPrevFreq(prevFreq); // Hz - require Faust control-signal "prevfreq"
-		}
-	}
-
-	m_playingVoices[note] = voice;
-	m_voices[voice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
-	TRACE( fprintf(stderr, "=== Faust VSTi: Freq set to %f\n", 
-								 m_voices[voice]->getFreq()) );
-	m_voices[voice]->setGain(gain); // 0-1 - requires Faust control-signal "gain"
-	m_voices[voice]->setGate(1.0f); // 0 or 1 - requires Faust control-signal "gate"
-
-	m_prevVoice = voice;
+	m_currentNotes.push_back(note);
+	m_currentVelocities.push_back(velocity);
+	m_currentDeltas.push_back(delta);
 } // end of noteOn
 
 //-----------------------------------------------------------------------------
 void Faust::noteOff (VstInt32 note)
 {
 	TRACE( fprintf(stderr,"=== Faust vsti: noteOff\n") );
-  if (!noteIsOn) {
-    TRACE( fprintf(stderr,"=== Faust vsti: noteOff IGNORED"
-									 " (note was not on)\n") );
-		return;
+	std::list<voice_node*>::iterator& voice_iter = m_playingVoices.begin();
+	for (; voice_iter != m_playingVoices.end(); voice_iter++) {
+		if (note == (*voice_iter)->note) {
+			int voice = (*voice_iter)->voice;
+			TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", note, voice) );
+			m_dspUI->setGate(0);
+			m_voices[voice]->setGate(0);
+			if (std::find(m_releasedVoices.begin(), m_releasedVoices.end(), voice) == m_releasedVoices.end()) {
+				m_releasedVoices.push_back(voice);
+			}
+		}
 	}
 
-	const std::map<VstInt32, int>::iterator& voice_iter = m_playingVoices.find(note);
-	if (m_playingVoices.end() == voice_iter) {
-		TRACE( fprintf(stderr, "Voice not found for note %d\n", note) );
-		return;
-	}
 
-	int voice = voice_iter->second;
-	TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", note, voice) );
-	m_dspUI->setGate(0);
-	m_voices[voice]->setGate(0);
-	m_playingVoices.erase(voice_iter);
-	m_freeVoices.push_back(voice);
 } // end of nToteOff
 
 void Faust::allNotesOff( void )
@@ -922,12 +918,12 @@ void Faust::allNotesOff( void )
 		m_voices[i]->setGate(0);
 	}
 
-	std::map<VstInt32, int>::iterator voice_iter = m_playingVoices.begin();
-	while (voice_iter != m_playingVoices.end()) {
-		int voice = voice_iter->second;
-		m_playingVoices.erase(voice_iter);
-		m_freeVoices.push_back(voice);
-		voice_iter = m_playingVoices.begin();
+	std::list<voice_node*>::iterator voice_iter = m_playingVoices.begin();
+	for (; voice_iter != m_playingVoices.end(); voice_iter++) {
+		int voice = (*voice_iter)->voice;
+		if (std::find(m_releasedVoices.begin(), m_releasedVoices.end(), voice) == m_releasedVoices.end()) {
+			m_releasedVoices.push_back(voice);
+		}
 	}
 } // end of Faust::allNotesOff
 

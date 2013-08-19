@@ -85,13 +85,24 @@ private:
   VstInt32 currentVelocity;
   VstInt32 currentDelta;
 
+  std::list<VstInt32> m_currentNotes;
+  std::list<VstInt32> m_currentVelocities;
+  std::list<VstInt32> m_currentDeltas;
+
   char programName[kVstMaxProgNameLen + 1];
 
   // Polyphony
 	std::vector<Voice*> m_voices;
 
 	// Occupied voices - map note to voice index
-	std::map<VstInt32, int> m_playingVoices;
+	typedef struct voice_node {
+		VstInt32 note;
+		int voice;
+	} voice_node;
+	std::list<struct voice_node*> m_playingVoices;
+
+	// key off but still sounding
+	std :: vector< int > m_releasedVoices;
 
 	// Free voices - currently rot playing
 	std :: list< int > m_freeVoices;
