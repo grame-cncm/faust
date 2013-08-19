@@ -99,7 +99,8 @@ private:
 		VstInt32 note;
 		int voice;
 	} voice_node;
-	std::list<struct voice_node*> m_playingVoices;
+
+	std::list<voice_node*> m_playingVoices;
 
 	// key off but still sounding
 	std :: vector< int > m_releasedVoices;

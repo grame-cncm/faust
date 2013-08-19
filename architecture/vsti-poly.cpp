@@ -894,7 +894,7 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 void Faust::noteOff (VstInt32 note)
 {
 	TRACE( fprintf(stderr,"=== Faust vsti: noteOff\n") );
-	std::list<voice_node*>::iterator& voice_iter = m_playingVoices.begin();
+	std::list<voice_node*>::iterator voice_iter = m_playingVoices.begin();
 	for (; voice_iter != m_playingVoices.end(); voice_iter++) {
 		if (note == (*voice_iter)->note) {
 			int voice = (*voice_iter)->voice;
