@@ -81,6 +81,10 @@
  *   - Reference: 
  * http://ccrma.stanford.edu/realsimple/faust/Generating_VST_Plugin_Faust.html
  *
+ * Initial work on the polyphonic VSTi architecture was done as part
+ * of Music 420B class in Stanford University and in summarized in
+ * http://stanford.edu/~yanm2/files/mus420b.pdf
+ *
  * FAUST 
  * Copyright (C) 2003-2007 GRAME, Centre National de Creation Musicale
  * http://www.grame.fr/			     
@@ -144,8 +148,16 @@ using namespace std ;
 struct Meta : std::map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key] = value; }
-};
-	
+		
+		const char* get(const char* key, const char* defaultString) {
+			if (this->find(key) != this->end()) {
+				return (*this)[key];
+			}
+			else {
+				return defaultString;
+			}
+		} // end of get
+}; // end of Meta
 
 // abs is now predefined
 //template<typename T> T abs (T a) { return (a<T(0)) ? -a : a; }
@@ -184,8 +196,8 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 *******************************************************************************
 *****************************************************************************/
 
-#include "faust/vst/UI.h"
-#include "faust/vst/dsp.h"
+#include "faust/vst/vstui.h"
+#include "faust/audio/dsp.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -285,7 +297,7 @@ Faust::Faust(audioMasterCallback audioMaster, dsp* dspi, vstUI* dspUIi)
 	TRACE( fprintf(stderr, "Faust VSTi: Allocating %d temporary output "
 								 "buffers\n", m_dsp->getNumOutputs()) );
 	m_tempOutputs = (FAUSTFLOAT**) malloc(sizeof(FAUSTFLOAT*) * m_dsp->getNumOutputs());
-	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		m_tempOutputs[i] = (FAUSTFLOAT*) malloc(sizeof(FAUSTFLOAT) * m_tempOutputSize);
 	}
 
@@ -300,7 +312,7 @@ Faust::~Faust()
 {
 	TRACE( fprintf(stderr, "Calling Faust VST destructor\n") );
 	
-	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
 		free(m_tempOutputs[i]);
 		m_tempOutputs[i] = NULL;
 	}
@@ -358,15 +370,22 @@ void Faust::getProgramName(char *name)
 
 //----------------------------------------------------------------------------
 void Faust::getParameterLabel(VstInt32 index, char *label)
-{
-  // We are not using parameter "units" display:
-  vst_strncpy (label, "", kVstMaxParamStrLen); // parameter units in Name
-}
+{	
+	const char* unit = "";
+	if (index < numParams) {
+		 unit = m_dspUI->getControlMetadata(index, "unit", "");
+	}
+
+	vst_strncpy (label, unit, kVstMaxParamStrLen); // parameter units in Name
+
+	TRACE( fprintf(stderr, "Called getParameterLabel for parameter %d, returning %s\n",
+								 index, label) );
+} // end of getParameterLabel
 
 //----------------------------------------------------------------------------
 void Faust::getParameterDisplay(VstInt32 index, char *text)
 {
-  if(index<numParams) {
+  if(index < numParams) {
     m_dspUI->GetDisplay(index,text); // get displayed float value as text
 	}
   else {
@@ -377,11 +396,12 @@ void Faust::getParameterDisplay(VstInt32 index, char *text)
 //----------------------------------------------------------------------------
 void Faust::getParameterName(VstInt32 index, char *label)
 {
-  if(index<numParams)
+  if(index < numParams) {
     m_dspUI->GetName(index,label); // parameter name, including units
-  else
+	} else {
     vst_strncpy (label, "IndexOutOfRange", kVstMaxParamStrLen);
-}
+	}
+} // end of getParamterName
 
 //--------------------
 
@@ -447,7 +467,7 @@ bool Faust::getInputProperties (VstInt32 index, VstPinProperties* properties)
 //-----------------------------------------------------------------------------
 bool Faust::getOutputProperties (VstInt32 index, VstPinProperties* properties)
 {
-  if(index < 0 || index<m_dsp->getNumOutputs() < 1) {
+  if(index < 0 || m_dsp->getNumOutputs() < 1) {
 		return false;
 	}
 
@@ -475,13 +495,7 @@ const char* Faust::getMetadata(const char* key, const char* defaultString)
 {
 	Meta meta;
 	mydsp::metadata(&meta);
-
-	if (meta.find(key) != meta.end()) {
-		return meta[key];
-	}
-	else {
-		return defaultString;
-	}
+	return meta.get(key, defaultString);
 } // end of getMetadata
 
 //-----------------------------------------------------------------------------
@@ -512,7 +526,7 @@ bool Faust::getProductString (char* text)
 VstInt32 Faust::getVendorVersion ()
 { 
 	const char* versionString = getMetadata("version", "0.0");
-  return atof(versionString);
+  return (VstInt32)atof(versionString);
 }
 
 //-----------------------------------------------------------------------------
@@ -594,10 +608,10 @@ VstInt32 Faust::getMidiProgramCategory (VstInt32 channel, MidiProgramCategory* c
 void Faust::setSampleRate(float sampleRate)
 {
   AudioEffect::setSampleRate(sampleRate);
-  m_dsp->instanceInit((int)getSampleRate()); // in case AudioEffect altered it
+  m_dsp->init((int)getSampleRate()); // in case AudioEffect altered it
 
 	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
-		m_voices[i]->m_dsp.instanceInit((int)getSampleRate());
+		m_voices[i]->m_dsp.init((int)getSampleRate());
 	}
 }
 
@@ -606,10 +620,10 @@ void Faust::initProcess ()
 {
   noteIsOn = false;
   currentDelta = currentNote = currentDelta = 0;
-  m_dsp->instanceInit((int)getSampleRate());
+  m_dsp->init((int)getSampleRate());
 
 	for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
-		m_voices[i]->m_dsp.instanceInit((int)getSampleRate());
+		m_voices[i]->m_dsp.init((int)getSampleRate());
 	}
 }
 
@@ -697,7 +711,7 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 	return;
 #endif
 
-	if (sampleFrames > m_tempOutputSize) {
+	if (sampleFrames > (VstInt32)m_tempOutputSize) {
 		// if requested number of samples to synthesize exceeds current temporary buffer
 		TRACE( fprintf(stderr, "Faust VSTi: Increasing temporary buffer to %d frames\n",
 									 sampleFrames) );
@@ -714,17 +728,17 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 		m_voices[voice]->m_dsp.compute(sampleFrames, inputs, m_tempOutputs);
 
 		// mix current voice into output
-		for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
-			for (unsigned int frame = 0; frame < sampleFrames; ++frame) {
+		for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+			for (int frame = 0; frame < sampleFrames; ++frame) {
 				outputs[i][frame] += m_tempOutputs[i][frame];
 			}
 		}
 	} // end of signal computation and mixdown
 
 	// normalize sample by number of playing voices
-	for (unsigned int i = 0; i < m_dsp->getNumOutputs(); ++i) {
-		for (unsigned int frame = 0; frame < sampleFrames; ++frame) {
-			outputs[i][frame] /= sqrt(MAX_POLYPHONY);
+	for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
+		for (int frame = 0; frame < sampleFrames; ++frame) {
+			outputs[i][frame] /= (FAUSTFLOAT)sqrt(MAX_POLYPHONY);
 		}
 	}
 } // end of compute
@@ -819,6 +833,11 @@ void Faust::bendPitch(float bend)
 	}
 } // end of Faust::bendPitch
 
+static inline float note2freq(VstInt32 note) 
+{
+	return 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
+}
+
 void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 {
 #ifdef DEBUG
@@ -828,7 +847,7 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
   currentVelocity = velocity;
   currentDelta = delta;
   noteIsOn = true;
-  const float freq = 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
+  const float freq = note2freq(note); 
   float gain = velocity/127.0f;
 
 	if (m_freeVoices.empty()) {

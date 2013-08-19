@@ -302,7 +302,7 @@ private:
 
   void initProcess ();
   void noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta);
-  void noteOff ();
+  void noteOff (VstInt32 note);
   void fillProgram (VstInt32 channel, VstInt32 prg, MidiProgramName* mpn);
 
   char programName[kVstMaxProgNameLen + 1];
@@ -432,7 +432,7 @@ public:
 #endif
       return;
     }
-    if (anyIndex >= fUITable.size()) {
+    if (anyIndex >= (int)fUITable.size()) {
 #ifdef DEBUG
         fprintf(stderr,"*** Faust vsti: %sIndex = %d too large!\n",str,anyIndex);
 #endif
@@ -522,10 +522,10 @@ public:
   void openVerticalBox(char* label) {}
   void closeBox() {}
 		
-  void  SetValue(VstInt32 index, double f) {assert(index<fUITable.size()); fUITable[index]->SetValue(f);}
-  float GetValue(VstInt32 index) {assert(index<fUITable.size()); return fUITable[index]->GetValue();}
-  void  GetDisplay(VstInt32 index, char *text) {assert(index<fUITable.size()); fUITable[index]->GetDisplay(text);}
-  void  GetName(VstInt32 index, char *text) {assert(index<fUITable.size()); fUITable[index]->GetName(text);}
+  void  SetValue(VstInt32 index, double f) {assert(index<(VstInt32)fUITable.size()); fUITable[index]->SetValue(f);}
+  float GetValue(VstInt32 index) {assert(index<(VstInt32)fUITable.size()); return fUITable[index]->GetValue();}
+  void  GetDisplay(VstInt32 index, char *text) {assert(index<(VstInt32)fUITable.size()); fUITable[index]->GetDisplay(text);}
+  void  GetName(VstInt32 index, char *text) {assert(index<(VstInt32)fUITable.size()); fUITable[index]->GetName(text);}
   long  GetNumParams() {return fUITable.size();}
 
   long  makeID()
@@ -537,7 +537,7 @@ public:
     const long maxNumberOfId = 128;
     long baseid = 'FAUS';
     long id=0;
-    for(int i=0;i<fUITable.size();i++) id += fUITable[i]->GetID();
+    for(int i=0;i<(int)fUITable.size();i++) id += fUITable[i]->GetID();
     return baseid + id % maxNumberOfId;
   }
 		
@@ -840,55 +840,55 @@ void Faust::initProcess ()
 //-----------------------------------------------------------------------------
 void Faust::processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames)
 {
-    AVOIDDENORMALS;
-#ifdef DEBUG
+	AVOIDDENORMALS;
+	#ifdef DEBUG
     fprintf(stderr,"=== Faust vsti: processReplacing . . .\n");
-#endif
+	#endif
+	if (dsp->getNumInputs() > 0) { // We're an effect . . . keep going:
+		dsp->compute(sampleFrames, inputs, outputs);
+	} 
+	else { // We're a synth . . . 
+		int i, nouts = dsp->getNumOutputs();
+		if (noteIsOn) { // we're synthesizing . . .
+			if (currentDelta > 0) {  // but waiting out a timestamp delay . . .
+				if (currentDelta >= sampleFrames) { // start time is after this chunk
+					currentDelta -= sampleFrames;
+					dsp->compute(sampleFrames, inputs, outputs);
+					return;
+				}
+				else {
+					// float* outptr[nouts];
+					float** outptr = (float **)malloc(nouts * sizeof(float*));
+					#ifdef DEBUG
+					fprintf(stderr,"*** Faust vsti: currentDelta = %d\n",currentDelta);
+					#endif
 
-  if (dsp->getNumInputs() > 0) { // We're an effect . . . keep going:
-
-    dsp->compute(sampleFrames, inputs, outputs);
-
-  } else { // We're a synth . . . 
-    int i, nouts = dsp->getNumOutputs();
-
-    if (noteIsOn) { // we're synthesizing . . .
-
-      if (currentDelta > 0) {  // but waiting out a timestamp delay . . .
-	if (currentDelta >= sampleFrames) { // start time is after this chunk
-	  currentDelta -= sampleFrames;
-	  // According to the VST programming sample, we DON'T clear the output buffers yet.
-	  // Could this be a bug in the sample program?  I would like to add the following:
-	  // for (i=0; i<nouts; i++) { memset (outptr[i], 0, sampleFrames * sizeof (float)); }
-	  return;
-	} else {
-	  // float* outptr[nouts];
-	  float** outptr = (float **)malloc(nouts * sizeof(float*));
-
-#ifdef DEBUG
-	  fprintf(stderr,"*** Faust vsti: currentDelta = %d\n",currentDelta);
-#endif
-
-	  for (i=0; i<nouts; i++) {
-	    outptr[i] = outputs[i]; // leaving caller's pointers alone
-	    // According to the VST programming sample, we DO clear the output buffers now
-	    // (since the start-time for the note is somewhere within the current chunk buf).
-	    memset (outptr[i], 0, currentDelta * sizeof (float));
-	    outptr[i] += currentDelta;
-	  }
-	  sampleFrames -= currentDelta;
-	  currentDelta = 0;
-	  dsp->compute(sampleFrames, inputs, outptr);
-	  free(outptr);
+					for (i=0; i < nouts; i++) {
+						outptr[i] = outputs[i] + currentDelta; // point to note start
+					}
+					dsp->compute(currentDelta, inputs, outputs); // segment before the note starts
+					sampleFrames -= currentDelta;
+					// note is about to start
+					float freq = 440.0f * powf(2.0f,(((float)currentNote)-69.0f)/12.0f);
+					float gain = currentVelocity/127.0f;
+					dspUI->setFreq(freq); // Hz - requires Faust control-signal "freq"
+					dspUI->setGain(gain); // 0-1 - requires Faust control-signal "gain"
+					dspUI->setGate(1.0f); // 0 or 1 - requires Faust button-signal "gate"
+					dsp->compute(sampleFrames, inputs, outptr); // segment after the note starts
+					free(outptr);
+					currentDelta = 0;
+				}
+			} 
+			else {
+				dsp->compute(sampleFrames, inputs, outputs);
+			}
+		}
+		else { // silence until NoteOn . . .
+			for (i=0; i<nouts; i++) {
+				memset (outputs[i], 0, sampleFrames * sizeof (float));
+			}
+		}
 	}
-      } else {
-	dsp->compute(sampleFrames, inputs, outputs);
-      }
-
-    } else { // silence until NoteOn . . .
-      for (i=0; i<nouts; i++) {	memset (outputs[i], 0, sampleFrames * sizeof (float)); }
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -939,17 +939,18 @@ VstInt32 Faust::processEvents (VstEvents* ev)
 	if (velocity>0) {
 	  noteOn(note, velocity, event->deltaFrames);
 	} else {
-	  noteOff();
+	  noteOff(note);
 	}
       } else if (status == 0x80) { // note off
-	noteOff();
+		  VstInt32 note = midiData[1] & 0x7f;
+	noteOff(note);
 	//      } else if (status == 0xA0) { // poly aftertouch
       } else if (status == 0xB0) { // control change
 	/* DO SOMETHING WITH THE CONTROLLER DATA */
 	fprintf(stderr,"=== Faust vsti: CONTROL CHANGE (status 0xB0)!\n");
 	if (midiData[1] == 0x7e || midiData[1] == 0x7b) { // all notes off
 	  fprintf(stderr,"=== Faust vsti: ALL NOTES OFF!\n");
-	  noteOff (); // why is all-notes-off inside a "control change" event?
+	  noteOff (0); // why is all-notes-off inside a "control change" event?
 	}
 	//      } else if (status == 0xC0) { // program change
 	//      } else if (status == 0xD0) { // mono aftertouch
@@ -978,21 +979,18 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
   currentVelocity = velocity;
   currentDelta = delta;
   noteIsOn = true;
-  float freq = 440.0f * powf(2.0f,(((float)note)-69.0f)/12.0f);
-  float gain = velocity/127.0f;
-  dspUI->setFreq(freq); // Hz - requires Faust control-signal "freq"
-  dspUI->setGain(gain); // 0-1 - requires Faust control-signal "gain"
-  dspUI->setGate(1.0f); // 0 or 1 - requires Faust button-signal "gate"
 }
 
 //-----------------------------------------------------------------------------
-void Faust::noteOff ()
+void Faust::noteOff(VstInt32 note)
 {
   if (noteIsOn) {
 #ifdef DEBUG
     fprintf(stderr,"=== Faust vsti: noteOff\n");
 #endif
-    dspUI->setGate(0);
+	if (note == currentNote) {
+		dspUI->setGate(0);
+	}
   } else {
 #ifdef DEBUG
     fprintf(stderr,"=== Faust vsti: noteOff IGNORED (note was not on)\n");

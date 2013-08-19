@@ -15,6 +15,7 @@
 
 class UI
 {
+private:
   bool	fStopped;
 
 public:
@@ -45,17 +46,18 @@ public:
   void stop()		{ fStopped = true; }
   bool stopped()	{ return fStopped; }
 
-  virtual void declare(float* zone, const char* key, const char* value)
-	{}
+  virtual void declare(float* zone, const char* key, const char* value) = 0;
 }; // end of UI class
 
 //////////////////////////// VST UI ////////////////////////
+
 
 class vstUIObject { /* superclass of all VST UI widgets */
 protected:
   string fLabel;
   float* fZone;
-		
+	Meta	 metadata;
+
   float clip(float min, float max, float val) 
   {
     return (val < min) ? min : (val > max) ? max : val;
@@ -69,7 +71,7 @@ protected:
 	 
 public:			
   vstUIObject(const char* label, float* zone)
-		: fLabel(label), fZone(zone) 
+		: fLabel(label), fZone(zone), metadata()
 	{}
 
   virtual ~vstUIObject()
@@ -109,6 +111,10 @@ public:
 		}
     return acc;
   }
+
+	const float* getZone() const {
+		return fZone;
+	}
 }; // end of vstUIObject class
 
 /*-------------------------------------------------------------------------*/
@@ -205,9 +211,9 @@ public:
 class vstUI : public UI
 {
 private:
-	
   vector<vstUIObject*> fUITable;
-
+	map<const float*, Meta*> m_controlMetadataMap;
+	
 public:
 			
   int freqIndex; // note frequency
@@ -233,30 +239,69 @@ public:
 				 iter != fUITable.end(); iter++) {
 			delete *iter;
 		}
-  }
+
+		for (map<const float*, Meta*>::iterator iter = m_controlMetadataMap.begin();
+				 iter != m_controlMetadataMap.end(); ++iter)
+		{
+			delete iter->second;
+		}
+  } // end of destructor
+
+  virtual void declare(float* zone, const char* key, const char* value) {
+		map<const float*, Meta*>::iterator iter = m_controlMetadataMap.find(zone);
+		if (iter == m_controlMetadataMap.end()) {
+			// if Meta for zone doesn't exist, create it now
+			pair<const float*, Meta*> entry(zone, new Meta());
+			pair< map<const float*, Meta*>::iterator, bool> result = m_controlMetadataMap.insert(entry);
+			if (!result.second) {
+				TRACE(fprintf(stderr, "Failed adding metadata %s:%s\n", key, value));
+				return;
+			}
+
+			iter = result.first;
+		}
+		
+		iter->second->declare(key, value);	
+	} // end of declare
+
+	/*
+		Return metadata for control (such as style, unit, etc...).
+	*/
+	const char* getControlMetadata(int index, const char* key, 
+																 const char* defaultString)
+	{
+		if (index < 0 || index > fUITable.size()) {
+			TRACE(fprintf(stderr, "Illegal index (%d) accessed by getControlMetadata\n",
+										index));
+			return defaultString;
+		}
+
+		const	float* zone = fUITable[index]->getZone();
+		map<const float*, Meta*>::iterator iter = m_controlMetadataMap.find(zone);
+		if (iter == m_controlMetadataMap.end()) {
+			TRACE(fprintf(stderr, "Metadata for control %d not found\n", index));
+			return defaultString;
+		}
+
+		return iter->second->get(key, defaultString);
+	} // end of getControlMetadata
 
 	void setAny(int anyIndex, float val, const char *str) {
 		if (anyIndex < 0) {
-#ifdef DEBUG
 			// On the Receptor, and perhaps other hosts, output to stderr is 
 			// logged in a file.
-			fprintf(stderr,"*** Faust vsti: %sIndex = %d never set!\n",
-					str,anyIndex);
-#endif
+			TRACE(fprintf(stderr,"*** Faust vsti: %sIndex = %d never set!\n",
+						str,anyIndex) );
 			return;
 		}
 
 		if (anyIndex >= fUITable.size()) {
-#ifdef DEBUG
-			fprintf(stderr,"*** Faust vsti: %sIndex = %d too large!\n",
-					str,anyIndex);
-#endif
+			TRACE(fprintf(stderr,"*** Faust vsti: %sIndex = %d too large!\n",
+						str,anyIndex));
 			return;
 		}
-#ifdef DEBUG
-		fprintf(stderr,"*** Faust vsti: Setting %sIndex = %d to %f\n",
-				str,anyIndex,val);
-#endif
+		TRACE(fprintf(stderr,"*** Faust vsti: Setting %sIndex = %d to %f\n",
+					str,anyIndex,val));
 		fUITable[anyIndex]->SetValueNoNormalization(val);
 	} // end of setAny
 
@@ -364,22 +409,22 @@ public:
   void closeBox() {}
 		
   void  SetValue(VstInt32 index, double f) {
-		assert(index < fUITable.size()); 
+		assert(index < (VstInt32)fUITable.size()); 
 		fUITable[index]->SetValue(f);
 	}
 
   float GetValue(VstInt32 index) {
-		assert(index < fUITable.size()); 
+		assert(index < (VstInt32)fUITable.size()); 
 		return fUITable[index]->GetValue();
 	}
 
   void  GetDisplay(VstInt32 index, char *text) {
-		assert(index < fUITable.size()); 
+		assert(index < (VstInt32)fUITable.size()); 
 		fUITable[index]->GetDisplay(text);
   }
 
   void  GetName(VstInt32 index, char *text) {
-  	assert(index < fUITable.size()); 
+  	assert(index < (VstInt32)fUITable.size()); 
 		fUITable[index]->GetName(text);
   }
 
@@ -396,7 +441,7 @@ public:
     long baseid = 'FAUS';
     long id=0;
 
-    for(int i=0;i<fUITable.size();i++) {
+    for(int i=0;i<(int)fUITable.size();i++) {
 			id += fUITable[i]->GetID();
 		}
 
