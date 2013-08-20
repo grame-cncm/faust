@@ -646,6 +646,10 @@ void Faust::processReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32
 	}
 } // end of processReplacing
 
+inline float midiToFreq(int note) {
+	return 440.0f*powf(2.0f,(((float)note)-69.0f)/12.0f);
+}
+
 void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, 
 																	VstInt32 sampleFrames)
 {
@@ -685,6 +689,8 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				else {
 					voice_node *front = m_playingVoices.front();
 					currentVoice = front->voice;
+					float freq = midiToFreq(front->note);
+					m_voices[currentVoice]->setPrevFreq(freq);
 					front->note = currentNote;
 					m_playingVoices.pop_front();
 					m_playingVoices.push_back(front);
@@ -697,7 +703,7 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				compute(inputs, outptr, currentDelta - previousDelta);
 				free(outptr);
 				// Note start
-				float freq = 440.0f * powf(2.0f,(((float)currentNote)-69.0f)/12.0f);
+				float freq = midiToFreq(currentNote);
 				m_voices[currentVoice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
 				float gain = currentVelocity/127.0f;
 				m_voices[currentVoice]->setGain(gain); // 0-1 - requires Faust control-signal "gain"
@@ -777,6 +783,8 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 	while (removed.size() > 0) {
 		std::list<voice_node*>::iterator it;
 		it = std::find(m_playingVoices.begin(), m_playingVoices.end(), removed.front());
+		float freq = midiToFreq((*it)->note);
+		m_voices[(*it)->voice]->setPrevFreq(freq);
 		free(*it);
 		m_playingVoices.erase(it);
 		removed.pop_front();
