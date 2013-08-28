@@ -48,13 +48,13 @@ int main(int argc, char *argv[])
     dst << "static float soundFile[TABLE_SIZE] = { " << std::endl;
     
     int nbf;
-	do {
+    do {
         nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
-        for (int i = 0; i < 128; i++) {
+        for (int i = 0; i < BUFFER_SIZE; i++) {
             dst << buffer[i] << ", ";
         }
         dst << std::endl;
-  	} while (nbf == BUFFER_SIZE);
+    } while (nbf == BUFFER_SIZE);
     
     dst << "0. };" << std::endl;
     dst << "return soundFile[index];" << std::endl;
