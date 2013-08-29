@@ -8,26 +8,12 @@
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>fr.grame.${PRODUCT_NAME}</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>${PRODUCT_NAME}</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleIconFiles</key>
 	<array>
 		<string>icon.png</string>
-		<string>Icon-Analyzer.png</string>
-		<string>Icon-Analyzer@2x.png</string>
-		<string>Icon-Fx.png</string>
-		<string>Icon-Fx@2x.png</string>
-		<string>Icon-Output.png</string>
-		<string>Icon-Output@2x.png</string>
+		<string>icon-114.png</string>
+		<string>icon-72.png</string>
+		<string>icon-144.png</string>
 	</array>
 	<key>CFBundleIcons</key>
 	<dict>
@@ -36,6 +22,9 @@
 			<key>CFBundleIconFiles</key>
 			<array>
 				<string>icon.png</string>
+				<string>icon-114.png</string>
+				<string>icon-72.png</string>
+				<string>icon-144.png</string>
 			</array>
 			<key>UIPrerenderedIcon</key>
 			<false/>
@@ -53,10 +42,25 @@
 	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>fr.grame.${PRODUCT_NAME}</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>${PRODUCT_NAME}</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>UIMainStoryboardFile</key>
 	<string>MainStoryboard_iPhone</string>
 	<key>UIMainStoryboardFile~ipad</key>
@@ -77,10 +81,6 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>audio</string>
 	</array>
 </dict>
 </plist>
