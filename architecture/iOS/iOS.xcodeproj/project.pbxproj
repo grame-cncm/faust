@@ -167,7 +167,7 @@
 		4B04364F16E9E9AD00C0C02A /* Icon-Output.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output.png"; sourceTree = "<group>"; };
 		4B04365016E9E9AD00C0C02A /* Icon-Output136.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output136.png"; sourceTree = "<group>"; };
 		4B04365116E9E9AD00C0C02A /* Icon-Output@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Output@2x.png"; sourceTree = "<group>"; };
-		4B06ECAF16E77D6A004D2F59 /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B06ECAF16E77D6A004D2F59 /* Template_Jack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_Jack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
 		4BB0480516EA01EC00C0677C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -386,7 +386,7 @@
 			children = (
 				65E5ED8E14DB037D00136CFC /* Template_CoreAudio.app */,
 				65E5EDB514DB037D00136CFC /* iOSTests.octest */,
-				4B06ECAF16E77D6A004D2F59 /* Template.app */,
+				4B06ECAF16E77D6A004D2F59 /* Template_Jack.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -490,7 +490,7 @@
 			);
 			name = Template_Jack;
 			productName = iOS;
-			productReference = 4B06ECAF16E77D6A004D2F59 /* Template.app */;
+			productReference = 4B06ECAF16E77D6A004D2F59 /* Template_Jack.app */;
 			productType = "com.apple.product-type.application";
 		};
 		65E5ED8D14DB037D00136CFC /* Template_CoreAudio */ = {
@@ -800,7 +800,7 @@
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = Template;
+				PRODUCT_NAME = Template_Jack;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -823,7 +823,7 @@
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = Template;
+				PRODUCT_NAME = Template_Jack;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
