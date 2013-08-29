@@ -61,10 +61,6 @@
 		651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6534E20E17301716009A4FD2 /* JackViewPortsView.mm */; };
-		65496BCE17A92F2200B2091C /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65496BCA17A92F2200B2091C /* MainStoryboard_iPad.storyboard */; };
-		65496BCF17A92F2200B2091C /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65496BCA17A92F2200B2091C /* MainStoryboard_iPad.storyboard */; };
-		65496BD017A92F2200B2091C /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65496BCC17A92F2200B2091C /* MainStoryboard_iPhone.storyboard */; };
-		65496BD117A92F2200B2091C /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65496BCC17A92F2200B2091C /* MainStoryboard_iPhone.storyboard */; };
 		654EE64D17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
 		654EE64E17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
 		654EE64F17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
@@ -105,6 +101,10 @@
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
 		655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
 		6560454114FE924400AE84A9 /* FITabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6560454014FE924400AE84A9 /* FITabView.mm */; };
+		6563671917CF4FC000575DD9 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6563671517CF4FC000575DD9 /* MainStoryboard_iPad.storyboard */; };
+		6563671A17CF4FC000575DD9 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6563671517CF4FC000575DD9 /* MainStoryboard_iPad.storyboard */; };
+		6563671B17CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6563671717CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard */; };
+		6563671C17CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6563671717CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard */; };
 		6566748A14ED30F000172A10 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
 		6566748B14ED30F000172A10 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
 		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
@@ -177,8 +177,6 @@
 		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
 		6534E20D17301716009A4FD2 /* JackViewPortsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JackViewPortsView.h; sourceTree = "<group>"; };
 		6534E20E17301716009A4FD2 /* JackViewPortsView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JackViewPortsView.mm; sourceTree = "<group>"; };
-		65496BCB17A92F2200B2091C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
-		65496BCD17A92F2200B2091C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		654EE64117832FB400175F2F /* jackview-audio-off.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off.png"; sourceTree = "<group>"; };
 		654EE64217832FB400175F2F /* jackview-audio-off@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off@2x.png"; sourceTree = "<group>"; };
 		654EE64317832FB400175F2F /* jackview-audio-on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-on.png"; sourceTree = "<group>"; };
@@ -199,6 +197,8 @@
 		655DAAE814F69C9B0013FAF5 /* FIBox.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBox.mm; sourceTree = "<group>"; };
 		6560453F14FE924400AE84A9 /* FITabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITabView.h; sourceTree = "<group>"; };
 		6560454014FE924400AE84A9 /* FITabView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITabView.mm; sourceTree = "<group>"; };
+		6563671617CF4FC000575DD9 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		6563671817CF4FC000575DD9 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		6566748414ED30F000172A10 /* FIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIButton.h; sourceTree = "<group>"; };
 		6566748514ED30F000172A10 /* FIButton.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIButton.mm; sourceTree = "<group>"; };
 		6566748614ED30F000172A10 /* FIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIResponder.h; sourceTree = "<group>"; };
@@ -411,8 +411,8 @@
 		65E5ED9814DB037D00136CFC /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				65496BCA17A92F2200B2091C /* MainStoryboard_iPad.storyboard */,
-				65496BCC17A92F2200B2091C /* MainStoryboard_iPhone.storyboard */,
+				6563671517CF4FC000575DD9 /* MainStoryboard_iPad.storyboard */,
+				6563671717CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard */,
 				4B04364816E9E9AD00C0C02A /* pix */,
 				6534E2101730171B009A4FD2 /* JackView */,
 				65E5EDA114DB037D00136CFC /* FIAppDelegate.h */,
@@ -594,8 +594,8 @@
 				654EE66A17832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
 				654EE66D17832FB400175F2F /* jackview-out.png in Resources */,
 				654EE67017832FB400175F2F /* jackview-out@2x.png in Resources */,
-				65496BCF17A92F2200B2091C /* MainStoryboard_iPad.storyboard in Resources */,
-				65496BD117A92F2200B2091C /* MainStoryboard_iPhone.storyboard in Resources */,
+				6563671A17CF4FC000575DD9 /* MainStoryboard_iPad.storyboard in Resources */,
+				6563671C17CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,8 +636,8 @@
 				654EE66817832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
 				654EE66B17832FB400175F2F /* jackview-out.png in Resources */,
 				654EE66E17832FB400175F2F /* jackview-out@2x.png in Resources */,
-				65496BCE17A92F2200B2091C /* MainStoryboard_iPad.storyboard in Resources */,
-				65496BD017A92F2200B2091C /* MainStoryboard_iPhone.storyboard in Resources */,
+				6563671917CF4FC000575DD9 /* MainStoryboard_iPad.storyboard in Resources */,
+				6563671B17CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -747,18 +747,18 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		65496BCA17A92F2200B2091C /* MainStoryboard_iPad.storyboard */ = {
+		6563671517CF4FC000575DD9 /* MainStoryboard_iPad.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				65496BCB17A92F2200B2091C /* en */,
+				6563671617CF4FC000575DD9 /* en */,
 			);
 			name = MainStoryboard_iPad.storyboard;
 			sourceTree = "<group>";
 		};
-		65496BCC17A92F2200B2091C /* MainStoryboard_iPhone.storyboard */ = {
+		6563671717CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				65496BCD17A92F2200B2091C /* en */,
+				6563671817CF4FC000575DD9 /* en */,
 			);
 			name = MainStoryboard_iPhone.storyboard;
 			sourceTree = "<group>";
