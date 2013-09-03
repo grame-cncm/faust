@@ -71,8 +71,6 @@ for p in $FILES; do
     # move generated app to source directory
     rm -rf "$S/$P.app"
     mv "$T/build/Release-iphoneos/$P.app" "$S/"
-    echo "rm tmp" 
-    echo "$T"
     rm -rf "$T"
         
 	# collect binary file name for FaustGIDE
