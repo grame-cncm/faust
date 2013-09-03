@@ -299,6 +299,8 @@
 //
 -(void) drawRect:(CGRect)rect
 {
+    if (self.hideOnGUI) return;
+    
     CGContextRef        ctx;          // Graphics context
     CGRect              rectBounds,   // Bounding rectangle adjusted for multiple of bar size
     rectBar;      // Rectangle for individual light bar

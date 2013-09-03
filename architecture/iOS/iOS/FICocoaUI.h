@@ -147,6 +147,7 @@ protected:
     NSString*               fName;
     BOOL                    fHidden;
     uiCocoaItem*            fParent;
+    
     float                   fx;
     float                   fy;
     float                   fw;
@@ -175,10 +176,12 @@ protected:
     float                   fR;
     float                   fG;
     float                   fB;
+    BOOL                    fHideOnGUI;
     
 public:
     
     FIMainViewController*   mainViewController;
+    UILabel*                fLabel;
 
     // Default widget parameter
     void resetParameters()
@@ -199,6 +202,7 @@ public:
     : uiItem(ui, zone), mainViewController(controller)
     {
         fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
+        fLabel = nil;
         fHidden = false;
         fParent = NULL;
         fx = 0.f;
@@ -220,6 +224,7 @@ public:
         fInitR = 0.f;
         fInitG = 0.f;
         fInitB = 1.f;
+        fHideOnGUI = false;
     }
     
     ~uiCocoaItem()
@@ -245,8 +250,8 @@ public:
     
     float getAbstractX()                                                {return fAbstractX;}
     float getAbstractY()                                                {return fAbstractY;}
-    float getAbstractW()                                                {return fAbstractW;}
-    float getAbstractH()                                                {return fAbstractH;}
+    float getAbstractW()                                                {if (fHideOnGUI) return 0; else return fAbstractW;}
+    float getAbstractH()                                                {if (fHideOnGUI) return 0; else return fAbstractH;}
     void setAbstractFrame(float x, float y, float w, float h)           {fAbstractX = x; fAbstractY = y; fAbstractW = w; fAbstractH = h;}
     
     void setParent(uiCocoaItem* parent)                                 {fParent = parent;}
@@ -301,6 +306,9 @@ public:
     float getG()                                                        {return fG;}
     float getB()                                                        {return fB;}
     virtual void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
+    
+    void setHideOnGUI(BOOL hideOnGUI)                                   {fHideOnGUI = hideOnGUI; if (fLabel) fLabel.hidden = hideOnGUI;}
+    BOOL getHideOnGUI()                                                 {return fHideOnGUI;}
 };
 
 
@@ -318,7 +326,6 @@ public:
     int                     fBoxType;
     float                   fLastX;
     float                   fLastY;
-    UILabel*                fLabel;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
     : uiCocoaItem(ui, NULL, controller, name)
@@ -531,7 +538,6 @@ class uiKnob : public uiCocoaItem
 public :
     
     FIKnob*                         fKnob;
-    UILabel*                        fLabel;
     UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiKnob(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
@@ -662,7 +668,6 @@ class uiSlider : public uiCocoaItem
 public :
     
     FISlider*                       fSlider;
-    UILabel*                        fLabel;
     BOOL                            fHorizontal;
     UILongPressGestureRecognizer*   fLongPressGesture;
     
@@ -932,7 +937,6 @@ class uiNumEntry : public uiCocoaItem
 public:
     
     FITextField*        fTextField;
-    UILabel*            fLabel;
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller, label)
@@ -1019,7 +1023,6 @@ class uiBargraph : public uiCocoaItem
 public:
     
     FIBargraph*             fBargraph;
-    UILabel*                fLabel;
     BOOL                    fHorizontal;
     
     uiBargraph(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
@@ -1145,6 +1148,7 @@ private:
     map<float*, bool>               fAssignationInverse;
     map<float*, float>              fAssignationRefPointX;
     map<float*, float>              fAssignationRefPointY;
+    map<float*, bool>               fHideOnGUI;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
@@ -1302,6 +1306,12 @@ private:
                 w = max(kStdVerticalBargraphWidth, kStdBargraphLabelWidth);
                 h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
             }
+        }
+        
+        if (!dynamic_cast<uiBox*>(widget) && widget->getHideOnGUI())
+        {
+            w = 0;
+            h = 0;
         }
         
         // Place widget in the box
@@ -1873,6 +1883,8 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1882,6 +1894,8 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1891,6 +1905,8 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1908,6 +1924,8 @@ public:
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
         if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiKnob*>(item)->fKnob.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1925,6 +1943,8 @@ public:
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
         if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiKnob*>(item)->fKnob.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1948,6 +1968,8 @@ public:
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
             if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            dynamic_cast<uiSlider*>(item)->fSlider.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
         }
@@ -1972,6 +1994,8 @@ public:
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
             if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            dynamic_cast<uiSlider*>(item)->fSlider.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
         }
@@ -1990,6 +2014,8 @@ public:
             
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            dynamic_cast<uiNumEntry*>(item)->fTextField.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
         }
@@ -2004,11 +2030,13 @@ public:
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, true);
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
         insert(label, item);
     }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, false);
+        if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
         insert(label, item);
     }
     
@@ -2042,6 +2070,16 @@ public:
             {
 				fUnit[zone] = value;
 			}
+            if (strcmp(key,"hidden") == 0)
+            {
+				NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+            
+                if ([((NSString*)[arr objectAtIndex:0]) integerValue] == 1)
+                {
+                    fHideOnGUI[zone] = true;
+                }
+            }
 			else if (strcmp(key,"style") == 0)
             {
                 // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
