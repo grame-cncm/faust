@@ -75,12 +75,12 @@ typedef	UInt8	CAAudioHardwareDeviceSectionID;
 struct TCoreAudioSharedRenderer {
     static AudioDeviceID fAggregateDeviceID;
     static AudioObjectID fAggregatePluginID;    // Used for aggregate device
-    static int fAggregateClients;
+    static int fClients;
 };
 
 AudioDeviceID TCoreAudioSharedRenderer::fAggregateDeviceID = -1;
 AudioObjectID TCoreAudioSharedRenderer::fAggregatePluginID = -1;
-int TCoreAudioSharedRenderer::fAggregateClients = 0;
+int TCoreAudioSharedRenderer::fClients = 0;
 
 class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 {
@@ -99,7 +99,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         AudioDeviceID fDeviceID;
         AudioUnit fAUHAL;
         bool fState;
-
+   
         OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& samplerate, AudioDeviceID* id);
 
         OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int& samplerate);
@@ -131,7 +131,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
     public:
 
         TCoreAudioRenderer()
-            :fInputData(0),fDeviceID(0),fAUHAL(0),fState(false),fDevNumInChans(0),fDevNumOutChans(0),fDSP(0)
+            :fDevNumInChans(0),fDevNumOutChans(0),fInChannel(0),fOutChannel(0),fDSP(0),fInputData(0),fDeviceID(0),fAUHAL(0),fState(false)
         {}
         virtual ~TCoreAudioRenderer()
         {}
@@ -301,7 +301,7 @@ OSStatus TCoreAudioRenderer::GetDefaultDeviceAndSampleRate(int inChan, int outCh
 			*device = inDefault;
             goto end;
 		} else {
-            if (fAggregateClients++ == 0) {
+            if (fAggregateDeviceID == -1) {
                 //printf("GetDefaultDeviceAndSampleRate : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
                 if (CreateAggregateDevice(inDefault, outDefault, samplerate) != noErr) {
                     return kAudioHardwareBadDeviceError;
@@ -794,15 +794,16 @@ error:
 }
 
 OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
-{
-    OSStatus osErr = noErr;
-    AudioObjectPropertyAddress pluginAOPA;
-    pluginAOPA.mSelector = kAudioPlugInDestroyAggregateDevice;
-    pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
-    pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
-    UInt32 outDataSize;
+{   
+    // If an aggregate device has really been created...
+    if (fAggregateDeviceID != -1 && fClients == 0)   {
 
-    if (--fAggregateClients == 0)   {
+        OSStatus osErr = noErr;
+        AudioObjectPropertyAddress pluginAOPA;
+        pluginAOPA.mSelector = kAudioPlugInDestroyAggregateDevice;
+        pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
+        pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
+        UInt32 outDataSize;
 
         osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
         if (osErr != noErr) {
@@ -841,6 +842,8 @@ int TCoreAudioRenderer::OpenDefault(dsp* dsp, int inChan, int outChan, int buffe
     
     fInChannel = new float*[fDevNumInChans];
     fOutChannel = new float*[fDevNumOutChans];
+    
+    fClients++;
 
     //printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
 
@@ -1090,6 +1093,8 @@ error:
 
 int TCoreAudioRenderer::Close()
 {
+    fClients--;
+    
     if (!fAUHAL) {
         return CLOSE_ERR;
     }
@@ -1099,7 +1104,10 @@ int TCoreAudioRenderer::Close()
     }
 	free(fInputData);
 	AudioUnitUninitialize(fAUHAL);
-    CloseComponent(fAUHAL);
+    // It seems that CloseComponent can not be called when an aggregated devcie has been created....
+    if (fAggregateDeviceID == -1) {
+        CloseComponent(fAUHAL);
+    }
     DestroyAggregateDevice();
     
     delete[] fInChannel;
