@@ -31,6 +31,8 @@ for p in $@; do
 	HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
 	JACK="1"
+    elif [ "$p" = "-dist" ]; then
+	DIST="1"
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
     elif [[ -e "$p" ]]; then
@@ -58,20 +60,26 @@ for p in $FILES; do
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
 	   ) > /dev/null
-
+        # move generated app to source directory
+        rm -rf "$S/$P.app"
+        mv "$T/build/Release-iphoneos/$P.app" "$S/"
+    elif [ "$DIST" = "1" ]; then
+	   echo "Compile with CoreAudio support to distribute the result"
+	   faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
+	   (
+		cd "$T" && xcodebuild   -scheme Template archive  PRODUCT_NAME=$P
+	   ) > /dev/null
 	else
-	   #echo "Compile with CoreAudio support"
+	   echo "Compile with CoreAudio support"
 	   faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
 	   ) > /dev/null
+        # move generated app to source directory
+        rm -rf "$S/$P.app"
+        mv "$T/build/Release-iphoneos/$P.app" "$S/"
 
 	fi
-	
-	# move generated app to source directory
-	rm -rf "$S/$P.app"
-	mv "$T/build/Release-iphoneos/$P.app" "$S/"
-	
 
 	# collect binary file name for FaustGIDE
     BINARIES="$BINARIES$S/$P.app;"

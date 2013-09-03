@@ -51,6 +51,9 @@
 		4B06ECA616E77D6A004D2F59 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E5ED9B14DB037D00136CFC /* InfoPlist.strings */; };
 		4B06ECAA16E77D6A004D2F59 /* close.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9D157806E6009F2D7A /* close.png */; };
 		4B06ECAB16E77D6A004D2F59 /* close@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9E157806E6009F2D7A /* close@2x.png */; };
+		4B54467617D5E0D90029B0CF /* icon-114.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B6A5D9117CF760A00C0F52B /* icon-114.png */; };
+		4B54467717D5E0FA0029B0CF /* icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B6A5D9317CF761B00C0F52B /* icon-72.png */; };
+		4B54467817D5E1000029B0CF /* icon-144.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B6A5D9517CF762200C0F52B /* icon-144.png */; };
 		4B6A5D9217CF760A00C0F52B /* icon-114.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B6A5D9117CF760A00C0F52B /* icon-114.png */; };
 		4B6A5D9417CF761B00C0F52B /* icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B6A5D9317CF761B00C0F52B /* icon-72.png */; };
 		4B6A5D9617CF762200C0F52B /* icon-144.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B6A5D9517CF762200C0F52B /* icon-144.png */; };
@@ -605,6 +608,9 @@
 				654EE67017832FB400175F2F /* jackview-out@2x.png in Resources */,
 				6563671A17CF4FC000575DD9 /* MainStoryboard_iPad.storyboard in Resources */,
 				6563671C17CF4FC000575DD9 /* MainStoryboard_iPhone.storyboard in Resources */,
+				4B54467617D5E0D90029B0CF /* icon-114.png in Resources */,
+				4B54467717D5E0FA0029B0CF /* icon-72.png in Resources */,
+				4B54467817D5E1000029B0CF /* icon-144.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -906,6 +912,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: GRAME (XN9RP996NW)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -917,6 +924,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "23F5EA0A-8A08-48B3-989C-5A39590129EF";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -925,6 +933,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: GRAME (XN9RP996NW)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -936,6 +945,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "23F5EA0A-8A08-48B3-989C-5A39590129EF";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
