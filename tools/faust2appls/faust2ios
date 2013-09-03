@@ -57,22 +57,24 @@ for p in $FILES; do
 	   faust -i $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
+         cd "$T" && xcodebuild -scheme Template_Jack archive PRODUCT_NAME=$P
 	   ) > /dev/null
-
-	else
-	   #echo "Compile with CoreAudio support"
+   else
+	   echo "Compile with CoreAudio support"
 	   faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
+        cd "$T" && xcodebuild -scheme Template_CoreAudio archive PRODUCT_NAME=$P
 	   ) > /dev/null
-
 	fi
-	
-	# move generated app to source directory
-	rm -rf "$S/$P.app"
-	mv "$T/build/Release-iphoneos/$P.app" "$S/"
-	
-
+    
+    # move generated app to source directory
+    rm -rf "$S/$P.app"
+    mv "$T/build/Release-iphoneos/$P.app" "$S/"
+    echo "rm tmp" 
+    echo "$T"
+    rm -rf "$T"
+        
 	# collect binary file name for FaustGIDE
     BINARIES="$BINARIES$S/$P.app;"
 done

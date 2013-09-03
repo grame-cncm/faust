@@ -29,7 +29,7 @@
 @end
 
 
-@interface FIFlipsideViewController : UIViewController
+@interface FIFlipsideViewController : UIViewController <UIAlertViewDelegate>
 {
     IBOutlet UISlider*              _sampleRateSlider;
     IBOutlet UILabel*               _sampleRateLabel;
@@ -52,6 +52,7 @@
 - (IBAction)sampleRateSliderMoved:(id)sender;
 - (IBAction)bufferSizeSliderMoved:(id)sender;
 - (IBAction)openWidgetPanelSwitchMoved:(id)sender;
+- (IBAction)deleteAssignationsButtonClicked:(id)sender;
 
 - (int)sampleRateToSliderValue:(int)sampleRate;
 - (int)sliderValueToSampleRate:(int)sliderValue;
