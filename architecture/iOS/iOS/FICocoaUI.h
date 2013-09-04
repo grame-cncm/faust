@@ -130,6 +130,8 @@ class uiBox;
 #define kStdHorizontalBargraphHeight    30.0
 #define kStdVerticalBargraphWidth       30.0
 #define kMinVerticalBargraphHeight      170.0
+#define kStdLedWidth                    30.0
+#define kStdLedHeight                   30.0
 #define kStdBargraphLabelWidth          60.0
 #define kStdBargraphLabelHeight         20.0
 
@@ -1024,10 +1026,12 @@ public:
     
     FIBargraph*             fBargraph;
     BOOL                    fHorizontal;
+    BOOL                    fLed;
     
     uiBargraph(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller, name)
-    {        
+    {
+        fLed = false;
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         if (horizontal) fLabel.textAlignment = UITextAlignmentRight;
@@ -1056,7 +1060,7 @@ public:
     
     BOOL isHExpandable()
     {
-        if (fHorizontal)
+        if (fHorizontal && !fLed)
         {
             return TRUE;
         }
@@ -1065,7 +1069,7 @@ public:
     
     BOOL isVExpandable()
     {
-        if (fHorizontal)
+        if (fHorizontal || fLed)
         {
             return FALSE;
         }
@@ -1083,17 +1087,29 @@ public:
         
         uiCocoaItem::setFrame(x, y, w, h);
         
-        if (fHorizontal)
+        if (fLed)
         {
-            fLabel.frame = CGRectMake(      pt.x,
-                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+            fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
+                                            pt.y + (h - kStdLedHeight - kSpaceSize - kStdBargraphLabelHeight) / 2.f,
+                                            kStdLedWidth,
+                                            kStdLedHeight);
+            
+            fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                            pt.y + (h + kStdBargraphLabelHeight - kSpaceSize - kStdBargraphLabelHeight) / 2.f + kSpaceSize,
                                             kStdBargraphLabelWidth,
                                             kStdBargraphLabelHeight);
-            
+        }
+        else if (fHorizontal)
+        {
             fBargraph.frame = CGRectMake(   pt.x + kStdBargraphLabelWidth + kSpaceSize,
                                             pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
                                             w - kStdBargraphLabelWidth - kSpaceSize,
                                             kStdHorizontalBargraphHeight);
+            
+            fLabel.frame = CGRectMake(      pt.x,
+                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                            kStdBargraphLabelWidth,
+                                            kStdBargraphLabelHeight);
         }
         else
         {
@@ -1114,6 +1130,22 @@ public:
         fHidden = hidden;
         fLabel.hidden = hidden;
         fBargraph.hidden = hidden;
+    }
+    
+    void setLed(BOOL led)
+    {
+        fLed = led;
+        fBargraph.led = led;
+        
+        if (led)
+        {
+            fLabel.textAlignment = UITextAlignmentCenter;
+        }
+        else
+        {
+            if (fHorizontal) fLabel.textAlignment = UITextAlignmentRight;
+            else fLabel.textAlignment = UITextAlignmentCenter;
+        }
     }
     
     void reflectZone()
@@ -1149,6 +1181,10 @@ private:
     map<float*, float>              fAssignationRefPointX;
     map<float*, float>              fAssignationRefPointY;
     map<float*, bool>               fHideOnGUI;
+    map<float*, bool>               fLed;
+    map<float*, float>              fLedR;
+    map<float*, float>              fLedG;
+    map<float*, float>              fLedB;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
@@ -1296,7 +1332,12 @@ private:
         }
         else if (dynamic_cast<uiBargraph*>(widget))
         {
-            if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
+            if (dynamic_cast<uiBargraph*>(widget)->fLed)
+            {
+                w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                h = kStdLedHeight + kSpaceSize + kStdBargraphLabelHeight;
+            }
+            else if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
             {
                 w = kMinHorizontalBargraphWidth + kSpaceSize + kStdBargraphLabelWidth;
                 h = max(kStdHorizontalBargraphHeight, kStdBargraphLabelHeight);
@@ -2030,13 +2071,51 @@ public:
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, true);
+        
+        if (fR[zone] && fG[zone] && fB[zone])
+        {
+            item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMaxColor = [[UIColor colorWithRed:fR[zone] - 1000.
+                                                                                      green:fG[zone] - 1000.
+                                                                                       blue:fB[zone] - 1000.
+                                                                                      alpha:1.] retain];
+        }
         if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiBargraph*>(item)->setLed(fLed[zone]);
+        
+        if (fLedR[zone] || fLedG[zone] || fLedB[zone])
+        {
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMinColor = [[UIColor colorWithRed:fLedR[zone]
+                                                                                      green:fLedG[zone]
+                                                                                       blue:fLedB[zone]
+                                                                                      alpha:1.] retain];
+        }
+        
         insert(label, item);
     }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, false);
+        
+        if (fR[zone] && fG[zone] && fB[zone])
+        {
+            item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMaxColor = [[UIColor colorWithRed:fR[zone] - 1000.
+                                                                                      green:fG[zone] - 1000.
+                                                                                       blue:fB[zone] - 1000.
+                                                                                      alpha:1.] retain];
+        }
         if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        dynamic_cast<uiBargraph*>(item)->setLed(fLed[zone]);
+        
+        if (fLedR[zone] || fLedG[zone] || fLedB[zone])
+        {
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMinColor = [[UIColor colorWithRed:fLedR[zone]
+                                                                                      green:fLedG[zone]
+                                                                                       blue:fLedB[zone]
+                                                                                      alpha:1.] retain];
+        }
+        
         insert(label, item);
     }
     
@@ -2082,15 +2161,39 @@ public:
             }
 			else if (strcmp(key,"style") == 0)
             {
-                // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
-				if (strcmp(value,"knob") == 0)
+                NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+                
+                if ([arr count] == 0) return;
+                
+				if ([((NSString*)[arr objectAtIndex:0]) compare:@"knob"] == NSOrderedSame)
                 {
 					fKnobSet.insert(zone);
 				}
-                else if (strcmp(value,"led") == 0)
+                else if ([((NSString*)[arr objectAtIndex:0]) compare:@"led"] == NSOrderedSame)
                 {
-					//fLedSet.insert(zone);
-				}
+                    fLed[zone] = true;
+                    
+                    fLedR[zone] = 0.f;
+                    fLedG[zone] = 0.f;
+                    fLedB[zone] = 0.f;
+                    
+                    if ([arr count] == 2)
+                    {
+                        fLedR[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f;
+                    }
+                    else if ([arr count] == 3)
+                    {
+                        fLedR[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f;
+                        fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
+                    }
+                    else if ([arr count] == 4)
+                    {
+                        fLedR[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f;
+                        fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
+                        fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
+                    }
+                }
 			}
             else if (strcmp(key,"color") == 0)
             {

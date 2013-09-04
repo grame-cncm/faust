@@ -73,7 +73,6 @@ for p in $FILES; do
     mv "$T/build/Release-iphoneos/$P.app" "$S/"
     echo "rm tmp" 
     echo "$T"
-    rm -rf "$T"
         
 	# collect binary file name for FaustGIDE
     BINARIES="$BINARIES$S/$P.app;"
