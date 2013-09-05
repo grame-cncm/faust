@@ -130,8 +130,8 @@ class uiBox;
 #define kStdHorizontalBargraphHeight    30.0
 #define kStdVerticalBargraphWidth       30.0
 #define kMinVerticalBargraphHeight      170.0
-#define kStdLedWidth                    30.0
-#define kStdLedHeight                   30.0
+#define kStdLedWidth                    270.0
+#define kStdLedHeight                   270.0
 #define kStdBargraphLabelWidth          60.0
 #define kStdBargraphLabelHeight         20.0
 
@@ -1094,20 +1094,18 @@ public:
     
     BOOL isHExpandable()
     {
-        if (fHorizontal && !fLed)
-        {
-            return TRUE;
-        }
+        /*if (fLed) return YES;
+        else*/ if (fHorizontal) return TRUE;
+        
         return FALSE;
     }
     
     BOOL isVExpandable()
     {
-        if (fHorizontal || fLed)
-        {
-            return FALSE;
-        }
-        return TRUE;
+        /*if (fLed) return YES;
+        else*/ if (!fHorizontal) return TRUE;
+        
+        return FALSE;
     }
     
     void enableLongPressGestureRecognizer(BOOL enable)
@@ -1123,7 +1121,7 @@ public:
         
         if (fLed)
         {
-            fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
+            /*fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
                                             pt.y + (h - kStdLedHeight - kSpaceSize - kStdBargraphLabelHeight) / 2.f,
                                             kStdLedWidth,
                                             kStdLedHeight);
@@ -1131,7 +1129,32 @@ public:
             fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
                                             pt.y + (h + kStdBargraphLabelHeight - kSpaceSize - kStdBargraphLabelHeight) / 2.f + kSpaceSize,
                                             kStdBargraphLabelWidth,
-                                            kStdBargraphLabelHeight);
+                                            kStdBargraphLabelHeight);*/
+            
+            if (fHorizontal)
+            {
+                fBargraph.frame = CGRectMake(   pt.x + kStdLedWidth + kSpaceSize,
+                                                pt.y + (h - kStdLedHeight) / 2.f,
+                                                w - kStdBargraphLabelWidth - kSpaceSize,
+                                                kStdLedHeight);
+                
+                fLabel.frame = CGRectMake(      pt.x,
+                                                pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                                kStdBargraphLabelWidth,
+                                                kStdBargraphLabelHeight);
+            }
+            else
+            {
+                fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
+                                                pt.y,
+                                                kStdLedWidth,
+                                                h - kSpaceSize - kStdBargraphLabelHeight);
+                
+                fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                                pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                                kStdBargraphLabelWidth,
+                                                kStdBargraphLabelHeight);
+            }
         }
         else if (fHorizontal)
         {
@@ -1369,8 +1392,22 @@ private:
         {
             if (dynamic_cast<uiBargraph*>(widget)->fLed)
             {
-                w = max(kStdLedWidth, kStdBargraphLabelWidth);
-                h = kStdLedHeight + kSpaceSize + kStdBargraphLabelHeight;
+                if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
+                {
+                    //w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    //h = kStdLedHeight + kSpaceSize + kStdBargraphLabelHeight;
+                    w = kMinHorizontalBargraphWidth + kSpaceSize + kStdBargraphLabelWidth;
+                    h = max(kStdLedHeight, kStdBargraphLabelHeight);
+                }
+                else
+                {
+                    //w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    //h = kStdLedHeight + kSpaceSize + kStdBargraphLabelHeight;
+                    //w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    //h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
+                    w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
+                }
             }
             else if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
             {
@@ -1875,7 +1912,8 @@ public:
     {
         uiCocoaItem* item = new uiBox(this, fViewController, label, kHorizontalLayout);
         
-        item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
+        if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
+        else item->setHideOnGUI(fNextBoxIsHideOnGUI);
         if (fNextBoxIsHideOnGUI) fNextBoxIsHideOnGUI = false;
 
         insert(label, item);
@@ -1885,7 +1923,8 @@ public:
     {
         uiCocoaItem* item = new uiBox(this, fViewController, label, kVerticalLayout);
         
-        item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
+        if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
+        else item->setHideOnGUI(fNextBoxIsHideOnGUI);
         if (fNextBoxIsHideOnGUI) fNextBoxIsHideOnGUI = false;
         
         insert(label, item);
@@ -1998,7 +2037,14 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
@@ -2009,7 +2055,14 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
@@ -2020,7 +2073,14 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
@@ -2039,7 +2099,14 @@ public:
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
         if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiKnob*>(item)->fKnob.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
@@ -2058,7 +2125,14 @@ public:
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
         if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiKnob*>(item)->fKnob.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
@@ -2083,7 +2157,14 @@ public:
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
             if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
-            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            if (getCurrentOpenedBox())
+            {
+                if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            }
+            else
+            {
+                if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            }
             dynamic_cast<uiSlider*>(item)->fSlider.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
@@ -2109,7 +2190,14 @@ public:
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
             if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
-            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            if (getCurrentOpenedBox())
+            {
+                if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            }
+            else
+            {
+                if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            }
             dynamic_cast<uiSlider*>(item)->fSlider.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
@@ -2129,7 +2217,14 @@ public:
             
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
-            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            if (getCurrentOpenedBox())
+            {
+                if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            }
+            else
+            {
+                if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            }
             dynamic_cast<uiNumEntry*>(item)->fTextField.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
@@ -2154,7 +2249,14 @@ public:
                                                                                        blue:fB[zone] - 1000.
                                                                                       alpha:1.] retain];
         }
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiBargraph*>(item)->setLed(fLed[zone]);
         
         if (fLedR[zone] || fLedG[zone] || fLedB[zone])
@@ -2179,7 +2281,14 @@ public:
                                                                                        blue:fB[zone] - 1000.
                                                                                       alpha:1.] retain];
         }
-        if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
         dynamic_cast<uiBargraph*>(item)->setLed(fLed[zone]);
         
         if (fLedR[zone] || fLedG[zone] || fLedB[zone])
