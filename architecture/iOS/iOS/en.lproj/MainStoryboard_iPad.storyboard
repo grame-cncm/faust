@@ -348,8 +348,8 @@
                                 <rect key="frame" x="20" y="769" width="280" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal" title="Delete assignations">
-                                    <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="Reset parameters">
+                                    <color key="titleColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -379,58 +379,6 @@
     <resources>
         <image name="close.png" width="30" height="30"/>
     </resources>
-    <classes>
-        <class className="FIFlipsideViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="bufferSizeSliderMoved:"/>
-                <relationship kind="action" name="deleteAssignationsButtonClicked:"/>
-                <relationship kind="action" name="done:"/>
-                <relationship kind="action" name="openWidgetPanelSwitchMoved:"/>
-                <relationship kind="action" name="sampleRateSliderMoved:"/>
-                <relationship kind="outlet" name="_bufferSizeLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_bufferSizeSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="_openWidgetPanelSwitch" candidateClass="UISwitch"/>
-                <relationship kind="outlet" name="_sampleRateLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_sampleRateSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="delegate"/>
-            </relationships>
-        </class>
-        <class className="FIMainViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="dismissWidgetPreferencesView:"/>
-                <relationship kind="action" name="resetWidgetPreferences:"/>
-                <relationship kind="action" name="widgetPreferencesChanged:"/>
-                <relationship kind="outlet" name="_bLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_colorBLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_colorBSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="_colorGLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_colorGSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="_colorLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_colorRLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_colorRSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="_dspScrollView" candidateClass="FIScrollView"/>
-                <relationship kind="outlet" name="_dspView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="_gLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_gyroAxisSegmentedControl" candidateClass="UISegmentedControl"/>
-                <relationship kind="outlet" name="_gyroFilteredSwitch" candidateClass="UISwitch"/>
-                <relationship kind="outlet" name="_gyroInvertedSwitch" candidateClass="UISwitch"/>
-                <relationship kind="outlet" name="_gyroInvertedTitleLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_gyroSensibilityLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_gyroSensibilitySlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="_gyroSensibilityTitleLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_rLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_titleLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_titleNavigationItem" candidateClass="UINavigationItem"/>
-                <relationship kind="outlet" name="_widgetPreferencesTitleLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_widgetPreferencesView" candidateClass="UIView"/>
-            </relationships>
-        </class>
-        <class className="FIScrollView" superclassName="UIScrollView">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIScrollView.h"/>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
         <simulatedOrientationMetrics key="orientation"/>

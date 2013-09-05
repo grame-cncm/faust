@@ -154,7 +154,7 @@
 - (IBAction)deleteAssignationsButtonClicked:(id)sender
 {
     UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Attention"
-                                                        message:@"Are you sure you want to delete all your custom assignations and call initial ones?"
+                                                        message:@"Are you sure you want to delete all your custom assignations and parameters?"
                                                        delegate:self
                                               cancelButtonTitle:@"Cancel"
                                               otherButtonTitles:@"OK", nil];
