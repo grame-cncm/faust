@@ -249,6 +249,9 @@
 @synthesize normalBarColor = m_clrNormal;
 @synthesize warningBarColor = m_clrWarning;
 @synthesize dangerBarColor = m_clrDanger;
+@synthesize led;
+@synthesize ledMinColor;
+@synthesize ledMaxColor;
 
 
 
@@ -290,6 +293,9 @@
     // Misc.
     self.clearsContextBeforeDrawing = NO;
     self.opaque = NO;
+    self.led = NO;
+    self.ledMinColor = [[UIColor blackColor] retain];
+    self.ledMaxColor = [[UIColor redColor] retain];
 }
 
 
@@ -299,89 +305,124 @@
 //
 -(void) drawRect:(CGRect)rect
 {
-    CGContextRef        ctx;          // Graphics context
-    CGRect              rectBounds,   // Bounding rectangle adjusted for multiple of bar size
-    rectBar;      // Rectangle for individual light bar
-    size_t              iBarSize;     // Size (width or height) of each LED bar
+    if (self.hideOnGUI) return;
     
-    // How is the bar oriented?
-    rectBounds = self.bounds;
-    BOOL fIsVertical = (rectBounds.size.height >= rectBounds.size.width);
-    if(fIsVertical) {
-        // Adjust height to be an exact multiple of bar 
-        iBarSize = rectBounds.size.height / m_iNumBars;
-        rectBounds.size.height  = iBarSize * m_iNumBars;
+    if (self.led)
+    {
+        CGContextRef        ctx;
+        float               rMin = 0.f;
+        float               gMin = 0.f;
+        float               bMin = 0.f;
+        float               aMin = 0.f;
+        float               rMax = 0.f;
+        float               gMax = 0.f;
+        float               bMax = 0.f;
+        float               aMax = 0.f;
+        UIColor*            color;
+        float               normedValue = (self.value - self.minLimit) / (self.maxLimit - self.minLimit);
+        
+        if (normedValue < 0.) normedValue = 0.f;
+        else if (normedValue > 1.) normedValue = 1.f;
+        
+        [ledMinColor getRed:&rMin green:&gMin blue:&bMin alpha:&aMin];
+        [ledMaxColor getRed:&rMax green:&gMax blue:&bMax alpha:&aMax];
+        
+        color = [UIColor colorWithRed:rMin * (1. - normedValue) + rMax * normedValue
+                                green:gMin * (1. - normedValue) + gMax * normedValue
+                                 blue:bMin * (1. - normedValue) + bMax * normedValue
+                                alpha:aMin * (1. - normedValue) + aMax * normedValue];
+        
+        ctx = UIGraphicsGetCurrentContext();
+        CGContextClearRect(ctx, self.bounds);
+        CGContextSetFillColorWithColor(ctx, color.CGColor);
+        CGContextFillRect(ctx, rect);
     }
-    else {
-        // Adjust width to be an exact multiple
-        iBarSize = rectBounds.size.width / m_iNumBars;
-        rectBounds.size.width = iBarSize * m_iNumBars;
-    }
-    
-    // Compute size of bar
-    rectBar.size.width  = (fIsVertical) ? rectBounds.size.width - 2 : iBarSize;
-    rectBar.size.height = (fIsVertical) ? iBarSize : rectBounds.size.height - 2;
-    
-    // Get stuff needed for drawing
-    ctx = UIGraphicsGetCurrentContext();
-    CGContextClearRect(ctx, self.bounds); 
-    
-    // Fill background
-    CGContextSetFillColorWithColor(ctx, m_clrBackground.CGColor);
-    CGContextFillRect(ctx, rectBounds);
-    
-    // Draw LED bars
-    CGContextSetStrokeColorWithColor(ctx, m_clrInnerBorder.CGColor);
-    CGContextSetLineWidth(ctx, 1.0);
-    for( int iX = 0; iX < m_iNumBars; ++iX ) {
-        // Determine position for this bar
-        if(m_fReverseDirection) {
-            // Top-to-bottom or right-to-left
-            rectBar.origin.x = (fIsVertical) ? rectBounds.origin.x + 1 : (CGRectGetMaxX(rectBounds) - (iX+1) * iBarSize);
-            rectBar.origin.y = (fIsVertical) ? (CGRectGetMinY(rectBounds) + iX * iBarSize) : rectBounds.origin.y + 1;
+    else
+    {
+        CGContextRef        ctx;          // Graphics context
+        CGRect              rectBounds,   // Bounding rectangle adjusted for multiple of bar size
+        rectBar;      // Rectangle for individual light bar
+        size_t              iBarSize;     // Size (width or height) of each LED bar
+        
+        // How is the bar oriented?
+        rectBounds = self.bounds;
+        BOOL fIsVertical = (rectBounds.size.height >= rectBounds.size.width);
+        if(fIsVertical) {
+            // Adjust height to be an exact multiple of bar 
+            iBarSize = rectBounds.size.height / m_iNumBars;
+            rectBounds.size.height  = iBarSize * m_iNumBars;
         }
         else {
-            // Bottom-to-top or right-to-left
-            rectBar.origin.x = (fIsVertical) ? rectBounds.origin.x + 1 : (CGRectGetMinX(rectBounds) + iX * iBarSize);
-            rectBar.origin.y = (fIsVertical) ? (CGRectGetMaxY(rectBounds) - (iX + 1) * iBarSize) : rectBounds.origin.y + 1;
+            // Adjust width to be an exact multiple
+            iBarSize = rectBounds.size.width / m_iNumBars;
+            rectBounds.size.width = iBarSize * m_iNumBars;
         }
         
-        // Draw top and bottom borders for bar
-        CGContextAddRect(ctx, rectBar);
+        // Compute size of bar
+        rectBar.size.width  = (fIsVertical) ? rectBounds.size.width - 2 : iBarSize;
+        rectBar.size.height = (fIsVertical) ? iBarSize : rectBounds.size.height - 2;
+        
+        // Get stuff needed for drawing
+        ctx = UIGraphicsGetCurrentContext();
+        CGContextClearRect(ctx, self.bounds); 
+        
+        // Fill background
+        CGContextSetFillColorWithColor(ctx, m_clrBackground.CGColor);
+        CGContextFillRect(ctx, rectBounds);
+        
+        // Draw LED bars
+        CGContextSetStrokeColorWithColor(ctx, m_clrInnerBorder.CGColor);
+        CGContextSetLineWidth(ctx, 1.0);
+        for( int iX = 0; iX < m_iNumBars; ++iX ) {
+            // Determine position for this bar
+            if(m_fReverseDirection) {
+                // Top-to-bottom or right-to-left
+                rectBar.origin.x = (fIsVertical) ? rectBounds.origin.x + 1 : (CGRectGetMaxX(rectBounds) - (iX+1) * iBarSize);
+                rectBar.origin.y = (fIsVertical) ? (CGRectGetMinY(rectBounds) + iX * iBarSize) : rectBounds.origin.y + 1;
+            }
+            else {
+                // Bottom-to-top or right-to-left
+                rectBar.origin.x = (fIsVertical) ? rectBounds.origin.x + 1 : (CGRectGetMinX(rectBounds) + iX * iBarSize);
+                rectBar.origin.y = (fIsVertical) ? (CGRectGetMaxY(rectBounds) - (iX + 1) * iBarSize) : rectBounds.origin.y + 1;
+            }
+            
+            // Draw top and bottom borders for bar
+            CGContextAddRect(ctx, rectBar);
+            CGContextStrokePath(ctx);
+            
+            // Determine color of bar
+            UIColor   *clrFill = m_clrNormal;
+            if( m_iDangerBarIdx >= 0 && iX >= m_iDangerBarIdx ) {
+                clrFill = m_clrDanger;
+            }
+            else if( m_iWarningBarIdx >= 0 && iX >= m_iWarningBarIdx ) {
+                clrFill = m_clrWarning;
+            }
+            
+            // Determine if bar should be lit
+            BOOL fLit = ((iX >= m_iOnIdx && iX < m_iOffIdx) || iX == m_iPeakBarIdx);
+            
+            // Fill the interior of the bar
+            CGContextSaveGState(ctx);
+            CGRect rectFill = CGRectInset(rectBar, 1.0, 1.0);
+            CGPathRef clipPath = CGPathCreateWithRect(rectFill, NULL);
+            CGContextAddPath(ctx, clipPath);
+            CGContextClip(ctx);
+            [self drawBar:ctx 
+                 withRect:rectFill 
+                 andColor:clrFill 
+                      lit:fLit];
+            CGContextRestoreGState(ctx);
+            CGPathRelease(clipPath);
+        }
+        
+        // Draw border around the control
+        m_clrOuterBorder = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.]; 
+        CGContextSetStrokeColorWithColor(ctx, m_clrOuterBorder.CGColor);
+        CGContextSetLineWidth(ctx, 2.0);
+        CGContextAddRect(ctx, CGRectInset(rectBounds, 1, 1));
         CGContextStrokePath(ctx);
-        
-        // Determine color of bar
-        UIColor   *clrFill = m_clrNormal;
-        if( m_iDangerBarIdx >= 0 && iX >= m_iDangerBarIdx ) {
-            clrFill = m_clrDanger;
-        }
-        else if( m_iWarningBarIdx >= 0 && iX >= m_iWarningBarIdx ) {
-            clrFill = m_clrWarning;
-        }
-        
-        // Determine if bar should be lit
-        BOOL fLit = ((iX >= m_iOnIdx && iX < m_iOffIdx) || iX == m_iPeakBarIdx);
-        
-        // Fill the interior of the bar
-        CGContextSaveGState(ctx);
-        CGRect rectFill = CGRectInset(rectBar, 1.0, 1.0);
-        CGPathRef clipPath = CGPathCreateWithRect(rectFill, NULL);
-        CGContextAddPath(ctx, clipPath);
-        CGContextClip(ctx);
-        [self drawBar:ctx 
-             withRect:rectFill 
-             andColor:clrFill 
-                  lit:fLit];
-        CGContextRestoreGState(ctx);
-        CGPathRelease(clipPath);
     }
-    
-    // Draw border around the control
-    m_clrOuterBorder = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.]; 
-    CGContextSetStrokeColorWithColor(ctx, m_clrOuterBorder.CGColor);
-    CGContextSetLineWidth(ctx, 2.0);
-    CGContextAddRect(ctx, CGRectInset(rectBounds, 1, 1));
-    CGContextStrokePath(ctx);
 }
 
 

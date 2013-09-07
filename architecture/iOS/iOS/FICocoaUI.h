@@ -130,6 +130,8 @@ class uiBox;
 #define kStdHorizontalBargraphHeight    30.0
 #define kStdVerticalBargraphWidth       30.0
 #define kMinVerticalBargraphHeight      170.0
+#define kStdLedWidth                    270.0
+#define kStdLedHeight                   270.0
 #define kStdBargraphLabelWidth          60.0
 #define kStdBargraphLabelHeight         20.0
 
@@ -147,6 +149,7 @@ protected:
     NSString*               fName;
     BOOL                    fHidden;
     uiCocoaItem*            fParent;
+    
     float                   fx;
     float                   fy;
     float                   fw;
@@ -175,11 +178,14 @@ protected:
     float                   fR;
     float                   fG;
     float                   fB;
+    BOOL                    fHideOnGUI;
     
 public:
     
     FIMainViewController*   mainViewController;
-
+    UILabel*                fLabel;
+    float                   fInit;
+    
     // Default widget parameter
     void resetParameters()
     {
@@ -199,6 +205,7 @@ public:
     : uiItem(ui, zone), mainViewController(controller)
     {
         fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
+        fLabel = nil;
         fHidden = false;
         fParent = NULL;
         fx = 0.f;
@@ -220,6 +227,8 @@ public:
         fInitR = 0.f;
         fInitG = 0.f;
         fInitB = 1.f;
+        fHideOnGUI = false;
+        fInit = 0.f;
     }
     
     ~uiCocoaItem()
@@ -229,6 +238,8 @@ public:
         
     // Getters, setters 
     NSString* getName()                                                 {return fName;}
+    
+    virtual void resetInitialValue() = 0;
     
     virtual void setHidden(BOOL hidden) = 0;
     BOOL isHidden()                                                     {return fHidden;}
@@ -245,8 +256,8 @@ public:
     
     float getAbstractX()                                                {return fAbstractX;}
     float getAbstractY()                                                {return fAbstractY;}
-    float getAbstractW()                                                {return fAbstractW;}
-    float getAbstractH()                                                {return fAbstractH;}
+    float getAbstractW()                                                {if (fHideOnGUI) return 0; else return fAbstractW;}
+    float getAbstractH()                                                {if (fHideOnGUI) return 0; else return fAbstractH;}
     void setAbstractFrame(float x, float y, float w, float h)           {fAbstractX = x; fAbstractY = y; fAbstractW = w; fAbstractH = h;}
     
     void setParent(uiCocoaItem* parent)                                 {fParent = parent;}
@@ -301,6 +312,9 @@ public:
     float getG()                                                        {return fG;}
     float getB()                                                        {return fB;}
     virtual void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
+    
+    void setHideOnGUI(BOOL hideOnGUI)                                   {fHideOnGUI = hideOnGUI; if (fLabel) fLabel.hidden = hideOnGUI;}
+    BOOL getHideOnGUI()                                                 {return fHideOnGUI;}
 };
 
 
@@ -318,7 +332,6 @@ public:
     int                     fBoxType;
     float                   fLastX;
     float                   fLastY;
-    UILabel*                fLabel;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
     : uiCocoaItem(ui, NULL, controller, name)
@@ -368,6 +381,10 @@ public:
     {
         if (fLabel) [fLabel release];
         [fBox release];
+    }
+    
+    void resetInitialValue()
+    {
     }
     
     BOOL isHExpandable()
@@ -474,8 +491,8 @@ public:
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        fBox.hidden = hidden;
-        if (fLabel) fLabel.hidden = hidden;
+        fBox.hidden = hidden || getHideOnGUI();
+        if (fLabel) fLabel.hidden = hidden || getHideOnGUI();
         
         list<uiCocoaItem*>::iterator i;
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
@@ -486,7 +503,7 @@ public:
         [fBox setNeedsDisplay];
         if (fTabView)
         {
-            fTabView.hidden = hidden;
+            fTabView.hidden = hidden || getHideOnGUI();
             [fTabView setNeedsDisplay];
         }
     }
@@ -531,7 +548,6 @@ class uiKnob : public uiCocoaItem
 public :
     
     FIKnob*                         fKnob;
-    UILabel*                        fLabel;
     UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiKnob(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
@@ -554,6 +570,7 @@ public :
         fKnob.min = min;
         fKnob.max = max;
         fKnob.step = step;
+        fInit = init;
         fKnob.value = init;
         fKnob.valueArcWidth = kStdKnobArcWidth;
         fKnob.backgroundColorAlpha = 0.4;
@@ -569,6 +586,11 @@ public :
         [fLabel release];
         [fKnob release];
         [fLongPressGesture release];
+    }
+    
+    void resetInitialValue()
+    {
+        fKnob.value = fInit;
     }
     
     BOOL isHExpandable()
@@ -613,8 +635,8 @@ public :
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        fLabel.hidden = hidden;
-        fKnob.hidden = hidden;
+        fLabel.hidden = hidden || getHideOnGUI();
+        fKnob.hidden = hidden || getHideOnGUI();
     }
     
     void setSelected(BOOL selected)
@@ -662,7 +684,6 @@ class uiSlider : public uiCocoaItem
 public :
     
     FISlider*                       fSlider;
-    UILabel*                        fLabel;
     BOOL                            fHorizontal;
     UILongPressGestureRecognizer*   fLongPressGesture;
     
@@ -688,6 +709,7 @@ public :
         fSlider.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fSlider.min = min;
         fSlider.max = max;
+        fInit = init;
         fSlider.value = init;
         fSlider.backgroundColorAlpha = 0.4;
         fSlider.handleSize = 50;
@@ -703,6 +725,11 @@ public :
         [fLabel release];
         [fSlider release];
         [fLongPressGesture release];
+    }
+    
+    void resetInitialValue()
+    {
+        fSlider.value = fInit;
     }
     
     BOOL isHExpandable()
@@ -770,8 +797,8 @@ public :
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        fLabel.hidden = hidden;
-        fSlider.hidden = hidden;
+        fLabel.hidden = hidden || getHideOnGUI();
+        fSlider.hidden = hidden || getHideOnGUI();
     }
     
     void setColor(float r, float g, float b)
@@ -846,6 +873,10 @@ public:
         //[fLongPressGesture release];
     }
 
+    void resetInitialValue()
+    {
+    }
+    
     BOOL isHExpandable()
     {
         return TRUE;
@@ -883,7 +914,7 @@ public:
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        fButton.hidden = hidden;
+        fButton.hidden = hidden || getHideOnGUI();
     }
 
     void setSelected(BOOL selected)
@@ -932,7 +963,6 @@ class uiNumEntry : public uiCocoaItem
 public:
     
     FITextField*        fTextField;
-    UILabel*            fLabel;
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller, label)
@@ -953,6 +983,7 @@ public:
         fTextField.backgroundColorAlpha = 0.4;
         fTextField.min = min;
         fTextField.max = max;
+        fInit = init;
         fTextField.value = init;
         fTextField.step = step;
         [controller.dspView addSubview:fTextField];
@@ -961,6 +992,11 @@ public:
     ~uiNumEntry()
     {
         [fTextField release];
+    }
+    
+    void resetInitialValue()
+    {
+        fTextField.value = fInit;
     }
     
     BOOL isHExpandable()
@@ -998,8 +1034,8 @@ public:
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        fLabel.hidden = hidden;
-        fTextField.hidden = hidden;
+        fLabel.hidden = hidden || getHideOnGUI();
+        fTextField.hidden = hidden || getHideOnGUI();
     }
 
     void reflectZone()
@@ -1019,12 +1055,13 @@ class uiBargraph : public uiCocoaItem
 public:
     
     FIBargraph*             fBargraph;
-    UILabel*                fLabel;
     BOOL                    fHorizontal;
+    BOOL                    fLed;
     
     uiBargraph(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller, name)
-    {        
+    {
+        fLed = false;
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         if (horizontal) fLabel.textAlignment = UITextAlignmentRight;
@@ -1051,22 +1088,24 @@ public:
         [fBargraph release];
     }
     
+    void resetInitialValue()
+    {
+    }
+    
     BOOL isHExpandable()
     {
-        if (fHorizontal)
-        {
-            return TRUE;
-        }
+        /*if (fLed) return YES;
+        else*/ if (fHorizontal) return TRUE;
+        
         return FALSE;
     }
     
     BOOL isVExpandable()
     {
-        if (fHorizontal)
-        {
-            return FALSE;
-        }
-        return TRUE;
+        /*if (fLed) return YES;
+        else*/ if (!fHorizontal) return TRUE;
+        
+        return FALSE;
     }
     
     void enableLongPressGestureRecognizer(BOOL enable)
@@ -1080,17 +1119,54 @@ public:
         
         uiCocoaItem::setFrame(x, y, w, h);
         
-        if (fHorizontal)
+        if (fLed)
         {
-            fLabel.frame = CGRectMake(      pt.x,
-                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
-                                            kStdBargraphLabelWidth,
-                                            kStdBargraphLabelHeight);
+            /*fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
+                                            pt.y + (h - kStdLedHeight - kSpaceSize - kStdBargraphLabelHeight) / 2.f,
+                                            kStdLedWidth,
+                                            kStdLedHeight);
             
+            fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                            pt.y + (h + kStdBargraphLabelHeight - kSpaceSize - kStdBargraphLabelHeight) / 2.f + kSpaceSize,
+                                            kStdBargraphLabelWidth,
+                                            kStdBargraphLabelHeight);*/
+            
+            if (fHorizontal)
+            {
+                fBargraph.frame = CGRectMake(   pt.x + kStdLedWidth + kSpaceSize,
+                                                pt.y + (h - kStdLedHeight) / 2.f,
+                                                w - kStdBargraphLabelWidth - kSpaceSize,
+                                                kStdLedHeight);
+                
+                fLabel.frame = CGRectMake(      pt.x,
+                                                pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                                kStdBargraphLabelWidth,
+                                                kStdBargraphLabelHeight);
+            }
+            else
+            {
+                fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
+                                                pt.y,
+                                                kStdLedWidth,
+                                                h - kSpaceSize - kStdBargraphLabelHeight);
+                
+                fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                                pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                                kStdBargraphLabelWidth,
+                                                kStdBargraphLabelHeight);
+            }
+        }
+        else if (fHorizontal)
+        {
             fBargraph.frame = CGRectMake(   pt.x + kStdBargraphLabelWidth + kSpaceSize,
                                             pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
                                             w - kStdBargraphLabelWidth - kSpaceSize,
                                             kStdHorizontalBargraphHeight);
+            
+            fLabel.frame = CGRectMake(      pt.x,
+                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                            kStdBargraphLabelWidth,
+                                            kStdBargraphLabelHeight);
         }
         else
         {
@@ -1109,8 +1185,24 @@ public:
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        fLabel.hidden = hidden;
-        fBargraph.hidden = hidden;
+        fLabel.hidden = hidden || getHideOnGUI();
+        fBargraph.hidden = hidden || getHideOnGUI();
+    }
+    
+    void setLed(BOOL led)
+    {
+        fLed = led;
+        fBargraph.led = led;
+        
+        if (led)
+        {
+            fLabel.textAlignment = UITextAlignmentCenter;
+        }
+        else
+        {
+            if (fHorizontal) fLabel.textAlignment = UITextAlignmentRight;
+            else fLabel.textAlignment = UITextAlignmentCenter;
+        }
     }
     
     void reflectZone()
@@ -1145,8 +1237,14 @@ private:
     map<float*, bool>               fAssignationInverse;
     map<float*, float>              fAssignationRefPointX;
     map<float*, float>              fAssignationRefPointY;
+    map<float*, bool>               fHideOnGUI;
+    map<float*, bool>               fLed;
+    map<float*, float>              fLedR;
+    map<float*, float>              fLedG;
+    map<float*, float>              fLedB;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
+    bool                            fNextBoxIsHideOnGUI;
     
     // Layout management
     
@@ -1292,7 +1390,26 @@ private:
         }
         else if (dynamic_cast<uiBargraph*>(widget))
         {
-            if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
+            if (dynamic_cast<uiBargraph*>(widget)->fLed)
+            {
+                if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
+                {
+                    //w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    //h = kStdLedHeight + kSpaceSize + kStdBargraphLabelHeight;
+                    w = kMinHorizontalBargraphWidth + kSpaceSize + kStdBargraphLabelWidth;
+                    h = max(kStdLedHeight, kStdBargraphLabelHeight);
+                }
+                else
+                {
+                    //w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    //h = kStdLedHeight + kSpaceSize + kStdBargraphLabelHeight;
+                    //w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    //h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
+                    w = max(kStdLedWidth, kStdBargraphLabelWidth);
+                    h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
+                }
+            }
+            else if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
             {
                 w = kMinHorizontalBargraphWidth + kSpaceSize + kStdBargraphLabelWidth;
                 h = max(kStdHorizontalBargraphHeight, kStdBargraphLabelHeight);
@@ -1302,6 +1419,12 @@ private:
                 w = max(kStdVerticalBargraphWidth, kStdBargraphLabelWidth);
                 h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
             }
+        }
+        
+        if (widget->getHideOnGUI())
+        {
+            w = 0;
+            h = 0;
         }
         
         // Place widget in the box
@@ -1427,6 +1550,7 @@ public:
         fViewController = viewController;
         fWindow = window;
         fMetadata = metadata;
+        fNextBoxIsHideOnGUI = false;
         
         fViewController.dspView.backgroundColor = [UIColor blackColor];
         fViewController.dspScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
@@ -1787,12 +1911,22 @@ public:
     virtual void openHorizontalBox(const char* label = "")
     {
         uiCocoaItem* item = new uiBox(this, fViewController, label, kHorizontalLayout);
+        
+        if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
+        else item->setHideOnGUI(fNextBoxIsHideOnGUI);
+        if (fNextBoxIsHideOnGUI) fNextBoxIsHideOnGUI = false;
+
         insert(label, item);
         fCurrentLayoutType = kHorizontalLayout;
     }
     virtual void openVerticalBox(const char* label = "")
     {
         uiCocoaItem* item = new uiBox(this, fViewController, label, kVerticalLayout);
+        
+        if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
+        else item->setHideOnGUI(fNextBoxIsHideOnGUI);
+        if (fNextBoxIsHideOnGUI) fNextBoxIsHideOnGUI = false;
+        
         insert(label, item);
         fCurrentLayoutType = kVerticalLayout;
     }
@@ -1807,6 +1941,36 @@ public:
     {}
     virtual void openExpanderBox(const char* label, float* zone)
     {}
+    
+    virtual uiBox* getCurrentOpenedBox()
+    {
+        list<uiCocoaItem*>::iterator        i;
+        uiBox*                              box = NULL;
+        BOOL                                found = false;
+        
+        // Find the last box to close
+        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        {
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                if (!found)
+                {
+                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                    {
+                        box = dynamic_cast<uiBox*>(*i);
+                        found = true;
+                    }
+                }
+            }
+        }
+        
+        if (!found && dynamic_cast<uiBox*>(*i))
+        {
+            box = dynamic_cast<uiBox*>(*i);
+        }
+        
+        return box;
+    }
     
     virtual void closeBox()
     {
@@ -1873,6 +2037,15 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1882,6 +2055,15 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1891,6 +2073,15 @@ public:
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1908,6 +2099,15 @@ public:
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
         if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiKnob*>(item)->fKnob.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1925,6 +2125,15 @@ public:
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
         if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiKnob*>(item)->fKnob.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
     }
@@ -1948,6 +2157,15 @@ public:
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
             if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+            if (getCurrentOpenedBox())
+            {
+                if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            }
+            else
+            {
+                if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            }
+            dynamic_cast<uiSlider*>(item)->fSlider.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
         }
@@ -1963,7 +2181,7 @@ public:
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
-            
+                        
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
             if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
@@ -1972,6 +2190,15 @@ public:
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
             if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+            if (getCurrentOpenedBox())
+            {
+                if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            }
+            else
+            {
+                if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            }
+            dynamic_cast<uiSlider*>(item)->fSlider.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
         }
@@ -1990,6 +2217,15 @@ public:
             
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            if (getCurrentOpenedBox())
+            {
+                if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+            }
+            else
+            {
+                if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+            }
+            dynamic_cast<uiNumEntry*>(item)->fTextField.hideOnGUI = item->getHideOnGUI();
             
             insert(label, item);
         }
@@ -2004,11 +2240,65 @@ public:
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, true);
+        
+        if (fR[zone] && fG[zone] && fB[zone])
+        {
+            item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMaxColor = [[UIColor colorWithRed:fR[zone] - 1000.
+                                                                                      green:fG[zone] - 1000.
+                                                                                       blue:fB[zone] - 1000.
+                                                                                      alpha:1.] retain];
+        }
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiBargraph*>(item)->setLed(fLed[zone]);
+        
+        if (fLedR[zone] || fLedG[zone] || fLedB[zone])
+        {
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMinColor = [[UIColor colorWithRed:fLedR[zone]
+                                                                                      green:fLedG[zone]
+                                                                                       blue:fLedB[zone]
+                                                                                      alpha:1.] retain];
+        }
+        
         insert(label, item);
     }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, false);
+        
+        if (fR[zone] && fG[zone] && fB[zone])
+        {
+            item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMaxColor = [[UIColor colorWithRed:fR[zone] - 1000.
+                                                                                      green:fG[zone] - 1000.
+                                                                                       blue:fB[zone] - 1000.
+                                                                                      alpha:1.] retain];
+        }
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiBargraph*>(item)->setLed(fLed[zone]);
+        
+        if (fLedR[zone] || fLedG[zone] || fLedB[zone])
+        {
+            dynamic_cast<uiBargraph*>(item)->fBargraph.ledMinColor = [[UIColor colorWithRed:fLedR[zone]
+                                                                                      green:fLedG[zone]
+                                                                                       blue:fLedB[zone]
+                                                                                      alpha:1.] retain];
+        }
+        
         insert(label, item);
     }
     
@@ -2027,6 +2317,17 @@ public:
 				// only group tooltip are currently implemented
 				gGroupTooltip = formatTooltip(30, value);
 			}*/
+            
+            if (strcmp(key, "hidden") == 0)
+            {
+				NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+                
+                if ([((NSString*)[arr objectAtIndex:0]) integerValue] == 1)
+                {
+                    fNextBoxIsHideOnGUI = true;
+                }
+            }
 		}
         else
         {
@@ -2042,17 +2343,51 @@ public:
             {
 				fUnit[zone] = value;
 			}
+            if (strcmp(key,"hidden") == 0)
+            {
+				NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+            
+                if ([((NSString*)[arr objectAtIndex:0]) integerValue] == 1)
+                {
+                    fHideOnGUI[zone] = true;
+                }
+            }
 			else if (strcmp(key,"style") == 0)
             {
-                // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
-				if (strcmp(value,"knob") == 0)
+                NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
+                NSArray* arr = [str componentsSeparatedByString:@" "];
+                
+                if ([arr count] == 0) return;
+                
+				if ([((NSString*)[arr objectAtIndex:0]) compare:@"knob"] == NSOrderedSame)
                 {
 					fKnobSet.insert(zone);
 				}
-                else if (strcmp(value,"led") == 0)
+                else if ([((NSString*)[arr objectAtIndex:0]) compare:@"led"] == NSOrderedSame)
                 {
-					//fLedSet.insert(zone);
-				}
+                    fLed[zone] = true;
+                    
+                    fLedR[zone] = 0.f;
+                    fLedG[zone] = 0.f;
+                    fLedB[zone] = 0.f;
+                    
+                    if ([arr count] == 2)
+                    {
+                        fLedR[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f;
+                    }
+                    else if ([arr count] == 3)
+                    {
+                        fLedR[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f;
+                        fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
+                    }
+                    else if ([arr count] == 4)
+                    {
+                        fLedR[zone] = (float)[((NSString*)[arr objectAtIndex:1]) integerValue] / 255.f;
+                        fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
+                        fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
+                    }
+                }
 			}
             else if (strcmp(key,"color") == 0)
             {

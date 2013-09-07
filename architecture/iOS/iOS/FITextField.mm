@@ -99,6 +99,8 @@
 
 - (void)drawRect:(CGRect)rect
 {
+    if (self.hideOnGUI) return;
+    
     _messageTextView.frame = CGRectMake(rect.origin.x,
                                         rect.origin.y,
                                         rect.size.width,
