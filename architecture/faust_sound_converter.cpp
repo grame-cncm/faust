@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     int nbf;
     do {
         nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
-        for (int i = 0; i < BUFFER_SIZE; i++) {
+        for (int i = 0; i < nbf; i++) {
             dst << buffer[i] << ", ";
         }
         dst << std::endl;
