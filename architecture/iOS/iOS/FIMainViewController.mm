@@ -1344,6 +1344,12 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
     
     [self loadWidgetsPreferences];
+    
+    
+    for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
+    {
+        (*i)->resetInitialValue();
+    }
 }
 
 // At application launch time, loading preferences for all widgets
@@ -1486,9 +1492,9 @@ T findCorrespondingUiItem(FIResponder* sender)
                                   y:_motionManager.accelerometerData.acceleration.y
                                   z:_motionManager.accelerometerData.acceleration.z];
     
-    [_sensorFilter addGyroX:_motionManager.gyroData.rotationRate.x
-                          y:_motionManager.gyroData.rotationRate.y
-                          z:_motionManager.gyroData.rotationRate.z];
+    [_sensorFilter addGyroX:_motionManager.gyroData.rotationRate.x / 10.
+                          y:_motionManager.gyroData.rotationRate.y / 10.
+                          z:_motionManager.gyroData.rotationRate.z / 10.];
 
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
@@ -1516,17 +1522,17 @@ T findCorrespondingUiItem(FIResponder* sender)
             else if ((*i)->getAssignationType() == kAssignationGyroX)
             {
                 if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.x;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.x / 10.;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroY)
             {
                 if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.y;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.y / 10.;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroZ)
             {
                 if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.z;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.z / 10.;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {

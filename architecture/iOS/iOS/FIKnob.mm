@@ -297,6 +297,8 @@
 
 - (void)drawRect:(CGRect)rect
 {
+    if (self.hideOnGUI) return;
+    
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	CGRect boundsRect = self.bounds;
 	CGFloat maxHalf = self.min + (self.max - self.min) / 2;

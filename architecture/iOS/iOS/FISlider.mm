@@ -257,7 +257,9 @@
 #pragma mark Drawing
 
 - (void)drawRect:(CGRect)rect
-{    
+{
+    if (self.hideOnGUI) return;
+    
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	CGRect boundsRect = self.bounds;
 	const CGFloat *colorComponents = CGColorGetComponents(self.color.CGColor);
