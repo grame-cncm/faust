@@ -57,14 +57,14 @@ for p in $FILES; do
 	   faust -i $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
-         cd "$T" && xcodebuild -scheme Template_Jack archive PRODUCT_NAME=$P
+        #cd "$T" && xcodebuild -scheme Template_Jack archive PRODUCT_NAME=$P
 	   ) > /dev/null
-   else
+    else
 	   echo "Compile with CoreAudio support"
 	   faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
-        cd "$T" && xcodebuild -scheme Template_CoreAudio archive PRODUCT_NAME=$P
+        #cd "$T" && xcodebuild -scheme Template_CoreAudio archive PRODUCT_NAME=$P
 	   ) > /dev/null
 	fi
     
