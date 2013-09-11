@@ -194,7 +194,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error, 4);
+    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error, LLVM_OPTIMIZATION);
     
     if (factory) {
         return factory;

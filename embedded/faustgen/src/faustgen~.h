@@ -66,6 +66,8 @@
     #define FAUST_DRAW_PATH "\\faustgen-resources\\"
 #endif
 
+#define LLVM_OPTIMIZATION 3
+
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
 
 class default_llvm_dsp : public llvm_dsp {
