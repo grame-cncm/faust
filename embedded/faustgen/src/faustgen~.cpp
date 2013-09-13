@@ -867,8 +867,8 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
-        fDSPUI.SetValue(name, off);
-        fDSPUI.SetValue(name, on);
+        fDSPUI.setValue(name, off);
+        fDSPUI.setValue(name, on);
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
@@ -934,12 +934,12 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                     break;
             }
             
-            res = fDSPUI.SetValue(param_name, value); // Doesn't have any effect if name is unknown
+            res = fDSPUI.setValue(param_name, value); // Doesn't have any effect if name is unknown
         }
     // Standard parameter
     } else {
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = fDSPUI.SetValue(name, value); // Doesn't have any effect if name is unknown
+        res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
     }
     
     if (!res) {

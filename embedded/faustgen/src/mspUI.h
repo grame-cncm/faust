@@ -183,7 +183,7 @@ class mspUI : public UI
         void openVerticalBox(const char* label) {}
         void closeBox() {}
         
-        bool SetValue(string name, FAUSTFLOAT f)
+        bool setValue(string name, FAUSTFLOAT f)
         {
             if (fUITable.count(name)) {
                 fUITable[name]->SetValue(f);
