@@ -17,8 +17,6 @@
  ************************************************************************
  ************************************************************************/
 
-package com.faustApp;
-
 import faust_dsp.Para;
 import faust_dsp.SWIGTYPE_p_float;
 import faust_dsp.SWIGTYPE_p_int;
@@ -174,7 +172,7 @@ public class faustApp extends Activity {
         
         // Instantiating Accelerometers Buttons
         assignation = new TextView(this);
-        assignation.setText("Assignation:");
+        assignation.setText("Assignation: ");
         
         accel.bX = new ToggleButton(this);
         accel.bX.setText("X");
@@ -270,10 +268,8 @@ public class faustApp extends Activity {
         paramsLayB = new LayoutParams(LayoutParams.MATCH_PARENT,
        	       LayoutParams.WRAP_CONTENT);
         layButtonsAccel.setLayoutParams(paramsLayB);
-        //assignation.setLayoutParams(paramsLayB);
         
-        // TODO: easy fix for small screens: better?
-        //layButtonsAccel.addView(assignation);
+        layButtonsAccel.addView(assignation);
         layButtonsAccel.addView(accel.bX);
         layButtonsAccel.addView(accel.bY);
         layButtonsAccel.addView(accel.bZ);
