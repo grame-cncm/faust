@@ -121,7 +121,9 @@
 {
     int         i = 0;
     int         nbButtons = [_buttons count];
-        
+    
+    if (self.hideOnGUI) return;
+    
     for (i = 0; i < nbButtons; ++i)
     {
         [((FIButton*)[_buttons objectAtIndex:i]) setNeedsDisplay];

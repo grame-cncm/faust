@@ -17,8 +17,6 @@
  ************************************************************************
  ************************************************************************/
 
-package com.faustApp;
-
 import faust_dsp.Para;
 import faust_dsp.SWIGTYPE_p_float;
 import faust_dsp.SWIGTYPE_p_int;

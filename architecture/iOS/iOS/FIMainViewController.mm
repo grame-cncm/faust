@@ -469,6 +469,8 @@ T findCorrespondingUiItem(FIResponder* sender)
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
+                
+                [[NSUserDefaults standardUserDefaults] synchronize];
             }
             
             // Otherwise normal behaviour
@@ -534,6 +536,8 @@ T findCorrespondingUiItem(FIResponder* sender)
                 
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:knob]];
                 [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() + 1000. forKey:key];
+                
+                [[NSUserDefaults standardUserDefaults] synchronize];
             }
             
             // Otherwise normal behaviour
@@ -1314,6 +1318,8 @@ T findCorrespondingUiItem(FIResponder* sender)
     key = [NSString stringWithFormat:@"%@-b", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1000. forKey:key];
     
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
     // If assignation type is not kAssignationNone, we start motion
     if (_assignatedWidgets.size() > 0) [self startMotion];
     else [self stopMotion];
@@ -1325,6 +1331,25 @@ T findCorrespondingUiItem(FIResponder* sender)
     _selectedWidget->resetParameters();
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
+}
+
+- (void)resetAllWidgetsPreferences
+{
+    list<uiCocoaItem*>::iterator    i;
+    
+    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
+    {
+        (*i)->resetParameters();
+        _assignatedWidgets.erase(i);
+    }
+    
+    [self loadWidgetsPreferences];
+    
+    
+    for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
+    {
+        (*i)->resetInitialValue();
+    }
 }
 
 // At application launch time, loading preferences for all widgets
@@ -1369,7 +1394,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointX(floatValue - 1000.);
             else (*i)->setAssignationRefPointX((*i)->getInitAssignationRefPointX());
-            
+                        
             key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointY(floatValue - 1000.);
@@ -1467,9 +1492,9 @@ T findCorrespondingUiItem(FIResponder* sender)
                                   y:_motionManager.accelerometerData.acceleration.y
                                   z:_motionManager.accelerometerData.acceleration.z];
     
-    [_sensorFilter addGyroX:_motionManager.gyroData.rotationRate.x
-                          y:_motionManager.gyroData.rotationRate.y
-                          z:_motionManager.gyroData.rotationRate.z];
+    [_sensorFilter addGyroX:_motionManager.gyroData.rotationRate.x / 10.
+                          y:_motionManager.gyroData.rotationRate.y / 10.
+                          z:_motionManager.gyroData.rotationRate.z / 10.];
 
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
@@ -1481,33 +1506,33 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationType() == kAssignationAccelX)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel * (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.x * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel;//* (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.x;//* (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelY)
             {
-                if ((*i)->getAssignationFiltered()) coef = -_sensorFilter.yAccel * (*i)->getAssignationSensibility();
-                else coef = -_motionManager.accelerometerData.acceleration.y * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yAccel;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.y;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelZ)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel * (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.z * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.accelerometerData.acceleration.z;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroX)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.x * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.x / 10.;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroY)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.y * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.y / 10.;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationGyroZ)
             {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.z * (*i)->getAssignationSensibility();
+                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro;// * (*i)->getAssignationSensibility();
+                else coef = _motionManager.gyroData.rotationRate.z / 10.;// * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {
@@ -1533,7 +1558,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationInverse()) sign = -1.;
             else sign = 1.;
-            
+                        
             // Case 1 : the ref point creates 2 line coeficients if sensibility > 1.
             /*
             float                           x1 = 0.;
@@ -1571,12 +1596,82 @@ T findCorrespondingUiItem(FIResponder* sender)
             else*/
             
             // Case 2 : the ref point only moves line offset
-            a = sign * (*i)->getAssignationSensibility() / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
-            b = (*i)->getAssignationRefPointY();
+            //a = sign * (*i)->getAssignationSensibility() /*/ 2.*/; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
+            //b = (*i)->getAssignationRefPointY();
             
-            value = a * coef + b;
-
+            // CASE 1: two curves
+            float scale;
             if (dynamic_cast<uiKnob*>(*i))
+            {
+                scale = (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                scale = (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
+            }
+            float x1 = 0.;
+            float y1 = 0.;
+            float x2 = 0.;
+            float y2 = 0.;
+            float va = sign * coef;//* (*i)->getAssignationSensibility();    // Accelerometer value
+            float la = -1.;//* (*i)->getAssignationSensibility();     // Down accelerometer limit
+            float ha = 1.;//* (*i)->getAssignationSensibility();      // Top accelerometer limit
+            float x = sign * (*i)->getAssignationRefPointX(); // (*i)->getAssignationSensibility(); // ref point x
+            float y = (*i)->getAssignationRefPointY() * scale; // ref point y
+            float ls; // Down slider limit
+            float hs; // TOp slider limit
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                ls = dynamic_cast<uiKnob*>(*i)->fKnob.min;
+                hs = dynamic_cast<uiKnob*>(*i)->fKnob.max;
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                ls = dynamic_cast<uiSlider*>(*i)->fSlider.min;
+                hs = dynamic_cast<uiSlider*>(*i)->fSlider.max;
+            }
+            
+            //NSLog(@"%f %f", va, x);
+
+            if (va <= x)
+            {
+                //NSLog(@"<=");
+                x1 = la / (*i)->getAssignationSensibility();
+                x2 = x;
+                y1 = ls;
+                y2 = y;
+                
+                if (x1 >= x || fabs(x1 - x) < 0.01) x1 = x - 0.01;
+            }
+            else if (va > x)
+            {
+                //NSLog(@">");
+                x1 = x;
+                x2 = ha / (*i)->getAssignationSensibility();
+                y1 = y;
+                y2 = hs;
+                
+                if (x2 <= x || fabs(x2 - x) < 0.01) x2 = x + 0.01;
+            }
+
+            if (x1 == x2) a = 0.;
+            else a = (y2 - y1) / (x2 - x1);
+            b = y1 - a * x1;
+            value = a * va + b;
+            
+            /*NSLog(@"va %f", va);
+            NSLog(@"la %f - ha %f - x %f - y %f - ls %f - hs %f", la, ha, x, y, ls, hs);
+            NSLog(@"%f %f %f %f", x1, x2, y1, y2);
+            NSLog(@"%f %f", a, b);
+            NSLog(@"assignation %f %f", (*i)->getAssignationRefPointX(), (*i)->getAssignationRefPointY());*/
+            
+            // CASE 2: simple offset
+            /*a = sign * (*i)->getAssignationSensibility();
+            b = (*i)->getAssignationRefPointY() - a * (*i)->getAssignationRefPointX();
+            
+            value = a * coef + b;*/
+            
+            /*if (dynamic_cast<uiKnob*>(*i))
             {
                 value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
             }
@@ -1599,8 +1694,11 @@ T findCorrespondingUiItem(FIResponder* sender)
                     if (dynamic_cast<uiButton*>(*i)->fButton.value == 1) value = 0;
                     else if (dynamic_cast<uiButton*>(*i)->fButton.value == 0) value = 1;
                 }
-            }
+            }*/
 
+            //NSLog(@"va %f", va);
+            //NSLog(@"VALUE %f", value);
+            
             (*i)->modifyZone(value);
             (*i)->reflectZone();
             

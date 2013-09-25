@@ -360,6 +360,21 @@
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Ca2-EY-o9G">
+                                <rect key="frame" x="20" y="404" width="280" height="37"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                <state key="normal" title="Reset parameters">
+                                    <color key="titleColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="deleteAssignationsButtonClicked:" destination="6" eventType="touchUpInside" id="fgT-bQ-u5J"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -385,6 +400,7 @@
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
             <relationships>
                 <relationship kind="action" name="bufferSizeSliderMoved:"/>
+                <relationship kind="action" name="deleteAssignationsButtonClicked:"/>
                 <relationship kind="action" name="done:"/>
                 <relationship kind="action" name="openWidgetPanelSwitchMoved:"/>
                 <relationship kind="action" name="sampleRateSliderMoved:"/>
@@ -401,7 +417,6 @@
             <relationships>
                 <relationship kind="action" name="dismissWidgetPreferencesView:"/>
                 <relationship kind="action" name="resetWidgetPreferences:"/>
-                <relationship kind="action" name="togglePopover:"/>
                 <relationship kind="action" name="widgetPreferencesChanged:"/>
                 <relationship kind="outlet" name="_bLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="_colorBLabel" candidateClass="UILabel"/>

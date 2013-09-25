@@ -737,72 +737,89 @@ static bool isIdentChar(char c)
 
 const char* Formats [] = {"%d", "%1d", "%2d", "%3d", "%4d"};
 
-static char* writeIdentValue(char* dst, int format, const char* ident, Tree visited, Tree localValEnv)
+static void writeIdentValue(std::string& dst, const std::string& format, const std::string& ident, Tree visited, Tree localValEnv)
 {
-	int n = eval2int(boxIdent(ident), visited, localValEnv);
-    int i = min(4,max(format,0));
+    int     f = atoi(format.c_str());
+    int     n = eval2int(boxIdent(ident.c_str()), visited, localValEnv);
+    int     i = min(4,max(f,0));
+    char    val[256];
     
-	return dst + sprintf(dst, Formats[i], n);
+    snprintf(val, 250, Formats[i], n);
+    dst += val;
 }
 
-static const char * evalLabel (const char* label, Tree visited, Tree localValEnv)
+
+/**
+ * evallabel replace "...%2i..." occurences in label with value of i
+ */
+static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
 {
-	char 		res[2000];
-	char 		ident[64];
+    //std::cerr << "Eval Label : " << src;
 
-	const char* src = &label[0];
-	char*		dst = &res[0];
-	char*		id  = &ident[0];
+    int             state = 0;  // current state
+    std::string     dst;        // label once evaluated
+    std::string     ident;      // current identifier
+    std::string     format;     // current format
 
-	bool		parametric = false;
-	int 		state = 0; int format = 0;
-	char		c;
+    while (state != -1) {
 
-	while ((c=*src++)) {
-		if (state == 0) {
-			// outside ident mode
-			if (c == '%') {
-				// look ahead for next char
-				if (*src == '%') {
-					*dst++ = *src++; 		// copy escape char and skip one char
-				} else {
-					state = 1;				// prepare ident mode
-                    format = 0;
-					parametric = true;
-					id  = &ident[0];
-				}
-			} else {
-				*dst++ = c;					// copy char
-			}
-		} else if (state == 1) {
-            // read the format 
-            if (isDigitChar(c)) {
-                format = format*10 + (c-'0');
+        char c = *src++;
+
+        if (state == 0) {
+
+            if (c == 0) {
+                state = -1;
+            } else if (c == '%') {
+                ident = "";
+                format = "";
+                state = 1;
             } else {
+                dst+=c;
+                state = 0;
+            }
+
+        } else if (state == 1) {
+
+            if (c == 0) {
+                // fin et pas d'indentifiant, abandon
+                dst += '%';
+                dst += format;
+                state = -1;
+            } else if (isDigitChar(c)) {
+                format += c;
+                state = 1;
+            } else if (isIdentChar(c)) {
+                ident += c;
                 state = 2;
-                --src; // unread !!!
+            } else {
+                // caractere de ponctuation et pas d'indentifiant, abandon
+                dst += '%';
+                dst += format;
+                src--;
+                state = 0;
+            }
+
+        } else if (state == 2) {
+
+            if (isIdentChar(c)) {
+                ident += c;
+                state = 2;
+            } else {
+                writeIdentValue(dst, format, ident, visited, localValEnv);
+                src--;
+                state = 0;
             }
 
         } else {
-            
-			// within ident mode
-			if (isIdentChar(c)) {
-				*id++ = c;
-			} else {
-				*id = 0;
-				dst = writeIdentValue(dst, format, ident, visited, localValEnv);
-				state = 0;
-				src -= 1;
-			}
-		}
-	}
 
-	if (state == 2) {
-		*id = 0;
-		dst = writeIdentValue(dst, format, ident, visited, localValEnv);
-	}
-	*dst = 0;
-	return (parametric) ? strdup(res) : label;
+            std::cerr << "internal error in evallabel : undefined state " << state << std::endl;
+            exit(1);
+        }
+    }
+
+    const char* val = strdup(dst.c_str());
+    //std::cerr << "  ===> " << val << std::endl;
+    return val;
 }
 
 

@@ -67,6 +67,7 @@
 @property BOOL responderSelected;                       // default: NO
 @property BOOL motionBlocked;                           // default: NO
 @property BOOL assignated;                              // default: NO
+@property BOOL hideOnGUI;                               // default: NO
 
 - (id)initWithDelegate:(id)aDelegate;
 

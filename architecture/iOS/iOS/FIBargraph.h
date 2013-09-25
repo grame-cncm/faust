@@ -79,12 +79,15 @@
 @property (readwrite, nonatomic)  BOOL      holdPeak;
 @property (readwrite, nonatomic)  BOOL      litEffect;
 @property (readwrite, nonatomic)  BOOL      reverse;
+@property (readwrite, nonatomic)  BOOL      led;
 @property (readwrite, retain)     UIColor   *outerBorderColor;
 @property (readwrite, retain)     UIColor   *innerBorderColor;
 @property (readwrite, retain)     UIColor   *backgroundColor;
 @property (readwrite, retain)     UIColor   *normalBarColor;
 @property (readwrite, retain)     UIColor   *warningBarColor;
 @property (readwrite, retain)     UIColor   *dangerBarColor;
+@property (readwrite, retain)     UIColor   *ledMinColor;
+@property (readwrite, retain)     UIColor   *ledMaxColor;
 
 -(void) resetPeak;
 

@@ -139,6 +139,7 @@ class uiBox;
 - (IBAction)dismissWidgetPreferencesView:(id)sender;
 - (IBAction)widgetPreferencesChanged:(id)sender;
 - (IBAction)resetWidgetPreferences:(id)sender;
+- (void)resetAllWidgetsPreferences;
 - (void)loadWidgetsPreferences;
 - (void)startMotion;
 - (void)stopMotion;

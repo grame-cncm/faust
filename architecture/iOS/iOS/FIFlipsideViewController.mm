@@ -151,6 +151,53 @@
     _openWidgetPanel = ((UISwitch*)sender).on;
 }
 
+- (IBAction)deleteAssignationsButtonClicked:(id)sender
+{
+    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Attention"
+                                                        message:@"Are you sure you want to delete all your custom assignations and parameters?"
+                                                       delegate:self
+                                              cancelButtonTitle:@"Cancel"
+                                              otherButtonTitles:@"OK", nil];
+    [alertView show];
+    [alertView release];
+}
+
+#pragma mark - UIAlertView Delegate Methods
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    // Cancel clicked
+	if (buttonIndex == 0)
+    {
+		// Do nothing
+	}
+    
+    // OK clicked
+    else
+    {
+        NSDictionary* dict = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+        NSArray* keysArray = [dict allKeys];
+        int i = 0;
+        NSString* key = nil;
+        
+        for (i = 0; i < [keysArray count]; ++i)
+        {
+            key = ((NSString*)[keysArray objectAtIndex:i]);
+            if ([key compare:@"sampleRate"] != NSOrderedSame
+                && [key compare:@"bufferSize"] != NSOrderedSame
+                && [key compare:@"openWidgetPanel"] != NSOrderedSame)
+            {
+                [[NSUserDefaults standardUserDefaults] removeObjectForKey:key];
+            }
+        }
+        
+        [((FIMainViewController*)self.delegate) resetAllWidgetsPreferences];
+        
+        [[NSUserDefaults standardUserDefaults] synchronize];
+	}
+}
+
+
 - (int)sampleRateToSliderValue:(int)sampleRate
 {
     switch (sampleRate)
