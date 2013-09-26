@@ -66,7 +66,7 @@ private:
 
   void initProcess ();
   void noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta);
-  void noteOff (VstInt32 note);
+  void noteOff (VstInt32 note, VstInt32 delta);
 	void allNotesOff( void );
   void fillProgram (VstInt32 channel, VstInt32 prg, MidiProgramName* mpn);
 

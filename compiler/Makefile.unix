@@ -193,10 +193,11 @@ errors/errormsg.o: tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.h
 errors/errormsg.o: global.hh parser/sourcereader.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
 errors/errormsg.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
 errors/errormsg.o: tlib/occurrences.hh errors/exception.hh
-errors/timing.o: errors/timing.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh
-errors/timing.o: garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
-errors/timing.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-errors/timing.o: generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
+errors/timing.o: tlib/compatibility.hh errors/timing.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh
+errors/timing.o: tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+errors/timing.o: signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
+errors/timing.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
+errors/timing.o: tlib/occurrences.hh
 evaluate/environment.o: evaluate/environment.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 evaluate/environment.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh errors/errormsg.hh boxes/boxes.hh signals/signals.hh
 evaluate/environment.o: signals/binop.hh boxes/ppbox.hh utils/names.hh propagate/propagate.hh global.hh
@@ -219,6 +220,15 @@ extended/xtended.o: signals/interval.hh generator/instructions.hh signals/binop.
 extended/xtended.o: signals/sigvisitor.hh signals/signals.hh documentator/lateq.hh generator/floats.hh
 generator/Text.o: generator/Text.hh tlib/compatibility.hh generator/floats.hh generator/instructions.hh
 generator/Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh tlib/tree.hh
+generator/asmjs_code_container.o: generator/asmjs_code_container.hh generator/code_container.hh
+generator/asmjs_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh
+generator/asmjs_code_container.o: tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh
+generator/asmjs_code_container.o: tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh tlib/num.hh tlib/list.hh
+generator/asmjs_code_container.o: tlib/shlysis.hh generator/description.hh signals/signals.hh generator/uitree.hh
+generator/asmjs_code_container.o: generator/floats.hh generator/function_builder.hh global.hh parser/sourcereader.hh
+generator/asmjs_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh tlib/occurrences.hh parallelize/code_loop.hh
+generator/asmjs_code_container.o: generator/fir_to_fir.hh generator/asmjs_instructions.hh
+generator/asmjs_code_container.o: generator/text_instructions.hh generator/type_manager.hh errors/exception.hh
 generator/c_code_container.o: generator/c_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/c_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh tlib/tree.hh
 generator/c_code_container.o: generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -420,20 +430,20 @@ parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh garbageable.hh globa
 parser/enrobage.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 parser/enrobage.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh
 parser/enrobage.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-parser/enrobage.o: evaluate/loopDetector.hh tlib/occurrences.hh parser/sourcefetcher.hh
+parser/enrobage.o: evaluate/loopDetector.hh tlib/occurrences.hh parser/sourcefetcher.hh errors/exception.hh
 parser/faustparser.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 parser/faustparser.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
 parser/faustparser.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 parser/faustparser.o: generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
 parser/faustparser.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh signals/prim2.hh
 parser/faustparser.o: errors/errormsg.hh documentator/doc.hh evaluate/eval.hh evaluate/environment.hh boxes/ppbox.hh
-parser/sourcefetcher.o: parser/sourcefetcher.hh
+parser/sourcefetcher.o: tlib/compatibility.hh parser/sourcefetcher.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 parser/sourcereader.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 parser/sourcereader.o: parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh errors/exception.hh
-parser/sourcereader.o: parser/faustlexer.cxx parser/faustparser.hpp global.hh tlib/property.hh signals/sigtype.hh
-parser/sourcereader.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-parser/sourcereader.o: evaluate/loopDetector.hh tlib/occurrences.hh
+parser/sourcereader.o: parser/faustlexer.cxx parser/faustparser.hpp tlib/compatibility.hh global.hh tlib/property.hh
+parser/sourcereader.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+parser/sourcereader.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 patternmatcher/patternmatcher.o: tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 patternmatcher/patternmatcher.o: boxes/ppbox.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
@@ -497,6 +507,7 @@ signals/sigvisitor.o: signals/sigvisitor.hh signals/signals.hh tlib/tlib.hh tlib
 signals/sigvisitor.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 signals/subsignals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 signals/subsignals.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/property.hh errors/exception.hh
+tlib/compatibility.o: tlib/compatibility.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh garbageable.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh global.hh
 tlib/list.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/num.hh tlib/shlysis.hh signals/signals.hh
 tlib/list.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh

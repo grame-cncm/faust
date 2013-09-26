@@ -60,7 +60,7 @@ static Tree 	iterateProd (Tree id, int num, Tree body, Tree visited, Tree localV
 static Tree 	larg2par (Tree larg);
 static int 		eval2int (Tree exp, Tree visited, Tree localValEnv);
 static double   eval2double (Tree exp, Tree visited, Tree localValEnv);
-static const char * evalLabel (const char* l, Tree visited, Tree localValEnv, char* res);
+static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
 static Tree		evalIdDef(Tree id, Tree visited, Tree env);
 
@@ -376,22 +376,19 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	
 	} else if (isBoxButton(exp, label)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+     	const char* l2 = evalLabel(l1, visited, localValEnv);
 		//cout << "button label : " << l1 << " become " << l2 << endl;
 		return ((l1 == l2) ? exp : boxButton(tree(l2)));
 
 	} else if (isBoxCheckbox(exp, label)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+    	const char* l2 = evalLabel(l1, visited, localValEnv);
 		//cout << "check box label : " << l1 << " become " << l2 << endl;
 		return ((l1 == l2) ? exp : boxCheckbox(tree(l2)));
 
 	} else if (isBoxVSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+        const char* l2 = evalLabel(l1, visited, localValEnv);
 		return ( boxVSlider(tree(l2),
 					tree(eval2double(cur, visited, localValEnv)),
 					tree(eval2double(lo, visited, localValEnv)),
@@ -400,8 +397,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+     	const char* l2 = evalLabel(l1, visited, localValEnv);
 		return ( boxHSlider(tree(l2),
 					tree(eval2double(cur, visited, localValEnv)),
 					tree(eval2double(lo, visited, localValEnv)),
@@ -410,8 +406,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+      	const char* l2 = evalLabel(l1, visited, localValEnv);
 		return (boxNumEntry(tree(l2),
 					tree(eval2double(cur, visited, localValEnv)),
 					tree(eval2double(lo, visited, localValEnv)),
@@ -420,34 +415,29 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+        const char* l2 = evalLabel(l1, visited, localValEnv);
 		return boxVGroup(tree(l2),	eval(arg, visited, localValEnv) );
 
 	} else if (isBoxHGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+ 		const char* l2 = evalLabel(l1, visited, localValEnv);
 		return boxHGroup(tree(l2),	eval(arg, visited, localValEnv) );
 
 	} else if (isBoxTGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+    	const char* l2 = evalLabel(l1, visited, localValEnv);
 		return boxTGroup(tree(l2),	eval(arg, visited, localValEnv) );
 
 	} else if (isBoxHBargraph(exp, label, lo, hi)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+    	const char* l2 = evalLabel(l1, visited, localValEnv);
 		return boxHBargraph(tree(l2),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)));
 
 	} else if (isBoxVBargraph(exp, label, lo, hi)) {
 		const char* l1 = tree2str(label);
-        char res[2000];
-		const char* l2 = evalLabel(l1, visited, localValEnv, res);
+  		const char* l2 = evalLabel(l1, visited, localValEnv);
 		return boxVBargraph(tree(l2),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)));
@@ -712,72 +702,91 @@ static bool isIdentChar(char c)
 
 const char* Formats [] = {"%d", "%1d", "%2d", "%3d", "%4d"};
 
-static char* writeIdentValue(char* dst, int format, const char* ident, Tree visited, Tree localValEnv)
+static void writeIdentValue(std::string& dst, const std::string& format, const std::string& ident, Tree visited, Tree localValEnv)
 {
-	int n = eval2int(boxIdent(ident), visited, localValEnv);
-    int i = min(4,max(format,0));
+    int     f = atoi(format.c_str());
+    int     n = eval2int(boxIdent(ident.c_str()), visited, localValEnv);
+    int     i = min(4,max(f,0));
+    char    val[256];
     
-	return dst + sprintf(dst, Formats[i], n);
+    snprintf(val, 250, Formats[i], n);
+    dst += val;
 }
 
-static const char * evalLabel (const char* label, Tree visited, Tree localValEnv, char* res)
+
+/**
+ * evallabel replace "...%2i..." occurences in label with value of i
+ */
+static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
 {
-	char 		ident[64];
+    //std::cerr << "Eval Label : " << src;
 
-	const char* src = &label[0];
-	char*		dst = &res[0];
-	char*		id  = &ident[0];
+    int             state = 0;  // current state
+    std::string     dst;        // label once evaluated
+    std::string     ident;      // current identifier
+    std::string     format;     // current format
 
-	bool		parametric = false;
-	int 		state = 0; int format = 0;
-	char		c;
+    while (state != -1) {
 
-	while ((c=*src++)) {
-		if (state == 0) {
-			// outside ident mode
-			if (c == '%') {
-				// look ahead for next char
-				if (*src == '%') {
-					*dst++ = *src++; 		// copy escape char and skip one char
-				} else {
-					state = 1;				// prepare ident mode
-                    format = 0;
-					parametric = true;
-					id  = &ident[0];
-				}
-			} else {
-				*dst++ = c;					// copy char
-			}
-		} else if (state == 1) {
-            // read the format 
-            if (isDigitChar(c)) {
-                format = format*10 + (c-'0');
+        char c = *src++;
+
+        if (state == 0) {
+
+            if (c == 0) {
+                state = -1;
+            } else if (c == '%') {
+                ident = "";
+                format = "";
+                state = 1;
             } else {
+                dst+=c;
+                state = 0;
+            }
+
+        } else if (state == 1) {
+
+            if (c == 0) {
+                // fin et pas d'indentifiant, abandon
+                dst += '%';
+                dst += format;
+                state = -1;
+            } else if (isDigitChar(c)) {
+                format += c;
+                state = 1;
+            } else if (isIdentChar(c)) {
+                ident += c;
                 state = 2;
-                --src; // unread !!!
+            } else {
+                // caractere de ponctuation et pas d'indentifiant, abandon
+                dst += '%';
+                dst += format;
+                src--;
+                state = 0;
+            }
+
+        } else if (state == 2) {
+
+            if (isIdentChar(c)) {
+                ident += c;
+                state = 2;
+            } else {
+                writeIdentValue(dst, format, ident, visited, localValEnv);
+                src--;
+                state = 0;
             }
 
         } else {
-            
-			// within ident mode
-			if (isIdentChar(c)) {
-				*id++ = c;
-			} else {
-				*id = 0;
-				dst = writeIdentValue(dst, format, ident, visited, localValEnv);
-				state = 0;
-				src -= 1;
-			}
-		}
-	}
 
-	if (state == 2) {
-		*id = 0;
-		dst = writeIdentValue(dst, format, ident, visited, localValEnv);
-	}
-	*dst = 0;
-	return (parametric) ? res : label;
+            std::cerr << "internal error in evallabel : undefined state " << state << std::endl;
+            exit(1);
+        }
+    }
+
+    const char* val = strdup(dst.c_str());
+    //std::cerr << "  ===> " << val << std::endl;
+    return val;
 }
+
 
 /**
  * Iterate a parallel construction

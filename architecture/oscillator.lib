@@ -307,6 +307,7 @@ oscr = oscrs; // default = sine case
 //-------------------------- oscs --------------------------------
 // Sinusoidal oscillator based on the state variable filter
 // = undamped "modified-coupled-form" resonator
+// = "magic circle" algorithm used in graphics 
 //
 oscs(f) =  (*(-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {

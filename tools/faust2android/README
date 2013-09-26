@@ -29,7 +29,7 @@ faust2android is still a work in progress. It should run both on Linux and on Ma
 
 Although the best way to use faust2android is from the Faust Online Compiler (http://faust.grame.fr/index.php/online-examples) by choosing "android" in the Linux targets list, it is possible to install it with this package on your system. The following elements must be installed:
 	- OpenJDK (or equivalent)
-	- SWIG for JAVA (http://www.swig.org/) (eg. "sudo apt-get install swig" on Debian or "sudo port install swig" + "sudo port install swig-java "on OSX).
+	- SWIG for JAVA (http://www.swig.org/) (eg. "sudo apt-get install swig" on Debian or "sudo port install swig" + "sudo port install swig-java" on OSX).
 	- ANT (eg. "sudo apt-get install ant" on Debian or "sudo port install apache-ant" on OSX)
 
 <<Port ant not found, uses apache-ant>>
@@ -39,7 +39,7 @@ Although the best way to use faust2android is from the Faust Online Compiler (ht
 
 somewhere on your hard drive and add to your path the /tools/ and the /platform-tools/ directories (eg. export PATH=$PATH:foo , etc.) in order to use the android tools in your terminal. If the Android SDK is already installed on your system, make sure that this is the latest version (android-API-17). <<<????>>>
 
-	- You must copy the Android NDK (http://developer.android.com/tools/sdk/ndk/index.html) somewhere on your hard drive and add the environement variable "ANDROID_NDK_ROOT" pointing to this location to your bash profile (eg. add 'export ANDROID_NDK_ROOT="foo"' to .bashrc (~/.profile on OSX)). 
+	- You must copy the Android NDK (http://developer.android.com/tools/sdk/ndk/index.html) somewhere on your hard drive and add the environment variable "ANDROID_NDK_ROOT" pointing to this location to your bash profile (eg. add 'export ANDROID_NDK_ROOT="foo"' to .bashrc (~/.profile on OSX)). 
 
 After that, you should be able to run faust2android from the package directory. You can copy it in a folder set in your path like /usr/local/bin/. If you choose to do so, don't forget to copy /src/ too. /src/ must always be in the same directory than faust2android.
 

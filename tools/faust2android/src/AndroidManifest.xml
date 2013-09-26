@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.faustApp"
+    package="com.REP"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -16,7 +16,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         <activity
-            android:name="com.faustApp.faustApp"
+            android:name="com.REP.faustApp"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,44 +25,44 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.faustApp.DisplayWelcomeActivity"
+            android:name="com.REP.DisplayWelcomeActivity"
             android:label="@string/title_activity_display_welcome"
-            android:parentActivityName="com.faustApp.faustApp" >
+            android:parentActivityName="com.REP.faustApp" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.faustApp.faustApp" />
+                android:value="com.REP.faustApp" />
         </activity>
         <activity
-            android:name="com.faustApp.Settings"
+            android:name="com.REP.Settings"
             android:label="@string/title_activity_settings"
-            android:parentActivityName="com.faustApp.faustApp" >
+            android:parentActivityName="com.REP.faustApp" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.faustApp.faustApp" />
+                android:value="com.REP.faustApp" />
         </activity>
         <activity
-            android:name="com.faustApp.AudioSettings"
+            android:name="com.REP.AudioSettings"
             android:label="@string/title_activity_audio_settings"
-            android:parentActivityName="com.faustApp.Settings" >
+            android:parentActivityName="com.REP.Settings" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.faustApp.Settings" />
+                android:value="com.REP.Settings" />
         </activity>
         <activity
-            android:name="com.faustApp.OSCSettings"
+            android:name="com.REP.OSCSettings"
             android:label="@string/title_activity_oscsettings"
-            android:parentActivityName="com.faustApp.Settings" >
+            android:parentActivityName="com.REP.Settings" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.faustApp.Settings" />
+                android:value="com.REP.Settings" />
         </activity>
         <activity
-            android:name="com.faustApp.About"
+            android:name="com.REP.About"
             android:label="@string/title_activity_about"
-            android:parentActivityName="com.faustApp.faustApp" >
+            android:parentActivityName="com.REP.faustApp" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.faustApp.faustApp" />
+                android:value="com.REP.faustApp" />
         </activity>
     </application>
 

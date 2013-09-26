@@ -71,10 +71,20 @@ fi
 echo 'const int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
 echo 'const int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
 
-cd $TMPFILES
+APPNAME=$(echo $f | sed 's/.\{4\}$//')
 
-APPNAME=$(basename "$f")
-APPNAME="${APPNAME%.dsp}"
+# Customize the package name in function of the name of the app (dirty... I know)
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/faustApp.java > temp && mv temp $TMPFILES/src/com/faustApp/faustApp.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/About.java > temp && mv temp $TMPFILES/src/com/faustApp/About.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/accel.java > temp && mv temp $TMPFILES/src/com/faustApp/accel.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/AudioSettings.java > temp && mv temp $TMPFILES/src/com/faustApp/AudioSettings.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/DisplayWelcomeActivity.java > temp && mv temp $TMPFILES/src/com/faustApp/DisplayWelcomeActivity.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/OSCSettings.java > temp && mv temp $TMPFILES/src/com/faustApp/OSCSettings.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/Settings.java > temp && mv temp $TMPFILES/src/com/faustApp/Settings.java
+echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/UI.java > temp && mv temp $TMPFILES/src/com/faustApp/UI.java
+sed -i 's/REP/'$APPNAME'/g' $TMPFILES/AndroidManifest.xml
+
+cd $TMPFILES 
 
 mv res/values/strings.xml res/values/stringsN.xml 
 sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
@@ -94,13 +104,7 @@ ant release #> /dev/null
 # Code used to generate the faust2android key:
 # keytool -genkey -v -keystore faust2android.keystore -alias faust2an -keyalg RSA -keysize 2048 -validity 10000
 
-# Sign the app...
-expect -c "
-spawn jarsigner -sigalg MD5withRSA -digestalg SHA1 -keystore faust2android.keystore bin/faustApp-release-unsigned.apk faust2an
-expect \"Enter Passphrase for keystore:\"
-send \"mephisto\r\"
-interact
-"
+jarsigner -storepass mephisto -sigalg MD5withRSA -digestalg SHA1 -keystore faust2android.keystore bin/faustApp-release-unsigned.apk faust2an
 
 # Check the alignment of the compressed file
 zipalign -v 4 bin/faustApp-release-unsigned.apk bin/faustApp-release.apk

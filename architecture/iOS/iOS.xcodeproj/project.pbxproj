@@ -954,7 +954,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: GRAME (XN9RP996NW)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -966,7 +966,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "23F5EA0A-8A08-48B3-989C-5A39590129EF";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -975,7 +975,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: GRAME (XN9RP996NW)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -987,7 +987,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "23F5EA0A-8A08-48B3-989C-5A39590129EF";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
