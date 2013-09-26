@@ -207,15 +207,22 @@ int main(int argc, char *argv[] )
 	// open input file
 	in_info.format = 0;
 	in_sf = sf_open (interface->input_file(), SFM_READ, &in_info);
-	if (in_sf == NULL) { sf_perror(in_sf); exit(0); }
+	if (in_sf == NULL) {
+	  fprintf(stderr,"*** Input file not found.\n");
+	  sf_perror(in_sf); 
+	  exit(1); 
+	}
 
 	// open output file
 	out_info = in_info;
-    out_info.format = in_info.format;
+        out_info.format = in_info.format;
 	out_info.channels = DSP.getNumOutputs();
 	out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
-	if (out_sf == NULL) { sf_perror(out_sf); exit(0); }
-
+	if (out_sf == NULL) { 
+	  fprintf(stderr,"*** Cannot write output file.\n");
+	  sf_perror(out_sf); 
+	  exit(1); 
+	}
 
 	// create separator and interleaver
 	Separator 	sep (kFrames, in_info.channels, DSP.getNumInputs());
