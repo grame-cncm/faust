@@ -81,6 +81,8 @@ install :
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-c-dsp.h  $(prefix)/include/faust/
+	cp compiler/scheduler.ll  $(prefix)/lib/faust
+	
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/
 	cp architecture/*.cpp $(prefix)/lib/faust/

@@ -64,8 +64,11 @@ global.o : global.cpp
 main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
-faust : $(objects) main.o libmain.o global.o
+faust : $(objects) main.o libmain.o global.o scheduler.ll
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags --libs all` -ldl -o faust
+
+scheduler.ll : ../architecture/scheduler.cpp
+	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 
 libfaust.a : $(objects) libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o libfaust.a
