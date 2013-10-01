@@ -90,8 +90,10 @@ int main(int argc, char *argv[] )
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
 	}
+    
+    QApplication myApp(argc, argv);
 
-	GUI* interface = new QTGUI(argc, argv);
+	GUI* interface = new QTGUI();
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
@@ -121,6 +123,10 @@ int main(int argc, char *argv[] )
 #endif
 	interface->run();
 	
+    myApp.setStyleSheet(STYLESHEET);
+    myApp.exec();
+    interface->stop();
+    
 	audio.stop();
 	finterface->saveState(rcfilename);
   	return 0;

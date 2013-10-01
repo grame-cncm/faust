@@ -44,6 +44,7 @@
 
 class netjackaudio : public audio
 {
+protected:
         dsp* fDsp;
         jack_net_slave_t* fNet;
         int fCelt;

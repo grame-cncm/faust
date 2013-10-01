@@ -83,7 +83,9 @@ int main( int argc, char *argv[] )
 	snprintf(dst, 257, "/%s/", name);
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
 
-	GUI* interface = new QTGUI(argc, argv);
+    QApplication myApp(argc, argv);
+    
+	QTGUI* interface = new QTGUI();
 	FUI* finterface = new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
@@ -101,6 +103,11 @@ int main( int argc, char *argv[] )
 	
 	oscinterface->run();
 	interface->run();	
+    
+    myApp.setStyleSheet(STYLESHEET);
+    myApp.exec();
+    interface->stop();
+    
 	osca.stop();
 	finterface->saveState(rcfilename);
 	delete oscinterface;
