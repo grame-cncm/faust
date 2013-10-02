@@ -1376,7 +1376,7 @@ class QTGUI : public QObject, public GUI
     QTGUI(QStyle* style = 0) : fTimer(0), fStyle(style){
         fMainWindow = new QMainWindow();
     }
-    QTGUI(QMainWindow* win, const char* label, QStyle* style = 0) : fTimer(0), fMainWindow(win){
+    QTGUI(QMainWindow* win, const char* label, QStyle* style = 0) : fTimer(0), fStyle(style), fMainWindow(win){
         fMainWindow->setWindowTitle(label);
     }
 
