@@ -28,6 +28,8 @@ endif
 
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
+LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++
+
 ifeq ($(LLVM_VERSION), 3.0)
 LLVM_VERSION = LLVM_30
 endif
@@ -68,7 +70,7 @@ faust : $(objects) main.o libmain.o global.o scheduler.ll
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags --libs all` -ldl -o faust
 
 scheduler.ll : ../architecture/scheduler.cpp
-	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
+	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 
 libfaust.a : $(objects) libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o libfaust.a
