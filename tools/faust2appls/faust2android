@@ -43,7 +43,7 @@ done
 
 # Faust compilation
 for f in $FILES; do
-	faust -xml -a $TMPFILES/faust2android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
 # Get the number of input and output of the Faust object 
