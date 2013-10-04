@@ -49,7 +49,6 @@ using namespace std;
     #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
 #endif
 
-
 list <string> LLVMInstVisitor::fMathLibTable;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)

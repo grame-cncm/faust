@@ -301,21 +301,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     }
     
     builder.setTargetOptions(targetOptions);
-    
     TargetMachine* tm = builder.selectTarget();
-    
-    /*
-    fJIT = builder.create(tm);
-    if (!fJIT) {
-        return false;
-    }
-    
-    // Run static constructors.
-    fJIT->runStaticConstructorsDestructors(false);
-    fJIT->DisableLazyCompilation(true);
-    
-    fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
-    */
     
     PassManager pm;
     FunctionPassManager fpm(fResult->fModule);
