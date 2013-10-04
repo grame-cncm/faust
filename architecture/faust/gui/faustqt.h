@@ -1141,9 +1141,8 @@ class uiNumEntry : public QObject, public uiItem
 class QTGUI : public QObject, public GUI
 {
     Q_OBJECT
-//	QApplication            fAppl;
+    
 	QTimer*                 fTimer;
-	QStyle*                 fStyle;
     std::string				gGroupTooltip;
     std::stack<QWidget* > 	fGroupStack;
     
@@ -1218,7 +1217,7 @@ class QTGUI : public QObject, public GUI
 
 	void insert(const char* label, QWidget* widget)
 	{
-		if (fStyle) widget->setStyle(fStyle);
+        
 		if (!fGroupStack.empty()) {
 			QWidget* mother = fGroupStack.top();
 			QTabWidget*	tab = dynamic_cast<QTabWidget*>(mother);
@@ -1355,8 +1354,7 @@ class QTGUI : public QObject, public GUI
         else{
             group = new QTabWidget();
         }
-        
-		if (fStyle) group->setStyle(fStyle);
+
 		insert(label, group);
 		fGroupStack.push(group);
 	}
@@ -1370,13 +1368,14 @@ class QTGUI : public QObject, public GUI
 
   public:
 
-//	QTGUI(int& argc, char* argv[], QStyle* style = 0) : fTimer(0), fStyle(style){
-//        //fGroupStack.push(new QMainWindow());
-//    }
-    QTGUI(QStyle* style = 0) : fTimer(0), fStyle(style){
+    QTGUI() : fTimer(0){
         fMainWindow = new QMainWindow();
     }
-    QTGUI(QMainWindow* win, const char* label, QStyle* style = 0) : fTimer(0), fMainWindow(win){
+    QTGUI(QMainWindow* win, const char* label){
+    
+        fTimer = 0;
+        
+        fMainWindow = win;
         fMainWindow->setWindowTitle(label);
     }
 
@@ -1485,6 +1484,7 @@ class QTGUI : public QObject, public GUI
 	virtual void addButton(const char* label, FAUSTFLOAT* zone)
 	{
 		QAbstractButton* 	w = new QPushButton(label);
+		w->setAttribute(Qt::WA_MacNoClickThrough);
 		uiButton* 			c = new uiButton(this, zone, w);
 
 		insert(label, w);
