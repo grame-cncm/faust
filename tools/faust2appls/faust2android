@@ -62,7 +62,7 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	echo "It was modified as follows:"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -xml -a $TMPFILES/faust2android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -i -a android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
 	rm tmpMOD.dsp
 	rm tmpMOD.dsp.xml
 fi
@@ -134,3 +134,5 @@ else
 fi
 
 rm "$f.xml"
+
+echo "$APPNAME.apk;"
