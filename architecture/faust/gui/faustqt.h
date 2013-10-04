@@ -1143,7 +1143,6 @@ class QTGUI : public QObject, public GUI
     Q_OBJECT
     
 	QTimer*                 fTimer;
-	QStyle*                 fStyle;
     std::string				gGroupTooltip;
     std::stack<QWidget* > 	fGroupStack;
     
@@ -1218,8 +1217,6 @@ class QTGUI : public QObject, public GUI
 
 	void insert(const char* label, QWidget* widget)
 	{
-		if (fStyle) 
-            widget->setStyle(fStyle);
         
 		if (!fGroupStack.empty()) {
 			QWidget* mother = fGroupStack.top();
@@ -1357,9 +1354,7 @@ class QTGUI : public QObject, public GUI
         else{
             group = new QTabWidget();
         }
-        
-		if (fStyle) 
-            group->setStyle(fStyle);
+
 		insert(label, group);
 		fGroupStack.push(group);
 	}
@@ -1373,16 +1368,12 @@ class QTGUI : public QObject, public GUI
 
   public:
 
-//	QTGUI(int& argc, char* argv[], QStyle* style = 0) : fTimer(0), fStyle(style){
-//        //fGroupStack.push(new QMainWindow());
-//    }
-    QTGUI(QStyle* style = 0) : fTimer(0), fStyle(style){
+    QTGUI() : fTimer(0){
         fMainWindow = new QMainWindow();
     }
-    QTGUI(QMainWindow* win, const char* label, QStyle* style = 0){
+    QTGUI(QMainWindow* win, const char* label){
     
         fTimer = 0;
-        fStyle = style;
         
         fMainWindow = win;
         fMainWindow->setWindowTitle(label);
