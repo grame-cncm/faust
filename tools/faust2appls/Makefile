@@ -57,6 +57,7 @@ install:
 	install faust2alsaconsole $(dest)
 	install faust2rpialsaconsole $(dest)
 	install faust2rpinetjackconsole $(dest)
+	install faust2android $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -103,4 +104,5 @@ uninstall:
 	rm -f $(dest)/faust2alsaconsole
 	rm -f $(dest)/faust2rpialsaconsole
 	rm -f $(dest)/faust2rpinetjackconsole
+	rm -f $(dest)/faust2android
 
