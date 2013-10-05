@@ -100,12 +100,12 @@ rm res/values/stringsN.xml
 # COMPILATION
 # *************
 
-sh build.sh #> /dev/null
+sh build.sh > /dev/null
 
 # To be checked on the mac
 android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > /dev/null 
 
-ant release #> /dev/null
+ant release > /dev/null
 
 # Code used to generate the faust2android key:
 # keytool -genkey -v -keystore faust2android.keystore -alias faust2an -keyalg RSA -keysize 2048 -validity 10000
@@ -113,7 +113,7 @@ ant release #> /dev/null
 jarsigner -storepass mephisto -sigalg MD5withRSA -digestalg SHA1 -keystore faust2android.keystore bin/faustApp-release-unsigned.apk faust2an
 
 # Check the alignment of the compressed file
-zipalign -v 4 bin/faustApp-release-unsigned.apk bin/faustApp-release.apk
+zipalign -v 4 bin/faustApp-release-unsigned.apk bin/faustApp-release.apk >/dev/null
 
 cp -r bin/faustApp-release.apk ../$APPNAME.apk
 cd ..
