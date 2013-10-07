@@ -18,33 +18,9 @@
  ************************************************************************/
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
+#include "faust/audio/dsp.h"
 
 #include <math.h>
-
-
-#ifndef FAUSTCLASS
-#define FAUSTCLASS mydsp
-#endif
-
-
-
-class dsp {
- protected:
-	int fSamplingFreq;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
-};
 
 class GUI : public UI {
 	public:
