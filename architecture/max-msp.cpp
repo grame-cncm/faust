@@ -234,6 +234,7 @@ class mspUI : public UI
                 fMultiTable[i] = 0;
             }
             */
+            clear();
         }
 		virtual ~mspUI()
 		{
@@ -303,6 +304,15 @@ class mspUI : public UI
 		}
 		iterator begin()	{ return fUITable.begin(); }
 		iterator end()		{ return fUITable.end(); }
+        
+        void clear() 
+        { 
+            iterator it;
+            for (it = begin(); it != end(); it++) {
+                delete (*it).second;
+            }
+            fUITable.clear(); 
+        }
 
 };
 

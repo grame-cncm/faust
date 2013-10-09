@@ -47,7 +47,7 @@
 #include <vector>
 #include <iostream>
 
-#include "faust/gui/GUI.h"
+#include "faust/gui/UI.h"
 
 //using namespace std;
 
