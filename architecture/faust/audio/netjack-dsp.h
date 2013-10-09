@@ -95,7 +95,7 @@ protected:
             : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
         {}
 
-        bool init(const char* name, dsp* DSP) {
+        virtual bool init(const char* name, dsp* DSP) {
             fDsp = DSP;
             jack_slave_t request = {
                 DSP->getNumInputs(),
@@ -126,7 +126,7 @@ protected:
             return true;
         }
 
-        bool start() {
+        virtual bool start() {
             if (jack_net_slave_activate(fNet)) {
                 printf("cannot activate net");
                 return false;
@@ -134,7 +134,7 @@ protected:
             return true;
         }
 
-        void stop() {
+        virtual void stop() {
             jack_net_slave_deactivate(fNet);
             jack_net_slave_close(fNet);
         }
