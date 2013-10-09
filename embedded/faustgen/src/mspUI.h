@@ -59,9 +59,9 @@ public:
     mspUIObject(const char* label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
     virtual ~mspUIObject() {}
     
-    virtual void SetValue(FAUSTFLOAT f) {*fZone = range(0.0, 1.0, f);}
+    virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0, 1.0, f);}
     virtual void toString(char* buffer) {}
-    virtual string GetName() {return fLabel;}
+    virtual string getName() {return fLabel;}
   
 };
 
@@ -114,7 +114,7 @@ class mspSlider : public mspUIObject {
             snprintf(buffer, 256, "Slider(float): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
         }
         
-        void SetValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
+        void setValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
 };
 
 /*--------------------------------------------------------------------------*/
@@ -133,9 +133,7 @@ class mspUI : public UI
         mspUI() {}
         virtual ~mspUI()
         {
-            for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) {
-                delete (iter->second);
-            }
+            clear();
         }
         
         void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(label, zone);}
@@ -186,7 +184,7 @@ class mspUI : public UI
         bool setValue(string name, FAUSTFLOAT f)
         {
             if (fUITable.count(name)) {
-                fUITable[name]->SetValue(f);
+                fUITable[name]->setValue(f);
                 return true;
             } else {
                 return false;
