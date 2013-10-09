@@ -817,17 +817,6 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     }
         
     create_dsp(true);
-    
-    // NetJack
-    fInput_float = new float*[fDSP->getNumInputs()];
-    for (int i = 0; i < fDSP->getNumInputs(); i++) {
-        fInput_float[i] = new float[sys_getblksize()];
-    }
-    
-    fOutputs_float = new float*[fDSP->getNumOutputs()];
-    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-        fOutputs_float[i] = new float[sys_getblksize()];
-    }
 }
 
 #ifdef NETJACK
@@ -838,6 +827,16 @@ void faustgen::create_netjack()
         jack_slave_t result;
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
         post("create_netjack %x\n", fNetJack);
+          
+        fInput_float = new float*[fDSP->getNumInputs()];
+        for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            fInput_float[i] = new float[sys_getblksize()];
+        }
+        
+        fOutputs_float = new float*[fDSP->getNumOutputs()];
+        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            fOutputs_float[i] = new float[sys_getblksize()];
+        }
     }
 }
 
@@ -846,6 +845,16 @@ void faustgen::destroy_netjack()
     if (fNetJack) {
         jack_net_master_close(fNetJack); 
         fNetJack = 0;
+        
+        for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            delete [] fInput_float[i];
+        }
+        delete [] fInput_float;
+        
+        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            delete [] fOutputs_float[i];
+        }
+        delete [] fOutputs_float;
     }
 }
 #endif
@@ -853,6 +862,8 @@ void faustgen::destroy_netjack()
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen() 
 { 
+    destroy_netjack();
+    
     free_dsp();
      
     if (fEditor) {
@@ -861,8 +872,6 @@ faustgen::~faustgen()
     }
      
     fDSPfactory->remove_instance(this);
-    
-    destroy_netjack();
 }
 
 void faustgen::free_dsp()
