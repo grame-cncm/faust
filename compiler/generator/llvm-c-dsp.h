@@ -34,7 +34,13 @@ extern "C"
 #endif
 
 /* Opaque types */
+	
+/*!
+ \addtogroup llvmc C interface for compiling faust code
+ @{
+ */
 
+	
 typedef struct llvm_dsp_factory {};
 
 typedef struct llvm_dsp {};
@@ -189,5 +195,11 @@ void deleteCDSPInstance(llvm_dsp* dsp);
 #ifdef __cplusplus
 }
 #endif
+
+
+/*!
+ @}
+ */
+
 
 #endif

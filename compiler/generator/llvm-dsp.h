@@ -30,6 +30,13 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 
+
+/*!
+ \addtogroup llvmcpp C++ interface for compiling faust code
+  @{
+ */
+
+
 typedef struct llvm_dsp_factory {};
 
 /**
@@ -182,5 +189,9 @@ llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
  * @param dsp - the DSP instance to be deleted.
 */ 
 void deleteDSPInstance(llvm_dsp* dsp);
+
+/*!
+ @}
+ */
 
 #endif
