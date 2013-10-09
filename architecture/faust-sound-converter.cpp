@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     printf("Produced header = %s\n", out_name);
     
     dst << "#define TABLE_SIZE " << (snd_info.frames + 1) << std::endl;
+    dst << "int soundFileSize() { return " << (snd_info.frames + 1) << "; }" << std::endl;
     dst << "float readSoundFile(int index) { " << std::endl;
     dst << "static float soundFile[TABLE_SIZE] = { " << std::endl;
     
