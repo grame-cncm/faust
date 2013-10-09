@@ -4,7 +4,6 @@
 	is governed by its own copyright and license. Please check individually
 	each section for license and copyright information.
 *************************************************************************/
-
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
@@ -32,7 +31,7 @@
 
  ************************************************************************
  ************************************************************************/
-
+ 
 #ifndef __jack_dsp__
 #define __jack_dsp__
 
@@ -282,13 +281,15 @@ class jackaudio : public audio {
     void default_connections()
     {
         // To avoid feedback at launch time, don't connect hardware inputs
-        /*char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
-         if (physicalOutPorts != NULL) {
-         for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
-         jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInputPorts[i]));
-         }
-         jack_free(physicalOutPorts);
-         }*/
+        /*
+        char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
+        if (physicalOutPorts != NULL) {
+            for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
+            jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInputPorts[i]));
+        }
+            jack_free(physicalOutPorts);
+        }
+        */
         
         char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
         if (physicalInPorts != NULL) {
