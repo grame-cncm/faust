@@ -56,7 +56,7 @@ typedef struct llvm_dsp {};
  * @param draw_path - the place where to put output files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a string
- * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled, has to be 256 characters long
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *

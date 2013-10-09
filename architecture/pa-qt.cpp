@@ -85,8 +85,10 @@ int main(int argc, char *argv[])
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
-
-	GUI* interface 	= new QTGUI(argc, argv);
+    
+    QApplication myApp(argc, argv);
+    
+	QTGUI* interface = new QTGUI();
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
@@ -108,7 +110,11 @@ int main(int argc, char *argv[])
 	oscinterface->run();
 #endif
 	interface->run();
-
+	
+    myApp.setStyleSheet(STYLESHEET);
+    myApp.exec();
+    interface->stop();
+    
 	audio.stop();
 	finterface->saveState(rcfilename);
   	return 0;

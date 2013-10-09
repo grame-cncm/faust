@@ -81,6 +81,7 @@
         self.responderSelected = NO;
         self.assignated = NO;
         self.motionBlocked = NO;
+        self.hideOnGUI = NO;
 	}
     
 	return self;

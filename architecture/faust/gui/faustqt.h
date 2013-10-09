@@ -32,32 +32,7 @@
 #include <vector>
 #include <stack>
 
-#include <QApplication>
-#include <QCheckBox>
-#include <QColormap>
-#include <QCommonStyle>
-#include <QDial>
-#include <QDoubleSpinBox>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QLayout>
-#include <QMouseEvent>
-#include <QObject>
-#include <QPainter>
-#include <QProgressBar>
-#include <QPushButton>
-#include <QRadialGradient>
-#include <QSlider>
-#include <QStyle>
-#include <QStyleOptionSlider>
-#include <QTabWidget>
-#include <QTimer>
-#include <QToolTip>
-#include <QVBoxLayout>
-#include <QWheelEvent>
-#include <QWidget>
 #include <QtGui>
-
 #include "faust/gui/GUI.h"
 
 #ifdef QRCODECTRL
@@ -67,6 +42,8 @@
 #include <qrencode.h>
 #include <QRegExp>
 #endif
+
+#define STYLESHEET "QPushButton {background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #B0B0B0, stop: 1 #404040); border: 2px solid grey; border-radius: 6px; margin-top: 1ex; } QPushButton:hover { border: 2px solid orange; } QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, stop: 1 #B0B0B0); } QGroupBox, QMainWindow { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); border: 2px solid gray; border-radius: 5px; margin-top: 3ex; font-size:10pt; font-weight:bold; color: white; } QGroupBox::title, QMainWindow::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 5px; } QSlider::groove:vertical { background: red; position: absolute; left: 13px; right: 13px; } QSlider::handle:vertical { height: 40px; width: 30px; background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: 0 -5px; /* expand outside the groove */ border-radius: 5px; } QSlider::add-page:vertical { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange); } QSlider::sub-page:vertical { background: grey; }  QSlider::groove:horizontal { background: red; position: absolute; top: 14px; bottom: 14px; }  QSlider::handle:horizontal { width: 40px; background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: -5px 0; border-radius: 5px; } QSlider::sub-page:horizontal { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange); } QSlider::add-page:horizontal { background: grey; }QTabWidget::pane {border-top: 2px solid orange; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); } QTabWidget::tab-bar { left: 5px; }  QTabBar::tab { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #909090, stop: 0.4 #888888, stop: 0.5 #808080, stop: 1.0 #909090); border: 2px solid #808080; border-bottom-color: orange; border-top-left-radius: 4px; border-top-right-radius: 4px; min-width: 8ex; padding: 2px; }  QTabBar::tab:selected, QTabBar::tab:hover { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #D0D0D0, stop: 0.4 #A0A0A0, stop: 0.5 #808080, stop: 1.0 #A0A0A0); } QTabBar::tab:selected { border-color: orange; border-bottom-color: #A0A0A0; } QTabBar::tab:!selected { margin-top: 2px; }"
 
 //----------------------------------
 
@@ -1164,11 +1141,12 @@ class uiNumEntry : public QObject, public uiItem
 class QTGUI : public QObject, public GUI
 {
     Q_OBJECT
-	QApplication            fAppl;
+    
 	QTimer*                 fTimer;
-	QStyle*                 fStyle;
     std::string				gGroupTooltip;
     std::stack<QWidget* > 	fGroupStack;
+    
+    QMainWindow*            fMainWindow;
 
     std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
     std::map<FAUSTFLOAT*, std::string>     fTooltip;       // map widget zone with tooltip strings
@@ -1239,7 +1217,7 @@ class QTGUI : public QObject, public GUI
 
 	void insert(const char* label, QWidget* widget)
 	{
-		if (fStyle) widget->setStyle(fStyle);
+        
 		if (!fGroupStack.empty()) {
 			QWidget* mother = fGroupStack.top();
 			QTabWidget*	tab = dynamic_cast<QTabWidget*>(mother);
@@ -1295,46 +1273,88 @@ class QTGUI : public QObject, public GUI
 
 	void openBox(const char* fulllabel, QLayout* layout)
 	{
-		std::map<std::string, std::string> metadata;
+        std::map<std::string, std::string> metadata;
         std::string label;
         extractMetadata(fulllabel, label, metadata);
   		layout->setMargin(5);
 		QWidget* box;
-
         
-        if (isTabContext()) {
-			box = new QWidget();
-            // set background color
-            QPalette pal = box->palette();
-            pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150) );
-            box->setPalette(pal);
-
-		} else  if (label.size()>0) {
-			QGroupBox* group = new QGroupBox();
-			group->setTitle(label.c_str());
-			box = group;
-		} else {
-			// no label here we use simple widget
-			layout->setMargin(0);
-			box = new QWidget();
-		}
-
-        box->setLayout(layout);
-/*        if (metadata.count("tooltip")) {
-            box->setToolTip(metadata["tooltip"].c_str());
-        }*/
-        if (gGroupTooltip != std::string()) {
-			box->setToolTip(gGroupTooltip.c_str());
-			gGroupTooltip = std::string();
-		}
+        if(fGroupStack.empty())
+        {
+            if (isTabContext()) {
+                box = new QWidget(fMainWindow);
+                // set background color
+                QPalette pal = box->palette();
+                pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150));
+                box->setPalette(pal);
+                
+            } else  if (label.size()>0) {
+                QGroupBox* group = new QGroupBox(fMainWindow);
+                group->setTitle(label.c_str());
+                box = group;
+                
+            } else {
+                // no label here we use simple widget
+                layout->setMargin(0);
+                box = new QWidget(fMainWindow);
+            }
+            
+            fMainWindow->setCentralWidget(box);
+            box->setLayout(layout);
+            /*if (metadata.count("tooltip")) {
+             box->setToolTip(metadata["tooltip"].c_str());
+             }*/
+            if (gGroupTooltip != std::string()) {
+                box->setToolTip(gGroupTooltip.c_str());
+                gGroupTooltip = std::string();
+            }
+            
+        }
+        
+        else{
+            if (isTabContext()) {
+                box = new QWidget();
+                // set background color
+                QPalette pal = box->palette();
+                pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150) );
+                box->setPalette(pal);
+                
+            } else  if (label.size()>0) {
+                QGroupBox* group = new QGroupBox();
+                group->setTitle(label.c_str());
+                box = group;
+                
+            } else {
+                // no label here we use simple widget
+                layout->setMargin(0);
+                box = new QWidget;
+            }
+            
+            box->setLayout(layout);
+            /*        if (metadata.count("tooltip")) {
+             box->setToolTip(metadata["tooltip"].c_str());
+             }*/
+            if (gGroupTooltip != std::string()) {
+                box->setToolTip(gGroupTooltip.c_str());
+                gGroupTooltip = std::string();
+            }
+        }
         insert(label.c_str(), box);
         fGroupStack.push(box);
     }
 
 	void openTab(const char* label)
 	{
-		QTabWidget* group = new QTabWidget();
-		if (fStyle) group->setStyle(fStyle);
+		QTabWidget* group;
+        
+        if(fGroupStack.empty()){
+            group = new QTabWidget(fMainWindow);
+            fMainWindow->setCentralWidget(group);
+        }
+        else{
+            group = new QTabWidget();
+        }
+
 		insert(label, group);
 		fGroupStack.push(group);
 	}
@@ -1348,8 +1368,15 @@ class QTGUI : public QObject, public GUI
 
   public:
 
-	QTGUI(int& argc, char* argv[], QStyle* style = 0) : fAppl(argc, argv), fTimer(0), fStyle(style){
-        //fGroupStack.push(new QMainWindow());
+    QTGUI() : fTimer(0){
+        fMainWindow = new QMainWindow();
+    }
+    QTGUI(QMainWindow* win, const char* label){
+    
+        fTimer = 0;
+        
+        fMainWindow = win;
+        fMainWindow->setWindowTitle(label);
     }
 
 	virtual ~QTGUI() {}
@@ -1425,149 +1452,11 @@ class QTGUI : public QObject, public GUI
      		QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
      		fTimer->start(100);
 		}
-#if 1
-        fAppl.setStyleSheet(
 
-// BUTTONS
-                        "QPushButton {"
-                                    "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                                                                    "stop: 0 #B0B0B0, stop: 1 #404040);"
-                                    "border: 2px solid grey;"
-                                    "border-radius: 6px;"
-                                    "margin-top: 1ex;"
-                                 "}"
-
-                 "QPushButton:hover {"
-                                    "border: 2px solid orange;"
-                                 "}"
-
-                 "QPushButton:pressed {"
-                                    //"border: 1px solid orange;"
-                                    "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                                        "stop: 0 #404040, stop: 1 #B0B0B0);"
-                                 "}"
-// GROUPS
-                       "QGroupBox {"
-                                    "background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                                                                    "stop: 0 #A0A0A0, stop: 1 #202020);"
-                                    "border: 2px solid gray;"
-                                    "border-radius: 5px;"
-                                    "margin-top: 3ex;"
-                                    "font-size:10pt;"
-                                    "font-weight:bold;"
-                                  //"color: dark grey;"
-                                    "color: white;"
-                                 "}"
-
-                "QGroupBox::title {"
-                                    "subcontrol-origin: margin;"
-                                    "subcontrol-position: top center;" /* position at the top center */
-                                    "padding: 0 5px;"
-                                 "}"
-// SLIDERS
-                    // horizontal sliders
-                    "QSlider::groove:vertical {"
-                        "background: red;"
-                        "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                        "left: 13px; right: 13px;"
-                    "}"
-
-                    "QSlider::handle:vertical {"
-                        "height: 40px;"
-                        "width: 30px;"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                          "stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);"
-                        "margin: 0 -5px; /* expand outside the groove */"
-                        "border-radius: 5px;"
-                    "}"
-
-                    "QSlider::add-page:vertical {"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                                                          "stop: 0 yellow, stop : 0.5 orange);"
-                    "}"
-
-                    "QSlider::sub-page:vertical {"
-                        "background: grey;"
-                    "}"
-
-                    // horizontal sliders
-
-                    "QSlider::groove:horizontal {"
-                        "background: red;"
-                        "position: absolute;" /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
-                        "top: 14px; bottom: 14px;"
-                    "}"
-
-                    "QSlider::handle:horizontal {"
-                        "width: 40px;"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,"
-                                                          "stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);"
-                        "margin: -5px 0; /* expand outside the groove */"
-                        "border-radius: 5px;"
-                    "}"
-
-                    "QSlider::sub-page:horizontal {"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                          "stop: 0 yellow, stop : 0.5 orange);"
-                    "}"
-
-                    "QSlider::add-page:horizontal {"
-                        "background: grey;"
-                    "}"
-
-// TABS
-                    //TabWidget and TabBar
-                    "QTabWidget::pane {" /* The tab widget frame */
-                        //"border-top: 2px solid #C2C7CB;"
-                        "border-top: 2px solid orange;"
-                        "background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                        "stop: 0 #A0A0A0, stop: 1 #202020);"
-                    "}"
-
-                    "QTabWidget::tab-bar {"
-                        "left: 5px;" /* move to the right by 5px */
-                    "}"
-
-                    /* Style the tab using the tab sub-control. Note that
-                        it reads QTabBar _not_ QTabWidget */
-                    "QTabBar::tab {"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                    "stop: 0 #909090, stop: 0.4 #888888,"
-                                                    "stop: 0.5 #808080, stop: 1.0 #909090);"
-                        "border: 2px solid #808080;"
-                        //"border-bottom-color: #C2C7CB;" /* same as the pane color */
-                        "border-bottom-color: orange;" /* same as the pane color */
-                        "border-top-left-radius: 4px;"
-                        "border-top-right-radius: 4px;"
-                        "min-width: 8ex;"
-                        "padding: 2px;"
-                    "}"
-
-                    "QTabBar::tab:selected, QTabBar::tab:hover {"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                    "stop: 0 #D0D0D0, stop: 0.4 #A0A0A0,"
-                                                    "stop: 0.5 #808080, stop: 1.0 #A0A0A0);"
-                                                    //"stop: 0.5 #A0A0A0, stop: 1.0 #C0C0C0);"
-                                                    //"stop: 0 #fafafa, stop: 0.4 #f4f4f4,"
-                                                    //"stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);"
-                        //"border-bottom-color: orange;" /* same as the pane color */
-                    "}"
-
-                    "QTabBar::tab:selected {"
-                        "border-color: orange;"
-                        "border-bottom-color: #A0A0A0;" /* same as pane color */
-                    "}"
-
-                    "QTabBar::tab:!selected {"
-                    "    margin-top: 2px;" /* make non-selected tabs look smaller */
-                    "}"
-                            );
-#endif
-		fAppl.exec();
-		stop();
-
+        fMainWindow->show();
+        
 	}
-
+    
 	// ------------------------- Groups -----------------------------------
 
 	virtual void openHorizontalBox(const char* label) { 
@@ -1595,6 +1484,7 @@ class QTGUI : public QObject, public GUI
 	virtual void addButton(const char* label, FAUSTFLOAT* zone)
 	{
 		QAbstractButton* 	w = new QPushButton(label);
+		w->setAttribute(Qt::WA_MacNoClickThrough);
 		uiButton* 			c = new uiButton(this, zone, w);
 
 		insert(label, w);

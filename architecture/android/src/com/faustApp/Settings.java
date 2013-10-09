@@ -1,5 +1,3 @@
-package com.faustApp;
-
 import android.os.Bundle;
 import android.app.ListActivity;
 import android.content.Intent;

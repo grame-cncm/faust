@@ -52,7 +52,18 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 static Module* LoadModule(const std::string filename, LLVMContext* context)
 {
     SMDiagnostic err;
-    return ParseIRFile(filename, err, *context);
+    Module* module = ParseIRFile(filename, err, *context);
+    
+    if (module) {
+        return module;
+    } else {
+     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
+        err.print("ParseIRFile failed :", errs());
+    #else
+        err.Print("ParseIRFile failed :", errs());
+    #endif
+        return 0;
+    }
 }
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
@@ -290,21 +301,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
     }
     
     builder.setTargetOptions(targetOptions);
-    
     TargetMachine* tm = builder.selectTarget();
-    
-    /*
-    fJIT = builder.create(tm);
-    if (!fJIT) {
-        return false;
-    }
-    
-    // Run static constructors.
-    fJIT->runStaticConstructorsDestructors(false);
-    fJIT->DisableLazyCompilation(true);
-    
-    fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
-    */
     
     PassManager pm;
     FunctionPassManager fpm(fResult->fModule);

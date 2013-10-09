@@ -113,6 +113,8 @@ void JAVAScriptCodeContainer::produceInternal()
                         << "return new "<< fKlassName << "()"
                         << "; }";
 
+    tab(n, *fOut); *fOut << "delete" << fKlassName << "= function(dsp) {}";
+    
     tab(n, *fOut);
 }
 

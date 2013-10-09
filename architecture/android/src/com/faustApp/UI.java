@@ -1,5 +1,3 @@
-package com.faustApp;
-
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;

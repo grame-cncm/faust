@@ -194,7 +194,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error, 4);
+    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error, LLVM_OPTIMIZATION);
     
     if (factory) {
         return factory;
@@ -771,6 +771,9 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     m_siginlets = 0;
     m_sigoutlets = 0;
     
+#ifdef NETJACK
+    fNetJack = 0;
+#endif
     fDSP = 0;
     fDSPfactory = 0;
     fEditor = 0;
@@ -814,7 +817,38 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     }
         
     create_dsp(true);
+    
+    // NetJack
+    fInput_float = new float*[fDSP->getNumInputs()];
+    for (int i = 0; i < fDSP->getNumInputs(); i++) {
+        fInput_float[i] = new float[sys_getblksize()];
+    }
+    
+    fOutputs_float = new float*[fDSP->getNumOutputs()];
+    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+        fOutputs_float[i] = new float[sys_getblksize()];
+    }
 }
+
+#ifdef NETJACK
+void faustgen::create_netjack()
+{
+    if (!fNetJack) {
+        jack_master_t request = { fDSP->getNumInputs(), fDSP->getNumOutputs(), -1, -1, sys_getblksize(), sys_getsr(), "faustgen_master" };
+        jack_slave_t result;
+        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
+        post("create_netjack %x\n", fNetJack);
+    }
+}
+
+void faustgen::destroy_netjack()
+{
+    if (fNetJack) {
+        jack_net_master_close(fNetJack); 
+        fNetJack = 0;
+    }
+}
+#endif
 
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen() 
@@ -827,6 +861,8 @@ faustgen::~faustgen()
     }
      
     fDSPfactory->remove_instance(this);
+    
+    destroy_netjack();
 }
 
 void faustgen::free_dsp()
@@ -867,8 +903,8 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
-        fDSPUI.SetValue(name, off);
-        fDSPUI.SetValue(name, on);
+        fDSPUI.setValue(name, off);
+        fDSPUI.setValue(name, on);
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
@@ -934,12 +970,12 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                     break;
             }
             
-            res = fDSPUI.SetValue(param_name, value); // Doesn't have any effect if name is unknown
+            res = fDSPUI.setValue(param_name, value); // Doesn't have any effect if name is unknown
         }
     // Standard parameter
     } else {
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = fDSPUI.SetValue(name, value); // Doesn't have any effect if name is unknown
+        res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
     }
     
     if (!res) {
@@ -951,7 +987,13 @@ void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv)
 { 
     fDSPfactory->compileoptions(inlet, s, argc, argv);
 }
- 
+
+void faustgen::netjack(long inlet, t_symbol* s, long argc, t_atom* argv) 
+{ 
+    destroy_netjack();
+    create_netjack();
+}
+
 void faustgen::read(long inlet, t_symbol* s)
 {
     fDSPfactory->read(inlet, s);
@@ -1062,6 +1104,32 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         if (fDSP) {
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
         }
+    
+    #ifdef NETJACK
+        if (fNetJack) {
+            post("numins %d numouts %d vs %d\n", numins, numouts, vs);
+            
+            for (int i = 0; i < numins; i++) {
+                for (int j = 0; j < vs; j++) {
+                    fInput_float[i][j] = float(inputs[i][j]);
+                }
+            }
+            int res;
+            if ((res = jack_net_master_send(fNetJack, numins, (float**)fInput_float, 0, NULL)) < 0) {
+                post("jack_net_master_send failure %d\n", res);
+            }  
+            
+            if ((res = jack_net_master_recv(fNetJack, numouts, (float**)fOutputs_float, 0, NULL)) < 0) {
+                post("jack_net_master_recv failure %d\n", res);
+            }
+            for (int i = 0; i < numouts; i++) {
+                for (int j = 0; j < vs; j++) {
+                    outputs[i][j] = t_sample(fOutputs_float[i][j]);
+                }
+            }
+        }
+    #endif
+      
         fDSPfactory->unlock();
     } else {
         // Write null buffers to outs
@@ -1238,6 +1306,10 @@ int main(void)
     
     // Process the "compileoptions" message, to add optional compilation possibilities
     REGISTER_METHOD_GIMME(faustgen, compileoptions);
+    
+#ifdef NETJACK    
+    REGISTER_METHOD_GIMME(faustgen, netjack);
+#endif
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

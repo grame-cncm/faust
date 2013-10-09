@@ -94,7 +94,9 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	QTGUI* interface = new QTGUI(argc, argv);
+    QApplication myApp(argc, argv);
+    
+	QTGUI* interface = new QTGUI();
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
@@ -127,6 +129,10 @@ int main(int argc, char *argv[])
 #endif
 	interface->run();
 	
+    myApp.setStyleSheet(STYLESHEET);
+    myApp.exec();
+    interface->stop();
+    
 	audio.stop();
 	finterface->saveState(rcfilename);
   	return 0;

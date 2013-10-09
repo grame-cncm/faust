@@ -29,6 +29,7 @@
 
 #define FAUSTFLOAT double
 #define MSP64 1
+#define NETJACK 1
 
 /* link with  */
 #include <iostream>
@@ -40,6 +41,9 @@
 #include <map> 
 
 #include "faust/llvm-dsp.h"
+#ifdef NETJACK
+#include "jack/net.h"
+#endif
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -65,6 +69,8 @@
     #define FAUST_LIBRARY_PATH "\\faustgen-resources\\"
     #define FAUST_DRAW_PATH "\\faustgen-resources\\"
 #endif
+
+#define LLVM_OPTIMIZATION 3
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
 
@@ -211,6 +217,12 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
+        
+    #ifdef NETJACK
+        jack_net_master_t* fNetJack;
+        float** fInput_float;
+        float** fOutputs_float;
+    #endif
 
         mspUI fDSPUI;               // DSP UI
         
@@ -287,6 +299,13 @@ class faustgen : public MspCpp5<faustgen> {
           
         // Process the signal data with the Faust module
         void perform(int vs, t_sample ** inputs, long numins, t_sample ** outputs, long numouts);
+    
+    #ifdef NETJACK
+        void create_netjack();
+        void destroy_netjack();
+        void netjack(long inlet, t_symbol* s, long argc, t_atom* argv);
+    #endif
+        
 };
 
 #endif

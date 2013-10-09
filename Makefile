@@ -81,6 +81,9 @@ install :
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-c-dsp.h  $(prefix)/include/faust/
+	chmod gou+r compiler/scheduler.ll
+	cp compiler/scheduler.ll  $(prefix)/lib/faust
+	
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/
 	cp architecture/*.cpp $(prefix)/lib/faust/
@@ -97,6 +100,7 @@ install :
 	cp -r architecture/AU $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/AUSynth/
 	cp -r architecture/AUSynth $(prefix)/lib/faust/
+	cp -r architecture/android $(prefix)/lib/faust/
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/

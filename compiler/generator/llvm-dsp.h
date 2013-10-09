@@ -50,7 +50,7 @@ typedef struct llvm_dsp_factory {};
  * @param draw_path - the place where to put output files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a string
- * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled, has to be 256 characters long
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
@@ -60,11 +60,6 @@ typedef struct llvm_dsp_factory {};
 llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
-                        char* error_msg, int opt_level = 3);
-                        
-llvm_dsp_factory* createDSPFactory1(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
                         char* error_msg, int opt_level = 3);
 
 /**
