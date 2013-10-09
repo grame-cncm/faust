@@ -773,6 +773,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     
 #ifdef NETJACK
     fNetJack = 0;
+    fInputs_float = 0;
+    fOutputs_float = 0;
 #endif
     fDSP = 0;
     fDSPfactory = 0;
@@ -823,19 +825,18 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 void faustgen::create_netjack()
 {
     if (!fNetJack) {
-        jack_master_t request = { fDSP->getNumInputs(), fDSP->getNumOutputs(), -1, -1, sys_getblksize(), sys_getsr(), "faustgen_master" };
+        jack_master_t request = { fDSP->getNumInputs(), fDSP->getNumOutputs(), -1, -1, sys_getblksize(), sys_getsr(), "faustgen_master", -1 };
         jack_slave_t result;
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
-        post("create_netjack %x\n", fNetJack);
-          
-        fInput_float = new float*[fDSP->getNumInputs()];
-        for (int i = 0; i < fDSP->getNumInputs(); i++) {
-            fInput_float[i] = new float[sys_getblksize()];
-        }
-        
-        fOutputs_float = new float*[fDSP->getNumOutputs()];
-        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-            fOutputs_float[i] = new float[sys_getblksize()];
+        if (fNetJack) {
+            fInputs_float = new float*[fDSP->getNumInputs()];
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                fInputs_float[i] = new float[sys_getblksize()];
+            }
+            fOutputs_float = new float*[fDSP->getNumOutputs()];
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                fOutputs_float[i] = new float[sys_getblksize()];
+            }
         }
     }
 }
@@ -847,9 +848,9 @@ void faustgen::destroy_netjack()
         fNetJack = 0;
         
         for (int i = 0; i < fDSP->getNumInputs(); i++) {
-            delete [] fInput_float[i];
+            delete [] fInputs_float[i];
         }
-        delete [] fInput_float;
+        delete [] fInputs_float;
         
         for (int i = 0; i < fDSP->getNumOutputs(); i++) {
             delete [] fOutputs_float[i];
@@ -1120,11 +1121,11 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             
             for (int i = 0; i < numins; i++) {
                 for (int j = 0; j < vs; j++) {
-                    fInput_float[i][j] = float(inputs[i][j]);
+                    fInputs_float[i][j] = float(inputs[i][j]);
                 }
             }
             int res;
-            if ((res = jack_net_master_send(fNetJack, numins, (float**)fInput_float, 0, NULL)) < 0) {
+            if ((res = jack_net_master_send(fNetJack, numins, (float**)fInputs_float, 0, NULL)) < 0) {
                 post("jack_net_master_send failure %d\n", res);
             }  
             

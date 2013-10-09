@@ -220,7 +220,7 @@ class faustgen : public MspCpp5<faustgen> {
         
     #ifdef NETJACK
         jack_net_master_t* fNetJack;
-        float** fInput_float;
+        float** fInputs_float;
         float** fOutputs_float;
     #endif
 
