@@ -33,6 +33,9 @@
 #include <stack>
 
 #include <QtGui>
+#include <QtWidgets>
+#include <QApplication>
+
 #include "faust/gui/GUI.h"
 
 #ifdef QRCODECTRL
