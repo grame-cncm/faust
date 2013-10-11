@@ -295,6 +295,7 @@ private:
   vstUI*	dspUI;
 
   // For synths:
+  bool newEvent;
   bool noteIsOn;
   VstInt32 currentNote;
   VstInt32 currentVelocity;
@@ -302,7 +303,7 @@ private:
 
   void initProcess ();
   void noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta);
-  void noteOff (VstInt32 note);
+  void noteOff (VstInt32 note, VstInt32 delta);
   void fillProgram (VstInt32 channel, VstInt32 prg, MidiProgramName* mpn);
 
   char programName[kVstMaxProgNameLen + 1];
@@ -832,6 +833,7 @@ void Faust::setSampleRate(float sampleRate)
 //-----------------------------------------------------------------------------
 void Faust::initProcess ()
 {
+  newEvent = false;
   noteIsOn = false;
   currentDelta = currentNote = currentDelta = 0;
   dsp->instanceInit((int)getSampleRate());
@@ -850,7 +852,7 @@ void Faust::processReplacing(float **inputs, float **outputs, VstInt32 sampleFra
 	else { // We're a synth . . . 
 		int i, nouts = dsp->getNumOutputs();
 		if (noteIsOn) { // we're synthesizing . . .
-			if (currentDelta > 0) {  // but waiting out a timestamp delay . . .
+			if (newEvent) {  // but waiting out a timestamp delay . . .
 				if (currentDelta >= sampleFrames) { // start time is after this chunk
 					currentDelta -= sampleFrames;
 					dsp->compute(sampleFrames, inputs, outputs);
@@ -868,19 +870,35 @@ void Faust::processReplacing(float **inputs, float **outputs, VstInt32 sampleFra
 					}
 					dsp->compute(currentDelta, inputs, outputs); // segment before the note starts
 					sampleFrames -= currentDelta;
-					// note is about to start
-					float freq = 440.0f * powf(2.0f,(((float)currentNote)-69.0f)/12.0f);
-					float gain = currentVelocity/127.0f;
-					dspUI->setFreq(freq); // Hz - requires Faust control-signal "freq"
-					dspUI->setGain(gain); // 0-1 - requires Faust control-signal "gain"
-					dspUI->setGate(1.0f); // 0 or 1 - requires Faust button-signal "gate"
+					if (currentVelocity > 0) { // Note on
+						// note is about to start
+						float freq = 440.0f * powf(2.0f,(((float)currentNote)-69.0f)/12.0f);
+						float gain = currentVelocity/127.0f;
+						dspUI->setFreq(freq); // Hz - requires Faust control-signal "freq"
+						dspUI->setGain(gain); // 0-1 - requires Faust control-signal "gain"
+						dspUI->setGate(1.0f); // 0 or 1 - requires Faust button-signal "gate"
+					}
+					else { // Note off
+						dspUI->setGate(0);
+					}
 					dsp->compute(sampleFrames, inputs, outptr); // segment after the note starts
 					free(outptr);
-					currentDelta = 0;
+					newEvent = false;
 				}
 			} 
 			else {
 				dsp->compute(sampleFrames, inputs, outputs);
+				bool silent = true;
+				for (int i = 0; i < dsp->getNumOutputs(); ++i) {
+					for (int frame = 0; frame < sampleFrames; ++frame) {
+						if (fabs(outputs[i][frame]) > 1e-6) {
+							silent = false;
+						}
+					}
+				}
+				if (silent) {
+					noteIsOn = false;
+				}
 			}
 		}
 		else { // silence until NoteOn . . .
@@ -939,18 +957,18 @@ VstInt32 Faust::processEvents (VstEvents* ev)
 	if (velocity>0) {
 	  noteOn(note, velocity, event->deltaFrames);
 	} else {
-	  noteOff(note);
+	  noteOff(note, event->deltaFrames);
 	}
       } else if (status == 0x80) { // note off
 		  VstInt32 note = midiData[1] & 0x7f;
-	noteOff(note);
+	noteOff(note, event->deltaFrames);
 	//      } else if (status == 0xA0) { // poly aftertouch
       } else if (status == 0xB0) { // control change
 	/* DO SOMETHING WITH THE CONTROLLER DATA */
 	fprintf(stderr,"=== Faust vsti: CONTROL CHANGE (status 0xB0)!\n");
 	if (midiData[1] == 0x7e || midiData[1] == 0x7b) { // all notes off
 	  fprintf(stderr,"=== Faust vsti: ALL NOTES OFF!\n");
-	  noteOff (0); // why is all-notes-off inside a "control change" event?
+	  noteOff (0, event->deltaFrames); // why is all-notes-off inside a "control change" event?
 	}
 	//      } else if (status == 0xC0) { // program change
 	//      } else if (status == 0xD0) { // mono aftertouch
@@ -978,18 +996,21 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
   currentNote = note;
   currentVelocity = velocity;
   currentDelta = delta;
+  newEvent = true;
   noteIsOn = true;
 }
 
 //-----------------------------------------------------------------------------
-void Faust::noteOff(VstInt32 note)
+void Faust::noteOff(VstInt32 note, VstInt32 delta)
 {
   if (noteIsOn) {
 #ifdef DEBUG
     fprintf(stderr,"=== Faust vsti: noteOff\n");
 #endif
 	if (note == currentNote) {
-		dspUI->setGate(0);
+	  currentVelocity = 0;
+	  currentDelta = delta;
+	  newEvent = true;
 	}
   } else {
 #ifdef DEBUG

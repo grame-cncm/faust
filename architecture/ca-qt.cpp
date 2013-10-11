@@ -71,9 +71,9 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp	DSP;
+mydsp DSP;
 
-std::list<GUI*>               GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
 
 /******************************************************************************
 *******************************************************************************
@@ -95,18 +95,20 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
 
-	QTGUI* interface = new QTGUI(argc, argv);
+	QApplication myApp(argc, argv);
+    
+    QTGUI* interface = new QTGUI();
 	DSP.buildUserInterface(interface);
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(name, argc, argv);
+	httpdUI*	httpdinterface = new httpdUI(name, argc, argv);
 	DSP.buildUserInterface(httpdinterface);
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(name, argc, argv);
+	GUI*	oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
@@ -127,6 +129,10 @@ int main(int argc, char *argv[])
 #endif
 	interface->run();
 
+    myApp.setStyleSheet(STYLESHEET);
+    myApp.exec();
+    interface->stop();
+    
 	audio.stop();
 	finterface->saveState(rcfilename);
   	return 0;

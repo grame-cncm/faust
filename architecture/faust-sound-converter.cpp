@@ -15,13 +15,15 @@ using namespace std;
 
 #define BUFFER_SIZE 128
 
+// g++ -O3 faust-sound-converter.cpp -lsndfile -o faust-sound-converter
+
 int main(int argc, char *argv[])
 {
 	SNDFILE* soundfile;
 	SF_INFO	snd_info;
     
     if (argc < 2) {
-        printf("faust_sound_converter <soundfile> \n", argv[1]);
+        printf("faust-sound-converter <soundfile> \n");
         exit(0);
     }
 
@@ -44,13 +46,14 @@ int main(int argc, char *argv[])
     printf("Produced header = %s\n", out_name);
     
     dst << "#define TABLE_SIZE " << (snd_info.frames + 1) << std::endl;
+    dst << "int soundFileSize() { return " << (snd_info.frames + 1) << "; }" << std::endl;
     dst << "float readSoundFile(int index) { " << std::endl;
     dst << "static float soundFile[TABLE_SIZE] = { " << std::endl;
     
     int nbf;
     do {
         nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
-        for (int i = 0; i < BUFFER_SIZE; i++) {
+        for (int i = 0; i < nbf; i++) {
             dst << buffer[i] << ", ";
         }
         dst << std::endl;

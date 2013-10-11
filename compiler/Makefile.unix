@@ -126,7 +126,7 @@ draw/sigToGraph.o: parallelize/loop.hh parallelize/graphSorting.hh signals/sigvi
 draw/sigToGraph.o: draw/sigToGraph.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
-errors/timing.o: errors/timing.hh
+errors/timing.o: tlib/compatibility.hh errors/timing.hh
 evaluate/environment.o: evaluate/environment.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 evaluate/environment.o: tlib/list.hh tlib/shlysis.hh errors/errormsg.hh boxes/boxes.hh signals/signals.hh
 evaluate/environment.o: signals/binop.hh boxes/ppbox.hh utils/names.hh propagate/propagate.hh
@@ -317,17 +317,18 @@ parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib
 parallelize/graphSorting.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 parallelize/loop.o: parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 parallelize/loop.o: tlib/shlysis.hh
-parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh
-parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser.hpp
+parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh parser/sourcefetcher.hh
+parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser.hpp tlib/compatibility.hh
 parser/faustparser.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh
 parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 parser/faustparser.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
 parser/faustparser.o: parallelize/graphSorting.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
 parser/faustparser.o: documentator/lateq.hh boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh
 parser/faustparser.o: documentator/doc.hh evaluate/eval.hh evaluate/environment.hh boxes/ppbox.hh
+parser/sourcefetcher.o: tlib/compatibility.hh parser/sourcefetcher.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
-parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/enrobage.hh
-parser/sourcereader.o: boxes/ppbox.hh
+parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
+parser/sourcereader.o: parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 patternmatcher/patternmatcher.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
 patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
@@ -375,6 +376,7 @@ signals/sigvisitor.o: tlib/smartpointer.hh signals/interval.hh generator/klass.h
 signals/sigvisitor.o: parallelize/loop.hh parallelize/graphSorting.hh documentator/lateq.hh
 signals/subsignals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/subsignals.o: tlib/shlysis.hh signals/binop.hh tlib/property.hh
+tlib/compatibility.o: tlib/compatibility.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh
 tlib/node.o: tlib/node.hh tlib/symbol.hh
 tlib/occurrences.o: tlib/occurrences.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh

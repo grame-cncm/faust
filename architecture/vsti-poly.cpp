@@ -676,38 +676,63 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				m_currentNotes.pop_front();
 				currentVelocity = m_currentVelocities.front();
 				m_currentVelocities.pop_front();
-				// Reserve a free voice for the played 
-				int currentVoice;
-				if (m_freeVoices.size() > 0) {
-					currentVoice = m_freeVoices.front();
-					m_freeVoices.pop_front();
-					struct voice_node *n = new voice_node;
-					n->note = currentNote;
-					n->voice = currentVoice;
-					m_playingVoices.push_back(n);
+				if (currentVelocity > 0) { // Note on
+					// Reserve a free voice for the played 
+					int currentVoice;
+					if (m_freeVoices.size() > 0) {
+						currentVoice = m_freeVoices.front();
+						m_freeVoices.pop_front();
+						struct voice_node *n = new voice_node;
+						n->note = currentNote;
+						n->voice = currentVoice;
+						m_playingVoices.push_back(n);
+					}
+					else {
+						voice_node *front = m_playingVoices.front();
+						currentVoice = front->voice;
+						float freq = midiToFreq(front->note);
+						m_voices[currentVoice]->setPrevFreq(freq);
+						front->note = currentNote;
+						m_playingVoices.pop_front();
+						m_playingVoices.push_back(front);
+					}
+					float** outptr = (float **)malloc(nouts * sizeof(float*));
+					// Before the note starts
+					for (i = 0; i < nouts; i++) {
+						outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
+					}
+					compute(inputs, outptr, currentDelta - previousDelta);
+					free(outptr);
+					// Note start
+					float freq = midiToFreq(currentNote);
+					m_voices[currentVoice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
+					float gain = currentVelocity/127.0f;
+					m_voices[currentVoice]->setGain(gain); // 0-1 - requires Faust control-signal "gain"
+					m_voices[currentVoice]->setGate(1.0f); // 0 or 1 - requires Faust control-signal "gate"
 				}
-				else {
-					voice_node *front = m_playingVoices.front();
-					currentVoice = front->voice;
-					float freq = midiToFreq(front->note);
-					m_voices[currentVoice]->setPrevFreq(freq);
-					front->note = currentNote;
-					m_playingVoices.pop_front();
-					m_playingVoices.push_back(front);
+				else { // Note off
+					// Find the voice to be turned off
+					int currentVoice;
+					std::list<voice_node*>::iterator voice_iter = m_playingVoices.begin();
+					for (; voice_iter != m_playingVoices.end(); voice_iter++) {
+						if (currentNote == (*voice_iter)->note) {
+							currentVoice = (*voice_iter)->voice;
+							TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", currentNote, currentVoice) );
+							if (std::find(m_releasedVoices.begin(), m_releasedVoices.end(), currentVoice) == m_releasedVoices.end()) {
+								m_releasedVoices.push_back(currentVoice);
+							}
+						}
+					}
+					float** outptr = (float **)malloc(nouts * sizeof(float*));
+					// Before the note ends
+					for (i = 0; i < nouts; i++) {
+						outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
+					}
+					compute(inputs, outptr, currentDelta - previousDelta);
+					free(outptr);
+					// Note end
+					m_voices[currentVoice]->setGate(0);
 				}
-				float** outptr = (float **)malloc(nouts * sizeof(float*));
-				// Before the note starts
-				for (i = 0; i < nouts; i++) {
-					outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
-				}
-				compute(inputs, outptr, currentDelta - previousDelta);
-				free(outptr);
-				// Note start
-				float freq = midiToFreq(currentNote);
-				m_voices[currentVoice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
-				float gain = currentVelocity/127.0f;
-				m_voices[currentVoice]->setGain(gain); // 0-1 - requires Faust control-signal "gain"
-				m_voices[currentVoice]->setGate(1.0f); // 0 or 1 - requires Faust control-signal "gate"
 				previousDelta = currentDelta;
 			}
 		}
@@ -841,11 +866,11 @@ VstInt32 Faust::processEvents (VstEvents* ev)
 				noteOn(note, velocity, event->deltaFrames);
 			} 
 			else {
-				noteOff(note);
+				noteOff(note, event->deltaFrames);
 			}
 		} 
 		else if (status == 0x80) { // note off
-			noteOff(note);
+			noteOff(note, event->deltaFrames);
 			//      } else if (status == 0xA0) { // poly aftertouch
 		} else if (status == 0xB0) { // control change
 			/* DO SOMETHING WITH THE CONTROLLER DATA */
@@ -899,23 +924,12 @@ void Faust::noteOn (VstInt32 note, VstInt32 velocity, VstInt32 delta)
 } // end of noteOn
 
 //-----------------------------------------------------------------------------
-void Faust::noteOff (VstInt32 note)
+void Faust::noteOff (VstInt32 note, VstInt32 delta)
 {
 	TRACE( fprintf(stderr,"=== Faust vsti: noteOff\n") );
-	std::list<voice_node*>::iterator voice_iter = m_playingVoices.begin();
-	for (; voice_iter != m_playingVoices.end(); voice_iter++) {
-		if (note == (*voice_iter)->note) {
-			int voice = (*voice_iter)->voice;
-			TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", note, voice) );
-			m_dspUI->setGate(0);
-			m_voices[voice]->setGate(0);
-			if (std::find(m_releasedVoices.begin(), m_releasedVoices.end(), voice) == m_releasedVoices.end()) {
-				m_releasedVoices.push_back(voice);
-			}
-		}
-	}
-
-
+	m_currentNotes.push_back(note);
+	m_currentVelocities.push_back(0);
+	m_currentDeltas.push_back(delta);
 } // end of nToteOff
 
 void Faust::allNotesOff( void )

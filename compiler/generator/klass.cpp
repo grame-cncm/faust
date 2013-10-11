@@ -51,6 +51,7 @@
 #include "recursivness.hh"
 
 
+extern int  gFloatSize;
 extern bool gVectorSwitch;
 extern bool gDeepFirstSwitch;
 extern bool gOpenMPSwitch;
@@ -222,7 +223,7 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "#include <cmath>" << endl;
         fout << "template <int N> inline float faustpower(float x)          { return powf(x,N); } " << endl;
         fout << "template <int N> inline double faustpower(double x)        { return pow(x,N); }"  << endl;
-        fout << "template <int N> inline long double faustpower(long double x) 	{ return powl(x,N); }"  << endl;
+        if (gFloatSize == 3) fout << "template <int N> inline long double faustpower(long double x) 	{ return powl(x,N); }"  << endl;
         fout << "template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;

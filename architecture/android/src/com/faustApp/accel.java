@@ -1,5 +1,3 @@
-package com.faustApp;
-
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
