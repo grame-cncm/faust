@@ -30,6 +30,103 @@
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 
+netjack_llvm_dsp::netjack_llvm_dsp( llvm_dsp* dsp):fDSP(dsp)
+{
+    fDSP = dsp;
+    jack_master_t request = { fDSP->getNumInputs() + 1, fDSP->getNumOutputs() + 1, -1, -1, sys_getblksize(), sys_getsr(), "faustgen_master", -1 };
+    jack_slave_t result;
+    fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
+    if (fNetJack) {
+        fInputs_float = new float*[fDSP->getNumInputs() + 1];
+        for (int i = 0; i < fDSP->getNumInputs() + 1; i++) {
+            fInputs_float[i] = new float[sys_getblksize()];
+        }
+        fOutputs_float = new float*[fDSP->getNumOutputs() + 1];
+        for (int i = 0; i < fDSP->getNumOutputs() + 1; i++) {
+            fOutputs_float[i] = new float[sys_getblksize()];
+        }
+    }
+}
+        
+netjack_llvm_dsp::~netjack_llvm_dsp() 
+{ 
+   if (fNetJack) {
+        jack_net_master_close(fNetJack); 
+        fNetJack = 0;
+        
+        for (int i = 0; i < fDSP->getNumInputs() + 1; i++) {
+            delete [] fInputs_float[i];
+        }
+        delete [] fInputs_float;
+        
+        for (int i = 0; i < fDSP->getNumOutputs() + 1; i++) {
+            delete [] fOutputs_float[i];
+        }
+        delete [] fOutputs_float;
+    }
+
+    delete fDSP; 
+}
+        
+void netjack_llvm_dsp::buildUserInterface(UI* ui) 
+{
+    fDSP->buildUserInterface(&fDSPUI);
+}
+    
+void netjack_llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
+    if (fNetJack) {
+        
+        // Encode control values in audio control port
+        if (fDSPUI.itemsCount() > count) {
+            post("Error: more control values than vs : %d vs = %d\n", fDSPUI.itemsCount(), count);
+        } else {
+            int control_index = 0;
+            for (mspUI::iterator it = fDSPUI.begin(); it != fDSPUI.end(); ++it) {
+                // In last audio port.
+                fInputs_float[fDSP->getNumInputs()][control_index++] = it->second->getValue();
+            };
+        }
+        
+        // Encode audio data in float
+        for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            for (int j = 0; j < count; j++) {
+                fInputs_float[i][j] = float(input[i][j]);
+            }
+        }
+        
+        int res;
+        if ((res = jack_net_master_send(fNetJack, fDSP->getNumInputs(), (float**)fInputs_float, 0, NULL)) < 0) {
+            post("jack_net_master_send failure %d\n", res);
+        }  
+        
+        if ((res = jack_net_master_recv(fNetJack, fDSP->getNumOutputs(), (float**)fOutputs_float, 0, NULL)) < 0) {
+            post("jack_net_master_recv failure %d\n", res);
+        }
+        
+        // TODO
+        /*
+        // Decode control values in audio control port
+        for (mspUI::iterator it = fDSPUI.begin(); it != fDSPUI.end(); ++it) {
+            it->second->toString(param);
+            post(param);
+            
+             // In last audio port...
+            for (int j = 0; j < vs; j++) {
+                it->second->setValue(fOutputs_float[fDSP->getNumOutputs()][j]);
+            }
+        };
+        */
+        
+        // Decode audio data from float
+        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            for (int j = 0; j < count; j++) {
+                output[i][j] = t_sample(fOutputs_float[i][j]);
+            }
+        }
+    }
+}        
+
 //===================
 // Faust DSP Factory
 //===================
@@ -771,11 +868,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     m_siginlets = 0;
     m_sigoutlets = 0;
     
-#ifdef NETJACK
-    fNetJack = 0;
-    fInputs_float = 0;
-    fOutputs_float = 0;
-#endif
+
     fDSP = 0;
     fDSPfactory = 0;
     fEditor = 0;
@@ -824,39 +917,12 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 #ifdef NETJACK
 void faustgen::create_netjack()
 {
-    if (!fNetJack) {
-        jack_master_t request = { fDSP->getNumInputs(), fDSP->getNumOutputs(), -1, -1, sys_getblksize(), sys_getsr(), "faustgen_master", -1 };
-        jack_slave_t result;
-        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
-        if (fNetJack) {
-            fInputs_float = new float*[fDSP->getNumInputs()];
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fInputs_float[i] = new float[sys_getblksize()];
-            }
-            fOutputs_float = new float*[fDSP->getNumOutputs()];
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fOutputs_float[i] = new float[sys_getblksize()];
-            }
-        }
-    }
+    
 }
 
 void faustgen::destroy_netjack()
 {
-    if (fNetJack) {
-        jack_net_master_close(fNetJack); 
-        fNetJack = 0;
-        
-        for (int i = 0; i < fDSP->getNumInputs(); i++) {
-            delete [] fInputs_float[i];
-        }
-        delete [] fInputs_float;
-        
-        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-            delete [] fOutputs_float[i];
-        }
-        delete [] fOutputs_float;
-    }
+    
 }
 #endif
 
@@ -1115,31 +1181,6 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
         }
     
-    #ifdef NETJACK
-        if (fNetJack) {
-            post("numins %d numouts %d vs %d\n", numins, numouts, vs);
-            
-            for (int i = 0; i < numins; i++) {
-                for (int j = 0; j < vs; j++) {
-                    fInputs_float[i][j] = float(inputs[i][j]);
-                }
-            }
-            int res;
-            if ((res = jack_net_master_send(fNetJack, numins, (float**)fInputs_float, 0, NULL)) < 0) {
-                post("jack_net_master_send failure %d\n", res);
-            }  
-            
-            if ((res = jack_net_master_recv(fNetJack, numouts, (float**)fOutputs_float, 0, NULL)) < 0) {
-                post("jack_net_master_recv failure %d\n", res);
-            }
-            for (int i = 0; i < numouts; i++) {
-                for (int j = 0; j < vs; j++) {
-                    outputs[i][j] = t_sample(fOutputs_float[i][j]);
-                }
-            }
-        }
-    #endif
-      
         fDSPfactory->unlock();
     } else {
         // Write null buffers to outs

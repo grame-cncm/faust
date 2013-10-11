@@ -60,6 +60,7 @@ public:
     virtual ~mspUIObject() {}
     
     virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0, 1.0, f);}
+    virtual FAUSTFLOAT getValue() { return *fZone; }
     virtual void toString(char* buffer) {}
     virtual string getName() {return fLabel;}
   
@@ -190,6 +191,7 @@ class mspUI : public UI
                 return false;
             }
         }
+          
         iterator begin()	{ return fUITable.begin(); }
         iterator end()		{ return fUITable.end(); }
         
