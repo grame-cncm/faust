@@ -234,13 +234,10 @@ class mspUI : public UI
                 fMultiTable[i] = 0;
             }
             */
-            clear();
         }
 		virtual ~mspUI()
 		{
-			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) {
-                delete (iter->second);
-            }
+			clear();
    		}
         
         void openTabBox(const char* label) {}

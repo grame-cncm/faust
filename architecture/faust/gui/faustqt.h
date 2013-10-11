@@ -531,7 +531,7 @@ class linBargraph : public AbstractDisplay
                 painter->fillRect(0,(1-v)*h,w, v*h, fBrush);
             } else {
                 // draw horizontal rectangle
-                painter->fillRect(0, 0, h, v*w, fBrush);
+                painter->fillRect(0, 0, v*w, h, fBrush);
             }
 
         }
