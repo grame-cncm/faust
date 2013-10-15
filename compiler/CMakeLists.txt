@@ -12,10 +12,12 @@ exec_program(llvm-config ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
 exec_program(llvm-config ARGS --version OUTPUT_VARIABLE LLVM_VERSION)
 exec_program(llvm-config ARGS --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS)
 
-if (${LLVM_VERSION} STREQUAL 3.0)
-    set(LLVM_VERSION LLVM_30)
-elseif(${LLVM_VERSION} STREQUAL 2.9)
+if(${LLVM_VERSION} VERSION_EQUAL 3.3)
+  set(LLVM_VERSION LLVM_33)
+elseif(${LLVM_VERSION} VERSION_LESS 3.0)
     set(LLVM_VERSION LLVM_29)
+else()
+    set(LLVM_VERSION LLVM_30)
 endif()
 
 include_directories(${LLVM_DIR})
@@ -25,7 +27,7 @@ if (${CMAKE_COMPILER_IS_GNUCXX})
 endif()
 
 # STATIC LIBFAUST
-add_library(libfaust-static STATIC libmain.cpp ${SUB_SOURCES}  ${SUB_SUB_SOURCES} ${LOKI_SOURCES})
+add_library(libfaust-static STATIC libmain.cpp ${SUB_SOURCES}  ${SUB_SUB_SOURCES} ${LOKI_SOURCES} global.cpp)
 set_target_properties(libfaust-static PROPERTIES OUTPUT_NAME faust)
 set_target_properties(libfaust-static PROPERTIES PREFIX "lib")
 set_property(TARGET libfaust-static
@@ -35,7 +37,7 @@ set_property(TARGET libfaust-static
 
 # SHARED LIBFAUST
 add_library(libfaust SHARED libmain.cpp ${SUB_SOURCES}
-${SUB_SUB_SOURCES} ${LOKI_SOURCES})
+${SUB_SUB_SOURCES} ${LOKI_SOURCES} global.cpp)
 set_target_properties(libfaust PROPERTIES OUTPUT_NAME faust)
 set_target_properties(libfaust PROPERTIES PREFIX "lib")
 set_property(TARGET libfaust
