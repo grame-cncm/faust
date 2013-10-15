@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -37,6 +38,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -269,7 +271,7 @@ public class faustApp extends Activity {
        	       LayoutParams.WRAP_CONTENT);
         layButtonsAccel.setLayoutParams(paramsLayB);
         
-        layButtonsAccel.addView(assignation);
+        //layButtonsAccel.addView(assignation);
         layButtonsAccel.addView(accel.bX);
         layButtonsAccel.addView(accel.bY);
         layButtonsAccel.addView(accel.bZ);
@@ -447,7 +449,12 @@ public class faustApp extends Activity {
                 	accel.sensibility.setProgress(accel.paramAccelState[m][2]);
                 	
                 	accel.popUp.showAtLocation(accel.layout, Gravity.CENTER,0,0);
-                    accel.popUp.update(0, 0, currentGroup[0].getWidth()-45, 300);
+                    
+                    Display display = getWindowManager().getDefaultDisplay();
+                	Point size = new Point();
+                	display.getSize(size);
+                	      	
+                	accel.popUp.update(0, 0, currentGroup[0].getWidth()-45, (int) (size.y*0.35));
                     accel.focusOnSliderN = m + 1;
                 } 
                 return true;
