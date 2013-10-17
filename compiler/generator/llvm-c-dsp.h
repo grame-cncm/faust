@@ -168,8 +168,6 @@ int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
-void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq);
-
 void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
 void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);

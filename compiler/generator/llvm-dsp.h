@@ -166,7 +166,6 @@ class llvm_dsp : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
 
-        virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
 
         virtual void buildUserInterface(UI* interface);

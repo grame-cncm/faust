@@ -109,8 +109,6 @@ class llvm_dsp_factory {
         getNumOutputsFun fGetNumOutputs;
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
-        classInitFun fClassInit;
-        instanceInitFun fInstanceInit;
         computeFun fCompute;
         metadataFun fMetadata;
         
@@ -156,9 +154,7 @@ class llvm_dsp_factory {
         void metadataDSPFactory(Meta* meta);
         
         void metadataDSPFactory(MetaGlue* glue);
-        
-        void classInitDSPFactory(int samplingFreq);
-    
+     
 };
 
 class llvm_dsp_aux : public dsp {
@@ -178,7 +174,6 @@ class llvm_dsp_aux : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
@@ -219,8 +214,6 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
-EXPORT void classInitDSPFactory(llvm_dsp_factory* factory, int samplingFreq);
-
 class EXPORT llvm_dsp : public dsp {
                 
     public:
@@ -228,7 +221,6 @@ class EXPORT llvm_dsp : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
@@ -283,8 +275,6 @@ EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
-
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 

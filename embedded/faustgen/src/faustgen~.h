@@ -93,7 +93,6 @@ class netjack_llvm_dsp : public llvm_dsp {
         virtual int getNumInputs() { return fDSP->getNumInputs(); }
         virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
 
-        virtual void instanceInit(int samplingFreq) { fDSP->instanceInit(samplingFreq); }
         virtual void init(int samplingFreq) { fDSP->init(samplingFreq); }
 
         virtual void buildUserInterface(UI* ui);
@@ -117,7 +116,6 @@ class default_llvm_dsp : public llvm_dsp {
         virtual int getNumOutputs() { return fNumOutputs; }
 
         void classInit(int samplingFreq) {}
-        virtual void instanceInit(int samplingFreq) {}
         virtual void init(int samplingFreq) {}
 
         virtual void buildUserInterface(UI* ui) {}
