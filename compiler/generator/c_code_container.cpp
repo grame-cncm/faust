@@ -97,11 +97,11 @@ void CCodeContainer::produceInternal()
 
     // Memory methods
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static " << fKlassName << "* " << " new" << fKlassName << "() { "
+    tab(n, *fOut); *fOut << "static " << fKlassName << "* " << " new" << fKlassName << "() {"
                         << "return (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "))"
                         << "; }";
 
-    tab(n, *fOut); *fOut << "static void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) {"
                         << "free(dsp)"
                         << "; }";
 
@@ -242,7 +242,7 @@ void CCodeContainer::produceClass()
     //tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "classInit" << fKlassName << "(int samplingFreq) {";
         tab(n+1, *fOut);
-        // Local visitor here
+        // Local visitor here to avoid DSP object type wrong generation (UGLY : does not work with kisane.dsp => to correct)  
         CInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n+1);
         generateStaticInit(&codeproducer);

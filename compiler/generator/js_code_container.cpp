@@ -137,7 +137,6 @@ void JAVAScriptCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    //tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
         tab(n+1, *fOut);

@@ -110,7 +110,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "}" << endl;
     
     // Memory methods (as globals)
-    tab(n, *fOut); *fOut << "new" << fKlassName << " = function() { "
+    tab(n, *fOut); *fOut << "new" << fKlassName << " = function() {"
                         << "return new "<< fKlassName << "()"
                         << "; }";
 
@@ -147,7 +147,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         generateDeclarations(&fCodeProducer);
 
         // Print metadata declaration
-        tab(n+1, *fOut); *fOut   << "this.metadata = function(m) { ";
+        tab(n+1, *fOut); *fOut   << "this.metadata = function(m) {";
 
         for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
