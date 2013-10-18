@@ -31,6 +31,7 @@ class GUI : public UI {
 		int typeEl[numbLayouts*2+numbParams];
 		int typeLay[numbLayouts*2];
 		const char *labelLay[numbLayouts*2];
+		char metadata[numbParams][64];
 		int type[numbParams];
 		int layoutEl[numbLayouts*2];
 		const char *label[numbParams];
@@ -77,6 +78,8 @@ class GUI : public UI {
 	    	params.type[params.cnt] = 0;
 	    	params.label[params.cnt] = label;
 	    	params.value[params.cnt] = zone;
+	    	if(strlen(params.metadata[params.cnt]) < 1) strcpy(params.metadata[params.cnt], "%");
+	    	else strcat(params.metadata[params.cnt], "*");
 	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
 	    	params.cntEl++;
@@ -85,6 +88,8 @@ class GUI : public UI {
 	    	params.type[params.cnt] = 1;
 	    	params.label[params.cnt] = label;
 	    	params.value[params.cnt] = zone;
+	    	if(strlen(params.metadata[params.cnt]) < 1) strcpy(params.metadata[params.cnt], "%");
+	    	else strcat(params.metadata[params.cnt], "*");
 	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
 	    	params.cntEl++;
@@ -97,6 +102,8 @@ class GUI : public UI {
 	    	params.min[params.cnt] = min;
 	    	params.max[params.cnt] = max;
 	    	params.step[params.cnt] = step;
+	    	if(strlen(params.metadata[params.cnt]) < 1) strcpy(params.metadata[params.cnt], "%");
+	    	else strcat(params.metadata[params.cnt], "*");
 	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
 	    	params.cntEl++;
@@ -109,6 +116,8 @@ class GUI : public UI {
 	    	params.min[params.cnt] = min;
 	    	params.max[params.cnt] = max;
 	    	params.step[params.cnt] = step;
+	    	if(strlen(params.metadata[params.cnt]) < 1) strcpy(params.metadata[params.cnt], "%");
+	    	else strcat(params.metadata[params.cnt], "*");
 	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
 	    	params.cntEl++;
@@ -121,6 +130,8 @@ class GUI : public UI {
 	    	params.min[params.cnt] = min;
 	    	params.max[params.cnt] = max;
 	    	params.step[params.cnt] = step;
+	    	if(strlen(params.metadata[params.cnt]) < 1) strcpy(params.metadata[params.cnt], "%");
+	    	else strcat(params.metadata[params.cnt], "*");
 	    	params.typeEl[params.cntEl] = 1;
 	    	params.cnt++;
 	    	params.cntEl++;
@@ -132,8 +143,13 @@ class GUI : public UI {
 	    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {};
 
 		// -- metadata declarations
-
-	    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {}
+	    // TODO: the current separation system between metadatas should be replaced by something more reliable
+	    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {
+	    		strcat(params.metadata[params.cnt], "$");
+	    		strcat(params.metadata[params.cnt], key);
+	    		strcat(params.metadata[params.cnt], ";");
+	    		strcat(params.metadata[params.cnt], val);
+	    }
 };
 
 //**************************************************************
