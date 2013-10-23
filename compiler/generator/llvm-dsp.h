@@ -30,12 +30,10 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 
-
 /*!
  \addtogroup llvmcpp C++ interface for compiling faust code
   @{
  */
-
 
 typedef struct llvm_dsp_factory {};
 

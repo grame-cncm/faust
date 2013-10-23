@@ -40,7 +40,6 @@ extern "C"
  @{
  */
 
-	
 typedef struct llvm_dsp_factory {};
 
 typedef struct llvm_dsp {};
@@ -194,10 +193,8 @@ void deleteCDSPInstance(llvm_dsp* dsp);
 }
 #endif
 
-
 /*!
  @}
  */
-
 
 #endif

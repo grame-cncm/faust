@@ -35,13 +35,13 @@ netjackaudio_master::netjackaudio_master(llvm_dsp* dsp, int buffer_size, int sam
     fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
     if (fNetJack) {
         if (sizeof(FAUSTFLOAT) == sizeof(double)) {
-            fInputs_float = new float*[fDSP->getNumInputs() + 1];
+            fInputs = new float*[fDSP->getNumInputs() + 1];
             for (int i = 0; i < fDSP->getNumInputs() + 1; i++) {
-                fInputs_float[i] = new float[buffer_size];
+                fInputs[i] = new float[buffer_size];
             }
-            fOutputs_float = new float*[fDSP->getNumOutputs() + 1];
+            fOutputs = new float*[fDSP->getNumOutputs() + 1];
             for (int i = 0; i < fDSP->getNumOutputs() + 1; i++) {
-                fOutputs_float[i] = new float[buffer_size];
+                fOutputs[i] = new float[buffer_size];
             }
         }
     }
@@ -55,14 +55,14 @@ netjackaudio_master::~netjackaudio_master()
         
         if (sizeof(FAUSTFLOAT) == sizeof(double)) {
             for (int i = 0; i < fDSP->getNumInputs() + 1; i++) {
-                delete [] fInputs_float[i];
+                delete [] fInputs[i];
             }
-            delete [] fInputs_float;
+            delete [] fInputs;
             
             for (int i = 0; i < fDSP->getNumOutputs() + 1; i++) {
-                delete [] fOutputs_float[i];
+                delete [] fOutputs[i];
             }
-            delete [] fOutputs_float;
+            delete [] fOutputs;
         }
     }
 
@@ -71,7 +71,7 @@ netjackaudio_master::~netjackaudio_master()
         
 void netjackaudio_master::buildUserInterface(UI* ui) 
 {
-    fDSP->buildUserInterface(&fDSPUI);
+    fDSP->buildUserInterface(ui);
 }
 
 void netjackaudio_master::remote_compute(int count, float** input, float** output)
@@ -85,31 +85,13 @@ void netjackaudio_master::remote_compute(int count, float** input, float** outpu
         printf("jack_net_master_recv failure %d\n", res);
     }
 }
-
-void netjackaudio_master::encode_control(float* control_buffer)
-{
-    // Encode control values in control_buffer
-    int control_index = 0;
-    for (mspUI::iterator it = fDSPUI.begin(); it != fDSPUI.end(); ++it) {
-        control_buffer[control_index++] = it->second->getValue();
-    };
-}
-
-void netjackaudio_master::decode_control(float* control_buffer)
-{
-    // Decode control values from control_buffer
-    int control_index = 0;
-    for (mspUI::iterator it = fDSPUI.begin(); it != fDSPUI.end(); ++it) {
-        it->second->setValue(control_buffer[control_index++]);
-    };
-}
     
 void netjackaudio_master::double2float_input(int count, double** input)
 {
     // Encode input audio data in float
     for (int i = 0; i < fDSP->getNumInputs(); i++) {
         for (int j = 0; j < count; j++) {
-            fInputs_float[i][j] = float(input[i][j]);
+            fInputs[i][j] = float(input[i][j]);
         }
     }
 }
@@ -119,31 +101,27 @@ void netjackaudio_master::float2double_output(int count, double** output)
     // Decode output audio data from float
     for (int i = 0; i < fDSP->getNumOutputs(); i++) {
         for (int j = 0; j < count; j++) {
-            output[i][j] = double(fOutputs_float[i][j]);
+            output[i][j] = double(fOutputs[i][j]);
         }
     }
 }
 
 void netjackaudio_master::compute_double(int count, double** input, double** output)
 {
-    assert(fDSPUI.itemsCount() < count);
-    
     // In last audio port.
-    encode_control(fInputs_float[fDSP->getNumInputs()]);
+    encode_control(fInputs[fDSP->getNumInputs()]);
     double2float_input(count, input);
-    remote_compute(count, fInputs_float, fOutputs_float);
+    remote_compute(count, fInputs, fOutputs);
     float2double_output(count, output);
-    decode_control(fOutputs_float[fDSP->getNumInputs()]);
+    decode_control(fOutputs[fDSP->getNumInputs()]);
 } 
 
 void netjackaudio_master::compute_float(int count, float** input, float** output)
 {
-    assert(fDSPUI.itemsCount() < count);
-    
     // In last audio port.
-    encode_control(fInputs_float[fDSP->getNumInputs()]);
+    encode_control(fInputs[fDSP->getNumInputs()]);
     remote_compute(count, input, output);
-    decode_control(fOutputs_float[fDSP->getNumInputs()]);
+    decode_control(fOutputs[fDSP->getNumInputs()]);
 }        
 
 void netjackaudio_master::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)

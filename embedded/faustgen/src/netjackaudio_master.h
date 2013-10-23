@@ -28,30 +28,75 @@
 #define netjack_llvm_dsp__h
 
 #include "faust/llvm-dsp.h"
-#include "mspUI.h"
+#include "faust/gui/UI.h"
 #include "jack/net.h"
+#include <vector>
 
-class netjackaudio_master : public llvm_dsp {
+class ControlUI  : public UI {  
+
+    protected:
+    
+        std::vector<FAUSTFLOAT*> fControlList;
+    
+        // -- widget's layouts
+
+        void openTabBox(const char* label) {}
+        void openHorizontalBox(const char* label) {}
+        void openVerticalBox(const char* label) {};
+        void closeBox() {}
+
+        // -- active widgets
+
+        void addButton(const char* label, FAUSTFLOAT* zone) { fControlList.push_back(zone); }
+        void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlList.push_back(zone); }
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlList.push_back(zone); };
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlList.push_back(zone); };
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlList.push_back(zone); };
+
+        // -- passive widgets
+
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fControlList.push_back(zone); };
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fControlList.push_back(zone); };
+        
+    public:
+       
+        void encode_control(float* control_buffer)
+        {
+            // Encode control values in control_buffer
+            int control_index = 0;
+            for (int i = 0; i < fControlList.size(); i++) {
+                control_buffer[control_index++] = *fControlList[i];
+            };
+        }
+
+        void decode_control(float* control_buffer)
+        {
+            // Decode control values from control_buffer
+            int control_index = 0;
+            for (int i = 0; i < fControlList.size(); i++) {
+               *fControlList[i] = control_buffer[control_index++];
+            };
+        }
+};
+
+class netjackaudio_master : public llvm_dsp, public ControlUI {
 
     private:
     
-        llvm_dsp* fDSP;             // LLVM JIT DSP
-        mspUI fDSPUI;               // DSP UI
+        llvm_dsp* fDSP;             
         
         jack_net_master_t* fNetJack;
-        float** fInputs_float;
-        float** fOutputs_float;
+        float** fInputs;
+        float** fOutputs;
         
         void compute_float(int count, float** input, float** output);
         void compute_double(int count, double** input, double** output);
         
         void remote_compute(int count, float** input, float** output);
-        void encode_control(float* control_buffer);
-        void decode_control(float* control_buffer);
         
         void double2float_input(int count, double** input);
         void float2double_output(int count, double** output);
-   
+        
     public: 
     
         netjackaudio_master(llvm_dsp* dsp, int buffer_size, int sample_rate);        
