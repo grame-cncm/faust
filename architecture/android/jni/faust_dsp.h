@@ -24,11 +24,12 @@ struct Para {
 			int *typeEl;
 			int *typeLay;
 			int *labelLayPos;
-			char *labelLay;
+			const char *labelLay;
+			const char *metadata;
 			int *type;
 			float *zone;
 			int *labelPos;
-			char *label;
+			const char *label;
 			float *init;
 			float *min;
 			float *max;
