@@ -42,7 +42,7 @@
 
 #include "faust/llvm-dsp.h"
 #ifdef NETJACK
-#include "jack/net.h"
+#include "netjackaudio_master.h"
 #endif
 #include "maxcpp5.h"
 
@@ -73,32 +73,6 @@
 #define LLVM_OPTIMIZATION 3
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
-
-class netjack_llvm_dsp : public llvm_dsp {
-
-    private:
-    
-        llvm_dsp* fDSP;
-        mspUI fDSPUI;               // DSP UI
-        
-        jack_net_master_t* fNetJack;
-        float** fInputs_float;
-        float** fOutputs_float;
-   
-    public: 
-    
-        netjack_llvm_dsp(llvm_dsp* dsp);        
-        virtual ~netjack_llvm_dsp();
-        
-        virtual int getNumInputs() { return fDSP->getNumInputs(); }
-        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
-
-        virtual void init(int samplingFreq) { fDSP->init(samplingFreq); }
-
-        virtual void buildUserInterface(UI* ui);
-    
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-};
 
 class default_llvm_dsp : public llvm_dsp {
 
