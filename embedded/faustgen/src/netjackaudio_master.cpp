@@ -109,19 +109,19 @@ void netjackaudio_master::float2double_output(int count, double** output)
 void netjackaudio_master::compute_double(int count, double** input, double** output)
 {
     // In last audio port.
-    encode_control(fInputs[fDSP->getNumInputs()]);
+    encode_control(fInputs[fDSP->getNumInputs()], count);
     double2float_input(count, input);
     remote_compute(count, fInputs, fOutputs);
     float2double_output(count, output);
-    decode_control(fOutputs[fDSP->getNumInputs()]);
+    decode_control(fOutputs[fDSP->getNumInputs()], count);
 } 
 
 void netjackaudio_master::compute_float(int count, float** input, float** output)
 {
     // In last audio port.
-    encode_control(fInputs[fDSP->getNumInputs()]);
+    encode_control(fInputs[fDSP->getNumInputs()], count);
     remote_compute(count, input, output);
-    decode_control(fOutputs[fDSP->getNumInputs()]);
+    decode_control(fOutputs[fDSP->getNumInputs()], count);
 }        
 
 void netjackaudio_master::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
