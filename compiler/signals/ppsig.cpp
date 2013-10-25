@@ -179,7 +179,7 @@ ostream& ppsig::print (ostream& fout) const
 {
 	int 	i;
 	double	r;
-    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, wf;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
 	else if ( isProj(sig, &i, x) ) 					{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}
@@ -191,8 +191,9 @@ ostream& ppsig::print (ostream& fout) const
 	
 	else if ( getUserData(sig) ) 					{ printextended(fout, sig); }
 	else if ( isSigInt(sig, &i) ) 					{ fout << i; }
-	else if ( isSigReal(sig, &r) ) 					{ fout << r; }
-	else if ( isSigInput(sig, &i) ) 				{ fout << "IN[" << i << "]"; }
+    else if ( isSigReal(sig, &r) ) 					{ fout << r; }
+    else if ( isSigWaveform(sig, wf) ) 				{ fout << "waveform{...}"; }
+    else if ( isSigInput(sig, &i) ) 				{ fout << "IN[" << i << "]"; }
 	else if ( isSigOutput(sig, &i, x) ) 			{ printout(fout, i, x) ; }
 	
 	else if ( isSigDelay1(sig, x) ) 				{ fout << ppsig(x, fEnv, 9) << "'"; }

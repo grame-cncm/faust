@@ -259,7 +259,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	prim4	p4;
 	prim5	p5;
 	
-	Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
+    Tree	t1, t2, ff, wf, label, cur, min, max, step, type, name, file, slot, body;
 	
 	
 	xtended* xt = (xtended*)getUserData(box);
@@ -281,7 +281,14 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		assert(lsig.size()==0); 
 		return makeList(sigReal(r)); 
 	}
-    
+
+    // A Waveform has two outputs it size and a period signal representing its content
+
+    else if (isBoxWaveform(box, wf)) 	{
+        assert(lsig.size()==0);
+        return listConcat(makeList(sigInt(len(wf))), makeList(sigWaveform(wf)));
+    }
+
     else if (isBoxFConst(box, type, name, file))    { 
         assert(lsig.size()==0); 
         return makeList(sigFConst(type, name, file)); 
@@ -383,7 +390,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		assert(lsig.size()==0); 
 		return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
-	
+
 	else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{ 
 		assert(lsig.size()==0); 
 		return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step)); 

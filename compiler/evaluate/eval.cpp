@@ -328,7 +328,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 			isBoxPrim0(exp) || isBoxPrim1(exp) || 
 			isBoxPrim2(exp) || isBoxPrim3(exp) || 
 			isBoxPrim4(exp) || isBoxPrim5(exp) ||
-			isBoxFFun(exp) || isBoxFConst(exp) || isBoxFVar(exp) ) {
+            isBoxFFun(exp) || isBoxFConst(exp) || isBoxFVar(exp) ||
+            isBoxWaveform(exp)) {
 		return exp;
 
 	// block-diagram constructors

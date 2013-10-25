@@ -186,6 +186,7 @@ Tree unquote(char* str)
 %token COMPONENT
 %token LIBRARY
 %token ENVIRONMENT
+%token WAVEFORM
 
 %token IPAR
 %token ISEQ
@@ -236,6 +237,7 @@ Tree unquote(char* str)
 %type <exp> statement
 
 %type <exp> deflist
+%type <exp> vallist
 %type <exp> definition
 
 %type <exp> params
@@ -312,6 +314,10 @@ stmtlist        : /*empty*/                     { $$ = nil; }
 
 deflist         : /*empty*/                     { $$ = nil; }
 				| deflist definition            { $$ = cons ($2,$1); }
+				;
+
+vallist         : argument                        { $$ = cons($1,nil); }
+				| argument PAR vallist            { $$ = cons ($1,$3); }
 				;
 
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
@@ -504,6 +510,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
                 | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ deflist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
+                | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform($3); }
 
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }

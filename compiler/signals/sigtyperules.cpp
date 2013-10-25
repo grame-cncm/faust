@@ -60,6 +60,8 @@ static Type infereXType(Tree sig, Tree env);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
+static Type infereWaveformType (Tree lv);
+
 static interval arithmetic (int opcode, const interval& x, const interval& y);
 
 
@@ -248,7 +250,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
     int 		i;
 	double 		r;
-    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file;
+    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file, wf;
 	Tree		label, cur, min, max, step;
 
     countInferences++;
@@ -260,6 +262,9 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigReal(sig, &r)) 			{   Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
                                                 /*sig->setType(t);*/ return t; }
+
+    else if (isSigWaveform(sig, wf)) 		{   return infereWaveformType(wf); }
+
 
     else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return TINPUT; }
 
@@ -577,6 +582,41 @@ static Type infereFVarType (Tree type)
     // une variable externe ne peut pas se calculer au plus tot qu'a
     // l'execution. Elle est varie par blocs comme les éléments d'interface utilisateur.
     return makeSimpleType(tree2int(type),kBlock,kExec,kVect,kNum, interval());
+}
+
+
+/**
+ *  Infere the type of a waveform:
+ *  - the nature is int if all values are int, otherwise it is float
+ *  - the variability is by samples
+ *  - the waveform is known at compile time
+ *  - it can be vectorized because all values are known
+ *  - knum ???
+ *  - the interval is min and max of values
+ */
+static Type infereWaveformType (Tree lv)
+{
+    if (isNil(lv)) {
+        std::cerr << "ERROR, empty waveform" << std::endl;
+        exit(1);
+    }
+    double lo, hi;
+    lo = hi = tree2float(hd(lv));
+    bool iflag = isInt(hd(lv));
+    while (!isNil(lv)) {
+        Tree v = hd(lv);
+        // compute range
+        double f = tree2float(v);
+        if (f < lo) {
+            lo = f;
+        } else if (f > hi) {
+            hi = f;
+        }
+        iflag &= isInt(v);
+        lv = tl(lv);
+    }
+
+    return makeSimpleType((iflag)?kInt:kReal, kSamp, kComp, kScal, kNum, interval(lo,hi));
 }
 
 

@@ -126,39 +126,40 @@
      COMPONENT = 342,
      LIBRARY = 343,
      ENVIRONMENT = 344,
-     IPAR = 345,
-     ISEQ = 346,
-     ISUM = 347,
-     IPROD = 348,
-     INPUTS = 349,
-     OUTPUTS = 350,
-     STRING = 351,
-     FSTRING = 352,
-     IDENT = 353,
-     EXTRA = 354,
-     DECLARE = 355,
-     CASE = 356,
-     ARROW = 357,
-     BDOC = 358,
-     EDOC = 359,
-     BEQN = 360,
-     EEQN = 361,
-     BDGM = 362,
-     EDGM = 363,
-     BLST = 364,
-     ELST = 365,
-     BMETADATA = 366,
-     EMETADATA = 367,
-     DOCCHAR = 368,
-     NOTICE = 369,
-     LISTING = 370,
-     LSTTRUE = 371,
-     LSTFALSE = 372,
-     LSTDEPENDENCIES = 373,
-     LSTMDOCTAGS = 374,
-     LSTDISTRIBUTED = 375,
-     LSTEQ = 376,
-     LSTQ = 377
+     WAVEFORM = 345,
+     IPAR = 346,
+     ISEQ = 347,
+     ISUM = 348,
+     IPROD = 349,
+     INPUTS = 350,
+     OUTPUTS = 351,
+     STRING = 352,
+     FSTRING = 353,
+     IDENT = 354,
+     EXTRA = 355,
+     DECLARE = 356,
+     CASE = 357,
+     ARROW = 358,
+     BDOC = 359,
+     EDOC = 360,
+     BEQN = 361,
+     EEQN = 362,
+     BDGM = 363,
+     EDGM = 364,
+     BLST = 365,
+     ELST = 366,
+     BMETADATA = 367,
+     EMETADATA = 368,
+     DOCCHAR = 369,
+     NOTICE = 370,
+     LISTING = 371,
+     LSTTRUE = 372,
+     LSTFALSE = 373,
+     LSTDEPENDENCIES = 374,
+     LSTMDOCTAGS = 375,
+     LSTDISTRIBUTED = 376,
+     LSTEQ = 377,
+     LSTQ = 378
    };
 #endif
 /* Tokens.  */
@@ -249,39 +250,40 @@
 #define COMPONENT 342
 #define LIBRARY 343
 #define ENVIRONMENT 344
-#define IPAR 345
-#define ISEQ 346
-#define ISUM 347
-#define IPROD 348
-#define INPUTS 349
-#define OUTPUTS 350
-#define STRING 351
-#define FSTRING 352
-#define IDENT 353
-#define EXTRA 354
-#define DECLARE 355
-#define CASE 356
-#define ARROW 357
-#define BDOC 358
-#define EDOC 359
-#define BEQN 360
-#define EEQN 361
-#define BDGM 362
-#define EDGM 363
-#define BLST 364
-#define ELST 365
-#define BMETADATA 366
-#define EMETADATA 367
-#define DOCCHAR 368
-#define NOTICE 369
-#define LISTING 370
-#define LSTTRUE 371
-#define LSTFALSE 372
-#define LSTDEPENDENCIES 373
-#define LSTMDOCTAGS 374
-#define LSTDISTRIBUTED 375
-#define LSTEQ 376
-#define LSTQ 377
+#define WAVEFORM 345
+#define IPAR 346
+#define ISEQ 347
+#define ISUM 348
+#define IPROD 349
+#define INPUTS 350
+#define OUTPUTS 351
+#define STRING 352
+#define FSTRING 353
+#define IDENT 354
+#define EXTRA 355
+#define DECLARE 356
+#define CASE 357
+#define ARROW 358
+#define BDOC 359
+#define EDOC 360
+#define BEQN 361
+#define EEQN 362
+#define BDGM 363
+#define EDGM 364
+#define BLST 365
+#define ELST 366
+#define BMETADATA 367
+#define EMETADATA 368
+#define DOCCHAR 369
+#define NOTICE 370
+#define LISTING 371
+#define LSTTRUE 372
+#define LSTFALSE 373
+#define LSTDEPENDENCIES 374
+#define LSTMDOCTAGS 375
+#define LSTDISTRIBUTED 376
+#define LSTEQ 377
+#define LSTQ 378
 
 
 
@@ -296,7 +298,7 @@ typedef union YYSTYPE
 	bool b;
 }
 /* Line 1529 of yacc.c.  */
-#line 300 "parser/faustparser.hpp"
+#line 302 "parser/faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

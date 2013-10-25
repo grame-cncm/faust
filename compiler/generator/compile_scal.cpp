@@ -263,13 +263,14 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	int 	i;
 	double	r;
-	Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, label, id, ff, wf, largs, type, name, file;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
 		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
+    else if ( isSigWaveform(sig, wf) )              { return generateWaveform(sig, wf); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
@@ -1283,10 +1284,59 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
  */
 void ScalarCompiler::ensureIotaCode()
 {
-	if (!fHasIota) {
-		fHasIota = true;
-		fClass->addDeclCode("int \tIOTA;");
-		fClass->addInitCode("IOTA = 0;");
-		fClass->addPostCode("IOTA = IOTA+1;");
-	}
+    if (!fHasIota) {
+        fHasIota = true;
+        fClass->addDeclCode("int \tIOTA;");
+        fClass->addInitCode("IOTA = 0;");
+        fClass->addPostCode("IOTA = IOTA+1;");
+    }
+}
+
+/**
+ * Generate code for a waveform. The waveform will be declared as a static field.
+ * The name of the waveform is returned in vname and its size in size.
+ */
+void ScalarCompiler::declareWaveform(Tree sig, Tree wf, string& vname, int& size)
+{
+
+    // computes C type and unique name for the waveform
+
+    string		ctype;
+    getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
+
+
+    // Converts waveform into a string : "{a,b,c,...}"
+
+    stringstream content;
+
+    Tree l = wf;
+    char sep = '{';
+    size = 0;
+    do {
+        content << sep << ppsig(hd(l));
+        sep = ',';
+        l = tl(l);
+        size++;
+    } while (isList(l));
+
+    content << '}';
+
+
+    // Declares the Waveform
+
+    fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+    fClass->addStaticFields(
+                subst("$0 \t$1::$2[$3] = ", ctype, fClass->getClassName(), vname, T(size) )
+                + content.str() + ";");
+
+}
+
+string ScalarCompiler::generateWaveform(Tree sig, Tree wf)
+{
+    string  vname;
+    int     size;
+
+    declareWaveform(sig, wf, vname, size);
+    ensureIotaCode();
+    return subst("$0[IOTA%$1]", vname, T(size));
 }

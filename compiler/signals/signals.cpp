@@ -206,6 +206,13 @@ bool isSigCheckbox (Tree s)					{ Tree lbl; return isTree(s, SIGCHECKBOX, lbl);	
 bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, SIGCHECKBOX, lbl);				}
 
 
+Sym SIGWAVEFORM = symbol("SigWaveform");
+Tree sigWaveform (Tree wf)              { return tree(SIGWAVEFORM, wf);                 }
+bool isSigWaveform(Tree s)              { Tree wf; return isTree(s, SIGWAVEFORM, wf);   }
+bool isSigWaveform(Tree s, Tree& wf)    { return isTree(s, SIGWAVEFORM, wf);            }
+
+
+
 Sym SIGHSLIDER = symbol ("SigHSlider");
 Tree sigHSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(SIGHSLIDER, lbl, list4(cur,min,max,step));		}
