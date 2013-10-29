@@ -5,12 +5,13 @@
 
 system			:= $(shell uname -s)
 
+
 ifeq ($(system), Darwin)
-LIB := -I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -I$(PWD)/valve/' -framework CsoundLib -L/usr/local/lib -dynamiclib -arch i386 -arch x86_64
+LIB := -I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib
 #LIB := -F/Library/Frameworks -framework CsoundLib -dynamiclib -arch i386
 else
 #LIB := -I/usr/local/include -lsndfile -lcsound -shared
-LIB := -I/usr/include/csound -I$(PWD)/valve/' -shared -fPIC
+LIB := -I/usr/include/csound -shared -fPIC
 endif
 
 ###For Windows with gcc/mingw:(if headers in /usr/local/include and libs in /usr/local/lib)
@@ -31,9 +32,11 @@ all :  $(opcodes)
 
 
 $(DEST)%.dylib : %.dsp
-	faust $(VEC) -uim -a csound.cpp $< -o $@.cpp
-	$(CXX) $(CXXFLAGS) $(LIB) -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
+	faust $(VEC) -i -uim -double -a csound.cpp $< -o $@.cpp
+	g++ $(CXXFLAGS) $(LIB) -I$(FAUSTINC) -I$(PWD)/valve/  -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
 	
+
+
 
 clean :
 	rm -f $(DEST)

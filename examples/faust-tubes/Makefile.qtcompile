@@ -30,8 +30,8 @@ all : $(appls)
 ### Darwin 
 $(DEST)%.app : %.dsp
 	install -d $(TMP)
-	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); qmake -project "$(DEFS)" "INCLUDEPATH+=/usr/include/faust/" "INCLUDEPATH+=$(PWD)/valve/" "INCLUDEPATH+=/usr/include/faust/osclib" "LIBS+=$(LIB)" "HEADERS+=/usr/include/faust/gui/faustqt.h" 
+	faust -i -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
+	cd $(TMP); qmake -project "$(DEFS)" "INCLUDEPATH+=$(FAUSTINC)" "INCLUDEPATH+=$(PWD)/valve/" "INCLUDEPATH+=$(FAUSTINC)/osclib" "LIBS+=$(LIB)" "HEADERS+=$(FAUSTINC)/gui/faustqt.h" 
 	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
 	rm -rf $@
@@ -40,19 +40,14 @@ $(DEST)%.app : %.dsp
 
 
 ### Linux
-hdir1 := $(wildcard /usr/include/faust/gui/faustqt.h)
-hdir2 := $(wildcard /usr/share/faust/faustqt.h)
-hdir3 := $(wildcard /usr/include/faust/faustqt.h)
-hdir23 := $(if $(hdir2),$(dir $(hdir2)),$(dir $(hdir3)))
-hdir := $(if $(hdir1),$(dir $(hdir1)),$(hdir23))
 qm4 := $(shell which qmake-qt4)
 qm := $(if $(qm4),$(qm4),qmake)
 
 $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
-	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); $(qm) -project "$(DEFS)" "INCLUDEPATH+=/usr/include/faust/" "INCLUDEPATH+=$(PWD)/valve/" "INCLUDEPATH+=/usr/include/faust/osclib" "LIBS+=$(LIB)" "HEADERS+=$(hdir)faustqt.h" 
+	faust -i -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
+	cd $(TMP); $(qm) -project "$(DEFS)" "INCLUDEPATH+=$(FAUSTINC)" "INCLUDEPATH+=$(PWD)/valve/" "INCLUDEPATH+=$(FAUSTINC)/osclib" "LIBS+=$(LIB)" "HEADERS+=$(FAUSTINC)/gui/faustqt.h" 
 	cd $(TMP); $(qm) $(SPEC)
 	make -C $(TMP)
 	mv $(TMP)/$(<:.dsp=) $@
