@@ -39,12 +39,18 @@
 
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
-#include <string>
+#include "faust/gui/UI.h"
+#include "faust/gui/ControlUI.h"
 #include <jack/net.h>
+#include <string>
+#include <vector>
+#include <assert.h>
 
 class netjackaudio : public audio
 {
-protected:
+
+    protected:
+    
         dsp* fDsp;
         jack_net_slave_t* fNet;
         int fCelt;
@@ -82,24 +88,24 @@ protected:
                                float** audio_output_buffer,
                                int,
                                void**,
-                               void* arg) {
-            AVOIDDENORMALS;
-            netjackaudio* obj = (netjackaudio*)arg;
-            obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
+                               void* arg) 
+        {
+            static_cast<netjackaudio*>(arg)->process(buffer_size, audio_input_buffer, audio_output_buffer);
             return 0;
         }
-
-    public:
-
-        netjackaudio(int celt, const std::string master_ip, int master_port, int latency = 2)
-            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
-        {}
-
-        virtual bool init(const char* name, dsp* DSP) {
+        
+        virtual void process(int count,  float** inputs, float** outputs)
+        {
+             AVOIDDENORMALS;
+             fDsp->compute(count, inputs, outputs);
+        }
+        
+        bool init_aux(const char* name, dsp* DSP, int inputs, int outputs) 
+        {
             fDsp = DSP;
             jack_slave_t request = {
-                DSP->getNumInputs(),
-                DSP->getNumOutputs(),
+                inputs,
+                outputs,
                 0, 0,
                 DEFAULT_MTU,
                 -1,
@@ -126,6 +132,20 @@ protected:
             return true;
         }
 
+    public:
+
+        netjackaudio(int celt, const std::string master_ip, int master_port, int latency = 2)
+            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
+        {}
+        
+        virtual ~netjackaudio() 
+        {}
+
+        virtual bool init(const char* name, dsp* DSP) 
+        {
+            return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs());
+        }
+
         virtual bool start() {
             if (jack_net_slave_activate(fNet)) {
                 printf("cannot activate net");
@@ -139,6 +159,40 @@ protected:
             jack_net_slave_close(fNet);
         }
 
+};
+
+/*
+A special NetJack client that uses one more audio input/output to transmit control values.
+*/
+
+class netjackaudio_control : public netjackaudio, public ControlUI {  
+  
+    protected:
+    
+        virtual void process(int count,  float** inputs, float** outputs)
+        {
+            AVOIDDENORMALS;
+            decode_control(inputs[fDsp->getNumInputs()], count);
+            fDsp->compute(count, inputs, outputs);
+            encode_control(outputs[fDsp->getNumOutputs()], count);
+        }
+   
+    public:
+    
+        netjackaudio_control(int celt, const std::string master_ip, int master_port, int latency = 2)
+            :netjackaudio(celt, master_ip, master_port, latency)
+        {
+            fDsp->buildUserInterface(this);
+        }
+        
+        virtual ~netjackaudio_control() 
+        {}
+        
+        virtual bool init(const char* name, dsp* DSP) 
+        {
+            return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1); // One more audio port for control
+        }
+        
 };
 
 #endif

@@ -64,7 +64,7 @@
 					
 mydsp	DSP;
 
-list<GUI*>               GUI::fGuiList;
+std::list<GUI*>               GUI::fGuiList;
 
 /******************************************************************************
 *******************************************************************************
@@ -76,7 +76,7 @@ list<GUI*>               GUI::fGuiList;
 int main( int argc, char *argv[] )
 {
 	char	name[256], dst[258];
-	char	rcfilename[256]; float oscio = 0;
+	char	rcfilename[256];
 
 	char* home = getenv("HOME");
 	snprintf(name, 255, "%s", basename(argv[0]));
