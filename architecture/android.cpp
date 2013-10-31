@@ -31,7 +31,7 @@ class GUI : public UI {
 		int typeEl[numbLayouts*2+numbParams];
 		int typeLay[numbLayouts*2];
 		const char *labelLay[numbLayouts*2];
-		char metadata[numbParams][64];
+		char metadata[numbParams][200];
 		int type[numbParams];
 		int layoutEl[numbLayouts*2];
 		const char *label[numbParams];
