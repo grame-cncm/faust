@@ -33,7 +33,7 @@ all :  $(opcodes)
 
 $(DEST)%.dylib : %.dsp
 	faust $(VEC) -i -uim -double -a csound.cpp $< -o $@.cpp
-	g++ $(CXXFLAGS) $(LIB) $(FAUSTINC) -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
+	g++ $(CXXFLAGS) $(LIB) -I$(FAUSTINC) -I$(PWD)/valve/  -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
 	
 
 

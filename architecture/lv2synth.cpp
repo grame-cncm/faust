@@ -1393,8 +1393,10 @@ activate(LV2_Handle instance)
     plugin->dsp[i]->init(plugin->rate);
   for (int i = 0, j = 0; i < plugin->ui[0]->nelems; i++) {
     int p = plugin->ui[0]->elems[i].port;
-    float val = plugin->ui[0]->elems[i].init;
-    plugin->portvals[p] = val;
+    if (p >= 0) {
+      float val = plugin->ui[0]->elems[i].init;
+      plugin->portvals[p] = val;
+    }
   }
   plugin->active = true;
 }
@@ -1567,7 +1569,7 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   }
 #endif
   if (!plugin_name) plugin_name = "mydsp";
-  fprintf(fp, "@prefix doap: <http://usefulinc.com/ns/doap#> .\n\
+  fprintf(fp, "@prefix doap:  <http://usefulinc.com/ns/doap#> .\n\
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .\n\
 @prefix lv2:   <http://lv2plug.in/ns/lv2core#> .\n\
 @prefix epp:   <http://lv2plug.in/ns/ext/port-props#> .\n\

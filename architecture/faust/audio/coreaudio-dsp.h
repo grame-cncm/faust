@@ -92,11 +92,11 @@ static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
     printf("  Sample Rate:%f\n", inDesc->mSampleRate);
     printf("  Format ID:%.*s\n", (int)sizeof(inDesc->mFormatID), (char*)&inDesc->mFormatID);
     printf("  Format Flags:%lX\n", inDesc->mFormatFlags);
-    printf("  Bytes per Packet:%ld\n", inDesc->mBytesPerPacket);
-    printf("  Frames per Packet:%ld\n", inDesc->mFramesPerPacket);
-    printf("  Bytes per Frame:%ld\n", inDesc->mBytesPerFrame);
-    printf("  Channels per Frame:%ld\n", inDesc->mChannelsPerFrame);
-    printf("  Bits per Channel:%ld\n", inDesc->mBitsPerChannel);
+    printf("  Bytes per Packet:%ld\n", (long)inDesc->mBytesPerPacket);
+    printf("  Frames per Packet:%ld\n", (long)inDesc->mFramesPerPacket);
+    printf("  Bytes per Frame:%ld\n", (long)inDesc->mBytesPerFrame);
+    printf("  Channels per Frame:%ld\n", (long)inDesc->mChannelsPerFrame);
+    printf("  Bits per Channel:%ld\n", (long)inDesc->mBitsPerChannel);
     printf("- - - - - - - - - - - - - - - - - - - -\n");
 }
 
