@@ -74,7 +74,7 @@ class netjackaudio : public audio
         static int net_sample_rate(jack_nframes_t nframes, void* arg) 
         {
             netjackaudio* obj = (netjackaudio*)arg;
-            printf("New sample rate = %ld\n", nframes);
+            printf("New sample rate = %u\n", nframes);
             obj->fDsp->init(nframes);
             return 0;
         }

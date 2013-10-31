@@ -33,22 +33,22 @@ class ControlUI  : public UI {
         
     public:
        
-        void encode_control(float* control_buffer, int size)
+        void encode_control(float* control_buffer, unsigned int size)
         {
             assert(fControlList.size() < size);
             // Encode control values in control_buffer
             int control_index = 0;
-            for (int i = 0; i < fControlList.size(); i++) {
+            for (unsigned int i = 0; i < fControlList.size(); i++) {
                 control_buffer[control_index++] = *fControlList[i];
             };
         }
 
-        void decode_control(float* control_buffer, int size)
+        void decode_control(float* control_buffer, unsigned int size)
         {
             assert(fControlList.size() < size);
             // Decode control values from control_buffer
             int control_index = 0;
-            for (int i = 0; i < fControlList.size(); i++) {
+            for (unsigned int i = 0; i < fControlList.size(); i++) {
                *fControlList[i] = control_buffer[control_index++];
             };
         }
