@@ -177,7 +177,6 @@ static Float64 GetNominalSampleRate(AudioDeviceID inDevice)
     }
 }
 
-
 static CFStringRef GetDeviceName(AudioDeviceID id)
 {
     UInt32 size = sizeof(CFStringRef);
@@ -679,6 +678,108 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         UInt32 size = 256;
         return AudioDeviceGetProperty(id, 0, false, kAudioDevicePropertyDeviceName, &size, name);
     }
+    
+    int SetupBufferSize(int buffer_size)
+    {
+        // Setting buffer size
+        OSStatus err = noErr;
+        UInt32 tmp_buffer_size = buffer_size;
+        UInt32 outSize = sizeof(UInt32);
+
+        err = AudioDeviceGetProperty(fDeviceID, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
+        if (err != noErr) {
+            printf("Cannot get buffer size %ld\n", buffer_size);
+            printError(err);
+            return -1;
+        } else {
+            printf("SetupBufferSize : current buffer size = %ld\n", tmp_buffer_size);
+        }
+
+        // If needed, set new buffer size
+        if (buffer_size != tmp_buffer_size) {
+            tmp_buffer_size = buffer_size;
+
+            // To get BS change notification
+            err = AudioDeviceAddPropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback, this);
+            if (err != noErr) {
+                printf("Error calling AudioDeviceAddPropertyListener with kAudioDevicePropertyBufferFrameSize\n");
+                printError(err);
+                return -1;
+            }
+
+            // Waiting for BS change notification
+            int count = 0;
+            fState = false;
+
+            err = AudioDeviceSetProperty(fDeviceID, NULL, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, outSize, &tmp_buffer_size);
+            if (err != noErr) {
+                printf("SetupBufferSize : cannot set buffer size = %ld\n", tmp_buffer_size);
+                printError(err);
+                goto error;
+            }
+
+            while (!fState && count++ < WAIT_COUNTER) {
+                usleep(100000);
+                //printf("SetupBufferSize : wait count = %d\n", count);
+            }
+
+            if (count >= WAIT_COUNTER) {
+                printf("Did not get buffer size notification...\n");
+                goto error;
+            }
+
+            // Check new buffer size
+            outSize = sizeof(UInt32);
+            err = AudioDeviceGetProperty(fDeviceID, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
+            if (err != noErr) {
+                printf("Cannot get current buffer size\n");
+                printError(err);
+            } else {
+                //printf("SetupBufferSize : checked buffer size = %ld\n", tmp_buffer_size);
+            }
+
+            // Remove BS change notification
+            AudioDeviceRemovePropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback);
+        }
+
+        return 0;
+
+    error:
+
+        // Remove BS change notification
+        AudioDeviceRemovePropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback);
+        return -1;
+    }
+    
+    static OSStatus BSNotificationCallback(AudioDeviceID inDevice,
+                                                     UInt32 inChannel,
+                                                     Boolean isInput,
+                                                     AudioDevicePropertyID inPropertyID,
+                                                     void* inClientData)
+    {
+        TCoreAudioRenderer* driver = (TCoreAudioRenderer*)inClientData;
+
+        switch (inPropertyID) {
+
+            case kAudioDevicePropertyBufferFrameSize: {
+                printf("BSNotificationCallback kAudioDevicePropertyBufferFrameSize\n");
+                // Check new buffer size
+                UInt32 tmp_buffer_size;
+                UInt32 outSize = sizeof(UInt32);
+                OSStatus err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
+                if (err != noErr) {
+                    printf("Cannot get current buffer size\n");
+                    printError(err);
+                } else {
+                    printf("BSNotificationCallback : checked buffer size = %d\n", tmp_buffer_size);
+                }
+                driver->fState = true;
+                break;
+            }
+        }
+
+        return noErr;
+    }
 
     int SetupSampleRateAux(AudioDeviceID inDevice, int& samplerate)
     {
@@ -843,6 +944,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             return OPEN_ERR;
         }
         
+        /*
         // Setting buffer size
         outSize = sizeof(UInt32);
         //err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyBufferFrameSize, outSize, &bufferSize);
@@ -852,6 +954,12 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         if (err != noErr) {
             printf("Cannot set buffer size %ld\n", bufferSize);
             err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
+            return OPEN_ERR;
+        }
+        */
+        
+        // Setting buffer size
+        if (SetupBufferSize(bufferSize) < 0) {
             return OPEN_ERR;
         }
         
