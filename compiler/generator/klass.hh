@@ -63,8 +63,9 @@ protected:
 
  protected:
     
-	string			fKlassName;
-	string			fSuperKlassName;
+    Klass*			fParentKlass;               ///< Klass in which this Klass is embedded, void if toplevel Klass
+    string			fKlassName;
+    string			fSuperKlassName;
 	int				fNumInputs;
 	int				fNumOutputs;
     int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
@@ -106,12 +107,18 @@ protected:
  public:
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
-	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
+      : 	fParentKlass(0), fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
             fNumActives(0), fNumPassives(0),
             fTopLoop(new Loop(0, "count")), fVec(__vec)
 	{}
 
 	virtual ~Klass() 						{}
+
+    void    setParentKlass(Klass* parent)       { fParentKlass=parent; }
+    Klass*  getParentKlass()                    { return fParentKlass; }
+    Klass*  getTopParentKlass()                 { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
+    string  getFullClassName()                  { return (fParentKlass!=0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName(); }    ///< Returns the name of the class
+
 
     void    openLoop(const string& size);
     void    openLoop(Tree recsymbol, const string& size);
@@ -119,6 +126,7 @@ protected:
 
     void    setLoopProperty(Tree sig, Loop* l);     ///< Store the loop used to compute a signal
     bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
+
     const string&    getClassName() const { return fKlassName; }    ///< Returns the name of the class
 
     Loop*   topLoop()   { return fTopLoop; }
@@ -141,7 +149,7 @@ protected:
 
 	void addInitCode (const string& str)	{ fInitCode.push_back(str); }
 
-	void addStaticInitCode (const string& str)	{ fStaticInitCode.push_back(str); }
+    void addStaticInitCode (const string& str)	{ if (fParentKlass!=0) fStaticInitCode.push_back(str); }
 
 	void addStaticFields (const string& str)	{ fStaticFields.push_back(str); }
 
