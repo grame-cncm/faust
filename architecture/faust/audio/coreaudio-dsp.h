@@ -440,39 +440,39 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         
         /*
          if (fClockDriftCompensate) {
-         if (need_clock_drift_compensation) {
-         jack_info("Clock drift compensation activated...");
-         subDevicesArrayClock = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-         
-         for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
-         CFStringRef UID = GetDeviceName(captureDeviceID[i]);
-         if (UID) {
-         CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
-         //CFRelease(UID);
-         CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
-         }
-         }
-         
-         for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
-         CFStringRef UID = GetDeviceName(playbackDeviceID[i]);
-         if (UID) {
-         CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
-         //CFRelease(UID);
-         CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
-         }
-         }
-         
-         // add sub-device clock array for the aggregate device to the dictionary
-         CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceSubDeviceListKey), subDevicesArrayClock);
-         } else {
-         jack_info("Clock drift compensation was asked but is not needed (devices use the same clock domain)");
-         }
-         }
-         */
+             if (need_clock_drift_compensation) {
+                 jack_info("Clock drift compensation activated...");
+                 subDevicesArrayClock = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+                 
+                 for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
+                     CFStringRef UID = GetDeviceName(captureDeviceID[i]);
+                     if (UID) {
+                     CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
+                     //CFRelease(UID);
+                     CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
+                 }
+             }
+             
+             for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
+                 CFStringRef UID = GetDeviceName(playbackDeviceID[i]);
+                 if (UID) {
+                     CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
+                     //CFRelease(UID);
+                     CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
+                 }
+             }
+                 
+                 // add sub-device clock array for the aggregate device to the dictionary
+                 CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceSubDeviceListKey), subDevicesArrayClock);
+                 } else {
+                 jack_info("Clock drift compensation was asked but is not needed (devices use the same clock domain)");
+             }
+        }
+        */
         
         //-------------------------------------------------
         // Create a CFMutableArray for our sub-device list
@@ -850,7 +850,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         switch (inPropertyID) {
                 
             case kAudioDevicePropertyNominalSampleRate: {
-                //printf("JackCoreAudioDriver::SRNotificationCallback kAudioDevicePropertyNominalSampleRate\n");
+                //printf("SRNotificationCallback kAudioDevicePropertyNominalSampleRate\n");
                 driver->fState = true;
                 // Check new sample rate
                 Float64 sampleRate;
@@ -943,39 +943,14 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             printf("Cannot open default device\n");
             return OPEN_ERR;
         }
-        
-        /*
-        // Setting buffer size
-        outSize = sizeof(UInt32);
-        //err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyBufferFrameSize, outSize, &bufferSize);
-        
-        err = AudioDeviceGetProperty(fDeviceID, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
-        
-        if (err != noErr) {
-            printf("Cannot set buffer size %ld\n", bufferSize);
-            err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
-            return OPEN_ERR;
-        }
-        */
-        
+         
         // Setting buffer size
         if (SetupBufferSize(bufferSize) < 0) {
             return OPEN_ERR;
         }
         
         // AUHAL
-        /*
-        ComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
-        Component HALOutput = FindNextComponent(NULL, &cd);
-        
-        err1 = OpenAComponent(HALOutput, &fAUHAL);
-        if (err1 != noErr) {
-            printf("Error calling OpenAComponent\n");
-            printError(err1);
-            goto error;
-        }
-        */
-        
+    
     #ifdef MAC_OS_X_VERSION_10_5
         ComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
         Component HALOutput = FindNextComponent(NULL, &cd);
@@ -1003,16 +978,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             goto error;
         }
         
-        /*
-        enableIO = 1;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
-        if (err1 != noErr) {
-            printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output\n");
-            printError(err1);
-            goto error;
-        }
-        */
-        
         if (inChan > 0) {
             enableIO = 1;
             printf("OpenAUHAL : setup AUHAL input on\n");
@@ -1027,17 +992,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             printError(err1);
             goto error;
         }
-        
-        /*
-        enableIO = 1;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
-        if (err1 != noErr) {
-            printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input\n");
-            printError(err1);
-            goto error;
-        }
-        */
-        
+            
         if (outChan > 0) {
             enableIO = 1;
             printf("OpenAUHAL : setup AUHAL output on\n");
