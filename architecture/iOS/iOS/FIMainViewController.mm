@@ -26,6 +26,8 @@
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
 
+#define kRefreshTimerInterval       0.04
+
 // Test Jack
 #define kJackViewHeight 130
 #define kJackViewAnimationDuration 0.2
@@ -134,7 +136,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     interface->saveAbstractLayout();
     
     // Used to refresh bargraphes
-    _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
+    _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:kRefreshTimerInterval target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
     // Views initilizations
     contentView = [[[UIView alloc] initWithFrame:CGRectMake(0., 0., 10., 10.)] autorelease];
@@ -1195,62 +1197,62 @@ T findCorrespondingUiItem(FIResponder* sender)
         if ([str compare:@"0"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationNone);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"aX"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationAccelX);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.5);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.5);
         }
         else if ([str compare:@"aY"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationAccelY);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.5);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.5);
         }
         else if ([str compare:@"aZ"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationAccelZ);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.5);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.5);
         }
         else if ([str compare:@"Shk"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationShake);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"C"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationCompass);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"gX"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroX);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"gY"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroY);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"gZ"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroZ);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else
         {
             _selectedWidget->setAssignationType(kAssignationNone);
-            _selectedWidget->setAssignationRefPointX(0.);
-            _selectedWidget->setAssignationRefPointY(0.);
+            //_selectedWidget->setAssignationRefPointX(0.);
+            //_selectedWidget->setAssignationRefPointY(0.);
         }
     }
     
