@@ -114,7 +114,8 @@ protected:
 
 	virtual ~Klass() 						{}
 
-    void    setParentKlass(Klass* parent)       { fParentKlass=parent; }
+    void    setParentKlass(Klass* parent)       { std::cerr << this << " setParentKlass(" << parent << ")" << std::endl;
+                                                  fParentKlass=parent; }
     Klass*  getParentKlass()                    { return fParentKlass; }
     Klass*  getTopParentKlass()                 { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
     string  getFullClassName()                  { return (fParentKlass!=0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName(); }    ///< Returns the name of the class
@@ -143,13 +144,13 @@ protected:
 
 	void collectLibrary(set<string>& S);
 
-	void addSubKlass (Klass* son)			{ fSubClassList.push_back(son); }
+    void addSubKlass (Klass* son)			{ fSubClassList.push_back(son); }
 
 	void addDeclCode (const string& str) 	{ fDeclCode.push_back(str); }
 
 	void addInitCode (const string& str)	{ fInitCode.push_back(str); }
 
-    void addStaticInitCode (const string& str)	{ if (fParentKlass!=0) fStaticInitCode.push_back(str); }
+    void addStaticInitCode (const string& str)	{ fStaticInitCode.push_back(str); }
 
 	void addStaticFields (const string& str)	{ fStaticFields.push_back(str); }
 
@@ -213,7 +214,7 @@ class SigIntGenKlass : public Klass {
     
  public:
 
-	SigIntGenKlass (const string& name) : Klass(name, "", 0, 1, false)	{}
+    SigIntGenKlass (Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
 
 	virtual void println(int n, ostream& fout);
 };
@@ -222,7 +223,7 @@ class SigFloatGenKlass : public Klass {
     
  public:
 
-	SigFloatGenKlass (const string& name) : Klass(name, "", 0, 1, false)	{}
+    SigFloatGenKlass (Klass* parent, const string& name) : Klass(name, "", 0, 1, false)	{ fParentKlass = parent; }
 
 	virtual void println(int n, ostream& fout);
 };

@@ -96,57 +96,57 @@ class ScalarCompiler : public Compiler
 	
 	// generation du code
 	
-	string 		generateXtended		(Tree sig);
+    string          generateXtended		(Tree sig);
 	virtual string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
-	string 		generatePrefix 		(Tree sig, Tree x, Tree e);
-	string 		generateIota		(Tree sig, Tree arg);
-	string 		generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
+    string          generatePrefix 		(Tree sig, Tree x, Tree e);
+    string          generateIota		(Tree sig, Tree arg);
+    string          generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
 	
-	string 		generateFFun  		(Tree sig, Tree ff, Tree largs);
-    string      generateWaveform    (Tree sig, Tree wf);
+    string          generateFFun  		(Tree sig, Tree ff, Tree largs);
+    virtual string      generateWaveform    (Tree sig, Tree wf);
 
-	string 		generateInput 		(Tree sig, const string& idx);
-	string 		generateOutput		(Tree sig, const string& idx, const string& arg1);
+    string          generateInput 		(Tree sig, const string& idx);
+    string          generateOutput		(Tree sig, const string& idx, const string& arg1);
 	
-	string 		generateTable 		(Tree sig, Tree tsize, Tree content);
-	string 		generateStaticTable	(Tree sig, Tree tsize, Tree content);
-	string 		generateWRTbl 		(Tree sig, Tree tbl, Tree idx, Tree data);
-	string 		generateRDTbl 		(Tree sig, Tree tbl, Tree idx);
-	string 		generateSigGen		(Tree sig, Tree content);
-	string		generateStaticSigGen(Tree sig, Tree content);
+    string          generateTable 		(Tree sig, Tree tsize, Tree content);
+    string          generateStaticTable	(Tree sig, Tree tsize, Tree content);
+    string          generateWRTbl 		(Tree sig, Tree tbl, Tree idx, Tree data);
+    string          generateRDTbl 		(Tree sig, Tree tbl, Tree idx);
+    string          generateSigGen		(Tree sig, Tree content);
+    string          generateStaticSigGen(Tree sig, Tree content);
 	
-	string 		generateSelect2 	(Tree sig, Tree sel, Tree s1, Tree s2);
-	string 		generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
+    string          generateSelect2 	(Tree sig, Tree sel, Tree s1, Tree s2);
+    string          generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
 	
-	string 		generateRecProj 	(Tree sig, Tree exp, int i);
-    void        generateRec         (Tree sig, Tree var, Tree le);
+    string          generateRecProj 	(Tree sig, Tree exp, int i);
+    void            generateRec         (Tree sig, Tree var, Tree le);
 	
-	string 		generateIntCast   	(Tree sig, Tree x);
-	string 		generateFloatCast 	(Tree sig, Tree x);
+    string          generateIntCast   	(Tree sig, Tree x);
+    string          generateFloatCast 	(Tree sig, Tree x);
 	
-	string 		generateButton 		(Tree sig, Tree label);
-	string 		generateCheckbox 	(Tree sig, Tree label);
-	string 		generateVSlider 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-	string 		generateHSlider	 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-	string 		generateNumEntry 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    string          generateButton 		(Tree sig, Tree label);
+    string          generateCheckbox 	(Tree sig, Tree label);
+    string          generateVSlider 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    string          generateHSlider	 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    string          generateNumEntry 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
 	
-	string 		generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
-	string 		generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+    string          generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+    string          generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
 
-	string		generateNumber(Tree sig, const string& exp);
-    string      generateFConst (Tree sig, const string& file, const string& name);
-    string      generateFVar (Tree sig, const string& file, const string& name);
+    string          generateNumber(Tree sig, const string& exp);
+    string          generateFConst (Tree sig, const string& file, const string& name);
+    string          generateFVar (Tree sig, const string& file, const string& name);
 	
-	virtual string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-	string		generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    virtual string  generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    string          generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+    virtual void    generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
 
-	void 		getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
-	void 		ensureIotaCode();
-    int         pow2limit(int x);
+    void            getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
+    void            ensureIotaCode();
+    int             pow2limit(int x);
 
-    void        declareWaveform(Tree sig, Tree wf, string& vname, int& size);
+    void            declareWaveform(Tree sig, Tree wf, string& vname, int& size);
 
 
 
