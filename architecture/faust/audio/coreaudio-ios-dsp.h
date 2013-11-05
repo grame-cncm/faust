@@ -202,28 +202,34 @@ OSStatus TiPhoneCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFl
                                          UInt32 inNumberFrames,
                                          AudioBufferList *ioData)
 {
-    AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fCAInputData);
+    OSStatus err = noErr;
     
-    float* fInChannel[fDevNumInChans];
-    float* fOutChannel[fDevNumOutChans];
-    
-    if (fHWNumInChans == 1) {
-        // Mono ==> stereo
-        for (int chan = 0; chan < fDevNumInChans; chan++) {
-            fInChannel[chan] = (float*)fCAInputData->mBuffers[0].mData;
-        }
-    } else {
-        for (int chan = 0; chan < fDevNumInChans; chan++) {
-            fInChannel[chan] = (float*)fCAInputData->mBuffers[chan].mData;
-        }
+    if (fDevNumInChans > 0) {
+        err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fCAInputData);
     }
     
-    for (int chan = 0; chan < fDevNumOutChans; chan++) {
-        fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
+    if (err == noErr) {
+        float* fInChannel[fDevNumInChans];
+        float* fOutChannel[fDevNumOutChans];
+        
+        if (fHWNumInChans == 1) {
+            // Mono ==> stereo
+            for (int chan = 0; chan < fDevNumInChans; chan++) {
+                fInChannel[chan] = (float*)fCAInputData->mBuffers[0].mData;
+            }
+        } else {
+            for (int chan = 0; chan < fDevNumInChans; chan++) {
+                fInChannel[chan] = (float*)fCAInputData->mBuffers[chan].mData;
+            }
+        }
+        
+        for (int chan = 0; chan < fDevNumOutChans; chan++) {
+            fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
+        }
+        
+        fDSP->compute((int)inNumberFrames, fInChannel, fOutChannel);
     }
-    
-    fDSP->compute((int)inNumberFrames, fInChannel, fOutChannel);
- 	return 0;
+ 	return err;
 }
 
 void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 inInterruption)
@@ -560,13 +566,15 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         }
     }
     
-    // Prepare buffers
-    fCAInputData = (AudioBufferList*)malloc(sizeof(float) + fDevNumInChans * sizeof(AudioBuffer));
-    fCAInputData->mNumberBuffers = fDevNumInChans;
-    for (int i = 0; i < fDevNumInChans; i++) {
-        fCAInputData->mBuffers[i].mNumberChannels = 1;
-        fCAInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
-        fCAInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
+    if (fDevNumInChans > 0) {
+        // Prepare buffers
+        fCAInputData = (AudioBufferList*)malloc(sizeof(float) + fDevNumInChans * sizeof(AudioBuffer));
+        fCAInputData->mNumberBuffers = fDevNumInChans;
+        for (int i = 0; i < fDevNumInChans; i++) {
+            fCAInputData->mBuffers[i].mNumberChannels = 1;
+            fCAInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
+            fCAInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
+        }
     }
     
     return NO_ERR;
