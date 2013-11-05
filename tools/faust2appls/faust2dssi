@@ -82,7 +82,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
+		${CXX=g++} $FAUSTTOOLSFLAGS  -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
 	) > /dev/null
 	rm "$f.cpp"
 

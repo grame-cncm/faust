@@ -43,7 +43,7 @@ done
 #
 for f in $FILES; do
     faust -a netjack-console.cpp $OPTIONS $f -o $f.cpp
-    g++  $f.cpp -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
+    g++  $f.cpp $FAUSTTOOLSFLAGS -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
     rm $f.cpp
 
     # collect binary file name for FaustGIDE

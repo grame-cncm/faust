@@ -362,7 +362,7 @@ class AudioInterface : public AudioParam
 			int count = snd_pcm_readi(fInputDevice, fInputCardBuffer, fBuffering);
 			if (count<0) {
 				 //display_error_msg(count, "reading samples");
-				 int err = snd_pcm_prepare(fInputDevice);
+				 snd_pcm_prepare(fInputDevice);
 				 //check_error_msg(err, "preparing input stream");
 			}
 
@@ -394,7 +394,7 @@ class AudioInterface : public AudioParam
 			int count = snd_pcm_readn(fInputDevice, fInputCardChannels, fBuffering);
 			if (count<0) {
 				 //display_error_msg(count, "reading samples");
-				 int err = snd_pcm_prepare(fInputDevice);
+				 snd_pcm_prepare(fInputDevice);
 				 //check_error_msg(err, "preparing input stream");
 			}
 
@@ -464,7 +464,7 @@ class AudioInterface : public AudioParam
 			int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering);
 			if (count<0) {
 				//display_error_msg(count, "w3");
-				int err = snd_pcm_prepare(fOutputDevice);
+				snd_pcm_prepare(fOutputDevice);
 				//check_error_msg(err, "preparing output stream");
 				goto recovery;
 			}
@@ -501,7 +501,7 @@ class AudioInterface : public AudioParam
 			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering);
 			if (count<0) {
 				//display_error_msg(count, "w3");
-				int err = snd_pcm_prepare(fOutputDevice);
+				snd_pcm_prepare(fOutputDevice);
 				//check_error_msg(err, "preparing output stream");
 				goto recovery;
 			}

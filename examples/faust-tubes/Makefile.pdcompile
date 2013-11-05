@@ -15,7 +15,7 @@ F2PDFLAGS 		:= -r 10 -s
 ### compilation flags for Linux
 ###
 LINUXCFLAGS 	:= -DPD -fPIC -Wall -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math
-LINUXINCLUDE 	:= -I/usr/include/pdextended
+LINUXINCLUDE 	:= -I/usr/include/pdextended  -I$(PWD)/valve/
 
 ###--------------------------------------------
 ### compilation flags for Darwin

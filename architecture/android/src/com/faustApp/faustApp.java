@@ -301,6 +301,7 @@ public class faustApp extends Activity {
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 	          	if(fromUser){ 
 	          		accel.sensibilityVal = progress;
+	          		sensT.setText("Sensibilty: " + Float.toString(progress));
 	          	}
 	          	}
 	    };
@@ -491,6 +492,7 @@ public class faustApp extends Activity {
 	          }
 	    };
 	    UI.sliders[m].setOnSeekBarChangeListener(listener);
+	    //UI.sliders[m].setVisibility(4);
 	}
 	
 	// create a vertical group for the UI
@@ -561,6 +563,9 @@ public class faustApp extends Activity {
 	private float mAccelx; // acceleration apart from gravity
 	private float mAccely;
 	private float mAccelz;
+	private float mAccelxDel; // acceleration apart from gravity
+	private float mAccelyDel;
+	private float mAccelzDel;
 	private float mAccelCurrent; // current acceleration including gravity
 	private float mAccelLast; // last acceleration including gravity
 
@@ -880,9 +885,15 @@ public class faustApp extends Activity {
         	else{ 
         		accel.paramAccelState[j][0] = 0;
         		accel.paramAccelState[j][1] = 1;
-        		accel.paramAccelState[j][2] = 100;
+        		accel.paramAccelState[j][2] = 100; 
         	}
+        	//System.out.println("Here: " + accel.paramAccelState[j][0] + " " + accel.paramAccelState[j][1] + " " + accel.paramAccelState[j][2]);
         }
+        
+        // Initializing the variable for the accelerometer filter
+        mAccelxDel = 0;
+        mAccelxDel = 0;
+        mAccelxDel = 0;
         
         // the main thread for DSP is created 
         thread = new Thread() {
@@ -941,29 +952,38 @@ public class faustApp extends Activity {
 						if(o.intArray_getitem(paramsTypes, i) == 2 || o.intArray_getitem(paramsTypes, i) == 3){
 							// X, Y, or Z?
 							if(accel.paramAccelState[i][0] > 0){
-								float dudu; 
+								float dudu;
+								float mAccelxFinal, mAccelyFinal, mAccelzFinal;
 								if (accel.paramAccelState[i][0] == 1){
-									if(o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i)>=1) dudu = (metaDatAccelVal[i][2] - (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)/((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
-									else dudu = (metaDatAccelVal[i][2]- (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
-									if((mAccelx >= 0 && accel.paramAccelState[i][1] >= 0) || (mAccelx < 0 && accel.paramAccelState[i][1] < 0)) accelCurrentValue = (mAccelx*accel.paramAccelState[i][1]*(1-(dudu/10)))+dudu;
-									else accelCurrentValue = (mAccelx*accel.paramAccelState[i][1]*(1+(dudu/10)))+dudu;
+									if(metaDatAccelVal[i][3] > 0) mAccelxFinal = mAccelx*metaDatAccelVal[i][3] + mAccelxDel*(1-metaDatAccelVal[i][3]);
+									else mAccelxFinal = mAccelx;
+									if(o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i))>=1) dudu = (metaDatAccelVal[i][2] - (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)/((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
+									else dudu = (metaDatAccelVal[i][2]- (o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i)))/2)*((o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i)))/2)*10;
+									if((mAccelxFinal >= 0 && accel.paramAccelState[i][1] >= 0) || (mAccelxFinal < 0 && accel.paramAccelState[i][1] < 0)) accelCurrentValue = (mAccelxFinal*accel.paramAccelState[i][1]*(1-(dudu/10)))+dudu;
+									else accelCurrentValue = (mAccelxFinal*accel.paramAccelState[i][1]*(1+(dudu/10)))+dudu;
 								}
 								else if (accel.paramAccelState[i][0] == 2){
-									if(o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i)>=1) dudu = (metaDatAccelVal[i][2] - (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)/((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
-									else dudu = (metaDatAccelVal[i][2]- (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
-									if((mAccely >= 0 && accel.paramAccelState[i][1] >= 0) || (mAccely < 0 && accel.paramAccelState[i][1] < 0)) accelCurrentValue = (mAccely*accel.paramAccelState[i][1]*(1-(dudu/10)))+dudu;
-									else accelCurrentValue = (mAccely*accel.paramAccelState[i][1]*(1+(dudu/10)))+dudu;
+									if(metaDatAccelVal[i][3] > 0) mAccelyFinal = mAccely*metaDatAccelVal[i][3] + mAccelyDel*(1-metaDatAccelVal[i][3]);
+									else mAccelyFinal = mAccely;
+									if(o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i))>=1) dudu = (metaDatAccelVal[i][2] - (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)/((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
+									else dudu = (metaDatAccelVal[i][2]- (o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i)))/2)*((o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i)))/2)*10;
+									if((mAccelyFinal >= 0 && accel.paramAccelState[i][1] >= 0) || (mAccelyFinal < 0 && accel.paramAccelState[i][1] < 0)) accelCurrentValue = (mAccelyFinal*accel.paramAccelState[i][1]*(1-(dudu/10)))+dudu;
+									else accelCurrentValue = (mAccelyFinal*accel.paramAccelState[i][1]*(1+(dudu/10)))+dudu;
 								}
 								else if (accel.paramAccelState[i][0] == 3){
-									if(o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i)>=1) dudu = (metaDatAccelVal[i][2] - (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)/((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
-									else dudu = (metaDatAccelVal[i][2]- (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
-									if((mAccelz >= 0 && accel.paramAccelState[i][1] >= 0) || (mAccelz < 0 && accel.paramAccelState[i][1] < 0)) accelCurrentValue = (mAccelz*accel.paramAccelState[i][1]*(1-(dudu/10)))+dudu;
-									else accelCurrentValue = (mAccelz*accel.paramAccelState[i][1]*(1+(dudu/10)))+dudu;
+									if(metaDatAccelVal[i][3] > 0) mAccelzFinal = mAccelz*metaDatAccelVal[i][3] + mAccelzDel*(1-metaDatAccelVal[i][3]);
+									else mAccelzFinal = mAccelz;
+									if(o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i))>=1) dudu = (metaDatAccelVal[i][2] - (o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)/((o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i))/2)*10;
+									else dudu = (metaDatAccelVal[i][2]- (o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i)))/2)*((o.floatArray_getitem(paramsMax, i)-Math.abs(o.floatArray_getitem(paramsMin, i)))/2)*10;
+									if((mAccelzFinal >= 0 && accel.paramAccelState[i][1] >= 0) || (mAccelzFinal < 0 && accel.paramAccelState[i][1] < 0)) accelCurrentValue = (mAccelzFinal*accel.paramAccelState[i][1]*(1-(dudu/10)))+dudu;
+									else accelCurrentValue = (mAccelzFinal*accel.paramAccelState[i][1]*(1+(dudu/10)))+dudu;
 								}
 								else accelCurrentValue = 0;
 								
 								// parameter value is modified by the accelerometer
-								if(o.floatArray_getitem(paramsMin, i)<0) accelCurrentValue = ((accelCurrentValue*((float) accel.paramAccelState[i][2]/100)/10)+1)/2*(o.floatArray_getitem(paramsMax, i)+o.floatArray_getitem(paramsMin, i));
+								if(o.floatArray_getitem(paramsMin, i)<0){
+									accelCurrentValue = ((accelCurrentValue*((float) accel.paramAccelState[i][2]/100)/10)+1)/2*(o.floatArray_getitem(paramsMax, i)+Math.abs(o.floatArray_getitem(paramsMin, i))) + o.floatArray_getitem(paramsMin, i);
+								}
 								else accelCurrentValue = ((accelCurrentValue*((float) accel.paramAccelState[i][2]/100)/10)+1)/2*(o.floatArray_getitem(paramsMax, i)-o.floatArray_getitem(paramsMin, i));
 								UI.sliders[elemCnt[2]].setProgress(Math.round((accelCurrentValue-o.floatArray_getitem(paramsMin, i))*(1/o.floatArray_getitem(paramsStep, i))));	
 								
@@ -971,6 +991,12 @@ public class faustApp extends Activity {
 								if(accelCurrentValue < o.floatArray_getitem(paramsMin, i)) accelCurrentValue = o.floatArray_getitem(paramsMin, i);
 								else if(accelCurrentValue > o.floatArray_getitem(paramsMax, i)) accelCurrentValue = o.floatArray_getitem(paramsMax, i);
 								else parVals[i] = accelCurrentValue;
+								parVals[i] = accelCurrentValue;
+								
+								// updating the values for the accelerometer filter
+								mAccelxDel = mAccelx;
+								mAccelyDel = mAccely;
+								mAccelzDel = mAccelz;
 							}
 							// OSC messages change parameters values TODO: for now, only sliders can be controlled via OSC
 							if(OSCval[i] != OSCvalOld[i]){ 
@@ -1045,7 +1071,7 @@ public class faustApp extends Activity {
         }
     }
     
-    public void onDestroy(){	
+    public void onDestroy(){
     	super.onDestroy();
     	//receiver.close();
     	sender.close();
