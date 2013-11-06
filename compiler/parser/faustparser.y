@@ -248,6 +248,7 @@ Tree unquote(char* str)
 %type <exp> infixexp
 %type <exp> primitive
 %type <exp> argument
+%type <exp> number
 %type <exp> arglist
 
 %type <exp> ident
@@ -306,20 +307,33 @@ Tree unquote(char* str)
 
 %% /* grammar rules and actions follow */
 
-program         : stmtlist 						{ $$ = $1; gResult = formatDefinitions($$); }
+program         : stmtlist                              { $$ = $1; gResult = formatDefinitions($$); }
 				;
 
-stmtlist        : /*empty*/                     { $$ = nil; }
-				| stmtlist statement            { $$ = cons ($2,$1); }
+stmtlist        : /*empty*/                             { $$ = nil; }
+				| stmtlist statement                    { $$ = cons ($2,$1); }
 
-deflist         : /*empty*/                     { $$ = nil; }
-				| deflist definition            { $$ = cons ($2,$1); }
+deflist         : /*empty*/                             { $$ = nil; }
+				| deflist definition                    { $$ = cons ($2,$1); }
 				;
 
-vallist         : argument                        { $$ = cons($1,nil); }
-				| argument PAR vallist            { $$ = cons ($1,$3); }
-				;
+// vallist         : argument                              { $$ = cons($1,nil); }
+// 				| argument PAR vallist                  { $$ = cons ($1,$3); }
+// 				;
+// 
+vallist         : number                              { $$ = cons($1,nil); }
+                | vallist PAR number                  { $$ = cons ($3,$1); }
+                ;
 
+number			: INT   						{ $$ = boxInt(atoi(yytext)); }
+				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
+				| ADD INT   					{ $$ = boxInt (atoi(yytext)); }
+				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
+				| SUB INT   					{ $$ = boxInt ( -atoi(yytext) ); }
+				| SUB FLOAT 					{ $$ = boxReal( -atof(yytext) ); }				
+				;
+				
+				
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
 				| DECLARE name string  ENDDEF		   	{ declareMetadata($2,$3); $$ = nil; }
 				| definition						   	{ $$ = $1; }
