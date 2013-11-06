@@ -22,19 +22,8 @@ endif(WIN32)
 
 
 if(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
-	if (${CMAKE_SYSTEM_VERSION} VERSION_LESS 9.0.0)
-		set (CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.4u.sdk)
-	elseif (${CMAKE_SYSTEM_VERSION} VERSION_LESS 10.0.0)
-		set (CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.5.sdk)
-	elseif (${CMAKE_SYSTEM_VERSION} VERSION_LESS 11.0.0)
-		set (CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.6.sdk)
-	else ()
-		set (CMAKE_OSX_SYSROOT "macosx10.7")
-	endif()
-
 	set (CMAKE_OSX_ARCHITECTURES "i386 x86_64")
-	set (CMAKE_C++_FLAGS -mmacosx-version-min=10.4)
-endif(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
+endif()
 
 #######################################
 # set directories, src and headers.
@@ -65,6 +54,7 @@ foreach(folder ${SRCFOLDERS})
 	set(INCL ${INCL} "${ROOT}/${folder}")			# add include folders
 endforeach(folder)
 set(INCL ${INCL} "${ROOT}/threads")					# add other include folders
+set(INCL ${INCL} "${ROOT}/../../..")				# add faust arch include folder
 
 #######################################
 # set libraries
