@@ -28,7 +28,11 @@ endif
 
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
+ifeq ($(system), Darwin)
 LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++
+else
+LLVM_CLANG = clang++
+endif
 
 ifeq ($(LLVM_VERSION), 3.0)
 LLVM_VERSION = LLVM_30

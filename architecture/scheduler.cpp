@@ -377,21 +377,6 @@ struct AtomicCounter
     
 };
 
-int get_max_cpu()
-{
-    int physical_count = 0;
-    size_t size = sizeof(physical_count);
-    sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
-    //printf("physical cpu cores: %d\n", physical_count);
-    
-    int logical_count = 0;
-    sysctlbyname("hw.logicalcpu", &logical_count, &size, NULL, 0);
-    //printf("logical cpu cores: %d\n", logical_count);
-    
-    return physical_count;
-    //return logical_count;
-}
-
 static int GetPID()
 {
 #ifdef WIN32
@@ -593,6 +578,21 @@ static void Yield()
     //sched_yield();
 }
 
+int get_max_cpu()
+{
+    int physical_count = 0;
+    size_t size = sizeof(physical_count);
+    sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
+    //printf("physical cpu cores: %d\n", physical_count);
+    
+    int logical_count = 0;
+    sysctlbyname("hw.logicalcpu", &logical_count, &size, NULL, 0);
+    //printf("logical cpu cores: %d\n", logical_count);
+    
+    return physical_count;
+    //return logical_count;
+}
+
 #endif
 
 #ifdef __linux__
@@ -624,6 +624,20 @@ static void Yield()
 {
     pthread_yield();
 }
+
+// TODO
+static UInt64 GetMicroSeconds(void)
+{	
+    return 0;
+}
+
+static void get_affinity(pthread_t thread) {}
+static void set_affinity(pthread_t thread, int tag) {}
+
+int get_max_cpu()
+{
+    return 1;
+ }
 
 #endif
 
