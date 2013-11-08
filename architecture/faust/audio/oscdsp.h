@@ -28,7 +28,16 @@ class oscdsp : public audio, public oscfaust::OSCIO {
             if (!strcmp(argv[i], "-iodst")) setDest (argv[i+1]);
         }
     }
-	virtual ~oscdsp() { stop(); }
+	virtual ~oscdsp() 
+    { 
+        stop(); 
+        for (int i = 0; i < numInputs(); i++)
+            delete [] fInBuffers[i];
+        for (int i = 0; i < numOutputs(); i++)
+            delete [] fOutBuffers[i];
+        delete [] fInBuffers;
+        delete [] fOutBuffers;
+    }
 
 	virtual bool init(const char*name, dsp* DSP) 
     {
@@ -36,9 +45,9 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 		fDsp->init(44100);
 		fInBuffers  = new float*[numInputs()];
 		fOutBuffers = new float*[numOutputs()];
-		for (int i= 0; i < numInputs(); i++)
+		for (int i = 0; i < numInputs(); i++)
 			fInBuffers[i] = new float[kMaxBuffer];
-		for (int i= 0; i < numOutputs(); i++)
+		for (int i = 0; i < numOutputs(); i++)
 			fOutBuffers [i] = new float[kMaxBuffer];
 		return true;
 	}

@@ -163,7 +163,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
-        ${CXX=g++}  -O3 $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        ${CXX=g++}  -O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
     )> $OUTDEV
 
     ## move the produced files from tmp to source dir

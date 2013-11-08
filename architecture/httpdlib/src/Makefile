@@ -77,7 +77,6 @@ HTTPDControler.o: json/jsonroot.h json/jsonnode.h json/jsoncontrol.h html/htmlfa
 HTTPDControler.o: nodes/RootNode.h
 html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
 html/htmlpage.o: lib/deelx.h html/htmlpage.h html/jsscripts.h html/stylesheet.h
-html/htmlrow.o: html/htmlpage.h
 html/htmlui.o: html/htmlui.h html/htmlfactory.h html/htmlpage.h
 httpd/Address.o: httpd/Address.h
 httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h msg/MessageProcessor.h

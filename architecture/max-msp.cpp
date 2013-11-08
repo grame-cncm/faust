@@ -237,9 +237,7 @@ class mspUI : public UI
         }
 		virtual ~mspUI()
 		{
-			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) {
-                delete (iter->second);
-            }
+			clear();
    		}
         
         void openTabBox(const char* label) {}
@@ -303,6 +301,15 @@ class mspUI : public UI
 		}
 		iterator begin()	{ return fUITable.begin(); }
 		iterator end()		{ return fUITable.end(); }
+        
+        void clear() 
+        { 
+            iterator it;
+            for (it = begin(); it != end(); it++) {
+                delete (*it).second;
+            }
+            fUITable.clear(); 
+        }
 
 };
 
