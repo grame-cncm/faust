@@ -34,9 +34,15 @@ class GUI : public UI
 	}
 	
     virtual ~GUI() 
-    {
-		// suppression de this dans fGuiList
-	}
+    {   
+        // delete all 
+        std::map<FAUSTFLOAT*, clist*>::iterator g;
+		for (g = zmap.begin(); g != zmap.end(); g++) {
+			delete(*g);
+		}
+        // suppress 'this' in static fGuiList
+        fGuiList.remove(this);
+    }
 
 	// -- registerZone(z,c) : zone management
 	
@@ -97,7 +103,7 @@ class uiItem
 		}
 	}
 		  	
-	FAUSTFLOAT			cache()			{ return fCache; }
+	FAUSTFLOAT		cache()			{ return fCache; }
 	virtual void 	reflectZone() 	= 0;	
 };
 
