@@ -29,7 +29,7 @@ endif()
 # set directories, src and headers.
 set (ROOT 			${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set (LIBDIR 		${CMAKE_CURRENT_SOURCE_DIR}/../..)
-set (SRCFOLDERS 	lib ../include msg osc nodes)
+set (SRCFOLDERS 	lib .. msg osc nodes)
 set (OSC_PATH  		"${ROOT}/../../oscpack")
 
 set(SRC ${SRC} "${ROOT}/*.cpp")						# add source files
@@ -48,6 +48,8 @@ foreach(folder ${SRCFOLDERS})
 	set(HEADERS ${HEADERS} "${ROOT}/${folder}/*.h")		# add header files
 endforeach(folder)
 set(HEADERS ${HEADERS} "${ROOT}/threads/*.h")		# add header files
+set(HEADERS ${HEADERS} "${ROOT}/../faust/*.h")		# add header files
+set(HEADERS ${HEADERS} "${ROOT}/../faust/osc/*.h")		# add header files
 file (GLOB HEADERFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${HEADERS})
 
 foreach(folder ${SRCFOLDERS})
