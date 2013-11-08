@@ -1369,7 +1369,8 @@ class QTGUI : public QObject, public GUI
   
 	void update()		{
         //std::cout << '.' << std::endl;
-		updateAllZones();
+//		updateAllZones();
+		updateAllGuis();
 	}
 
   public:

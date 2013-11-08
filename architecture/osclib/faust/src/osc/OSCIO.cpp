@@ -22,7 +22,7 @@
 */
 
 #include <sstream>
-#include "OSCIO.h"
+#include "faust/OSCIO.h"
 #include "OSCStream.h"
 
 namespace oscfaust

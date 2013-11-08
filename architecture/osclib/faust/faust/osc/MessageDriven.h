@@ -28,8 +28,8 @@
 #include <string>
 #include <vector>
 
-#include "MessageProcessor.h"
-#include "smartpointer.h"
+#include "faust/osc/MessageProcessor.h"
+#include "faust/osc/smartpointer.h"
 
 namespace oscfaust
 {

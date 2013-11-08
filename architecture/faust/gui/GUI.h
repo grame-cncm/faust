@@ -12,7 +12,7 @@
  * should both reflect the value of a zone and allow to change this value.
  ******************************************************************************/
 
-struct uiItem;
+class uiItem;
 typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 
 class GUI : public UI
