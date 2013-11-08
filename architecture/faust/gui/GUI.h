@@ -36,10 +36,10 @@ class GUI : public UI
     virtual ~GUI() 
     {   
         // delete all 
-        std::map<FAUSTFLOAT*, clist*>::iterator g;
-		for (g = zmap.begin(); g != zmap.end(); g++) {
-			delete(*g);
-		}
+        zmap::iterator g;
+        for (g = fZoneMap.begin(); g != fZoneMap.end(); g++) {
+            delete (*g).second;
+        }
         // suppress 'this' in static fGuiList
         fGuiList.remove(this);
     }
