@@ -25,8 +25,8 @@
 #ifndef __OSCListener__
 #define __OSCListener__
 
-#include "smartpointer.h"
-#include "MessageProcessor.h"
+#include "faust/osc/smartpointer.h"
+#include "faust/osc/MessageProcessor.h"
 
 // oscpack include files
 #include "ip/UdpSocket.h"

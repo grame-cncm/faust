@@ -20,7 +20,7 @@
 */
 
 #include "OSCFError.h"
-#include "Message.h"
+#include "faust/osc/Message.h"
 
 namespace oscfaust
 {
