@@ -57,9 +57,6 @@ class FaustFactory
 	GUI *						fGUI;		///< a GUI pointer to support updateAllGuis(), required for bi-directionnal OSC
 
 	private:
-//		SMessageDriven 	followPath	(SMessageDriven root, const std::string& fullpath, std::string& pathtoleaf);
-//		template <typename C>  void createNodeChain	(SMessageDriven node, const std::string& pathtoleaf, C* zone, C imin, C imax, C init, C min, C max);
-//
 		std::string addressFirst (const std::string& address) const;
 		std::string addressTail  (const std::string& address) const;
 
@@ -105,28 +102,6 @@ template <typename C> void FaustFactory::addAlias (const std::string& fullpath, 
 		addAlias (realpath.c_str(), target.c_str(), float(imin), float(imax), float(min), float(max));
 	}
 }
-
-/**
- * Creates a chain of nodes starting at node and following pathtoleaf
- */
-//template <typename C>  void FaustFactory::createNodeChain	(SMessageDriven node, const std::string& pathtoleaf, C* zone, C imin, C imax, C init, C min, C max)
-//{
-//	if (pathtoleaf.size() > 0) {
-//		std::string label 	= addressFirst (pathtoleaf);
-//		std::string tail 	= addressTail (pathtoleaf);
-//		if (tail.size() == 0) {
-//			std::string prefix = node->getOSCAddress();
-//			node->add( FaustNode<C>::create (label.c_str(), zone, imin, imax, init, min, max, prefix.c_str(), fGUI) );
-//		} else {
-//			SMessageDriven group = MessageDriven::create (label.c_str(), node->getOSCAddress().c_str());
-//			node->add(group);
-//			createNodeChain(group, tail, zone, imin, imax, init, min, max);
-//		}
-//	} else {
-//		std::cerr << "osc address too short" << std::endl;
-//	}
-//}
-
 
 } // end namespoace
 
