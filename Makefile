@@ -63,6 +63,7 @@ install :
 	mkdir -p $(prefix)/bin/
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
+	mkdir -p $(prefix)/include/faust/osc/
 	install compiler/faust $(prefix)/bin/
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
@@ -86,7 +87,8 @@ install :
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
 	# install additional includes files for binary libraries  (osc, http,...)
-	cp architecture/osclib/faust/include/OSCControler.h $(prefix)/include/faust/gui/
+	cp architecture/osclib/faust/faust/OSCControler.h $(prefix)/include/faust/gui/
+	cp architecture/osclib/faust/faust/osc/*.h $(prefix)/include/faust/osc/
 	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
 	# install faust2xxx tools
 	make -C tools/faust2appls install
