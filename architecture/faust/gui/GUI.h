@@ -34,9 +34,15 @@ class GUI : public UI
 	}
 	
     virtual ~GUI() 
-    {
-		// suppression de this dans fGuiList
-	}
+    {   
+        // delete all 
+        zmap::iterator g;
+        for (g = fZoneMap.begin(); g != fZoneMap.end(); g++) {
+            delete (*g).second;
+        }
+        // suppress 'this' in static fGuiList
+        fGuiList.remove(this);
+    }
 
 	// -- registerZone(z,c) : zone management
 	
@@ -97,7 +103,7 @@ class uiItem
 		}
 	}
 		  	
-	FAUSTFLOAT			cache()			{ return fCache; }
+	FAUSTFLOAT		cache()			{ return fCache; }
 	virtual void 	reflectZone() 	= 0;	
 };
 
