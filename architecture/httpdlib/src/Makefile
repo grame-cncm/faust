@@ -10,18 +10,18 @@ system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
+TARGETS := ../libHTTPDFaust.a ../libHTTPDFaust.dylib 
 else
 ARCHFLAGS := 
+TARGETS := ../libHTTPDFaust.a  
 endif
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-ifeq ($(system), Darwin)
-all : ../libHTTPDFaust.a ../libHTTPDFaust.dylib 
-else
-all : ../libHTTPDFaust.a  
-endif
+
+
+all : $(TARGETS)
 
 ../libHTTPDFaust.a : $(objects)
 	rm -f $@
@@ -37,8 +37,7 @@ depend :
 clean :
 	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
 	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
-	rm -f $(target)
-	rm -f libHTTPDFaust.dylib 
+	rm -f $(TARGETS)
 	
 
 hexa/jsscripts.o : hexa/jsscripts.cpp
