@@ -2056,24 +2056,49 @@ struct InstBuilder
         return genBinopInst(kDiv, a1, a2);
     }
 
-    static BinopInst* genAnd(ValueInst* a1, ValueInst* a2)
-    {
-        return genBinopInst(kAND, a1, a2);
-    }
-
-    static BinopInst* genLessThan(ValueInst* a1, ValueInst* a2)
-    {
-        return genBinopInst(kLT, a1, a2);
-    }
-
     static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
     {
         return genBinopInst(kGT, a1, a2);
     }
     
-     static BinopInst* genNotEqual(ValueInst* a1, ValueInst* a2)
+    static BinopInst* genLessThan(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kLT, a1, a2);
+    }
+
+    static BinopInst* genGreaterEqual(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kGE, a1, a2);
+    }
+    
+    static BinopInst* genLessEqual(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kLE, a1, a2);
+    }
+    
+    static BinopInst* genEqual(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kEQ, a1, a2);
+    }
+    
+    static BinopInst* genNotEqual(ValueInst* a1, ValueInst* a2)
     {
         return genBinopInst(kNE, a1, a2);
+    }
+    
+    static BinopInst* genAnd(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kAND, a1, a2);
+    }
+
+    static BinopInst* genOr(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kOR, a1, a2);
+    }
+    
+    static BinopInst* genXOr(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kXOR, a1, a2);
     }
 
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
