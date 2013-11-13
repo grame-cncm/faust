@@ -297,7 +297,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return CreateAggregateDeviceAux(captureDeviceIDArray, playbackDeviceIDArray, samplerate);
     }
     
-    OSStatus CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int& samplerate){
+    OSStatus CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int& samplerate)
+    {
         OSStatus osErr = noErr;
         UInt32 outSize;
         Boolean outWritable;
@@ -641,7 +642,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return -1;
     }
 
-    OSStatus DestroyAggregateDevice(){   
+    OSStatus DestroyAggregateDevice()
+    {   
         // If an aggregate device has really been created...
         if (fAggregateDeviceID != -1 && fClients == 0)   {
             

@@ -93,6 +93,7 @@ using namespace std;
 /* Faust code wrapper ------- */
 
 #include "ext.h"
+#include "ext_obex.h"
 #include "z_dsp.h"
 #include <string.h>
 

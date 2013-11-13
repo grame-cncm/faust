@@ -1,6 +1,8 @@
 subprojects := html httpd include json lib msg nodes
-sources = $(wildcard *.cpp) $(wildcard */*.cpp) 
+sources = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp)
 objects = $(sources:.cpp=.o)
+objects += hexa/jsscripts.o
+objects += hexa/stylesheet.o
 
 VPATH = $(subprojects)
 
@@ -8,66 +10,71 @@ system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
+TARGETS := ../libHTTPDFaust.a ../libHTTPDFaust.dylib 
 else
 ARCHFLAGS := 
+TARGETS := ../libHTTPDFaust.a  
 endif
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-target := ../libHTTPDFaust.a
 
-all : $(target)
 
-$(target) : html/jsscripts.o html/stylesheet.o $(objects)
+all : $(TARGETS)
+
+../libHTTPDFaust.a : $(objects)
 	rm -f $@
-	ar cq $@ html/jsscripts.o html/stylesheet.o $(objects)
+	ar cq $@ $(objects)
 	ranlib $@
-	
+
+../libHTTPDFaust.dylib  :  $(objects)
+	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd` -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
 	
 clean :
-	rm -f $(objects) html/jsscripts html/jsscripts.o html/jsscripts.cpp
-	rm -f $(objects) html/stylesheet html/stylesheet.o html/stylesheet.cpp
-	rm -f $(target)
+	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
+	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
+	rm -f $(TARGETS)
 	
 
-html/jsscripts.o : html/jsscripts.cpp
-html/stylesheet.o : html/stylesheet.cpp
+hexa/jsscripts.o : hexa/jsscripts.cpp
 
-html/jsscripts.cpp : html/jsscripts
-	cd html; xxd -i jsscripts jsscripts.cpp
+hexa/stylesheet.o : hexa/stylesheet.cpp
 
-html/stylesheet.cpp : html/stylesheet
-	cd html; xxd -i stylesheet stylesheet.cpp
+hexa/jsscripts.cpp : hexa/jsscripts
+	cd hexa; xxd -i jsscripts jsscripts.cpp
 
-html/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
-	cat ../html/js/svg/jquery-1.7.1.min.js > html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/jquerysvg/jquery.svg.min.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/jquerysvg/jquery.svgdom.min.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_proto.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_mobile.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_ui_inits.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_load_external_file.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_ui_objects.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_ui_builder.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_ui_interact.js >> html/jsscripts
-	echo " " >> html/jsscripts
-	cat ../html/js/svg/faust_server_communication.js >> html/jsscripts
+hexa/stylesheet.cpp : hexa/stylesheet
+	cd hexa; xxd -i stylesheet stylesheet.cpp
 
-html/stylesheet : ../html/js/svg/faust_css.css
-	cat ../html/js/svg/faust_css.css > html/stylesheet
+hexa/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
+	cat ../html/js/svg/jquery-1.7.1.min.js > $@
+	echo " " >> $@
+	cat ../html/js/svg/jquerysvg/jquery.svg.min.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/jquerysvg/jquery.svgdom.min.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_proto.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_mobile.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_ui_inits.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_load_external_file.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_ui_objects.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_ui_builder.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_ui_interact.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_server_communication.js >> $@
+
+hexa/stylesheet : ../html/js/svg/faust_css.css
+	cat ../html/js/svg/faust_css.css > $@
 
 # DO NOT DELETE
 
