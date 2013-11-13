@@ -104,7 +104,7 @@ void RootNode::get (unsigned long ipdest, const std::string& what) const		///< h
 	else if (what == kDestMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
 	else if (what == kUdpOutPortMsg)
-		oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscerr.getPort() << OSCEnd();
+		oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	else if (what == kUdpErrPortMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
 
