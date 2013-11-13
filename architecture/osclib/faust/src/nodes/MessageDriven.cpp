@@ -21,7 +21,6 @@
 
 */
 
-#include <iostream>
 #include <sstream>
 
 #include "faust/osc/Message.h"
@@ -70,10 +69,14 @@ void MessageDriven::get (unsigned long ipdest) const
 //--------------------------------------------------------------------------
 bool MessageDriven::accept( const Message* msg )
 {
-	string val;
+	string val, what;
+	int n = msg->size();
 	// the basic accept method only checks for the 'get' message
-	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kGetMsg)) {
-		get (msg->src());
+	if ((n >= 1) && (msg->param(0, val)) && (val == kGetMsg)) {
+		if ( n == 1 )
+			get (msg->src());
+		else if (( n == 2 ) && msg->param(1, what))
+			get (msg->src(), what);
 		return true;
 	}
 	return false;
