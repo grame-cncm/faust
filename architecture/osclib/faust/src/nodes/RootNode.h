@@ -88,6 +88,7 @@ class RootNode : public MessageDriven
 		virtual void	processMessage( const Message* msg );
 		virtual bool	accept( const Message* msg );
 		virtual void	get (unsigned long ipdest) const;
+		virtual void	get (unsigned long ipdest, const std::string& what) const;
 
 				void	addAlias (const char* alias, const char* address, float imin, float imax, float omin, float omax);
 				bool	acceptSignal( const Message* msg );				///< handler for signal data
