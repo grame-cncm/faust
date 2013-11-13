@@ -482,8 +482,8 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        GlobalVariable* llvm_label1;
-        GlobalVariable* llvm_label2;
+        GlobalVariable* llvm_label1 = 0;
+        GlobalVariable* llvm_label2 = 0;
         if (i->first != tree("author")) {
             llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
             llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())));
@@ -498,6 +498,8 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
                 }
             }
         }
+        assert(llvm_label1);
+        assert(llvm_label2);
     
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
