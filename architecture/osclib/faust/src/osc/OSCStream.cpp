@@ -79,12 +79,7 @@ OSCStream& OSCStream::start(const char * address)
 //--------------------------------------------------------------------------
 OSCStream& OSCStream::end()
 {
-	if (state() == kInProgress) {
-		stream() << osc::EndMessage;
-		if (fSocket) 
-			fSocket->SendTo (IpEndpointName (fAddress, fPort), stream().Data(), stream().Size() );
-		fState = kIdle;
-	}
+	send (fAddress, fPort);
 	return *this;
 }
 

@@ -43,11 +43,11 @@ using namespace std;
 namespace oscfaust
 {
 
-static const char * kHelloMsg	= "hello";
-static const char * kDestMsg	= "desthost";
-static const char * kUdpOutPortMsg = "outport";
-static const char * kUdpErrPortMsg = "errport";
-static const char * kXmitMsg	= "xmit";
+static const char * kHelloMsg		= "hello";
+static const char * kDestMsg		= "desthost";
+static const char * kUdpOutPortMsg	= "outport";
+static const char * kUdpErrPortMsg	= "errport";
+static const char * kXmitMsg		= "xmit";
 
 
 //--------------------------------------------------------------------------
@@ -84,12 +84,46 @@ void RootNode::addAlias (const char* alias, const char* address, float imin, flo
 }
 
 //--------------------------------------------------------------------------
+static string ip2string (unsigned long ip)
+{
+	stringstream str;
+	str << ((ip >> 24) & 0xff) << '.' << ((ip >> 16) & 0xff) << '.' << ((ip >> 8) & 0xff) << '.' << (ip & 0xff);
+	return str.str();
+}
+
+//--------------------------------------------------------------------------
+// handler for the get attribute message
+//--------------------------------------------------------------------------
+void RootNode::get (unsigned long ipdest, const std::string& what) const		///< handler for the 'get' message
+{
+	unsigned long savedip = oscout.getAddress();	// saves the current destination IP
+	oscout.setAddress(ipdest);						// sets the osc stream dest IP to the request src IP
+
+	if (what == kXmitMsg)
+		oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
+	else if (what == kDestMsg)
+		oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
+	else if (what == kUdpOutPortMsg)
+		oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
+	else if (what == kUdpErrPortMsg)
+		oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
+
+	oscout.setAddress(savedip);			// restores the destination IP
+	MessageDriven::get (ipdest, what);		// and call the default behavior
+}
+
+//--------------------------------------------------------------------------
 // handler for the get message
 //--------------------------------------------------------------------------
 void RootNode::get (unsigned long ipdest) const		///< handler for the 'get' message
 {
-	unsigned long savedip = oscout.getAddress();		// saves the current destination IP
-	oscout.setAddress(ipdest);							// sets the osc stream dest IP
+	unsigned long savedip = oscout.getAddress();	// saves the current destination IP
+	oscout.setAddress(ipdest);						// sets the osc stream dest IP to the request src IP
+
+	oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
 
 	std::map<std::string, std::vector<aliastarget> >::const_iterator i = fAliases.begin();
 	while (i != fAliases.end()) {
@@ -179,10 +213,14 @@ bool RootNode::accept( const Message* msg )
 		hello (msg->src());
 		return true;
 	}
+
+	if (MessageDriven::accept (msg))
+		return true;
+
 	else if ((msg->size() == 2) && (msg->param(0, val))) {
-		string dest; int num;
-		if ((val == kDestMsg) && (msg->param(1, dest)))
-			oscout.setAddress(dest);
+		string str; int num;
+		if ((val == kDestMsg) && (msg->param(1, str)))
+			oscout.setAddress(str);
 		else if ((val == kUdpOutPortMsg) && (msg->param(1, num))) {
 			*fUDPOut = num;
 			oscout.setPort(num);
@@ -194,8 +232,6 @@ bool RootNode::accept( const Message* msg )
 		else if ((val == kXmitMsg) && (msg->param(1, num)))
 			OSCControler::gXmit = num ? true : false;
 	}
-	else if (MessageDriven::accept (msg))	// next checks for standard handlers ('get' for example)
-		return true;
 	else if (fIO)							// when still not handled and if a IO controler is set
 		return acceptSignal (msg);			// try to read signal data
 	return false;
