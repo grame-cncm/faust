@@ -532,7 +532,7 @@ VstInt32 Faust::getVendorVersion ()
 }
 
 //-----------------------------------------------------------------------------
-VstInt32 Faust::canDo (char* text)
+VstInt32 Faust::canDo (const char* text)
 {
   if (!strcmp (text, "receiveVstEvents")) {
     return 1;
@@ -894,8 +894,7 @@ VstInt32 Faust::processEvents (VstEvents* ev)
 		// For a list, see 
 		// http://www.alfred-j-faust.de/rft/midi%20status%20types.html
 
-		TRACE( fprintf(stderr,"=== Faust vsti: Going to next event\n", 
-					event->midiData[2]) );
+		TRACE( fprintf(stderr,"=== Faust vsti: Going to next event\n") );
 
 		event++;
 	}
