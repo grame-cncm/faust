@@ -137,7 +137,14 @@ class CodeContainer : public virtual Garbageable {
         {
             fGeneratedSR = true;
         }
-
+        void generateSR()
+        {
+            if (!fGeneratedSR) {
+                pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+            }
+            pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+        }
+     
         void openLoop(string index_name, int size = 0);
         void openLoop(Tree recsymbol, string index_name, int size = 0);
         void closeLoop(Tree sig);

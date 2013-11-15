@@ -122,9 +122,7 @@ void JAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
 
-    // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
-    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+    generateSR();
 
     // Libraries
     printLibrary(*fOut);

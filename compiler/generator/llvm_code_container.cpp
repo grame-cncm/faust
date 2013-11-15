@@ -578,11 +578,7 @@ void LLVMCodeContainer::produceInternal()
 
 LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
 {
-    // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    if (!fGeneratedSR) {
-        pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
-    }
-    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+    generateSR();
 
     fKlassName = "_" + fKlassName;
 
