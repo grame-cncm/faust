@@ -24,11 +24,12 @@ all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
 
-lib :
-	$(MAKE) -C compiler -f $(MAKEFILE) libfaust prefix=$(prefix)
+dynamic :
+	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
+	$(MAKE) -C architecture/httpdlib/src dynamic
 
 httpd :
-	$(MAKE) -C architecture/httpdlib/src
+	$(MAKE) -C architecture/httpdlib/src all
 
 win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
