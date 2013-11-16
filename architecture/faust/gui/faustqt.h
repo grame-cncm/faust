@@ -43,10 +43,10 @@
 
 #ifdef QRCODECTRL
 #include <sstream>
-#include <QHostAddress>
-#include <QTcpSocket>
 #include <qrencode.h>
-#include <QRegExp>
+#include <netdb.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #endif
 
 #define STYLESHEET "QPushButton {background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #B0B0B0, stop: 1 #404040); border: 2px solid grey; border-radius: 6px; margin-top: 1ex; } QPushButton:hover { border: 2px solid orange; } QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, stop: 1 #B0B0B0); } QGroupBox, QMainWindow { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); border: 2px solid gray; border-radius: 5px; margin-top: 3ex; font-size:10pt; font-weight:bold; color: white; } QGroupBox::title, QMainWindow::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 5px; } QSlider::groove:vertical { background: red; position: absolute; left: 13px; right: 13px; } QSlider::handle:vertical { height: 40px; width: 30px; background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: 0 -5px; /* expand outside the groove */ border-radius: 5px; } QSlider::add-page:vertical { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange); } QSlider::sub-page:vertical { background: grey; }  QSlider::groove:horizontal { background: red; position: absolute; top: 14px; bottom: 14px; }  QSlider::handle:horizontal { width: 40px; background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: -5px 0; border-radius: 5px; } QSlider::sub-page:horizontal { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange); } QSlider::add-page:horizontal { background: grey; }QTabWidget::pane {border-top: 2px solid orange; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); } QTabWidget::tab-bar { left: 5px; }  QTabBar::tab { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #909090, stop: 0.4 #888888, stop: 0.5 #808080, stop: 1.0 #909090); border: 2px solid #808080; border-bottom-color: orange; border-top-left-radius: 4px; border-top-right-radius: 4px; min-width: 8ex; padding: 2px; }  QTabBar::tab:selected, QTabBar::tab:hover { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #D0D0D0, stop: 0.4 #A0A0A0, stop: 0.5 #808080, stop: 1.0 #A0A0A0); } QTabBar::tab:selected { border-color: orange; border-bottom-color: #A0A0A0; } QTabBar::tab:!selected { margin-top: 2px; }"
@@ -1391,25 +1391,31 @@ class QTGUI : public QObject, public GUI
 #ifdef HTTPCTRL
 #ifdef QRCODECTRL
    
-   	//
-	// Extract the IP number of the machine http
- 	//
-
+    //
+    // Returns the IP address of the machine (to be qrcoded)
+    //
     QString extractIPnum(int portnum)
-	{
-        QString     result;
-        QTcpSocket  sock;
+    {
+        QString     result;        
+        char        host_name[32];
         
-        sock.connectToHost("8.8.8.8", 53); // google DNS, or somethingelse reliable
-        if (sock.waitForConnected()) {
-            QHostAddress IP = sock.localAddress();
-            result = IP.toString(); 
+        gethostname(host_name, sizeof(host_name));
+        struct hostent* host = gethostbyname(host_name);
+        
+        if ((host != 0) && (host->h_addr_list[0] != 0)) {
+            struct in_addr addr;
+            memcpy(&addr, host->h_addr_list[0], sizeof(struct in_addr));   
+            result = QString(inet_ntoa(addr));
         } else {
-            result = "localhost";
+        	result = "localhost";
         }
         std::stringstream ss; ss << portnum;
         return result + ":" + ss.str().c_str();;
     }
+
+
+
+
 
     //
     // Used in HTTPD mode, display the QRCode of the URL of the application
