@@ -10,12 +10,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
 #define BUFFER_SIZE 128
 
 // g++ -O3 faust-sound-converter.cpp -lsndfile -o faust-sound-converter
+
+static string RemoveEnding(const string& name)
+{
+    int match = name.rfind(".");
+    return (match != string::npos) ? name.substr(0, match) : name;
+}
 
 int main(int argc, char *argv[])
 {
@@ -35,20 +42,19 @@ int main(int argc, char *argv[])
         exit(0); 
     }
     
-    char out_name[256];
-    snprintf(out_name, 256, "%s.h", argv[1]);
+    string new_name = RemoveEnding(argv[1]);
+    string out_name = new_name + ".h";
     float buffer[BUFFER_SIZE * snd_info.channels] ;
     std::ofstream dst;
-    dst.open(out_name);
+    dst.open(out_name.c_str());
   
     printf("Sound file channels = channels %d\n", (int)snd_info.channels);
     printf("Sound file length = %d\n", (int)snd_info.frames);
-    printf("Produced header = %s\n", out_name);
+    printf("Produced header = %s\n", out_name.c_str());
     
-    dst << "#define TABLE_SIZE " << (snd_info.frames + 1) << std::endl;
-    dst << "int soundFileSize() { return " << (snd_info.frames + 1) << "; }" << std::endl;
-    dst << "float readSoundFile(int index) { " << std::endl;
-    dst << "static float soundFile[TABLE_SIZE] = { " << std::endl;
+    dst << "int soundFileSize_" << new_name << "() { return " << (snd_info.frames + 1) << "; }" << std::endl;
+    dst << "float readSoundFile_" << new_name << "(int index) { " << std::endl;
+    dst << "static float soundFile["<< (snd_info.frames + 1) << "] = { " << std::endl;
     
     int nbf;
     do {
