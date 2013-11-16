@@ -571,9 +571,9 @@ public class faustApp extends Activity {
 
 	private final SensorEventListener mSensorListener = new SensorEventListener() {
 		public void onSensorChanged(SensorEvent se) {
-			mAccelx = se.values[0];
-			mAccely = se.values[1];
-			mAccelz = se.values[2];
+			mAccelx = -se.values[0];
+			mAccely = -se.values[1];
+			mAccelz = -se.values[2];
 		}
 	    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	    }
@@ -686,7 +686,7 @@ public class faustApp extends Activity {
         
         // Initialisation of the accelerometer elements
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
         mAccelx = 0.00f;
         mAccely = 0.00f;
         mAccelz = 0.00f;
