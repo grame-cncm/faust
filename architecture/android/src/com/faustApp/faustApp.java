@@ -1034,6 +1034,8 @@ public class faustApp extends Activity {
 		e.printStackTrace();
 	}
 		
+	// Keep screen on in order to keep accelerometers action on
+	getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
     
     @Override
