@@ -145,10 +145,12 @@ class GUI : public UI {
 		// -- metadata declarations
 	    // TODO: the current separation system between metadatas should be replaced by something more reliable
 	    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {
+	    	if ( (strcmp(key,"accx")==0) || (strcmp(key,"accy")==0) || (strcmp(key,"accz")==0) ) {
 	    		strcat(params.metadata[params.cnt], "$");
 	    		strcat(params.metadata[params.cnt], key);
 	    		strcat(params.metadata[params.cnt], ";");
 	    		strcat(params.metadata[params.cnt], val);
+	    	}
 	    }
 };
 

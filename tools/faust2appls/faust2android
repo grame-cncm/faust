@@ -58,6 +58,9 @@ for f in $FILES; do
 	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
+# Copy include files *.h
+cp *.h "$TMPFILES/jni/"
+
 # Get the number of input and output of the Faust object 
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
 NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
