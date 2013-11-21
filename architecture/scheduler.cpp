@@ -250,7 +250,8 @@ inline bool Semaphore::try_wait()
 #endif
 
 #ifdef __APPLE__
-#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+//#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#include <MacTypes.h>
 #include <libkern/OSAtomic.h>
 #endif
 
@@ -392,7 +393,6 @@ static int GetPID()
 
 #ifdef __APPLE__
 
-#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
 #include <mach/mach_time.h>
