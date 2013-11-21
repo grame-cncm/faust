@@ -73,7 +73,15 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SPEC="-spec macx-g++"
+	g++ -v 2>&1 | grep clang && CLANG=1 || CLANG=0
+	if [ $CLANG == 1 ]
+	then
+	    SPEC="-spec macx-clang"
+	    CLANGOPT="CONFIG+=c++11"
+	else
+	    SPEC="-spec macx-g++"
+	    CLANGOPT=""
+	fi
     EXT=".app"
 fi
 
@@ -97,7 +105,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
 	    qmake $SPEC
         make
     ) > /dev/null
