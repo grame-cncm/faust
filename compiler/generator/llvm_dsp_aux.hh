@@ -30,7 +30,7 @@
 #include <fstream>
 #include <sstream>
 
-#if defined(LLVM_33)
+#if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IRReader/IRReader.h>
@@ -44,7 +44,7 @@
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
 
-#if defined(LLVM_33)
+#if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/DataLayout.h>
 #elif LLVM_32
 #include <llvm/DataLayout.h>
@@ -65,7 +65,7 @@
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/Support/TargetSelect.h>
 #endif
 

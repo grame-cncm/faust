@@ -33,7 +33,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(LLVM_33)
+#if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>

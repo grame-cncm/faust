@@ -26,7 +26,7 @@
 
 #include <llvm/Support/Threading.h>
 
-#if defined(LLVM_33)
+#if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -57,7 +57,7 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
     if (module) {
         return module;
     } else {
-     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
+     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
         err.print("ParseIRFile failed :", errs());
     #else
         err.Print("ParseIRFile failed :", errs());
@@ -98,7 +98,13 @@ std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
 void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const std::string& bit_code_path)
 {
     std::string err;
+    
+#if defined(LLVM_34)
+    raw_fd_ostream out(bit_code_path.c_str(), err, sys::fs::F_Binary);
+#else
     raw_fd_ostream out(bit_code_path.c_str(), err, raw_fd_ostream::F_Binary);
+#endif
+    
     WriteBitcodeToFile(fResult->fModule, out);
 }
 
@@ -117,7 +123,11 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
 void llvm_dsp_factory::writeDSPFactoryToIRFile(const std::string& ir_code_path)
 {
     std::string err;
+#if defined(LLVM_34)
+    raw_fd_ostream out(ir_code_path.c_str(), err, sys::fs::F_Binary);
+#else
     raw_fd_ostream out(ir_code_path.c_str(), err, raw_fd_ostream::F_Binary);
+#endif
     PassManager PM;
     PM.add(createPrintModulePass(&out));
     PM.run(*fResult->fModule);
@@ -174,7 +184,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
-#if defined(LLVM_33)
+#if defined(LLVM_33) || defined(LLVM_34)
 
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
@@ -206,12 +216,13 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     }
       
     Builder.DisableUnrollLoops = OptLevel == 0;
+#if defined(LLVM_33)   
     Builder.DisableSimplifyLibCalls = false;
+#endif
       
     if (OptLevel > 3) {
         Builder.LoopVectorize = true;
         Builder.SLPVectorize = true;
-        
     }
     if (OptLevel > 4) {
         Builder.BBVectorize = true;
@@ -682,7 +693,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
         char error_msg[256];
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
         err.print("readDSPFactoryFromIR failed :", errs());
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());
@@ -711,7 +722,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
         char error_msg[256];
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
         err.print("readDSPFactoryFromIR failed :", errs());
     #else
         err.Print("readDSPFactoryFromIR failed :", errs());

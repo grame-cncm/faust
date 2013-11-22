@@ -22,7 +22,7 @@
 #include "binop.hh"
 #include "signals.hh"
 
-#if defined(LLVM_33)
+#if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Instructions.h>
 #else
 #include <llvm/Instructions.h>
