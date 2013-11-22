@@ -21,6 +21,7 @@
  
 #include "enrobage.hh"
 #include <vector>
+#include <list>
 #include <set>
 #include <string>
 #include <ctype.h>
@@ -31,12 +32,13 @@
 #include <errno.h>
 #include <climits>
 
-extern string gFaustSuperSuperDirectory;
-extern string gFaustSuperDirectory;
-extern string gFaustDirectory;
-extern string gMasterDirectory;
-extern string gClassName;
-extern bool	  gInlineArchSwitch;
+extern string       gFaustSuperSuperDirectory;
+extern string       gFaustSuperDirectory;
+extern string       gFaustDirectory;
+extern string       gMasterDirectory;
+extern string       gClassName;
+extern bool         gInlineArchSwitch;
+extern list<string> gImportDirList;                 // path to search for imports, components and libraries
 
 //----------------------------------------------------------------
 
@@ -464,10 +466,26 @@ FILE* fopensearch(const char* filename, string& fullpath)
     FILE* f;
     char* envpath;
 
+
+    // search in current directory
+
     if ((f = fopen(filename, "r"))) { 
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
+
+    // search file in user supplied directory path
+
+    for (list< string >::iterator i = gImportDirList.begin(); i != gImportDirList.end(); i++) {
+        if ((f = fopenat(fullpath, *i, filename))) {
+            //std::cerr << "found file : " << fullpath << std::endl;
+            return f;
+        }
+    }
+
+
+    // search in default directories
+
     if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
     	return f;
     }
