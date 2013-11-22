@@ -37,7 +37,7 @@ LOG="/dev/null"
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
-	if [[ -e "$p" ]]; then
+	if [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
