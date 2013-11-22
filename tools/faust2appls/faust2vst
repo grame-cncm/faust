@@ -82,9 +82,17 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-osc" ]; then
+	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
+    elif [ $p = "-httpd" ]; then
+	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -114,7 +122,7 @@ for p in $FILES; do
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	g++ $CXXFLAGS -arch i386 $FAUSTTOOLSFLAGS $INCLUDES -bundle -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}" "${f%.dsp}.cpp" $SOURCES
+	g++ $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}" "${f%.dsp}.cpp" $SOURCES
 	createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"
 	echo "BNDL????" > "${f%.dsp}$EXT/Contents/PkgInfo"
     ) > /dev/null

@@ -21,6 +21,7 @@
 
 #include "enrobage.hh"
 #include <vector>
+#include <list>
 #include <set>
 #include <string>
 #include <ctype.h>
@@ -32,7 +33,6 @@
 #include "sourcefetcher.hh"
 #include "exception.hh"
 #include <errno.h>
-
 #include <climits>
 #include <iostream>
 #include <sstream>
@@ -463,11 +463,25 @@ FILE* fopensearch(const char* filename, string& fullpath)
     FILE* f;
     char* envpath;
 
+    // search in current directory
+
     if ((f = fopen(filename, "r"))) { 
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
-    if ((f = fopenat(fullpath, gGlobal->gMasterDirectory, filename))) { 
+
+    // search file in user supplied directory path
+
+    for (list< string >::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
+        if ((f = fopenat(fullpath, *i, filename))) {
+            //std::cerr << "found file : " << fullpath << std::endl;
+            return f;
+        }
+    }
+
+    // search in default directories
+
+    if ((f = fopenat(fullpath, gGlobal->gMasterDirectory, filename))) {
     	return f;
     }
     if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {

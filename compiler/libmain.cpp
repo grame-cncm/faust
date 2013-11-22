@@ -51,6 +51,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <list>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -77,7 +78,7 @@
 #include "garbageable.hh"
 #include "export.hh"
 
-#define FAUSTVERSION "2.0.a10"
+#define FAUSTVERSION "2.0.a11"
 
 // Same as libfaust.h 
 typedef struct LLVMResult {
@@ -340,8 +341,20 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gGlobal->gInlineArchSwitch = true;
             i += 1;
-			
-       } else if (argv[i][0] != '-') {
+            
+        } else if (isCmd(argv[i], "-I", "--import-dir")) {
+
+            char temp[PATH_MAX+1];
+            char* path = realpath(argv[i+1], temp);
+            if (path == 0) {
+                std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                exit(-1);
+            } else {
+                gGlobal->gImportDirList.push_back(path);
+                i += 2;
+            }
+		
+        } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
 			if (check_url(url)) {
 				gGlobal->gInputFiles.push_back(url);
@@ -447,6 +460,7 @@ static void printhelp()
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
+    cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";

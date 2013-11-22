@@ -41,7 +41,7 @@ for ((i=1;i<$#+1;i++)); do
 	PROCARCH="-m64 -fPIC"
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
-    elif [[ -e "$p" ]]; then
+    elif [[ -f "$p" ]]; then
 	FILES="$FILES $p"
     else
 	OPTIONS="$OPTIONS $p"

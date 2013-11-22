@@ -104,10 +104,9 @@ for p in $@; do
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
-	    echo "*** Faust source-file '$p' not found"
 	    OPTIONS="$OPTIONS $p"
 	fi
 done

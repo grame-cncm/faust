@@ -33,14 +33,18 @@ cp -r /usr/local/lib/faust/android/*  $TMPFILES
 INSTALL=0
 ECLIPSE=0
 
+LOG="/dev/null"
+
 # PHASE 2 : dispatch command arguments
 for p in $@; do
-	if [[ -e "$p" ]]; then
+	if [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
 	elif [ $p = "-eclipse" ]; then
 		ECLIPSE=1
+	elif [ $p = "-debug" ]; then
+		LOG="/dev/stdout"
 	elif [ $p = "-h" ]; then
 		echo "Usage: faust2android faustFile.dsp"
 		echo "OPTIONS:"
@@ -58,8 +62,8 @@ for f in $FILES; do
 	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
-# Copy include files *.h
-cp *.h "$TMPFILES/jni/"
+# Copy include files *.h if any
+(cp *.h "$TMPFILES/jni/" 2> /dev/null) 
 
 # Get the number of input and output of the Faust object 
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
@@ -117,13 +121,13 @@ mkdir -p src/faust_dsp
 
 swig -java -package faust_dsp -includeall -verbose -outdir src/faust_dsp -c++ -I/usr/share/swig2.0 -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp faust_dsp_interface.i > /dev/null
 
-ndk-build TARGET_PLATFORM=android-14 V=1 > /dev/null
+ndk-build TARGET_PLATFORM=android-14 V=1 > $LOG
 
 
 # To be checked on the mac
-android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > /dev/null 
+android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > $LOG
 
-ant release > /dev/null
+ant release > $LOG
 
 # Code used to generate the faust2android key:
 # keytool -genkey -v -keystore faust2android.keystore -alias faust2an -keyalg RSA -keysize 2048 -validity 10000
