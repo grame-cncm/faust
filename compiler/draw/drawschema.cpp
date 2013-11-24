@@ -456,7 +456,7 @@ static schema* generateInsideSchema(Tree t)
 
 	else if (isBoxInt(t, &i))		{ stringstream 	s; s << i; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
     else if (isBoxReal(t, &r)) 		{ stringstream 	s; s << r; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
-    else if (isBoxWaveform(t,l)) 	{ return makeBlockSchema(0, 2, "waveform", normalcolor, ""); }
+    else if (isBoxWaveform(t))      { return makeBlockSchema(0, 2, "waveform", normalcolor, ""); }
     else if (isBoxWire(t)) 			{ return makeCableSchema(); }
     else if (isBoxCut(t)) 			{ return makeCutSchema();  }
 
