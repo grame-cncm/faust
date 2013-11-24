@@ -241,23 +241,25 @@ ostream& boxpp::print (ostream& fout) const
 
         fout << ')';
 
-    }
-    else if (isBoxWaveform(box, t1)) {
+    } else if (isBoxWaveform(box)) {
 
-        Tree l = t1;
-        char sep = '{';
+        size_t n = box->arity();
 
-        fout << "waveform";
-        do {
-            fout << sep << boxpp(hd(l));
-            sep = ',';
-            l = tl(l);
-        } while (isList(l));
+        if (n < 15) {
+            // small waveform, print all data
+            fout << "waveform";
+            char sep = '{';
+            for (size_t i=0; i<n; i++) {
+                fout << sep << boxpp(box->branch(i));
+                sep = ',';
+            }
+            fout << '}';
+        } else {
+            // large waveform print only first and last values
+            fout << "waveform{" << box->branch(0) << ", ..<" << n-2 << ">..," << box->branch(n-1) << "}";
+        }
 
-        fout << '}';
-
-    }
-    else if (isBoxEnvironment(box)) {
+    } else if (isBoxEnvironment(box)) {
         fout << "environment";
 
     } else if (isClosure(box, abstr, genv, vis, lenv)) {

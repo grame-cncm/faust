@@ -15,8 +15,8 @@ else
 ARCHFLAGS 	:= 
 endif
 
-##CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
+CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
+##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 all : faust

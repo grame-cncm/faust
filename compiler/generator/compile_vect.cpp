@@ -521,12 +521,12 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
 }
 
 
-string VectorCompiler::generateWaveform(Tree sig, Tree wf)
+string VectorCompiler::generateWaveform(Tree sig)
 {
     string  vname;
     int     size;
 
-    declareWaveform(sig, wf, vname, size);
+    declareWaveform(sig, vname, size);
     fClass->addPostCode(subst("idx$0 = (idx$0 + count) % $1;", vname, T(size)) );
     return subst("$0[(idx$0+i)%$1]", vname, T(size));
 }

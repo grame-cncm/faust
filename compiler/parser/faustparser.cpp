@@ -2785,7 +2785,7 @@ yyreduce:
 
   case 143:
 #line 527 "parser/faustparser.y"
-    { (yyval.exp) = boxWaveform((yyvsp[(3) - (4)].exp)); ;}
+    { (yyval.exp) = boxWaveform(reverse((yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 144:

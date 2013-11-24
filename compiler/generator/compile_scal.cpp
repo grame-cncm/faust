@@ -263,14 +263,14 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	int 	i;
 	double	r;
-    Tree 	c, sel, x, y, z, label, id, ff, wf, largs, type, name, file;
+    Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
 		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
-    else if ( isSigWaveform(sig, wf) )              { return generateWaveform(sig, wf); }
+    else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
@@ -1296,7 +1296,7 @@ void ScalarCompiler::ensureIotaCode()
  * Generate code for a waveform. The waveform will be declared as a static field.
  * The name of the waveform is returned in vname and its size in size.
  */
-void ScalarCompiler::declareWaveform(Tree sig, Tree wf, string& vname, int& size)
+void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
 {
 
     // computes C type and unique name for the waveform
@@ -1305,20 +1305,17 @@ void ScalarCompiler::declareWaveform(Tree sig, Tree wf, string& vname, int& size
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
 
 
+    size = sig->arity();
+
     // Converts waveform into a string : "{a,b,c,...}"
 
     stringstream content;
 
-    Tree l = wf;
     char sep = '{';
-    size = 0;
-    do {
-        content << sep << ppsig(hd(l));
+    for (int i = 0; i < size; i++) {
+        content << sep << ppsig(sig->branch(i));
         sep = ',';
-        l = tl(l);
-        size++;
-    } while (isList(l));
-
+    }
     content << '}';
 
 
@@ -1333,12 +1330,12 @@ void ScalarCompiler::declareWaveform(Tree sig, Tree wf, string& vname, int& size
 
 }
 
-string ScalarCompiler::generateWaveform(Tree sig, Tree wf)
+string ScalarCompiler::generateWaveform(Tree sig)
 {
     string  vname;
     int     size;
 
-    declareWaveform(sig, wf, vname, size);
+    declareWaveform(sig, vname, size);
     fClass->addPostCode(subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size)) );
     return subst("$0[idx$0]", vname, T(size));
 }

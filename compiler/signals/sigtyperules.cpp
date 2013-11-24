@@ -263,7 +263,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigReal(sig, &r)) 			{   Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
                                                 /*sig->setType(t);*/ return t; }
 
-    else if (isSigWaveform(sig, wf)) 		{   return infereWaveformType(wf); }
+    else if (isSigWaveform(sig))            {   return infereWaveformType(sig); }
 
 
     else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return TINPUT; }
@@ -594,17 +594,22 @@ static Type infereFVarType (Tree type)
  *  - knum ???
  *  - the interval is min and max of values
  */
-static Type infereWaveformType (Tree lv)
+static Type infereWaveformType (Tree wfsig)
 {
-    if (isNil(lv)) {
+    bool    iflag = true;
+    int     n = wfsig->arity();
+    double  lo, hi;
+
+    if (n == 0) {
         std::cerr << "ERROR, empty waveform" << std::endl;
         exit(1);
     }
-    double lo, hi;
-    lo = hi = tree2float(hd(lv));
-    bool iflag = isInt(hd(lv));
-    while (!isNil(lv)) {
-        Tree v = hd(lv);
+
+    lo = hi = tree2float(wfsig->branch(0));
+    iflag = isInt(wfsig->branch(0));
+
+    for (int i = 1; i < n; i++)  {
+        Tree v = wfsig->branch(i);
         // compute range
         double f = tree2float(v);
         if (f < lo) {
@@ -613,7 +618,6 @@ static Type infereWaveformType (Tree lv)
             hi = f;
         }
         iflag &= isInt(v);
-        lv = tl(lv);
     }
 
     return makeSimpleType((iflag)?kInt:kReal, kSamp, kComp, kScal, kNum, interval(lo,hi));

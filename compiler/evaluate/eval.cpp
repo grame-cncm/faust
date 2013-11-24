@@ -203,6 +203,10 @@ static Tree real_a2sb(Tree exp)
 		if (getDefNameProperty(exp, name)) setDefNameProperty(result, name);
 		return result;
 
+    } else if (isBoxWaveform(exp)) {
+        // A waveform is always in Normal Form, nothing to evaluate
+        return exp;
+
 	} else {
 		// it is a constructor : transform each branches
         unsigned int    ar = exp->arity();

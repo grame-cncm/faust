@@ -86,7 +86,7 @@ bool  isBoxReal(Tree t, double* r);
 Tree boxWaveform(Tree values);
 
 bool  isBoxWaveform(Tree t);
-bool  isBoxWaveform(Tree t, Tree& values);
+//bool  isBoxWaveform(Tree t, const tvec& branches);
 
 
 /*****************************************************************************

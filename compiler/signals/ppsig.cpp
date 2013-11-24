@@ -192,7 +192,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( getUserData(sig) ) 					{ printextended(fout, sig); }
 	else if ( isSigInt(sig, &i) ) 					{ fout << i; }
     else if ( isSigReal(sig, &r) ) 					{ fout << r; }
-    else if ( isSigWaveform(sig, wf) ) 				{ fout << "waveform{...}"; }
+    else if ( isSigWaveform(sig) )                  { fout << "waveform{...}"; }
     else if ( isSigInput(sig, &i) ) 				{ fout << "IN[" << i << "]"; }
 	else if ( isSigOutput(sig, &i, x) ) 			{ printout(fout, i, x) ; }
 	

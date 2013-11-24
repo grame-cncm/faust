@@ -64,7 +64,7 @@ protected:
     virtual string      generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     virtual void        vectorLoop (const string& tname, const string& dlname, const string& cexp);
     virtual void        dlineLoop ( const string& tname, const string& dlname, int delay, const string& cexp);
-    virtual string      generateWaveform(Tree sig, Tree wf);
+    virtual string      generateWaveform(Tree sig);
 
     bool    needSeparateLoop(Tree sig);
     

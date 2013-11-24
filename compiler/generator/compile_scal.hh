@@ -103,7 +103,7 @@ class ScalarCompiler : public Compiler
     string          generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
 	
     string          generateFFun  		(Tree sig, Tree ff, Tree largs);
-    virtual string      generateWaveform    (Tree sig, Tree wf);
+    virtual string      generateWaveform    (Tree sig);
 
     string          generateInput 		(Tree sig, const string& idx);
     string          generateOutput		(Tree sig, const string& idx, const string& arg1);
@@ -146,7 +146,7 @@ class ScalarCompiler : public Compiler
     void            ensureIotaCode();
     int             pow2limit(int x);
 
-    void            declareWaveform(Tree sig, Tree wf, string& vname, int& size);
+    void            declareWaveform(Tree sig, string& vname, int& size);
 
 
 
