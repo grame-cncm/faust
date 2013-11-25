@@ -245,7 +245,7 @@ ostream& boxpp::print (ostream& fout) const
 
         size_t n = box->arity();
 
-        if (n < 15) {
+        if (n < 6) {
             // small waveform, print all data
             fout << "waveform";
             char sep = '{';

@@ -21,8 +21,9 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 													  return sig->arity(); }
 	else if ( isSigInt(sig, &i) ) 					{ return 0; }
 	else if ( isSigReal(sig, &r) ) 					{ return 0; }
+    else if ( isSigWaveform(sig))                   { vsigs = sig->branches(); return vsigs.size(); }
 
-    else if ( isSigWaveform(sig) )                  { return 0; }
+    //else if ( isSigWaveform(sig) )                  { return 0; }
 
 	else if ( isSigInput(sig, &i) ) 				{ return 0; 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ vsigs.push_back(x); return 1;	}
