@@ -52,7 +52,7 @@ for p in $@; do
 	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -65,8 +65,8 @@ done
 #
 for SRC in $FILES; do
 	opname=`basename ${SRC%.dsp}`
-    faust  -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
-    ${CXX=g++} ${CXXFLAGS=-O3} $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
+    faust  -i -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
+    ${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS  $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
     rm "$SRC.cpp"
     BINARIES="$BINARIES${SRC%.dsp}.dylib;"
 done

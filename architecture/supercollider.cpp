@@ -1,5 +1,7 @@
 // If other than 'faust2sc --prefix Faust' is used, sed this as well:
-#define SC_FAUST_PREFIX "Faust"
+#if !defined(SC_FAUST_PREFIX)
+# define SC_FAUST_PREFIX "Faust"
+#endif
 
 //-------------------------------------------------------------------
 // FAUST architecture file for SuperCollider.

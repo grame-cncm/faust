@@ -5,7 +5,34 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 research@grame.fr
 ====================================================
-Copyright GRAME (c) 2011
+Copyright GRAME (c) 2011 - 2013
+
+----------------------------------------------------
+Version 0.93                           [Nov. 13 2013]
+- 'get' message addressed to root node returns also the xmit, desthost,
+  outport and errport attributes values
+- 'get attribute' message supported by the root node
+  attribute should be one of 'desthost', 'outport', 'errport' or 'xmit'
+
+
+----------------------------------------------------
+Version 0.92                           [Nov. 8 2013]
+- new aliases management : support multiple targets 
+  for an alias including different mappings
+- OSC architecture can now be used as an OSC controler:
+  requires the support of the GUI architecture,
+  implemented in the QT architecture for the moment.
+- command line options changes:
+  -dest option is renamed -desthost (more explicit)
+  new -xmit 0 | 1 option to activate or deactivate the
+  OSC controler capability.
+- new messages supported at root level:
+  'desthost' hostname : to control the messages destination host
+  'outport' portnum : to change the OSC output port number
+  'errport' portnum : to change the OSC error port number
+  'xmit' [1 | 0] : to activate or deactivate the OSC controler capability.
+- 'get' message output change: aliases are now listed as 
+  /alias/address inmin inmax /target/address outmin outmax
 
 ----------------------------------------------------
 Version 0.91                           [Feb 25 2011]

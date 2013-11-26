@@ -18,8 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.62"
+#define FAUSTVERSION "0.9.65"
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -54,6 +55,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <list>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -145,7 +147,7 @@ bool			gGroupTaskSwitch= false;
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
 
-int             gTimeout        = 120;            // time out to abort compiler (in seconds)
+int             gTimeout        = 120;          // time out to abort compiler (in seconds)
 
 int             gFloatSize = 1;
 
@@ -153,6 +155,8 @@ bool			gPrintFileListSwitch = false;
 bool			gInlineArchSwitch = false;
 
 string			gClassName		= "mydsp";
+
+list<string>    gImportDirList;                 // dir list enrobage.cpp/fopensearch() searches for imports, etc.
 
 //-- command line tools
 
@@ -336,7 +340,19 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gInlineArchSwitch = true;
             i += 1;
-			
+
+        } else if (isCmd(argv[i], "-I", "--import-dir")) {
+
+            char temp[PATH_MAX+1];
+            char* path = realpath(argv[i+1], temp);
+            if (path == 0) {
+                std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                exit(-1);
+            } else {
+                gImportDirList.push_back(path);
+                i += 2;
+            }
+
        } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
             if (check_url(url)) {
@@ -368,7 +384,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2012, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+    cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
@@ -422,6 +438,7 @@ void printhelp()
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
+    cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";

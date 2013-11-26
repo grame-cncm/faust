@@ -15,6 +15,7 @@ ARCHFILE="ca-qt.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
 
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -60,7 +61,7 @@ for p in $@; do
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -73,7 +74,15 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SPEC="-spec macx-g++"
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+	if [ $SYS_VERSION -gt 12 ]
+	then
+	    SPEC="-spec macx-clang"
+	    CLANGOPT="CONFIG+=c++11"
+	else
+	    SPEC="-spec macx-g++"
+	    CLANGOPT=""
+	fi
     EXT=".app"
 fi
 
@@ -97,7 +106,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
 	    qmake $SPEC
         make
     ) > /dev/null

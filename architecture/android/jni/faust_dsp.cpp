@@ -77,9 +77,7 @@ Para faust::initFaust(){
 	params.step = new float [params.cnt];
 
 	int oldPos = 0;
-	char labelBuf[1024]="",labelBuf2[1024]="",labelOld[1024]="";
-
-	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %i", outChanNumb);
+	char labelBuf[1024]="",labelBuf2[1024]="",labelOld[1024]="",metadata[1024]="";
 
 	for(int i=0; i<params.cntEl; i++) params.typeEl[i] = interface->params.typeEl[i];
 
@@ -102,8 +100,13 @@ Para faust::initFaust(){
 		params.min[i] = interface->params.min[i];
 		params.max[i] = interface->params.max[i];
 		params.step[i] = interface->params.step[i];
+
+		strcat(metadata,interface->params.metadata[i]);
 	}
 
+	params.metadata = metadata;
+
+	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %s", metadata);
 	// reset variables
 	oldPos = 0;
 	strcpy(labelOld,"");

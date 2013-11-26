@@ -28,8 +28,8 @@
 #include <string>
 #include <vector>
 
-#include "MessageProcessor.h"
-#include "smartpointer.h"
+#include "faust/osc/MessageProcessor.h"
+#include "faust/osc/smartpointer.h"
 
 namespace oscfaust
 {
@@ -106,7 +106,19 @@ class MessageDriven : public MessageProcessor, public smartable
 			- a terminal node send its state on \c 'get' request to the IP address given as parameter.
 			The \c get method is basically called by the accept method.
 		*/
-		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
+		virtual void	get (unsigned long ipdest) const;
+
+		/*!
+			\brief handler for the \c 'get' 'attribute' message
+			\param ipdest the output message destination IP
+			\param what the requested attribute
+			
+			The \c 'get' message is supported by every node:
+			- it is propagated to the subnodes until it reaches terminal nodes
+			- a terminal node send its state on \c 'get' request to the IP address given as parameter.
+			The \c get method is basically called by the accept method.
+		*/
+		virtual void	get (unsigned long ipdest, const std::string & what) const {}
 
 		void			add ( SMessageDriven node )	{ fSubNodes.push_back (node); }
 		const char*		getName() const				{ return fName.c_str(); }

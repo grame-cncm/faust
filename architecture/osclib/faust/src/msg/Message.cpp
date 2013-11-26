@@ -26,7 +26,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "Message.h"
+#include "faust/osc/Message.h"
 #include "OSCFError.h"
 
 using namespace std;

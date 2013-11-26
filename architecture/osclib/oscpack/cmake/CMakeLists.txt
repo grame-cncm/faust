@@ -29,9 +29,7 @@ endif (${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL powerpc OR
 
 if(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
 	set (CMAKE_OSX_ARCHITECTURES "x86_64 i386")
-	set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.5.sdk)
-	set(CMAKE_C++_FLAGS -mmacosx-version-min=10.4)
-endif(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
+endif()
 
 
 # SET MAIN DIRECTORY.
@@ -77,7 +75,6 @@ if (${GENTOOLS})
 	target_link_libraries( ${tool} oscpack)
 	add_dependencies(${tool} oscpack)
  endforeach(tool)
- set_target_properties( examples/OscDump PROPERTIES CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.5.sdk)
 
 else (${GENTOOLS})
   message (STATUS "Don't generates tools. Use -DGENTOOLS=1 to change")

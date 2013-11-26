@@ -27,8 +27,7 @@
 
 #include <string>
 #include <vector>
-#include <iostream>
-#include "smartpointer.h"
+#include "faust/osc/smartpointer.h"
 
 namespace oscfaust
 {

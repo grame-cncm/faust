@@ -727,8 +727,10 @@ activate(LV2_Handle instance)
   plugin->dsp->init(plugin->rate);
   for (int i = 0, j = 0; i < plugin->ui->nelems; i++) {
     int p = plugin->ui->elems[i].port;
-    float val = plugin->ui->elems[i].init;
-    plugin->portvals[p] = val;
+    if (p >= 0) {
+      float val = plugin->ui->elems[i].init;
+      plugin->portvals[p] = val;
+    }
   }
   plugin->active = true;
 }
@@ -880,13 +882,13 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   }
 #endif
   if (!plugin_name) plugin_name = "mydsp";
-  fprintf(fp, "@prefix doap: <http://usefulinc.com/ns/doap#> .\n\
-@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n\
-@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .\n\
-@prefix epp:  <http://lv2plug.in/ns/ext/port-props#> .\n\
-@prefix ev:   <http://lv2plug.in/ns/ext/event#> .\n\
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+  fprintf(fp, "@prefix doap:  <http://usefulinc.com/ns/doap#> .\n\
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .\n\
+@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .\n\
+@prefix epp:   <http://lv2plug.in/ns/ext/port-props#> .\n\
+@prefix ev:    <http://lv2plug.in/ns/ext/event#> .\n\
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
 @prefix units: <http://lv2plug.in/ns/extensions/units#> .\n\
 <%s>\n\
        a lv2:Plugin ;\n\

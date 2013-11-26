@@ -48,7 +48,7 @@ for p in $@; do
 		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"
@@ -84,8 +84,10 @@ fi
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AUSynth/* $TEMP_DIR
 cp $1 $TEMP_DIR
+cp *.dsp $TEMP_DIR >& /dev/null
 cp *.lib $TEMP_DIR >& /dev/null
 cd $TEMP_DIR
+mkdir Source >& /dev/null
 
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/ausynth-output.cpp
 if [ ! -f Source/ausynth-output.cpp ]

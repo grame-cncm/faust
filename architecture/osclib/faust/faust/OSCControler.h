@@ -27,28 +27,30 @@
 #define __OSCControler__
 
 #include <string>
+#include "faust/osc/FaustFactory.h"
+
+class GUI;
 
 namespace oscfaust
 {
 
 class OSCIO;
 class OSCSetup;
-class FaustFactory;
 
 //--------------------------------------------------------------------------
 /*!
 	\brief the main Faust OSC Lib API
 	
-	The OSCControler is essentially a glue between the memory representation (in charge of the FaustFactory), 
+	The OSCControler is essentially a glue between the memory representation (in charge of the FaustFactory),
 	and the network services (in charge of OSCSetup).
 */
 class OSCControler
 {
 	int fUDPPort, fUDPOut, fUPDErr;		// the udp ports numbers
 	std::string		fDestAddress;		// the osc messages destination address
-	FaustFactory *	fFactory;			// a factory to build the memory represetnatin
 	OSCSetup*		fOsc;				// the network manager (handles the udp sockets)
 	OSCIO*			fIO;				// hack for OSC IO support (actually only relayed to the factory)
+	FaustFactory *	fFactory;			// a factory to build the memory represetnatin
 
 	public:
 		/*
@@ -58,24 +60,25 @@ class OSCControler
 		*/
 		enum { kUDPBasePort = 5510};
 
-				 OSCControler (int argc, char *argv[], OSCIO* io=0);
+				 OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io=0);
 		virtual ~OSCControler ();
 	
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
 		// Add a node in the current group (top of the group stack)
-		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max);
+		template <typename T> void addnode (const char* label, T* zone, T init, T min, T max)
+							{ fFactory->addnode (label, zone, init, min, max); }
 		
 		//--------------------------------------------------------------------------
-		// Add a node using its fullpath from the root instead of the current group
 		// This method is used for alias messages. The arguments imin and imax allow
 		// to map incomming values from the alias input range to the actual range 
-		template <typename C> void addfullpathnode (const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max);
-        	
-		void opengroup (const char* label);
-		void closegroup ();
+		template <typename T> void addAlias (const std::string& fullpath, T* zone, T imin, T imax, T init, T min, T max, const char* label)
+							{ fFactory->addAlias (fullpath, zone, imin, imax, init, min, max, label); }
 
+		void opengroup (const char* label)		{ fFactory->opengroup (label); }
+		void closegroup ()						{ fFactory->closegroup(); }
+	   
 		//--------------------------------------------------------------------------
 		void run ();				// starts the network services
 		void quit ();				// stop the network services
@@ -88,6 +91,8 @@ class OSCControler
 
 		static float version();				// the Faust OSC library version number
 		static const char* versionstr();	// the Faust OSC library version number as a string
+		static bool	gXmit;				// a static variable to control the transmission of values
+										// i.e. the use of the interface as a controler
 };
 
 }

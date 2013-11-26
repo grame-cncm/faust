@@ -62,7 +62,7 @@ for p in $@; do
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -104,7 +104,7 @@ for p in $FILES; do
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
 
-	$CC -verbose -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+	$CC -verbose -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) 
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

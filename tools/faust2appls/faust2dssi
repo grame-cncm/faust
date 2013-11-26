@@ -48,7 +48,7 @@ for p in $@; do
 		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -82,7 +82,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
+		${CXX=g++} $FAUSTTOOLSFLAGS  -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
 	) > /dev/null
 	rm "$f.cpp"
 
