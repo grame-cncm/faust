@@ -902,11 +902,24 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 printf("stack var = %s \n", (*it).first.c_str());
             }
         }
-
-        GlobalVariable* addStringConstant(const string& arg)
+        
+        static string replaceChar(string str, char ch1, char ch2) 
         {
-            // Remove enclosing \" if needed...
-            string str = (arg[0] == '"') ? arg.substr(1, arg.size() - 2) : arg;
+            for (int i = 0; i < str.length(); ++i) {
+                if (str[i] == ch1) {
+                    str[i] = ch2;
+                }
+            }
+            return str;
+        }
+        static string removeQuote(string str) 
+        {
+            return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
+        }
+
+        GlobalVariable* addStringConstant(string arg)
+        {
+            string str = replaceChar(removeQuote(arg), '@', '_');
 
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
