@@ -204,4 +204,21 @@ void HTTPDControler::quit ()
 	fHttpd->stop();
 }
 
+//------------------------------Accessor to json Interface
+std::string HTTPDControler::get_jsonInterface(){        
+    stringstream strjson;
+    fJson->root().print(strjson);
+
+    return strjson.str();
+}
+    
+void HTTPDControler::set_Inputs(int numInputs){
+    fJson->root().setInputs(numInputs);
+        
+}
+    
+void HTTPDControler::set_Outputs(int numOutputs){
+    fJson->root().setOutputs(numOutputs);
+}
+    
 }

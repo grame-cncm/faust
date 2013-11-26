@@ -82,6 +82,9 @@ class HTTPDControler
 		void quit ();				// stop the httpd server
 		
 		int	getTCPPort()			{ return fTCPPort; }
+        std::string get_jsonInterface();
+        void        set_Inputs(int numInputs);
+        void        set_Outputs(int numOutputs);
 
 		static float version();				// the Faust httpd library version number
 		static const char* versionstr();	// the Faust httpd library version number as a string
