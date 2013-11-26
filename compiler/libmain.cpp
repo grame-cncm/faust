@@ -347,8 +347,9 @@ static bool process_cmdline(int argc, const char* argv[])
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
             if (path == 0) {
-                std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
-                exit(-1);
+                stringstream error;
+                error << "ERROR : invalid directory path " << argv[i+1] << endl;
+                throw faustexception(error.str());
             } else {
                 gGlobal->gImportDirList.push_back(path);
                 i += 2;
