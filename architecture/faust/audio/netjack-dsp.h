@@ -181,15 +181,14 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
     
         netjackaudio_control(int celt, const std::string master_ip, int master_port, int latency = 2)
             :netjackaudio(celt, master_ip, master_port, latency)
-        {
-            fDsp->buildUserInterface(this);
-        }
+        {}
         
         virtual ~netjackaudio_control() 
         {}
         
         virtual bool init(const char* name, dsp* DSP) 
         {
+            DSP->buildUserInterface(this);
             return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1); // One more audio port for control
         }
         
