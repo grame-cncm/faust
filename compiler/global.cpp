@@ -417,7 +417,6 @@ void Garbageable::operator delete(void* ptr)
 void* Garbageable::operator new[](size_t size)
 {
     // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    
     Garbageable* res = (Garbageable*)malloc(size + 16);
  	global::gObjectTable.push_front(res);
     return res;
