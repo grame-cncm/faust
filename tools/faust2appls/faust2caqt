@@ -15,6 +15,7 @@ ARCHFILE="ca-qt.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
 
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -73,8 +74,8 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-	g++ -v 2>&1 | grep clang && CLANG=1 || CLANG=0
-	if [ $CLANG == 1 ]
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+	if [ $SYS_VERSION -gt 12 ]
 	then
 	    SPEC="-spec macx-clang"
 	    CLANGOPT="CONFIG+=c++11"

@@ -66,7 +66,7 @@ static bool pa_error(int err)
 
 class portaudio : public audio {
 
-    private:
+    protected:
 
         dsp* fDsp;
         PaStream* fAudioStream;
@@ -154,7 +154,7 @@ class portaudio : public audio {
             }
         }
 
-        int processAudio(float** ibuf, float** obuf, unsigned long frames) 
+        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
         {
             // process samples
             fDsp->compute(frames, ibuf, obuf);
