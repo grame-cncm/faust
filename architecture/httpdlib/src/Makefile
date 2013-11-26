@@ -22,6 +22,7 @@ CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/l
 
 dynamic : ../libHTTPDFaust.dylib
 
+
 all : $(TARGETS)
 
 ../libHTTPDFaust.a : $(objects)
