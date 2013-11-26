@@ -77,6 +77,16 @@ class httpdUI : public UI
 
 	void run()						{ fCtrl->run(); }
 	int getTCPPort()                { return fCtrl->getTCPPort(); }
+    
+    void set_Inputs(int numInputs){
+        fCtrl->set_Inputs(numInputs);
+        
+    }
+    
+    void set_Outputs(int numOutputs){
+        fCtrl->set_Outputs(numOutputs);
+    }
+    std::string get_jsonInterface(){ return fCtrl->get_jsonInterface();}
 
 };
 					
