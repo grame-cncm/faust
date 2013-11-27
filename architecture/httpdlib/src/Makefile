@@ -8,8 +8,6 @@ VPATH = $(subprojects)
 
 system	?= $(shell uname -s)
 
-TARGETS := ../libHTTPDFaust.a 
-
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
@@ -20,10 +18,11 @@ CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 
+
+
+all : ../libHTTPDFaust.a
+
 dynamic : ../libHTTPDFaust.dylib
-
-
-all : $(TARGETS)
 
 ../libHTTPDFaust.a : $(objects)
 	rm -f $@
@@ -39,7 +38,7 @@ depend :
 clean :
 	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
 	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
-	rm -f $(TARGETS)
+	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib
 	
 
 hexa/jsscripts.o : hexa/jsscripts.cpp
