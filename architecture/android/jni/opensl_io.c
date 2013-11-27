@@ -27,6 +27,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <limits.h>
 #include "opensl_io.h"
 #define CONV16BIT 32768
 #define CONVMYFLT (1./32768.)
@@ -446,15 +447,20 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 }
 
 // puts a buffer of size samples to the device
-int android_AudioOut(OPENSL_STREAM *p, float *buffer,int size){
+int android_AudioOut(OPENSL_STREAM *p, float *buffer, int size){
 
   short *outBuffer;
   int i, bufsamps = p->outBufSamples, index = p->currentOutputIndex;
   if(p == NULL  || bufsamps ==  0)  return 0;
   outBuffer = p->outputBuffer[p->currentOutputBuffer];
 
-  for(i=0; i < size; i++){
-    outBuffer[index++] = (short) (buffer[i]*CONV16BIT);
+  for (i=0; i < size; i++) {
+      
+      // clean conversion from float to short int
+      float x = buffer[i];
+      if (x>1.0) { x=1.0; } else if (x<-1.0) { x=-1.0; };
+      outBuffer[index++] = (short)( x * 32767.0 );
+      
     if (index >= p->outBufSamples) {
       waitThreadLock(p->outlock);
       (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue, 
