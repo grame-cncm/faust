@@ -8,8 +8,6 @@ VPATH = $(subprojects)
 
 system	?= $(shell uname -s)
 
-TARGETS := ../libHTTPDFaust.a 
-
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
@@ -19,7 +17,12 @@ endif
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-all : $(TARGETS)
+
+
+
+all : ../libHTTPDFaust.a
+
+dynamic : ../libHTTPDFaust.dylib
 
 ../libHTTPDFaust.a : $(objects)
 	rm -f $@
@@ -27,7 +30,7 @@ all : $(TARGETS)
 	ranlib $@
 
 ../libHTTPDFaust.dylib  :  $(objects)
-	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd` -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
+	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd`  -macosx_version_min 10.6  -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
@@ -35,7 +38,7 @@ depend :
 clean :
 	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
 	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
-	rm -f $(TARGETS)
+	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib
 	
 
 hexa/jsscripts.o : hexa/jsscripts.cpp
