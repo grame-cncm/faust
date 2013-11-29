@@ -370,3 +370,13 @@ oscr_demo = oscrs_demo; // synonym
 pink_noise = noise : 
    iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
+
+//--------------------------- lfnoiseN --------------------------
+// Low-frequency noise generator 
+// (Butterworth-filtered downsampled white noise)
+// Require: music.lib, filter.lib
+//
+// USAGE: lfnoiseN(lowpassFilterOrder,newSampleFrequency) : _;
+// EXAMPLE: process = lfnoiseN(3,SR/100.0); // view in faust2octave
+
+lfnoiseN(N,freq) = noise : latch(oscrs(freq)) : lowpass(N,freq);
