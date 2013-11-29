@@ -472,7 +472,7 @@ T findCorrespondingUiItem(FIResponder* sender)
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
                 
-                [[NSUserDefaults standardUserDefaults] synchronize];
+                [[NSUserDefaults standardUserDefaults] synchronize];                
             }
             
             // Otherwise normal behaviour
@@ -1489,7 +1489,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     float                           a = 0.;
     float                           b = 0.;
     float                           sign = 1.;
-        
+    
     [_sensorFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
                                   y:_motionManager.accelerometerData.acceleration.y
                                   z:_motionManager.accelerometerData.acceleration.z];
@@ -1602,15 +1602,6 @@ T findCorrespondingUiItem(FIResponder* sender)
             //b = (*i)->getAssignationRefPointY();
             
             // CASE 1: two curves
-            float scale;
-            if (dynamic_cast<uiKnob*>(*i))
-            {
-                scale = (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
-            }
-            else if (dynamic_cast<uiSlider*>(*i))
-            {
-                scale = (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
-            }
             float x1 = 0.;
             float y1 = 0.;
             float x2 = 0.;
@@ -1619,7 +1610,17 @@ T findCorrespondingUiItem(FIResponder* sender)
             float la = -1.;//* (*i)->getAssignationSensibility();     // Down accelerometer limit
             float ha = 1.;//* (*i)->getAssignationSensibility();      // Top accelerometer limit
             float x = sign * (*i)->getAssignationRefPointX(); // (*i)->getAssignationSensibility(); // ref point x
-            float y = (*i)->getAssignationRefPointY() * scale; // ref point y
+            float y;
+            
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                y = (((*i)->getAssignationRefPointY()) / (1.) * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min);
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                y = (((*i)->getAssignationRefPointY()) / (1.) * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min);
+            }
+            
             float ls; // Down slider limit
             float hs; // TOp slider limit
             if (dynamic_cast<uiKnob*>(*i))
