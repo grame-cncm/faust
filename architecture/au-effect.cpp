@@ -48,20 +48,23 @@
  ************************************************************************
  ************************************************************************/
 
+
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
 #include <string>
 #include <vector>
 
-#include "faust/misc.h"
-#include "faust/audio/dsp.h"
-
-#include "faust/au/AUUI.h"
 
 #include "AUEffectBase.h"
 #include <AudioToolbox/AudioUnitUtilities.h>
 #include "FaustAUVersion.h"
+
+#include "faust/misc.h"
+
+#ifndef FaustAU_FaustAUEffect_h
+#include "FaustAU.h" //TODO
+#endif
 
 using namespace std;
 
@@ -92,14 +95,16 @@ static const int kNumberPresets = 1;
 static AUPreset kPresets[kNumberPresets] =
 { { kPreset_One, CFSTR("Default") }, };
 
+
 #define MAX_OUT_CHANNELS 1000
 
-class Faust: public AUEffectBase {
+class FaustAUEffect: public AUEffectBase {
     
 public:
-	Faust(AudioUnit component);
     
-	~Faust();
+	FaustAUEffect(AudioUnit component);
+    
+	~FaustAUEffect();
     
 	virtual OSStatus Version() {
 		return kFaustAUVersion;
@@ -158,14 +163,15 @@ public:
 
 /**********************************************************************************/
 
-AUDIOCOMPONENT_ENTRY(AUBaseFactory, Faust)
 
-Faust::Faust(AudioUnit component)
+AUDIOCOMPONENT_ENTRY(AUBaseFactory, FaustAU)
+
+FaustAUEffect::FaustAUEffect(AudioUnit component)
 : AUEffectBase(component)
 {
-	CreateElements();
+    CreateElements();
     
-	dspUI = new auUI();
+    dspUI = new auUI();
     
 	dsp = new mydsp();
     
@@ -201,7 +207,7 @@ Faust::Faust(AudioUnit component)
             }
 }
 
-Faust::~Faust() {
+FaustAUEffect::~FaustAUEffect() {
     
 	int outChannels = dsp->getNumOutputs();
     
@@ -211,7 +217,7 @@ Faust::~Faust() {
     
 }
 
-OSStatus Faust::Initialize() {
+OSStatus FaustAUEffect::Initialize() {
 	OSStatus result = AUEffectBase::Initialize();
     
 	dsp->init(long(GetSampleRate()));
@@ -219,9 +225,9 @@ OSStatus Faust::Initialize() {
 	return result;
 }
 
-OSStatus Faust::GetParameterInfo(AudioUnitScope inScope,
-                                 AudioUnitParameterID inParameterID,
-                                 AudioUnitParameterInfo &outParameterInfo) {
+OSStatus FaustAUEffect::GetParameterInfo(AudioUnitScope inScope,
+										 AudioUnitParameterID inParameterID,
+										 AudioUnitParameterInfo &outParameterInfo) {
 	OSStatus result = noErr;
     
 	char name[100];
@@ -289,14 +295,14 @@ OSStatus Faust::GetParameterInfo(AudioUnitScope inScope,
 	return result;
 }
 
-void Faust::SetParameter(AudioUnitParameterID paramID,
-                         AudioUnitParameterValue value) {
+void FaustAUEffect::SetParameter(AudioUnitParameterID paramID,
+								 AudioUnitParameterValue value) {
 	AUEffectBase::SetParameter(paramID, value);
 }
 
-OSStatus Faust::SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope,
-                             AudioUnitElement inElement, AudioUnitParameterValue inValue,
-                             UInt32 inBufferOffsetInFrames) {
+OSStatus FaustAUEffect::SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope,
+									 AudioUnitElement inElement, AudioUnitParameterValue inValue,
+									 UInt32 inBufferOffsetInFrames) {
 	if (inScope == kAudioUnitScope_Global) {
         
 		if (dspUI) {
@@ -314,19 +320,8 @@ OSStatus Faust::SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope,
                                       inBufferOffsetInFrames);
 }
 
-OSStatus Faust::GetPropertyInfo(AudioUnitPropertyID inID,
-                                AudioUnitScope inScope, AudioUnitElement inElement,
-                                UInt32 & outDataSize, Boolean & outWritable) {
-	return AUEffectBase::GetPropertyInfo(inID, inScope, inElement, outDataSize,
-                                         outWritable);
-}
 
-OSStatus Faust::GetProperty(AudioUnitPropertyID inID, AudioUnitScope inScope,
-                            AudioUnitElement inElement, void * outData) {
-	return AUEffectBase::GetProperty(inID, inScope, inElement, outData);
-}
-
-OSStatus Faust::NewFactoryPresetSet(const AUPreset & inNewFactoryPreset) {
+OSStatus FaustAUEffect::NewFactoryPresetSet(const AUPreset & inNewFactoryPreset) {
 	SInt32 chosenPreset = inNewFactoryPreset.presetNumber;
     
 	for (int i = 0; i < kNumberPresets; ++i) {
@@ -344,7 +339,7 @@ OSStatus Faust::NewFactoryPresetSet(const AUPreset & inNewFactoryPreset) {
 	return kAudioUnitErr_InvalidPropertyValue;
 }
 
-OSStatus Faust::GetPresets(CFArrayRef * outData) const {
+OSStatus FaustAUEffect::GetPresets(CFArrayRef * outData) const {
     
 	if (outData == NULL)
 		return noErr;
@@ -359,9 +354,94 @@ OSStatus Faust::GetPresets(CFArrayRef * outData) const {
 	return noErr;
 }
 
-OSStatus Faust::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
-                                   const AudioBufferList& inBufferList, AudioBufferList& outBufferList,
-                                   UInt32 iFrames) {
+OSStatus FaustAUEffect::GetPropertyInfo (AudioUnitPropertyID				inID,
+                                         AudioUnitScope					inScope,
+                                         AudioUnitElement				inElement,
+                                         UInt32 &						outDataSize,
+                                         Boolean &						outWritable)
+
+{
+    if (inScope == kAudioUnitScope_Global)
+	{
+		switch (inID)
+		{
+			case kAudioUnitProperty_CocoaUI:
+				outWritable = false;
+				outDataSize = sizeof (AudioUnitCocoaViewInfo);
+				return noErr;
+                
+            case kAudioUnitCustomProperty_dspUI:
+            {
+				if(inScope != kAudioUnitScope_Global ) return kAudioUnitErr_InvalidScope;
+                
+ 				outWritable = false;
+				outDataSize = sizeof (int*);
+				return noErr;
+            }
+		}
+	}
+	
+	return AUEffectBase::GetPropertyInfo (inID, inScope, inElement, outDataSize, outWritable);
+}
+
+OSStatus FaustAUEffect::GetProperty (AudioUnitPropertyID 		inID,
+                                     AudioUnitScope 				inScope,
+                                     AudioUnitElement			inElement,
+                                     void *						outData)
+{
+    switch (inID)
+    {
+            
+            
+            // This property allows the host application to find the UI associated with this AudioUnit
+        case kAudioUnitProperty_CocoaUI:
+        {
+            // Look for a resource in the main bundle by name and type.
+            CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("com.grame.audiounit.FaustAU") );
+            
+            if (bundle == NULL) return fnfErr;
+            
+            CFURLRef bundleURL = CFBundleCopyResourceURL( bundle,
+                                                         CFSTR("FaustAUCustomView"),	// this is the name of the cocoa bundle as specified in the CocoaViewFactory.plist
+                                                         CFSTR("bundle"),			// this is the extension of the cocoa bundle
+                                                         NULL);
+            
+            if (bundleURL == NULL) return fnfErr;
+            
+            CFStringRef className = CFSTR("FaustAU_CustomViewFactory");	// name of the main class that implements the AUCocoaUIBase protocol
+            AudioUnitCocoaViewInfo cocoaInfo = { bundleURL, { className }};
+            *((AudioUnitCocoaViewInfo *)outData) = cocoaInfo;
+            
+            return noErr;
+        }
+            
+            // This is our custom property which reports the dspUI
+        case kAudioUnitCustomProperty_dspUI:
+        {
+            if(inScope != kAudioUnitScope_Global)
+                return kAudioUnitErr_InvalidScope;
+            
+            // the kernels are only created if we are initialized
+            // since we're using the kernels to get the curve info, let
+            // the caller know we can't do it if we're un-initialized
+            // the UI should check for the error and not draw the curve in this case
+            if(!IsInitialized() ) return kAudioUnitErr_Uninitialized;
+            
+            *((auUI**)outData)= dspUI;
+            
+            return noErr;
+        }
+    }
+    
+    
+    // if we've gotten this far, handles the standard properties
+    return AUEffectBase::GetProperty (inID, inScope, inElement, outData);
+}
+
+
+OSStatus FaustAUEffect::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
+										   const AudioBufferList& inBufferList, AudioBufferList& outBufferList,
+										   UInt32 iFrames) {
     
 	int inChannels = dsp->getNumInputs();
 	int outChannels = dsp->getNumOutputs();
@@ -377,5 +457,24 @@ OSStatus Faust::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
 	for (int i = 0; i < outChannels; i++) {
 		outBufferList.mBuffers[i].mData = outBuffer[i];
 	}
-	return noErr;
+	
+    
+    //TODO
+    /*
+     AudioUnitEvent myEvent;
+     myEvent.mArgument.mParameter.mAudioUnit = mComponentInstance;
+     myEvent.mArgument.mParameter.mScope = kAudioUnitScope_Global;
+     myEvent.mArgument.mParameter.mElement = 0;
+     myEvent.mEventType = kAudioUnitEvent_ParameterValueChange;
+     
+     if (dspUI)
+     {
+     for (int i = 0; i < dspUI->fUITable.size(); i++)
+     {
+     myEvent.mArgument.mParameter.mParameterID = i; //TODO
+     AUEventListenerNotify(NULL, NULL, &myEvent);
+     }
+     }
+     */
+    return noErr;
 }

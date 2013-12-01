@@ -7,9 +7,14 @@
 #                                                                   
 #####################################################################
 
-ARCHFILE="ausynth.cpp"
+ARCHFILE="au-instrument.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
+
+
+AUTYPE=aumu
+FAUSTAU_CLASS=FaustAUInstrument
+COMPTYPE=kAudioUnitType_MusicDevice
 
 #-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../lib/faust/' in $FLIB
@@ -82,15 +87,15 @@ then
 	rm -r $TEMP_DIR
 fi
 mkdir $TEMP_DIR
-cp -r /usr/local/lib/faust/AUSynth/* $TEMP_DIR
+cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
 cp $1 $TEMP_DIR
 cp *.dsp $TEMP_DIR >& /dev/null
 cp *.lib $TEMP_DIR >& /dev/null
 cd $TEMP_DIR
 mkdir Source >& /dev/null
 
-faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/ausynth-output.cpp
-if [ ! -f Source/ausynth-output.cpp ]
+faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
+if [ ! -f Source/au-output.cpp ]
 then
 	echo faust could not generate cpp file
 	cd ..
@@ -103,6 +108,7 @@ FULL_FILE_NAME=$1
 FILE_NAME=$(BASENAME "$FULL_FILE_NAME")
 EXTENSION="${FILE_NAME##*.}"
 FILE_NAME="${FILE_NAME%.*}"
+#CUSTOM_VIEW_NAME="$FILE_NAME"CustomView
 
 if [ $# -lt 2 ]
 then
@@ -131,50 +137,64 @@ perl -pi -e 's/_NAME_/'"$NAME"'/g' Info.plist
 perl -pi -e 's/_DESC_/'"$NAME"'/g' Info.plist
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g'  Info.plist
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Info.plist 
-perl -pi -e 's/_BUNDLE_ID_/'"$FILE_NAME"'/g' Info.plist 
+perl -pi -e 's/_BUNDLE_ID_/'"$FILE_NAME"'/g' Info.plist
+perl -pi -e 's/_TYPE_/'"$AUTYPE"'/g' Info.plist
 
-perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings 
-perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings 
+perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings
+perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings
 
-perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAUSynth.r
-perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAUSynth.r 
-perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUSynth.r
+#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_ID_/'"$CUSTOM_VIEW_NAME"'/g' FaustAUCustomView.plist
+#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_NAME_/'"$CUSTOM_VIEW_NAME"'/g' FaustAUCustomView.plist
 
-perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUSynthVersion.h
-perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUSynthVersion.h 
+perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAU.r
+perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r
+perl -pi -e 's/_COMPTYPE_/'"$COMPTYPE"'/g' Source/AUSource/FaustAU.r
 
-xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
+perl -pi -e 's/_FaustAUClass_/'"$FAUSTAU_CLASS"'/g' Source/AUSource/FaustAU.h
+#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_ID_/'"$CUSTOM_VIEW_NAME"'/g' Source/AUSource/FaustAU.h
+#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_NAME_/'"$CUSTOM_VIEW_NAME"'/g' Source/AUSource/FaustAU.h
 
-rm Source/ausynth-output.cpp
+perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h 
 
-rm Info.plist
-cp Info-template.plist Info.plist
+xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components
 
-rm English.lproj/InfoPlist.strings
-cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
+#rm Info.plist
+#cp Info-template.plist Info.plist
 
-rm Source/AUSource/FaustAUSynth.r
-cp Source/AUSource/FaustAUSynth-template.r Source/AUSource/FaustAUSynth.r
+#rm English.lproj/InfoPlist.strings
+#cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
 
-rm Source/AUSource/FaustAUSynthVersion.h
-cp Source/AUSource/FaustAUSynthVersion-template.h Source/AUSource/FaustAUSynthVersion.h
+#rm Source/AUSource/FaustAU.r
+#cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
 
-if [ ! -d $AU_DIR/FaustAUSynth.component/ ]
-then
-	echo unable to generate AU
-	cd ..
-	rm -r $TEMP_DIR
-	exit	
-fi
+#rm Source/AUSource/FaustAUVersion.h
+#cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
+
+#if [ ! -d $AU_DIR/FaustAU.component/ ]
+#then
+#	echo unable to generate AU
+#	cd ..
+#	rm -r $TEMP_DIR
+#	exit	
+#fi
 
 if [ -d $AU_DIR/"$FILE_NAME".component/ ]
 then
 	rm -r  $AU_DIR/"$FILE_NAME".component/
 fi
 
-mv $AU_DIR/FaustAUSynth.component $AU_DIR/"$FILE_NAME".component
+mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
 
-cd ..
-rm -r $TEMP_DIR
+
+#if [ -d $AU_DIR/"$CUSTOM_VIEW_NAME".bundle/ ]
+#then
+#rm -r  $AU_DIR/"$CUSTOM_VIEW_NAME".bundle/
+#fi
+
+#mv $AU_DIR/FaustAUCustomView.bundle $AU_DIR/"$CUSTOM_VIEW_NAME".bundle
+
+#cd ..
+#rm -r $TEMP_DIR
 
 echo "'$NAME'" AU generated and installed successfully 
