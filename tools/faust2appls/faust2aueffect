@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#####################################################################
+#                                                                   
+#               Compiles Faust programs to Audio Unit Effect
+#               (c) Grame 2013                           	               
+#                                                                   
+#####################################################################
+
+ARCHFILE="au-effect.cpp"
+AUTYPE=aufx
+FAUSTAU_CLASS=FaustAUEffect
+COMPTYPE=kAudioUnitType_Effect
+
+#call faust2au with the following parameters an passing all the input arguments
+export ARCHFILE
+export AUTYPE
+export FAUSTAU_CLASS
+export COMPTYPE
+sh faust2au $@
