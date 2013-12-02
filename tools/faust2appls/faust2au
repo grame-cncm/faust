@@ -190,6 +190,7 @@ then
 rm -r  $AU_DIR/FaustAUCustomView.bundle.bundle/
 fi
 
-#rm -r $TEMP_DIR
+cd ..
+rm -r $TEMP_DIR
 
 echo "'$NAME'" Audio Unit generated and installed successfully
