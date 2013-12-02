@@ -7,7 +7,7 @@
 #
 #####################################################################
 
-echo generating Audio Unit...
+echo Generating Audio Unit...
 #input parameters (passed by faust2aueffect or faust2auinstrument):
 #echo $ARCHFILE
 #echo $AUTYPE
@@ -73,13 +73,13 @@ TEMP_DIR=./faust.XXX
 
 if [ $# -lt 1 ]
 then
-echo faust dsp file not specified
+echo FAUST dsp file not specified
 exit
 fi
 
 if [ ! -f $1 ]
 then
-echo input file does not exist
+echo Input file does not exist
 exit
 fi
 
@@ -98,7 +98,7 @@ mkdir Source >& /dev/null
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
 if [ ! -f Source/au-output.cpp ]
 then
-echo faust could not generate cpp file
+echo FAUST could not generate cpp file
 cd ..
 rm -r $TEMP_DIR
 exit
@@ -171,7 +171,7 @@ xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR
 
 if [ ! -d $AU_DIR/FaustAU.component/ ]
 then
-	echo unable to generate AU
+	echo Unable to generate Audio Unit
 	cd ..
 	rm -r $TEMP_DIR
 	exit
@@ -192,4 +192,4 @@ fi
 
 #rm -r $TEMP_DIR
 
-echo "'$NAME'" AU generated and installed successfully
+echo "'$NAME'" Audio Unit generated and installed successfully
