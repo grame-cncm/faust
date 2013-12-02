@@ -19,6 +19,7 @@ install:
 	install faust2alsa $(dest)
 	install faust2aueffect $(dest)
 	install faust2auinstrument $(dest)
+    install faust2au $(dest)
 	install faust2caqt $(dest)
 	install faust2csound $(dest)
 	install faust2ladspa $(dest)
