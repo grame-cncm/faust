@@ -63,6 +63,9 @@
 @interface FaustAU_CustomView : NSView <FaustAU_KnobProtocol, FaustAU_ButtonProtocol>
 {	
     AudioUnit mAU;
+    NSTimer* timer;
+    bool monitor;
+    bool usesBargraphs;
     NSTextField* paramValues[MAX_CONTROLS];
     AUEventListenerRef		mAUEventListener;
     std::map <int, NSView*> viewMap;
@@ -73,11 +76,14 @@
 - (void)paramChanged:(id)sender;
 
 - (void)redraw;
+- (void)removeFromSuperview;
 
 - (void)buttonPushed:(id)sender;
 - (void)knobUpdatedWithIndex:(int)index
                    withValue:(double)aDouble
                 withObject:(id)object;
+- (void)monitorPushed;
+- (void)viewDidHide;
 
 @end
 
