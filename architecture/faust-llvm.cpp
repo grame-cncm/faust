@@ -373,7 +373,7 @@ int main(int argc, char *argv[] )
     char error_msg[256];
     
     if (argc < 2) {
-        printf("faust-llvm-tester 'foo.dsp'\n");
+        printf("faust-llvm 'foo.dsp'\n");
         exit(-1);
     }
     
