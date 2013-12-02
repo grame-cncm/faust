@@ -154,20 +154,20 @@ perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h
 
 xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
 
-rm Info.plist
-cp Info-template.plist Info.plist
+#rm Info.plist
+#cp Info-template.plist Info.plist
 
-rm English.lproj/InfoPlist.strings
-cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
+#rm English.lproj/InfoPlist.strings
+#cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
 
-rm Source/AUSource/FaustAU.r
-cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
+#rm Source/AUSource/FaustAU.r
+#cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
 
-rm Source/AUSource/FaustAUVersion.h
-cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
+#rm Source/AUSource/FaustAUVersion.h
+#cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
 
-rm Source/AUSource/FaustAU.h
-cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAU.h
+#rm Source/AUSource/FaustAU.h
+#cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAU.h
 
 if [ ! -d $AU_DIR/FaustAU.component/ ]
 then
@@ -190,6 +190,6 @@ then
 rm -r  $AU_DIR/FaustAUCustomView.bundle.bundle/
 fi
 
-rm -r $TEMP_DIR
+#rm -r $TEMP_DIR
 
 echo "'$NAME'" AU generated and installed successfully
