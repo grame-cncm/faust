@@ -7,8 +7,8 @@
 #
 #####################################################################
 
-
-#input variables (passed by faust2aueffect or faust2auinstrument):
+echo Generating Audio Unit...
+#input parameters (passed by faust2aueffect or faust2auinstrument):
 #echo $ARCHFILE
 #echo $AUTYPE
 #echo $FAUSTAU_CLASS
@@ -73,13 +73,13 @@ TEMP_DIR=./faust.XXX
 
 if [ $# -lt 1 ]
 then
-echo faust dsp file not specified
+echo FAUST dsp file not specified
 exit
 fi
 
 if [ ! -f $1 ]
 then
-echo input file does not exist
+echo Input file does not exist
 exit
 fi
 
@@ -98,7 +98,7 @@ mkdir Source >& /dev/null
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
 if [ ! -f Source/au-output.cpp ]
 then
-echo faust could not generate cpp file
+echo FAUST could not generate cpp file
 cd ..
 rm -r $TEMP_DIR
 exit
@@ -109,7 +109,6 @@ FULL_FILE_NAME=$1
 FILE_NAME=$(BASENAME "$FULL_FILE_NAME")
 EXTENSION="${FILE_NAME##*.}"
 FILE_NAME="${FILE_NAME%.*}"
-#CUSTOM_VIEW_NAME="$FILE_NAME"CustomView
 
 if [ $# -lt 2 ]
 then
@@ -144,41 +143,24 @@ perl -pi -e 's/_TYPE_/'"$AUTYPE"'/g' Info.plist
 perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings
 perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings
 
-#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_ID_/'"$CUSTOM_VIEW_NAME"'/g' FaustAUCustomView.plist
-#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_NAME_/'"$CUSTOM_VIEW_NAME"'/g' FaustAUCustomView.plist
-
 perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAU.r
 perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r
 perl -pi -e 's/_COMPTYPE_/'"$COMPTYPE"'/g' Source/AUSource/FaustAU.r
 
 perl -pi -e 's/_FaustAUClass_/'"$FAUSTAU_CLASS"'/g' Source/AUSource/FaustAU.h
-#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_ID_/'"$CUSTOM_VIEW_NAME"'/g' Source/AUSource/FaustAU.h
-#perl -pi -e 's/_CUSTOM_VIEW_BUNDLE_NAME_/'"$CUSTOM_VIEW_NAME"'/g' Source/AUSource/FaustAU.h
 
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h
 
-xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components
+xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
 
-#rm Info.plist
-#cp Info-template.plist Info.plist
-
-#rm English.lproj/InfoPlist.strings
-#cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
-
-#rm Source/AUSource/FaustAU.r
-#cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
-
-#rm Source/AUSource/FaustAUVersion.h
-#cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
-
-#if [ ! -d $AU_DIR/FaustAU.component/ ]
-#then
-#	echo unable to generate AU
-#	cd ..
-#	rm -r $TEMP_DIR
-#	exit
-#fi
+if [ ! -d $AU_DIR/FaustAU.component/ ]
+then
+	echo Unable to generate Audio Unit
+	cd ..
+	rm -r $TEMP_DIR
+	exit
+fi
 
 if [ -d $AU_DIR/"$FILE_NAME".component/ ]
 then
@@ -188,14 +170,12 @@ fi
 mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
 
 
-#if [ -d $AU_DIR/"$CUSTOM_VIEW_NAME".bundle/ ]
-#then
-#rm -r  $AU_DIR/"$CUSTOM_VIEW_NAME".bundle/
-#fi
+if [ -d $AU_DIR/FaustAUCustomView.bundle/ ]
+then
+rm -r  $AU_DIR/FaustAUCustomView.bundle/
+fi
 
-#mv $AU_DIR/FaustAUCustomView.bundle $AU_DIR/"$CUSTOM_VIEW_NAME".bundle
+cd ..
+rm -r $TEMP_DIR
 
-#cd ..
-#rm -r $TEMP_DIR
-
-echo "'$NAME'" AU generated and installed successfully
+echo "'$NAME'" Audio Unit generated and installed successfully
