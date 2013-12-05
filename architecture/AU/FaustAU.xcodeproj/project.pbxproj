@@ -73,6 +73,7 @@
 		F52A44E11848502F004E29CF /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52A44E01848502F004E29CF /* AppKit.framework */; };
 		F52A44E318485038004E29CF /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52A44E218485038004E29CF /* CoreGraphics.framework */; };
 		F530C7961824BCA800D911C2 /* FaustAU.h in Headers */ = {isa = PBXBuildFile; fileRef = F530C7951824BCA800D911C2 /* FaustAU.h */; };
+		F59F45B41850D9D300D337D4 /* au-output.xml in Resources */ = {isa = PBXBuildFile; fileRef = F59F45B31850D9D300D337D4 /* au-output.xml */; };
 		F5A2F52718494D4600C7EB96 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5A2F52618494D4600C7EB96 /* CoreMIDI.framework */; };
 		F5A2F52A18494E7500C7EB96 /* AUEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A2F52818494E7500C7EB96 /* AUEffectBase.cpp */; };
 		F5A2F52B18494E7500C7EB96 /* AUEffectBase.h in Headers */ = {isa = PBXBuildFile; fileRef = F5A2F52918494E7500C7EB96 /* AUEffectBase.h */; };
@@ -197,6 +198,7 @@
 		F52A44E01848502F004E29CF /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		F52A44E218485038004E29CF /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		F530C7951824BCA800D911C2 /* FaustAU.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = FaustAU.h; path = Source/AUSource/FaustAU.h; sourceTree = "<group>"; };
+		F59F45B31850D9D300D337D4 /* au-output.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "au-output.xml"; path = "Source/au-output.xml"; sourceTree = "<group>"; };
 		F5A2F52618494D4600C7EB96 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		F5A2F52818494E7500C7EB96 /* AUEffectBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AUEffectBase.cpp; path = AUPublic/AUEffectBase/AUEffectBase.cpp; sourceTree = SOURCE_ROOT; };
 		F5A2F52918494E7500C7EB96 /* AUEffectBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AUEffectBase.h; path = AUPublic/AUEffectBase/AUEffectBase.h; sourceTree = SOURCE_ROOT; };
@@ -319,6 +321,7 @@
 			children = (
 				F5B12585184A640300914307 /* au-output.cpp */,
 				F530C7951824BCA800D911C2 /* FaustAU.h */,
+				F59F45B31850D9D300D337D4 /* au-output.xml */,
 				8BA05A670720730100365D66 /* FaustAU.exp */,
 				8BA05A680720730100365D66 /* FaustAU.r */,
 				8BA05A690720730100365D66 /* FaustAUVersion.h */,
@@ -603,6 +606,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F59F45B41850D9D300D337D4 /* au-output.xml in Resources */,
 				8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -867,7 +871,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /usr/local/include;
 				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = macosx;
 			};
@@ -878,7 +882,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /usr/local/include;
 				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = macosx;
 			};
@@ -889,7 +893,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /usr/local/include;
 				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = macosx;
 			};

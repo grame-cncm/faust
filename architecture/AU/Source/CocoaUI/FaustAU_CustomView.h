@@ -82,6 +82,7 @@
 - (void)knobUpdatedWithIndex:(int)index
                    withValue:(double)aDouble
                 withObject:(id)object;
+- (void)xmlPushed;
 - (void)monitorPushed;
 - (void)viewDidHide;
 
