@@ -35,14 +35,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 											CFRunLoopGetCurrent(), kCFRunLoopDefaultMode, 0.05, 0.05,
 											&mAUEventListener));
 		
-        UInt32 dataSize = sizeof(auUI*);
-        
-        ComponentResult result = AudioUnitGetProperty(mAU,
-                                                      (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI, //TODO
-                                                      kAudioUnitScope_Global,
-                                                      (AudioUnitElement)0,
-                                                      (void*)&dspUI,
-                                                      &dataSize);
+        dspUI = [self dspUI];
         
 		//add listeners
         AudioUnitEvent auEvent;
@@ -87,6 +80,21 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 	if (mAUEventListener) verify_noerr (AUListenerDispose(mAUEventListener));
 	mAUEventListener = NULL;
 	mAU = NULL;
+}
+
+- (auUI*) dspUI
+{
+    auUI* dspUI;
+    
+    UInt32 dataSize = sizeof(auUI*);
+    
+    ComponentResult result = AudioUnitGetProperty(mAU,
+                                                  (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI, //TODO
+                                                  kAudioUnitScope_Global,
+                                                  (AudioUnitElement)0, //inElement
+                                                  (void*)&dspUI,
+                                                  &dataSize);
+    return dspUI;
 }
 
 - (NSButton*)addButton:(NSBox*) nsBox :(auButton*)fButton :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
@@ -196,7 +204,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     float value;
     
     if (fSlider->fIsVertical) {
-        width = 35;
+        width = 15;
         height = 100;
     }
     else{
@@ -292,9 +300,9 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     FaustAU_Knob *knob = [[FaustAU_Knob alloc] initWithFrame:NSMakeRect(origin.x + 100, origin.y, width, height)
                                                   withInsets:10
                                     withControlPointDiameter:2
-                                       withControlPointColor:[NSColor blackColor]
+                                       withControlPointColor:[NSColor lightGrayColor]
                                                withKnobColor:[NSColor whiteColor]
-                                         withBackgroundColor:[NSColor lightGrayColor]
+                                         withBackgroundColor:[NSColor clearColor]
                                             withCurrentAngle:initAngle];
     
     
@@ -306,7 +314,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     NSString *identifier = [NSString stringWithFormat:@"%d",controlId];
     [knob setIdentifier: identifier];
-
+    
     [nsBox addSubview:knob];
     
     
@@ -436,16 +444,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     [nsThisBox setTitle:[[NSString alloc] initWithCString:fThisBox->fLabel.c_str() encoding:NSUTF8StringEncoding]];
     
     //TODO remove these lines
-    auUI* dspUI;
-    
-    UInt32 dataSize = sizeof(auUI*);
-    
-    ComponentResult result = AudioUnitGetProperty(mAU,
-                                                  (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI,
-                                                  kAudioUnitScope_Global,
-                                                  (AudioUnitElement)0, //inElement
-                                                  (void*)&dspUI,
-                                                  &dataSize);
+    auUI* dspUI = [self dspUI];
     
     int controlId;
     NSView* childView = NULL;
@@ -545,16 +544,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 
 -(void)repaint
 {
-    auUI* dspUI;
-    
-    UInt32 dataSize = sizeof(auUI*);
-    
-    ComponentResult result = AudioUnitGetProperty(mAU,
-                                                  (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI,
-                                                  kAudioUnitScope_Global,
-                                                  (AudioUnitElement)0, //inElement
-                                                  (void*)&dspUI,
-                                                  &dataSize);
+    auUI* dspUI = [self dspUI];
     
     //[self remove]
     
@@ -574,6 +564,26 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [self addSubview:nsBoundingBox];
     
+    //TODO
+    if (usesBargraphs)
+    {
+        
+        int width = 80;
+        int height = 15;
+        
+        NSRect monitorFrame = NSMakeRect(0, 0, width, height);
+        
+        NSButton* button = [[NSButton alloc] initWithFrame:monitorFrame ];
+        
+        [button setTitle:@"MON"]; //TODO
+        [button setButtonType:NSSwitchButton];
+        [button setBezelStyle:NSRoundedBezelStyle];
+        [button setTarget:self];
+        [button setAction:@selector(monitorPushed:)];
+        [button setState:TRUE];
+        [self addSubview:button];
+    }
+    
     [self setFrame:frame];
     [self setNeedsDisplay:YES]; //TODO
 }
@@ -584,9 +594,46 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     [self priv_addListeners];
     [self priv_synchronizeUIWithParameterValues];
     
+    auUI* dspUI = [self dspUI];
+    
+    usesBargraphs = false;
+    for (int i = 0; i < dspUI->fUITable.size(); i++)
+    {
+        if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
+        {
+            if (dynamic_cast<auBargraph*>(dspUI->fUITable[i]))
+                usesBargraphs = true;
+            break;
+        }
+    }
+    
+    if (usesBargraphs)
+    {
+        monitor = true;
+        [self setTimer];
+    }
+    
     [self repaint];
-    //TODO
-    [NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(redraw) userInfo:nil repeats:YES];
+
+    //TODO only if there is bargraph
+    
+}
+
+-(void) setTimer
+{
+    if (!timer)
+    {
+        timer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(redraw) userInfo:nil repeats:YES];
+    }
+}
+
+-(void) unsetTimer
+{
+    if (timer)
+    {
+        [timer invalidate];
+        timer = nil;
+    }
 }
 
 - (void)redraw //TODO rename
@@ -683,6 +730,22 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
 }
 
+//TODO
+- (void)viewDidHide
+{
+    [self unsetTimer];
+}
+
+
+- (void)monitorPushed:(id)sender
+{
+    monitor = [(NSButton*)sender state];
+    
+    if (monitor)
+        [self setTimer];
+    else
+        [self unsetTimer];
+}
 
 - (void)paramChanged:(id)sender
 {
@@ -724,19 +787,9 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
 }
 
+
 - (void)priv_synchronizeUIWithParameterValues {
-    auUI* dspUI;
-    
-    // float k = 0;
-    
-    UInt32 dataSize = sizeof(auUI*);
-    
-    ComponentResult result = AudioUnitGetProperty(mAU,
-                                                  (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI, //TODO
-                                                  kAudioUnitScope_Global,
-                                                  (AudioUnitElement)0, //inElement
-                                                  (void*)&dspUI,
-                                                  &dataSize);
+    auUI* dspUI = [self dspUI];
     
     NSView* subView = NULL;
     int paramId;
@@ -863,6 +916,26 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
  {
  return YES;
  }*/
+
+- (void)removeFromSuperview
+{
+    //  [self unsetTimer];
+}
+
+
+- (void)dealloc {
+    /*
+     [self unsetTimer];
+     
+     
+     [self priv_removeListeners];
+     
+     [[NSNotificationCenter defaultCenter] removeObserver: self];
+     
+     
+     [super dealloc];*/
+    
+}
 
 
 @end
