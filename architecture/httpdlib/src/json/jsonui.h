@@ -57,8 +57,8 @@ template <typename C> class jsonui
 							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); }
 
 		// -- passive widgets
-		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, fMeta); }
-		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)	{ fFactory->addnode<C>( "vbargraph", label, fMeta); }
+		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, min, max, fMeta); }
+		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)	{ fFactory->addnode<C>( "vbargraph", label, min, max, fMeta); }
 
 		// -- metadata declarations
 		virtual void declare(C* , const char* key, const char* val)		{ fMeta[key] = val; }
