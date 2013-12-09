@@ -690,6 +690,9 @@ class alsaaudio : public audio
 			pthread_join (fAudioThread, 0);
 		}
 	}
+    
+    virtual int buffer_size() { return fAudio->buffering(); }
+    virtual int sample_rate() { return fAudio->frequency(); }
 
 	virtual void run() {
 		bool rt = setRealtimePriority();

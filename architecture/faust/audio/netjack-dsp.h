@@ -57,6 +57,7 @@ class netjackaudio : public audio
         std::string fMasterIP;
         int fMasterPort;
         int fLatency;
+        jack_master_t fResult;
 
     #ifdef RESTART_CB_API
         static int net_restart(void* arg) 
@@ -113,9 +114,8 @@ class netjackaudio : public audio
                 (fCelt > 0) ? fCelt : 0,
                 fLatency
             };
-
-            jack_master_t result;
-            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &result)) == 0) {
+      
+            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &fResult)) == 0) {
                 printf("jack remote server not running ?\n");
                 return false;
             }
@@ -128,7 +128,7 @@ class netjackaudio : public audio
         #endif
             jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
 
-            fDsp->init(result.sample_rate);
+            fDsp->init(fResult.sample_rate);
             return true;
         }
 
@@ -158,6 +158,9 @@ class netjackaudio : public audio
             jack_net_slave_deactivate(fNet);
             jack_net_slave_close(fNet);
         }
+        
+        virtual int buffer_size() { return fResult.buffer_size; }
+        virtual int sample_rate() { return fResult.sample_rate; }
 
 };
 

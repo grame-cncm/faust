@@ -1295,6 +1295,9 @@ class coreaudio : public audio {
 		fAudioDevice.Stop();
 		fAudioDevice.Close();
 	}
+    
+    virtual int buffer_size() { return fFramesPerBuf; }
+    virtual int sample_rate() { return fSampleRate; }
 
 };
 

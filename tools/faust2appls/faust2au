@@ -96,6 +96,10 @@ cd $TEMP_DIR
 mkdir Source >& /dev/null
 
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
+
+faust $OPTIONS -xml $1 > /dev/null
+mv $1.xml Source/au-output.xml
+
 if [ ! -f Source/au-output.cpp ]
 then
 echo FAUST could not generate cpp file
@@ -151,6 +155,8 @@ perl -pi -e 's/_FaustAUClass_/'"$FAUSTAU_CLASS"'/g' Source/AUSource/FaustAU.h
 
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
 perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h
+
+perl -pi -e 's/_FILENAME_/'"$FILE_NAME"'/g' Source/CocoaUI/FaustAU_CustomView.m
 
 xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
 
