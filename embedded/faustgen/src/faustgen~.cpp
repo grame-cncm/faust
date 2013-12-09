@@ -185,7 +185,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     print_compile_options();
     
     // Prepare compile options
-    char error[256];
+    std::string error;
  	const char* argv[32];
 	assert(fCompileOptions.size() < 32);
     vector<string>::const_iterator it;
@@ -1145,14 +1145,14 @@ void faustgen::display_libraries()
     fDSPfactory->display_libraries();
 }
 
-void faustgen::hilight_on(char* error)
+void faustgen::hilight_on(const std::string& error)
 {
     t_jrgba color;
     jrgba_set(&color, 1.0, 0.0, 0.0, 1.0);
     t_object* box;
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
     jbox_set_color(box, &color);
-    object_error_obtrusive((t_object*)&m_ob, error);
+    object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
 }
   
 void faustgen::hilight_off()

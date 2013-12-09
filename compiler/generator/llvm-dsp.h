@@ -49,7 +49,7 @@ typedef struct llvm_dsp_factory {};
  * @param name - the name of the Faust program
  * @param input - the Faust program as a string
  * @param target - the LLVM machine target (using empty string will take current machine settings)
- * @param error_msg - the error string to be filled, has to be 256 characters long
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
@@ -58,7 +58,7 @@ typedef struct llvm_dsp_factory {};
 llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
-                        char* error_msg, int opt_level = 3);
+                        std::string& error_msg, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory.

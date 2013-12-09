@@ -131,7 +131,7 @@ class llvm_dsp_factory {
         llvm_dsp_factory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
-                        char* error_msg, int opt_level = 3);
+                        std::string& error_msg, int opt_level = 3);
               
         llvm_dsp_factory(Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
       
@@ -149,7 +149,7 @@ class llvm_dsp_factory {
         
         void writeDSPFactoryToIRFile(const std::string& ir_code_path);
         
-        bool initJIT(char* error_msg);
+        bool initJIT(std::string& error_msg);
         
         void metadataDSPFactory(Meta* meta);
         
@@ -188,7 +188,7 @@ class llvm_dsp_aux : public dsp {
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
-                        char* error_msg, int opt_level = 3);
+                        std::string& error_msg, int opt_level = 3);
                         
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
 

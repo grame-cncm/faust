@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
         int argc1 = 1;
         const char* argv1[argc1];
         argv1[0] = "-svg";
-        char error_msg1[256];
+        std::string error_msg1;
         
         /*
         llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "", "in1", "process = +,+", "", error_msg1);
@@ -168,14 +168,13 @@ int main(int argc, char *argv[])
         printf("JSON %s\n", json.json());
         */
         
-        char error_msg3[256];
+        std::string error_msg3;
         factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 5);
-        //printf("createDSPFactory %x\n", factory3);
         if (factory3) {
             DSP = createDSPInstance(factory3);
             assert(DSP);
          } else {
-            printf("Cannot create factory : %s\n", error_msg3);
+            printf("Cannot create factory : %s", error_msg3.c_str());
             return 1;
         }
         

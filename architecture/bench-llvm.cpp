@@ -128,7 +128,7 @@ class FaustLLVMOptimizer {
         
         int fMeasure;
         
-        char fError[256];
+        std::string fError;
         
         vector<vector <string > > fOptionsTable;
         
@@ -492,7 +492,7 @@ class FaustLLVMOptimizer {
         }
     
         
-        const char* getError() { return fError; }
+        const char* getError() { return fError.c_str(); }
         
         bool computeOne(int index, double& res)
         {
@@ -523,7 +523,7 @@ class FaustLLVMOptimizer {
             }
             
             if (!fFactory)  {
-                printf("Cannot create factory... %s\n", fError);
+                printf("Cannot create factory... %s\n", fError.c_str());
                 return false;
             } 
             

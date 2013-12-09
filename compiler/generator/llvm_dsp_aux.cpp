@@ -150,7 +150,7 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, const char *argv[],
                                     const std::string& name,
                                     const std::string& input, 
                                     const std::string& target, 
-                                    char* error_msg, int opt_level)
+                                    std::string& error_msg, int opt_level)
 {
     if (llvm_dsp_factory::gInstance++ == 0) {
         if (!llvm_start_multithreaded()) {
@@ -161,7 +161,9 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, const char *argv[],
     fOptLevel = opt_level;
     fTarget = target;
     Init();
-    fResult = CompileModule(argc, argv, library_path.c_str(), draw_path.c_str(), name.c_str(), input.c_str(), error_msg);
+    char error_msg_aux[512];
+    fResult = CompileModule(argc, argv, library_path.c_str(), draw_path.c_str(), name.c_str(), input.c_str(), error_msg_aux);
+    error_msg = error_msg_aux;
 }
 
 void llvm_dsp_factory::Init()
@@ -232,7 +234,7 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateModulePassManager(MPM);
 }
 
-bool llvm_dsp_factory::initJIT(char* error_msg)
+bool llvm_dsp_factory::initJIT(std::string& error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -268,14 +270,14 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                snprintf(error_msg, 256, "Cannot link scheduler module : %s", err.c_str());
+                error_msg = "Cannot link scheduler module : " + err;
                 delete scheduler;
                 return false;
             } else {
                 delete scheduler;
             }
         } else {
-            strncpy(error_msg, "File scheduler.ll not found...", 256);
+            error_msg = "File scheduler.ll not found...";
             return false;
         }
     }
@@ -379,7 +381,7 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
 
 #else
 
-bool llvm_dsp_factory::initJIT(char* error_msg)
+bool llvm_dsp_factory::initJIT(std::string& error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -457,14 +459,14 @@ bool llvm_dsp_factory::initJIT(char* error_msg)
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll", fResult->fContext);
         if (scheduler) {
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                snprintf(error_msg, 256, "Cannot link scheduler module : %s", err.c_str());
+                error_msg = "Cannot link scheduler module : " + err;
                 delete scheduler;
                 return false;
             } else {
                 delete scheduler;
             }
         } else {
-            strncpy(error_msg, "File scheduler.ll not found...", 256);
+            error_msg = "File scheduler.ll not found...";
             return false;
         }
     }
@@ -606,8 +608,8 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
 
-static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, char* error_msg)
-{
+static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, std::string& error_msg)
+{   
     if (factory->initJIT(error_msg)) {
         return factory;
     } else {
@@ -621,7 +623,7 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, char* error_
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
     const std::string& library_path, const std::string& draw_path, const std::string& name, 
     const std::string& input, const std::string& target, 
-    char* error_msg, int opt_level)
+    std::string& error_msg, int opt_level)
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
@@ -636,7 +638,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     delete buffer;
     
     if (module) {
-        char error_msg[256];
+        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
@@ -664,7 +666,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
-        char error_msg[256];
+        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
@@ -690,7 +692,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const 
     setlocale(LC_ALL, tmp_local);
     
     if (module) {
-        char error_msg[256];
+        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
@@ -719,7 +721,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
     setlocale(LC_ALL, tmp_local);
     
     if (module) {
-        char error_msg[256];
+        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
@@ -788,7 +790,10 @@ EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
                                         const char* name, const char* input, 
                                         const char* target, char* error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
+    std::string error_msg_aux;
+    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg_aux, opt_level), error_msg_aux);
+    error_msg = (char*)error_msg_aux.c_str();
+    return factory;
 }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)

@@ -261,7 +261,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         void update_sourcecode();
             
-        void hilight_on(char* error);
+        void hilight_on(const std::string& error);
         void hilight_off();
            
         // Called upon deleting the object inside the patcher

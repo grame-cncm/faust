@@ -244,7 +244,7 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   faustobj  **pffactory, *ffactory;
   llvm_dsp_factory *factory;
   int argc = 0;
-  char err_msg[256];
+  std::string err_msg;
   char *cmd = (char *) malloc(p->args->size + 8);
 
   strcpy(cmd, p->args->data);
@@ -262,7 +262,7 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
     free(argv);
     free(cmd);
     return csound->InitError(csound,
-                             Str("Faust compilation problem: %s\n"), err_msg);
+                             Str("Faust compilation problem: %s\n"), err_msg.c_str());
   }
 
   pffactory = (faustobj **) csound->QueryGlobalVariable(csound,varname);
@@ -432,7 +432,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
 
 int init_faustgen(CSOUND *csound, faustgen *p){
   OPARMS parms;
-  char err_msg[256];
+  std::string err_msg;
   int size;
   int argc = 3;
   const char* argv[argc];
@@ -454,7 +454,7 @@ int init_faustgen(CSOUND *csound, faustgen *p){
                                 "", err_msg, 3);
   if(p->factory == NULL)
     return csound->InitError(csound,
-                             Str("Faust compilation problem: %s\n"), err_msg);
+                             Str("Faust compilation problem: %s\n"), err_msg.c_str());
 
   dsp = createDSPInstance(p->factory);
   if(dsp == NULL)

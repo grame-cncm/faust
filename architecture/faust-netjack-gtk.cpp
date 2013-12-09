@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	char	appname[256];
     char	filename[256];
 	char  	rcfilename[256];
-    char    error_msg[256];
+    std::string    error_msg;
 	char* 	home = getenv("HOME");
     llvm_dsp* DSP = NULL;
     llvm_dsp_factory* factory;
