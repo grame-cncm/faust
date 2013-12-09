@@ -45,7 +45,8 @@
  you will need the proprietary AU SDK from Apple. Please check
  the corresponding license.
  
-************************************************************************/
+ ************************************************************************/
+#include <set>
 
 #include "faust/gui/UI.h"
 
@@ -65,7 +66,7 @@ public:
     
 public:
 	auUIObject(const char* label, FAUSTFLOAT* zone) :
-        fLabel(label), fZone(zone) {
+    fLabel(label), fZone(zone) {
 	}
     
 	virtual ~auUIObject() {
@@ -102,7 +103,7 @@ class auToggleButton: public auUIObject {
 public:
     
 	auToggleButton(const char* label, FAUSTFLOAT* zone) :
-        auUIObject(label, zone) {
+    auUIObject(label, zone) {
 	}
     
 	virtual ~auToggleButton() {
@@ -127,7 +128,7 @@ class auCheckButton: public auUIObject {
 public:
     
 	auCheckButton(const char* label, FAUSTFLOAT* zone) :
-        auUIObject(label, zone) {
+    auUIObject(label, zone) {
 	}
     
 	virtual ~auCheckButton() {
@@ -152,7 +153,7 @@ class auButton: public auUIObject {
 public:
     
 	auButton(const char* label, FAUSTFLOAT* zone) :
-        auUIObject(label, zone) {
+    auUIObject(label, zone) {
 	}
     
 	virtual ~auButton() {
@@ -179,13 +180,13 @@ public:
 	float fMin;
 	float fMax;
 	float fStep;
+    bool fIsVertical;
     
 public:
     
 	auSlider(const char* label, FAUSTFLOAT* zone, float init, float min, float max,
-             float step) :
-    auUIObject(label, zone), fInit(init), fMin(min), fMax(max), fStep(
-                                                                      step) {
+             float step, bool isVertical) :
+    auUIObject(label, zone), fInit(init), fMin(min), fMax(max), fStep(step), fIsVertical(isVertical) {
 	}
     
 	virtual ~auSlider() {
@@ -200,111 +201,249 @@ public:
 	} // expand
 };
 
+
 /**********************************************************************************/
+
+
+class auBargraph: public auUIObject {
+    
+public:
+	float fInit;
+	float fMin;
+	float fMax;
+	float fStep;
+    bool fIsVertical;
+    
+public:
+    
+	auBargraph(const char* label, FAUSTFLOAT* zone, float min, float max, bool isVertical) :
+    auUIObject(label, zone), fMin(min), fMax(max), fIsVertical(isVertical){
+	}
+    
+	virtual ~auBargraph() {
+	}
+    
+	virtual float GetValue() {
+		return (*fZone - fMin) / (fMax - fMin);
+	}	// normalize
+    
+	virtual void SetValue(double f) {
+		*fZone = range(fMin, fMax, (float) f);
+	} // expand
+};
+
+/**********************************************************************************/
+
+class auBox: public auUIObject {
+    
+public:
+	vector<auUIObject*> children;
+    bool isVertical;
+    auBox* parent;
+    
+public:
+    
+	auBox(const char* label, auBox* inParent, bool inIsVertical) :
+    auUIObject(label, NULL), parent(inParent), isVertical(inIsVertical) {
+	}
+    
+    void add(auUIObject* child) {
+        children.push_back(child);
+    }
+    
+	virtual ~auBox() {
+	}
+    
+};
+
+
+/**********************************************************************************/
+//eunum Direction {HORIZONTAL, VERTICAL}; //TODO
+
 class auUI: public UI {
 public:
     
 	vector<auUIObject*> fUITable;
+    std::set <float*>knobSet;
+    
+    auBox* currentBox = NULL;
+    auBox* boundingBox = NULL;
     
 public:
     
 	auUI() {
+        currentBox = boundingBox = new auBox("", NULL, true);
 	}
     
 	virtual ~auUI() {
 		for (vector<auUIObject*>::iterator iter = fUITable.begin();
              iter != fUITable.end(); iter++)
 			delete *iter;
+        //TODO delete boxes
 	}
     
-	 void addButton(const char* label, FAUSTFLOAT* zone) {
-		fUITable.push_back(new auButton(label, zone));
+    
+    virtual void declare(float* zone, const char* key, const char* value)
+    {
+		if (zone == 0)
+        {
+            if (strcmp(key, "hidden") == 0)
+            {
+
+            }
+		}
+        else
+        {
+			if (strcmp(key,"size") == 0)
+            {
+			}
+			else if (strcmp(key,"tooltip") == 0)
+            {
+			}
+			else if (strcmp(key,"unit") == 0)
+            {
+			}
+            if (strcmp(key,"hidden") == 0)
+            {
+
+            }
+			else if (strcmp(key,"style") == 0)
+            {
+				if (strstr(value, "knob")) //TODO
+                {
+					
+                    knobSet.insert(zone);
+				}
+			}
+            else if (strcmp(key,"color") == 0)
+            {
+            }
+            else if (strcmp(key,"accx") == 0
+                     || strcmp(key,"accy") == 0
+                     || strcmp(key,"accz") == 0
+                     || strcmp(key,"gyrox") == 0
+                     || strcmp(key,"gyroy") == 0
+                     || strcmp(key,"gyroz") == 0
+                     || strcmp(key,"compass") == 0)
+            {
+            }
+            
+		}
 	}
+    
+    
+    void addButton(const char* label, FAUSTFLOAT* zone) {
+        auButton* button = new auButton(label, zone);
+        fUITable.push_back(button);
+        currentBox->add(button);
+    }
     
     void openTabBox(const char* label) {
         
     }
     
-    void closeBox() {
-        
+    void addCheckButton(const char* label, FAUSTFLOAT* zone) {
+        auCheckButton* checkButton= new auCheckButton(label, zone);
+        fUITable.push_back(checkButton);
+        currentBox->add(checkButton);
     }
-
     
-	void addCheckButton(const char* label, FAUSTFLOAT* zone) {
-		fUITable.push_back(new auCheckButton(label, zone));
-	}
-    
-	void addVerticalSlider(const char* label, FAUSTFLOAT* zone, float init, float min,
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, float init, float min,
                            float max, float step) {
-		fUITable.push_back(new auSlider(label, zone, init, min, max, step));
-	}
+        auSlider* slider = new auSlider(label, zone, init, min, max, step, true);
+        fUITable.push_back(slider);
+        currentBox->add(slider);
+    }
     
-	void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, float init, float min,
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, float init, float min,
                              float max, float step) {
-		fUITable.push_back(new auSlider(label, zone, init, min, max, step));
-	}
+        auSlider* slider = new auSlider(label, zone, init, min, max, step, false);
+        fUITable.push_back(slider);
+        currentBox->add(slider);
+    }
     
-	void addNumEntry(const char* label, FAUSTFLOAT* zone, float init, float min, float max,
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, float init, float min, float max,
                      float step) {
-		fUITable.push_back(new auSlider(label, zone, init, min, max, step));
-	}
-
-	void openHorizontalBox(const char* label) {
-	}
+        auSlider* slider = new auSlider(label, zone, init, min, max, step, false);
+        fUITable.push_back(slider);
+        currentBox->add(slider);
+    }
     
-	void openVerticalBox(const char* label) {
-	}
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max) {
+        auBargraph* bargraph = new auBargraph(label, zone, min, max, false);
+        fUITable.push_back(bargraph);
+        currentBox->add(bargraph);
+    }
     
-	void SetValue(int index, double f) {
-		assert(index < fUITable.size());
-		fUITable[index]->SetValue(f);
-	}
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max) {
+        auBargraph* bargraph = new auBargraph(label, zone, min, max, true);
+        fUITable.push_back(bargraph);
+        currentBox->add(bargraph);
+    }
     
-	float GetValue(long index) {
-		assert(index < fUITable.size());
-		return fUITable[index]->GetValue();
-	}
+    void openHorizontalBox(const char* label) {
+        auBox* box = new auBox(label, currentBox, false);
+        currentBox->add(box);
+        currentBox = box;
+    }
     
-	void GetDisplay(long index, char *text) {
-		assert(index < fUITable.size());
-		fUITable[index]->GetDisplay(text);
-	}
+    void openVerticalBox(const char* label) {
+        auBox* box = new auBox(label, currentBox, true);
+        currentBox->add(box);
+        currentBox = box;
+    }
     
-	void GetName(long index, char *text) {
-		assert(index < fUITable.size());
-		fUITable[index]->GetName(text);
-	}
+    void closeBox() {
+        if (currentBox) //TODO else?
+            currentBox = currentBox->parent;
+    }
     
-	long GetNumParams() {
-		return fUITable.size();
-	}
+    void SetValue(int index, double f) {
+        assert(index < fUITable.size());
+        fUITable[index]->SetValue(f);
+    }
     
-	long makeID()
-	/* Creates a (unique) id by summing all the parameter's labels,
-	 * then wrapping it in the range [0;maxNumberOfId] and adding
-	 * this number to the offset made by the Four Character ID: 'FAUS'
-	 */
-	{
-		const long maxNumberOfId = 128;
-		long baseid = 'FAUS';
-		long id = 0;
-		for (int i = 0; i < fUITable.size(); i++)
-			id += fUITable[i]->GetID();
-		return baseid + id % maxNumberOfId;
-	}
+    float GetValue(long index) {
+        assert(index < fUITable.size());
+        return fUITable[index]->GetValue();
+    }
     
-	void addNumDisplay(char* label, float* zone, int precision) {
-	}
+    void GetDisplay(long index, char *text) {
+        assert(index < fUITable.size());
+        fUITable[index]->GetDisplay(text);
+    }
     
-	void addTextDisplay(char* label, float* zone, char* names[], float min,
+    void GetName(long index, char *text) {
+        assert(index < fUITable.size());
+        fUITable[index]->GetName(text);
+    }
+    
+    long GetNumParams() {
+        return fUITable.size();
+    }
+    
+    long makeID()
+    /* Creates a (unique) id by summing all the parameter's labels,
+     * then wrapping it in the range [0;maxNumberOfId] and adding
+     * this number to the offset made by the Four Character ID: 'FAUS'
+     */
+    {
+        const long maxNumberOfId = 128;
+        long baseid = 'FAUS';
+        long id = 0;
+        for (int i = 0; i < fUITable.size(); i++)
+            id += fUITable[i]->GetID();
+        return baseid + id % maxNumberOfId;
+    }
+    
+    void addNumDisplay(char* label, float* zone, int precision) {
+    }
+    
+    void addTextDisplay(char* label, float* zone, char* names[], float min,
                         float max) {
-	}
+    }
     
-	void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max) {
-	}
     
-	void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max) {
-	}
 };
 
 

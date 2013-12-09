@@ -1,6 +1,6 @@
 /*
-     File: FaustAUVersion.h
- Abstract: FaustAUVersion.h
+     File: FaustAU_CustomView.h 
+ Abstract: FaustAU_CustomView.h  
   Version: 1.01 
   
  Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple 
@@ -44,21 +44,52 @@
  Copyright (C) 2012 Apple Inc. All Rights Reserved. 
   
 */
-#ifndef __FaustAUVersion_h__
-#define __FaustAUVersion_h__
+
+#import <Cocoa/Cocoa.h>
+#import <AudioUnit/AudioUnit.h>
+#import <AudioToolbox/AudioToolbox.h>
+
+#import <FaustAU_Slider.h>
+#import <FaustAU_Knob.h>
+#import <FaustAU_Button.h>
 
 
-#ifdef DEBUG
-	#define kFaustAUVersion 0xFFFFFFFF
-#else
-	#define kFaustAUVersion 0x00010000	
-#endif
+//TODO
+#define MAX_CONTROLS 1000
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-#define FaustAU_TYPE            kAudioUnitType_Effect
-#define FaustAU_COMP_SUBTYPE	'_STYP_'
-#define FaustAU_COMP_MANF		'_MANF_'
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+#include <map>
 
-#endif
+
+@interface FaustAU_CustomView : NSView <FaustAU_KnobProtocol, FaustAU_ButtonProtocol>
+{	
+    AudioUnit mAU;
+    NSTimer* timer;
+    bool monitor;
+    bool usesBargraphs;
+    NSTextField* paramValues[MAX_CONTROLS];
+    AUEventListenerRef		mAUEventListener;
+    std::map <int, NSView*> viewMap;
+    std::map <NSButton*, NSBox*> showHideMap;
+}
+
+- (void)setAU:(AudioUnit)inAU;
+- (void)paramChanged:(id)sender;
+
+- (void)redraw;
+- (void)removeFromSuperview;
+
+- (void)buttonPushed:(id)sender;
+- (void)knobUpdatedWithIndex:(int)index
+                   withValue:(double)aDouble
+                withObject:(id)object;
+- (void)xmlPushed;
+- (void)monitorPushed;
+- (void)viewDidHide;
+
+@end
+
+
+
+
+
 

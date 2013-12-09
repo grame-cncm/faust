@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8D01CCC60486CAD60068D4B7"
-               BuildableName = "FaustAU.component"
-               BlueprintName = "FaustAU"
+               BlueprintIdentifier = "8BA4AE4D073EB69000A2709A"
+               BuildableName = "FaustAUCustomView.bundle"
+               BlueprintName = "CocoaUI"
                ReferencedContainer = "container:FaustAU.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -39,9 +39,6 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
-      <PathRunnable
-         FilePath = "/Applications/Utilities/AU Lab.app">
-      </PathRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

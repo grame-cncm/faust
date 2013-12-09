@@ -1,58 +1,64 @@
 #!/bin/sh
 
 #####################################################################
-#                                                                   
-#               Compiles Faust programs to Audio Unit       	      
-#               (c) Grame 2013                           	               
-#                                                                   
+#
+#               Compiles Faust programs to Audio Unit
+#               (c) Grame 2013
+#
 #####################################################################
 
-ARCHFILE="au.cpp"
-ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
+echo Generating Audio Unit...
+#input parameters (passed by faust2aueffect or faust2auinstrument):
+#echo $ARCHFILE
+#echo $AUTYPE
+#echo $FAUSTAU_CLASS
+#echo $COMPTYPE
+
 PATH=$PATH:/usr/local/bin
+
 
 #-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../lib/faust/' in $FLIB
-# and '.../include/(faust)' in $FINC 
+# and '.../include/(faust)' in $FINC
 
-FLIB=""; FINC=""; 
+FLIB=""; FINC="";
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 for f in $FPATH; do
-	if [ -e $f/lib/faust ]; 	then FLIB=$f/lib/faust;	fi
-	if [ -e $f/include/faust ];	then FINC=$f/include/; fi
+if [ -e $f/lib/faust ]; 	then FLIB=$f/lib/faust;	fi
+if [ -e $f/include/faust ];	then FINC=$f/include/; fi
 done
-if [ -z "$FLIB" -o -z "$FINC" ]; then 
-	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)"; 
-	exit 1;
+if [ -z "$FLIB" -o -z "$FINC" ]; then
+echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)";
+exit 1;
 fi
 
 #-------------------------------------------------------------------------------
 #PHASE 1 : collects files and options from the command line
 
 for p in $@; do
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
+if [ "$p" = -omp ]; then
+if [[ $CXX == "icpc" ]]; then
+OMP="-openmp"
+else
+OMP="-fopenmp"
+fi
+fi
 
-    if [ "$p" = -icc ]; then
-		ignore=" "
-    elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
-	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
-    elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+if [ "$p" = -icc ]; then
+ignore=" "
+elif [ $p = "-osc" ]; then
+OSCDEFS="DEFINES += OSCCTRL"
+OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+elif [ "$p" = "-httpd" ]; then
+HTTPDEFS="DEFINES += HTTPCTRL"
+HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
+elif [ ${p:0:1} = "-" ]; then
+OPTIONS="$OPTIONS $p"
+elif [[ -f "$p" ]]; then
+FILES="$FILES $p"
+else
+OPTIONS="$OPTIONS $p"
+fi
 done
 
 #-------------------------------------------------------------------------------
@@ -67,19 +73,19 @@ TEMP_DIR=./faust.XXX
 
 if [ $# -lt 1 ]
 then
-	echo faust dsp file not specified
-	exit
+echo FAUST dsp file not specified
+exit
 fi
 
 if [ ! -f $1 ]
 then
-    echo input file does not exist
-    exit
+echo Input file does not exist
+exit
 fi
 
 if [ -d $TEMP_DIR ]
 then
-	rm -r $TEMP_DIR
+rm -r $TEMP_DIR
 fi
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
@@ -90,12 +96,16 @@ cd $TEMP_DIR
 mkdir Source >& /dev/null
 
 faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
+
+faust $OPTIONS -xml $1 > /dev/null
+mv $1.xml Source/au-output.xml
+
 if [ ! -f Source/au-output.cpp ]
 then
-	echo faust could not generate cpp file
-	cd ..
-	rm -r $TEMP_DIR
-	exit	
+echo FAUST could not generate cpp file
+cd ..
+rm -r $TEMP_DIR
+exit
 fi
 
 FULL_FILE_NAME=$1
@@ -106,74 +116,72 @@ FILE_NAME="${FILE_NAME%.*}"
 
 if [ $# -lt 2 ]
 then
-	MANUFACTURER="Grame"
+MANUFACTURER="Grame"
 else
-	MANUFACTURER=$2
+MANUFACTURER=$2
 fi
 
 NAME=$MANUFACTURER:' '"$FILE_NAME"
 
 if [ $# -lt 3 ]
 then
-	SUB_TYPE=${FILE_NAME:0:4}
+SUB_TYPE=${FILE_NAME:0:4}
 else
-	SUB_TYPE=$3
+SUB_TYPE=$3
 fi
 
 if [ $# -lt 4 ]
 then
-	MANF=${MANUFACTURER:0:4}
+MANF=${MANUFACTURER:0:4}
 else
-	MANF=$4
+MANF=$4
 fi
 
 perl -pi -e 's/_NAME_/'"$NAME"'/g' Info.plist
 perl -pi -e 's/_DESC_/'"$NAME"'/g' Info.plist
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g'  Info.plist
-perl -pi -e 's/_MANF_/'"$MANF"'/g' Info.plist 
-perl -pi -e 's/_BUNDLE_ID_/'"$FILE_NAME"'/g' Info.plist 
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Info.plist
+perl -pi -e 's/_BUNDLE_ID_/'"$FILE_NAME"'/g' Info.plist
+perl -pi -e 's/_TYPE_/'"$AUTYPE"'/g' Info.plist
 
-perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings 
-perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings 
+perl -pi -e 's/_BUNDLE_NAME_/'"$FILE_NAME"'/g' English.lproj/InfoPlist.strings
+perl -pi -e 's/_BUNDLE_INFO_/'"$NAME"'/g' English.lproj/InfoPlist.strings
 
 perl -pi -e 's/_NAME_/'"$NAME"'/g' Source/AUSource/FaustAU.r
-perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r 
+perl -pi -e 's/_DESC_/'"$NAME"'/g' Source/AUSource/FaustAU.r
+perl -pi -e 's/_COMPTYPE_/'"$COMPTYPE"'/g' Source/AUSource/FaustAU.r
+
+perl -pi -e 's/_FaustAUClass_/'"$FAUSTAU_CLASS"'/g' Source/AUSource/FaustAU.h
 
 perl -pi -e 's/_STYP_/'"$SUB_TYPE"'/g' Source/AUSource/FaustAUVersion.h
-perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h 
+perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h
+
+perl -pi -e 's/_FILENAME_/'"$FILE_NAME"'/g' Source/CocoaUI/FaustAU_CustomView.m
 
 xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
 
-rm Source/au-output.cpp
-
-rm Info.plist
-cp Info-template.plist Info.plist
-
-rm English.lproj/InfoPlist.strings
-cp English.lproj/InfoPlist-template.strings English.lproj/InfoPlist.strings
-
-rm Source/AUSource/FaustAU.r
-cp Source/AUSource/FaustAU-template.r Source/AUSource/FaustAU.r
-
-rm Source/AUSource/FaustAUVersion.h
-cp Source/AUSource/FaustAUVersion-template.h Source/AUSource/FaustAUVersion.h
-
 if [ ! -d $AU_DIR/FaustAU.component/ ]
 then
-	echo unable to generate AU
+	echo Unable to generate Audio Unit
 	cd ..
 	rm -r $TEMP_DIR
-	exit	
+	exit
 fi
 
 if [ -d $AU_DIR/"$FILE_NAME".component/ ]
 then
-	rm -r  $AU_DIR/"$FILE_NAME".component/
+rm -r  $AU_DIR/"$FILE_NAME".component/
 fi
 
 mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
 
+
+if [ -d $AU_DIR/FaustAUCustomView.bundle/ ]
+then
+rm -r  $AU_DIR/FaustAUCustomView.bundle/
+fi
+
 cd ..
 rm -r $TEMP_DIR
 
-echo "'$NAME'" AU generated and installed successfully 
+echo "'$NAME'" Audio Unit generated and installed successfully
