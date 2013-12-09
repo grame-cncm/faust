@@ -24,7 +24,8 @@ class ControlUI  : public UI {
         void addButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
         void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
-        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone);};
+
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
 
         // -- passive widgets
@@ -35,23 +36,21 @@ class ControlUI  : public UI {
     public:
        
         void encode_control(float* control_buffer, unsigned int size)
-        {
+        { 
             assert(fControlOut.size() < size);
             // Encode control values in control_buffer
-            int control_index = 0;
-            for (unsigned int i = 0; i < fControlOut.size(); i++) {
-                control_buffer[control_index++] = *fControlOut[i];
-            };
+            
+            for (unsigned int i = 0; i < fControlOut.size(); i++)
+                control_buffer[i] = *fControlOut[i];
         }
-
+        
         void decode_control(float* control_buffer, unsigned int size)
         {
             assert(fControlIn.size() < size);
             // Decode control values from control_buffer
-            int control_index = 0;
-            for (unsigned int i = 0; i < fControlIn.size(); i++) {
-               *fControlIn[i] = control_buffer[control_index++];
-            };
+            
+            for (unsigned int i = 0; i < fControlIn.size(); i++)
+               *fControlIn[i] = control_buffer[i];
         }
 };
 
