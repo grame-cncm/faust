@@ -564,17 +564,24 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [self addSubview:nsBoundingBox];
     
-    //TODO
+    
+    //xml button
+    NSButton* button;
+    NSRect monitorFrame = NSMakeRect(size.width - 32, 6, 55, 24);
+    button = [[NSButton alloc] initWithFrame:monitorFrame ];
+    [button setTitle:@"XML"]; //TODO
+    [button setButtonType:NSMomentaryPushInButton];
+    [button setBezelStyle:NSRoundedBezelStyle];
+    [button setTarget:self];
+    [button setAction:@selector(xmlPushed:)];
+    [button setState:TRUE];
+    [self addSubview:button];
+    
+    //TODO monitor buffon
     if (usesBargraphs)
     {
-        
-        int width = 80;
-        int height = 15;
-        
-        NSRect monitorFrame = NSMakeRect(0, 0, width, height);
-        
-        NSButton* button = [[NSButton alloc] initWithFrame:monitorFrame ];
-        
+        NSRect monitorFrame = NSMakeRect(10, 10, 60, 15);
+        button = [[NSButton alloc] initWithFrame:monitorFrame ];
         [button setTitle:@"MON"]; //TODO
         [button setButtonType:NSSwitchButton];
         [button setBezelStyle:NSRoundedBezelStyle];
@@ -614,7 +621,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     
     [self repaint];
-
+    
     //TODO only if there is bargraph
     
 }
@@ -736,6 +743,28 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     [self unsetTimer];
 }
 
+
+- (void)xmlPushed:(id)sender
+{
+    NSFileManager *filemgr;
+    NSData *databuffer;
+    
+    filemgr = [NSFileManager defaultManager];
+    
+    NSString* path = [NSHomeDirectory() stringByAppendingString: @"/Library/Audio/Plug-Ins/Components/_FILENAME_.component/Contents/Resources/au-output.xml"];
+    
+    NSSavePanel *savePanel = [NSSavePanel savePanel];
+    NSString *outputFileName = NULL;
+    int result = [savePanel runModal];
+    
+    if (result == NSOKButton){
+        outputFileName = [[savePanel URL] path];
+    }
+    
+    databuffer = [filemgr contentsAtPath: path ];
+    [filemgr createFileAtPath: outputFileName contents: databuffer attributes: nil];
+    
+}
 
 - (void)monitorPushed:(id)sender
 {
