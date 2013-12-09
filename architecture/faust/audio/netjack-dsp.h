@@ -128,7 +128,7 @@ class netjackaudio : public audio
         #endif
             jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
 
-            fDsp->init(result.sample_rate);
+            fDsp->init(fResult.sample_rate);
             return true;
         }
 
