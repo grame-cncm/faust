@@ -57,19 +57,26 @@ class netjackaudio : public audio
         std::string fMasterIP;
         int fMasterPort;
         int fLatency;
+        jack_master_t fResult;
 
     #ifdef RESTART_CB_API
         static int net_restart(void* arg) 
         {
+            netjackaudio* obj = (netjackaudio*)arg;
             printf("Network failure, restart...\n");
-            return 0;
+            return obj->doesRestart();
         }
     #else 
         static void net_shutdown(void* arg) 
         {
+            netjackaudio* obj = (netjackaudio*)arg;
             printf("Network failure, restart...\n");
         }
     #endif
+    
+        virtual int doesRestart(){
+            return 0;
+        }
         
         static int net_sample_rate(jack_nframes_t nframes, void* arg) 
         {
@@ -108,14 +115,13 @@ class netjackaudio : public audio
                 outputs,
                 0, 0,
                 DEFAULT_MTU,
-                -1,
+                2,
                 (fCelt > 0) ? JackCeltEncoder : JackFloatEncoder,
                 (fCelt > 0) ? fCelt : 0,
                 fLatency
             };
-
-            jack_master_t result;
-            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &result)) == 0) {
+      
+            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &fResult)) == 0) {
                 printf("jack remote server not running ?\n");
                 return false;
             }
@@ -128,7 +134,7 @@ class netjackaudio : public audio
         #endif
             jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
 
-            fDsp->init(result.sample_rate);
+            fDsp->init(fResult.sample_rate);
             return true;
         }
 
@@ -155,9 +161,13 @@ class netjackaudio : public audio
         }
 
         virtual void stop() {
+            
             jack_net_slave_deactivate(fNet);
             jack_net_slave_close(fNet);
         }
+        
+        virtual int buffer_size() { return fResult.buffer_size; }
+        virtual int sample_rate() { return fResult.sample_rate; }
 
 };
 
@@ -165,33 +175,66 @@ class netjackaudio : public audio
 A special NetJack client that uses one more audio input/output to transmit control values.
 */
 
-class netjackaudio_control : public netjackaudio, public ControlUI {  
-  
+class netjackaudio_control : public netjackaudio{  
+        
     protected:
+        
+        ControlUI*  fUI;
     
+        float** fInputs;
+        float ** fOutputs;
+        
         virtual void process(int count,  float** inputs, float** outputs)
         {
             AVOIDDENORMALS;
-            decode_control(inputs[fDsp->getNumInputs()], count);
-            fDsp->compute(count, inputs, outputs);
-            encode_control(outputs[fDsp->getNumOutputs()], count);
+            
+            for(int i=0; i<fDsp->getNumInputs();i++)
+                    fInputs[i]=inputs[i+1];
+            
+            for(int i=0; i<fDsp->getNumOutputs();i++)
+                    fOutputs[i]=outputs[i+1];
+            
+            fUI->decode_control(inputs[0], count);
+            fDsp->compute(count, fInputs, fOutputs);
+            fUI->encode_control(outputs[0], count);
+            
         }
-   
+        
     public:
-    
-        netjackaudio_control(int celt, const std::string master_ip, int master_port, int latency = 2)
-            :netjackaudio(celt, master_ip, master_port, latency)
-        {}
+        
+        netjackaudio_control(int celt, const std::string master_ip, int master_port, int latency, ControlUI* ui)
+        :netjackaudio(celt, master_ip, master_port, latency)
+        {
+            fUI = ui;
+            
+        }
         
         virtual ~netjackaudio_control() 
         {}
         
+        bool is_Connexion_Active(){
+            return jack_net_slave_is_active(fNet);
+        }
+    
         virtual bool init(const char* name, dsp* DSP) 
         {
-            DSP->buildUserInterface(this);
+            fInputs = new float*[DSP->getNumInputs()];
+            fOutputs = new float*[DSP->getNumOutputs()];            
+            
             return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1); // One more audio port for control
         }
+    
+        virtual void stop() {
+            jack_net_slave_close(fNet);
+            
+            delete fInputs;
+            delete fOutputs;
+        }
         
+        virtual int doesRestart(){
+            return -1;
+        }
+    
 };
 
 #endif
