@@ -370,7 +370,7 @@ int main(int argc, char *argv[] )
 {
     char jackname[256];
 	snprintf(jackname, 255, "%s", basename(argv[0]));
-    char error_msg[256];
+    std::string error_msg;
     
     if (argc < 2) {
         printf("faust-llvm 'foo.dsp'\n");
