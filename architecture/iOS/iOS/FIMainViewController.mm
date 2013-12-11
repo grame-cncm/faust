@@ -1572,7 +1572,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             if ((*i)->getAssignationInverse()) sign = -1.;
             else sign = 1.;
             
-            
+
             ////
             if (dynamic_cast<uiSlider*>(*i))
             {
