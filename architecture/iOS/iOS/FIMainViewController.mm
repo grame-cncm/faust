@@ -1573,13 +1573,26 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             
             ////
-            value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
-                                     la:-1.
-                                     ma:(*i)->getAssignationRefPointX()
-                                     ha:1.
-                                     lv:dynamic_cast<uiSlider*>(*i)->fSlider.min
-                                     mv:(*i)->getAssignationRefPointY()
-                                     hv:dynamic_cast<uiSlider*>(*i)->fSlider.max];
+            if (dynamic_cast<uiSlider*>(*i))
+            {
+                value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
+                                         la:-1.
+                                         ma:(*i)->getAssignationRefPointX()
+                                         ha:1.
+                                         lv:dynamic_cast<uiSlider*>(*i)->fSlider.min
+                                         mv:(*i)->getAssignationRefPointY()
+                                         hv:dynamic_cast<uiSlider*>(*i)->fSlider.max];
+            }
+            else if (dynamic_cast<uiKnob*>(*i))
+            {
+                value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
+                                         la:-1.
+                                         ma:(*i)->getAssignationRefPointX()
+                                         ha:1.
+                                         lv:dynamic_cast<uiKnob*>(*i)->fKnob.min
+                                         mv:(*i)->getAssignationRefPointY()
+                                         hv:dynamic_cast<uiKnob*>(*i)->fKnob.max];
+            }
             
             //NSLog(@"val %f", value);
             ////
