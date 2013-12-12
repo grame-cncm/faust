@@ -40,6 +40,7 @@
 #include <list>
 
 #include "faust/gui/FUI.h"
+#include "faust/gui/PUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
@@ -90,6 +91,7 @@ int main(int argc, char *argv[])
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
+    DSP.buildUserInterface(new PrintUI());
 
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
