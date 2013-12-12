@@ -827,6 +827,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (dynamic_cast<uiBargraph*>(*i) != nil)
         {
             (*i)->reflectZone();
+            [dynamic_cast<uiBargraph*>(*i)->fBargraph setNeedsDisplay];
         }
     }
 }
