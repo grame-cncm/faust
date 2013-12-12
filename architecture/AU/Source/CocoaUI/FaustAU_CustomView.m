@@ -326,7 +326,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     //origin.x += 300; //TODO
     NSPoint org;
-    org.x = origin.x + 150;
+    org.x = origin.x + 125;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -335,13 +335,13 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     {
         origin.y += height;
         size.height += height;
-        if (size.width < width+100+100)
-            size.width = width+100+100;
+        if (size.width < width+130)
+            size.width = width+130;
     }
     else
     {
-        origin.x += width+100+100;
-        size.width += width+100+100;
+        origin.x += width+130;
+        size.width += width+130;
         if (size.height < height)
             size.height = height;
     }
@@ -597,6 +597,9 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 
 - (void)setAU:(AudioUnit)inAU {
 	
+	if (mAU)
+		[self priv_removeListeners];
+
     mAU = inAU;
     [self priv_addListeners];
     [self priv_synchronizeUIWithParameterValues];
@@ -746,10 +749,12 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 
 - (void)xmlPushed:(id)sender
 {
-    NSFileManager *filemgr;
-    NSData *databuffer;
-    
-    filemgr = [NSFileManager defaultManager];
+    NSData *data;
+    NSString* dataString;
+    NSString *oldString, *newString;
+
+    auUI* dspUI = [self dspUI];
+    NSFileManager *filemgr = [NSFileManager defaultManager];
     
     NSString* path = [NSHomeDirectory() stringByAppendingString: @"/Library/Audio/Plug-Ins/Components/_FILENAME_.component/Contents/Resources/au-output.xml"];
     
@@ -761,8 +766,23 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         outputFileName = [[savePanel URL] path];
     }
     
-    databuffer = [filemgr contentsAtPath: path ];
-    [filemgr createFileAtPath: outputFileName contents: databuffer attributes: nil];
+    data = [filemgr contentsAtPath: path ];
+    
+    dataString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+    for (int i = 0; i < dspUI->fUITable.size(); i++)
+    {
+        if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
+        {
+            oldString = [NSString stringWithFormat:@"id=\"%i\"", i + 1];
+            newString = [NSString stringWithFormat:@"id=\"%i\" value=\"%f\"", i + 1, *dspUI->fUITable[i]->fZone];
+
+            dataString = [dataString stringByReplacingOccurrencesOfString: oldString withString:newString];
+        }
+    }
+    
+    data = [dataString dataUsingEncoding:NSUTF8StringEncoding];
+    [filemgr createFileAtPath: outputFileName contents: data attributes: nil];
     
 }
 
