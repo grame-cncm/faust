@@ -40,8 +40,9 @@ class ControlUI  : public UI {
             assert(fControlOut.size() < size);
             // Encode control values in control_buffer
             
-            for (unsigned int i = 0; i < fControlOut.size(); i++)
+            for (unsigned int i = 0; i < fControlOut.size(); i++) {
                 control_buffer[i] = *fControlOut[i];
+            }
         }
         
         void decode_control(float* control_buffer, unsigned int size)
@@ -49,8 +50,9 @@ class ControlUI  : public UI {
             assert(fControlIn.size() < size);
             // Decode control values from control_buffer
             
-            for (unsigned int i = 0; i < fControlIn.size(); i++)
+            for (unsigned int i = 0; i < fControlIn.size(); i++) {
                *fControlIn[i] = control_buffer[i];
+            }
         }
 };
 
