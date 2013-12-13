@@ -56,6 +56,7 @@ class netjackaudio : public audio
         int fCelt;
         std::string fMasterIP;
         int fMasterPort;
+        int fMTU;
         int fLatency;
         jack_master_t fResult;
 
@@ -115,7 +116,7 @@ class netjackaudio : public audio
                 inputs,
                 outputs,
                 0, 0,
-                DEFAULT_MTU,
+                fMTU,
                 2,
                 (fCelt > 0) ? JackCeltEncoder : JackFloatEncoder,
                 (fCelt > 0) ? fCelt : 0,
@@ -141,8 +142,8 @@ class netjackaudio : public audio
 
     public:
 
-        netjackaudio(int celt, const std::string& master_ip, int master_port, int latency = 2)
-            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
+        netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency = 2)
+            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fMTU(mtu), fLatency(latency)
         {}
         
         virtual ~netjackaudio() 
@@ -188,8 +189,8 @@ class netjackaudio_control : public netjackaudio {
         {
             AVOIDDENORMALS;
             
-            float** inputs_tmp[fDsp->getNumInputs()];
-            float** outputs_tmp[fDsp->getNumOutputs()];
+            float* inputs_tmp[fDsp->getNumInputs()];
+            float* outputs_tmp[fDsp->getNumOutputs()];
             
             for(int i = 0; i < fDsp->getNumInputs();i++) {
                 inputs_tmp[i] = inputs[i+1];
@@ -206,8 +207,8 @@ class netjackaudio_control : public netjackaudio {
         
     public:
         
-        netjackaudio_control(int celt, const std::string& master_ip, int master_port, int latency, ControlUI* ui)
-            :netjackaudio(celt, master_ip, master_port, latency),fUI(ui)
+        netjackaudio_control(int celt, const std::string& master_ip, int master_port, int mtu, int latency, ControlUI* ui)
+            :netjackaudio(celt, master_ip, master_port, mtu, latency),fUI(ui)
         {}
         
         virtual ~netjackaudio_control() 

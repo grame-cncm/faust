@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
     int	celt = lopt(argv, "--celt", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
+    int mtu = lopt(argv, "--m", DEFAULT_MTU);
     int latency = lopt(argv, "--l", 2);
 
     snprintf(appname, 255, "%s", basename(argv[0]));
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
     DSP.buildUserInterface(httpdinterface);
 #endif
 
-    netjackaudio audio(celt, master_ip, master_port, latency);
+    netjackaudio audio(celt, master_ip, master_port, mtu, latency);
     if (!audio.init(appname, &DSP)) {
         return 0;
     }
