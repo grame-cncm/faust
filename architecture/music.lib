@@ -404,4 +404,17 @@ automat(bps, size, init, input) = rwtable(size+1, init, windex, input, rindex)
 	};
 
 
+//----------------------------------bsmooth------------------------------
+// bsmooth : (block smooth) linear interpolation during a block of samples
+//
+// USAGE: hslider(...) : bsmooth
+//-----------------------------------------------------------------------
+
+bsmooth(c) = +(i) ~ _
+	with { 
+		i = (c-c@n)/n;
+		n = min(4096, max(1, fvariable(int count, <math.h>)));
+	};
+
+
 
