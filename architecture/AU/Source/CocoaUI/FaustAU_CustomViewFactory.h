@@ -1,7 +1,5 @@
-
 #import <Cocoa/Cocoa.h>
 #import <AudioUnit/AUCocoaUIView.h>
-
 
 @class FaustAU_CustomView;
 
@@ -10,6 +8,6 @@
     IBOutlet FaustAU_CustomView *uiFreshlyLoadedView;	// This class is the File's Owner of the CocoaView 
 }															// This data member needs to be the same class as the view class the factory will return
 
-- (NSString *) description;	// string description of the view
+- (NSString *) description;	
 
 @end

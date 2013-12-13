@@ -1,18 +1,4 @@
-//
-//  FaustAU_Knob.m
-//  FaustAU
-//
-//  Created by Reza Payami on 11/29/13.
-//
-//
-
-//
-//  FlatKnob.m
-//  FlatKnobTest
-//
-//  Created by Paolo Boschini on 9/18/13.
-//  Copyright (c) 2013 Paolo Boschini. All rights reserved.
-//
+//  Based on Paolo Boschini's FlatKnob.
 
 #import "FaustAU_Knob.h"
 

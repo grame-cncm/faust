@@ -37,7 +37,7 @@ template <typename C> class jsonui
 	std::map<std::string, std::string>	fMeta;	// the current meta declarations
 
 	public:
-				 jsonui(const char *name, const char* address, int port) : fFactory(0) { fFactory = new jsonfactory(name, address, port); }
+				 jsonui(const char *name, const char* address, int port) { fFactory = new jsonfactory(name, address, port); }
 		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
@@ -73,7 +73,7 @@ template <typename C> class jsonui
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		const char*	json ()									{ return fFactory->root().json(); }
+		std::string json ()							{ return fFactory->root().json(); }
 };
 
 } //end namespace

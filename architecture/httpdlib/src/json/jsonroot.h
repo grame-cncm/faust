@@ -64,7 +64,7 @@ class jsonroot : public smartable
 		void	declare (const char* key, const char* val)	{ fMeta[key] = val; }
 		void	setInputs (int inputs)						{ fInputs = inputs;}
 		void	setOutputs (int outputs)					{ fOutputs = outputs; }
-		const char*	json ()									{ print(fJSON); return fJSON.str().c_str(); }
+		std::string	json ()									{ print(fJSON); return fJSON.str(); }
 };
 
 } // end namespoace

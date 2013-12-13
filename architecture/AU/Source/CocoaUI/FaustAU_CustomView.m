@@ -3,15 +3,13 @@
 
 #include "FaustAU.h"
 
-
 @implementation FaustAU_CustomView
-
 
 // This listener responds to parameter changes, gestures, and property notifications
 void eventListenerDispatcher (void *inRefCon, void *inObject, const AudioUnitEvent *inEvent, UInt64 inHostTime, Float32 inValue)
 {
 	FaustAU_CustomView *SELF = (FaustAU_CustomView *)inRefCon;
-	[SELF priv_eventListener:inObject event: inEvent value: inValue];
+	[SELF eventListener:inObject event: inEvent value: inValue];
 }
 
 void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent *inEvent)
@@ -26,7 +24,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 	verify_noerr ( AUEventListenerAddEventType(	listener, refCon, inEvent));
 }
 
-- (void)priv_addListeners
+- (void)addListeners
 {
     auUI* dspUI;
     
@@ -34,7 +32,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 		verify_noerr( AUEventListenerCreate(eventListenerDispatcher, self,
 											CFRunLoopGetCurrent(), kCFRunLoopDefaultMode, 0.05, 0.05,
 											&mAUEventListener));
-		
         dspUI = [self dspUI];
         
 		//add listeners
@@ -52,7 +49,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                     AudioUnitParameter parameter =
                     {
                         mAU,
-                        i, //TODO 0 -> inParamID
+                        i,
                         kAudioUnitScope_Global,
                         0 // mElement
                     };
@@ -60,9 +57,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                     addParamListener (mAUEventListener, self, &auEvent);                }
             }
         
-		//auEvent.mArgument.mParameter.mParameterID = kFilterParam_Resonance;
-		//addParamListener (mAUEventListener, self, &auEvent);
-		
 		/* Add a listener for the changes in our custom property */
 		/* The Audio unit will send a property change when the unit is intialized */
 		auEvent.mEventType = kAudioUnitEvent_PropertyChange;
@@ -75,7 +69,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 	
 }
 
-- (void)priv_removeListeners
+- (void)removeListeners
 {
 	if (mAUEventListener) verify_noerr (AUListenerDispose(mAUEventListener));
 	mAUEventListener = NULL;
@@ -89,12 +83,31 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     UInt32 dataSize = sizeof(auUI*);
     
     ComponentResult result = AudioUnitGetProperty(mAU,
-                                                  (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI, //TODO
+                                                  (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI,
                                                   kAudioUnitScope_Global,
                                                   (AudioUnitElement)0, //inElement
                                                   (void*)&dspUI,
                                                   &dataSize);
     return dspUI;
+}
+
+
+/*
+ - (BOOL)isFlipped
+ {
+ return YES;
+ }*/
+
+- (void)dealloc {
+    /*
+     [self unsetTimer];
+     
+     [self removeListeners];
+     
+     [[NSNotificationCenter defaultCenter] removeObserver: self];
+     
+     [super dealloc];*/
+    
 }
 
 - (NSButton*)addButton:(NSBox*) nsBox :(auButton*)fButton :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
@@ -136,7 +149,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     NSButton* button = [[NSButton alloc] initWithFrame:frame ];
     
-    [button setTitle:[[NSString alloc] initWithCString:fButton->fLabel.c_str() encoding:NSUTF8StringEncoding]]; //TODO
+    [button setTitle:[[NSString alloc] initWithCString:fButton->fLabel.c_str() encoding:NSUTF8StringEncoding]];
     
     [button setButtonType:NSSwitchButton];
     [button setBezelStyle:NSRoundedBezelStyle];
@@ -176,17 +189,16 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     NSTextField* textField;
     
-    textField = [[NSTextField alloc] initWithFrame:NSMakeRect(origin.x, origin.y - 10 , width, height)]; //TODO + 10
+    textField = [[NSTextField alloc] initWithFrame:NSMakeRect(origin.x, origin.y - 10 , width, height)];
     
     [textField setBezeled:NO];
     [textField setDrawsBackground:NO];
     [textField setEditable:NO];
     [textField setSelectable:NO];
     [textField setIdentifier: @"200"]; //TODO
-    [textField setStringValue:[[NSString alloc] initWithCString:label encoding:NSUTF8StringEncoding]]; //TODO
+    [textField setStringValue:[[NSString alloc] initWithCString:label encoding:NSUTF8StringEncoding]];
     
     [nsBox addSubview:textField];
-    
     
     return textField;
     
@@ -196,7 +208,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 - (FaustAU_Slider*)addSlider:(NSBox*) nsBox :(auSlider*)fSlider :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
     
-    NSTextField* labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
+    NSTextField* labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox]; //TODO
     [labelTextField setAlignment: NSRightTextAlignment];
     
     int width;
@@ -237,7 +249,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     sprintf(valueString, "%9.2f", value);
     
     NSPoint org;
-    org.x = origin.x + 100 + width - 10; //TODO -15
+    org.x = origin.x + 100 + width - 10;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -257,7 +269,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
             size.height = height;
     }
     
-    paramValues[controlId] = valueTextField; //TODO
+    paramValues[controlId] = valueTextField;
     
     [slider setLabelTextField: labelTextField];
     [slider setValueTextField: valueTextField];
@@ -308,9 +320,9 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     knob->control = controlId;
     
-    knob->controlPoint->delegate = self; //TODO
+    knob->controlPoint->delegate = self;
     
-    knob->controlPoint->data = [self generateArrayFrom:fSlider->fMin to:fSlider->fMax step:fSlider->fStep]; //TODOOOOO not step?
+    knob->controlPoint->data = [self generateArrayFrom:fSlider->fMin to:fSlider->fMax step:fSlider->fStep]; //TODO step
     
     NSString *identifier = [NSString stringWithFormat:@"%d",controlId];
     [knob setIdentifier: identifier];
@@ -318,15 +330,13 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     [nsBox addSubview:knob];
     
     
-    //Value
     AudioUnitGetParameter(mAU, controlId, kAudioUnitScope_Global, 0, &value);
     char valueString[100];
     sprintf(valueString, "%9.2f", value);
     
     
-    //origin.x += 300; //TODO
     NSPoint org;
-    org.x = origin.x + 150;
+    org.x = origin.x + 125;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -335,18 +345,18 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     {
         origin.y += height;
         size.height += height;
-        if (size.width < width+100+100)
-            size.width = width+100+100;
+        if (size.width < width+130)
+            size.width = width+130;
     }
     else
     {
-        origin.x += width+100+100;
-        size.width += width+100+100;
+        origin.x += width+130;
+        size.width += width+130;
         if (size.height < height)
             size.height = height;
     }
     
-    paramValues[controlId] = valueTextField; //TODO
+    paramValues[controlId] = valueTextField;
     
     [knob setLabelTextField: labelTextField];
     [knob setValueTextField: valueTextField];
@@ -356,17 +366,17 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 }
 
 
-- (FaustAU_Slider*)addBargraph:(NSBox*) nsBox :(auBargraph*)fSlider :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
+- (FaustAU_Bargraph*)addBargraph:(NSBox*) nsBox :(auBargraph*)fBargraph :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
     
-    NSTextField* labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
+    NSTextField* labelTextField = [self addTextField :nsBox :fBargraph->fLabel.c_str() :200 :origin :isVerticalBox];
     [labelTextField setAlignment: NSRightTextAlignment];
     
     int width;
     int height;
     float value;
     
-    if (fSlider->fIsVertical) {
+    if (fBargraph->fIsVertical) {
         width = 35;
         height = 100;
     }
@@ -376,31 +386,31 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     
     
-    FaustAU_Slider* slider;
-    slider = [[FaustAU_Slider alloc] initWithFrame:NSMakeRect(origin.x + 100, origin.y, width, height)];
-    [slider setMinValue:fSlider->fMin];
-    [slider setMaxValue:fSlider->fMax];
+    FaustAU_Bargraph* bargraph;
+    bargraph = [[FaustAU_Bargraph alloc] initWithFrame:NSMakeRect(origin.x + 100, origin.y, width, height)];
+    [bargraph setMinValue:fBargraph->fMin];
+    [bargraph setMaxValue:fBargraph->fMax];
     
     AudioUnitGetParameter(mAU, controlId, kAudioUnitScope_Global, 0, &value);
-    [slider setDoubleValue:value];
+    [bargraph setDoubleValue:value];
     
-    //TODO [slider setNumberOfTickMarks: (fSlider->fMax - fSlider->fMin) / fSlider->fStep];
+    //TODO [barGraph setNumberOfTickMarks: (fBargraph->fMax - fBargraph->fMin) / fBargraph->fStep];
     NSString *identifier = [NSString stringWithFormat:@"%d",controlId];
-    [slider setIdentifier: identifier];
+    [bargraph setIdentifier: identifier];
     
-    [slider setContinuous:YES];
+    [bargraph setContinuous:YES];
     
-    [slider setAction:@selector(paramChanged:)];
-    [slider setTarget:self];
+    [bargraph setAction:@selector(paramChanged:)];
+    [bargraph setTarget:self];
     
-    [nsBox addSubview:slider];
+    [nsBox addSubview:bargraph];
     
     AudioUnitGetParameter(mAU, controlId, kAudioUnitScope_Global, 0, &value);
     char valueString[100];
     sprintf(valueString, "%9.2f", value);
     
     NSPoint org;
-    org.x = origin.x + 100 + width - 10; //TODO -15
+    org.x = origin.x + 100 + width - 10;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -420,17 +430,15 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
             size.height = height;
     }
     
-    paramValues[controlId] = valueTextField; //TODO
+    paramValues[controlId] = valueTextField;
     
-    [slider setLabelTextField: labelTextField];
-    [slider setValueTextField: valueTextField];
+    [bargraph setLabelTextField: labelTextField];
+    [bargraph setValueTextField: valueTextField];
     
-    return slider;
+    return bargraph;
 }
 
 - (NSBox*)addBox:(NSBox*) nsParentBox :(auBox*)fThisBox :(NSPoint&) parentBoxOrigin :(NSSize&) parentBoxSize :(bool)isParentVerticalBox {
-    
-    //parent-this-child
     
     auUIObject* childUIObject;
     
@@ -443,7 +451,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [nsThisBox setTitle:[[NSString alloc] initWithCString:fThisBox->fLabel.c_str() encoding:NSUTF8StringEncoding]];
     
-    //TODO remove these lines
     auUI* dspUI = [self dspUI];
     
     int controlId;
@@ -512,11 +519,11 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     NSRect frame;
     frame.origin.x = parentBoxOrigin.x;
     frame.origin.y = parentBoxOrigin.y;
-    frame.size.width  = thisBoxSize.width + 25; //TODO
-    frame.size.height = thisBoxSize.height + 25; //TODO
+    frame.size.width  = thisBoxSize.width + 25;
+    frame.size.height = thisBoxSize.height + 25;
     [nsThisBox setFrame:frame];
     
-    [nsThisBox setNeedsDisplay:YES]; //TODO
+    [nsThisBox setNeedsDisplay:YES];
     
     
     [nsParentBox addSubview:nsThisBox];
@@ -546,8 +553,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 {
     auUI* dspUI = [self dspUI];
     
-    //[self remove]
-    
     NSPoint origin;
     origin.x = origin.y = 0;
     NSSize size;
@@ -557,10 +562,10 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [self addBox :nsBoundingBox :dspUI->boundingBox :origin :size :true];
     NSRect frame;
-    frame.size.width  = size.width + 25; //TODO
-    frame.size.height = size.height + 25; //TODO
+    frame.size.width  = size.width + 25;
+    frame.size.height = size.height + 25;
     [nsBoundingBox setFrame:frame];
-    [nsBoundingBox setNeedsDisplay:YES]; //TODO
+    [nsBoundingBox setNeedsDisplay:YES];
     
     [self addSubview:nsBoundingBox];
     
@@ -569,37 +574,38 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     NSButton* button;
     NSRect monitorFrame = NSMakeRect(size.width - 32, 6, 55, 24);
     button = [[NSButton alloc] initWithFrame:monitorFrame ];
-    [button setTitle:@"XML"]; //TODO
+    [button setTitle:@"XML"];
     [button setButtonType:NSMomentaryPushInButton];
     [button setBezelStyle:NSRoundedBezelStyle];
     [button setTarget:self];
-    [button setAction:@selector(xmlPushed:)];
+    [button setAction:@selector(xmlButtonPushed:)];
     [button setState:TRUE];
     [self addSubview:button];
     
-    //TODO monitor buffon
     if (usesBargraphs)
     {
         NSRect monitorFrame = NSMakeRect(10, 10, 60, 15);
         button = [[NSButton alloc] initWithFrame:monitorFrame ];
-        [button setTitle:@"MON"]; //TODO
+        [button setTitle:@"MON"];
         [button setButtonType:NSSwitchButton];
         [button setBezelStyle:NSRoundedBezelStyle];
         [button setTarget:self];
-        [button setAction:@selector(monitorPushed:)];
+        [button setAction:@selector(monitorButtonPushed:)];
         [button setState:TRUE];
         [self addSubview:button];
     }
     
     [self setFrame:frame];
-    [self setNeedsDisplay:YES]; //TODO
+    [self setNeedsDisplay:YES];
 }
 
 - (void)setAU:(AudioUnit)inAU {
-	
+	if (mAU)
+		[self removeListeners];
+    
     mAU = inAU;
-    [self priv_addListeners];
-    [self priv_synchronizeUIWithParameterValues];
+    [self addListeners];
+    [self synchronizeUIWithParameterValues];
     
     auUI* dspUI = [self dspUI];
     
@@ -621,20 +627,17 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     
     [self repaint];
-    
-    //TODO only if there is bargraph
-    
 }
 
--(void) setTimer
+-(void)setTimer
 {
     if (!timer)
     {
-        timer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(redraw) userInfo:nil repeats:YES];
+        timer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(update) userInfo:nil repeats:YES];
     }
 }
 
--(void) unsetTimer
+-(void)unsetTimer
 {
     if (timer)
     {
@@ -643,11 +646,11 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
 }
 
-- (void)redraw //TODO rename
+- (void)update
 {
-    [self priv_synchronizeUIWithParameterValues];
+    [self synchronizeUIWithParameterValues];
     
-    [self setNeedsDisplay:YES]; //TODO
+    [self setNeedsDisplay:YES];
 }
 
 // Called upon a knob update
@@ -655,8 +658,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                    withValue:(double)value
                   withObject:(id)object
 {
-    [ (FaustAU_Knob*)object setDoubleValue :value ];//TODO??????????
-    
+    [ (FaustAU_Knob*)object setDoubleValue :value ];
     
     int paramId = [[object identifier] intValue];
     
@@ -667,8 +669,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                                                    value, //inValue
                                                    0); //inBufferOffsetInFrames
     
-    NSString *myString = [NSString stringWithFormat:@"%9.2f", value];
-    [paramValues[paramId] setStringValue: myString]; //TODO
+    NSString *string = [NSString stringWithFormat:@"%9.2f", value];
+    [paramValues[paramId] setStringValue: string];
     
 	AudioUnitParameter parameter = {mAU,
         paramId, //paramId
@@ -678,8 +680,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 	NSAssert(	AUParameterSet(mAUEventListener, object, &parameter, (Float32)value, 0) == noErr,
              @"[FaustAU_CustomView paramChanged:] AUParameterSet()");
     
-    
-    [object setNeedsDisplay:TRUE]; //TODO
+    [object setNeedsDisplay:TRUE];
 }
 
 
@@ -725,8 +726,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                                                    state, //inValue
                                                    0); //inBufferOffsetInFrames
     
-    NSString *myString = [NSString stringWithFormat:@"%i", state];
-    
 	AudioUnitParameter parameter = {mAU,
         paramId, //paramId
         kAudioUnitScope_Global,
@@ -737,19 +736,14 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
 }
 
-//TODO
-- (void)viewDidHide
+- (void)xmlButtonPushed:(id)sender
 {
-    [self unsetTimer];
-}
-
-
-- (void)xmlPushed:(id)sender
-{
-    NSFileManager *filemgr;
-    NSData *databuffer;
+    NSData *data;
+    NSString* dataString;
+    NSString *oldString, *newString;
     
-    filemgr = [NSFileManager defaultManager];
+    auUI* dspUI = [self dspUI];
+    NSFileManager *filemgr = [NSFileManager defaultManager];
     
     NSString* path = [NSHomeDirectory() stringByAppendingString: @"/Library/Audio/Plug-Ins/Components/_FILENAME_.component/Contents/Resources/au-output.xml"];
     
@@ -761,12 +755,27 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         outputFileName = [[savePanel URL] path];
     }
     
-    databuffer = [filemgr contentsAtPath: path ];
-    [filemgr createFileAtPath: outputFileName contents: databuffer attributes: nil];
+    data = [filemgr contentsAtPath: path ];
+    
+    dataString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+    for (int i = 0; i < dspUI->fUITable.size(); i++)
+    {
+        if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
+        {
+            oldString = [NSString stringWithFormat:@"id=\"%i\"", i + 1];
+            newString = [NSString stringWithFormat:@"id=\"%i\" value=\"%f\"", i + 1, *dspUI->fUITable[i]->fZone];
+            
+            dataString = [dataString stringByReplacingOccurrencesOfString: oldString withString:newString];
+        }
+    }
+    
+    data = [dataString dataUsingEncoding:NSUTF8StringEncoding];
+    [filemgr createFileAtPath: outputFileName contents: data attributes: nil];
     
 }
 
-- (void)monitorPushed:(id)sender
+- (void)monitorButtonPushed:(id)sender
 {
     monitor = [(NSButton*)sender state];
     
@@ -789,8 +798,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                                                    value, //inValue
                                                    0); //inBufferOffsetInFrames
     
-    NSString *myString = [NSString stringWithFormat:@"%9.2f", value];
-    [paramValues[paramId] setStringValue: myString]; //TODO
+    NSString *string = [NSString stringWithFormat:@"%9.2f", value];
+    [paramValues[paramId] setStringValue: string];
     
 	AudioUnitParameter parameter = {mAU,
         paramId, //paramId
@@ -800,170 +809,37 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 	NSAssert(	AUParameterSet(mAUEventListener, sender, &parameter, (Float32)value, 0) == noErr,
              @"[FaustAU_CustomView paramChanged:] AUParameterSet()");
     
-    //if (dynamic_cast<auSlider*>(dspUI->fUITable[i])
-    
-    
-    // [NSObject cancelPreviousPerformRequestsWithTarget: self
-    //                                        selector: @selector(finishTrack) object: nil ];
-    // [self performSelector: @selector(finishTrack) withObject: nil
-    //        afterDelay: 0.0];
-    
-    
-    //SEL sel = @selector( sliderDone: );
-    //[NSObject cancelPreviousPerformRequestsWithTarget: self selector:
-    // sel object: sender];
-    //[self performSelector: sel withObject: sender afterDelay: 0.0];
-    
 }
 
-
-- (void)priv_synchronizeUIWithParameterValues {
+- (void)synchronizeUIWithParameterValues {
     auUI* dspUI = [self dspUI];
     
     NSView* subView = NULL;
     int paramId;
     Float32 value;
     
-    
     for (int i = 0; i < dspUI->fUITable.size(); i++)
     {
         if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
         {
-            
-            subView = viewMap[i]; //TODO use these in other places
-            //subView = getView(dspUI->, dspUI->fUITable, i);
+            subView = viewMap[i]; //TODO can be used for other cases
             
             if (subView)
             {
-                //TODOOOOOOOO remove first if?
-                if (dynamic_cast<auSlider*>(dspUI->fUITable[i])
-                    || (dynamic_cast<auBargraph*>(dspUI->fUITable[i]))
+                if (dynamic_cast<auBargraph*>(dspUI->fUITable[i])
                     ) {
                     
                     value = *(dspUI->fUITable[i]->fZone);
-                    //AudioUnitGetParameter(mAU, i, kAudioUnitScope_Global, 0, &value);//TODO
                     
-                    //TODO
-                    [subView setDoubleValue:value]; //TODO
-                    //[(NSSlider*)subView setDoubleValue:k]; //TODO
+                    [subView setDoubleValue:value];
                     
                 }
             }
         }
     }
-    
-    //TODO[self updateCurve];
-    
 }
 
-
-
-#pragma mark ____ LISTENER CALLBACK DISPATCHEE ____
-// Handle kAudioUnitProperty_PresentPreset event
-
-- (void)priv_eventListener:(void *) inObject event:(const AudioUnitEvent *)inEvent value:(Float32)inValue {
-    
-    /*    switch (inEvent->mEventType) {
-     case kAudioUnitEvent_ParameterValueChange:
-     
-     
-     //  [self priv_synchronizeUIWithParameterValues]; //TODO
-     
-     
-     // Parameter Changes
-     
-     auUI* dspUI;
-     
-     UInt32 dataSize = sizeof(auUI*);
-     
-     ComponentResult result = AudioUnitGetProperty(mAU,
-     (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI, //TODO
-     kAudioUnitScope_Global,
-     (AudioUnitElement)0, //inElement
-     (void*)&dspUI,
-     &dataSize);
-     
-     NSView* subView = NULL;
-     int paramId;
-     Float32 value;
-     
-     
-     for (int i = 0; i < dspUI->fUITable.size(); i++)
-     {
-     if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
-     {
-     
-     for (subView in self.subviews)
-     {
-     paramId = [[subView identifier] intValue];
-     if (paramId == inEvent->mArgument.mParameter.mParameterID)
-     break;
-     }
-     
-     if (subView)
-     {
-     if (dynamic_cast<auSlider*>(dspUI->fUITable[i])
-     || dynamic_cast<auHorizontalBargraph*>(dspUI->fUITable[i])
-     || dynamic_cast<auVerticalBargraph*>(dspUI->fUITable[i])
-     ) {
-     
-     value = *(dspUI->fUITable[i]->fZone);
-     AudioUnitGetParameter(mAU, paramId, kAudioUnitScope_Global, 0, &value);
-     
-     [(NSSlider*)subView setDoubleValue:value]; //TODO
-     }
-     }
-     }
-     }
-     
-     }*/
-    
-    
-    // get the curve data from the audio unit
-    /*
-     case kAudioUnitEvent_BeginParameterChangeGesture:			// Begin gesture
-     [graphView handleBeginGesture];							// notify graph view to update visual state
-     break;
-     case kAudioUnitEvent_EndParameterChangeGesture:				// End gesture
-     [graphView handleEndGesture];							// notify graph view to update visual state
-     break;
-     */
-    
-    /*
-     
-     case kAudioUnitEvent_PropertyChange:						// custom property changed
-     if (inEvent->mArgument.mProperty.mPropertyID == kAudioUnitCustomProperty_FilterFrequencyResponse)
-     [self updateCurve];
-     break;
-     */
-}
-
-
-
-/*
- - (BOOL)isFlipped
- {
- return YES;
- }*/
-
-- (void)removeFromSuperview
-{
-    //  [self unsetTimer];
-}
-
-
-- (void)dealloc {
-    /*
-     [self unsetTimer];
-     
-     
-     [self priv_removeListeners];
-     
-     [[NSNotificationCenter defaultCenter] removeObserver: self];
-     
-     
-     [super dealloc];*/
-    
+- (void)eventListener:(void *) inObject event:(const AudioUnitEvent *)inEvent value:(Float32)inValue {
 }
 
 

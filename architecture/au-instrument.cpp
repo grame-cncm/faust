@@ -1,13 +1,3 @@
-//
-//  FaustAUInstrument.cpp
-//  FaustAU
-//
-//  Created by Reza Payami on 11/29/13.
-//
-//
-
-
-
 /************************************************************************
  
  IMPORTANT NOTE : this file contains two clearly delimited sections :

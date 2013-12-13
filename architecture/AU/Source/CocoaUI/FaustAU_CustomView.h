@@ -52,7 +52,7 @@
 #import <FaustAU_Slider.h>
 #import <FaustAU_Knob.h>
 #import <FaustAU_Button.h>
-
+#import <FaustAU_Bargraph.h>
 
 //TODO
 #define MAX_CONTROLS 1000
@@ -67,7 +67,7 @@
     bool monitor;
     bool usesBargraphs;
     NSTextField* paramValues[MAX_CONTROLS];
-    AUEventListenerRef		mAUEventListener;
+    AUEventListenerRef mAUEventListener;
     std::map <int, NSView*> viewMap;
     std::map <NSButton*, NSBox*> showHideMap;
 }
@@ -75,16 +75,14 @@
 - (void)setAU:(AudioUnit)inAU;
 - (void)paramChanged:(id)sender;
 
-- (void)redraw;
-- (void)removeFromSuperview;
+- (void)update;
 
 - (void)buttonPushed:(id)sender;
 - (void)knobUpdatedWithIndex:(int)index
                    withValue:(double)aDouble
-                withObject:(id)object;
-- (void)xmlPushed;
-- (void)monitorPushed;
-- (void)viewDidHide;
+                   withObject:(id)object;
+- (void)xmlButtonPushed:(id)sender;
+- (void)monitorButtonPushed:(id)sender;
 
 @end
 
