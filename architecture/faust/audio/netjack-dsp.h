@@ -183,34 +183,32 @@ class netjackaudio_control : public netjackaudio {
     protected:
         
         ControlUI* fUI;
-    
-        float** fInputs;
-        float ** fOutputs;
-        
+       
         virtual void process(int count,  float** inputs, float** outputs)
         {
             AVOIDDENORMALS;
             
+            float** inputs_tmp[fDsp->getNumInputs()];
+            float** outputs_tmp[fDsp->getNumOutputs()];
+            
             for(int i = 0; i < fDsp->getNumInputs();i++) {
-                fInputs[i] = inputs[i+1];
+                inputs_tmp[i] = inputs[i+1];
             }
             
             for(int i = 0; i < fDsp->getNumOutputs();i++) {
-                fOutputs[i] = outputs[i+1];
+                outputs_tmp[i] = outputs[i+1];
             }
             
             fUI->decode_control(inputs[0], count);
-            fDsp->compute(count, fInputs, fOutputs);
+            fDsp->compute(count, inputs_tmp, outputs_tmp);
             fUI->encode_control(outputs[0], count);
         }
         
     public:
         
         netjackaudio_control(int celt, const std::string& master_ip, int master_port, int latency, ControlUI* ui)
-            :netjackaudio(celt, master_ip, master_port, latency)
-        {
-            fUI = ui;
-        }
+            :netjackaudio(celt, master_ip, master_port, latency),fUI(ui)
+        {}
         
         virtual ~netjackaudio_control() 
         {}
@@ -222,18 +220,12 @@ class netjackaudio_control : public netjackaudio {
     
         virtual bool init(const char* name, dsp* DSP) 
         {
-            fInputs = new float*[DSP->getNumInputs()];
-            fOutputs = new float*[DSP->getNumOutputs()];            
-            
             return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1); // One more audio port for control
         }
     
         virtual void stop()
         {
             jack_net_slave_close(fNet);
-            
-            delete[] fInputs;
-            delete[] fOutputs;
         }
         
         virtual int doesRestart()
