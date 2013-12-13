@@ -75,32 +75,36 @@ class jackaudio : public audio {
         
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
     
-    static int  _jack_srate(jack_nframes_t nframes, void* arg){
+    static int  _jack_srate(jack_nframes_t nframes, void* arg)
+    {
         fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
         return 0;
     }
     
     static void _jack_shutdown(void* arg){}
    
-    static void _jack_info_shutdown(jack_status_t code, const char* reason, void* arg){
+    static void _jack_info_shutdown(jack_status_t code, const char* reason, void* arg)
+    {
         fprintf(stderr, "%s\n", reason);
         jackaudio* audio = (jackaudio*)arg;
         audio->shutdown(reason);
     }
     
-    static int  _jack_process(jack_nframes_t nframes, void* arg){
+    static int  _jack_process(jack_nframes_t nframes, void* arg)
+    {
         jackaudio* audio = (jackaudio*)arg;
         return audio->process(nframes);
     }
     
-    static int  _jack_buffersize(jack_nframes_t nframes, void* arg){
+    static int  _jack_buffersize(jack_nframes_t nframes, void* arg)
+    {
         fprintf(stdout, "The buffer size is now %u/sec\n", nframes);
         return 0;
     }
-    
-    
+     
     #ifdef _OPENMP
-    static void* _jack_thread(void* arg){
+    static void* _jack_thread(void* arg)
+    {
         jackaudio* audio = (jackaudio*)arg;
         audio->process_thread();
         return 0;

@@ -1,13 +1,6 @@
-//
-//  FlatKnob.h
-//  FlatKnobTest
-//
-//  Created by Paolo Boschini on 9/18/13.
-//  Copyright (c) 2013 Paolo Boschini. All rights reserved.
-//
+//  Based on Paolo Boschini's FlatKnob.
 
 #import <Cocoa/Cocoa.h>
-
 
 static const int INSETS = 10;
 static const int CONTROL_POINT_DIAMETER = 12;
