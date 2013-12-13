@@ -73,6 +73,8 @@
 		F52A44E11848502F004E29CF /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52A44E01848502F004E29CF /* AppKit.framework */; };
 		F52A44E318485038004E29CF /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52A44E218485038004E29CF /* CoreGraphics.framework */; };
 		F530C7961824BCA800D911C2 /* FaustAU.h in Headers */ = {isa = PBXBuildFile; fileRef = F530C7951824BCA800D911C2 /* FaustAU.h */; };
+		F5956FCB185B69410000940B /* FaustAU_Bargraph.m in Sources */ = {isa = PBXBuildFile; fileRef = F5956FC8185B59950000940B /* FaustAU_Bargraph.m */; };
+		F5956FCC185B69480000940B /* FaustAU_Bargraph.h in Headers */ = {isa = PBXBuildFile; fileRef = F5956FC7185B59950000940B /* FaustAU_Bargraph.h */; };
 		F59F45B41850D9D300D337D4 /* au-output.xml in Resources */ = {isa = PBXBuildFile; fileRef = F59F45B31850D9D300D337D4 /* au-output.xml */; };
 		F5A2F52718494D4600C7EB96 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5A2F52618494D4600C7EB96 /* CoreMIDI.framework */; };
 		F5A2F52A18494E7500C7EB96 /* AUEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F5A2F52818494E7500C7EB96 /* AUEffectBase.cpp */; };
@@ -198,6 +200,8 @@
 		F52A44E01848502F004E29CF /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		F52A44E218485038004E29CF /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		F530C7951824BCA800D911C2 /* FaustAU.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = FaustAU.h; path = Source/AUSource/FaustAU.h; sourceTree = "<group>"; };
+		F5956FC7185B59950000940B /* FaustAU_Bargraph.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = FaustAU_Bargraph.h; path = Source/CocoaUI/FaustAU_Bargraph.h; sourceTree = "<group>"; };
+		F5956FC8185B59950000940B /* FaustAU_Bargraph.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = FaustAU_Bargraph.m; path = Source/CocoaUI/FaustAU_Bargraph.m; sourceTree = "<group>"; };
 		F59F45B31850D9D300D337D4 /* au-output.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "au-output.xml"; path = "Source/au-output.xml"; sourceTree = "<group>"; };
 		F5A2F52618494D4600C7EB96 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		F5A2F52818494E7500C7EB96 /* AUEffectBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AUEffectBase.cpp; path = AUPublic/AUEffectBase/AUEffectBase.cpp; sourceTree = SOURCE_ROOT; };
@@ -426,6 +430,8 @@
 		8BA4ADCB073EB14C00A2709A /* CustomView */ = {
 			isa = PBXGroup;
 			children = (
+				F5956FC7185B59950000940B /* FaustAU_Bargraph.h */,
+				F5956FC8185B59950000940B /* FaustAU_Bargraph.m */,
 				F5B12587184A70C400914307 /* FaustAU_Button.h */,
 				F5B12588184A70C400914307 /* FaustAU_Button.m */,
 				F5B12589184A70C400914307 /* FaustAU_Knob.h */,
@@ -469,6 +475,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5956FCC185B69480000940B /* FaustAU_Bargraph.h in Headers */,
 				8BA4AE54073EB72300A2709A /* FaustAU_CustomViewFactory.h in Headers */,
 				8BA4AE55073EB72300A2709A /* FaustAU_CustomView.h in Headers */,
 			);
@@ -633,6 +640,7 @@
 				F5B12597184A721D00914307 /* FaustAU_Slider.h in Sources */,
 				8BA4AE56073EB73300A2709A /* FaustAU_CustomViewFactory.m in Sources */,
 				8BA4AE57073EB73300A2709A /* FaustAU_CustomView.m in Sources */,
+				F5956FCB185B69410000940B /* FaustAU_Bargraph.m in Sources */,
 				F5B12594184A720D00914307 /* FaustAU_Knob.m in Sources */,
 				F5B12593184A720600914307 /* FaustAU_Button.m in Sources */,
 				F5B12596184A721500914307 /* FaustAU_Button.h in Sources */,

@@ -2,13 +2,13 @@
 
 #include "FaustAU.h"
 
-@interface FaustAU_Slider : NSSlider
+@interface FaustAU_Bargraph : NSSlider
 {
     NSTextField* _labelTextField;
     NSTextField* _valueTextField;
 }
 
-- (FaustAU_Slider*)init :(NSRect) frame :(auSlider*)fButton :(int)controlId;
+- (FaustAU_Bargraph*)init :(NSRect) frame :(auBargraph*)fBargraph :(int)controlId;
 
 @property (nonatomic, strong) NSTextField* labelTextField;
 @property (nonatomic, strong) NSTextField* valueTextField;
