@@ -73,7 +73,7 @@ template <typename C> class jsonui
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		const str::string json ()							{ return fFactory->root().json(); }
+		std::string json ()							{ return fFactory->root().json(); }
 };
 
 } //end namespace

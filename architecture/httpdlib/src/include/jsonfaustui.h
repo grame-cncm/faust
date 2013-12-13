@@ -26,6 +26,7 @@
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
+#include <string>
 
 namespace httpdfaust
 {
@@ -73,7 +74,7 @@ class jsonfaustui : public UI, public Meta
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		const char*	json();
+		std::string	json();
 };
 
 } //end namespace
