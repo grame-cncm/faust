@@ -1,12 +1,12 @@
-#import "FaustAU_Slider.h"
+#import "FaustAU_Bargraph.h"
 
-@implementation FaustAU_Slider
+@implementation FaustAU_Bargraph
 
 @synthesize labelTextField =_labelTextField;
 @synthesize valueTextField =_valueTextField;
 
 
-- (FaustAU_Slider*)init :(NSRect)frame :(auSlider*)fSlider :(int)controlId {
+- (FaustAU_Bargraph*)init :(NSRect)frame :(auBargraph*)fBargraph :(int)controlId {
     return self;
 }
 

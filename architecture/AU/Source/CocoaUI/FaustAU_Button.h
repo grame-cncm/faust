@@ -1,11 +1,3 @@
-//
-//  FaustAU_Button.h
-//  FaustAU
-//
-//  Created by Reza Payami on 11/29/13.
-//
-//
-
 #import <Foundation/Foundation.h>
 
 #include "FaustAU.h"
