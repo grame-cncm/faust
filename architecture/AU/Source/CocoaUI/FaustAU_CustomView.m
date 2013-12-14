@@ -91,23 +91,21 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     return dspUI;
 }
 
-
 /*
- - (BOOL)isFlipped
- {
- return YES;
- }*/
+ - (BOOL)isFlipped {
+     return YES;
+ }
+*/
 
 - (void)dealloc {
-    /*
+    
      [self unsetTimer];
      
      [self removeListeners];
      
      [[NSNotificationCenter defaultCenter] removeObserver: self];
-     
-     [super dealloc];*/
     
+     [super dealloc];
 }
 
 - (NSButton*)addButton:(NSBox*) nsBox :(auButton*)fButton :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
@@ -189,7 +187,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     NSTextField* textField;
     
-    textField = [[NSTextField alloc] initWithFrame:NSMakeRect(origin.x, origin.y - 10 , width, height)];
+    textField = [[NSTextField alloc] initWithFrame:NSMakeRect(origin.x, origin.y + 2 , width, height)];
     
     [textField setBezeled:NO];
     [textField setDrawsBackground:NO];
@@ -207,9 +205,17 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 
 - (FaustAU_Slider*)addSlider:(NSBox*) nsBox :(auSlider*)fSlider :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
+    int labelWidth = 0;
     
-    NSTextField* labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox]; //TODO
-    [labelTextField setAlignment: NSRightTextAlignment];
+    NSTextField* labelTextField = NULL;
+    
+    if (strcmp(fSlider->fLabel.c_str(), "")) {
+    
+        labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
+        [labelTextField setAlignment: NSRightTextAlignment];
+    
+        labelWidth = 100;
+    }
     
     int width;
     int height;
@@ -221,12 +227,12 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     else{
         width = 300;
-        height = 35;
+        height = 45;
     }
     
     
     FaustAU_Slider* slider;
-    slider = [[FaustAU_Slider alloc] initWithFrame:NSMakeRect(origin.x + 100, origin.y, width, height)];
+    slider = [[FaustAU_Slider alloc] initWithFrame:NSMakeRect(origin.x + labelWidth, origin.y, width, height)];
     [slider setMinValue:fSlider->fMin];
     [slider setMaxValue:fSlider->fMax];
     
@@ -249,7 +255,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     sprintf(valueString, "%9.2f", value);
     
     NSPoint org;
-    org.x = origin.x + 100 + width - 10;
+    org.x = origin.x + labelWidth + width - 12;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -258,20 +264,22 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     {
         origin.y += height;
         size.height += height;
-        if (size.width < width+100+100)
-            size.width = width+100+100;
+        if (size.width < width+labelWidth+100)
+            size.width = width+labelWidth+100;
     }
     else
     {
-        origin.x += width+100+100;
-        size.width += width+100+100;
+        origin.x += width+labelWidth+100;
+        size.width += width+labelWidth+100;
         if (size.height < height)
             size.height = height;
     }
     
     paramValues[controlId] = valueTextField;
     
-    [slider setLabelTextField: labelTextField];
+    if (labelTextField)
+        [slider setLabelTextField: labelTextField];
+    
     [slider setValueTextField: valueTextField];
     
     return slider;
@@ -297,22 +305,32 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 - (FaustAU_Knob*)addKnob:(NSBox*) nsBox :(auSlider*)fSlider :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
     
-    NSTextField* labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
+    NSTextField* labelTextField;
+    int labelWidth = 0;
+    
+    if (strcmp(fSlider->fLabel.c_str(), "")) {
+        
+        labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
+        [labelTextField setAlignment: NSRightTextAlignment];
+        
+        labelWidth = 100;
+    }
+    
+    labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
     [labelTextField setAlignment: NSRightTextAlignment];
     
     int width = 50;
     int height = 50;
     float value;
     
-    
     AudioUnitGetParameter(mAU, controlId, kAudioUnitScope_Global, 0, &value);
     
     int initAngle =  225.0 - 270.0 * (value - fSlider->fMin) / (fSlider->fMax - fSlider->fMin);
     
-    FaustAU_Knob *knob = [[FaustAU_Knob alloc] initWithFrame:NSMakeRect(origin.x + 100, origin.y, width, height)
+    FaustAU_Knob *knob = [[FaustAU_Knob alloc] initWithFrame:NSMakeRect(origin.x + labelWidth, origin.y, width, height)
                                                   withInsets:10
                                     withControlPointDiameter:2
-                                       withControlPointColor:[NSColor lightGrayColor]
+                                       withControlPointColor:[NSColor darkGrayColor]
                                                withKnobColor:[NSColor whiteColor]
                                          withBackgroundColor:[NSColor clearColor]
                                             withCurrentAngle:initAngle];
@@ -336,7 +354,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     
     NSPoint org;
-    org.x = origin.x + 125;
+    org.x = origin.x + labelWidth + 28;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -345,20 +363,22 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     {
         origin.y += height;
         size.height += height;
-        if (size.width < width+130)
-            size.width = width+130;
+        if (size.width < width+labelWidth + 30)
+            size.width = width+labelWidth + 30;
     }
     else
     {
-        origin.x += width+130;
-        size.width += width+130;
+        origin.x += width+labelWidth + 30;
+        size.width += width + labelWidth + 30;
         if (size.height < height)
             size.height = height;
     }
     
     paramValues[controlId] = valueTextField;
     
-    [knob setLabelTextField: labelTextField];
+    if (labelTextField)
+        [knob setLabelTextField: labelTextField];
+    
     [knob setValueTextField: valueTextField];
     
     return knob;
@@ -368,9 +388,17 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 
 - (FaustAU_Bargraph*)addBargraph:(NSBox*) nsBox :(auBargraph*)fBargraph :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
+    NSTextField* labelTextField = NULL;
+    int labelWidth = 0;
     
-    NSTextField* labelTextField = [self addTextField :nsBox :fBargraph->fLabel.c_str() :200 :origin :isVerticalBox];
-    [labelTextField setAlignment: NSRightTextAlignment];
+    if (strcmp(fBargraph->fLabel.c_str(), "")) {
+        
+        labelTextField = [self addTextField :nsBox :fBargraph->fLabel.c_str() :200 :origin :isVerticalBox];
+        [labelTextField setAlignment: NSRightTextAlignment];
+        
+        labelWidth = 100;
+    }
+    
     
     int width;
     int height;
@@ -380,14 +408,13 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         width = 35;
         height = 100;
     }
-    else{
+    else {
         width = 300;
-        height = 35;
+        height = 55;
     }
     
-    
     FaustAU_Bargraph* bargraph;
-    bargraph = [[FaustAU_Bargraph alloc] initWithFrame:NSMakeRect(origin.x + 100, origin.y, width, height)];
+    bargraph = [[FaustAU_Bargraph alloc] initWithFrame:NSMakeRect(origin.x + labelWidth, origin.y, width, height)];
     [bargraph setMinValue:fBargraph->fMin];
     [bargraph setMaxValue:fBargraph->fMax];
     
@@ -410,7 +437,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     sprintf(valueString, "%9.2f", value);
     
     NSPoint org;
-    org.x = origin.x + 100 + width - 10;
+    org.x = origin.x + labelWidth + width - 12;
     org.y = origin.y;
     NSTextField* valueTextField = [self addTextField :nsBox :valueString :-1 :org :isVerticalBox];
     [valueTextField setAlignment: NSLeftTextAlignment];
@@ -419,20 +446,22 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     {
         origin.y += height;
         size.height += height;
-        if (size.width < width+100+100)
-            size.width = width+100+100;
+        if (size.width < width+labelWidth+100)
+            size.width = width+labelWidth+100;
     }
     else
     {
-        origin.x += width+100+100;
-        size.width += width+100+100;
+        origin.x += width+labelWidth+100;
+        size.width += width+labelWidth+100;
         if (size.height < height)
             size.height = height;
     }
     
     paramValues[controlId] = valueTextField;
     
-    [bargraph setLabelTextField: labelTextField];
+    if (labelTextField)
+        [bargraph setLabelTextField: labelTextField];
+    
     [bargraph setValueTextField: valueTextField];
     
     return bargraph;
@@ -458,8 +487,12 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     bool hasChildView = false;
     
-    for (int i = fThisBox->children.size() - 1; i >= 0; i--) {
-        childUIObject = fThisBox->children[i];
+      for (int i = 0; i < fThisBox->children.size(); i++) {
+        if (fThisBox->isVertical)
+            childUIObject = fThisBox->children[fThisBox->children.size() - i - 1]; //not isFlipped
+        else
+            childUIObject = fThisBox->children[i];
+
         for (int j = 0; j < dspUI->fUITable.size(); j++)
         {
             if (dspUI->fUITable[j] == childUIObject)
