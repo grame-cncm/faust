@@ -91,23 +91,21 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     return dspUI;
 }
 
-
 /*
- - (BOOL)isFlipped
- {
- return YES;
- }*/
+ - (BOOL)isFlipped {
+     return YES;
+ }
+*/
 
 - (void)dealloc {
-    /*
+    
      [self unsetTimer];
      
      [self removeListeners];
      
      [[NSNotificationCenter defaultCenter] removeObserver: self];
-     
-     [super dealloc];*/
     
+     [super dealloc];
 }
 
 - (NSButton*)addButton:(NSBox*) nsBox :(auButton*)fButton :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
@@ -229,7 +227,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     else{
         width = 300;
-        height = 55;
+        height = 45;
     }
     
     
@@ -489,8 +487,12 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     bool hasChildView = false;
     
-    for (int i = fThisBox->children.size() - 1; i >= 0; i--) {
-        childUIObject = fThisBox->children[i];
+      for (int i = 0; i < fThisBox->children.size(); i++) {
+        if (fThisBox->isVertical)
+            childUIObject = fThisBox->children[fThisBox->children.size() - i - 1]; //not isFlipped
+        else
+            childUIObject = fThisBox->children[i];
+
         for (int j = 0; j < dspUI->fUITable.size(); j++)
         {
             if (dspUI->fUITable[j] == childUIObject)
