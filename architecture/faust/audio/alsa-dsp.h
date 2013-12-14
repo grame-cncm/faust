@@ -691,8 +691,8 @@ class alsaaudio : public audio
 		}
 	}
     
-    virtual int buffer_size() { return fAudio->buffering(); }
-    virtual int sample_rate() { return fAudio->frequency(); }
+    virtual int get_buffer_size() { return fAudio->buffering(); }
+    virtual int get_sample_rate() { return fAudio->frequency(); }
 
 	virtual void run() {
 		bool rt = setRealtimePriority();

@@ -681,8 +681,8 @@ public:
 		fAudioDevice.Close();
  	}
     
-    virtual int buffer_size() { return fFramesPerBuf; }
-    virtual int sample_rate() { return fSampleRate; }
+    virtual int get_buffer_size() { return fFramesPerBuf; }
+    virtual int get_sample_rate() { return fSampleRate; }
     
 };
 
