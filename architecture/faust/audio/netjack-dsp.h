@@ -64,19 +64,24 @@ class netjackaudio : public audio
         static int net_restart(void* arg) 
         {
             printf("Network failure, restart...\n");
-            return static_cast<netjackaudio*>(arg)->do_restart();
+            return static_cast<netjackaudio*>(arg)->restart_cb();
         }
     #else 
         static void net_shutdown(void* arg) 
         {
             printf("Network failure, shutdown...\n");
-            static_cast<netjackaudio*>(arg)->do_shutdown();
+            static_cast<netjackaudio*>(arg)->shutdown_cb();
         }
     #endif
     
         static int net_sample_rate(jack_nframes_t nframes, void* arg) 
         {
-            return static_cast<netjackaudio*>(arg)->do_sample_rate(nframes);
+            return static_cast<netjackaudio*>(arg)->set_sample_rate(nframes);
+        }
+        
+         static int net_buffer_size(jack_nframes_t nframes, void* arg) 
+        {
+            return static_cast<netjackaudio*>(arg)->set_buffer_size(nframes);
         }
         
         static int net_process(jack_nframes_t buffer_size,
@@ -120,6 +125,8 @@ class netjackaudio : public audio
             jack_set_net_slave_shutdown_callback(fNet, net_shutdown, this);
         #endif
             jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
+            
+            jack_set_net_slave_buffer_size_callback(fNet, net_buffer_size, this);
 
             fDsp->init(fResult.sample_rate);
             return true;
@@ -127,19 +134,24 @@ class netjackaudio : public audio
         
         // Possibly to be redefined by subclasses
         
-        virtual int do_restart()
+        virtual int restart_cb()
         {
             return 0;
         }
        
-        virtual void do_shutdown()
+        virtual void shutdown_cb()
         {}
        
-        virtual int do_sample_rate(jack_nframes_t nframes)
+        virtual int set_sample_rate(jack_nframes_t nframes)
         {
             return 0;
         }
-                
+        
+        virtual int set_buffer_size(jack_nframes_t nframes)
+        {
+            return 0;
+        }
+
         virtual void process(int count, float** inputs, float** outputs)
         {
              AVOIDDENORMALS;
@@ -175,8 +187,8 @@ class netjackaudio : public audio
             jack_net_slave_close(fNet);
         }
         
-        virtual int buffer_size() { return fResult.buffer_size; }
-        virtual int sample_rate() { return fResult.sample_rate; }
+        virtual int get_buffer_size() { return fResult.buffer_size; }
+        virtual int get_sample_rate() { return fResult.sample_rate; }
 
 };
 
