@@ -63,31 +63,22 @@ class netjackaudio : public audio
     #ifdef RESTART_CB_API
         static int net_restart(void* arg) 
         {
-            netjackaudio* obj = (netjackaudio*)arg;
             printf("Network failure, restart...\n");
-            return obj->doesRestart();
+            return static_cast<netjackaudio*>(arg)->do_restart();
         }
     #else 
         static void net_shutdown(void* arg) 
         {
-            netjackaudio* obj = (netjackaudio*)arg;
-            printf("Network failure, restart...\n");
+            printf("Network failure, shutdown...\n");
+            static_cast<netjackaudio*>(arg)->do_shutdown();
         }
     #endif
     
-        virtual int doesRestart()
-        {
-            return 0;
-        }
-        
         static int net_sample_rate(jack_nframes_t nframes, void* arg) 
         {
-            netjackaudio* obj = (netjackaudio*)arg;
-            printf("New sample rate = %u\n", nframes);
-            obj->fDsp->init(nframes);
-            return 0;
+            return static_cast<netjackaudio*>(arg)->do_sample_rate(nframes);
         }
-
+        
         static int net_process(jack_nframes_t buffer_size,
                                int,
                                float** audio_input_buffer,
@@ -102,13 +93,7 @@ class netjackaudio : public audio
             static_cast<netjackaudio*>(arg)->process(buffer_size, audio_input_buffer, audio_output_buffer);
             return 0;
         }
-        
-        virtual void process(int count,  float** inputs, float** outputs)
-        {
-             AVOIDDENORMALS;
-             fDsp->compute(count, inputs, outputs);
-        }
-        
+
         bool init_aux(const char* name, dsp* DSP, int inputs, int outputs) 
         {
             fDsp = DSP;
@@ -139,6 +124,27 @@ class netjackaudio : public audio
             fDsp->init(fResult.sample_rate);
             return true;
         }
+        
+        // Possibly to be redefined by subclasses
+        
+        virtual int do_restart()
+        {
+            return 0;
+        }
+       
+        virtual void do_shutdown()
+        {}
+       
+        virtual int do_sample_rate(jack_nframes_t nframes)
+        {
+            return 0;
+        }
+                
+        virtual void process(int count, float** inputs, float** outputs)
+        {
+             AVOIDDENORMALS;
+             fDsp->compute(count, inputs, outputs);
+        }
 
     public:
 
@@ -165,7 +171,6 @@ class netjackaudio : public audio
 
         virtual void stop() 
         {
-            
             jack_net_slave_deactivate(fNet);
             jack_net_slave_close(fNet);
         }
@@ -229,9 +234,9 @@ class netjackaudio_control : public netjackaudio {
             jack_net_slave_close(fNet);
         }
         
-        virtual int doesRestart()
+        virtual int do_restart()
         {
-            return -1;
+            return 0;
         }
     
 };
