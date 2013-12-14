@@ -332,7 +332,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     FaustAU_Knob *knob = [[FaustAU_Knob alloc] initWithFrame:NSMakeRect(origin.x + labelWidth, origin.y, width, height)
                                                   withInsets:10
                                     withControlPointDiameter:2
-                                       withControlPointColor:[NSColor lightGrayColor]
+                                       withControlPointColor:[NSColor darkGrayColor]
                                                withKnobColor:[NSColor whiteColor]
                                          withBackgroundColor:[NSColor clearColor]
                                             withCurrentAngle:initAngle];
@@ -370,8 +370,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     else
     {
-        origin.x += width+labelWidth + 50;
-        size.width += width + labelWidth + 50;
+        origin.x += width+labelWidth + 30;
+        size.width += width + labelWidth + 30;
         if (size.height < height)
             size.height = height;
     }
