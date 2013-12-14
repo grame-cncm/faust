@@ -231,7 +231,7 @@ class netjackaudio_control : public netjackaudio {
         virtual ~netjackaudio_control() 
         {}
         
-        bool is_Connexion_Active()
+        bool is_connexion_active()
         {
             return jack_net_slave_is_active(fNet);
         }
@@ -241,12 +241,7 @@ class netjackaudio_control : public netjackaudio {
             return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1); // One more audio port for control
         }
     
-        virtual void stop()
-        {
-            jack_net_slave_close(fNet);
-        }
-        
-        virtual int do_restart()
+        virtual int restart_cb()
         {
             return 0;
         }
