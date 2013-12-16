@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2012-2013 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,10 @@ typedef struct LLVMResult {
     llvm::Module*       fModule;
     llvm::LLVMContext*  fContext;
 } LLVMResult;
+
+/*
+    Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
+*/
 
 /**
  * Compile a Faust program.
