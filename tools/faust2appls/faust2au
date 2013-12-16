@@ -158,7 +158,8 @@ NAME=$MANUFACTURER:' '"$FILE_NAME"
 
 if [ $# -lt 3 ]
 then
-SUB_TYPE=${FILE_NAME:0:4}
+STR=${FILE_NAME:0:4}
+SUB_TYPE=$(echo $STR | tr [[:lower:]] [[:upper:]])
 else
 SUB_TYPE=$3
 fi
@@ -214,9 +215,7 @@ mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
 
 if [ -d $AU_DIR/FaustAUCustomView.bundle/ ]
 then
-    if [ $DEBUG -eq 0 ]; then
-	rm -r  $AU_DIR/FaustAUCustomView.bundle/
-    fi
+    rm -r  $AU_DIR/FaustAUCustomView.bundle/
 fi
 
 cd ..
