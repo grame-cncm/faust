@@ -266,8 +266,8 @@ class jackaudio : public audio {
             fShutdownArg = arg;
         }
         
-        virtual int buffer_size() { return jack_get_buffer_size(fClient); }
-        virtual int sample_rate() { return jack_get_sample_rate(fClient); }
+        virtual int get_buffer_size() { return jack_get_buffer_size(fClient); }
+        virtual int get_sample_rate() { return jack_get_sample_rate(fClient); }
 
         // jack callbacks
         virtual int	process(jack_nframes_t nframes) 
