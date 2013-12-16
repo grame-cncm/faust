@@ -31,6 +31,8 @@ for p in $@; do
 	HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
 	JACK="1"
+    elif [ "$p" = "-xcode" ]; then
+	XCODE="1"
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -71,7 +73,9 @@ for p in $FILES; do
     # move generated app to source directory
     rm -rf "$S/$P.app"
     mv "$T/build/Release-iphoneos/$P.app" "$S/"
+    if [ "$XCODE" != "1" ]; then
     rm -rf "$T"
+    fi
         
 	# collect binary file name for FaustGIDE
     BINARIES="$BINARIES$S/$P.app;"
