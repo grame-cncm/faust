@@ -77,9 +77,13 @@
 #include "libfaust.h"
 #include "export.hh"
 
+#ifdef WIN32
+
 #ifdef __cplusplus
 extern "C"
 {
+#endif
+
 #endif
 
 using namespace std;
@@ -229,8 +233,12 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
+#ifdef WIN32
+
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #ifdef __cplusplus
