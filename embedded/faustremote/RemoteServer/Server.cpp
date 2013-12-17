@@ -115,7 +115,7 @@ void* Server::start_audioSlave(void *arg ){
         
         printf("AUDIO PARAMS = %s || %s || %s || %s\n",argument->CV.c_str(),  argument->IP.c_str(), argument->Port.c_str(), argument->Latency.c_str());
         
-        argument->audio = new netjackaudio_control(atoi(argument->CV.c_str()), argument->IP.c_str(), atoi(argument->Port.c_str()), atoi(argument->Latency.c_str()), argument->controlUI);
+        argument->audio = new netjackaudio_control(atoi(argument->CV.c_str()), argument->IP, atoi(argument->Port.c_str()), DEFAULT_MTU, atoi(argument->Latency.c_str()), argument->controlUI);
         
         if (argument->audio->init(argument->factory->nameApp.c_str(), argument->myDSP)) {
             if (!argument->audio->start())
@@ -230,7 +230,7 @@ int Server::answer_to_connection	(void *cls, MHD_Connection *connection, const c
     
     while (it != server->fRunningDsp.end())
     {
-        if(!(*it)->audio->is_Connexion_Active()){
+        if(!(*it)->audio->is_connexion_active()){
             Slave_DSP* toDelete = *it;
             it = server->fRunningDsp.erase(it);
             
