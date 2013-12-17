@@ -196,12 +196,10 @@ class netjackaudio : public audio
 A special NetJack client that uses one more audio input/output to transmit control values.
 */
 
-class netjackaudio_control : public netjackaudio {  
+class netjackaudio_control : public netjackaudio, public ControlUI {  
         
     protected:
         
-        ControlUI* fUI;
-       
         virtual void process(int count,  float** inputs, float** outputs)
         {
             AVOIDDENORMALS;
@@ -217,15 +215,15 @@ class netjackaudio_control : public netjackaudio {
                 outputs_tmp[i] = outputs[i+1];
             }
             
-            fUI->decode_control(inputs[0], count);
+            decode_control(inputs[0], count);
             fDsp->compute(count, inputs_tmp, outputs_tmp);
-            fUI->encode_control(outputs[0], count);
+            encode_control(outputs[0], count);
         }
         
     public:
         
-        netjackaudio_control(int celt, const std::string& master_ip, int master_port, int mtu, int latency, ControlUI* ui)
-            :netjackaudio(celt, master_ip, master_port, mtu, latency),fUI(ui)
+        netjackaudio_control(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio(celt, master_ip, master_port, mtu, latency)
         {}
         
         virtual ~netjackaudio_control() 
@@ -238,12 +236,13 @@ class netjackaudio_control : public netjackaudio {
     
         virtual bool init(const char* name, dsp* DSP) 
         {
+            DSP->buildUserInterface(this);
             return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1); // One more audio port for control
         }
     
         virtual int restart_cb()
         {
-            return 0;
+            return -1;
         }
     
 };
