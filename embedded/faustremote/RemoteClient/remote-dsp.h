@@ -41,7 +41,14 @@ typedef struct remote_dsp_factory {};
  * @param ipServer - IP of remote machine that will compile your DSP 
  * @param dspContent - the Faust program as a string
  * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
+ * @param argv - the array of parameters 
+ *                  --NJ_ip ==> MULTICAST_DEFAULT_IP 
+ *                  --NJ_port ==> MULTICAST_DEFAULT_PORT
+ *                  --NJ_compression ==> default is -1
+ *                  --NJ_latency ==> default is 2
+ *
+ *                  -vec/sch/... faust compilation options
+ *
  * @param error - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *

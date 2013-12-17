@@ -35,14 +35,16 @@ int main(int argc, char* argv[])
                --ipserver ==> default is http://localhost:7777 \n\
                --frequency ==> default is 44100 \n\
                --buffer ==> default is 512 \n\n\
-               ########### DSP TO BE REMOTLY COMPILED ###############\n\
-               --file ==> no DSP = no application\n\
-               --n    ==> indicates the number of instances of DSP \n\n\
                ########### NET JACK PARAMETER #######################\n\
                --NJ_ip ==> MULTICAST_DEFAULT_IP \n\
                --NJ_port ==> MULTICAST_DEFAULT_PORT\n\
                --NJ_compression ==> default is -1\n\
                --NJ_latency ==>default is 2 \n\
+               ########### DSP TO BE REMOTLY COMPILED ###############\n\
+               --file ==> no DSP = no application\n\
+               --n    ==> indicates the number of instances of DSP \n\n\
+               You can also add faust compilation options\n\
+               -vec/-sch/...\n\
                \n");
         return 0;
     }

@@ -7,13 +7,13 @@ With Faust Remote you will be able to compile and process your Faust DSP on a re
 
 The server launches a server, waiting for DSPs to compile.
 
-Depend to :
-	- libLLVM		through macport
-	- libfaust		make + sudo make install at the root of faust project
-	- libHTTPDFaust		make httpd + sudo make install at the root of faust project
-	- libmicrohttpd		through macport
-	- libboost		through macport
-	- libjacknet		download jack on : http://www.jackosx.com/
+Dependencies :		
+	- LLVM			through macport
+	- faust			make + sudo make install at the root of faust project
+	- HTTPDFaust		make httpd + sudo make install at the root of faust project
+	- microhttpd		through macport
+	- boost			through macport
+	- jacknet		download jack on : http://www.jackosx.com/
 
 ----------------REMOTE CLIENT---------------
 
@@ -48,11 +48,12 @@ e. deleteRemoteDSPFactory(remote_dsp_factory* factory)
 	This example shows how to use the API. In this example you can pass in command line:
 	
 a. The IP of remote Server you want to use
-b. NetJack parameters
+b. NetJack parameters of slave to be open on remote machine (localIP/Port/Latency/Compression)
 c. The dsp files you want to run in JACK/QT environment and the number of instances for each
+d. Syntax is given with ./RemoteClient --help
 
-LINK:	-libfaustremote
-	-libcurl
-	-libjacknet
+LINK:	-faustremote
+	-curl
+	-jacknet
 
 

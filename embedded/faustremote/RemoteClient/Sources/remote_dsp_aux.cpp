@@ -57,15 +57,12 @@ bool remote_dsp_factory::init(string ipServer, string dspContent, int argc, char
     
     vector<int> toBePassed;
     
-    IP = lopts(argv, "--NJ_ip", "");
-    Port = lopts(argv, "--NJ_port", "");
-    Latency = lopts(argv, "--NJ_latency", "");
-    CV = lopts(argv, "--NJ_compression", "");
+//    METTRE ICI LA LOCALIP SI POSSIBLE
     
-    fIP = IP;
-    fPort = Port;
-    fLatency = Latency;
-    fCV = CV;
+    fIP = lopts(argv, "--NJ_ip", "");
+    fPort = lopts(argv, "--NJ_port", "");
+    fLatency = lopts(argv, "--NJ_latency", "");
+    fCV = lopts(argv, "--NJ_compression", "");
     
     finalString += "&options=";
     
