@@ -8,14 +8,8 @@
 #####################################################################
 
 echo Generating Audio Unit...
-#input parameters (passed by faust2aueffect or faust2auinstrument):
-#echo $ARCHFILE
-#echo $AUTYPE
-#echo $FAUSTAU_CLASS
-#echo $COMPTYPE
 
 PATH=$PATH:/usr/local/bin
-
 
 #-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../lib/faust/' in $FLIB
@@ -35,6 +29,13 @@ fi
 #-------------------------------------------------------------------------------
 #PHASE 1 : collects files and options from the command line
 
+DEBUG=0
+if [ $DEBUG -eq 1 ]; then
+PRINTDEV=/dev/tty
+else
+PRINTDEV=/dev/null
+fi
+
 for p in $@; do
 if [ "$p" = -omp ]; then
 if [[ $CXX == "icpc" ]]; then
@@ -44,7 +45,9 @@ OMP="-fopenmp"
 fi
 fi
 
-if [ "$p" = -icc ]; then
+if [ "$p" = -debug ]; then
+DEBUG=1
+elif [ "$p" = -icc ]; then
 ignore=" "
 elif [ $p = "-osc" ]; then
 OSCDEFS="DEFINES += OSCCTRL"
@@ -65,7 +68,37 @@ done
 
 #PHASE 2 : compile the *.dsp file
 
+for f in $FILES; do
+
 # could use FILES for handling multiple dap files, while other AU args like manufacturer and subtype should be handled in a way
+
+# Get the number of inputs of the Faust code:
+NINPUTS=$(faust "$f" | grep getNumInputs | awk '{ printf "%d", $6}')
+echo "Number of Faust module inputs = $NINPUTS"
+
+if [ $NINPUTS -gt 0 ]; then
+    echo "Generating an AU Effect"
+    ARCHFILE="au-effect.cpp"
+    AUTYPE=aufx
+    FAUSTAU_CLASS=FaustAUEffect
+    COMPTYPE=kAudioUnitType_Effect
+else
+    echo "Generating an AU Instrument"
+    ARCHFILE="au-instrument.cpp"
+    AUTYPE=aumu
+    FAUSTAU_CLASS=FaustAUInstrument
+    COMPTYPE=kAudioUnitType_MusicDevice
+fi
+
+export ARCHFILE
+export AUTYPE
+export FAUSTAU_CLASS
+export COMPTYPE
+
+#echo $ARCHFILE
+#echo $AUTYPE
+#echo $FAUSTAU_CLASS
+#echo $COMPTYPE
 
 FAUST_DIR=$FLIB
 AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
@@ -77,7 +110,7 @@ echo FAUST dsp file not specified
 exit
 fi
 
-if [ ! -f $1 ]
+if [ ! -f $f ]
 then
 echo Input file does not exist
 exit
@@ -89,16 +122,16 @@ rm -r $TEMP_DIR
 fi
 mkdir $TEMP_DIR
 cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
-cp $1 $TEMP_DIR
-cp *.dsp $TEMP_DIR >& /dev/null
-cp *.lib $TEMP_DIR >& /dev/null
+cp $f $TEMP_DIR
+cp *.dsp $TEMP_DIR >& $PRINTDEV
+cp *.lib $TEMP_DIR >& $PRINTDEV
 cd $TEMP_DIR
-mkdir Source >& /dev/null
+mkdir Source >& $PRINTDEV
 
-faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $1 -o Source/au-output.cpp
+faust $OPTIONS -a $FAUST_DIR/$ARCHFILE $f -o Source/au-output.cpp
 
-faust $OPTIONS -xml $1 > /dev/null
-mv $1.xml Source/au-output.xml
+faust $OPTIONS -xml $f > $PRINTDEV
+mv $f.xml Source/au-output.xml
 
 if [ ! -f Source/au-output.cpp ]
 then
@@ -108,7 +141,7 @@ rm -r $TEMP_DIR
 exit
 fi
 
-FULL_FILE_NAME=$1
+FULL_FILE_NAME=$f
 
 FILE_NAME=$(BASENAME "$FULL_FILE_NAME")
 EXTENSION="${FILE_NAME##*.}"
@@ -158,30 +191,43 @@ perl -pi -e 's/_MANF_/'"$MANF"'/g' Source/AUSource/FaustAUVersion.h
 
 perl -pi -e 's/_FILENAME_/'"$FILE_NAME"'/g' Source/CocoaUI/FaustAU_CustomView.m
 
-xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > /dev/null > ./build_errors.log
+xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > $PRINTDEV > ./build_errors.log
 
 if [ ! -d $AU_DIR/FaustAU.component/ ]
 then
 	echo Unable to generate Audio Unit
 	cd ..
-	rm -r $TEMP_DIR
+	if [ $DEBUG -eq 0 ]; then
+	  rm -r $TEMP_DIR
+	fi
 	exit
 fi
 
 if [ -d $AU_DIR/"$FILE_NAME".component/ ]
 then
-rm -r  $AU_DIR/"$FILE_NAME".component/
+    if [ $DEBUG -eq 0 ]; then
+	rm -r  $AU_DIR/"$FILE_NAME".component/
+    fi
 fi
 
 mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
 
-
 if [ -d $AU_DIR/FaustAUCustomView.bundle/ ]
 then
-rm -r  $AU_DIR/FaustAUCustomView.bundle/
+    if [ $DEBUG -eq 0 ]; then
+	rm -r  $AU_DIR/FaustAUCustomView.bundle/
+    fi
 fi
 
 cd ..
-rm -r $TEMP_DIR
+if [ $DEBUG -eq 0 ]; then
+    rm -r $TEMP_DIR
+fi
 
 echo "'$NAME'" Audio Unit generated and installed successfully
+
+if [ $DEBUG -eq 1 ]; then
+    echo "See $TEMP_DIR for build products"
+fi
+
+done
