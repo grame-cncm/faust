@@ -32,7 +32,7 @@ $(TARGET):  $(OBJECTS)
 			$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 clean: 
-	rm -f $(objects) libfaustremote.a
+	rm -f $(objects)
 
 ####### Compile
 

@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
             string errorFactory("");
             
             string content = pathToContent(filePath);
-            remote_dsp_factory* factory = createRemoteDSPFactory(ipServer.c_str(), content, argc, argv, 3, errorFactory);
+            remote_dsp_factory* factory = createRemoteDSPFactory(argc, argv, ipServer.c_str(), content, 3, errorFactory);
             
             if(factory != NULL){
                 
