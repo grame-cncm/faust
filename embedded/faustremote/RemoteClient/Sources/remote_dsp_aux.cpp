@@ -508,7 +508,7 @@ void remote_dsp_aux::metadata(Meta* m) {
 //----------------------------------REMOTE DSP API-------------------------------------------
 
 //---------FACTORY
-EXPORT remote_dsp_factory* createRemoteDSPFactory(string ipServer, string dspContent, int argc, char** argv, int opt_level, string& error){
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, char** argv, string ipServer, string dspContent, int opt_level, string& error){
     
     printf("CREATE REMOTE FACTORY\n");
     
