@@ -75,37 +75,41 @@ class jackaudio : public audio {
         
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
     
-    static int  _jack_srate(jack_nframes_t nframes, void* arg){
-        fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
-        return 0;
-    }
-    
-    static void _jack_shutdown(void* arg){}
-   
-    static void _jack_info_shutdown(jack_status_t code, const char* reason, void* arg){
-        fprintf(stderr, "%s\n", reason);
-        jackaudio* audio = (jackaudio*)arg;
-        audio->shutdown(reason);
-    }
-    
-    static int  _jack_process(jack_nframes_t nframes, void* arg){
-        jackaudio* audio = (jackaudio*)arg;
-        return audio->process(nframes);
-    }
-    
-    static int  _jack_buffersize(jack_nframes_t nframes, void* arg){
-        fprintf(stdout, "The buffer size is now %u/sec\n", nframes);
-        return 0;
-    }
-    
-    
-    #ifdef _OPENMP
-    static void* _jack_thread(void* arg){
-        jackaudio* audio = (jackaudio*)arg;
-        audio->process_thread();
-        return 0;
-    }
-    #endif
+        static int _jack_srate(jack_nframes_t nframes, void* arg)
+        {
+            fprintf(stdout, "The sample rate is now %u/sec\n", nframes);
+            return 0;
+        }
+        
+        static void _jack_shutdown(void* arg) 
+        {}
+       
+        static void _jack_info_shutdown(jack_status_t code, const char* reason, void* arg)
+        {
+            fprintf(stderr, "%s\n", reason);
+            static_cast<jackaudio*>(arg)->shutdown(reason);
+        }
+        
+        static int _jack_process(jack_nframes_t nframes, void* arg)
+        {
+            return static_cast<jackaudio*>(arg)->process(nframes);
+        }
+        
+        static int _jack_buffersize(jack_nframes_t nframes, void* arg)
+        {
+            fprintf(stdout, "The buffer size is now %u/sec\n", nframes);
+            return 0;
+        }
+     
+        #ifdef _OPENMP
+        static void* _jack_thread(void* arg)
+        {
+            jackaudio* audio = (jackaudio*)arg;
+            audio->process_thread();
+            return 0;
+        }
+        #endif
+        
         void shutdown(const char* message)
         {
             if (fShutdown) {
@@ -154,6 +158,7 @@ class jackaudio : public audio {
         }
 
     public:
+    
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
             : fDsp(0), fClient(0), fNumInChans(0), fNumOutChans(0), 
             fInputPorts(0), fOutputPorts(0), 
@@ -169,6 +174,7 @@ class jackaudio : public audio {
                 fIconSize = 0;
             }
         }
+        
         virtual ~jackaudio() 
         { 
             stop(); 
@@ -260,8 +266,8 @@ class jackaudio : public audio {
             fShutdownArg = arg;
         }
         
-        virtual int buffer_size() { return jack_get_buffer_size(fClient); }
-        virtual int sample_rate() { return jack_get_sample_rate(fClient); }
+        virtual int get_buffer_size() { return jack_get_buffer_size(fClient); }
+        virtual int get_sample_rate() { return jack_get_sample_rate(fClient); }
 
         // jack callbacks
         virtual int	process(jack_nframes_t nframes) 
@@ -280,28 +286,28 @@ class jackaudio : public audio {
             return 0;
         }
     
-    // Connect to physical inputs/outputs
-    void default_connections()
-    {
-        // To avoid feedback at launch time, don't connect hardware inputs
-        /*
-        char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
-        if (physicalOutPorts != NULL) {
-            for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
-            jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInputPorts[i]));
-        }
-            jack_free(physicalOutPorts);
-        }
-        */
-        
-        char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
-        if (physicalInPorts != NULL) {
-            for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++) {
-                jack_connect(fClient, jack_port_name(fOutputPorts[i]), physicalInPorts[i]);
+        // Connect to physical inputs/outputs
+        void default_connections()
+        {
+            // To avoid feedback at launch time, don't connect hardware inputs
+            /*
+            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
+            if (physicalOutPorts != NULL) {
+                for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
+                jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInputPorts[i]));
             }
-            jack_free(physicalInPorts);
+                jack_free(physicalOutPorts);
+            }
+            */
+            
+            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
+            if (physicalInPorts != NULL) {
+                for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++) {
+                    jack_connect(fClient, jack_port_name(fOutputPorts[i]), physicalInPorts[i]);
+                }
+                jack_free(physicalInPorts);
+            }
         }
-    }
 
     #ifdef _OPENMP
         void process_thread() 

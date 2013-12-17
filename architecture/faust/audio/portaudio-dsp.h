@@ -161,8 +161,8 @@ class portaudio : public audio {
             return paContinue;
         }
         
-        virtual int buffer_size() { return fBufferSize; }
-        virtual int sample_rate() { return fSampleRate; }
+        virtual int get_buffer_size() { return fBufferSize; }
+        virtual int get_sample_rate() { return fSampleRate; }
 };
 
 //----------------------------------------------------------------------------

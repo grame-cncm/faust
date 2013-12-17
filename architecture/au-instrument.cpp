@@ -73,10 +73,6 @@ using namespace std;
 static const UInt32 kNumNotes = 32;
 static const UInt32 kMaxActiveNotes = 32;
 
-static const char* FREQ_PARAM_NAME = "freq";
-static const char* ATTACK_PARAM_NAME = "attack";
-static const char* RELEASE_PARAM_NAME = "release";
-
 /******************************************************************************
  *******************************************************************************
  *
@@ -100,37 +96,23 @@ static const char* RELEASE_PARAM_NAME = "release";
 class FaustAUInstrument;
 
 struct FaustAUInstrumentNote: public SynthNote {
-	FaustAUInstrumentNote();
-    
-	virtual ~FaustAUInstrumentNote();
-    
-	virtual OSStatus Initialize();
-    
-	virtual bool Attack(const MusicDeviceNoteParams &inParams) {
-		double sampleRate = SampleRate();
-        
-		amp = inParams.mVelocity / 127.;
-        
-		return true;
-	}
-	virtual void Kill(UInt32 inFrame); // voice is being stolen.
-	virtual void Release(UInt32 inFrame);
-	virtual void FastRelease(UInt32 inFrame);
-	virtual Float32 Amplitude() {
-		return amp;
-	} // used for finding quietest note for voice stealing.
-	virtual OSStatus Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames,
-                            AudioBufferList** inBufferList, UInt32 inOutBusCount);
-    
-	FaustAUInstrument* synth;
-    
-	double amp, maxAmp, upSlope, dnSlope;
-    
-	
-    public:
-	auUI* dspUI = NULL;
-    
-	mydsp* dsp = NULL;
+  FaustAUInstrumentNote();
+  virtual ~FaustAUInstrumentNote();
+  virtual OSStatus Initialize();
+  virtual bool Attack(const MusicDeviceNoteParams &inParams);
+  virtual void Kill(UInt32 inFrame); // voice is being stolen.
+  virtual void Release(UInt32 inFrame);
+  virtual void FastRelease(UInt32 inFrame);
+  virtual Float32 Amplitude() {
+    return amp;
+  } // used for finding quietest note for voice stealing.
+  virtual OSStatus Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames,
+			  AudioBufferList** inBufferList, UInt32 inOutBusCount);
+  FaustAUInstrument* synth;
+  double amp, maxAmp, upSlope, dnSlope;
+public:
+  auUI* dspUI = NULL;
+  mydsp* dsp = NULL;
 };
 
 class FaustAUInstrument: public AUMonotimbralInstrumentBase {
@@ -176,7 +158,7 @@ class FaustAUInstrument: public AUMonotimbralInstrumentBase {
     
     private:
     
-	FaustAUInstrumentNote mNotes[kNumNotes];
+        FaustAUInstrumentNote mNotes[kNumNotes];
     
     private:
 	auUI* dspUI = NULL;
@@ -185,12 +167,23 @@ class FaustAUInstrument: public AUMonotimbralInstrumentBase {
 	mydsp* dsp = NULL;
     
 	int frequencyParameterID = -1;
-	int attackParameterID = -1;
-	int releaseParameterID = -1;
+  int gateParameterID = -1;
+  int gainParameterID = -1;
     
 };
 
-
+bool FaustAUInstrumentNote::Attack(const MusicDeviceNoteParams &inParams) {
+  double sampleRate = SampleRate();
+  amp = inParams.mVelocity / 127.;
+  if (synth->gateParameterID != -1) {
+    if (dspUI) {
+      auUIObject* gate = (auUIObject*) dspUI->fUITable[synth->gateParameterID];
+      if (gate)
+	gate->SetValue(1.0); // Tell Faust code to enter "attack" phase
+    }
+  }
+  return true;
+}
 
 /**********************************************************************************/
 
@@ -360,82 +353,63 @@ OSStatus FaustAUInstrument::GetParameterInfo(AudioUnitScope inScope,
                                              AudioUnitParameterID inParameterID,
                                              AudioUnitParameterInfo & outParameterInfo) {
     
-	OSStatus result = noErr;
+  OSStatus result = noErr;
     
-	char name[100];
-	CFStringRef str;
+  char name[100];
+  CFStringRef str;
     
-	outParameterInfo.flags = kAudioUnitParameterFlag_IsWritable
+  outParameterInfo.flags = kAudioUnitParameterFlag_IsWritable
     + kAudioUnitParameterFlag_IsReadable;
     
-	if (inScope == kAudioUnitScope_Global) {
+  if (inScope == kAudioUnitScope_Global) {
         
-		if (dspUI && dspUI->fUITable[inParameterID]
-            && dspUI->fUITable[inParameterID]->fZone) {
+    if (dspUI && dspUI->fUITable[inParameterID]
+	&& dspUI->fUITable[inParameterID]->fZone) {
             
-			if (dynamic_cast<auButton*>(dspUI->fUITable[inParameterID])) {
-				auToggleButton* toggle =
-                (auToggleButton*) dspUI->fUITable[inParameterID];
-				toggle->GetName(name);
-				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
-                
-				AUBase::FillInParameterName(outParameterInfo, str, false);
-				outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-				outParameterInfo.minValue = 0;
-				outParameterInfo.maxValue = 1;
-				outParameterInfo.defaultValue = 0;
-			} else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[inParameterID])) {
-				auToggleButton* toggle =
-                (auToggleButton*) dspUI->fUITable[inParameterID];
-				toggle->GetName(name);
-                
-				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
-                
-				AUBase::FillInParameterName(outParameterInfo, str, false);
-				outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-				outParameterInfo.minValue = 0;
-				outParameterInfo.maxValue = 1;
-				outParameterInfo.defaultValue = 0;
-                
-			} else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[inParameterID])) {
-				auCheckButton* check =
-                (auCheckButton*) dspUI->fUITable[inParameterID];
-				check->GetName(name);
-                
-				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
-                
-				AUBase::FillInParameterName(outParameterInfo, str, false);
-				outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-				outParameterInfo.minValue = 0;
-				outParameterInfo.maxValue = 1;
-				outParameterInfo.defaultValue = 0;
-                
-			} else {
-                
-				auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
-				slider->GetName(name);
-                
-				//TODO the default parameter name which is set by MIDI note in
-				if (!strcmp(name, "freq")) {
-					frequencyParameterID = inParameterID;
-				}
-                
-				str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
-                
-				AUBase::FillInParameterName(outParameterInfo, str, false);
-				outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
-				outParameterInfo.minValue = slider->fMin;
-				outParameterInfo.maxValue = slider->fMax;
-				outParameterInfo.defaultValue = slider->fInit;
-			}
-            
-		}
-	} else {
-		result = kAudioUnitErr_InvalidParameter;
+      if (dynamic_cast<auButton*>(dspUI->fUITable[inParameterID]) || 
+	  dynamic_cast<auToggleButton*>(dspUI->fUITable[inParameterID]) || 
+	  dynamic_cast<auCheckButton*>(dspUI->fUITable[inParameterID])) {
+	dspUI->fUITable[inParameterID]->GetName(name);
+	if (strcmp(name, "gate")==0) {
+	  // Faust synth modules use "gate" as the name for the parameter
+	  // to be set to 1 by MIDI-in NoteOn and set to 0 by NoteOff.
+	  // We leave it in the AU GUI for manual testing w/o MIDI.
+	  gateParameterID = inParameterID;
 	}
-    
-	return result;
-    
+	str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
+	AUBase::FillInParameterName(outParameterInfo, str, false);
+	outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
+	outParameterInfo.minValue = 0;
+	outParameterInfo.maxValue = 1;
+	outParameterInfo.defaultValue = 0;
+      } else {
+	auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
+	slider->GetName(name);
+	if (strcmp(name, "gain")==0) {
+	  // Faust synth modules use "gain" as the name for the parameter
+	  // to be set by MIDI-in NoteOn key velocity:
+	  // We leave it in the AU GUI for manual testing w/o MIDI.
+	  gainParameterID = inParameterID;
+	  // gainMin = slider->fMin;
+	  // gainMax = slider->fMax;
+	} else if (strcmp(name, "freq")==0) {
+	  frequencyParameterID = inParameterID;
+	  // freqMin = slider->fMin;
+	  // freqMax = slider->fMax;
+	}
+	str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
+	AUBase::FillInParameterName(outParameterInfo, str, false);
+	outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
+	outParameterInfo.minValue = slider->fMin;
+	outParameterInfo.maxValue = slider->fMax;
+	outParameterInfo.defaultValue = slider->fInit;
+      }
+
+    }
+  } else {
+    result = kAudioUnitErr_InvalidParameter;
+  }
+  return result;
 }
 
 OSStatus FaustAUInstrument::SetParameter(AudioUnitParameterID inID,
@@ -488,7 +462,15 @@ FaustAUInstrumentNote::~FaustAUInstrumentNote() {
 }
 
 void FaustAUInstrumentNote::Release(UInt32 inFrame) {
-	SynthNote::Release(inFrame);
+  auUIObject* gate = NULL;
+  if (synth->gateParameterID != -1) {
+    if (dspUI) {
+      gate = (auUIObject*) dspUI->fUITable[synth->gateParameterID];
+      if (gate)
+	gate->SetValue(0.0); // Tell Faust code to enter "release" phase
+    }
+  }
+  SynthNote::Release(inFrame);
 }
 
 void FaustAUInstrumentNote::FastRelease(UInt32 inFrame) // voice is being stolen.

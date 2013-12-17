@@ -3,12 +3,11 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to iOS applications         #
-#               (c) Grame, 2012                                     #
+#               (c) Grame, 2012-2013                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
-
 
 #PHASE 1 : collects files and options from the command line
 
@@ -22,21 +21,23 @@ for p in $@; do
     fi
 
     if [ "$p" = -icc ]; then
-	ignore=" "
+        ignore=" "
     elif [ $p = "-osc" ]; then
-	OSCDEFS="DEFINES += OSCCTRL"
-	OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
+        OSCDEFS="DEFINES += OSCCTRL"
+        OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ "$p" = "-httpd" ]; then
-	HTTPDEFS="DEFINES += HTTPCTRL"
-	HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="DEFINES += HTTPCTRL"
+        HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
-	JACK="1"
+        JACK="1"
+    elif [ "$p" = "-xcode" ]; then
+        XCODE="1"
     elif [ ${p:0:1} = "-" ]; then
-	OPTIONS="$OPTIONS $p"
+        OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
-	FILES="$FILES $p"
+        FILES="$FILES $p"
     else
-	OPTIONS="$OPTIONS $p"
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -71,7 +72,11 @@ for p in $FILES; do
     # move generated app to source directory
     rm -rf "$S/$P.app"
     mv "$T/build/Release-iphoneos/$P.app" "$S/"
-    rm -rf "$T"
+    if [ "$XCODE" != "1" ]; then
+        rm -rf "$T"
+    else
+        echo "Keep Xcode project"
+    fi
         
 	# collect binary file name for FaustGIDE
     BINARIES="$BINARIES$S/$P.app;"
