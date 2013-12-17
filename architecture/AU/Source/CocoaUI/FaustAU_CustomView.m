@@ -597,11 +597,11 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     NSRect frame;
     frame.size.width  = size.width + 25;
     frame.size.height = size.height + 25;
+    
     [nsBoundingBox setFrame:frame];
     [nsBoundingBox setNeedsDisplay:YES];
     
     [self addSubview:nsBoundingBox];
-    
     
     //xml button
     NSButton* button;
@@ -628,7 +628,15 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         [self addSubview:button];
     }
     
+    //TODO
+    frame.origin.x = 0;
+    frame.origin.y = 0;
+    frame.size.width = 1024;
+    frame.size.height = 640;
+    
     [self setFrame:frame];
+    
+
     [self setNeedsDisplay:YES];
 }
 
