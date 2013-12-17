@@ -225,7 +225,7 @@ class faustgen : public MspCpp5<faustgen> {
            
         bool fMute;                 // DSP mute state
         
-        t_jrgba fDefaultColor;      // Color od the object to be used when restoring default color
+        t_jrgba fDefaultColor;      // Color of the object to be used when restoring default color
          
         // Display DSP text source
         void display_dsp_source();
