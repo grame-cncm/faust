@@ -53,87 +53,66 @@ using namespace std;
 
 class remote_dsp_aux;
 
+// Standard Callback to store a server response in strinstream
+static size_t      store_Response(void *buf, size_t size, size_t nmemb, void* userp);
+    
 class remote_dsp_factory{
     
 private:
     
-    string      fJsonResponse;  //Response of Server containing the interface as json application
+    string      fIndex;             //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
     
-    string      fIP, fPort, fCV, fLatency, fServerIP;
+    int         fNumInputs;
+    int         fNumOutputs;        //Num of In/Output of compiled DSP factory
+
+    string      fServerIP;          //IP of remote server 
     
-    string      fIndex;
+    map<string,string>  fMetadatas; //Metadatas extracted from json
+    vector<itemInfo*>   fUiItems;   //Items extracted from json
     
-    static size_t      store_Response(void *buf, size_t size, size_t nmemb, void* userp);
+    void        decodeJson(const string& json);
     
 public: 
-    
-    remote_dsp_factory();
-    virtual ~remote_dsp_factory();
-    
-    string json();
-    
-    string  getServerIP(){return fServerIP;}
-    string  getIP(){return fIP;}
-    
-    string  getPort(){return fPort;}
-    string  getCV(){return fCV;}
-    string  getLatency(){return fLatency;}
-    
-    void    setIndex(string index){fIndex = index;}
 
-    remote_dsp_aux* createRemoteDSPInstance(int samplingRate, int bufferSize, string& error);
+    remote_dsp_aux* createRemoteDSPInstance(int argc, const char** argv, int samplingRate, int bufferSize, string& error);
 
-    bool    init(string ipServer, string dspContent, int argc, char** argv, int opt_level, string& error);
-    void    stop();
+    bool        init(int argc, const char** argv, const string& ipServer, int portServer, string dspContent, string& error, int opt_level);
+    void        stop();
+    
+    void         metadataRemoteDSPFactory(Meta* m);  
+    
+//    ACCESSORS
+    string              serverIP(){return fServerIP;}
+    vector<itemInfo*>   itemList(){return fUiItems;}
+    int                 numInputs(){return fNumInputs;}
+    int                 numOutputs(){return fNumOutputs;}
+    string              index(){return fIndex;}
     
 };
-
-// Public C++ interface
-
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, char** argv, string ipServer, string dspContent, int opt_level,string& error);
-
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
-
-const char* lopts(char *argv[], const char *name, const char* def);
 
 class remote_dsp_aux : public dsp{
 
     private:
     
-        remote_dsp_factory*      fFactory;
+        remote_dsp_factory*     fFactory;           // Factory is it create from
         
-        jack_net_master_t* fNetJack;
-        float**     fInputs;
-        float**     fOutputs;
+        jack_net_master_t*      fNetJack;           // Jack Connection
     
-        int         fBufferSize;
-    
-        int         fNumInputs;
-        int         fNumOutputs;
-    
-        string      fFactoryIndex;
-    
-        map<string,string>  fMetadatas; //Metadatas extracted from json
-        vector<itemInfo*>   fUiItems;   //Items extracted from json
-        int         fNumItem;           //Number of real items (!= group or close group)
+        float**                 fInputs;            //Concatenation of control buffer & audio buffer
+        float**                 fOutputs;           //Concatenation of control buffer & audio buffer
 
-    
-        FAUSTFLOAT*  fOutControl;        //Buffer containing the values of controls
-        FAUSTFLOAT*  fInControl;        //Buffer containing the values of controls
 
-        int          countItem();    
-    
-        static size_t      store_Response(void *buf, size_t size, size_t nmemb, void* userp);
-    
-        void         metadata(Meta* m);
+        FAUSTFLOAT*             fOutControl;        //Buffer containing the values of controls
+        FAUSTFLOAT*             fInControl;        //Buffer containing the values of controls
 
-    
         void         fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer);
     
-    public: 
+//    Command-line parsing fonction
+        const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);  
+    public:   
     
-        remote_dsp_aux();
-        virtual ~remote_dsp_aux();
+        remote_dsp_aux(remote_dsp_factory* factory);
+        ~remote_dsp_aux();
     
         virtual int     getNumInputs();
         virtual int     getNumOutputs();
@@ -144,18 +123,18 @@ class remote_dsp_aux : public dsp{
     
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-        bool            init(int samplingFreq, int buffer_size, string& error);
-        void            decodeJson(const string& json);
-        void            setFactory(remote_dsp_factory* factory){fFactory = factory;}
-    
+        bool            init(int argc, const char** argv, int samplingFreq, int buffer_size, string& error);
 };
 
+//---------------------- Public C++ interface
+    
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char** argv, string ipServer, string dspContent, string& error, int opt_level);
+    
+EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
+    
 class EXPORT remote_dsp : public dsp{
     
 public: 
-    
-    remote_dsp();
-    virtual ~remote_dsp();
     
     virtual int     getNumInputs();
     virtual int     getNumOutputs();
@@ -167,7 +146,7 @@ public:
     virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
-EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int samplingRate, int bufferSize, string& error);
+EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char** argv, int samplingRate, int bufferSize, string& error);
 
 EXPORT void        deleteRemoteDSPInstance(remote_dsp* dsp);
 

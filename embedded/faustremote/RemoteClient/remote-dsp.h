@@ -36,25 +36,19 @@ using namespace std;
 typedef struct remote_dsp_factory {};
 
 /**
- * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON applicatio.
- * 
- * @param ipServer - IP of remote machine that will compile your DSP 
- * @param dspContent - the Faust program as a string
+ * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
+ *
  * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters 
- *                  --NJ_ip ==> MULTICAST_DEFAULT_IP 
- *                  --NJ_port ==> MULTICAST_DEFAULT_PORT
- *                  --NJ_compression ==> default is -1
- *                  --NJ_latency ==> default is 2
- *
- *                  -vec/sch/... faust compilation options
- *
+ * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param ipServer - IP of remote machine that will compile your DSP 
+ * @param portServer - Port on which the remote Server started
+ * @param dspContent - the Faust program as a string
  * @param error - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactory(int argc, char** argv, const string& ipServer, const string& dspContent, int opt_level, string& error);
+remote_dsp_factory* createRemoteDSPFactory(int argc,const char** argv, const string& ipServer, int portServer, const string& dspContent, string& error, int opt_level);
 
 
 /**
@@ -72,9 +66,6 @@ class remote_dsp : public dsp{
     
     public: 
     
-        remote_dsp();
-        virtual ~remote_dsp();
-    
         virtual int     getNumInputs();
         virtual int     getNumOutputs();
 
@@ -89,13 +80,20 @@ class remote_dsp : public dsp{
  * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize.
  * 
  * @param factory - the Remote DSP factory
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters 
+ *                  --NJ_ip ==> MULTICAST_DEFAULT_IP 
+ *                  --NJ_port ==> MULTICAST_DEFAULT_PORT
+ *                  --NJ_compression ==> default is -1
+ *                  --NJ_latency ==> default is 2
+ *                  --NJ_mtu ==> default is 1500
  * @param samplingRate - NetJack slave sampling Rate
  * @param bufferSize - NetJack slave buffer Size
  * @param error - the error string to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
-remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int samplingRate, int bufferSize, string& error);
+remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc,const char** argv, int samplingRate, int bufferSize, string& error);
 
 
 /**

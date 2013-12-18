@@ -2,16 +2,8 @@
 
 #include "remote_dsp_aux.h"
 
-const char* lopts(char *argv[], const char *name, const char* def)
-{
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
-	return def;
-}
-
-//------------------FACTORY
-
-size_t remote_dsp_factory::store_Response(void *buf, size_t size, size_t nmemb, void* userp){
+// Standard Callback to store a server response in strinstream
+size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
     
     std::ostream& os = *static_cast<std::ostream*>(userp);
     std::streamsize len = size * nmemb;
@@ -21,161 +13,149 @@ size_t remote_dsp_factory::store_Response(void *buf, size_t size, size_t nmemb, 
         return 0;
 }
 
-string getValue(int argc, char** argv, const string& key, vector<int>* toBePassed){
-    
-    for(int i = 0; i < argc ; i++){
-        
-        if(key.compare(argv[i]) == 0){
-            toBePassed->push_back(i);
-            toBePassed->push_back(i+1);
-            return argv[i+1];;
-        }
-    }
-    
-    return "";
-}
+//------------------FACTORY
 
-remote_dsp_factory::remote_dsp_factory(){}
-
-bool remote_dsp_factory::init(string ipServer, string dspContent, int argc, char** argv, int opt_level, string& error){
+// Init remote dsp factory sends a POST request to a remote server
+// The URL extension used is /GetJson
+// The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
+bool remote_dsp_factory::init(int argc, const char** argv, const string& ipServer, int portServer, string dspContent, string& error, int opt_level){
     
-    bool isInit = false;
+    bool isInitSuccessfull = false;
     
-    fServerIP = ipServer;
-    
-    CURL *curl;
-    CURLcode res;
-    
-    std::ostringstream oss;
-    
-    curl = curl_easy_init();
-    
-    string finalString = "data=";
-    finalString += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
-    
-    string IP, Port, Latency, CV;
-    
-    vector<int> toBePassed;
-    
-//    METTRE ICI LA LOCALIP SI POSSIBLE
-    
-    fIP = lopts(argv, "--NJ_ip", "");
-    fPort = lopts(argv, "--NJ_port", "");
-    fLatency = lopts(argv, "--NJ_latency", "");
-    fCV = lopts(argv, "--NJ_compression", "");
-    
-    finalString += "&options=";
-    
-    for(int i=1; i<argc; i++){
-        
-        if(string(argv[i]).find("--")!=string::npos){
-            i ++;
-        }
-        else{
-            finalString += argv[i];
-            finalString += "%";
-        }
-    }
-    
-    finalString += "&opt_level=";
-    stringstream ol;
-    ol<<opt_level;
-    finalString +=ol.str(); 
-    
-    
-    printf("finalString = %s\n", finalString.c_str());
+    CURL *curl = curl_easy_init();
     
     if (curl) {
         
-        string ip = ipServer;
-        ip += "/GetJson";
+        string finalRequest = "data=";
         
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalString.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalString.c_str()));
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &remote_dsp_factory::store_Response);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+// Transforming faustCode to URL format
+        finalRequest += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
         
-        res = curl_easy_perform(curl);
-        
-        long respcode; //response code of the http transaction
-        
-        curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-        
-        printf("RESPONSE CODE= %ld\n", respcode);
-        
-        if(res != CURLE_OK){
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-            error =  curl_easy_strerror(res);
+// Adding Compilation Options to request data
+        for(int i=0; i<argc; i++){
+            
+            finalRequest += "&options=";
+            finalRequest += argv[i];
         }
-        else{
+        
+// Adding LLVM optimization Level to request data
+        finalRequest += "&opt_level=";
+        stringstream ol;
+        ol<<opt_level;
+        finalRequest +=ol.str(); 
+        
+        
+//        printf("finalRequest = %s\n", finalRequest.c_str());
+
+        fServerIP = "http://";
+        fServerIP += ipServer;
+        fServerIP += ":";
+        fServerIP += portServer;
+        
+        string ip = fServerIP + "/GetJson";
+        
+// Connection Setups
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
+        
+        std::ostringstream oss;
+        
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
+        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
+//        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        if(res != CURLE_OK)
+            error =  curl_easy_strerror(res);
+
+        else{        
+            
+            //Response code of the http transaction
+            long respcode;
+            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
+            
             if(respcode == 200){
-                fJsonResponse = oss.str();
-                //            fprintf(stderr, "curl_easy_perform() success: %s\n", oss.str().c_str());
-                //            printf("fJsonResponse = %s\n", fJsonResponse.c_str());
-                isInit = true;
+                decodeJson(oss.str());
+                isInitSuccessfull = true;
             }
             else if(respcode == 400)
                 error = oss.str();
             
         }
-        curl_easy_cleanup(curl);
+        
+        curl_easy_cleanup(curl); //Standard CleanUp
     }
     
-    return isInit;
+    return isInitSuccessfull;
 }
 
-remote_dsp_factory::~remote_dsp_factory(){}
-
+// Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop(){
     
-    CURL *curl;
-    CURLcode res;
-    curl = curl_easy_init();
-    
-    string finalString = "factoryIndex=";
-    finalString += fIndex;
-    
-    //    printf("finalString = %s\n", finalString.c_str());
+    CURL *curl = curl_easy_init();
     
     if (curl) {
+        
+        // The index of the factory to delete has to be sent
+        string finalRequest = "factoryIndex=";
+        finalRequest += fIndex;
         
         string ip = fServerIP;
         ip += "/DeleteFactory";
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalString.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalString.c_str()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
         
-        res = curl_easy_perform(curl);
+        CURLcode res = curl_easy_perform(curl);
         
         if(res != CURLE_OK)
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        //        else
-        //            fprintf(stderr, "curl_easy_perform() success \n");
         
         curl_easy_cleanup(curl);
     }
 }
 
-string remote_dsp_factory::json(){
+
+// Decoding JSON from a string to
+// fUiItems : Structure containing the graphical items
+// fMetadatas : Structure containing the metadatas
+// Some "extra" metadatas are kept separatly
+void remote_dsp_factory::decodeJson(const string& json){
     
-    return fJsonResponse;
+    const char* p = json.c_str();
+    parseJson(p, fMetadatas, fUiItems);
+    
+    fNumInputs = atoi(fMetadatas["inputs"].c_str());
+    fMetadatas.erase("inputs");
+    
+    fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+    fMetadatas.erase("outputs");
+    
+    fIndex = fMetadatas["indexFactory"];
+    fMetadatas.erase("indexFactory");
 }
 
-remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int samplingRate, int bufferSize, string& error){
+// Declaring meta datas
+void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) { 
+    
+    map<string,string>::iterator it;
+    
+    for(it = fMetadatas.begin() ; it != fMetadatas.end(); it++)
+        m->declare(it->first.c_str(), it->second.c_str());
+}   
+
+// Create Remote DSP Instance from factory
+remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char** argv, int samplingRate, int bufferSize, string& error){
  
-    printf("CREATE REMOTE DSP\n");
+    remote_dsp_aux* dsp = new remote_dsp_aux(this);
     
-    remote_dsp_aux* dsp = new remote_dsp_aux;
-    
-    dsp->setFactory(this);
-    dsp->decodeJson(this->json());
-    
-    if(dsp->init(samplingRate, bufferSize, error)){
+    if(dsp->init(argc, argv, samplingRate, bufferSize, error)){
         return dsp; 
     }
     else{
@@ -186,54 +166,56 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int samplingRate, in
 
 //--------------------INSTANCES
 
-size_t remote_dsp_aux::store_Response(void *buf, size_t size, size_t nmemb, void* userp){
+remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     
-    std::ostream& os = *static_cast<std::ostream*>(userp);
-    std::streamsize len = size * nmemb;
-    if(os.write(static_cast<char*>(buf), len))
-        return len;
-    else
-        return 0;
-}
-
-remote_dsp_aux::remote_dsp_aux(){
-
+    fFactory = factory;
     fNetJack = NULL;
+    
+    fInputs = new float*[getNumInputs() + 1];
+    fOutputs = new float*[getNumOutputs() + 1];
 }
         
 remote_dsp_aux::~remote_dsp_aux(){
 
+    delete fInputs;
+    delete fOutputs;
+    
     if(fNetJack){
         
         delete fInControl;
         delete fOutControl;
-        
-        delete fInputs;
-        delete fOutputs;
         
         jack_net_master_close(fNetJack); 
         fNetJack = 0;
     }
 }
 
-int remote_dsp_aux::countItem(){
-   
-    int counter = 0;
+void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer){
     
-    for(unsigned int i = 0; i<fUiItems.size(); i++){
-        if(fUiItems[i]->type.find("group") == string::npos && fUiItems[i]->type.compare("close")!=0)
-            counter++;
+    for(int i=0; i<size1; i++){
+        memset(buffer[i], 0, sizeof(float)*size2);
     }
-    
-    return counter;
 }
 
-//Decode fUiItems to build user interface
+// Fonction for command line parsing
+const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
+	int	i;
+	
+    for (i = 0; i<argc; i++){
+        if (!strcmp(argv[i], key)) 
+            return argv[i+1];   
+    }
+	return defaultValue;
+}
+
+// Decode internal structure, to build user interface
 void remote_dsp_aux::buildUserInterface(UI* ui){
 
 //    printf("REMOTEDSP::BUILDUSERINTERFACE\n");
     
-//To be sure the float is correctly encoded
+    vector<itemInfo*> jsonItems = fFactory->itemList();
+    
+//To be sure the floats are correctly encoded
     char* tmp_local = setlocale(LC_ALL, NULL);
     setlocale(LC_ALL, "C");
     
@@ -242,9 +224,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
     int counterIn = 0;
     int counterOut = 0;
     
-    fNumItem = countItem();
-    
-    for(it = fUiItems.begin(); it != fUiItems.end() ; it++){
+    for(it = jsonItems.begin(); it != jsonItems.end() ; it++){
         
         float init = strtod((*it)->init.c_str(), NULL);
         float min = strtod((*it)->min.c_str(), NULL);
@@ -256,6 +236,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         bool isInItem = false;
         bool isOutItem = false;
         
+//        Meta Data declaration for entry items
         if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close")!=0){
             
             fInControl[counterIn] = init;
@@ -264,6 +245,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
         }
+//        Meta Data declaration for exit items
         else if((*it)->type.find("bargraph") != string::npos){
             
             fOutControl[counterOut] = init;
@@ -273,11 +255,13 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
                 ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
             }
         }
+//      Meta Data declaration for group opening or closing
         else {
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
         }
         
+//      Item declaration
         if((*it)->type.compare("hgroup") == 0)
             ui->openHorizontalBox((*it)->label.c_str());
         
@@ -322,15 +306,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
     
 }
 
-void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer){
-    
-    for(int i=0; i<size1; i++){
-        for(int j=0; j<size2; j++)
-            buffer[i][j] = 0.0f;
-    }
-}
-
-//Compute of the DSP, adding the controls to the input/output passed
+// Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
     fInputs[0] = fInControl;
@@ -354,167 +330,116 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     }
 }
 
+// Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs(){ 
     
-    return fNumInputs;
+    return fFactory->numInputs();
 }
 
 int remote_dsp_aux::getNumOutputs(){ 
     
-    return fNumOutputs;
+    return fFactory->numOutputs();
 }
 
+// Useless fonction in our case but required for a DSP interface
 void remote_dsp_aux::init(int /*samplingFreq*/){}
 
-bool remote_dsp_aux::init(int samplingFreq, int buffer_size, string& error){
+// Init remote dsp instance sends a POST request to a remote server
+// The URL extension used is /CreateInstance
+// The datas to send are NetJack parameters & the factory index it is create from
+// A NetJack master is created to open a connection with the slave opened on the server's side
+bool remote_dsp_aux::init(int argc, const char** argv, int samplingFreq, int buffer_size, string& error){
     
-//    INIT BUFFER SIZE
-    fBufferSize = buffer_size;
+//  Init Control Buffers
+    fOutControl = new float[buffer_size];
+    fInControl = new float[buffer_size];
     
-    fOutControl = new float[fBufferSize];
-    fInControl = new float[fBufferSize];
-    
-    for(int i=0; i<fBufferSize; i++){
-        fOutControl[i] = 0.0f;
-        fInControl[i] = 0.0f;
-    }
-    
-//  INIT SAMPLING RATE
-//    fSamplingFreq = samplingFreq;
-    
+    memset(fOutControl, 0, sizeof(float)*buffer_size);
+    memset(fInControl, 0, sizeof(float)*buffer_size);
     
 //  PREPARE URL TO SEND TO SERVER
-    string finalString = "factoryIndex=";
-    finalString += fFactoryIndex;
+    string finalRequest = "factoryIndex=";
+    finalRequest += fFactory->index();
     
-    string IP = fFactory->getIP();
-    string Port = fFactory->getPort();
-    string Latency = fFactory->getLatency();
-    string CV = fFactory->getCV();
+// Parse NetJack Parameters
+    finalRequest += "&NJ_IP=";
+    finalRequest += getValueFromKey(argc, argv, "--NJ_ip", DEFAULT_MULTICAST_IP);
     
-    finalString += "&NJ_IP=";
+    finalRequest += "&NJ_Port=";
+    finalRequest += getValueFromKey(argc, argv, "--NJ_port", "19000");
     
-    if(IP.compare("") == 0)
-        IP = DEFAULT_MULTICAST_IP;
+    finalRequest += "&NJ_Compression=";
+    finalRequest += getValueFromKey(argc, argv, "--NJ_compression", "-1");
     
-    finalString += IP;
-    finalString += "&NJ_Port=";
+    finalRequest += "&NJ_Latency=";
+    finalRequest += getValueFromKey(argc, argv, "--NJ_latency", "2");
     
-    if(Port.compare("") == 0)
-        Port = "19000";
+    finalRequest += "&NJ_MTU=";
+    finalRequest += getValueFromKey(argc, argv, "--NJ_mtu", "1500");
     
-    finalString += Port;
-    finalString += "&NJ_Compression=";
-    
-    if(CV.compare("") == 0)
-        CV = "-1";
-    
-    finalString += CV;
-    finalString += "&NJ_Latency=";
-    
-    if(Latency.compare("") == 0)
-        Latency = "2";
-    
-    finalString += Latency;
-    
-    printf("finalString = %s\n", finalString.c_str());
+//    printf("finalRequest = %s\n", finalRequest.c_str());
     
     
-//  POST PARAMETERS
-    CURL *curl;
-    CURLcode res;
+//  Curl Connection setup
+    CURL *curl = curl_easy_init();
     
-    curl = curl_easy_init();
-    
-    bool   isOpen = false;
+    bool   isInitSuccessfull = false;
     
     if (curl) {
         
-        string ip = fFactory->getServerIP();
+        string ip = fFactory->serverIP();
         ip += "/CreateInstance";
         
         std::ostringstream oss;
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalString.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalString.c_str()));
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &remote_dsp_aux::store_Response);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
         
-        res = curl_easy_perform(curl);
+        CURLcode res = curl_easy_perform(curl);
         
-        if(res == CURLE_OK){
-
+        if(res != CURLE_OK)
+            error = curl_easy_strerror(res);
+        else{
+            
             long respcode; //response code of the http transaction
             
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
             if(respcode == 200){
                 
-                //          OPEN NET JACK CONNECTION
+                //              OPEN NET JACK CONNECTION
                 
-                jack_master_t request = { -1, -1, -1, -1, fBufferSize, samplingFreq, "test_master", 3};
+                jack_master_t request = { -1, -1, -1, -1, buffer_size, samplingFreq, "test_master", 3};
                 
                 jack_slave_t result;
                 
                 fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
                 
-                if(fNetJack){
-                    fInputs = new float*[getNumInputs() + 1];
-                    fOutputs = new float*[getNumOutputs() + 1];
-                    isOpen = true;
-                }
+                if(fNetJack)
+                    isInitSuccessfull = true;
             }
             else if(respcode == 400)
                 error = oss.str();
         }
-        else
-            error = curl_easy_strerror(res);
         
         curl_easy_cleanup(curl);
     }
     
-    return isOpen;
-}
-
-void remote_dsp_aux::decodeJson(const string& json){
-    
-    const char* p = json.c_str();
-    parseJson(p, fMetadatas, fUiItems);
-    
-    fNumInputs = atoi(fMetadatas["inputs"].c_str());
-    fMetadatas.erase("inputs");
-    
-    fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-    fMetadatas.erase("outputs");
-    
-    fFactoryIndex = fMetadatas["indexFactory"];
-    fMetadatas.erase("indexFactory");
-    
-    fFactory->setIndex(fFactoryIndex);
-    
-    printf("NAME = %s || FACTORY Index = %s\n", fMetadatas["name"].c_str(), fFactoryIndex.c_str());
-}
-
-void remote_dsp_aux::metadata(Meta* m) { 
-    
-    map<string,string>::iterator it;
-    
-    for(it = fMetadatas.begin() ; it != fMetadatas.end(); it++)
-        m->declare(it->first.c_str(), it->second.c_str());
-}                           
+    return isInitSuccessfull;
+}                        
 
 //----------------------------------REMOTE DSP API-------------------------------------------
 
 //---------FACTORY
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, char** argv, string ipServer, string dspContent, int opt_level, string& error){
-    
-    printf("CREATE REMOTE FACTORY\n");
-    
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char** argv, string ipServer, int portServer, string dspContent, string& error, int opt_level){
+
     remote_dsp_factory* factory = new remote_dsp_factory();
     
-    if(factory->init(ipServer, dspContent, argc, argv, opt_level, error))
+    if(factory->init(argc, argv, ipServer, portServer, dspContent, error, opt_level))
         return factory;
     else{
         delete factory;
@@ -525,16 +450,15 @@ EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, char** argv, string 
 
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
     
-    printf("DELETE REMOTE FACTORY\n");
     factory->stop();
     delete factory;
 }
 
 //---------INSTANCES
 
-EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int samplingRate,int bufferSize, string& error){
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char** argv, int samplingRate,int bufferSize, string& error){
     
-    return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(samplingRate, bufferSize, error));
+    return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, samplingRate, bufferSize, error));
 }
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp){

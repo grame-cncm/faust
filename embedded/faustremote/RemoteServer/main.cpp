@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
 //
 //
-// MAIN OF SERVER FOR REMOTE COMPILATION
+// MAIN OF SERVER FOR REMOTE COMPILATION AND PROCESSING
 //
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -24,11 +24,11 @@ int main(int argc, char* argv[])
     Server server;
     
     if (!server.start(port)) {
-        std::cerr << "unable to start webserver" << std::endl;
+        std::cerr << "Unable to Start Faust Remote Processing Server" << std::endl;
         return 1;
     }
     else
-        std::cerr << "server running on port : "<< port<<std::endl;
+        std::cerr << "Faust Remote Processing Server is Running On Port : "<< port<<std::endl;
     
     getchar();
     
