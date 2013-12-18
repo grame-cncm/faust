@@ -558,7 +558,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [nsThisBox setNeedsDisplay:YES];
     
-    
     [nsParentBox addSubview:nsThisBox];
     
     if (isParentVerticalBox)
@@ -573,6 +572,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     else
     {
         parentBoxOrigin.x += thisBoxSize.width + 25;
+        parentBoxSize.width += thisBoxSize.width + 25;
+
         if (parentBoxSize.height < thisBoxSize.height)
             parentBoxSize.height = thisBoxSize.height;
         parentBoxOrigin.y = 0;
@@ -585,23 +586,25 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 -(void)repaint
 {
     auUI* dspUI = [self dspUI];
+    NSRect frame;
     
     NSPoint origin;
     origin.x = origin.y = 0;
+    
     NSSize size;
-    NSBox* nsBoundingBox = [[NSBox alloc] init];
+    size.width = size.height = 0;
     
-    [nsBoundingBox setTitle:@"FaustAU CustomView"];
+    NSBox* nsCustomViewBox = [[NSBox alloc] init];
+    [nsCustomViewBox setTitle:@"FaustAU CustomView"];
+    [self addBox :nsCustomViewBox :dspUI->boundingBox :origin :size :true];
     
-    [self addBox :nsBoundingBox :dspUI->boundingBox :origin :size :true];
-    NSRect frame;
+    frame.origin.x  = 0;
+    frame.origin.y = 0;
     frame.size.width  = size.width + 25;
     frame.size.height = size.height + 25;
-    [nsBoundingBox setFrame:frame];
-    [nsBoundingBox setNeedsDisplay:YES];
-    
-    [self addSubview:nsBoundingBox];
-    
+    [nsCustomViewBox setFrame:frame];
+    [nsCustomViewBox setNeedsDisplay:YES];
+    [self addSubview:nsCustomViewBox];
     
     //xml button
     NSButton* button;
@@ -627,6 +630,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         [button setState:TRUE];
         [self addSubview:button];
     }
+    
     
     [self setFrame:frame];
     [self setNeedsDisplay:YES];

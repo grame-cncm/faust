@@ -4,7 +4,7 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-@implementation FlatKnob
+@implementation FaustAU_FlatKnob
 
 - (id)initWithFrame:(NSRect)frame
 {
@@ -37,7 +37,7 @@
         self.layer.cornerRadius = 15;
         
         NSRect rect = NSMakeRect(0, 0, self.frame.size.width, self.frame.size.height);
-        self->controlPoint = [[ControlPoint alloc] initWithFrame:rect
+        self->controlPoint = [[FaustAU_ControlPoint alloc] initWithFrame:rect
                                                     withInsets:insets
                                                     withControlPointDiameter:_controlPointDiameter
                                                     withControlPointColor:_controlPointColor
@@ -77,7 +77,7 @@
 
 /**********************************************************************************/
 
-@implementation ControlPoint
+@implementation FaustAU_ControlPoint
 
 - (id)initWithFrame:(NSRect)frame withInsets:(int)_insets
     withControlPointDiameter:(int)_controlPointDiameter
