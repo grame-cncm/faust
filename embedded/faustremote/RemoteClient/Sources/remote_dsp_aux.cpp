@@ -345,17 +345,23 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     
     int numberOfCycles = count/fBufferSize;
     
+//    printf("NUMBER CYCLES = %i\n", numberOfCycles);
+    
     for(int i=0; i<numberOfCycles; i++){
         
         fInputs[0] = fInControl;
         
+        int offset = i*fBufferSize;
+        
+        printf("OFFSET = %i\n", offset);
+        
         for(int i=0; i<getNumInputs();i++)
-            fInputs[i+1] = input[i];
+            fInputs[i+1] = &input[i][offset];
         
         fOutputs[0] = fOutControl;
         
         for(int i=0; i<getNumOutputs();i++)
-            fOutputs[i+1] = output[i];
+            fOutputs[i+1] = &output[i][offset];
         
         int res;
         
