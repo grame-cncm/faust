@@ -413,14 +413,18 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         if(strcmp(key,"NJ_MTU") ==0 )
             con_info->fMTU = data;
         
-        if(strcmp(key,"factoryIndex") ==0 ){
+        if(strcmp(key,"factoryIndex") ==0 )
             con_info->fFactoryIndex = data;
-            printf("INDEX = %s\n", data);
+
+        if(strcmp(key,"number_options") ==0 ){
+            
+            con_info->fNumCompilOptions = atoi(data);
+            con_info->fCompilationOptions = new string[con_info->fNumCompilOptions];
+            con_info->fIndicator = 0;
         }
-        
-        if(string(key).find("options") != string::npos ){
-            con_info->fNumCompilOptions++;
-            con_info->fCompilationOptions[con_info->fNumCompilOptions] = data;
+        if(strcmp(key,"options") ==0){
+            con_info->fCompilationOptions[con_info->fIndicator] = data;
+            con_info->fIndicator++;
         }
         
         if(strcmp(key,"opt_level") ==0 )
@@ -446,6 +450,8 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
         
         if (NULL != con_info->fPostprocessor)
             MHD_destroy_post_processor(con_info->fPostprocessor);
+        if(con_info->fNumCompilOptions != 0)
+            delete[] con_info->fCompilationOptions;
     }
     
     delete con_info;
@@ -457,8 +463,13 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
 bool Server::compile_Data(connection_info_struct* con_info){
     
     int factoryIndex = getSmallestIndexAvailable();
+
+    const char* compilationOptions[con_info->fNumCompilOptions];
     
-    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, con_info->fCompilationOptions, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
+    for(int i=0; i<con_info->fNumCompilOptions; i++)
+        compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+    
+    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
     
     if(realFactory){
     

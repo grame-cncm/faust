@@ -50,7 +50,8 @@ struct connection_info_struct {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string              fFaustCode;
     int                 fNumCompilOptions;
-    const char**        fCompilationOptions;
+    int                 fIndicator;
+    string*             fCompilationOptions;
     string              fOpt_level;
     //---------------------------------------------
     

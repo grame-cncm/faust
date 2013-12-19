@@ -20,6 +20,12 @@ size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
 bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServer, int portServer, string dspContent, string& error, int opt_level){
     
+//    printf("ARGC %i| ipServer %s| portServer %i| dspContent %s| optLevel %i\n", argc, ipServer.c_str(), portServer, dspContent.c_str(), opt_level);
+//    
+//    for(int i =0; i<argc; i++)
+//        printf("argv i =%s\n", argv[i]);
+//           
+//           
     bool isInitSuccessfull = false;
     
     CURL *curl = curl_easy_init();
@@ -32,8 +38,15 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         finalRequest += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
         
 // Adding Compilation Options to request data
+        
+        finalRequest += "&number_options=";
+        
+        stringstream nb;
+        nb<<argc;
+        
+        finalRequest += nb.str();
+        
         for(int i=0; i<argc; i++){
-            
             finalRequest += "&options=";
             finalRequest += argv[i];
         }
@@ -45,7 +58,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         finalRequest +=ol.str(); 
         
         
-//        printf("finalRequest = %s\n", finalRequest.c_str());
+        printf("finalRequest = %s\n", finalRequest.c_str());
 
         fServerIP = "http://";
         fServerIP += ipServer;
@@ -449,6 +462,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
                 
                 if(fNetJack)
                     isInitSuccessfull = true;
+                else
+                    error = "Impossible to open NetJack master";
             }
             else if(respcode == 400)
                 error = oss.str();
@@ -456,6 +471,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
         
         curl_easy_cleanup(curl);
     }
+    else
+        error = "Impossible to open http connection";
     
     return isInitSuccessfull;
 }                        
