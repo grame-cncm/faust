@@ -12,7 +12,7 @@ static const int CONTROL_POINT_DIAMETER = 12;
 
 /**********************************************************************************/
 
-@interface ControlPoint : NSView {
+@interface FaustAU_ControlPoint : NSView {
     float currentDraggedAngle;
     int currentAngle;
     int mouseDownPosition;
@@ -40,13 +40,13 @@ static const int CONTROL_POINT_DIAMETER = 12;
 /**********************************************************************************/
 
 
-@interface FlatKnob : NSView {
+@interface FaustAU_FlatKnob : NSView {
     int insets;
     NSColor *backgroundColor;
     NSColor *knobColor;
 @public
     int control;
-    ControlPoint *controlPoint;
+    FaustAU_ControlPoint *controlPoint;
 }
 
 - (id)initWithFrame:(NSRect)frame
@@ -62,7 +62,7 @@ static const int CONTROL_POINT_DIAMETER = 12;
 /**********************************************************************************/
 
 
-@interface FaustAU_Knob : FlatKnob
+@interface FaustAU_Knob : FaustAU_FlatKnob
 {
     NSTextField* _labelTextField;
     NSTextField* _valueTextField;

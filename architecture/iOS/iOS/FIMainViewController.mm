@@ -452,11 +452,16 @@ T findCorrespondingUiItem(FIResponder* sender)
                 || slider->getAssignationType() == kAssignationGyroZ)
                 && (((FIResponder*)sender).motionBlocked))
             {
-                slider->setAssignationRefPointY((((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min));
+                //slider->setAssignationRefPointY((((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min));
+                slider->setAssignationRefPointY((float)((FIResponder*)sender).value);
                 
-                if (slider->getAssignationType() == kAssignationAccelX) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.x);
-                else if (slider->getAssignationType() == kAssignationAccelY) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.y);
-                else if (slider->getAssignationType() == kAssignationAccelZ) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.z);
+                float sensibility;
+                if (slider->getAssignationInverse()) sensibility = -slider->getAssignationSensibility();
+                else sensibility = slider->getAssignationSensibility();
+                
+                if (slider->getAssignationType() == kAssignationAccelX) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.x * sensibility);
+                else if (slider->getAssignationType() == kAssignationAccelY) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.y * sensibility);
+                else if (slider->getAssignationType() == kAssignationAccelZ) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.z * sensibility);
                 else if (slider->getAssignationType() == kAssignationCompass)
                 {
                     slider->setAssignationRefPointX(0.f);
@@ -472,7 +477,7 @@ T findCorrespondingUiItem(FIResponder* sender)
                 key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
                 
-                [[NSUserDefaults standardUserDefaults] synchronize];
+                [[NSUserDefaults standardUserDefaults] synchronize];                
             }
             
             // Otherwise normal behaviour
@@ -519,11 +524,16 @@ T findCorrespondingUiItem(FIResponder* sender)
                  || knob->getAssignationType() == kAssignationGyroZ)
                 && (((FIResponder*)sender).motionBlocked))
             {
-                knob->setAssignationRefPointY((((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min));
+                //knob->setAssignationRefPointY((((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min));
+                knob->setAssignationRefPointY((float)((FIResponder*)sender).value);
                 
-                if (knob->getAssignationType() == kAssignationAccelX) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.x);
-                else if (knob->getAssignationType() == kAssignationAccelY) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.y);
-                else if (knob->getAssignationType() == kAssignationAccelZ) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.z);
+                float sensibility;
+                if (knob->getAssignationInverse()) sensibility = -knob->getAssignationSensibility();
+                else sensibility = knob->getAssignationSensibility();
+                
+                if (knob->getAssignationType() == kAssignationAccelX) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.x * sensibility);
+                else if (knob->getAssignationType() == kAssignationAccelY) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.y * sensibility);
+                else if (knob->getAssignationType() == kAssignationAccelZ) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.z * sensibility);
                 else if (knob->getAssignationType() == kAssignationCompass)
                 {
                     knob->setAssignationRefPointX(0.f);
@@ -817,6 +827,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (dynamic_cast<uiBargraph*>(*i) != nil)
         {
             (*i)->reflectZone();
+            [dynamic_cast<uiBargraph*>(*i)->fBargraph setNeedsDisplay];
         }
     }
 }
@@ -1489,7 +1500,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     float                           a = 0.;
     float                           b = 0.;
     float                           sign = 1.;
-        
+    
     [_sensorFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
                                   y:_motionManager.accelerometerData.acceleration.y
                                   z:_motionManager.accelerometerData.acceleration.z];
@@ -1560,58 +1571,36 @@ T findCorrespondingUiItem(FIResponder* sender)
             
             if ((*i)->getAssignationInverse()) sign = -1.;
             else sign = 1.;
-                        
-            // Case 1 : the ref point creates 2 line coeficients if sensibility > 1.
-            /*
-            float                           x1 = 0.;
-            float                           y1 = 0.;
-            float                           x2 = 0.;
-            float                           y2 = 0.;
             
-            if ((*i)->assignationSensibility >= 1.)
-            {    
-                if (coef < (*i)->assignationRefPointX)
-                {
-                    // Find 2 points
-                    x1 = max(- 1.f / (*i)->assignationSensibility, -1.f); // x1 = - 1 / s
-                    y1 = sign * ((*i)->assignationSensibility / 2.f) * x1 + 0.5; // y1 = ax1 + b with a = s / 2 and b = 0.5
-                    x2 = (*i)->assignationRefPointX;
-                    y2 = (*i)->assignationRefPointY;
-                    
-                    // Find a and b of the line
-                    a = (y2 - y1) / (x2 - x1);
-                    b = y1 - a * x1;
-                }
-                else if (coef >= (*i)->assignationRefPointX)
-                {
-                    // Find 2 points
-                    x1 = (*i)->assignationRefPointX;
-                    y1 = (*i)->assignationRefPointY;
-                    x2 = min(1.f / (*i)->assignationSensibility, 1.f); // x1 = 1 / s
-                    y2 = sign * ((*i)->assignationSensibility / 2.f) * x2 + 0.5; // y1 = ax1 + b with a = s / 2 and b = 0.5
-                    
-                    // Find a and b of the line
-                    a = (y2 - y1) / (x2 - x1);
-                    b = y1 - a * x1;
-                }
+            ////
+            if (dynamic_cast<uiSlider*>(*i))
+            {
+                value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
+                                         la:-1.
+                                         ma:(*i)->getAssignationRefPointX()
+                                         ha:1.
+                                         lv:dynamic_cast<uiSlider*>(*i)->fSlider.min
+                                         mv:(*i)->getAssignationRefPointY()
+                                         hv:dynamic_cast<uiSlider*>(*i)->fSlider.max];
             }
-            else*/
+            else if (dynamic_cast<uiKnob*>(*i))
+            {
+                value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
+                                         la:-1.
+                                         ma:(*i)->getAssignationRefPointX()
+                                         ha:1.
+                                         lv:dynamic_cast<uiKnob*>(*i)->fKnob.min
+                                         mv:(*i)->getAssignationRefPointY()
+                                         hv:dynamic_cast<uiKnob*>(*i)->fKnob.max];
+            }
             
-            // Case 2 : the ref point only moves line offset
-            //a = sign * (*i)->getAssignationSensibility() /*/ 2.*/; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
-            //b = (*i)->getAssignationRefPointY();
+            //NSLog(@"val %f", value);
+            ////
+            
+            
             
             // CASE 1: two curves
-            float scale;
-            if (dynamic_cast<uiKnob*>(*i))
-            {
-                scale = (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
-            }
-            else if (dynamic_cast<uiSlider*>(*i))
-            {
-                scale = (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
-            }
-            float x1 = 0.;
+            /*float x1 = 0.;
             float y1 = 0.;
             float x2 = 0.;
             float y2 = 0.;
@@ -1619,7 +1608,19 @@ T findCorrespondingUiItem(FIResponder* sender)
             float la = -1.;//* (*i)->getAssignationSensibility();     // Down accelerometer limit
             float ha = 1.;//* (*i)->getAssignationSensibility();      // Top accelerometer limit
             float x = sign * (*i)->getAssignationRefPointX(); // (*i)->getAssignationSensibility(); // ref point x
-            float y = (*i)->getAssignationRefPointY() * scale; // ref point y
+            float y;
+            
+            NSLog(@"%f %f", (*i)->getAssignationRefPointX(), (*i)->getAssignationRefPointY());
+            
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                y = (((*i)->getAssignationRefPointY()) / (1.) * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min);
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                y = (((*i)->getAssignationRefPointY()) / (1.) * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min);
+            }
+            
             float ls; // Down slider limit
             float hs; // TOp slider limit
             if (dynamic_cast<uiKnob*>(*i))
@@ -1659,7 +1660,12 @@ T findCorrespondingUiItem(FIResponder* sender)
             if (x1 == x2) a = 0.;
             else a = (y2 - y1) / (x2 - x1);
             b = y1 - a * x1;
-            value = a * va + b;
+            value = a * va + b;*/
+            
+            
+            
+            
+            
             
             /*NSLog(@"va %f", va);
             NSLog(@"la %f - ha %f - x %f - y %f - ls %f - hs %f", la, ha, x, y, ls, hs);
@@ -1698,6 +1704,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                 }
             }*/
 
+            
+            
+            
+            
             //NSLog(@"va %f", va);
             //NSLog(@"VALUE %f", value);
             
@@ -1713,6 +1723,35 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
     }
 }
+
+- (float)mapping2WithA:(float)a la:(float)la ha:(float)ha lv:(float)lv hv:(float)hv
+{
+    if (a < la)
+    {
+        return lv;
+    }
+    else if (a > ha)
+    {
+        return hv;
+    }
+    else
+    {
+        return (a - la) / (ha - la) * (hv - lv) + lv;
+    }
+}
+
+- (float)mapping3WithA:(float)a la:(float)la ma:(float)ma ha:(float)ha lv:(float)lv mv:(float)mv hv:(float)hv
+{
+    if (a > ma)
+    {
+        return [self mapping2WithA:a la:ma ha:ha lv:mv hv:hv];
+    }
+    else
+    {
+        return [self mapping2WithA:a la:la ha:ma lv:lv hv:mv];
+    }
+}
+
 
 // The function called when compass has moved
 - (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)heading
