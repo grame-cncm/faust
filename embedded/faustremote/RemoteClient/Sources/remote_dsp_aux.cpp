@@ -18,14 +18,14 @@ size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /GetJson
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
-bool remote_dsp_factory::init(int argc, const char** argv, const string& ipServer, int portServer, string dspContent, string& error, int opt_level){
+bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServer, int portServer, string dspContent, string& error, int opt_level){
     
     bool isInitSuccessfull = false;
     
     CURL *curl = curl_easy_init();
     
     if (curl) {
-        
+
         string finalRequest = "data=";
         
 // Transforming faustCode to URL format
@@ -50,9 +50,16 @@ bool remote_dsp_factory::init(int argc, const char** argv, const string& ipServe
         fServerIP = "http://";
         fServerIP += ipServer;
         fServerIP += ":";
-        fServerIP += portServer;
         
-        string ip = fServerIP + "/GetJson";
+        stringstream s;
+        s<<portServer;
+        
+        fServerIP += s.str();
+        
+        string ip = fServerIP;
+        ip += "/GetJson";
+        
+        printf("ip = %s\n", ip.c_str());
         
 // Connection Setups
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -151,7 +158,7 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) {
 }   
 
 // Create Remote DSP Instance from factory
-remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char** argv, int samplingRate, int bufferSize, string& error){
+remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, string& error){
  
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     
@@ -162,6 +169,27 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
         delete dsp;
         return NULL;
     }
+}
+
+
+//---------FACTORY
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], string ipServer, int portServer, string dspContent, string& error, int opt_level){
+    
+    remote_dsp_factory* factory = new remote_dsp_factory();
+    
+    if(factory->init(argc, argv, ipServer, portServer, dspContent, error, opt_level))
+        return factory;
+    else{
+        delete factory;
+        return NULL;
+    }
+    
+}
+
+EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
+    
+    factory->stop();
+    delete factory;
 }
 
 //--------------------INSTANCES
@@ -198,7 +226,7 @@ void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buff
 }
 
 // Fonction for command line parsing
-const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
+const char*  remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
 	int	i;
 	
     for (i = 0; i<argc; i++){
@@ -348,7 +376,7 @@ void remote_dsp_aux::init(int /*samplingFreq*/){}
 // The URL extension used is /CreateInstance
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
-bool remote_dsp_aux::init(int argc, const char** argv, int samplingFreq, int buffer_size, string& error){
+bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, string& error){
     
 //  Init Control Buffers
     fOutControl = new float[buffer_size];
@@ -434,29 +462,9 @@ bool remote_dsp_aux::init(int argc, const char** argv, int samplingFreq, int buf
 
 //----------------------------------REMOTE DSP API-------------------------------------------
 
-//---------FACTORY
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char** argv, string ipServer, int portServer, string dspContent, string& error, int opt_level){
-
-    remote_dsp_factory* factory = new remote_dsp_factory();
-    
-    if(factory->init(argc, argv, ipServer, portServer, dspContent, error, opt_level))
-        return factory;
-    else{
-        delete factory;
-        return NULL;
-    }
-    
-}
-
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
-    
-    factory->stop();
-    delete factory;
-}
-
 //---------INSTANCES
 
-EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char** argv, int samplingRate,int bufferSize, string& error){
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate,int bufferSize, string& error){
     
     return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, samplingRate, bufferSize, error));
 }

@@ -32,13 +32,15 @@ int main(int argc, char* argv[])
     if(argv[1] && !strcmp(argv[1], "--help")){
         printf("\nOPTIONS OF FAUST DISTRIBUTED : \n\n\
                ########### REMOTE CALCULATION PARAMETERS ############\n\
-               --ipserver ==> default is http://localhost:7777 \n\
+               --ipserver ==> default is localhost\n\
+               --portserver ==> default is 7777 \n\
                --frequency ==> default is 44100 \n\
                --buffer ==> default is 512 \n\n\
                ########### NET JACK PARAMETER #######################\n\
                --NJ_ip ==> MULTICAST_DEFAULT_IP \n\
                --NJ_port ==> MULTICAST_DEFAULT_PORT\n\
                --NJ_compression ==> default is -1\n\
+               --NJ_mtu ==> default is 1500\n\
                --NJ_latency ==>default is 2 \n\
                ########### DSP TO BE REMOTLY COMPILED ###############\n\
                --file ==> no DSP = no application\n\
@@ -49,7 +51,8 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    string ipServer = loptions(argv, "--ipserver", "http://localhost:7777");
+    string ipServer = loptions(argv, "--ipserver", "localhost");
+    int portServer = lopt(argv, "--portserver", 7777);
     
     int srate = lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
@@ -69,8 +72,23 @@ int main(int argc, char* argv[])
             
             string errorFactory("");
             
+            const char* arguments[argc];
+            int nbArgument;
+            
+            for(int i=1; i<argc; i++){
+                
+                if(string(argv[i]).find("--")!=string::npos){
+                    i ++;
+                }
+                else{
+                    arguments[nbArgument] = argv[i];
+                    nbArgument++;
+                }
+            }
+            
             string content = pathToContent(filePath);
-            remote_dsp_factory* factory = createRemoteDSPFactory(argc, argv, ipServer, content, 3, errorFactory);
+            
+            remote_dsp_factory* factory = createRemoteDSPFactory(nbArgument, arguments, ipServer, portServer, content, errorFactory, 3);
             
             if(factory != NULL){
                 
@@ -80,7 +98,7 @@ int main(int argc, char* argv[])
                     
                     string errorInstance("");
                     
-                    remote_dsp* DSP = createRemoteDSPInstance(factory, srate, fpb, errorInstance);
+                    remote_dsp* DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, errorInstance);
                     
                     if(DSP != NULL){
                         

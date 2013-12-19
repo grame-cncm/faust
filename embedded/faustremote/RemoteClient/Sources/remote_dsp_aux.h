@@ -74,9 +74,9 @@ private:
     
 public: 
 
-    remote_dsp_aux* createRemoteDSPInstance(int argc, const char** argv, int samplingRate, int bufferSize, string& error);
+    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
 
-    bool        init(int argc, const char** argv, const string& ipServer, int portServer, string dspContent, string& error, int opt_level);
+    bool        init(int argc, const char *argv[], const string& ipServer, int portServer, string dspContent, string& error, int opt_level);
     void        stop();
     
     void         metadataRemoteDSPFactory(Meta* m);  
@@ -89,7 +89,15 @@ public:
     string              index(){return fIndex;}
     
 };
-
+    
+//---------------------- Public C++ interface
+    
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], string ipServer, int portServer, string dspContent, string& error, int opt_level);
+    
+EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
+    
+//------
+    
 class remote_dsp_aux : public dsp{
 
     private:
@@ -123,14 +131,8 @@ class remote_dsp_aux : public dsp{
     
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-        bool            init(int argc, const char** argv, int samplingFreq, int buffer_size, string& error);
+        bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, string& error);
 };
-
-//---------------------- Public C++ interface
-    
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char** argv, string ipServer, string dspContent, string& error, int opt_level);
-    
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
     
 class EXPORT remote_dsp : public dsp{
     
@@ -146,7 +148,7 @@ public:
     virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
-EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char** argv, int samplingRate, int bufferSize, string& error);
+EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
 
 EXPORT void        deleteRemoteDSPInstance(remote_dsp* dsp);
 

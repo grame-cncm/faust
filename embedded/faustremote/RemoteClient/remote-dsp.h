@@ -48,7 +48,7 @@ typedef struct remote_dsp_factory {};
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactory(int argc,const char** argv, const string& ipServer, int portServer, const string& dspContent, string& error, int opt_level);
+remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& dspContent, string& error, int opt_level);
 
 
 /**
@@ -93,7 +93,7 @@ class remote_dsp : public dsp{
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
-remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc,const char** argv, int samplingRate, int bufferSize, string& error);
+remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
 
 
 /**
