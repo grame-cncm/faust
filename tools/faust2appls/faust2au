@@ -7,8 +7,6 @@
 #
 #####################################################################
 
-echo Generating Audio Unit...
-
 PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
@@ -74,16 +72,16 @@ for f in $FILES; do
 
 # Get the number of inputs of the Faust code:
 NINPUTS=$(faust "$f" | grep getNumInputs | awk '{ printf "%d", $6}')
-echo "Number of Faust module inputs = $NINPUTS"
+# echo "Number of Faust module inputs = $NINPUTS"
 
 if [ $NINPUTS -gt 0 ]; then
-    echo "Generating an AU Effect"
+    echo "Generating an AU Effect plugin..."
     ARCHFILE="au-effect.cpp"
     AUTYPE=aufx
     FAUSTAU_CLASS=FaustAUEffect
     COMPTYPE=kAudioUnitType_Effect
 else
-    echo "Generating an AU Instrument"
+    echo "Generating an AU Instrument plugin..."
     ARCHFILE="au-instrument.cpp"
     AUTYPE=aumu
     FAUSTAU_CLASS=FaustAUInstrument
