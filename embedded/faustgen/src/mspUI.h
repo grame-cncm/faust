@@ -169,19 +169,28 @@ class mspUI : public UI
         
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-             addSlider(label, zone, init, min, max, step);
+            addSlider(label, zone, init, min, max, step);
         }
         
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
         }
-
+        
+        // To be implemented
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+    
         void openTabBox(const char* label) {}
         void openHorizontalBox(const char* label) {}
         void openVerticalBox(const char* label) {}
         void closeBox() {}
         
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        {
+            fDeclareTable[key] = val;
+        }
+       
         bool setValue(string name, FAUSTFLOAT f)
         {
             if (fUITable.count(name)) {
@@ -194,15 +203,6 @@ class mspUI : public UI
           
         iterator begin()	{ return fUITable.begin(); }
         iterator end()		{ return fUITable.end(); }
-        
-        // To be implemented
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-        
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-        {
-            fDeclareTable[key] = val;
-        }
         
         int itemsCount() { return fUITable.size(); }
         void clear() 
