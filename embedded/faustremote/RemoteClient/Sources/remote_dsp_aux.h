@@ -102,6 +102,8 @@ class remote_dsp_aux : public dsp{
 
     private:
     
+        int                     fBufferSize;         //Buffer Size of NetJack connection   
+    
         remote_dsp_factory*     fFactory;           // Factory is it create from
         
         jack_net_master_t*      fNetJack;           // Jack Connection

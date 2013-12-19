@@ -19,13 +19,7 @@ size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
 // The URL extension used is /GetJson
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
 bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServer, int portServer, string dspContent, string& error, int opt_level){
-    
-//    printf("ARGC %i| ipServer %s| portServer %i| dspContent %s| optLevel %i\n", argc, ipServer.c_str(), portServer, dspContent.c_str(), opt_level);
-//    
-//    for(int i =0; i<argc; i++)
-//        printf("argv i =%s\n", argv[i]);
-//           
-//           
+
     bool isInitSuccessfull = false;
     
     CURL *curl = curl_easy_init();
@@ -218,13 +212,13 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
         
 remote_dsp_aux::~remote_dsp_aux(){
 
-    delete fInputs;
-    delete fOutputs;
+    delete[] fInputs;
+    delete[] fOutputs;
     
     if(fNetJack){
         
-        delete fInControl;
-        delete fOutControl;
+        delete[] fInControl;
+        delete[] fOutControl;
         
         jack_net_master_close(fNetJack); 
         fNetJack = 0;
@@ -240,9 +234,8 @@ void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buff
 
 // Fonction for command line parsing
 const char*  remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
-	int	i;
 	
-    for (i = 0; i<argc; i++){
+    for (int i = 0; i<argc; i++){
         if (!strcmp(argv[i], key)) 
             return argv[i+1];   
     }
@@ -350,24 +343,30 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
-    fInputs[0] = fInControl;
+    int numberOfCycles = count/fBufferSize;
     
-    for(int i=0; i<getNumInputs();i++)
-        fInputs[i+1] = input[i];
-    
-    fOutputs[0] = fOutControl;
-    
-    for(int i=0; i<getNumOutputs();i++)
-        fOutputs[i+1] = output[i];
-    
-    int res;
-    if ((res = jack_net_master_send(fNetJack, getNumInputs()+1, fInputs, 0, NULL)) < 0){
-        fillBufferWithZeros(getNumOutputs(), count, output);
-        printf("jack_net_master_send failure %d\n", res);
-    }
-    if ((res = jack_net_master_recv(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL)) < 0) {
-        printf("jack_net_master_recv failure %d\n", res);
-        fillBufferWithZeros(getNumOutputs(), count, output);
+    for(int i=0; i<numberOfCycles; i++){
+        
+        fInputs[0] = fInControl;
+        
+        for(int i=0; i<getNumInputs();i++)
+            fInputs[i+1] = input[i];
+        
+        fOutputs[0] = fOutControl;
+        
+        for(int i=0; i<getNumOutputs();i++)
+            fOutputs[i+1] = output[i];
+        
+        int res;
+        
+        if ((res = jack_net_master_send(fNetJack, getNumInputs()+1, fInputs, 0, NULL)) < 0){
+            fillBufferWithZeros(getNumOutputs(), count, output);
+            printf("jack_net_master_send failure %d\n", res);
+        }
+        if ((res = jack_net_master_recv(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL)) < 0) {
+            printf("jack_net_master_recv failure %d\n", res);
+            fillBufferWithZeros(getNumOutputs(), count, output);
+        }
     }
 }
 
@@ -390,6 +389,8 @@ void remote_dsp_aux::init(int /*samplingFreq*/){}
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
 bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, string& error){
+    
+    fBufferSize = buffer_size;
     
 //  Init Control Buffers
     fOutControl = new float[buffer_size];
