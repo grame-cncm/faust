@@ -102,23 +102,23 @@ class remote_dsp_aux : public dsp{
 
     private:
     
-        int                     fBufferSize;         //Buffer Size of NetJack connection   
+        int                     fBufferSize;        //Buffer Size of NetJack connection   
     
-        remote_dsp_factory*     fFactory;           // Factory is it create from
+        remote_dsp_factory*     fFactory;           //Factory is it created from
         
-        jack_net_master_t*      fNetJack;           // Jack Connection
+        jack_net_master_t*      fNetJack;           //Jack Connection
     
         float**                 fInputs;            //Concatenation of control buffer & audio buffer
         float**                 fOutputs;           //Concatenation of control buffer & audio buffer
 
-
         FAUSTFLOAT*             fOutControl;        //Buffer containing the values of controls
-        FAUSTFLOAT*             fInControl;        //Buffer containing the values of controls
+        FAUSTFLOAT*             fInControl;         //Buffer containing the values of controls
 
         void         fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer);
     
 //    Command-line parsing fonction
         const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);  
+        
     public:   
     
         remote_dsp_aux(remote_dsp_factory* factory);
