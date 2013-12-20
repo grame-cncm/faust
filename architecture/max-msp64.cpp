@@ -100,7 +100,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.51"
+#define EXTERNAL_VERSION "0.52"
 
 class mspUI;
 
@@ -150,16 +150,16 @@ class mspUIObject {
 	protected:
 
 		string fLabel;
-		double* fZone;
+		FAUSTFLOAT* fZone;
 
-		double range(double min, double max, double val) {return (val < min) ? min : (val > max) ? max : val;}
+		FAUSTFLOAT range(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT val) {return (val < min) ? min : (val > max) ? max : val;}
 
 	public:
 
-		mspUIObject(const char* label, double* zone):fLabel(label),fZone(zone) {}
+		mspUIObject(const char* label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 
-		virtual void setValue(double f) {*fZone = range(0.0,1.0,f);}
+		virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0,1.0,f);}
 		virtual void toString(char* buffer) {}
 		virtual string getName() {return fLabel;}
 };
@@ -169,7 +169,7 @@ class mspCheckButton : public mspUIObject {
 
 	public:
 
-		mspCheckButton(const char* label, double* zone):mspUIObject(label,zone) {}
+		mspCheckButton(const char* label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
 		virtual ~mspCheckButton() {}
 
 		void toString(char* buffer)
@@ -183,7 +183,7 @@ class mspButton : public mspUIObject {
 
 	public:
 
-		mspButton(const char* label, double* zone):mspUIObject(label,zone) {}
+		mspButton(const char* label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
 		virtual ~mspButton() {}
 
 		void toString(char* buffer)
@@ -197,14 +197,14 @@ class mspSlider : public mspUIObject {
 
 	private:
 
-		double fInit;
-		double fMin;
-		double fMax;
-		double fStep;
+		FAUSTFLOAT fInit;
+		FAUSTFLOAT fMin;
+		FAUSTFLOAT fMax;
+		FAUSTFLOAT fStep;
 
 	public:
 
-		mspSlider(const char* label, double* zone, double init, double min, double max, double step)
+		mspSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 			:mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
 		virtual ~mspSlider() {}
 
@@ -213,7 +213,7 @@ class mspSlider : public mspUIObject {
             sprintf(buffer, "Slider(double): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
 		}
 
-		void setValue(double f) {*fZone = range(fMin,fMax,f);}
+		void setValue(FAUSTFLOAT f) {*fZone = range(fMin,fMax,f);}
 };
 
 /*--------------------------------------------------------------------------*/
@@ -225,7 +225,9 @@ class mspUI : public UI
 	private:
 
 		map<string, mspUIObject*> fUITable;
-        float* fMultiTable[MULTI_SIZE];
+        map<const char*, const char*> fDeclareTable;
+        
+        FAUSTFLOAT* fMultiTable[MULTI_SIZE];
         int fMultiIndex;
         int fMultiControl;
 
@@ -244,36 +246,57 @@ class mspUI : public UI
 		{
             clear();
    		}
+      
+		void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(label, zone);}
+
+		void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
+
+		void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            map<const char*, const char*>::reverse_iterator it;
+            
+            if (fDeclareTable.size() > 0) {
+                unsigned int i = 0;
+                string res = string(label) + "[";
+                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
+                    res = res + (*it).first + ":" + (*it).second;
+                    if (i < fDeclareTable.size() - 1) {
+                        res += ",";
+                    }
+                }
+                res += "]";
+                fUITable[string(label)] = new mspSlider(res.c_str(), zone, init, min, max, step);
+                fDeclareTable.clear();
+            } else {
+                fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
+            }
+        }
         
-        void openTabBox(const char* label) {}
-		void openHorizontalBox(const char* label) {}
-		void openVerticalBox(const char* label) {}
-		void closeBox() {}
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            addSlider(label, zone, init, min, max, step);
+        }
+        
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            addSlider(label, zone, init, min, max, step);
+        }
 
-		void addButton(const char* label, double* zone) {fUITable[string(label)] = new mspButton(label, zone);}
-
-		void addCheckButton(const char* label, double* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
-
-		void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
-		{
-			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
-		}
-
-		void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
-		{
-			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
-		}
-
-		void addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
+		void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
         
         // To be implemented
-        void addHorizontalBargraph(const char* label, double* zone, double min, double max) {}
-		void addVerticalBargraph(const char* label, double* zone, double min, double max) {}
-        
-        virtual void declare(float* zone, const char* key, const char* val)
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+		void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+          
+        void openTabBox(const char* label) {}
+		void openHorizontalBox(const char* label) {}
+		void openVerticalBox(const char* label) {}
+		void closeBox() {}
+
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
             if (strcmp(key,"multi") == 0) {
                 int index = atoi(val);
@@ -284,9 +307,11 @@ class mspUI : public UI
                     post("Invalid multi index = %d", index);
                 }
             }
+            
+            fDeclareTable[key] = val;
         }
         
-        void setMultiValues(double* multi, int buffer_size)
+        void setMultiValues(FAUSTFLOAT* multi, int buffer_size)
 		{
             for (int read = 0; read < buffer_size; read++) {
                 int write = (fMultiIndex + read) & (MULTI_SIZE - 1);
@@ -299,7 +324,7 @@ class mspUI : public UI
         
         bool isMulti() { return fMultiControl > 0; }
 
-		bool setValue(string name, double f)
+		bool setValue(string name, FAUSTFLOAT f)
 		{
 			if (fUITable.count(name)) {
                 fUITable[name]->setValue(f);
@@ -311,6 +336,7 @@ class mspUI : public UI
 		iterator begin()	{ return fUITable.begin(); }
 		iterator end()		{ return fUITable.end(); }
 
+        int itemsCount() { return fUITable.size(); }
         void clear() 
         { 
             iterator it;
