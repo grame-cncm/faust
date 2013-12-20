@@ -12,7 +12,6 @@ Dependencies :
 	- faust			make + sudo make install at the root of faust project
 	- HTTPDFaust		make httpd + sudo make install at the root of faust project
 	- microhttpd		through macport
-	- boost			through macport
 	- jacknet		download jack on : http://www.jackosx.com/
 
 ----------------REMOTE CLIENT---------------

@@ -107,8 +107,8 @@ int main(int argc, char* argv[])
                         
                         listDSPs.push_back(DSP);
                         
-//                        jackaudio* audio = new jackaudio;
-                        coreaudio* audio = new coreaudio(srate, fpb);
+                        jackaudio* audio = new jackaudio;
+//                        coreaudio* audio = new coreaudio(srate, fpb);
                         listAudios.push_back(audio);
                         
                         DSP->buildUserInterface(interface);   

@@ -31,8 +31,8 @@
 #include <iostream>
 #include <fstream> 
 
+#include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/ControlUI.h"
 #include "faust/audio/dsp.h"
 
 #include "jack/net.h"
@@ -95,6 +95,8 @@ public:
 EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], string ipServer, int portServer, string dspContent, string& error, int opt_level);
     
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
+ 
+EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
     
 //------
     

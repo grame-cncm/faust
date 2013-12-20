@@ -58,6 +58,14 @@ remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const s
  */
 void deleteRemoteDSPFactory(remote_dsp_factory* factory);
 
+ /**
+ * Call global declarations with the given meta object.
+ * 
+ * @param factory - the Faust DSP factory
+ * @param meta - the meta object to be used.
+ *
+ */
+void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 
 /**
  * Instance class

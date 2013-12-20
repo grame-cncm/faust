@@ -178,8 +178,6 @@ void Server::stop(){
 //---- Callback of another thread to wait netjack audio connection without blocking the server
 void* Server::start_audioSlave(void *arg ){
     
-//    pthread_detach(pthread_self());
-    
     slave_dsp* dspToStart = (slave_dsp*) arg;
     
     if(dspToStart->fServer->fLocker.Lock()){
@@ -201,7 +199,7 @@ void* Server::start_audioSlave(void *arg ){
         
         dspToStart->fServer->fLocker.Unlock();
     }
-     pthread_exit((void *) 0);
+    return NULL;
 }
   
 //---- Every new factory is mapped with an unique index : the smallest one unused
@@ -211,17 +209,14 @@ int Server::getSmallestIndexAvailable(){
     int i = 0;
     
     while(found && fAvailableFactories.size() != 0){
-        
-        i++;
-            
+    
         if(fAvailableFactories.find(i) != fAvailableFactories.end())
             found = true;
         else
             found = false;
+        
+        i++;
     }
-    
-    if(i == 0)
-        i=1;
     
     return i;
 }

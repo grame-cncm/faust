@@ -199,6 +199,8 @@ EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
     delete factory;
 }
 
+EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m){factory->metadataRemoteDSPFactory(m);}
+
 //--------------------INSTANCES
 
 remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
@@ -344,9 +346,8 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
     int numberOfCycles = count/fBufferSize;
-    
-//    printf("NUMBER CYCLES = %i\n", numberOfCycles);
-    
+
+//      If the count > fBufferSize : the cycle is divided in n number of netjack cycles
     for(int i=0; i<numberOfCycles; i++){
         
         fInputs[0] = fInControl;

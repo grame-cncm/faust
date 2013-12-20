@@ -14,15 +14,12 @@
 #include <fstream>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <list>
 
 #include <microhttpd.h>
 #include <pthread.h>
 
 #include <map>
-
-#include <boost/wave/util/cpp_include_paths.hpp>
-
-namespace fs = boost::filesystem;
 
 #include "faust/audio/netjack-dsp.h"
 #include "faust/llvm-dsp.h"
