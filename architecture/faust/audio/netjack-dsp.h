@@ -84,7 +84,7 @@ class netjackaudio : public audio
             return static_cast<netjackaudio*>(arg)->set_buffer_size(nframes);
         }
         
-        static net_error(int error_code, void* arg)
+        static void net_error(int error_code, void* arg)
         {
             return static_cast<netjackaudio*>(arg)->error_cb(error_code);
         }
