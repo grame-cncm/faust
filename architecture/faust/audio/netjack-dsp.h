@@ -79,9 +79,14 @@ class netjackaudio : public audio
             return static_cast<netjackaudio*>(arg)->set_sample_rate(nframes);
         }
         
-         static int net_buffer_size(jack_nframes_t nframes, void* arg) 
+        static int net_buffer_size(jack_nframes_t nframes, void* arg) 
         {
             return static_cast<netjackaudio*>(arg)->set_buffer_size(nframes);
+        }
+        
+        static net_error(int error_code, void* arg)
+        {
+            return static_cast<netjackaudio*>(arg)->error_cb(error_code);
         }
         
         static int net_process(jack_nframes_t buffer_size,
@@ -127,6 +132,8 @@ class netjackaudio : public audio
             jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
             
             jack_set_net_slave_buffer_size_callback(fNet, net_buffer_size, this);
+            
+            jack_set_net_slave_error_callback(fNet, net_error, this);
 
             fDsp->init(fResult.sample_rate);
             return true;
@@ -140,6 +147,9 @@ class netjackaudio : public audio
         }
        
         virtual void shutdown_cb()
+        {}
+        
+        virtual void error_cb(int error_code)
         {}
        
         virtual int set_sample_rate(jack_nframes_t nframes)
