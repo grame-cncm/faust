@@ -1076,7 +1076,8 @@ lowshelf_other_freq(N, L0, fx) = db2linear(linear2db(fx) + L0/N); // convenience
 // where
 //    N = filter order 1, 3, 5, ... (odd only).
 //  Lpi = desired level (dB) between fx and SR/2 (boost Lpi>0 or cut Lpi<0)
-//   fx = desired transition frequency in Hz
+//   fx = -3dB frequency of highpass band (L0>0) or lower band (L0<0)
+//        (Use highshelf_other_freq() below to find the other one.)
 //
 // The gain at dc is constrained to be 1.
 // See lowshelf documentation above regarding SHELF SHAPE.
@@ -1086,6 +1087,9 @@ highshelf(N,Lpi,fx) = filterbank(N,(fx)) : *(db2linear(Lpi)), _ :> _;
 high_shelf = highshelf(3); // default = 3rd order Butterworth
 high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x); // optimized
 high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); //optimized
+
+// shelf transitions between frequency fx and this one:
+highshelf_other_freq(N, L0, fx) = db2linear(linear2db(fx) - L0/N);
 
 //-------------------------------- peak_eq -----------------------------------
 // Second order "peaking equalizer" section 
