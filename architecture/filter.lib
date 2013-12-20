@@ -1089,7 +1089,7 @@ high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x); // optimized
 high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); //optimized
 
 // shelf transitions between frequency fx and this one:
-highshelf_other_freq(N, L0, fx) = db2linear(linear2db(fx) - L0/N);
+highshelf_other_freq(N, Lpi, fx) = db2linear(linear2db(fx) - Lpi/N);
 
 //-------------------------------- peak_eq -----------------------------------
 // Second order "peaking equalizer" section 
