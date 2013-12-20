@@ -1036,7 +1036,7 @@ with { // octave script output:
 //   N = filter order 1, 3, 5, ... (odd only).
 //  L0 = desired level (dB) between dc and fx (boost L0>0 or cut L0<0)
 //  fx = -3dB frequency of lowpass band (L0>0) or upper band (L0<0)
-//       (see "TRANSITION SHAPE" below).
+//       (see "SHELF SHAPE" below).
 //
 // The gain at SR/2 is constrained to be 1.
 // The generalization to arbitrary odd orders is based on the well known
