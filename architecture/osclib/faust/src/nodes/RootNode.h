@@ -41,26 +41,40 @@ typedef class SMARTP<RootNode>	SRootNode;
 
 /**
  * an alias target includes a map to rescale input values to output values
- * and a target osc address
+ * and a target osc address. The input values can be given in reversed order
+ * to reverse the control
  */
 struct aliastarget
 {
-	float fMinIn;
-	float fMaxIn;
-	float fMinOut;
-	float fMaxOut;
-	float fScale;
+	float       fMinIn;
+	float       fMaxIn;
+	float       fMinOut;
+	float       fMaxOut;
 	std::string fTarget;	// the real osc address
 
 	aliastarget (const char* address, float imin, float imax, float omin, float omax)
-		: fMinIn(imin), fMaxIn(imax), fMinOut(omin), fMaxOut(omax),
-		  fScale( (fMaxOut-fMinOut)/(fMaxIn-fMinIn) ), fTarget(address) {}
+		: fMinIn(imin), fMaxIn(imax), fMinOut(omin), fMaxOut(omax), fTarget(address) {}
 
 	aliastarget (const aliastarget& t)
-		: fMinIn(t.fMinIn), fMaxIn(t.fMaxIn), fMinOut(t.fMinOut), fMaxOut(t.fMaxOut),
-		  fScale(t.fScale), fTarget(t.fTarget) {}
+		: fMinIn(t.fMinIn), fMaxIn(t.fMaxIn), fMinOut(t.fMinOut), fMaxOut(t.fMaxOut), fTarget(t.fTarget) {}
 
-	float scale (float x) const { float z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x; return fMinOut + (z - fMinIn) * fScale; }
+	float scale (float x) const {
+        
+        if (fMinIn < fMaxIn) {
+            // increasing control
+            float z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x;
+            return fMinOut + (z-fMinIn)*(fMaxOut-fMinOut)/(fMaxIn-fMinIn);
+            
+        } else if (fMinIn > fMaxIn) {
+            // reversed control
+            float z = (x < fMaxIn) ? fMaxIn : (x > fMinIn) ? fMinIn : x;
+            return fMinOut + (fMinIn-z)*(fMaxOut-fMinOut)/(fMinIn-fMaxIn);
+            
+        } else {
+            // no control !
+            return (fMinOut+fMaxOut)/2.0;
+        }
+    }
 };
 
 //--------------------------------------------------------------------------
