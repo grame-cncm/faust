@@ -21,6 +21,8 @@
 
 #include <map>
 
+#include <dns_sd.h>
+
 #include "faust/audio/netjack-dsp.h"
 #include "faust/llvm-dsp.h"
 #include "TMutex.h"
@@ -77,6 +79,11 @@ struct connection_info_struct {
     }
 };
     
+#include <netdb.h>
+#include <arpa/inet.h>
+
+string searchIP();
+
 // Structure wrapping llvm_dsp_factory
 // Instances of this factory are counted so that desallocation is ensured 
 // when no more instances are running
@@ -186,6 +193,9 @@ public :
         
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
     bool                createInstance(connection_info_struct* con_info);
+    
+// Register Service as Available
+    bool            registration(DNSServiceRef* reg);
 };
     
 #endif

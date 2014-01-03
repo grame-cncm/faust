@@ -16,6 +16,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
+
 // Declare is called for every metadata coded in the faust DSP
 // That way, we get the faust name declared in the faust DSP
 struct myMeta : public Meta
@@ -163,12 +164,20 @@ bool Server::start(int port){
                                this, MHD_OPTION_NOTIFY_COMPLETED, 
                                request_completed, NULL, MHD_OPTION_END);
 
-    return fDaemon != NULL;
+    if(fDaemon){
+        
+        DNSServiceRef*      fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
+        registration(fRegistrationService);
+        return true;
+    }
+    else
+        return false;
 }
 
 void Server::stop(){
    
     if (fDaemon) {
+//        DNSServiceRefDeallocate(fRegistrationService);
         MHD_stop_daemon(fDaemon);
     }
     
@@ -501,7 +510,41 @@ bool Server::createInstance(connection_info_struct* con_info){
     }    
 }
 
+//------------------------REGISTRATION TO DISCOVERY SYSTEM
 
+string searchIP(){
+    
+    char host_name[32];
+    gethostname(host_name, sizeof(host_name));
+    
+    struct hostent* host = gethostbyname(host_name);
+    
+    if(host){
+        
+        for(int i=0; host->h_addr_list[i] != 0; i++){
+            struct in_addr addr;
+            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
+            
+            return string(inet_ntoa(addr));
+        }
+    }
+    else
+        return string("");
+}
+
+// Register server as available
+bool Server::registration(DNSServiceRef* reg){
+    
+    printf("SERVICE REGISTRATION\n");
+    
+    string nameService;
+    
+    nameService = searchIP();
+    nameService += ".RemoteProcessing";
+    
+    if(DNSServiceRegister(reg, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
+        printf("ERROR DURING REGISTRATION\n");
+}
 
 
 
