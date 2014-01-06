@@ -180,7 +180,7 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
 
 
 //---------FACTORY
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], string ipServer, int portServer, string dspContent, string& error, int opt_level){
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& dspContent, string& error, int opt_level){
     
     remote_dsp_factory* factory = new remote_dsp_factory();
     
@@ -190,7 +190,6 @@ EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], 
         delete factory;
         return NULL;
     }
-    
 }
 
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
@@ -229,7 +228,8 @@ remote_dsp_aux::~remote_dsp_aux(){
 
 void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer){
     
-    for(int i=0; i<size1; i++){
+    // Cleanup audio buffers only (not control one)
+    for (int i=1; i<size1; i++) {
         memset(buffer[i], 0, sizeof(float)*size2);
     }
 }
@@ -338,8 +338,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         
     }
     
-     setlocale(LC_ALL, tmp_local);
-    
+    setlocale(LC_ALL, tmp_local);
 }
 
 // Compute of the DSP, adding the controls to the input/output passed
@@ -367,12 +366,12 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int res;
         
         if ((res = jack_net_master_send(fNetJack, getNumInputs()+1, fInputs, 0, NULL)) < 0){
-            fillBufferWithZeros(getNumOutputs(), count, output);
+            fillBufferWithZeros(getNumOutputs()+1, fBufferSize, fOutputs);
             printf("jack_net_master_send failure %d\n", res);
         }
         if ((res = jack_net_master_recv(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL)) < 0) {
             printf("jack_net_master_recv failure %d\n", res);
-            fillBufferWithZeros(getNumOutputs(), count, output);
+            fillBufferWithZeros(getNumOutputs()+1, fBufferSize, fOutputs);
         }
     }
 }

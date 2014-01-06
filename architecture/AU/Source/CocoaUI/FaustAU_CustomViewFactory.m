@@ -13,17 +13,8 @@
 }
 
 - (NSView *)uiViewForAudioUnit:(AudioUnit)inAU withSize:(NSSize)inPreferredSize {
-    
-	NSRect rect;
-	rect.origin.x    = 0;
-	rect.origin.y    = 0;
-	rect.size.width  = 600;
-	rect.size.height = 600;
-	
-    FaustAU_CustomView *view = [[FaustAU_CustomView alloc] initWithFrame: rect];
-    
+    FaustAU_CustomView *view = [[FaustAU_CustomView alloc] init];
     [view setAU:inAU];
-    
     return [view autorelease];
 }
 

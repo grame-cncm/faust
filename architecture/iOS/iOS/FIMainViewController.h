@@ -147,6 +147,10 @@ class uiBox;
 - (void)endBlockShake;
 - (NSString*)urlForWidget:(uiCocoaItem*)widget;
 
+- (float)mapping2WithA:(float)a la:(float)la ha:(float)ha lv:(float)lv hv:(float)hv;
+- (float)mapping3WithA:(float)a la:(float)la ma:(float)ma ha:(float)ha lv:(float)lv mv:(float)mv hv:(float)hv;
+
+
 #ifdef JACK_IOS
 // Test Jack
 - (void)openJackView;

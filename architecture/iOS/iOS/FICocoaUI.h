@@ -2098,7 +2098,7 @@ public:
         if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
         if (getCurrentOpenedBox())
         {
             if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2124,7 +2124,7 @@ public:
         if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
         if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
         if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
         if (getCurrentOpenedBox())
         {
             if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2156,7 +2156,7 @@ public:
             if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
             if (getCurrentOpenedBox())
             {
                 if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2189,7 +2189,7 @@ public:
             if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
             if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
             if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY((fAssignationRefPointY[zone] - min) / (max - min));
+            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
             if (getCurrentOpenedBox())
             {
                 if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2468,15 +2468,13 @@ public:
                     fAssignationSensibility[zone] = sensibility;
                     fAssignationInverse[zone] = false;
                 }
-                
+                                
                 fAssignationRefPointX[zone] = refPointX;
                 fAssignationRefPointY[zone] = refPointY;
-                fAssignationFiltered[zone] = filtered;                
+                fAssignationFiltered[zone] = filtered;
             }
-            
 		}
 	}
-    
 };
 
 
