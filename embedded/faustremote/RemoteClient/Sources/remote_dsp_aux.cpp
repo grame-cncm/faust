@@ -462,7 +462,9 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
                 
                 //              OPEN NET JACK CONNECTION
                 
-                jack_master_t request = { -1, -1, -1, -1, buffer_size, samplingFreq, "test_master", 3};
+                printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
+                
+                jack_master_t request = { -1, -1, -1, -1, buffer_size, samplingFreq, "test_master", 5};
                 
                 jack_slave_t result;
                 
