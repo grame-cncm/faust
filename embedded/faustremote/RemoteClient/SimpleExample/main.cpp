@@ -70,27 +70,26 @@ int main(int argc, char* argv[])
             nbArgument++;
         }
     }
-          
-    QTGUI* interface;
-    coreaudio* audio;
-    remote_dsp* DSP;
-    
+              
     string content = pathToContent(filePath);
     
     remote_dsp_factory* factory = createRemoteDSPFactory(nbArgument, arguments, ipServer, portServer, content, errorFactory, 3);
             
     if(factory != NULL){
                 
+        remote_dsp* DSP;
+        
         string errorInstance("");
                 
         DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, errorInstance);
                     
         if(DSP != NULL){
                         
-            interface = new QTGUI();
+            QTGUI* interface = new QTGUI();
                     
           jackaudio* audio = new jackaudio;
-//            audio = new coreaudio(srate, fpb);
+            
+//        coreaudio* audio = new coreaudio(srate, fpb);
                     
             DSP->buildUserInterface(interface);   
                     
@@ -100,6 +99,21 @@ int main(int argc, char* argv[])
                 printf("Audio could not be started\n");
             else
                 interface->run();
+            
+            myApp.setStyleSheet(STYLESHEET);
+            myApp.exec();
+            
+            
+            //  STOP && DESALLOCATION OF ALL RESOURCES
+            
+            interface->stop();
+            delete interface;
+            
+            audio->stop();
+            delete audio;
+            
+            deleteRemoteDSPInstance(DSP);
+            deleteRemoteDSPFactory(factory);
                 
         }
         else
@@ -107,21 +121,6 @@ int main(int argc, char* argv[])
     }
     else
         printf("CREATE FACTORY FAILED = %s\n", errorFactory.c_str());
-    
-    myApp.setStyleSheet(STYLESHEET);
-    myApp.exec();
-    
-    
-    //  STOP && DESALLOCATION OF ALL RESOURCES
-    
-    interface->stop();
-    delete interface;
-    
-    audio->stop();
-    delete audio;
-    
-    deleteRemoteDSPInstance(DSP);
-    deleteRemoteDSPFactory(factory);
     
   	return 0;
 }
