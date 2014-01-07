@@ -250,7 +250,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
     int 		i;
 	double 		r;
-    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file, wf;
+    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file;
 	Tree		label, cur, min, max, step;
 
     countInferences++;
