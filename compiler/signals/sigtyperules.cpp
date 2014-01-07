@@ -57,6 +57,8 @@ static Type infereXType(Tree sig, Tree env);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
+static Type infereWaveformType (Tree lv, Tree env);
+
 static interval arithmetic (int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
@@ -239,6 +241,8 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigReal(sig, &r)) 			{   Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
                                                 /*sig->setType(t);*/ return t; }
+
+    else if (isSigWaveform(sig))            {   return infereWaveformType(sig, env); }
 
     else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return gGlobal->TINPUT; }
 
@@ -548,6 +552,46 @@ static Type infereFVarType (Tree type)
     // l'execution. Elle est varie par blocs comme les éléments d'interface utilisateur.
     return makeSimpleType(tree2int(type),kBlock,kExec,kVect,kNum, interval());
 }
+
+/**
+ *  Infere the type of a waveform:
+ *  - the nature is int if all values are int, otherwise it is float
+ *  - the variability is by samples
+ *  - the waveform is known at compile time
+ *  - it can be vectorized because all values are known
+ *  - knum ???
+ *  - the interval is min and max of values
+ */
+static Type infereWaveformType (Tree wfsig, Tree env)
+{
+    bool    iflag = true;
+    int     n = wfsig->arity();
+    double  lo, hi;
+
+    if (n == 0) {
+        throw faustexception("ERROR, empty waveform");
+    }
+
+    lo = hi = tree2float(wfsig->branch(0));
+    iflag = isInt(wfsig->branch(0));
+    T(wfsig->branch(0), env);
+
+    for (int i = 1; i < n; i++)  {
+        Tree v = wfsig->branch(i);
+        T(v,env);
+        // compute range
+        double f = tree2float(v);
+        if (f < lo) {
+            lo = f;
+        } else if (f > hi) {
+            hi = f;
+        }
+        iflag &= isInt(v);
+    }
+
+    return makeSimpleType((iflag)?kInt:kReal, kSamp, kComp, kScal, kNum, interval(lo,hi));
+}
+
 
 /**
  *	Infere the type of an extended (primitive) block

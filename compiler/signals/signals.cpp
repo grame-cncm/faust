@@ -171,9 +171,12 @@ Tree sigButton 	 (Tree lbl)					{ return tree(gGlobal->SIGBUTTON, lbl); 					}
 bool isSigButton (Tree s)					{ Tree lbl; return isTree(s, gGlobal->SIGBUTTON, lbl);	}
 bool isSigButton (Tree s, Tree& lbl)		{ return isTree(s, gGlobal->SIGBUTTON, lbl);				}
 
-Tree sigCheckbox   (Tree lbl)				{ return tree(gGlobal->SIGCHECKBOX, lbl); 					}
+Tree sigCheckbox   (Tree lbl)				{ return tree(gGlobal->SIGCHECKBOX, lbl); 				}
 bool isSigCheckbox (Tree s)					{ Tree lbl; return isTree(s, gGlobal->SIGCHECKBOX, lbl);	}
-bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, gGlobal->SIGCHECKBOX, lbl);				}
+bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, gGlobal->SIGCHECKBOX, lbl);           }
+
+Tree sigWaveform (const tvec& wf)           { return tree(gGlobal->SIGWAVEFORM, wf);                 }
+bool isSigWaveform(Tree s)                  { return isTree(s, gGlobal->SIGWAVEFORM);   }
 
 Tree sigHSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(gGlobal->SIGHSLIDER, lbl, list4(cur,min,max,step));		}

@@ -157,6 +157,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     
     BOXIDENT = symbol ("BoxIdent");
     BOXCUT = symbol ("BoxCut");
+    BOXWAVEFORM = symbol ("BoxWaveform");
     BOXWIRE = symbol ("BoxWire");
     BOXSLOT = symbol ("BoxSlot");
     BOXSYMBOLIC = symbol ("BoxSymbolic");
@@ -243,6 +244,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     SIGFLOATCAST = symbol ("sigFloatCast");
     SIGBUTTON = symbol ("SigButton");
     SIGCHECKBOX = symbol ("SigCheckbox");
+    SIGWAVEFORM = symbol ("SigWaveform");
     SIGHSLIDER = symbol ("SigHSlider");
     SIGVSLIDER = symbol ("SigVSlider");
     SIGNUMENTRY = symbol ("SigNumEntry");

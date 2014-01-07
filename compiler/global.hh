@@ -212,6 +212,7 @@ struct global {
     
     Sym BOXIDENT;
     Sym BOXCUT;
+    Sym BOXWAVEFORM;
     Sym BOXWIRE;
     Sym BOXSLOT;
     Sym BOXSYMBOLIC;
@@ -311,6 +312,7 @@ struct global {
     Sym SIGFLOATCAST;
     Sym SIGBUTTON;
     Sym SIGCHECKBOX;
+    Sym SIGWAVEFORM;
     Sym SIGHSLIDER;
     Sym SIGVSLIDER;
     Sym SIGNUMENTRY;

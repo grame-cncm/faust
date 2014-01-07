@@ -28,6 +28,10 @@ endif
 
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
+CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
+##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
+CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+
 ifeq ($(system), Darwin)
 LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++
 else
@@ -485,12 +489,12 @@ propagate/propagate.o: errors/exception.hh global.hh parser/sourcereader.hh eval
 propagate/propagate.o: tlib/occurrences.hh
 signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh signals/signals.hh tlib/tlib.hh
 signals/binop.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
-signals/ppsig.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
-signals/ppsig.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh
+signals/ppsig.o: generator/Text.hh signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
+signals/ppsig.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh
 signals/ppsig.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh tlib/property.hh
-signals/ppsig.o: generator/Text.hh extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
-signals/ppsig.o: signals/recursivness.hh errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh
-signals/ppsig.o: evaluate/loopDetector.hh tlib/occurrences.hh
+signals/ppsig.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh signals/recursivness.hh
+signals/ppsig.o: errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
+signals/ppsig.o: tlib/occurrences.hh
 signals/prim2.o: signals/prim2.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 signals/prim2.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/prim2.o: generator/instructions.hh signals/binop.hh tlib/property.hh generator/Text.hh global.hh
