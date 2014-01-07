@@ -1,4 +1,4 @@
-version := 2.0.a11
+version := 2.0.a12
 
 system	?= $(shell uname -s)
 
@@ -34,6 +34,10 @@ httpd :
 win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
+
+converter:
+
+	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
 
 
 .PHONY: clean depend install uninstall dist parser help
@@ -116,6 +120,8 @@ install :
 	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
 	# install faust2xxx tools
 	make -C tools/faust2appls install
+	# install sound converter
+	([ -e faust-waveform-converter ] && cp faust-waveform-converter $(prefix)/bin) || echo faust-waveform-converter not available	
 
 
 uninstall :
