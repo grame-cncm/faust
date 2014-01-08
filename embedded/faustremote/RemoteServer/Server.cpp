@@ -156,6 +156,8 @@ Server::~Server(){}
 //---- START/STOP SERVER
 bool Server::start(int port){
     
+    fPort = port;
+    
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
                                NULL, 
@@ -166,7 +168,7 @@ bool Server::start(int port){
 
     if(fDaemon){
         
-        DNSServiceRef*      fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
+        fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
         registration(fRegistrationService);
         return true;
     }
@@ -177,7 +179,14 @@ bool Server::start(int port){
 void Server::stop(){
    
     if (fDaemon) {
-//        DNSServiceRefDeallocate(fRegistrationService);
+        
+        string nameService;
+        
+        nameService = searchIP();
+        nameService += ".RemoteProcessing";
+        
+        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL );
+        DNSServiceRefDeallocate(*fRegistrationService);
         MHD_stop_daemon(fDaemon);
     }
     
@@ -537,12 +546,21 @@ bool Server::registration(DNSServiceRef* reg){
     
     printf("SERVICE REGISTRATION\n");
     
-    string nameService;
+    char host_name[256];
+    gethostname(host_name, sizeof(host_name));
     
-    nameService = searchIP();
-    nameService += ".RemoteProcessing";
+    stringstream p;
+    p<<fPort;
     
-    if(DNSServiceRegister(reg, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
+    string nameService = "FaustCompiler._";
+    
+    nameService += searchIP();
+    nameService += ":";
+    nameService += p.str();
+    nameService += "._";
+    nameService += host_name;
+    
+    if(DNSServiceRegister(reg, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
         printf("ERROR DURING REGISTRATION\n");
 }
 

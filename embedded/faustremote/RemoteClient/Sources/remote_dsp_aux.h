@@ -35,6 +35,8 @@
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
 
+#include <dns_sd.h>
+
 #include "jack/net.h"
 #include <curl/curl.h>
 
@@ -156,6 +158,13 @@ EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int arg
 
 EXPORT void        deleteRemoteDSPInstance(remote_dsp* dsp);
 
+    
+    static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
+    
+EXPORT bool getRemoteMachineAvailable(map<string, string>* machineList);
+
+
+    
 #ifdef __cplusplus
 }
 #endif
