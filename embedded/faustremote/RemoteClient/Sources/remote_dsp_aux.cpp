@@ -118,7 +118,7 @@ void remote_dsp_factory::stop(){
         string finalRequest = "factoryIndex=";
         finalRequest += fIndex;
         
-        string ip = fServerIP;
+        string ip(fServerIP);
         ip += "/DeleteFactory";
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -353,7 +353,7 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         
         int offset = i*fBufferSize;
         
-        printf("OFFSET = %i\n", offset);
+//        printf("OFFSET = %i\n", offset);
         
         for(int i=0; i<getNumInputs();i++)
             fInputs[i+1] = &input[i][offset];
@@ -425,7 +425,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += "&NJ_MTU=";
     finalRequest += getValueFromKey(argc, argv, "--NJ_mtu", "1500");
     
-//    printf("finalRequest = %s\n", finalRequest.c_str());
+    printf("finalRequest = %s\n", finalRequest.c_str());
     
     
 //  Curl Connection setup
@@ -523,6 +523,71 @@ EXPORT void remote_dsp::buildUserInterface(UI* interface)
 EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
+}
+
+//------ DISCOVERY OF AVAILABLE MACHINES
+
+//--- Callback whenever a server in the regtype/replyDomain is found
+static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context ){
+    
+    map<string, string>* machineList = (map<string,string>*)context;
+    
+    string serviceNameCpy(serviceName);
+    
+    int pos = serviceNameCpy.find("._");
+    
+//   DIVIDED SERVICE NAME INTO NameOfService && IPaddress & hostName 
+    if(serviceNameCpy.substr(0, pos).compare("FaustCompiler") == 0){
+        
+        string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+        
+        pos = remainingString.find("._");
+        
+        string serviceIP = remainingString.substr(0, pos);
+        
+        string hostName = remainingString.substr(pos+2, string::npos);
+        
+        if(flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing)
+            (*machineList)[hostName] = serviceIP;
+        else
+            machineList->erase(hostName);
+    }
+}
+
+//--- Research of available remote machines
+
+EXPORT bool        getRemoteMachineAvailable(map<string, string>* machineList){
+    
+    DNSServiceRef sd;
+    
+//  Initialize DNSServiceREF && bind it to its callback
+    DNSServiceErrorType err = DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList);
+    
+    if(err == kDNSServiceErr_NoError){
+        
+//      SELECT IS USED TO SET TIMEOUT  
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        
+        FD_SET(DNSServiceRefSockFD(sd), &readfds);
+        
+        struct timeval tv = { 0, 100 };
+        int result = select(0, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
+        
+        if ( result < 0 ) 
+            printf("SELECT ERROR\n");
+        
+//      Process Result will call the appriate callback binded to ServiceRef
+        else
+            DNSServiceErrorType err = DNSServiceProcessResult(sd);
+        
+//      Cleanup DNSService  
+        DNSServiceRefDeallocate(sd);
+        
+        return true;
+    }
+    else
+        return false;
 }
 
 

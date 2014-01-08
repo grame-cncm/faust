@@ -25,6 +25,7 @@
 
 #include <string>
 #include "faust/audio/dsp.h"
+#include "faust/gui/meta.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -110,6 +111,13 @@ remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, cons
  * @param dsp - the DSP instance to be deleted.
  */ 
 void        deleteRemoteDSPInstance(remote_dsp* dsp);
+    
+/**
+ *  Scan the network to find the available machines for remote processing
+ *  @param list to be filled with <nameMachine, IPmachine>
+ *  @return true if no error was encountered
+ */
+bool        getRemoteMachineAvailable(map<string, string>* machineList);
 
 #ifdef __cplusplus
 }

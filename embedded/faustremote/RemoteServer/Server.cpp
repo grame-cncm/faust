@@ -552,7 +552,7 @@ bool Server::registration(DNSServiceRef* reg){
     stringstream p;
     p<<fPort;
     
-    string nameService = "FaustRemoteCompiler._";
+    string nameService = "FaustCompiler._";
     
     nameService += searchIP();
     nameService += ":";

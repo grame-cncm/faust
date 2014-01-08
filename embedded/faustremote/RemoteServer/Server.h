@@ -125,7 +125,6 @@ struct slave_dsp{
     //So that the server himself is kept
     Server*         fServer;
     
-    
     slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
     ~slave_dsp();
 };
@@ -156,6 +155,9 @@ public :
         
     struct          MHD_Daemon* fDaemon; //Running http daemon
         
+    DNSServiceRef*      fRegistrationService;
+    int             fPort; //Port on which server started
+    
 //  Start server on specified port 
     bool            start(int port = 7777);
     void            stop();
