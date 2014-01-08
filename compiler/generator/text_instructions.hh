@@ -131,10 +131,30 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << checkFloat(inst->fNum);
         }
+        
+        virtual void visit(FloatArrayNumInst* inst)
+        {
+            char sep = '{';
+            for (int i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << sep << checkFloat(inst->fNumTable[i]);
+                 sep = ',';
+            }
+            *fOut << '}';
+        }
 
         virtual void visit(IntNumInst* inst)
         {
             *fOut << inst->fNum;
+        }
+        
+        virtual void visit(IntArrayNumInst* inst)
+        {
+            char sep = '{';
+            for (int i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << sep << inst->fNumTable[i];
+                 sep = ',';
+            }
+            *fOut << '}';
         }
 
         virtual void visit(BoolNumInst* inst)
@@ -145,6 +165,16 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DoubleNumInst* inst)
         {
             *fOut << checkDouble(inst->fNum);
+        }
+        
+        virtual void visit(DoubleArrayNumInst* inst)
+        {
+            char sep = '{';
+            for (int i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << sep << checkDouble(inst->fNumTable[i]);
+                 sep = ',';
+            }
+            *fOut << '}';
         }
 
         virtual void visit(BinopInst* inst)

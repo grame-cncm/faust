@@ -50,10 +50,14 @@ struct DeclareTypeInst;
 struct LoadVarInst;
 struct LoadVarAddressInst;
 struct StoreVarInst;
+template <class TYPE> struct ArrayNumInst;
 struct FloatNumInst;
+struct FloatArrayNumInst;
 struct IntNumInst;
+struct IntArrayNumInst;
 struct BoolNumInst;
 struct DoubleNumInst;
+struct DoubleArrayNumInst;
 struct BinopInst;
 struct CastNumInst;
 struct RetInst;
@@ -121,9 +125,12 @@ struct InstVisitor : public virtual Garbageable {
 
     // Primitives : numbers
     virtual void visit(FloatNumInst* inst) {}
+    virtual void visit(FloatArrayNumInst* inst) {}
     virtual void visit(IntNumInst* inst) {}
+    virtual void visit(IntArrayNumInst* inst) {}
     virtual void visit(BoolNumInst* inst) {}
     virtual void visit(DoubleNumInst* inst) {}
+    virtual void visit(DoubleArrayNumInst* inst) {}
 
     // Numerical computation
     virtual void visit(BinopInst* inst) {}
@@ -183,9 +190,12 @@ struct CloneVisitor : public virtual Garbageable {
 
     // Primitives : numbers
     virtual ValueInst* visit(FloatNumInst* inst) = 0;
+    virtual ValueInst* visit(FloatArrayNumInst* inst) = 0;
     virtual ValueInst* visit(IntNumInst* inst) = 0;
+    virtual ValueInst* visit(IntArrayNumInst* inst) = 0;
     virtual ValueInst* visit(BoolNumInst* inst) = 0;
     virtual ValueInst* visit(DoubleNumInst* inst) = 0;
+    virtual ValueInst* visit(DoubleArrayNumInst* inst) = 0;
 
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst) = 0;
@@ -904,6 +914,40 @@ struct FloatNumInst : public ValueInst, public SimpleValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+template <class TYPE> 
+struct ArrayNumInst : public ValueInst, public SimpleValueInst
+{
+    vector<TYPE> fNumTable;
+
+    ArrayNumInst(vector<TYPE> nums) : ValueInst(), fNumTable(nums)
+    {}
+    
+    ArrayNumInst(int size):ValueInst()
+    {
+        fNumTable.resize(size);
+    }
+    
+    void setValue(int index, float num) { fNumTable[index] = num; }
+    void addValue(float num) { fNumTable.push_back(num); }
+    float getValue(int index) { return fNumTable[index]; }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+};
+
+struct FloatArrayNumInst : public ArrayNumInst<float>
+{
+ 
+    FloatArrayNumInst(vector<float> nums) : ArrayNumInst(nums)
+    {}
+    FloatArrayNumInst(int size) : ArrayNumInst(size)
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+   
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct DoubleNumInst : public ValueInst, public SimpleValueInst
 {
     double fNum;
@@ -917,6 +961,19 @@ struct DoubleNumInst : public ValueInst, public SimpleValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct DoubleArrayNumInst : public ArrayNumInst<double>
+{
+    
+    DoubleArrayNumInst(vector<double> nums) : ArrayNumInst(nums)
+    {}
+    DoubleArrayNumInst(int size) : ArrayNumInst(size)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+   
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct IntNumInst : public ValueInst, public SimpleValueInst
 {
     int fNum;
@@ -927,6 +984,19 @@ struct IntNumInst : public ValueInst, public SimpleValueInst
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct IntArrayNumInst : public ArrayNumInst<int>
+{
+
+    IntArrayNumInst(vector<int> nums) : ArrayNumInst(nums)
+    {}
+    IntArrayNumInst(int size) : ArrayNumInst(size)
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -1266,9 +1336,12 @@ class BasicCloneVisitor : public CloneVisitor {
 
         // Primitives : numbers and string
         virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(FloatArrayNumInst* inst) { return new FloatArrayNumInst(inst->fNumTable); }
         virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(IntArrayNumInst* inst) { return new IntArrayNumInst(inst->fNumTable); }
         virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(DoubleArrayNumInst* inst) { return new DoubleArrayNumInst(inst->fNumTable); }
 
         // Numerical computation
         virtual ValueInst* visit(BinopInst* inst)
@@ -1537,6 +1610,11 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         {
             Dispatch2Visitor(inst);
         }
+        
+        virtual void visit(FloatArrayNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
 
         virtual void visit(IntNumInst* inst)
         {
@@ -1549,6 +1627,11 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         }
 
         virtual void visit(DoubleNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(DoubleArrayNumInst* inst)
         {
             Dispatch2Visitor(inst);
         }
@@ -1675,7 +1758,9 @@ struct InstBuilder
 
     // Numbers
     static FloatNumInst* genFloatNumInst(float num, int size = 1) { return new FloatNumInst(num, size);}
+    static FloatArrayNumInst* genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
     static DoubleNumInst* genDoubleNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }
+    static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size);}
     static DoubleNumInst* genQuadNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }  // Use DoubleNumInst
 
     static ValueInst* genTypedZero(Typed::VarType type)
@@ -1693,6 +1778,19 @@ struct InstBuilder
             return new DoubleNumInst(num);
         } else if (ctype == Typed::kQuad) {
             return new DoubleNumInst(num);
+        } else {
+            assert(false);
+        }
+    }
+    
+    static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
+    {
+        if (ctype == Typed::kInt) {
+            return new IntArrayNumInst(size);
+        } else if (ctype == Typed::kFloat) {
+            return new FloatArrayNumInst(size);
+        } else if (ctype == Typed::kDouble) {
+            return new DoubleArrayNumInst(size);
         } else {
             assert(false);
         }
@@ -2055,6 +2153,11 @@ struct InstBuilder
     {
         return genBinopInst(kDiv, a1, a2);
     }
+    
+    static BinopInst* genRem(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kRem, a1, a2);
+    }
 
     static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
     {
@@ -2226,7 +2329,7 @@ struct FIRIndex
         return operator/(lhs, InstBuilder::genIntNumInst(rhs));
     }
 
-     friend FIRIndex operator& (FIRIndex const & lhs, ValueInst * rhs)
+    friend FIRIndex operator& (FIRIndex const & lhs, ValueInst * rhs)
     {
         return FIRIndex(InstBuilder::genAnd(lhs.fValue, rhs));
     }
@@ -2240,6 +2343,22 @@ struct FIRIndex
     {
         return operator&(lhs, InstBuilder::genIntNumInst(rhs));
     }
+    
+    friend FIRIndex operator% (FIRIndex const & lhs, ValueInst * rhs)
+    {
+        return FIRIndex(InstBuilder::genRem(lhs.fValue, rhs));
+    }
+
+    friend FIRIndex operator% (FIRIndex const & lhs, FIRIndex const & rhs)
+    {
+        return operator%(lhs, rhs.fValue);
+    }
+
+    friend FIRIndex operator% (FIRIndex const & lhs, int rhs)
+    {
+        return operator%(lhs, InstBuilder::genIntNumInst(rhs));
+    }
+
 
 private:
     ValueInst * fValue;
