@@ -44,6 +44,10 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 													  return sig->arity(); }
 	else if ( isSigInt(sig, &i) ) 					{ return 0; }
 	else if ( isSigReal(sig, &r) ) 					{ return 0; }
+    else if ( isSigWaveform(sig))                   { vsigs = sig->branches(); return vsigs.size(); }
+
+    //else if ( isSigWaveform(sig) )                  { return 0; }
+
 	else if ( isSigInput(sig, &i) ) 				{ return 0; 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ vsigs.push_back(x); return 1;	}
 
@@ -82,7 +86,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigCheckbox(sig, label) ) 			{ return 0; }
 	else if ( isSigVSlider(sig, label,c,x,y,z) )	{ return 0; }
 	else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return 0; }
-	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return 0; }
+    else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return 0; }
 
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
@@ -92,7 +96,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 
 	else {
         stringstream error;
-        error << "ERROR, unrecognized signal : " << *sig << endl;
+        error << "ERROR, getSubSignals unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
 	}
 	return 0;

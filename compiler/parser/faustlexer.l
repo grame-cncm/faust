@@ -180,6 +180,8 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "library"   return LIBRARY;
 "environment"   return ENVIRONMENT;
 
+"waveform"   return WAVEFORM;
+
 "declare"	return DECLARE;
 
 "case"		return CASE;
