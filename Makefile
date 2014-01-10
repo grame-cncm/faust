@@ -39,7 +39,6 @@ converter:
 
 	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
 
-
 .PHONY: clean depend install uninstall dist parser help
 
 help :
