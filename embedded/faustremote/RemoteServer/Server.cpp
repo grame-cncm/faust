@@ -169,7 +169,7 @@ bool Server::start(int port){
     if(fDaemon){
         
         fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
-        registration(fRegistrationService);
+        registration();
         return true;
     }
     else
@@ -523,7 +523,7 @@ bool Server::createInstance(connection_info_struct* con_info){
 
 string searchIP(){
     
-    char host_name[32];
+    char host_name[256];
     gethostname(host_name, sizeof(host_name));
     
     struct hostent* host = gethostbyname(host_name);
@@ -533,16 +533,15 @@ string searchIP(){
         for(int i=0; host->h_addr_list[i] != 0; i++){
             struct in_addr addr;
             memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            
             return string(inet_ntoa(addr));
         }
     }
-    else
-        return string("");
+    
+    return "";
 }
 
 // Register server as available
-bool Server::registration(DNSServiceRef* reg){
+void Server::registration(){
     
     printf("SERVICE REGISTRATION\n");
     
@@ -560,7 +559,7 @@ bool Server::registration(DNSServiceRef* reg){
     nameService += "._";
     nameService += host_name;
     
-    if(DNSServiceRegister(reg, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
+    if(DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
         printf("ERROR DURING REGISTRATION\n");
 }
 

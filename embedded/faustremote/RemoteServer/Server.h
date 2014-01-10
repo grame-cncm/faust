@@ -197,7 +197,7 @@ public :
     bool                createInstance(connection_info_struct* con_info);
     
 // Register Service as Available
-    bool            registration(DNSServiceRef* reg);
+    void            registration();
 };
     
 #endif
