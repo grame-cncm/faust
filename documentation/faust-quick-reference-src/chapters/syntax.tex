@@ -315,7 +315,7 @@ the first rule will always match and the second rule will never be called.
 Despite its textual syntax, \faust is conceptually a block-diagram language. \faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally \faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
 
 \begin{rail}
-expression : diagram | numerical | time | lexical | foreign | lambda;
+expression : diagram | insouts | numerical | time | lexical | foreign | lambda;
 \end{rail}
   
 \subsection{Diagram Expressions}
@@ -450,6 +450,29 @@ The inputs of the resulting block diagram are the remaining unconnected inputs o
 \label{figure:rec1}
 \end{figure}
 
+\subsubsection{Inputs and outputs of an expression}
+These two constructions can be used to know at compile time the number of inputs and outputs of any Faust expression. 
+
+\begin{rail}
+insouts: "inputs" '(' expression ')'
+       | "outputs" '(' expression ')';
+\end{rail}
+
+They are useful to define high order functions and build algorithmically complex block-diagrams. Here is an example to automatically reverse the order of the outputs of an expression.
+
+\begin{lstlisting}
+Xo(expr) = expr <: par(i,n,selector(n-i-1,n)) 
+		 with { n=outputs(expr); };
+\end{lstlisting}
+
+And the inputs of an expression :
+
+\begin{lstlisting}
+Xi(expr) = bus(n) <: par(i,n,selector(n-i-1,n)) : expr 
+		 with { n=inputs(expr); };
+\end{lstlisting}
+
+For example \lstinline'Xi(-)' will reverse the order of the two inputs of the substraction.
 
 
 
@@ -509,6 +532,10 @@ process  =	seq(i, 10,
 numiter : expression;
 \end{rail}
 The number of iterations must be a constant expression. 
+
+
+
+
 
 
 \subsection{Numerical Expressions}

@@ -45,6 +45,7 @@ class CodeContainer : public virtual Garbageable {
     protected:
 
         list <CodeContainer*> fSubContainers;
+        CodeContainer* fParentContainer;     ///< Container in which this Container is embedded, void if toplevel Container
 
         int fNumInputs;
         int fNumOutputs;
@@ -132,6 +133,12 @@ class CodeContainer : public virtual Garbageable {
         virtual ~CodeContainer();
 
         CodeLoop* getCurLoop() { return fCurLoop; }
+        
+        void setParentContainers(CodeContainer* parent)  { fParentContainer = parent; }
+        CodeContainer* getParentContainer()              { return fParentContainer; }
+        CodeContainer* getTopParentContainer()           { return (fParentContainer != 0) ? fParentContainer->getTopParentContainer() : this; }
+ 
+        string  getFullClassName() { return (fParentContainer != 0) ? fParentContainer->getFullClassName() + "::" + getClassName() : getClassName(); }    ///< Returns the name of the class
 
         void setGeneratedSR()
         {
@@ -329,7 +336,7 @@ class CodeContainer : public virtual Garbageable {
             }
         }
 
-        string getClassName() { return fKlassName; }
+        const string& getClassName() { return fKlassName; }
 
         // UI construction
         void addUIMacro(const string& str)  { fUIMacro.push_back(str); }

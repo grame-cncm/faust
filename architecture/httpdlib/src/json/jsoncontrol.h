@@ -90,10 +90,10 @@ template <typename C> class jsoncontrol : public jsonnode
 	protected:
 
 				 jsoncontrol(const char *name, const char* type, const TMetas& m)
-					: fName(name), fType(type), fInit(0), fMin(0), fMax(0), fStep(0), fMeta(m) {}
+					: fName(name), fType(type), fInit(0), fMin(0), fMax(1), fStep(1), fMeta(m) {}
 
 				 jsoncontrol(const char *name, const char* type, C min, C max, const TMetas& m)
-					: fName(name), fType(type), fMin(min), fMax(max), fMeta(m) {}
+					: fName(name), fType(type), fMin(min), fMax(max), fStep(0), fMeta(m) {}
 
 				 jsoncontrol(const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
 					: fName(name), fType(type), fInit(init), fMin(min), fMax(max), fStep(step), fMeta(m) {}
