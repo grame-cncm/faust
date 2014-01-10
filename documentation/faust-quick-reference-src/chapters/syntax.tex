@@ -1011,6 +1011,17 @@ Please note that patterns are evaluated before the pattern matching operation. T
 \label{primitives}
 The primitive signal processing operations represent the built-in functionalities of \faust, that is the atomic operations on signals provided by the language. All these primitives denote \emph{signal processors}, functions transforming \emph{input signals} into \emph{output signals}.
 
+  \begin{rail}
+  primitive : number
+  			| waveform
+			| cprimitive
+			| mathprimitive
+			| delayandtables
+			| uielements
+			;
+  \end{rail}
+
+
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Numbers}
 %--------------------------------------------------------------------------------------------------------------
@@ -1038,6 +1049,29 @@ Like any other \faust expression, numbers are signal processors. For example the
 %\hline
 
 %\end{tabular}
+
+
+%--------------------------------------------------------------------------------------------------------------
+\subsection{Waveforms}
+%--------------------------------------------------------------------------------------------------------------
+
+A waveform is a fixed periodic signal defined by a list of samples. A waveform has two outputs. The first output is constant and indicates the size (number of samples) of the period. The second output is the periodic signal itself. 
+
+
+  \begin{rail}
+  waveform : "waveform" lbrace (number + ',') rbrace;
+  \end{rail}
+
+For example \lstinline'waveform {0,1,2,3}' produces two outputs, the constant signal 4 and the periodic signal \lstinline'0,1,2,3,0,1,2,3,0,1'\ldots. 
+
+Please note that \lstinline'waveform' works nicely with \lstinline'rdtable'. Its first output, known at compile time, gives the size of the table, while the second signal gives the content of the table. Here is an example:
+\begin{lstlisting}
+process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
+\end{lstlisting}
+
+
+\bigskip
+
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{C-equivalent primitives}
