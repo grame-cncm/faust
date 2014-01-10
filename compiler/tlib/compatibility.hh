@@ -19,21 +19,16 @@
  ************************************************************************
  ************************************************************************/
  
+
 #ifndef     __COMPATIBILITY__
 #define     __COMPATIBILITY__
 
-#ifdef WIN32
-#if !defined(INT) & !defined(FLOAT)
-#include <windows.h>
-#else
-#include <io.h>
-#endif
+
+#ifdef _WIN32
 #include <time.h>
 #include <assert.h>
-#undef min
-#undef max
 
-#define int64_t __int64
+//#define int64_t __int64
 #define YY_NO_UNISTD_H 1
 
 struct timezone 
@@ -47,7 +42,7 @@ struct timezone
 #define isatty _isatty
 #define fileno _fileno
 #define snprintf _snprintf
-double  rint(double nr);
+//double  rint(double nr);
 int		gettimeofday(struct timeval *tv, struct timezone *tz);
 bool	chdir(const char* path);
 int		mkdir(const char* path, unsigned int attribute);
@@ -61,12 +56,13 @@ void	getFaustPathname(char* str, unsigned int size);
 #define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)
 #endif
 
+//#define sprintf sprintf_s
 #define snprintf _snprintf
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
 #define FAUST_PATH_MAX 1024
 
 #if !defined(__MINGW32__)
-	double	remainder(double numerator, double denominator);
+	//double	remainder(double numerator, double denominator);
 	#define S_IRWXU 0
 #endif
 
@@ -74,6 +70,9 @@ void	getFaustPathname(char* str, unsigned int size);
 #define S_IROTH 0
 #define S_IXOTH 0
 #define DIRSEP '\\'
+
+#undef min
+#undef max
 
 #else
 
