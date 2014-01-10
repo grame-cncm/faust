@@ -42,19 +42,18 @@ int main(int argc, char *argv[])
         exit(0); 
     }
     std::ostream* dst = &cout;
-    float buffer[BUFFER_SIZE * snd_info.channels] ;
+    float buffer[BUFFER_SIZE * snd_info.channels];
      
-    *dst << RemoveEnding(argv[1]) << " = {";
-    
+    *dst << RemoveEnding(argv[1]) << " = waveform";
     int nbf;
+    char sep = '{';
     do {
         nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
-        for (int i = 0; i < nbf; i++) {
-            *dst << buffer[i];
-            if (i < nbf - 1) {
-                *dst << ", ";
-            }
+        for (int i = 0; i < nbf * snd_info.channels; i++) {
+            *dst << sep << buffer[i];
+            sep = ',';
         }
+        
     } while (nbf == BUFFER_SIZE);
   
     *dst << "};" << std::endl;
