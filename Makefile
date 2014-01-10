@@ -24,7 +24,7 @@ win32 :
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
 
-converter:
+converter: architecture/faust-waveform-converter.cpp
 
 	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
 

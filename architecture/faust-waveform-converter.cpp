@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     std::ostream* dst = &cout;
     float buffer[BUFFER_SIZE * snd_info.channels] ;
      
-    *dst << RemoveEnding(argv[1]) << " = {";
+    *dst << RemoveEnding(argv[1]) << " = waveform {";
     
     int nbf;
     do {
