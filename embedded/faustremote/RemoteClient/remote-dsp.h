@@ -117,7 +117,7 @@ void        deleteRemoteDSPInstance(remote_dsp* dsp);
  *  @param list to be filled with <nameMachine, IPmachine>
  *  @return true if no error was encountered
  */
-bool        getRemoteMachineAvailable(map<string, string>* machineList);
+bool        getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
 
 #ifdef __cplusplus
 }

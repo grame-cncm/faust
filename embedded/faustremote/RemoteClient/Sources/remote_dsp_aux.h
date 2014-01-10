@@ -161,7 +161,7 @@ EXPORT void        deleteRemoteDSPInstance(remote_dsp* dsp);
     
     static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
     
-EXPORT bool getRemoteMachineAvailable(map<string, string>* machineList);
+EXPORT bool getRemoteMachinesAvailable(map<string, pair<string,int> >* machineList);
 
 
     
