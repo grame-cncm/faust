@@ -238,7 +238,7 @@ void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buff
 const char*  remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
 	
     for (int i = 0; i<argc; i++){
-        if (!strcmp(argv[i], key)) 
+        if (strcmp(argv[i], key) == 0) 
             return argv[i+1];   
     }
 	return defaultValue;
@@ -397,7 +397,7 @@ void remote_dsp_aux::init(int /*samplingFreq*/){}
 bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, string& error){
     
     fBufferSize = buffer_size;
-    
+     
 //  Init Control Buffers
     fOutControl = new float[buffer_size];
     fInControl = new float[buffer_size];
@@ -406,24 +406,25 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     memset(fInControl, 0, sizeof(float)*buffer_size);
     
 //  PREPARE URL TO SEND TO SERVER
-    string finalRequest = "factoryIndex=";
-    finalRequest += fFactory->index();
     
 // Parse NetJack Parameters
-    finalRequest += "&NJ_IP=";
-    finalRequest += getValueFromKey(argc, argv, "--NJ_ip", DEFAULT_MULTICAST_IP);
-    
+    string finalRequest = "NJ_IP=";
+    finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", DEFAULT_MULTICAST_IP));
+
     finalRequest += "&NJ_Port=";
-    finalRequest += getValueFromKey(argc, argv, "--NJ_port", "19000");
+    finalRequest += string(getValueFromKey(argc, argv, "--NJ_port", "19000"));
     
     finalRequest += "&NJ_Compression=";
-    finalRequest += getValueFromKey(argc, argv, "--NJ_compression", "-1");
+    finalRequest += string(getValueFromKey(argc, argv, "--NJ_compression", "-1"));
     
     finalRequest += "&NJ_Latency=";
-    finalRequest += getValueFromKey(argc, argv, "--NJ_latency", "2");
+    finalRequest += string(getValueFromKey(argc, argv, "--NJ_latency", "2"));
     
     finalRequest += "&NJ_MTU=";
-    finalRequest += getValueFromKey(argc, argv, "--NJ_mtu", "1500");
+    finalRequest += string(getValueFromKey(argc, argv, "--NJ_mtu", "1500"));
+    
+    finalRequest += "&factoryIndex=";
+    finalRequest += fFactory->index();
     
     printf("finalRequest = %s\n", finalRequest.c_str());
     
@@ -530,7 +531,7 @@ EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** outp
 //--- Callback whenever a server in the regtype/replyDomain is found
 static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context ){
     
-    map<string, string>* machineList = (map<string,string>*)context;
+    map<string, pair<string,int> >* machineList = (map<string, pair< string, int> >*)context;
     
     string serviceNameCpy(serviceName);
     
@@ -547,8 +548,15 @@ static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_
         
         string hostName = remainingString.substr(pos+2, string::npos);
         
-        if(flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing)
-            (*machineList)[hostName] = serviceIP;
+        if(flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing){
+         
+            int pos = serviceIP.find(":");
+            
+            string ipAddr = serviceIP.substr(0, pos);
+            string port = serviceIP.substr(pos+1, string::npos);
+            
+            (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+        }
         else
             machineList->erase(hostName);
     }
@@ -556,7 +564,7 @@ static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_
 
 //--- Research of available remote machines
 
-EXPORT bool        getRemoteMachineAvailable(map<string, string>* machineList){
+EXPORT bool        getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList){
     
     DNSServiceRef sd;
     
