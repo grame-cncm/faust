@@ -1674,10 +1674,34 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             fCurValue = genFloat(fModule, inst->fNum, inst->fSize);
         }
+        
+        virtual void visit(FloatArrayNumInst* inst)
+        {
+            std::vector<Constant*> num_array;
+            
+            for (int i = 0; i < inst->fNumTable.size(); i++) {
+                num_array.push_back(static_cast<ConstantFP*>(genFloat(fModule, inst->fNumTable[i], 1)));
+            }
+            
+            ArrayType* array_type = ArrayType::get(getFloatTy(fModule, 1), inst->fNumTable.size());
+            fCurValue = ConstantArray::get(array_type, num_array);
+        }
 
         virtual void visit(DoubleNumInst* inst)
         {
             fCurValue = genDouble(fModule, inst->fNum, inst->fSize);
+        }
+        
+        virtual void visit(DoubleArrayNumInst* inst)
+        {
+            std::vector<Constant*> num_array;
+            
+            for (int i = 0; i < inst->fNumTable.size(); i++) {
+                num_array.push_back(static_cast<ConstantFP*>(genDouble(fModule, inst->fNumTable[i], 1)));
+            }
+            
+            ArrayType* array_type = ArrayType::get(getDoubleTy(fModule, 1), inst->fNumTable.size());
+            fCurValue = ConstantArray::get(array_type, num_array);
         }
 
         virtual void visit(BoolNumInst* inst)
@@ -1688,6 +1712,18 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual void visit(IntNumInst* inst)
         {
             fCurValue = genInt32(fModule, inst->fNum, inst->fSize);
+        }
+        
+        virtual void visit(IntArrayNumInst* inst)
+        {
+           std::vector<Constant*> num_array;
+            
+            for (int i = 0; i < inst->fNumTable.size(); i++) {
+                num_array.push_back(static_cast<ConstantFP*>(genInt32(fModule, inst->fNumTable[i], 1)));
+            }
+            
+            ArrayType* array_type = ArrayType::get(getInt32Ty(fModule, 1), inst->fNumTable.size());
+            fCurValue = ConstantArray::get(array_type, num_array);
         }
 
         virtual void visit(BinopInst* inst)
@@ -1737,7 +1773,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 case Typed::kFloat:
                     if (fCurValue->getType() == getInt32Ty(fModule, size)) {
                          fCurValue = fBuilder->CreateSIToFP(fCurValue, getFloatTy(fModule, size));
-                    } else if (fCurValue->getType() == getFloatTy(fModule,  size))  {
+                    } else if (fCurValue->getType() == getFloatTy(fModule, size))  {
                         // Nothing to do
                     } else if (fCurValue->getType() == getDoubleTy(fModule, size))  {
                         fCurValue = fBuilder->CreateFPTrunc(fCurValue, getFloatTy(fModule, size));

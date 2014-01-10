@@ -1602,5 +1602,6 @@ ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
     string idx = subst("$0_idx", vname);
     FIRIndex index = (FIRIndex(1) + InstBuilder::genLoadStructVar(idx)) % InstBuilder::genIntNumInst(size);
     pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index));
-    return InstBuilder::genLoadArrayStructVar(vname, InstBuilder::genLoadStructVar(idx));
+    return InstBuilder::genLoadArrayStaticStructVar(vname, InstBuilder::genLoadStructVar(idx));
+   
 }

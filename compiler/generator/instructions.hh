@@ -2039,6 +2039,28 @@ struct InstBuilder
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStaticStruct), exp);
     }
+    
+    template <typename Iterator>
+    static LoadVarInst* genLoadArrayStaticStructVar(string vname, Iterator indexBegin, Iterator indexEnd)
+    {
+        typedef reverse_iterator<Iterator> Rit;
+        Rit rbegin (indexEnd);
+        Rit rend (indexBegin);
+
+        Address * address = genNamedAddress(vname, Address::kStaticStruct);
+        for (Rit it = rbegin; it != rend; ++it) {
+            address = genIndexedAddress(address, *it);
+        }
+
+        return genLoadVarInst(address);
+    }
+
+    static LoadVarInst* genLoadArrayStaticStructVar(string vname, ValueInst* index)
+    {
+        vector<ValueInst*> indices;
+        indices.push_back(index);
+        return genLoadArrayStaticStructVar(vname, indices.begin(), indices.end());
+    }
 
     // Stack variable
     static DeclareVarInst* genDecStackVar(string vname, Typed* type, ValueInst* exp = NULL)
