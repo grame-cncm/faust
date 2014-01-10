@@ -24,6 +24,10 @@ win32 :
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
 
+converter:
+
+	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
+
 .PHONY: clean depend install ininstall dist parser help
 
 help :
@@ -91,6 +95,8 @@ install :
 	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
 	# install faust2xxx tools
 	make -C tools/faust2appls install
+	# install sound converter
+	([ -e faust-waveform-converter ] && cp faust-waveform-converter $(prefix)/bin) || echo faust-waveform-converter not available
 
 
 uninstall :

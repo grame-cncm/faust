@@ -29,6 +29,11 @@ int main(int argc, char *argv[])
 	SNDFILE* soundfile;
 	SF_INFO	snd_info;
     
+    if (argc < 2) {
+        printf("faust-waveform-converter <soundfile>\n");
+        exit(1);
+    }
+    
     snd_info.format = 0;
     soundfile = sf_open(argv[1], SFM_READ, &snd_info);
     if (soundfile == NULL) { 
