@@ -40,10 +40,11 @@
 #include "enrobage.hh"
 #include "ppbox.hh"
 #include "exception.hh"
-#include "faustlexer.cxx"
 #include "global.hh"
 
 using namespace std;
+
+int yylex_destroy (void );
 
 /****************************************************************
  						Parser variables

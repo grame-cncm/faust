@@ -456,6 +456,8 @@ parser/enrobage.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/
 parser/enrobage.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh
 parser/enrobage.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
 parser/enrobage.o: evaluate/loopDetector.hh tlib/occurrences.hh parser/sourcefetcher.hh errors/exception.hh
+parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh garbageable.hh tlib/node.hh parser/faustparser.hpp
+parser/faustlexer.o: tlib/compatibility.hh
 parser/faustparser.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 parser/faustparser.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
 parser/faustparser.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -465,10 +467,9 @@ parser/faustparser.o: errors/errormsg.hh documentator/doc.hh evaluate/eval.hh ev
 parser/sourcefetcher.o: tlib/compatibility.hh parser/sourcefetcher.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 parser/sourcereader.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parser/sourcereader.o: parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh errors/exception.hh
-parser/sourcereader.o: parser/faustlexer.cxx parser/faustparser.hpp tlib/compatibility.hh global.hh tlib/property.hh
-parser/sourcereader.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
-parser/sourcereader.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
+parser/sourcereader.o: parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh errors/exception.hh global.hh
+parser/sourcereader.o: tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+parser/sourcereader.o: generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 patternmatcher/patternmatcher.o: tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 patternmatcher/patternmatcher.o: boxes/ppbox.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
