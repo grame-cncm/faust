@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
 	long srate = (long)lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
     
-     char error[256];
+    string error;
     llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 5);
     assert(factory);
     llvm_dsp* dsp = createDSPInstance(factory);
