@@ -59,18 +59,18 @@ extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
 
-static Klass* signal2klass (const string& name, Tree sig)
+static Klass* signal2klass (Klass* parent, const string& name, Tree sig)
 {
 	Type t = getCertifiedSigType(sig); //, NULLENV);
 	if (t->nature() == kInt) {
 
-		ScalarCompiler C( new SigIntGenKlass(name) );
+        ScalarCompiler C( new SigIntGenKlass(parent, name) );
 		C.compileSingleSignal(sig);
 		return C.getClass();
 
 	} else {
 
-		ScalarCompiler C( new SigFloatGenKlass(name) );
+        ScalarCompiler C( new SigFloatGenKlass(parent, name) );
 		C.compileSingleSignal(sig);
 		return C.getClass();
 
@@ -263,13 +263,14 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	int 	i;
 	double	r;
-	Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
 		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
+    else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
@@ -662,7 +663,7 @@ string ScalarCompiler::generateSigGen(Tree sig, Tree content)
 	string klassname = getFreshID("SIG");
 	string signame = getFreshID("sig");
 
-	fClass->addSubKlass(signal2klass(klassname, content));
+    fClass->addSubKlass(signal2klass(fClass, klassname, content));
 	fClass->addInitCode(subst("$0 $1;", klassname, signame));
     fInstanceInitProperty.set(content, pair<string,string>(klassname,signame));
 
@@ -674,7 +675,7 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 	string klassname = getFreshID("SIG");
 	string signame = getFreshID("sig");
 
-	fClass->addSubKlass(signal2klass(klassname, content));
+    fClass->addSubKlass(signal2klass(fClass, klassname, content));
 	fClass->addStaticInitCode(subst("$0 $1;", klassname, signame));
     fStaticInitProperty.set(content, pair<string,string>(klassname,signame));
 
@@ -1283,10 +1284,58 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
  */
 void ScalarCompiler::ensureIotaCode()
 {
-	if (!fHasIota) {
-		fHasIota = true;
-		fClass->addDeclCode("int \tIOTA;");
-		fClass->addInitCode("IOTA = 0;");
-		fClass->addPostCode("IOTA = IOTA+1;");
-	}
+    if (!fHasIota) {
+        fHasIota = true;
+        fClass->addDeclCode("int \tIOTA;");
+        fClass->addInitCode("IOTA = 0;");
+        fClass->addPostCode("IOTA = IOTA+1;");
+    }
+}
+
+/**
+ * Generate code for a waveform. The waveform will be declared as a static field.
+ * The name of the waveform is returned in vname and its size in size.
+ */
+void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
+{
+
+    // computes C type and unique name for the waveform
+
+    string		ctype;
+    getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
+
+
+    size = sig->arity();
+
+    // Converts waveform into a string : "{a,b,c,...}"
+
+    stringstream content;
+
+    char sep = '{';
+    for (int i = 0; i < size; i++) {
+        content << sep << ppsig(sig->branch(i));
+        sep = ',';
+    }
+    content << '}';
+
+
+    // Declares the Waveform
+
+    fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+    fClass->addDeclCode(subst("int \tidx$0;", vname));
+    fClass->addInitCode(subst("idx$0 = 0;", vname));
+    fClass->getTopParentKlass()->addStaticFields(
+                subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size) )
+                + content.str() + ";");
+
+}
+
+string ScalarCompiler::generateWaveform(Tree sig)
+{
+    string  vname;
+    int     size;
+
+    declareWaveform(sig, vname, size);
+    fClass->addPostCode(subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size)) );
+    return subst("$0[idx$0]", vname);
 }

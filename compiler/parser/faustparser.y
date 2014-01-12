@@ -186,6 +186,7 @@ Tree unquote(char* str)
 %token COMPONENT
 %token LIBRARY
 %token ENVIRONMENT
+%token WAVEFORM
 
 %token IPAR
 %token ISEQ
@@ -236,6 +237,7 @@ Tree unquote(char* str)
 %type <exp> statement
 
 %type <exp> deflist
+%type <exp> vallist
 %type <exp> definition
 
 %type <exp> params
@@ -246,6 +248,7 @@ Tree unquote(char* str)
 %type <exp> infixexp
 %type <exp> primitive
 %type <exp> argument
+%type <exp> number
 %type <exp> arglist
 
 %type <exp> ident
@@ -304,16 +307,33 @@ Tree unquote(char* str)
 
 %% /* grammar rules and actions follow */
 
-program         : stmtlist 						{ $$ = $1; gResult = formatDefinitions($$); }
+program         : stmtlist                              { $$ = $1; gResult = formatDefinitions($$); }
 				;
 
-stmtlist        : /*empty*/                     { $$ = nil; }
-				| stmtlist statement            { $$ = cons ($2,$1); }
+stmtlist        : /*empty*/                             { $$ = nil; }
+				| stmtlist statement                    { $$ = cons ($2,$1); }
 
-deflist         : /*empty*/                     { $$ = nil; }
-				| deflist definition            { $$ = cons ($2,$1); }
+deflist         : /*empty*/                             { $$ = nil; }
+				| deflist definition                    { $$ = cons ($2,$1); }
 				;
 
+// vallist         : argument                              { $$ = cons($1,nil); }
+// 				| argument PAR vallist                  { $$ = cons ($1,$3); }
+// 				;
+// 
+vallist         : number                              { $$ = cons($1,nil); }
+                | vallist PAR number                  { $$ = cons ($3,$1); }
+                ;
+
+number			: INT   						{ $$ = boxInt(atoi(yytext)); }
+				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
+				| ADD INT   					{ $$ = boxInt (atoi(yytext)); }
+				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
+				| SUB INT   					{ $$ = boxInt ( -atoi(yytext) ); }
+				| SUB FLOAT 					{ $$ = boxReal( -atof(yytext) ); }				
+				;
+				
+				
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
 				| DECLARE name string  ENDDEF		   	{ declareMetadata($2,$3); $$ = nil; }
 				| definition						   	{ $$ = $1; }
@@ -504,6 +524,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
                 | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ deflist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
+                | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(reverse($3)); }
 
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }

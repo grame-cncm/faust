@@ -194,6 +194,8 @@ static string sigLabel(Tree sig)
          if (p)                                     { fout << p->name(); }
     else if ( isSigInt(sig, &i) )                   { fout << i;	}
     else if ( isSigReal(sig, &r) )                  { fout << r;	}
+    else if ( isSigWaveform(sig))                   { fout << "waveform";  }
+
     else if ( isSigInput(sig, &i) )                 { fout << "INPUT_" << i; }
     else if ( isSigOutput(sig, &i, x) )             { fout << "OUTPUT_" << i; }
 

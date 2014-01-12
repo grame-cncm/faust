@@ -199,28 +199,14 @@ static Tree sigMap (Tree key, tfun f, Tree t)
         return rec(id, sigMap(key, f, body));
 
     } else {
-
-        Tree r1=nil;
-        switch (t->arity()) {
-
-            case 0 :
-                r1 = t;
-                break;
-            case 1 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)));
-                break;
-            case 2 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)));
-                break;
-            case 3 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)),
-                                           sigMap(key,f,t->branch(2)));
-                break;
-            case 4 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)),
-                                           sigMap(key,f,t->branch(2)), sigMap(key,f,t->branch(3)));
-                break;
+        tvec br;
+        int n = t->arity();
+        for (int i = 0; i < n; i++) {
+            br.push_back(sigMap(key,f,t->branch(i)));
         }
+
+        Tree r1 = tree(t->node(), br);
+
         Tree r2 = f(r1);
         if (r2 == t) {
             setProperty(t, key, nil);
@@ -266,31 +252,15 @@ static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
 
     } else {
 
-        Tree r1=nil;
-        switch (t->arity()) {
-
-            case 0 :
-                r1 = t;
-                break;
-            case 1 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)));
-                break;
-            case 2 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)),
-                                        sigMapRename(key,env,f,t->branch(1)));
-                break;
-            case 3 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)),
-                                        sigMapRename(key,env,f,t->branch(1)),
-                                        sigMapRename(key,env,f,t->branch(2)));
-                break;
-            case 4 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)),
-                                        sigMapRename(key,env,f,t->branch(1)),
-                                        sigMapRename(key,env,f,t->branch(2)),
-                                        sigMapRename(key,env,f,t->branch(3)));
-                break;
+        tvec br;
+        int n = t->arity();
+        for (int i = 0; i < n; i++) {
+            br.push_back( sigMapRename(key,env,f,t->branch(i)) );
         }
+
+        Tree r1 = tree(t->node(), br);
+
+
         Tree r2 = f(r1);
         if (r2 == t) {
             setProperty(t, key, nil);

@@ -452,28 +452,15 @@ Tree tmap (Tree key, tfun f, Tree t)
 		return (isNil(p)) ? t : p;	// truc pour eviter les boucles
 		
 	} else {
-		
-		Tree r1=nil;
-		switch (t->arity()) {
-			
-			case 0 : 
-				r1 = t; 
-				break;
-			case 1 : 
-				r1 = tree(t->node(), tmap(key,f,t->branch(0))); 
-				break;
-			case 2 : 
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1))); 
-				break;
-			case 3 : 
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)),
-										   tmap(key,f,t->branch(2))); 
-				break;
-			case 4 : 
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)),
-										   tmap(key,f,t->branch(2)), tmap(key,f,t->branch(3))); 
-				break;
-		}
+
+        tvec br;
+        int n = t->arity();
+        for (int i = 0; i < n; i++) {
+            br.push_back( tmap(key, f, t->branch(i)) );
+        }
+
+        Tree r1 = tree(t->node(), br);
+
 		Tree r2 = f(r1);
 		if (r2 == t) {
 			setProperty(t, key, nil);
@@ -500,8 +487,8 @@ static Tree substkey(Tree t, Tree id, Tree val)
 	return tree(unique(name));
 }	
 
-// realise la substitution proprement dite tout en mettant � jour la propriete
-// pour ne pas avoir � la calculer deux fois
+// realise la substitution proprement dite tout en mettant a jour la propriete
+// pour ne pas avoir a la calculer deux fois
 
 static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 {
@@ -515,36 +502,15 @@ static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 	} else if (getProperty(t, propkey, p)) {
 		return (isNil(p)) ?  t : p;
 	} else {
-		Tree r=nil;
-		switch (t->arity()) {
-			
-			case 1 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val)); 
-				break;
-				
-			case 2 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val), 
-							subst(t->branch(1), propkey, id, val)); 
-				break;
-				
-			case 3 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val), 
-							subst(t->branch(1), propkey, id, val), 
-							subst(t->branch(2), propkey, id, val)); 
-				break;
-				
-			case 4 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val), 
-							subst(t->branch(1), propkey, id, val), 
-							subst(t->branch(2), propkey, id, val), 
-							subst(t->branch(3), propkey, id, val)); 
-				break;
-			
-		}
+
+        tvec br;
+        int n = t->arity();
+        for (int i = 0; i < n; i++) {
+            br.push_back( subst(t->branch(i), propkey, id, val) );
+        }
+
+        Tree r = tree(t->node(), br);
+
 		if (r == t) {
 			setProperty(t, propkey, nil);
 		} else {

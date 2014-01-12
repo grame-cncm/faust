@@ -201,9 +201,14 @@ bool isSigButton (Tree s, Tree& lbl)		{ return isTree(s, SIGBUTTON, lbl);				}
 
 
 Sym SIGCHECKBOX = symbol ("SigCheckbox");
-Tree sigCheckbox   (Tree lbl)				{ return tree(SIGCHECKBOX, lbl); 					}
+Tree sigCheckbox   (Tree lbl)				{ return tree(SIGCHECKBOX, lbl); 				}
 bool isSigCheckbox (Tree s)					{ Tree lbl; return isTree(s, SIGCHECKBOX, lbl);	}
-bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, SIGCHECKBOX, lbl);				}
+bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, SIGCHECKBOX, lbl);           }
+
+
+Sym SIGWAVEFORM = symbol("SigWaveform");
+Tree sigWaveform (const tvec& wf)           { return tree(SIGWAVEFORM, wf);                 }
+bool isSigWaveform(Tree s)                  { return isTree(s, SIGWAVEFORM);   }
 
 
 Sym SIGHSLIDER = symbol ("SigHSlider");

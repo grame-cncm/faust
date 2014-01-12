@@ -142,8 +142,9 @@ class CTree
  	// Accessors
  	const Node& node() const		{ return fNode; 		}	///< return the content of the tree
  	int 		arity() const		{ return (int)fBranch.size();}	///< return the number of branches (subtrees) of a tree
-	Tree 		branch(int i) const	{ return fBranch[i];	}	///< return the ith branch (subtree) of a tree
- 	unsigned int 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
+    Tree 		branch(int i) const	{ return fBranch[i];	}	///< return the ith branch (subtree) of a tree
+    const tvec& branches() const	{ return fBranch;	}       ///< return all branches (subtrees) of a tree
+    unsigned int 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
  	int 		aperture() const	{ return fAperture; 	}	///< return how "open" is a tree in terms of free variables
  	void 		setAperture(int a) 	{ fAperture=a; 			}	///< modify the aperture of a tree
 
@@ -189,6 +190,7 @@ inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c) { 
 inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d) { Tree br[]= {a,b,c,d}; return CTree::make(n, 4, br); }
 
 inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e) { Tree br[]= {a,b,c,d,e}; return CTree::make(n, 5, br); }
+inline Tree tree (const Node& n, const tvec& br) { return CTree::make(n, br); }
 
 // useful conversions
 int 		tree2int (Tree t);		///< if t has a node of type int, return it otherwise error

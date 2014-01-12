@@ -100,8 +100,10 @@ static int infereSigOrder(Tree sig)
 	
 	else if (isSigInt(sig, &i))					return 0;
 		
-	else if (isSigReal(sig, &r)) 				return 0;
-		
+    else if (isSigReal(sig, &r)) 				return 0;
+
+    else if (isSigWaveform(sig))                return 3;
+
 	else if (isSigInput(sig, &i))				return 3;
 		
 	else if (isSigOutput(sig, &i, s1)) 			return 3;

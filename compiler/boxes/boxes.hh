@@ -77,6 +77,19 @@ bool  isBoxReal(Tree t, double* r);
 
 
 /*****************************************************************************
+							    	Waveform
+	waveform {1,2,3,...}
+	an object with 2 outputs : the size of the waveform, the actual waveform.
+	A Waveform is in is all its values are int. It is float otherwise.
+*****************************************************************************/
+
+Tree boxWaveform(Tree values);
+
+bool  isBoxWaveform(Tree t);
+//bool  isBoxWaveform(Tree t, const tvec& branches);
+
+
+/*****************************************************************************
 							   	Wire and Cut
 *****************************************************************************/
 
