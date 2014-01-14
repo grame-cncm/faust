@@ -93,8 +93,8 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
     - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
     - as a string (in which case the 'name' and 'input' parameter have to be used).
  * 
- * @param name - the name of the Faust program
- * @param input - the Faust program as a string
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
@@ -105,7 +105,7 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-llvm_dsp_factory* createCDSPFactoryFromString(const char* name, const char* input, int argc, const char *argv[], 
+llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
                                             const char* library_path, const char* draw_path, const char* target, 
                                             char* error_msg, int opt_level);
 
