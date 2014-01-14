@@ -627,6 +627,31 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
 }
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], 
+                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                        std::string& error_msg, int opt_level)
+{
+    int argc1 = argc + 1;
+ 	const char* argv1[32];
+	assert(argc1 < 32);
+    
+    // Add 'filename" as first argument and copy others ones
+    argv1[0] = filename.c_str();
+	for (int i = 0; i < argc; i++) {
+        argv1[i+1] = argv[i];
+    }
+    
+    return CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, library_path, draw_path, "", "", target, error_msg, opt_level), error_msg);
+}
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name, const std::string& input, int argc, const char *argv[], 
+                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                        std::string& error_msg, int opt_level)
+{
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
+}
+
     
 // Bitcode <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
@@ -789,6 +814,36 @@ EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
                                         const char* library_path, const char* draw_path, 
                                         const char* name, const char* input, 
                                         const char* target, char* error_msg, int opt_level)
+{
+    std::string error_msg_aux;
+    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg_aux, opt_level), error_msg_aux);
+    error_msg = (char*)error_msg_aux.c_str();
+    return factory;
+}
+
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* target, 
+                        char* error_msg, int opt_level)
+{
+    int argc1 = argc + 1;
+ 	const char* argv1[32];
+	assert(argc1 < 32);
+    
+    // Add 'filename" as first argument and copy others ones
+    argv1[0] = filename;
+	for (int i = 0; i < argc; i++) {
+        argv1[i+1] = argv[i];
+    }
+    
+    std::string error_msg_aux;
+    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, library_path, draw_path, "", "", target, error_msg_aux, opt_level), error_msg_aux);
+    error_msg = (char*)error_msg_aux.c_str();
+    return factory;
+}
+
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name, const char* input, int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* target, 
+                        char* error_msg, int opt_level)
 {
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg_aux, opt_level), error_msg_aux);
