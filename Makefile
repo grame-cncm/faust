@@ -39,10 +39,9 @@ win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
-converter:
+converter: architecture/faust-waveform-converter.cpp
 
 	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
-
 
 .PHONY: clean depend install uninstall dist parser help
 
@@ -129,9 +128,9 @@ install :
 	# install sound converter
 	([ -e faust-waveform-converter ] && cp faust-waveform-converter $(prefix)/bin) || echo faust-waveform-converter not available	
 	#install faustremote
-	install libfaustremote.a  /usr/local/lib/faust/ 
-	cp remote-dsp.h  /usr/local/include/faust/
-
+	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  /usr/local/lib/faust/) || echo remote not compiled
+	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  /usr/local/bin) || echo remote not compiled
+	cp embedded/faustremote/RemoteClient/remote-dsp.h  /usr/local/include/faust/
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/

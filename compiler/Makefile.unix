@@ -54,7 +54,7 @@ ifeq ($(LLVM_VERSION), 3.3)
 LLVM_VERSION = LLVM_33
 endif
 
-ifeq ($(LLVM_VERSION), 3.4svn)
+ifeq ($(LLVM_VERSION), 3.4)
 LLVM_VERSION = LLVM_34
 endif
 
