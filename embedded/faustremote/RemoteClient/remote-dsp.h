@@ -49,7 +49,7 @@ typedef struct remote_dsp_factory {};
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& dspContent, string& error, int opt_level);
+remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, const string& dspContent, string& error, int opt_level);
 
 
 /**

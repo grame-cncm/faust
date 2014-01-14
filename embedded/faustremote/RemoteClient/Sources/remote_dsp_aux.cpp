@@ -18,7 +18,7 @@ size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /GetJson
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
-bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServer, int portServer, string dspContent, string& error, int opt_level){
+bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error, int opt_level){
 
     bool isInitSuccessfull = false;
     
@@ -26,7 +26,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
     
     if (curl) {
 
-        string finalRequest = "data=";
+        string finalRequest = "name=";
+        finalRequest += nameApp;
+        finalRequest += "&data=";
         
 // Transforming faustCode to URL format
         finalRequest += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
@@ -180,11 +182,11 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
 
 
 //---------FACTORY
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& dspContent, string& error, int opt_level){
+EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, const string& dspContent, string& error, int opt_level){
     
     remote_dsp_factory* factory = new remote_dsp_factory();
     
-    if(factory->init(argc, argv, ipServer, portServer, dspContent, error, opt_level))
+    if(factory->init(argc, argv, ipServer, portServer, nameApp, dspContent, error, opt_level))
         return factory;
     else{
         delete factory;
@@ -275,6 +277,8 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
 //        Meta Data declaration for entry items
         if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close")!=0){
             
+            
+            
             fInControl[counterIn] = init;
             isInItem = true;
             
@@ -293,6 +297,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         }
 //      Meta Data declaration for group opening or closing
         else {
+            
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
         }
@@ -301,9 +306,10 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         if((*it)->type.compare("hgroup") == 0)
             ui->openHorizontalBox((*it)->label.c_str());
         
-        else if((*it)->type.compare("vgroup") == 0)
+        else if((*it)->type.compare("vgroup") == 0){
+            printf("GROUP NAME = %s\n", (*it)->label.c_str());
             ui->openVerticalBox((*it)->label.c_str());
-        
+        }
         else if((*it)->type.compare("tgroup") == 0)
             ui->openTabBox((*it)->label.c_str());
         

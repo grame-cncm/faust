@@ -33,11 +33,11 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, string faustContent, int opt_level, int factoryIndex, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, string faustContent, int opt_level, int factoryIndex, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(argc, argv, faustContent, opt_level, factoryIndex, answer))
+    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryIndex, answer))
         return newFactory;
     
     else
@@ -52,9 +52,9 @@ void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, string faustContent, int opt_level, int factoryIndex, string& answer){
+bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, string faustContent, int opt_level, int factoryIndex, string& answer){
     
-    fLLVMFactory = createDSPFactory(argc, argv, "", "", "", faustContent, "", answer, opt_level);
+    fLLVMFactory = createDSPFactory(argc, argv, "", "", nameApp, faustContent, "", answer, opt_level);
     
     if(fLLVMFactory){
         
@@ -77,7 +77,7 @@ bool slave_dsp_factory::init(int argc, const char** argv, string faustContent, i
         json.numOutput(dsp->getNumOutputs());
         json.declare("indexFactory", s.str().c_str());
         
-        //        printf("JSON = %s\n", json.json());
+        printf("JSON = %s\n", json.json().c_str());
         
         answer = json.json();
         
@@ -408,6 +408,9 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     if (size > 0) {
         
+        if(strcmp(key,"name") ==0 )
+            con_info->fNameApp+=data;
+        
         if(strcmp(key,"data") ==0 )
             con_info->fFaustCode+=data;        
             
@@ -482,7 +485,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
     for(int i=0; i<con_info->fNumCompilOptions; i++)
         compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
     
-    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
+    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
     
     if(realFactory){
     
