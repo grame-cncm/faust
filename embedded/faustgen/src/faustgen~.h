@@ -29,7 +29,6 @@
 
 #define FAUSTFLOAT double
 #define MSP64 1
-#define NETJACK 1
 
 /* link with  */
 #include <iostream>
@@ -41,9 +40,6 @@
 #include <map> 
 
 #include "faust/llvm-dsp.h"
-#ifdef NETJACK
-#include "netjackaudio_master.h"
-#endif
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -292,13 +288,7 @@ class faustgen : public MspCpp5<faustgen> {
           
         // Process the signal data with the Faust module
         void perform(int vs, t_sample ** inputs, long numins, t_sample ** outputs, long numouts);
-    
-    #ifdef NETJACK
-        void create_netjack();
-        void destroy_netjack();
-        void netjack(long inlet, t_symbol* s, long argc, t_atom* argv);
-    #endif
-        
+          
 };
 
 #endif
