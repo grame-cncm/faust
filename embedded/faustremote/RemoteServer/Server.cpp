@@ -33,7 +33,7 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, string faustContent, int opt_level, int factoryIndex, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
@@ -52,9 +52,14 @@ void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, string faustContent, int opt_level, int factoryIndex, string& answer){
+bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex, string& answer){
     
-    fLLVMFactory = createDSPFactory(argc, argv, "", "", nameApp, faustContent, "", answer, opt_level);
+    printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
+    printf("AGRC = %i | argv = %p\n", argc, argv);
+    
+    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", "", "", answer, opt_level);
+    
+    printf("ERROR = %s\n", answer.c_str());
     
     if(fLLVMFactory){
         

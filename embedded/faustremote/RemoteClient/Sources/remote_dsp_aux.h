@@ -94,7 +94,9 @@ public:
     
 //---------------------- Public C++ interface
     
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, const string& dspContent, string& error, int opt_level);
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level);
+    
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level);
     
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
  

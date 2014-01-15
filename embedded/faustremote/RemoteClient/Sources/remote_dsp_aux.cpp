@@ -182,11 +182,53 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
 
 
 //---------FACTORY
-EXPORT remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, const string& dspContent, string& error, int opt_level){
+
+#include <libgen.h>
+
+static string PathToContent(const string& path)
+{
+    ifstream f(path.c_str());
+    string result;
+    char line[4096];
+    
+    while (f.getline(line, 4096)) {
+        result += line;
+        if (!f.fail()) {
+            result += "\n";
+        }
+    }
+    
+    f.close();
+    return result;
+}
+
+
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile( const string& filename, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level){
+    
+    string name("");
+    
+    string base = basename((char*)filename.c_str());
+    
+    int pos = base.find(".dsp");
+    
+    if(pos != string::npos){
+        name = base.substr(0, pos);
+    }
+    else{
+        error = "File Extension is not the one expected (.dsp expected)";
+        return NULL;
+    }
+    
+    printf("NAME = %s\n", name.c_str());
+    
+    return createRemoteDSPFactoryFromString(name, PathToContent(filename), argc, argv, ipServer, portServer, error, opt_level);
+}
+
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level){
     
     remote_dsp_factory* factory = new remote_dsp_factory();
     
-    if(factory->init(argc, argv, ipServer, portServer, nameApp, dspContent, error, opt_level))
+    if(factory->init(argc, argv, ipServer, portServer, name_app, dsp_content, error, opt_level))
         return factory;
     else{
         delete factory;

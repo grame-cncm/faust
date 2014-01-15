@@ -24,6 +24,7 @@
 #define REMOTE_DSP_H
 
 #include <string>
+#include <map>
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 
@@ -36,20 +37,40 @@ using namespace std;
 
 typedef struct remote_dsp_factory {};
 
+
+    
 /**
- * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
+ * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that
+ returns a JSON application.
  *
+ * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters (-vec/-sch/...)
  * @param ipServer - IP of remote machine that will compile your DSP 
  * @param portServer - Port on which the remote Server started
- * @param dspContent - the Faust program as a string
  * @param error - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactory(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, const string& dspContent, string& error, int opt_level);
+remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level = 3);
+    
+    
+/**
+ * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
+ *
+ * @param name_app - the name of the Faust Application to be compiled
+ * @param dsp_content - the Faust program as a string
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param ipServer - IP of remote machine that will compile your DSP 
+ * @param portServer - Port on which the remote Server started
+ * @param error - the error string to be filled
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ *
+ * @return a valid DSP factory on success, otherwise a null pointer.
+ */ 
+remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level =  3);
 
 
 /**

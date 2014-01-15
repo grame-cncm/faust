@@ -97,12 +97,12 @@ struct slave_dsp_factory{
     
     bool delete_Factory();
     slave_dsp_factory* clone();
-    bool init(int argc, const char** argv, const string& nameApp, string faustContent, int opt_level, int factoryIndex,  string& answer);
+    bool init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex,  string& answer);
     
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, string faustContent, int opt_level, int factoryIndex,  string& answer);
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex,  string& answer);
 void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
     
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
