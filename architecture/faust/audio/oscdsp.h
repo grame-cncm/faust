@@ -31,10 +31,12 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 	virtual ~oscdsp() 
     { 
         stop(); 
-        for (int i = 0; i < numInputs(); i++)
+        for (int i = 0; i < numInputs(); i++) {
             delete [] fInBuffers[i];
-        for (int i = 0; i < numOutputs(); i++)
+        }
+        for (int i = 0; i < numOutputs(); i++) {
             delete [] fOutBuffers[i];
+        }
         delete [] fInBuffers;
         delete [] fOutBuffers;
     }
@@ -45,10 +47,12 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 		fDsp->init(44100);
 		fInBuffers  = new float*[numInputs()];
 		fOutBuffers = new float*[numOutputs()];
-		for (int i = 0; i < numInputs(); i++)
+		for (int i = 0; i < numInputs(); i++) {
 			fInBuffers[i] = new float[kMaxBuffer];
-		for (int i = 0; i < numOutputs(); i++)
+        }
+		for (int i = 0; i < numOutputs(); i++) {
 			fOutBuffers [i] = new float[kMaxBuffer];
+        }
 		return true;
 	}
 
@@ -58,8 +62,9 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 	void compute(int nframes) 
     {
 		fDsp->compute(nframes, fInBuffers, fOutBuffers);
-		for (int i= 0; i < numOutputs(); i++)
+		for (int i= 0; i < numOutputs(); i++) {
 			send( nframes, fOutBuffers [i], i);
+        }
 	}
 
 	void receive(int nvalues, float* val) 
