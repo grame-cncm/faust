@@ -177,8 +177,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* instance)
 {
-    char input_name[64];
-    sprintf(input_name, "faustgen-%d", fFaustNumber);
+    char name_app[64];
+    sprintf(name_app, "faustgen-%d", fFaustNumber);
     
     // To be sure we get a correct SVG diagram...
     remove_svg();
@@ -194,7 +194,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactoryFromString(string(input_name), string(*fSourceCode), fCompileOptions.size(), argv, fLibraryPath, fDrawPath, getTarget(), error, LLVM_OPTIMIZATION);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, fLibraryPath, fDrawPath, getTarget(), error, LLVM_OPTIMIZATION);
     
     if (factory) {
         return factory;
