@@ -254,10 +254,7 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   const char **argv = (const char **) parse_cmd(cmd, &argc);
   const char* varname = "::factory";
 
-
-  factory = createDSPFactory(argc, argv, "",
-                             "", "faustop", (const char *) p->code->data,
-                             "", err_msg, 3);
+  factory = createDSPFactoryFromString("faustop", (const char *) p->code->data, argc, argv, "", "", "", err_msg, 3);
   if(factory == NULL) {
     free(argv);
     free(cmd);
@@ -449,9 +446,7 @@ int init_faustgen(CSOUND *csound, faustgen *p){
   argc += 1;
 #endif
 
-  p->factory = createDSPFactory(argc, argv, "",
-                                "", "faustop", (const char *) p->code->data,
-                                "", err_msg, 3);
+  p->factory = createDSPFactoryFromString("faustop", (const char *) p->code->data, argc, argv, "", "", "", err_msg, 3);
   if(p->factory == NULL)
     return csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg.c_str());
