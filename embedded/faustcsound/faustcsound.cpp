@@ -335,15 +335,17 @@ int delete_faustgen(CSOUND *csound, void *p) {
     prv = fobj;
     fobj = fobj->nxt;
   }
-  if(fobj == NULL) 
+  if(fobj == NULL) {
     if(fobj != NULL) {
       if(*pfobj == fobj) *pfobj = fobj->nxt;
       csound->Free(csound, fobj);
       delete pp->ctls;
       deleteDSPInstance(pp->engine);
-    } else
+    } else {
       csound->Warning(csound, "could not find DSP %p for deletion", pp->engine);
-  if(pp->factory) delete pp->factory;
+    }
+  }
+  if(pp->factory) deleteDSPFactory(pp->factory);
   return OK;
 }
 

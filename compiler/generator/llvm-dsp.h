@@ -35,7 +35,7 @@
   @{
  */
 
-typedef struct llvm_dsp_factory {};
+struct llvm_dsp_factory;
 
 /**
  * Create a Faust DSP factory from a DSP source code. The source code is either given :
