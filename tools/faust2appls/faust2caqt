@@ -77,7 +77,7 @@ if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -gt 12 ]
 	then
-	    SPEC="-spec macx-clang"
+	    SPEC="-spec macx-g++"
 	    CLANGOPT="CONFIG+=c++11"
 	else
 	    SPEC="-spec macx-g++"
