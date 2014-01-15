@@ -69,8 +69,7 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
 {
     int argc1 = argc + 3;
- 	const char* argv1[32];
-	assert(argc1 < 32);
+ 	const char* argv1[argc1];
     argv1[0] = "faust";
 	argv1[1] = "-lang";
 	argv1[2] = "llvm";
@@ -633,9 +632,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, i
                         std::string& error_msg, int opt_level)
 {
     int argc1 = argc + 1;
- 	const char* argv1[32];
-	assert(argc1 < 32);
-    
+ 	const char* argv1[argc1];
+	  
     // Add 'filename" as first argument and copy others ones
     argv1[0] = filename.c_str();
 	for (int i = 0; i < argc; i++) {
@@ -645,11 +643,11 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, i
     return CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, library_path, draw_path, "", "", target, error_msg, opt_level), error_msg);
 }
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name, const std::string& input, int argc, const char *argv[], 
+EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path, const std::string& target, 
                         std::string& error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level), error_msg);
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name_app, dsp_content, target, error_msg, opt_level), error_msg);
 }
 
     
@@ -826,9 +824,8 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
                         char* error_msg, int opt_level)
 {
     int argc1 = argc + 1;
- 	const char* argv1[32];
-	assert(argc1 < 32);
-    
+ 	const char* argv1[argc1];
+  
     // Add 'filename" as first argument and copy others ones
     argv1[0] = filename;
 	for (int i = 0; i < argc; i++) {
@@ -841,12 +838,12 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name, const char* input, int argc, const char *argv[], 
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
                         const char* library_path, const char* draw_path, const char* target, 
                         char* error_msg, int opt_level)
 {
     std::string error_msg_aux;
-    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg_aux, opt_level), error_msg_aux);
+    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name_app, dsp_content, target, error_msg_aux, opt_level), error_msg_aux);
     error_msg = (char*)error_msg_aux.c_str();
     return factory;
 }
