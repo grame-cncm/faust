@@ -78,7 +78,7 @@ for f in $FILES; do
 	dst="${f%.dsp}.so"
 	
 	# compile faust to c++
-	faust -a dssi.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a dssi.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
