@@ -9,9 +9,8 @@ system	?= $(shell uname -s)
 PREFIX ?= /usr/local
 
 ifeq ($(system), Darwin)
-	ARCHFLAGS 	:=  -arch i386 -arch x86_64
 	CXX 		= g++
-	CXXFLAGS	= -Wglobal-constructors  
+	CXXFLAGS	= -arch i386 -arch x86_64 -Wglobal-constructors  
 	LIB_EXT        = dylib
 else 
 	ARCHFLAGS 	:= 
@@ -24,7 +23,6 @@ first: all
 ####### Build rules
 
 all: $(objects) libfaustremote.a
-#$(CXX) $(CXXFLAGS) -ldl -lcurl -ljacknet $(objects)
 
 
 libfaustremote.a :
