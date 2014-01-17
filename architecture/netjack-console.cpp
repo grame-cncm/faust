@@ -43,6 +43,7 @@
 #include "faust/misc.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/console.h"
+#include "faust/gui/GUI.h"
 #include "faust/audio/netjack-dsp.h"
 
 #ifdef OSCCTRL
@@ -72,6 +73,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp DSP;
+std::list<GUI*>     GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN

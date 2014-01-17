@@ -116,7 +116,7 @@ for p in $FILES; do
     TMP=$(mktemp -d faust.XXX)
 
     # compile faust to c++
-	faust -a vst2p4.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a vst2p4.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (

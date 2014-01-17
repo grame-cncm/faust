@@ -1,14 +1,14 @@
-
 							================
-							| FAUST 0.9.58 |
+							| FAUST 0.9.65 |
 							================
 
 GRAME - Centre National de Creation Musicale - is happy to announce
-the release of FAUST 0.9.58. This new release provides support to
-develop iPad/iPhone audio applications, LV2 effects and synth plugins,
-an improved organization and namy additions and enhancements to the
-libraries and examples. It also adds HTTP remote control possibilities
-to several existing architectures.
+the release of FAUST 0.9.65. 
+
+This release provides some extensions to the language, two new 
+architectures : Android and Audio Units, enhanced libraries and a new hoa.lib 
+(high order ambisonic) library, enhanced iOS and LV2 architectures, 
+improved HTTP and OSC support, new examples (guitarix amplifiers)... 
 
 
 -------------
@@ -16,22 +16,25 @@ About FAUST :
 -------------
 
 FAUST (Functional Audio Stream) is a functional programming language
-specifically designed for real-time signal processing and synthesis. A
-distinctive characteristic of FAUST is to be fully compiled. The FAUST compiler
-translates DSP specifications into very efficient C++ code that works at sample
-level. It targets high-performance signal processing applications, libraries and
-audio plug-ins for a variety of audio platforms and standards. A same FAUST
-specification can be used to easily generate native JACK or ALSA applications,
-as well as CSOUND, LADSPA, MAX/MSP, PD, Q, SC and VST plugins.  
+specifically designed for real-time signal processing and synthesis. 
 
-The Faust distribution can be downloaded at:
+A distinctive characteristic of FAUST is to be fully compiled. The FAUST compiler
+translates DSP specifications into very efficient C++ code that works at sample 
+level. The generated code is self contained and doesn't depend on any library or 
+runtime.
+
+Moreover a same FAUST specification can be used to generate native implementations 
+for most OS (Linux, OSX, Android, iOS) or platforms (LV2, Ladspa, VST, PD, Csound, SC,..)
+
+
+Faust distribution can be downloaded at:
 http://sourceforge.net/projects/faudiostream
 
 The GIT repository can be cloned with the following command :
 git clone git://git.code.sf.net/p/faudiostream/code faust
 
 To compile faust :
-make httpd (only if you have GNU libmicrohttpd installed)
+make httpd (skip this step if you don't have GNU libmicrohttpd installed)
 make
 sudo make install
 
@@ -48,83 +51,139 @@ http://faust.grame.fr
 ======================== WHAT'S NEW ==============================
 
 ------------
+iOS			:
+------------
+The iOS architecture has been improved and is now compatible with iOS 7. New metadata
+allow to map accelerometers to user interface widgets.
+
+
+------------
+Android		:
+------------
+A new architecture, contributed by Romain Michon from CCRMA, allows to develop audio
+applications for Android. It uses the same metadata as iOS to map accelerometers 
+to user interface widgets.
+
+
+------------
+Audio Unit :
+------------
+A new architecture, contributed by Reza Payami from CCRMA, allows to develop Audio
+Units for OSX. The custom user interface includes:
+- Normal Faust GUI horizontal and vertical box layout support
+- Normal Faust GUI widgets including hsliders, vsliders, hbargraphs, vbargraphs, 
+  knobs, buttons and checkboxes
+- Viewer support for hbargraph and vbargraph using Audio Unit Event Listening and 
+  automatically moving sliders
+- Save button for saving plugin state in Faust XML format
+
+
+------------
+OSC        :
+------------
+Improved OSC support. Faust applications compiled with the -osc 
+option embed OSC support. With FAUST 0.9.65, applications have now 
+also the possibility to send OSC messages (and therefore to be used 
+as OSC controller).
+The transmission can be activated either when the application is 
+started using the "-xmit 1" command line option, or later on, by 
+sending to the application the osc message xmit 1. 
+
+
+------------
 HTTP       :
 ------------
-A new -httpd option can be used to embbed a small web server to any Faust 
-application. This web server, based on GNU libmicrohttpd, allows to 
-remotely control the faust application using any HTML5 capable web browser.  
-
-The -httpd option can be used with the following scripts : faust2alqt, 
-faust2alsa, faust2caqt, faust2jack, faust2jackconsole, faust2jaqt, 
-faust2netjackqt. By default the resulting application will listen on 
-TCP port 5510. On the same machine the application can be controlled by 
-opening http://localhost:5510  
+Improved HTTP support. Faust applications compiled with the -httpd option embed a 
+small web server that allows to remotely control the faust application using any 
+HTML5 capable web browser. The web page now reproduces a nice looking graphic user 
+interface very similar to the QT one. The control's fluidity has been improved.
+The application can also display a QRcode to easily take control of it with a smartphone.
 
 
 ------------
 LV2        :
 ------------
-LV2 is a new open-source audio and MIDI plugin standard for Linux
-and other Unix-like systems, successor of the LADSPA standard. The aim
-of this architecture is to provide an LV2 implementation which
-supports both audio (pure signal processing) and instrument (MIDI ->
-audio) plugins. Two scripts are provided faust2lv2 and
-faust2lv2plugin. The full faust-lv2 package by Albert Gräf (U. of Mainz) is
-available here : http://code.google.com/p/faust-lv2/
+A critical bug was fixed in the LV2 implementation which aims at providing LV2 support,
+both audio (pure signal processing) and instrument (MIDI -> audio) plugins. The full 
+faust-lv2 package by Albert Gräf (U. of Mainz) is available here : 
+	http://code.google.com/p/faust-lv2/
 
 
-------------
-iPad iPhone:
-------------
-This release introduces a new architecture 'ios-coreaudio.cpp' with
-the related scripts and makefiles to develop iOS5 iPad and iPhone
-audio applications. Use 'make ios' in the example folder to compile
-the examples, or use 'faust2ios harpe.dsp' to compile specific files.
-Note that you need Xcode with iOS development tools and a valid
-profile to successfully compile.
-
-Once you have an application running on the device you can
-individually assign gyroscopes and compass to user interface widgets.
-If you keep your finger for 1 second on a slider, a popup window 
-appear allowing you to choose the sensor to use and control its
-sensibility and direction.
+---------------
+Supercollider :
+---------------
+Improved supercollider architecture with modifications for supernova contributed by 
+Fernando Lopez-Lezcano.
 
 
 ------------
 Libraries  :
 ------------
-Revised low/high shelf filters in filter.lib
-Reduce start-up transients in examples by moving smooth to output of db2linear
-Interpolate sawN delay in oscillator.lib / pulsetrainN
-Extend filterbank (in filter.lib) down to two-band case; 
-Much revision for oscillator.lib, new virtual analog waveforms, new 
-demonstration example. 
-The filter.lib, oscillator.lib and effect.lib are contributed by Julius 
-Smith (CCRMA/Stanford U.)
+- Improved filter.lib, oscillator.lib and effect.lib contributed by Julius 
+Smith (CCRMA/Stanford U.).
+
+- A new harmonic exciter effect by Priyanka Shekar (CCRMA) has been added to effect.lib
+
+- a new library "hoa.lib" has been contributed by the CICM/U. Paris 8. It provides a set 
+of functions for high order Ambisonics sound reproduction (encoder : encodes a signal 
+in the circular harmonics domain; decoder : decodes an Ambisonics sound field for 
+a circular array of loudspeakers; decoderStereo : decodes an ambisonic sound field 
+for stereophonic configuration; optimBasic, optimMaxRe, optimInPhase : apply 
+Ambisonics optimizations;wider : enlarges the diffusion of a localized sound; 
+map : encodes a source with distance compensation; rotate : rotates the sound field).
+Web site: http://www.mshparisnord.fr/hoalibrary/en
 
 
------------------
-New organisation:
------------------
-The architecture files are now more modular and the installation tree
-has been improved. Assuming Faust is installed with the default prefix
-'/usr/local' we now have  :
+------------
+Examples	:
+------------
 
-'/usr/local/lib/faust/' that contains :
-- the architecture files (*.cpp),
-- faust's libraries (*.lib) and
-- specific binary libraries (*.a) for OSC, HTTP, etc.
+Guitarix amplifiers. Thanks to code contributed by the Guitarix development team, 
+the examples folder now contains Guitarix tube amp emulations. The faust-tubes folder 
+contains the tube.lib, the tonestack.lib, and the tube tables with valve.h, which 
+contain the foreign function, and an example tube preamp.dsp.
 
-'/usr/local/include/faust/' that contains all the *.h required by the 
-various architecture files, organized in two main subfolders :
-- 'gui/' contains all the user interface parts
-- 'audio/' contains all the audio driver parts
+---------------------------
+Extensions to the language:
+---------------------------
 
-'/usr/local/bin/' that contains faust itself and the various faust2xxx scripts
+1) extended syntax for foreign function declarations :
+The syntax for foreign function declarations has been extended to take into account the 
+floating point precision in use (float, double and quad). It is now possible to give a 
+different function name for each floating point precision using the construction 
+name1|name2|name3.
 
-All the architecture files that include user interface parts and audio driver parts can
-use a partial pathname starting with faust. For example
-#include "faust/audio/jack-dsp.h"
+Here is an example of declaration :
+
+asinh = ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
+
+
+2) inputs(exp) and outputs(exp) :
+These two new constructions give respectively the number of inputs and the number of 
+outputs of a Faust expression. These constructions are useful to define high order 
+functions and to build algorithmically complex block-diagrams.
+
+Here is an example to reverse the order of the inputs of an expression automatically.
+
+X(expr) = bus(n) <: par(i,n,selector(n-i-1,n)) : expr with { n=inputs(expr); };
+
+
+3) waveform :
+A waveform is a fixed periodic signal defined by a list of samples. A waveform has two 
+outputs. The first output is constant and indicates the size (number of samples) of the 
+period. The second output is the periodic signal itself. This design allows waveform to
+work nicely with tables.
+
+For example waveform {0,1,2,3} produces two outputs, the constant signal 4 and the 
+periodic signal 0,1,2,3,0,1,2,3,0,1... 
+
+
+---------------------------
+New compiler's options    :
+---------------------------
+
+A new compiler option '-I dir' add dir to the list of directory to search for components, 
+library and imports. It is equivalent of gcc -I dir option.
 
 
 ----------------
@@ -134,18 +193,17 @@ Many persons have been contributing to the FAUST project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
 
-I would like to thank them and especially: Fons Adriaensen, Tim
-Blechmann, Tiziano Bole, Baktery Chanka, Thomas Charbonnel, Damien
-Cramet, Etienne Gaudrin, Olivier Guillerminet, Albert Graef, Stefan
-Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu Leroi, Kjetil
-Matheussen, Hermann Meyer, Romain Michon, Remy Muller, Sampo
-Savolainen, Nicolas Scaringella, Stephen Sinclair, Travis Skare,
-Julius Smith, Michael Wilson, as well as my colleagues at GRAME, in
-particular : Dominique Fober, Stephane Letz, Olivier Guillerminet
-and Karim Barkati, and from the ASTREE project : Jerome Barthelemy (IRCAM), 
-Alain Bonardi (IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
-(Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
+We would like to thank them and especially: Fons Adriaensen, Jerome Barthelemy, 
+Tim Blechmann, Tiziano Bole, Alain Bonardi, Baktery Chanka, Thomas Charbonnel, 
+Raffaele Ciavarella, Julien Colafrancesco, Damien Cramet, Etienne Gaudrin, Olivier
+Guillerminet, Albert Graef, Pierre Guillot, Pierre Jouvelot, Stefan Kersten, 
+Victor Lazzarini, Matthieu Leberre, Mathieu Leroi, Fernando Lopez-Lezcano, Kjetil 
+Matheussen, Hermann Meyer, Romain Michon, Remy Muller, Eliott Paris, Reza Payami, 
+Laurent Pottier, Sampo Savolainen, Nicolas Scaringella, Anne Sedes, Priyanka Shekar, 
+Stephen Sinclair, Travis Skare, Julius Smith, Michael Wilson, as well as our colleagues  
+at GRAME, in particular : Karim Barkati, Sarah Denoux, Olivier Guillerminet, Christophe 
+Lebreton and Mike Solomon.
 
-Yann Orlarey
+Yann Orlarey, Stephane Letz and Dominique Fober
 GRAME
 
