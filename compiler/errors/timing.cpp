@@ -21,7 +21,7 @@
 
 #include <iostream>
 #include <cassert>
-#ifndef WIN32
+#ifndef _WIN32
 #include <sys/time.h>
 #endif
 #include "compatibility.hh"
@@ -30,7 +30,7 @@
 
 using namespace std;
 
-#ifndef WIN32
+#ifndef _WIN32
 double mysecond()
 {
     struct timeval tp;

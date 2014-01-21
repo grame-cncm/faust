@@ -23,7 +23,7 @@
 #define LLVM_DSP_AUX_H
 
 #ifndef FAUSTFLOAT
-#define FAUSTFLOAT double
+#define FAUSTFLOAT float
 #endif
 
 #include <iostream>
@@ -79,10 +79,10 @@
 
 #ifdef WIN32
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#endif
 
 #endif
 
@@ -243,9 +243,9 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
 #ifdef WIN32
 
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//}
+//#endif
 
 #endif
 

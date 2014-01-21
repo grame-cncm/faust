@@ -27,7 +27,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
-#ifndef WIN32
+#ifndef _WIN32
 #include <strings.h>
 #include <netdb.h>
 #include <unistd.h>

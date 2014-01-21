@@ -56,7 +56,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 
@@ -79,6 +79,21 @@
 #include "export.hh"
 
 #define FAUSTVERSION "2.0.a12"
+
+#ifdef _WIN32
+#include <windows.h>
+
+char *realpath(const char *path, char resolved_path[MAX_PATH])
+{
+	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0))
+		return resolved_path;
+	else
+		return "";
+}
+
+#define PATH_MAX MAX_PATH
+
+#endif
 
 // Same as libfaust.h 
 typedef struct LLVMResult {

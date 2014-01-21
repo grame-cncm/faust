@@ -25,11 +25,16 @@
 #include <math.h>
 #include <iostream>
 
-#ifdef WIN32
+#ifdef _WIN32
 inline double log2(double e) { return log(e)/log(double(2)); }
 #endif
 
 using namespace std;
+
+inline double min(double x, double y) { return (x<y) ? x:y; }
+inline double max(double x, double y) { return (x>y) ? x:y; }
+inline double min4(double a, double b, double c, double d)	{ return min(min(a,b),min(c,d)); }
+inline double max4(double a, double b, double c, double d)	{ return max(max(a,b),max(c,d)); }
 
 struct interval : public virtual Garbageable
 {
@@ -54,10 +59,6 @@ inline ostream& operator<<(ostream& dst, const interval& i)
 	}
 }
 
-inline double min(double x, double y) { return (x<y) ? x:y; }
-inline double max(double x, double y) { return (x>y) ? x:y; }
-inline double min4(double a, double b, double c, double d)	{ return min(min(a,b),min(c,d)); }
-inline double max4(double a, double b, double c, double d)	{ return max(max(a,b),max(c,d)); }
 
 inline interval reunion(const interval& x, const interval& y)
 {

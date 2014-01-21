@@ -62,7 +62,9 @@ void	getFaustPathname(char* str, unsigned int size);
 #define FAUST_PATH_MAX 1024
 
 #if !defined(__MINGW32__)
-	//double	remainder(double numerator, double denominator);
+#if (_MSC_VER<=1700)
+	double	remainder(double numerator, double denominator);
+#endif
 	#define S_IRWXU 0
 #endif
 

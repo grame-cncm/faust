@@ -69,7 +69,7 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
 {
     int argc1 = argc + 3;
- 	const char* argv1[argc1];
+ 	const char* argv1[32];
     argv1[0] = "faust";
 	argv1[1] = "-lang";
 	argv1[2] = "llvm";
@@ -632,7 +632,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, i
                         std::string& error_msg, int opt_level)
 {
     int argc1 = argc + 1;
- 	const char* argv1[argc1];
+ 	const char* argv1[32];
 	  
     // Add 'filename" as first argument and copy others ones
     argv1[0] = filename.c_str();
@@ -824,7 +824,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
                         char* error_msg, int opt_level)
 {
     int argc1 = argc + 1;
- 	const char* argv1[argc1];
+ 	const char* argv1[32];
   
     // Add 'filename" as first argument and copy others ones
     argv1[0] = filename;
