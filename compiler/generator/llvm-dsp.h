@@ -35,7 +35,7 @@
   @{
  */
 
-typedef struct llvm_dsp_factory {};
+struct llvm_dsp_factory;
 
 /**
  * Create a Faust DSP factory from a DSP source code. The source code is either given :
@@ -52,13 +52,55 @@ typedef struct llvm_dsp_factory {};
  * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
+ * @deprecated Please use createDSPFactoryFromFile() or createDSPFactoryFromString().
+ *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-
 llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
-                        const std::string& input, const std::string& target, 
-                        std::string& error_msg, int opt_level = 3);
+                                    const std::string& library_path, const std::string& draw_path, const std::string& name, 
+                                    const std::string& input, const std::string& target, 
+                                    std::string& error_msg, int opt_level = 3);
+
+/**
+ * Create a Faust DSP factory from a DSP source code. The source code is either given :
+    - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
+    - as a string (in which case the 'name' and 'input' parameter have to be used).
+ * 
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param library_path - Faust library path : if null, the default localization mechanism will be used
+ * @param draw_path - the place where to put output files like SVG, ps, dot...
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
+ * @param error_msg - the error string to be filled
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ *
+ * @return a valid DSP factory on success, otherwise a null pointer.
+ */ 
+llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], 
+                                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                                        std::string& error_msg, int opt_level = 3);
+
+/**
+ * Create a Faust DSP factory from a DSP source code. The source code is either given :
+    - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
+    - as a string (in which case the 'name' and 'input' parameter have to be used).
+ * 
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param library_path - Faust library path : if null, the default localization mechanism will be used
+ * @param draw_path - the place where to put output files like SVG, ps, dot...
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
+ * @param error_msg - the error string to be filled
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ *
+ * @return a valid DSP factory on success, otherwise a null pointer.
+ */ 
+llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
+                                            const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                                            std::string& error_msg, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory.

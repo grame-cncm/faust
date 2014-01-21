@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
     
     UI* interface = new GTKUI(argv[0], &argc, &argv);
     
-    char error[256];
+    string error;
     llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 5);
     assert(factory);
     llvm_dsp* dsp = createDSPInstance(factory);

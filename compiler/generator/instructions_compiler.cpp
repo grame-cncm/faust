@@ -384,6 +384,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
 	else if ( isSigInt(sig, &i) ) 					{ return generateIntNumber(sig, i); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateRealNumber(sig, r); }
+    else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput(sig, i); }
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay(sig, x, y); }
@@ -1550,4 +1551,57 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 	} else {
 	     throw faustexception("ERROR in generating widget code\n");
 	}
+}
+
+/**
+ * Generate code for a waveform. The waveform will be declared as a static field.
+ * The name of the waveform is returned in vname and its size in size.
+ */
+void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
+{
+   // computes C type and unique name for the waveform
+
+    Typed::VarType ctype;
+    getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
+
+    size = sig->arity();
+    
+    // Declares the Waveform
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size);
+    ValueInst* num_array = InstBuilder::genArrayNumInst(ctype, size);
+    
+    for (int k = 0; k < size; k++) {
+        double r;
+        int i;
+        if (isSigInt(sig->branch(k), &i)) {			
+            dynamic_cast<IntArrayNumInst*>(num_array)->setValue(k, i);
+        } else if (isSigReal(sig->branch(k), &r)) {
+            FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+            DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+            if (float_array) {
+                float_array->setValue(k, r);
+            } else if (double_array) {
+                double_array->setValue(k, r);
+            }
+        }
+    }
+    
+    pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    string idx = subst("$0_idx", vname);
+    pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
+    pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));
+}
+
+ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
+{
+    string vname;
+    int size;
+
+    declareWaveform(sig, vname, size);
+    
+    string idx = subst("$0_idx", vname);
+    FIRIndex index = (FIRIndex(1) + InstBuilder::genLoadStructVar(idx)) % InstBuilder::genIntNumInst(size);
+    pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index));
+    return InstBuilder::genLoadArrayStaticStructVar(vname, InstBuilder::genLoadStructVar(idx));
+   
 }

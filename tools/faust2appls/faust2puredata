@@ -89,7 +89,7 @@ for p in $FILES; do
     # compile faust to c++ and xml
     faust -xml "$SRCDIR/$f" -o /dev/null;
     mv "$SRCDIR/$f.xml" $TMP/
-    faust -a puredata.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+    faust -i -a puredata.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (

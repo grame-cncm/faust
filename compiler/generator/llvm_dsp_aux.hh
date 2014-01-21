@@ -186,8 +186,16 @@ class llvm_dsp_aux : public dsp {
 // Public C++ interface
 
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
-                        const std::string& library_path, const std::string& draw_path,  const std::string& name, 
+                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
+                        std::string& error_msg, int opt_level = 3);
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], 
+                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                        std::string& error_msg, int opt_level = 3);
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
+                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
                         std::string& error_msg, int opt_level = 3);
                         
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
@@ -250,6 +258,14 @@ extern "C" {
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
                         const char* library_path, const char* draw_path, const char* name, 
                         const char* input, const char* target, 
+                        char* error_msg, int opt_level);
+
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* target, 
+                        char* error_msg, int opt_level);
+
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
+                        const char* library_path, const char* draw_path, const char* target, 
                         char* error_msg, int opt_level);
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);

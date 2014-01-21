@@ -33,11 +33,11 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, string faustContent, int opt_level, int factoryIndex, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(argc, argv, faustContent, opt_level, factoryIndex, answer))
+    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryIndex, answer))
         return newFactory;
     
     else
@@ -52,9 +52,14 @@ void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, string faustContent, int opt_level, int factoryIndex, string& answer){
+bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex, string& answer){
     
-    fLLVMFactory = createDSPFactory(argc, argv, "", "", "", faustContent, "", answer, opt_level);
+    printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
+    printf("AGRC = %i | argv = %p\n", argc, argv);
+    
+    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", "", "", answer, opt_level);
+    
+    printf("ERROR = %s\n", answer.c_str());
     
     if(fLLVMFactory){
         
@@ -77,7 +82,7 @@ bool slave_dsp_factory::init(int argc, const char** argv, string faustContent, i
         json.numOutput(dsp->getNumOutputs());
         json.declare("indexFactory", s.str().c_str());
         
-        //        printf("JSON = %s\n", json.json());
+        printf("JSON = %s\n", json.json().c_str());
         
         answer = json.json();
         
@@ -156,6 +161,8 @@ Server::~Server(){}
 //---- START/STOP SERVER
 bool Server::start(int port){
     
+    fPort = port;
+    
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
                                NULL, 
@@ -166,8 +173,8 @@ bool Server::start(int port){
 
     if(fDaemon){
         
-        DNSServiceRef*      fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
-        registration(fRegistrationService);
+        fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
+        registration();
         return true;
     }
     else
@@ -177,7 +184,14 @@ bool Server::start(int port){
 void Server::stop(){
    
     if (fDaemon) {
-//        DNSServiceRefDeallocate(fRegistrationService);
+        
+        string nameService;
+        
+        nameService = searchIP();
+        nameService += ".RemoteProcessing";
+        
+        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL );
+        DNSServiceRefDeallocate(*fRegistrationService);
         MHD_stop_daemon(fDaemon);
     }
     
@@ -399,6 +413,9 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     if (size > 0) {
         
+        if(strcmp(key,"name") ==0 )
+            con_info->fNameApp+=data;
+        
         if(strcmp(key,"data") ==0 )
             con_info->fFaustCode+=data;        
             
@@ -473,7 +490,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
     for(int i=0; i<con_info->fNumCompilOptions; i++)
         compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
     
-    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
+    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
     
     if(realFactory){
     
@@ -514,7 +531,7 @@ bool Server::createInstance(connection_info_struct* con_info){
 
 string searchIP(){
     
-    char host_name[32];
+    char host_name[256];
     gethostname(host_name, sizeof(host_name));
     
     struct hostent* host = gethostbyname(host_name);
@@ -524,25 +541,33 @@ string searchIP(){
         for(int i=0; host->h_addr_list[i] != 0; i++){
             struct in_addr addr;
             memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            
             return string(inet_ntoa(addr));
         }
     }
-    else
-        return string("");
+    
+    return "";
 }
 
 // Register server as available
-bool Server::registration(DNSServiceRef* reg){
+void Server::registration(){
     
     printf("SERVICE REGISTRATION\n");
     
-    string nameService;
+    char host_name[256];
+    gethostname(host_name, sizeof(host_name));
     
-    nameService = searchIP();
-    nameService += ".RemoteProcessing";
+    stringstream p;
+    p<<fPort;
     
-    if(DNSServiceRegister(reg, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
+    string nameService = "FaustCompiler._";
+    
+    nameService += searchIP();
+    nameService += ":";
+    nameService += p.str();
+    nameService += "._";
+    nameService += host_name;
+    
+    if(DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
         printf("ERROR DURING REGISTRATION\n");
 }
 

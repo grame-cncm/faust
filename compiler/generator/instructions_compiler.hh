@@ -147,6 +147,7 @@ class InstructionsCompiler : public virtual Garbageable {
         virtual ValueInst* generateBinOp (Tree sig, int opcode, Tree arg1, Tree arg2);
 
         virtual ValueInst* generateFFun(Tree sig, Tree ff, Tree largs);
+        virtual ValueInst* generateWaveform(Tree sig);
 
         virtual ValueInst* generateInput(Tree sig, int idx);
 
@@ -199,8 +200,9 @@ class InstructionsCompiler : public virtual Garbageable {
 
         Tree prepare(Tree LS);
         Tree prepare2(Tree L0);
+        
+        void declareWaveform(Tree sig, string& vname, int& size);
 
 };
-
 
 #endif

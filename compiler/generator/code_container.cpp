@@ -42,7 +42,7 @@ void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
 }
 
 CodeContainer::CodeContainer()
-    :fNumInputs(-1), fNumOutputs(-1),
+    :fParentContainer(0), fNumInputs(-1), fNumOutputs(-1),
     fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
     fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
     fDeclarationInstructions(InstBuilder::genBlockInst()),

@@ -177,8 +177,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* instance)
 {
-    char input_name[64];
-    sprintf(input_name, "faustgen-%d", fFaustNumber);
+    char name_app[64];
+    sprintf(name_app, "faustgen-%d", fFaustNumber);
     
     // To be sure we get a correct SVG diagram...
     remove_svg();
@@ -194,7 +194,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactory(fCompileOptions.size(), argv, fLibraryPath, fDrawPath, string(input_name), string(*fSourceCode), getTarget(), error, LLVM_OPTIMIZATION);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, fLibraryPath, fDrawPath, getTarget(), error, LLVM_OPTIMIZATION);
     
     if (factory) {
         return factory;
@@ -817,24 +817,10 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     create_dsp(true);
 }
 
-#ifdef NETJACK
-void faustgen::create_netjack()
-{
-    
-}
-
-void faustgen::destroy_netjack()
-{
-    
-}
-#endif
-
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen() 
 { 
-    destroy_netjack();
-    
-    free_dsp();
+     free_dsp();
      
     if (fEditor) {
         object_free(fEditor);
@@ -965,12 +951,6 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv) 
 { 
     fDSPfactory->compileoptions(inlet, s, argc, argv);
-}
-
-void faustgen::netjack(long inlet, t_symbol* s, long argc, t_atom* argv) 
-{ 
-    destroy_netjack();
-    create_netjack();
 }
 
 void faustgen::read(long inlet, t_symbol* s)
@@ -1260,10 +1240,6 @@ int main(void)
     
     // Process the "compileoptions" message, to add optional compilation possibilities
     REGISTER_METHOD_GIMME(faustgen, compileoptions);
-    
-#ifdef NETJACK    
-    REGISTER_METHOD_GIMME(faustgen, netjack);
-#endif
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

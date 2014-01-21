@@ -573,7 +573,7 @@ static Type infereWaveformType (Tree wfsig, Tree env)
     }
 
     lo = hi = tree2float(wfsig->branch(0));
-    iflag = isInt(wfsig->branch(0));
+    iflag = isInt(wfsig->branch(0)->node());
     T(wfsig->branch(0), env);
 
     for (int i = 1; i < n; i++)  {
@@ -586,7 +586,7 @@ static Type infereWaveformType (Tree wfsig, Tree env)
         } else if (f > hi) {
             hi = f;
         }
-        iflag &= isInt(v);
+        iflag &= isInt(v->node());
     }
 
     return makeSimpleType((iflag)?kInt:kReal, kSamp, kComp, kScal, kNum, interval(lo,hi));

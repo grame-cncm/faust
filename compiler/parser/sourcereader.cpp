@@ -40,10 +40,11 @@
 #include "enrobage.hh"
 #include "ppbox.hh"
 #include "exception.hh"
-#include "faustlexer.cxx"
 #include "global.hh"
 
 using namespace std;
+
+int yylex_destroy (void );
 
 /****************************************************************
  						Parser variables
@@ -208,8 +209,8 @@ Tree SourceReader::parsefile(string fname)
     yylineno = 1;
   	yyfilename = fname.c_str();
     
-    if (strstr(yyfilename,"://") > 0) {
-         // We are requested to parse an URL file
+    if (strstr(yyfilename, "://") != NULL) {
+        // We are requested to parse an URL file
         char* fileBuf = 0;
         if (http_fetch(yyfilename, &fileBuf) == -1) {
             stringstream error;

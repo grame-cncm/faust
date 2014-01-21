@@ -31,14 +31,17 @@ dynamic :
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
 
+remote :
+	$(MAKE) -C embedded/faustremote/RemoteServer all
+	$(MAKE) -C embedded/faustremote/RemoteClient all
+
 win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
-converter:
+converter: architecture/faust-waveform-converter.cpp
 
 	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
-
 
 .PHONY: clean depend install uninstall dist parser help
 
@@ -63,6 +66,8 @@ clean :
 	$(MAKE) -C examples clean
 	$(MAKE) -C architecture/osclib clean
 	$(MAKE) -C architecture/httpdlib/src clean
+	$(MAKE) -C embedded/faustremote/RemoteServer clean
+	$(MAKE) -C embedded/faustremote/RemoteClient clean
 
 depend :
 	$(MAKE) -C compiler -f $(MAKEFILE) depend
@@ -122,7 +127,10 @@ install :
 	make -C tools/faust2appls install
 	# install sound converter
 	([ -e faust-waveform-converter ] && cp faust-waveform-converter $(prefix)/bin) || echo faust-waveform-converter not available	
-
+	#install faustremote
+	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  /usr/local/lib/faust/) || echo remote not compiled
+	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  /usr/local/bin) || echo remote not compiled
+	cp embedded/faustremote/RemoteClient/remote-dsp.h  /usr/local/include/faust/
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/

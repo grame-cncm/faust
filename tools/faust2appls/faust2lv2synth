@@ -78,7 +78,7 @@ CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST
 # Create the temp directory and the bundle directory inside it.
 mkdir -p $tmpdir/$lv2name
 # Compile the Faust module.
-faust -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
+faust -i -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
 $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
 # Generate the manifest.
 if [ -n "$dyn_manifest" ]; then

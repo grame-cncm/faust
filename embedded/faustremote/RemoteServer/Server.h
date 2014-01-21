@@ -47,6 +47,7 @@ struct connection_info_struct {
     std::string         fAnswerstring;      // the answer sent to the user after upload
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
+    string              fNameApp;
     string              fFaustCode;
     int                 fNumCompilOptions;
     int                 fIndicator;
@@ -96,12 +97,12 @@ struct slave_dsp_factory{
     
     bool delete_Factory();
     slave_dsp_factory* clone();
-    bool init(int argc, const char** argv, string faustContent, int opt_level, int factoryIndex,  string& answer);
+    bool init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex,  string& answer);
     
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, string faustContent, int opt_level, int factoryIndex,  string& answer);
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex,  string& answer);
 void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
     
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
@@ -124,7 +125,6 @@ struct slave_dsp{
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
     Server*         fServer;
-    
     
     slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
     ~slave_dsp();
@@ -156,6 +156,9 @@ public :
         
     struct          MHD_Daemon* fDaemon; //Running http daemon
         
+    DNSServiceRef*      fRegistrationService;
+    int             fPort; //Port on which server started
+    
 //  Start server on specified port 
     bool            start(int port = 7777);
     void            stop();
@@ -195,7 +198,7 @@ public :
     bool                createInstance(connection_info_struct* con_info);
     
 // Register Service as Available
-    bool            registration(DNSServiceRef* reg);
+    void            registration();
 };
     
 #endif
