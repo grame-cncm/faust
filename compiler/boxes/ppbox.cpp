@@ -36,9 +36,11 @@ const char * prim0name(CTree *(*ptr) ())
 
 const char * prim1name(CTree *(*ptr) (CTree *))
 {
-    if (ptr == sigDelay1) return "mem";
-    if (ptr == sigIntCast) return "int";
-    if (ptr == sigFloatCast) return "float";
+    if (ptr == sigDelay1)       return "mem";
+    if (ptr == sigIntCast)      return "int";
+    if (ptr == sigFloatCast)    return "float";
+    if (ptr == sigSerialize)    return "serialize";
+
     return "prim1???";
 }
 
@@ -68,7 +70,16 @@ const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
     if (ptr == sigPrefix) 	return "prefix";
     if (ptr == sigAttach) 	return "attach";
 
-    return "prim2???";
+    if (ptr == sigVectorize)    return "vectorize";
+    if (ptr == sigVectorAt) 	return "[]";
+    if (ptr == sigConcat)       return "#";
+
+    if (ptr == sigUpSample)     return "up";
+    if (ptr == sigDownSample)   return "down";
+
+
+
+	return "prim2???";
 }
 
 const char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *))

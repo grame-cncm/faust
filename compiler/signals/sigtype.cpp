@@ -51,6 +51,8 @@ ostream& operator<<(ostream& dst, const TableType& t) 	{ return  t.print(dst); }
 		
 ostream& operator<<(ostream& dst, const TupletType& t) 	{ return  t.print(dst); }
 
+ostream& operator<<(ostream& dst, const VectorType& t) 	{ return  t.print(dst); }
+
 
 //------------------------------------------------------------------------------------
 //
@@ -85,7 +87,7 @@ ostream& TableType::print(ostream& dst) const
 	fContent->print(dst);
 	return dst << ')'; 
 }
-	
+
 
 /**
  *  true when type is maximal (and therefore can't change depending of hypothesis)
@@ -104,17 +106,28 @@ bool    TableType::isMaximal() const
  */
 ostream& TupletType::print(ostream& dst) const
 {
-	dst << "KB?S"[variability()]
-		<< "CI?E"[computability()] 
-		<< " " << fInterval
-		<< " : {"; 
-	string sep = "";
-	for (unsigned int i = 0; i < fComponents.size(); i++, sep="*") {
-		dst << sep;
-		fComponents[i]->print(dst);
-	} 
-	dst << '}';
-	return  dst; 
+    dst << "KB?S"[variability()]
+        << "CI?E"[computability()]
+        << " " << fInterval
+        << " : {";
+    string sep = "";
+    for (unsigned int i = 0; i < fComponents.size(); i++, sep="*") {
+        dst << sep;
+        fComponents[i]->print(dst);
+    }
+    dst << '}';
+    return  dst;
+}
+
+
+
+/**
+ * Print the content of a vector type on a stream
+ */
+ostream& VectorType::print(ostream& dst) const
+{
+    dst << "vector[" << fSize << "," << fContent << "]";
+    return dst;
 }
 
 
@@ -191,7 +204,15 @@ Type operator| ( const Type& t1, const Type& t2)
 		return new TupletType( v );
 		
 	} else {
-		
+
+        vector<int> D1, D2, D3;
+        Type  b1 = t1->dimensions(D1);
+        Type  b2 = t2->dimensions(D2);
+        if (maxdimensions(D1, D2, D3)) {
+            Type b3 = b1|b2;
+            return makeVectorType(b3, D3);
+        }
+
 		cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
 		exit(1);
 		return 0;
@@ -202,7 +223,8 @@ bool operator== ( const Type& t1, const Type& t2)
 {
 	SimpleType 	*st1, *st2;
 	TableType	*tt1, *tt2;
-	TupletType	*nt1, *nt2;
+    TupletType	*nt1, *nt2;
+    VectorType	*vt1, *vt2;
 
 	if (t1->variability() != t2->variability()) 	return false;
 	if (t1->computability() != t2->computability()) return false;
@@ -228,6 +250,17 @@ bool operator== ( const Type& t1, const Type& t2)
 			return false;
 		}
 	}
+
+    // compare vector types
+    if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
+        if (vt1->size() == vt2->size()) {
+            return vt1->content() == vt2->content();
+        } else {
+            return false;
+        }
+    }
+
+    // types are different
 	return false;
 }
 		
@@ -267,6 +300,7 @@ Type operator* 	(const Type& t1, const Type& t2)
 SimpleType*	isSimpleType(AudioType* t)	{ return dynamic_cast<SimpleType*>(t); }
 TableType* 	isTableType(AudioType* t)	{ return dynamic_cast<TableType*>(t);  }
 TupletType*	isTupletType(AudioType* t)	{ return dynamic_cast<TupletType*>(t); }
+VectorType* isVectorType(AudioType* t)	{ return dynamic_cast<VectorType*>(t); }
 
 
 
@@ -359,10 +393,12 @@ property<AudioType*> MemoizedTypes;
 Sym SIMPLETYPE = symbol ("SimpleType");
 Sym TABLETYPE = symbol ("TableType");
 Sym TUPLETTYPE = symbol ("TupletType");
+Sym VECTORTYPE = symbol ("VectorType");
 
 static Tree  codeSimpleType(SimpleType* st);
 static Tree  codeTableType(TableType* st);
 static Tree  codeTupletType(TupletType* st);
+static Tree  codeVectorType(VectorType* st);
 
 
 /**
@@ -373,9 +409,10 @@ static Tree  codeTupletType(TupletType* st);
  */
 Tree codeAudioType(AudioType* t)
 {
-    SimpleType 	*st;
-    TableType   *tt;
-    TupletType	*nt;
+    SimpleType*     st;
+    TableType*      tt;
+    TupletType*     nt;
+    VectorType*     vt;
 
     Tree        r;
 
@@ -387,6 +424,8 @@ Tree codeAudioType(AudioType* t)
         r = codeTableType(tt);
     } else if ((nt = isTupletType(t))) {
         r = codeTupletType(nt);
+    } else if ((vt = isVectorType(t))) {
+        r = codeVectorType(vt);
     } else {
         cerr << "ERROR in codeAudioType() : invalide pointer " << t << endl;
         exit(1);
@@ -544,4 +583,45 @@ AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, 
         return t;
     }
 
+}
+
+/**
+ * Code a vector type as a tree in order to benefit of memoization
+ */
+
+static Tree codeVectorType(VectorType* vt)
+{
+    assert(vt);
+    //cerr << "codeVectorType(" << *vt << ")" << endl;
+    int i = vt->size();
+    return tree(VECTORTYPE, tree(i), codeAudioType(vt->content()));
+}
+
+Type   makeVectorType(const Type& b, const vector<int>& dim)
+{
+    Type r = b;
+    for (unsigned   int i=0; i<dim.size(); i++) r = new VectorType(dim[i],r);
+    return r;
+}
+
+
+/**
+ * Returns true if D1 and D2 are compatible (one is the prefix of the other)).
+ * In this case D3 contains the longuest vector D1 or D2
+ */
+bool maxdimensions(const vector<int>& D1, const vector<int>& D2, vector<int>& D3)
+{
+    unsigned int n1 = D1.size();
+    unsigned int n2 = D2.size();
+    unsigned int i = 0;
+    while ( (i<n1) && (i<n2) && (D1[i]==D2[i]) ) i++;
+    if (i==n1) {
+        D3=D2;
+        return true;
+    } else if (i==n2) {
+        D3=D1;
+        return true;
+    } else {
+        return false;
+    }
 }

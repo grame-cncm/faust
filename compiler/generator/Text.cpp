@@ -21,6 +21,7 @@
 
 
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -189,10 +190,14 @@ string T(double n)
 {
     char    c[64];
     int     p = 1;
-
-    do { snprintf(c, 32, "%.*g", p++, n); } while (atof(c) != n);
-    ensureFloat(c);
-    return string(c)+inumix();
+    if (isfinite(n)) {
+        do { snprintf(c, 32, "%.*g", p++, n); } while (atof(c) != n);
+        ensureFloat(c);
+        return string(c)+inumix();
+    } else {
+        snprintf(c, 32, "%g", n);
+        return string(c);
+    }
 }
 
 

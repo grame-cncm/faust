@@ -164,6 +164,10 @@ Tree setUnion (Tree l1, Tree l2);
 Tree setIntersection (Tree l1, Tree l2);
 Tree setDifference (Tree l1, Tree l2);
 
+// functions as set of pairs key x value
+Tree addFun(Tree k, Tree v, Tree l);
+bool getFun(Tree k, Tree& v, Tree l);
+
 // Pairs
 
 //inline Tree pair (Tree t1, Tree t2) { return cons(t1,t2);  }

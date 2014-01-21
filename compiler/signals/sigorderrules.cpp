@@ -166,8 +166,16 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigSelect2(sig,sel,s1,s2)) 		return 3;
 		
-	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	return 3;	
-	
+    else if (isSigSelect3(sig,sel,s1,s2,s3)) 	return 3;
+
+    else if (isSigVectorize(sig,s1,s2))         return 3;
+    else if (isSigSerialize(sig,s1))            return 3;
+    else if (isSigVectorAt(sig,s1,s2))          return 3;
+    else if (isSigConcat(sig,s1,s2))            return 3;
+
+    else if (isSigUpSample(sig,s1,s2))          return 3;
+    else if (isSigDownSample(sig,s1,s2))        return 3;
+
 	else if (isList(sig)) 
 	{
 		int r = 0;

@@ -27,7 +27,7 @@
 #include <utility>
 #include "compile.hh"
 #include "sigtyperules.hh"
-#include "sigtyperules.hh"
+#include "sigraterules.hh"
 #include "occurences.hh"
 #include "property.hh"
 
@@ -50,12 +50,14 @@ class ScalarCompiler : public Compiler
 	OccMarkup					fOccMarkup;
     bool						fHasIota;
 
+    RateInferrer*               fRates;
 
   public:
 
 	ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs) :
 		Compiler(name,super,numInputs,numOutputs,false),
-        fHasIota(false)
+        fHasIota(false),
+        fRates(0)
 	{}
 	
 	ScalarCompiler ( Klass* k) : 
@@ -147,6 +149,10 @@ class ScalarCompiler : public Compiler
     int             pow2limit(int x);
 
     void            declareWaveform(Tree sig, string& vname, int& size);
+    
+    string          generateDownSample(Tree sig, Tree w, Tree x);
+    string          generateUpSample(Tree sig, Tree w, Tree x);
+
 
 
 

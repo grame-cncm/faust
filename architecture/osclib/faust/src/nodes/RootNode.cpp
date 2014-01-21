@@ -21,6 +21,7 @@
 
 */
 
+#include <unistd.h>
 #include <string>
 #include <sstream>
 #include <unistd.h>
