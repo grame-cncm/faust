@@ -24,7 +24,11 @@
 
 #include "instructions.hh"
 
+#ifdef _WIN32
+bool sortArrayDeclarations(const StatementInst* & a, const StatementInst* & b);
+#else
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
+#endif
 
 // Change stack access for struct access
 struct Stack2StructAnalyser : public DispatchVisitor {
