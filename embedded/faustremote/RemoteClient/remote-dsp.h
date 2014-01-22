@@ -117,6 +117,7 @@ class remote_dsp : public dsp{
  *                  --NJ_compression ==> default is -1
  *                  --NJ_latency ==> default is 2
  *                  --NJ_mtu ==> default is 1500
+ *                  --NJ_partial ==> default is 'false'
  * @param samplingRate - NetJack slave sampling Rate
  * @param bufferSize - NetJack slave buffer Size
  * @param error - the error string to be filled
