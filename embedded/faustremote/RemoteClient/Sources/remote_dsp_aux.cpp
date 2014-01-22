@@ -84,10 +84,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         
         CURLcode res = curl_easy_perform(curl);
         
-        if(res != CURLE_OK)
+        if(res != CURLE_OK) {
             error =  curl_easy_strerror(res);
-
-        else{        
+        } else {        
             
             //Response code of the http transaction
             long respcode;
@@ -172,8 +171,7 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
     
     if(dsp->init(argc, argv, samplingRate, bufferSize, error)){
         return dsp; 
-    }
-    else{
+    } else {
         delete dsp;
         return NULL;
     }
@@ -210,10 +208,9 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile( const string& filenam
     
     int pos = base.find(".dsp");
     
-    if(pos != string::npos){
+    if (pos != string::npos) {
         name = base.substr(0, pos);
-    }
-    else{
+    } else {
         error = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     }
@@ -227,9 +224,9 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     remote_dsp_factory* factory = new remote_dsp_factory();
     
-    if(factory->init(argc, argv, ipServer, portServer, name_app, dsp_content, error, opt_level))
+    if(factory->init(argc, argv, ipServer, portServer, name_app, dsp_content, error, opt_level)) {
         return factory;
-    else{
+    } else {
         delete factory;
         return NULL;
     }
@@ -281,8 +278,9 @@ void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buff
 const char*  remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
 	
     for (int i = 0; i<argc; i++){
-        if (strcmp(argv[i], key) == 0) 
+        if (strcmp(argv[i], key) == 0) {
             return argv[i+1];   
+        }
     }
 	return defaultValue;
 }
@@ -317,8 +315,6 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         
 //        Meta Data declaration for entry items
         if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close")!=0){
-            
-            
             
             fInControl[counterIn] = init;
             isInItem = true;
@@ -388,29 +384,35 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
     setlocale(LC_ALL, tmp_local);
 }
 
+void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
+{
+    fInputs[0] = fInControl;
+        
+    for(int j=0; j<getNumInputs();j++) {
+        fInputs[j+1] = &input[j][offset];
+    }
+    
+    fOutputs[0] = fOutControl;
+    
+    for(int j=0; j<getNumOutputs();j++) {
+        fOutputs[j+1] = &output[j][offset];
+    }
+}
+
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
     int numberOfCycles = count/fBufferSize;
-
-//      If the count > fBufferSize : the cycle is divided in n number of netjack cycles
-    for(int i=0; i<numberOfCycles; i++){
-        
-        fInputs[0] = fInControl;
-        
+    int lastCycle = count%fBufferSize;
+    int res;
+   
+    // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
+    int i = 0;
+    
+    for (i=0; i<numberOfCycles; i++) {
+    
         int offset = i*fBufferSize;
-        
-//        printf("OFFSET = %i\n", offset);
-        
-        for(int i=0; i<getNumInputs();i++)
-            fInputs[i+1] = &input[i][offset];
-        
-        fOutputs[0] = fOutControl;
-        
-        for(int i=0; i<getNumOutputs();i++)
-            fOutputs[i+1] = &output[i][offset];
-        
-        int res;
+        setupBuffers(input, output, offset);
         
         if ((res = jack_net_master_send(fNetJack, getNumInputs()+1, fInputs, 0, NULL)) < 0){
             fillBufferWithZeros(getNumOutputs()+1, fBufferSize, fOutputs);
@@ -419,6 +421,21 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         if ((res = jack_net_master_recv(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL)) < 0) {
             printf("jack_net_master_recv failure %d\n", res);
             fillBufferWithZeros(getNumOutputs()+1, fBufferSize, fOutputs);
+        }
+    }
+    
+    if (lastCycle > 0) {
+    
+        int offset = i*fBufferSize;
+        setupBuffers(input, output, offset);
+        
+        if ((res = jack_net_master_send_slice(fNetJack, getNumInputs()+1, fInputs, 0, NULL, lastCycle)) < 0){
+            fillBufferWithZeros(getNumOutputs()+1, lastCycle, fOutputs);
+            printf("jack_net_master_send_slice failure %d\n", res);
+        }
+        if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL, lastCycle)) < 0) {
+            printf("jack_net_master_recv_slice failure %d\n", res);
+            fillBufferWithZeros(getNumOutputs()+1, lastCycle, fOutputs);
         }
     }
 }
@@ -451,6 +468,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     
     memset(fOutControl, 0, sizeof(float)*buffer_size);
     memset(fInControl, 0, sizeof(float)*buffer_size);
+    
+    bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
     
 //  PREPARE URL TO SEND TO SERVER
     
@@ -511,7 +530,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
                 
                 printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
                 
-                jack_master_t request = { -1, -1, -1, -1, buffer_size, samplingFreq, "test_master", 5};
+                jack_master_t request = { -1, -1, -1, -1, buffer_size, samplingFreq, "test_master", 5, partial_cycle};
                 
                 jack_slave_t result;
                 
@@ -629,7 +648,7 @@ EXPORT bool        getRemoteMachinesAvailable(map<string, pair<string, int> >* m
         struct timeval tv = { 0, 100 };
         int result = select(0, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
         
-        if ( result < 0 ) 
+        if (result < 0) 
             printf("SELECT ERROR\n");
         
 //      Process Result will call the appriate callback binded to ServiceRef

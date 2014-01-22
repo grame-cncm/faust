@@ -120,7 +120,8 @@ class remote_dsp_aux : public dsp{
         FAUSTFLOAT*             fOutControl;        //Buffer containing the values of controls
         FAUSTFLOAT*             fInControl;         //Buffer containing the values of controls
 
-        void         fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer);
+        void fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer);
+        void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
     
 //    Command-line parsing fonction
         const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);  
@@ -158,15 +159,12 @@ public:
 
 EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
 
-EXPORT void        deleteRemoteDSPInstance(remote_dsp* dsp);
-
-    
-    static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
+EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
     
 EXPORT bool getRemoteMachinesAvailable(map<string, pair<string,int> >* machineList);
 
+static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
 
-    
 #ifdef __cplusplus
 }
 #endif
