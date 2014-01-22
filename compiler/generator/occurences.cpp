@@ -60,7 +60,7 @@ int Occurences::getMaxDelay() const
 //	Mark and retrieve occurences of subtrees of root
 //--------------------------------------------------
 
-void OccMarkup::mark(Tree root)
+void OccMarkup::markOccurences(Tree root)
 {
 	fRootTree = root;
 	fPropKey = tree(unique("OCCURENCES"));
@@ -78,7 +78,7 @@ void OccMarkup::mark(Tree root)
 	}
 }
 
-Occurences* OccMarkup::retrieve(Tree t)
+Occurences* OccMarkup::retrieveOccurences(Tree t)
 {
 	Occurences* p = getOcc(t);
 	if (p == 0) {

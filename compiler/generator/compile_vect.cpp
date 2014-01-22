@@ -205,7 +205,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
     string      vname, ctype;
     int         sharing = getSharingCount(sig);
     Type        t = getCertifiedSigType(sig);
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieveOccurences(sig);
     int         d = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -275,7 +275,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
  */
 bool VectorCompiler::needSeparateLoop(Tree sig)
 {
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieveOccurences(sig);
     Type        t = getCertifiedSigType(sig);
     int         c = getSharingCount(sig);
     bool        b;
@@ -348,7 +348,7 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
     CS(exp); // ensure exp is compiled to have a vector name
 
-    mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+    mxd = fOccMarkup.retrieveOccurences(exp)->getMaxDelay();
 
     if (! getVectorNameProperty(exp, vecname)) {
         cerr << "ERROR no vector name for " << ppsig(exp) << endl;

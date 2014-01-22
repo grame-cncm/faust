@@ -90,7 +90,7 @@ Tree DocCompiler::annotate(Tree LS)
 	recursivnessAnnotation(LS);		// Annotate LS with recursivness information
 	typeAnnotation(LS);				// Annotate LS with type information
 	sharingAnalysis(LS);			// annotate LS with sharing count
-  	fOccMarkup.mark(LS);			// annotate LS with occurences analysis
+  	fOccMarkup.markOccurences(LS);	// annotate LS with occurences analysis
 
   	return LS;
 }
@@ -275,7 +275,7 @@ void DocCompiler::printGCCall(Tree sig, const string& calledFunction)
 string DocCompiler::generateNumber (Tree sig, const string& exp)
 {
 	string		ctype, vname;
-	Occurences* o = fOccMarkup.retrieve(sig);
+	Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
@@ -295,7 +295,7 @@ string DocCompiler::generateNumber (Tree sig, const string& exp)
 string DocCompiler::generateFConst (Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
     if (o->getMaxDelay()>0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
@@ -320,7 +320,7 @@ string DocCompiler::generateFConst (Tree sig, const string& file, const string& 
 string DocCompiler::generateFVar (Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
     if (o->getMaxDelay()>0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
@@ -534,7 +534,7 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
 	string 		vname, ctype, code, vectorname;
 	
 	int 		sharing = getSharingCount(sig);
-	Occurences* o = fOccMarkup.retrieve(sig);
+	Occurences* o = fOccMarkup.retrieveOccurences(sig);
 	
 	// check reentrance
     if (getCompiledExpression(sig, code)) {
@@ -920,7 +920,7 @@ void DocCompiler::generateRec(Tree sig, Tree var, Tree le, int priority)
     // prepare each element of a recursive definition
     for (int i=0; i<N; i++) {
         Tree    e = sigProj(i,sig);     // recreate each recursive definition
-        if (fOccMarkup.retrieve(e)) {
+        if (fOccMarkup.retrieveOccurences(e)) {
             // this projection is used
             used[i] = true;
 			//cerr << "generateRec : used[" << i << "] = true" << endl;            
@@ -928,7 +928,7 @@ void DocCompiler::generateRec(Tree sig, Tree var, Tree le, int priority)
 			gDocNoticeFlagMap["recursigs"] = true;
 			//cerr << "- r : generateRec setVectorNameProperty : \"" << vname[i] << "\"" << endl;
 			setVectorNameProperty(e, vname[i]);
-            delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
+            delay[i] = fOccMarkup.retrieveOccurences(e)->getMaxDelay();
         } else {
             // this projection is not used therefore
             // we should not generate code for it

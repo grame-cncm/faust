@@ -4,6 +4,11 @@
 #include "tlib.hh"
 
 
+
+/**
+ * Statistics about the various occurences of a signal in a global root signal
+ */
+
 class Occurences
 {
 	const int 	fXVariability;		///< Extended Variability of the expression
@@ -39,8 +44,8 @@ class OccMarkup
 	void 		setOcc (Tree t, Occurences* occ);		///< set Occurences property of t
 
  public:
- 	void 		mark(Tree root);						///< start markup of root tree with new unique key
-	Occurences* retrieve(Tree t);						///< occurences of subtree t within root tree
+ 	void 		markOccurences(Tree root);						///< start markup of root tree with new unique key
+	Occurences* retrieveOccurences(Tree t);				///< occurences of subtree t within root tree
 };
 
 

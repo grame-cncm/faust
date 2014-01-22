@@ -116,14 +116,14 @@ startTiming("ScalarCompiler::prepare");
 		exit(0);
 	}
 
-	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
+	recursivnessAnnotation(L3);         // Annotate L3 with recursivness information
 
     startTiming("typeAnnotation");
         typeAnnotation(L3);				// Annotate L3 with type information
     endTiming("typeAnnotation");
 
-    sharingAnalysis(L3);			// annotate L3 with sharing count
-  	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
+    sharingAnalysis(L3);                // annotate L3 with sharing count
+  	fOccMarkup.markOccurences(L3);		// annotate L3 with occurences analysis
     //annotationStatistics();
 endTiming("ScalarCompiler::prepare");
 
@@ -141,7 +141,7 @@ startTiming("ScalarCompiler::prepare2");
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
 	typeAnnotation(L0);				// Annotate L0 with type information
 	sharingAnalysis(L0);			// annotate L0 with sharing count
- 	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
+ 	fOccMarkup.markOccurences(L0);	// annotate L0 with occurences analysis
 endTiming("ScalarCompiler::prepare2");
 
   	return L0;
@@ -330,7 +330,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 {
 	string		ctype, vname;
-	Occurences* o = fOccMarkup.retrieve(sig);
+	Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
@@ -348,7 +348,7 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 string ScalarCompiler::generateFConst (Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
     addIncludeFile(file);
 
@@ -456,7 +456,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
 	string 		vname, ctype, code;
 	int 		sharing = getSharingCount(sig);
-	Occurences* o = fOccMarkup.retrieve(sig);
+	Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
 	// check reentrance
     if (getCompiledExpression(sig, code)) {
@@ -874,12 +874,12 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     // prepare each element of a recursive definition
     for (int i=0; i<N; i++) {
         Tree    e = sigProj(i,sig);     // recreate each recursive definition
-        if (fOccMarkup.retrieve(e)) {
+        if (fOccMarkup.retrieveOccurences(e)) {
             // this projection is used
             used[i] = true;
             getTypedNames(getCertifiedSigType(e), "Rec", ctype[i],  vname[i]);
             setVectorNameProperty(e, vname[i]);
-            delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
+            delay[i] = fOccMarkup.retrieveOccurences(e)->getMaxDelay();
         } else {
             // this projection is not used therefore
             // we should not generate code for it
@@ -1146,7 +1146,7 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
     CS(exp); // ensure exp is compiled to have a vector name
 
-	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+	mxd = fOccMarkup.retrieveOccurences(exp)->getMaxDelay();
 
 	if (! getVectorNameProperty(exp, vecname)) {
         cerr << "No vector name for : " << ppsig(exp) << endl;
@@ -1196,7 +1196,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 {
     assert(mxd > 0);
 
-    //bool odocc = fOccMarkup.retrieve(sig)->hasOutDelayOccurences();
+    //bool odocc = fOccMarkup.retrieveOccurences(sig)->hasOutDelayOccurences();
 
     if (mxd < gMaxCopyDelay) {
 
