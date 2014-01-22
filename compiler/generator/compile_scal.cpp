@@ -123,11 +123,11 @@ startTiming("ScalarCompiler::prepare");
     endTiming("typeAnnotation");
 
     sharingAnalysis(L3);                // annotate L3 with sharing count
-  	fOccMarkup.markOccurences(L3);		// annotate L3 with occurences analysis
+    fRates = new RateInferrer(L3);      // annotate L3 with rates
+  	fOccMarkup.markOccurences(fRates, L3);		// annotate L3 with occurences analysis
     //annotationStatistics();
 endTiming("ScalarCompiler::prepare");
 
-    fRates = new RateInferrer(L3);
     if (gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
         sigToGraph(L3, dotfile, fRates);
@@ -138,10 +138,11 @@ endTiming("ScalarCompiler::prepare");
 Tree ScalarCompiler::prepare2(Tree L0)
 {
 startTiming("ScalarCompiler::prepare2");
-	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
-	typeAnnotation(L0);				// Annotate L0 with type information
-	sharingAnalysis(L0);			// annotate L0 with sharing count
- 	fOccMarkup.markOccurences(L0);	// annotate L0 with occurences analysis
+	recursivnessAnnotation(L0);                 // Annotate L0 with recursivness information
+	typeAnnotation(L0);                         // Annotate L0 with type information
+	sharingAnalysis(L0);                        // annotate L0 with sharing count
+    fRates = new RateInferrer(L0);              // annotate L0 with rates
+  	fOccMarkup.markOccurences(fRates, L0);		// annotate L0 with occurences analysis
 endTiming("ScalarCompiler::prepare2");
 
   	return L0;

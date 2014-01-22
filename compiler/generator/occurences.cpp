@@ -24,14 +24,15 @@ static int xVariability (int v, int r)
 //	Occurences methods
 //-------------------------------------------------
 
-Occurences::Occurences(int v, int r) : fXVariability(xVariability(v,r)) {
+Occurences::Occurences(int rate, int v, int r) : fXVariability(xVariability(v,r)) {
 	for (int i=0; i<4; i++) fOccurences[i]=0;
 	fMultiOcc = false;
 	fMaxDelay = 0;
 	fOutDelayOcc = false;
+    fMaxRate = fMinRate = rate;
 }
 
-Occurences* Occurences::incOccurences(int v, int r, int d) {
+Occurences* Occurences::incOccurences(int rate, int v, int r, int d) {
 	int ctxt = xVariability(v,r);
 	//assert (ctxt >= fXVariability);
 	fOccurences[ctxt] += 1;
@@ -44,6 +45,11 @@ Occurences* Occurences::incOccurences(int v, int r, int d) {
 		//cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
 		fMaxDelay = d;
 	}
+    
+    // update min and max rate usage
+         if (rate > fMaxRate) { fMaxRate = rate; }
+    else if (rate < fMinRate) { fMinRate = rate; }
+    
 	return this;
 }
 
@@ -56,25 +62,36 @@ int Occurences::getMaxDelay() const
 	return fMaxDelay;
 }
 
+int Occurences::getMaxRate() const
+{
+	return fMaxRate;
+}
+
+int Occurences::getMinRate() const
+{
+	return fMinRate;
+}
+
 //--------------------------------------------------
 //	Mark and retrieve occurences of subtrees of root
 //--------------------------------------------------
 
-void OccMarkup::markOccurences(Tree root)
+void OccMarkup::markOccurences(RateInferrer* R, Tree root)
 {
-	fRootTree = root;
-	fPropKey = tree(unique("OCCURENCES"));
+	fRootTree   = root;
+	fPropKey    = tree(unique("OCCURENCES"));
+    fRates      = R;
 
 	if (isList(root)) {
 		while (isList(root)) {
 			//incOcc(kSamp, 1, hd(root));
-			incOcc(nil, kSamp, 0, 0, hd(root));
+			incOcc(fRates->rate(hd(root)), kSamp, 0, 0, hd(root));
 			root = tl(root);
 		}
 		//cerr << "END OF LIST IS " << *root << endl;
 	} else {
 		//incOcc(kSamp, 1, root);
-		incOcc(nil, kSamp, 0, 0, root);
+		incOcc(fRates->rate(root), kSamp, 0, 0, root);
 	}
 }
 
@@ -92,7 +109,7 @@ Occurences* OccMarkup::retrieveOccurences(Tree t)
 // Increment the occurences of t within context v,r,d and proceed recursively
 //------------------------------------------------------------------------------
 
-void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
+void OccMarkup::incOcc(int rate, int v, int r, int d, Tree t)
 {
 	// Check if we have already visited this tree
 	Occurences* occ = getOcc(t);
@@ -102,8 +119,9 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 		Type	ty = getCertifiedSigType(t);
 		int v0 = ty->variability();
 		int r0 = getRecursivness(t);
+        int rt = fRates->rate(t);
 
-		occ = new Occurences(v0,r0);
+		occ = new Occurences(rate,v0,r0);
 		setOcc(t, occ);
 
 		// We mark the subtrees of t
@@ -112,30 +130,30 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 			Type g2 = getCertifiedSigType(y);
 			int d2 = checkDelayInterval(g2);
 			assert(d2>=0);
-			incOcc(env, v0, r0, d2, x);
-			incOcc(env, v0, r0, 0, y);
+			incOcc(rt, v0, r0, d2, x);
+			incOcc(rt, v0, r0, 0, y);
         } else if (isSigPrefix(t,y,x)) {
-            incOcc(env, v0, r0, 1, x);
-            incOcc(env, v0, r0, 0, y);
+            incOcc(rt, v0, r0, 1, x);
+            incOcc(rt, v0, r0, 0, y);
         } else if (isSigSelect3(t,c,y,x,z)) {
             // make a special case for select3 implemented with real if
             // because the c expression will be used twice in the C++
             // translation
-			incOcc(env, v0, r0, 0, c);
-			incOcc(env, v0, r0, 0, c);
-            incOcc(env, v0, r0, 0, x);
-            incOcc(env, v0, r0, 0, y);
-            incOcc(env, v0, r0, 0, z);
+			incOcc(rt, v0, r0, 0, c);
+			incOcc(rt, v0, r0, 0, c);
+            incOcc(rt, v0, r0, 0, x);
+            incOcc(rt, v0, r0, 0, y);
+            incOcc(rt, v0, r0, 0, z);
         } else {
 			vector<Tree> br;
 			int n = getSubSignals(t, br);
 			if (n>0 && ! isSigGen(t)) {
-				for (int i=0; i<n; i++) incOcc(env, v0, r0, 0, br[i]);
+				for (int i=0; i<n; i++) incOcc(rate, v0, r0, 0, br[i]);
 			}
 		}
 	}
 
-	occ->incOccurences(v,r,d);
+	occ->incOccurences(rate,v,r,d);
 
 }
 

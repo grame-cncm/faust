@@ -30,6 +30,7 @@
 #include <map>
 
 #include "sigtyperules.hh"
+#include "sigraterules.hh"
 #include "occurences.hh"
 #include "property.hh"
 #include "signals.hh"
@@ -58,6 +59,7 @@ class DocCompiler
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
 	OccMarkup					fOccMarkup;
+    RateInferrer*               fRates;
 	int							fPriority;	///< math priority context
 
 
