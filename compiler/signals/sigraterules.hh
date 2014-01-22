@@ -15,8 +15,8 @@ class RateInferrer
 
     int computeRate(Tree sig);
 public:
-    RateInferrer(Tree lsig);    ///< list of signals we want to inferre the rates
-    int rate(Tree sig);         ///< returns the rate of sig assuming that sig is a subexpression of lsig
+    RateInferrer(Tree lsig);        ///< list of signals we want to inferre the rates
+    int rate(Tree sig);             ///< returns the rate of sig assuming that sig is a subexpression of lsig
 
 };
 

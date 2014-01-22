@@ -70,11 +70,10 @@ static ostream&  printRateEnvironmentList(ostream& fout, Tree LE);
 static void doInferreRate(Tree sig, int* rate, Tree& renv);
 static void inferreRate(Tree sig, int* rate, Tree& E);
 static Tree addToMultiRates(Tree E1, Tree LE, bool& success);
-static Tree addRecursiveSignals(Tree lsig);
+static Tree listRecursiveSignals(Tree lsig);
 static Tree doAddRecursiveSignals(Tree sig, Tree accSig);
 static Tree flatRateEnvironmentList(Tree lre);
 
-static int computeRate(Tree sig, Tree renv, property<int>& rateProperty);
 
 
 
@@ -97,7 +96,7 @@ Tree inferreMultiRates(Tree lsig1, bool& success)
     vector<Tree>    envs;
     vector<int>     rates;
 
-    Tree lsig2 = addRecursiveSignals(lsig1);
+    Tree lsig2 = listRecursiveSignals(lsig1);
     TRACE(cerr << "lsig2 = " << *lsig2 << endl);
 
     while (isList(lsig2)) {
@@ -203,10 +202,10 @@ static int lcm(int a, int b)
 
 
 /**
- * Add to a list of existing signals lsig the list of recursive signals apprearing in lsig
+ * list all recursive signals apprearing in lsig
  */
 
-static Tree addRecursiveSignals(Tree lsig)
+static Tree listRecursiveSignals(Tree lsig)
 {
     CTree::startNewVisit();
 
@@ -218,6 +217,10 @@ static Tree addRecursiveSignals(Tree lsig)
     return lsig2;
 }
 
+
+/**
+ * partial list of recursive signals
+ */
 
 static Tree doAddRecursiveSignals(Tree sig, Tree accSig)
 {
@@ -765,7 +768,7 @@ RateInferrer::RateInferrer(Tree lsig)
     if (! (isList(lsig) | isNil(lsig))) {
         lsig = cons(lsig,nil);
     }
-    fFullList = addRecursiveSignals(lsig);
+    fFullList = listRecursiveSignals(lsig);
     fRateEnv = inferreMultiRates(lsig, fSuccess);
     if (fSuccess) {
         // nit the rate properties for the expressions in the environment
