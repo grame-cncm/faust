@@ -1087,7 +1087,7 @@ static Tree applyList (Tree fun, Tree larg)
 		
         if (    (outs == 1)
             &&
-                (  ( isBoxPrim2(fun, &p2) && (p2 != sigPrefix) )
+                (  ( isBoxPrim2(fun, &p2) && (p2 != sigPrefix) && (p2 != sigVectorize) )
                 || ( getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix() ) ) ) {
             // special case : /(3) ==> _,3 : /
             Tree larg2 = concat(nwires(ins-outs), larg);
