@@ -33,10 +33,10 @@ gate	= button("gate");			// 0/1
 // freq	= the desired frequency in Hz
 // mod	= the phase modulation signal, in radians
 
-tblosc(n,f,freq,mod)	= (1-d)*rdtable(n,waveform,i&(n-1)) +
-			  d*rdtable(n,waveform,(i+1)&(n-1))
+tblosc(n,f,freq,mod)	= (1-d)*rdtable(n,wave,i&(n-1)) +
+			  d*rdtable(n,wave,(i+1)&(n-1))
 with {
-	waveform 	= time*(2.0*PI)/n : f;
+	wave	 	= time*(2.0*PI)/n : f;
 	phase		= freq/SR : (+ : decimal) ~ _;
 	modphase	= decimal(phase+mod/(2*PI))*n;
 	i		= int(floor(modphase));

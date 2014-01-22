@@ -225,9 +225,14 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
                 outputs_tmp[i] = outputs[i+1];
             }
             
-            decode_control(inputs[0], count);
+            // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
+            decode_control(inputs[0], fResult.buffer_size);
+            
+            // "count" may be less than buffer_size
             fDsp->compute(count, inputs_tmp, outputs_tmp);
-            encode_control(outputs[0], count);
+            
+            // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
+            encode_control(outputs[0], fResult.buffer_size);
         }
         
     public:
