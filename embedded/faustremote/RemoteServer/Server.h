@@ -36,6 +36,33 @@ class Server;
 
 using namespace std;
 
+class server_netjackaudio : public netjackaudio_control {  
+
+    public:
+    
+        server_netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio_control(celt, master_ip, master_port, mtu, latency)
+        {}
+        
+        void error_cb(int error_code)
+        {
+            switch (error_code) {
+            
+                case SOCKET_ERROR:
+                    printf("NetJack : SOCKET_ERROR\n");
+                    break;
+                    
+                case SYNC_PACKET_ERROR:
+                    printf("NetJack : SYNC_PACKET_ERROR\n");
+                    break;
+
+                 case DATA_PACKET_ERROR:
+                    printf("NetJack : DATA_PACKET_ERROR\n");
+                    break;
+            }
+        }
+};
+
 // Structured handled by libmicrohttp related to a connection
 struct connection_info_struct {
     

@@ -202,7 +202,7 @@ void* Server::start_audioSlave(void *arg ){
     
     if(dspToStart->fServer->fLocker.Lock()){
         
-        dspToStart->fAudio = new netjackaudio_control(atoi(dspToStart->fCV.c_str()), 
+        dspToStart->fAudio = new server_netjackaudio(atoi(dspToStart->fCV.c_str()), 
                                                       dspToStart->fIP, 
                                                       atoi(dspToStart->fPort.c_str()), 
                                                       DEFAULT_MTU, 
