@@ -275,7 +275,7 @@ void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buff
 }
 
 // Fonction for command line parsing
-const char*  remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
+const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
 	
     for (int i = 0; i<argc; i++){
         if (strcmp(argv[i], key) == 0) {
@@ -471,6 +471,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     
     bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
     
+    const char* port = getValueFromKey(argc, argv, "--NJ_port", "19000");
+    
 //  PREPARE URL TO SEND TO SERVER
     
 // Parse NetJack Parameters
@@ -478,7 +480,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", DEFAULT_MULTICAST_IP));
 
     finalRequest += "&NJ_Port=";
-    finalRequest += string(getValueFromKey(argc, argv, "--NJ_port", "19000"));
+    finalRequest += string(port);
     
     finalRequest += "&NJ_Compression=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_compression", "-1"));
@@ -493,7 +495,6 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += fFactory->index();
     
     printf("finalRequest = %s\n", finalRequest.c_str());
-    
     
 //  Curl Connection setup
     CURL *curl = curl_easy_init();
@@ -534,7 +535,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
                 
                 jack_slave_t result;
                 
-                fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, "net_master", &request, &result); 
+                fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
                 
                 if(fNetJack)
                     isInitSuccessfull = true;
