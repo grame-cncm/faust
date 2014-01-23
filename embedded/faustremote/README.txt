@@ -12,25 +12,27 @@ Dependencies :
 	- faust			make + sudo make install at the root of faust project
 	- HTTPDFaust		make httpd + sudo make install at the root of faust project
 	- microhttpd		through macport
-	- jacknet		download jack on : http://www.jackosx.com/
+	- jacknet		download JackOSX package at : http://www.jackosx.com/
 
 ----------------REMOTE CLIENT---------------
 
 1 -------- THE API
 
-	To easily include remote processing in your projects, this API has been created. 
-It has the same prototype as Dynamic dsp, llvm-dsp.
+To easily include remote processing in your projects, this API has been created. 
+It has the same prototype as dynamic dsp, llvm-dsp.
 
-a. CreateRemoteDSPFactory(const string& ipServer, const string& dspContent, int argc, 
-				char** argv, int opt_level, string& error);
+a. createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[],
+	 const string& ipServer, int portServer, string& error, int opt_level);
 
-b. CreateRemoteDSPInstance(remote_dsp_factory* factory, int samplingRate, int bufferSize,
-				 string& error)
+b. createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[],
+	 const string& ipServer, int portServer, string& error, int opt_level);
 
-c. Use instances as any "static" DSP 
+c. createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize,string& error)
+
+d. Use instances as any "static" DSP 
 
 	virtual int     getNumInputs();
-        virtual int     getNumOutputs();
+       	virtual int     getNumOutputs();
 
         virtual void    init(int samplingFreq);
   
@@ -38,13 +40,13 @@ c. Use instances as any "static" DSP
     
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
-d. deleteRemoteDSPInstance(remote_dsp* dsp)
+e. deleteRemoteDSPInstance(remote_dsp* dsp)
 
-e. deleteRemoteDSPFactory(remote_dsp_factory* factory)
+f. deleteRemoteDSPFactory(remote_dsp_factory* factory)
 
 2 ------- THE EXAMPLE
 
-	This example shows how to use the API. In this example you can pass in command line:
+This example shows how to use the API. In this example you can pass in command line:
 	
 a. The IP of remote Server you want to use
 b. NetJack parameters of slave to be open on remote machine (localIP/Port/Latency/Compression)
