@@ -39,11 +39,9 @@
 
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
-#include "faust/gui/UI.h"
 #include "faust/gui/ControlUI.h"
 #include <jack/net.h>
 #include <string>
-#include <vector>
 #include <assert.h>
 
 class netjackaudio : public audio
