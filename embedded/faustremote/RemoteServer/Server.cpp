@@ -39,7 +39,6 @@ slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const stri
     
     if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryIndex, answer))
         return newFactory;
-    
     else
         return NULL;
 }
@@ -146,7 +145,6 @@ slave_dsp::~slave_dsp(){
     delete fAudio;
     deleteDSPInstance(fDSP);
     deleteSlaveDSPFactory(fSlaveFactory);
-    
 }
 
 //----------------SERVER----------------------------------------
@@ -172,7 +170,6 @@ bool Server::start(int port){
                                request_completed, NULL, MHD_OPTION_END);
 
     if(fDaemon){
-        
         fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
         registration();
         return true;
@@ -232,12 +229,7 @@ int Server::getSmallestIndexAvailable(){
     int i = 0;
     
     while(found && fAvailableFactories.size() != 0){
-    
-        if(fAvailableFactories.find(i) != fAvailableFactories.end())
-            found = true;
-        else
-            found = false;
-        
+        found = (fAvailableFactories.find(i) != fAvailableFactories.end());
         i++;
     }
     
@@ -272,7 +264,6 @@ void Server::stop_NotActive_DSP(){
         if(!(*it)->fAudio->is_connexion_active()){
             slave_dsp* toDelete = *it;
             it = fRunningDsp.erase(it);
-            
             deleteSlaveDSPInstance(toDelete);
         }
         else
@@ -477,7 +468,6 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
     
     delete con_info;
     *con_cls = NULL;
-    
 }
 
 // Create DSP Factory 
