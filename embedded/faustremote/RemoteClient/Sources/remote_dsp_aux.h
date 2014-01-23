@@ -44,8 +44,6 @@
 
 #define	EXPORT __attribute__ ((visibility("default")))
 
-#include <vector>
-
 #ifdef __cplusplus
 extern "C"
 {

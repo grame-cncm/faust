@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-#include "utilities.h"
+#include "../utilities.h"
 #include "faust/remote-dsp.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/coreaudio-dsp.h"
@@ -44,15 +44,15 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    string ipServer = loptions(argc, argv, "--ipserver", "localhost");
-    int portServer = lopt(argc, argv, "--portserver", 7777);
+    string ipServer = loptions(argv, "--ipserver", "localhost");
+    int portServer = lopt(argv, "--portserver", 7777);
     
-    int srate = lopt(argc, argv, "--frequency", 44100);
-    int	fpb = lopt(argc, argv, "--buffer", 512);
+    int srate = lopt(argv, "--frequency", 44100);
+    int	fpb = lopt(argv, "--buffer", 512);
 
     QApplication myApp(argc, argv);
     
-    string filePath = loptions(argc, argv, "--file", "");
+    string filePath = loptions(argv, "--file", "");
             
     string errorFactory("");
             
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
               
     string content = pathToContent(filePath);
     
-    remote_dsp_factory* factory = createRemoteDSPFactory(nbArgument, arguments, ipServer, portServer, content, errorFactory, 3);
+    remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
             
     if(factory != NULL){
                 
