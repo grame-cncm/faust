@@ -33,12 +33,8 @@ extern "C"
 {
 #endif
 
-using namespace std;
+struct remote_dsp_factory;
 
-typedef struct remote_dsp_factory {};
-
-
-    
 /**
  * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that
  returns a JSON application.
@@ -53,8 +49,7 @@ typedef struct remote_dsp_factory {};
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level = 3);
-    
+remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], const std::string& ipServer, int portServer, std::string& error, int opt_level = 3);
     
 /**
  * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
@@ -70,8 +65,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int a
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level =  3);
-
+remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], const std::string& ipServer, int portServer, std::string& error, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory.
@@ -107,7 +101,9 @@ class remote_dsp : public dsp{
 };
 
 /**
- * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize.
+ * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize. 
+ * If '--NJ_partial' is set, then the remote_dsp compute method can be safely called with a number of frames below bufferSize, 
+ * partial buffers will be sent and received.
  * 
  * @param factory - the Remote DSP factory
  * @param argc - the number of parameters in argv array
@@ -124,22 +120,21 @@ class remote_dsp : public dsp{
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
-remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
-
+remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, std::string& error);
 
 /**
  * Destroy a remote DSP instance.
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 
-void        deleteRemoteDSPInstance(remote_dsp* dsp);
+void deleteRemoteDSPInstance(remote_dsp* dsp);
     
 /**
  *  Scan the network to find the available machines for remote processing
  *  @param list to be filled with <nameMachine, IPmachine>
  *  @return true if no error was encountered
  */
-bool        getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
+bool getRemoteMachinesAvailable(map<std::string, pair<std::string, int> >* machineList);
 
 #ifdef __cplusplus
 }
