@@ -938,9 +938,9 @@ struct ArrayNumInst : public ValueInst, public SimpleValueInst
 struct FloatArrayNumInst : public ArrayNumInst<float>
 {
  
-    FloatArrayNumInst(vector<float> nums) : ArrayNumInst(nums)
+    FloatArrayNumInst(vector<float> nums) : ArrayNumInst<float>(nums)
     {}
-    FloatArrayNumInst(int size) : ArrayNumInst(size)
+    FloatArrayNumInst(int size) : ArrayNumInst<float>(size)
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -964,9 +964,9 @@ struct DoubleNumInst : public ValueInst, public SimpleValueInst
 struct DoubleArrayNumInst : public ArrayNumInst<double>
 {
     
-    DoubleArrayNumInst(vector<double> nums) : ArrayNumInst(nums)
+    DoubleArrayNumInst(vector<double> nums) : ArrayNumInst<double>(nums)
     {}
-    DoubleArrayNumInst(int size) : ArrayNumInst(size)
+    DoubleArrayNumInst(int size) : ArrayNumInst<double>(size)
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -990,9 +990,9 @@ struct IntNumInst : public ValueInst, public SimpleValueInst
 struct IntArrayNumInst : public ArrayNumInst<int>
 {
 
-    IntArrayNumInst(vector<int> nums) : ArrayNumInst(nums)
+    IntArrayNumInst(vector<int> nums) : ArrayNumInst<int>(nums)
     {}
-    IntArrayNumInst(int size) : ArrayNumInst(size)
+    IntArrayNumInst(int size) : ArrayNumInst<int>(size)
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
