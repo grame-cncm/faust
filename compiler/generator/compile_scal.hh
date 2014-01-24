@@ -99,13 +99,13 @@ class ScalarCompiler : public Compiler
 	// generation du code
 	
     string          generateXtended		(Tree sig);
-	virtual string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
+	virtual string 	generateFixDelay	(Tree sig, Tree arg, Tree size);
     string          generatePrefix 		(Tree sig, Tree x, Tree e);
     string          generateIota		(Tree sig, Tree arg);
     string          generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
 	
     string          generateFFun  		(Tree sig, Tree ff, Tree largs);
-    virtual string      generateWaveform    (Tree sig);
+    virtual string  generateWaveform    (Tree sig);
 
     string          generateInput 		(Tree sig, const string& idx);
     string          generateOutput		(Tree sig, const string& idx, const string& arg1);

@@ -157,7 +157,9 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
     
-    std::cerr << "least common multiple rate = " << fRates->commonRate() << std::endl;
+    std::cerr << "least common multiple rate (multiple) = " << fRates->commonRate() << std::endl;
+    
+    fClass->setCommonRate(fRates->commonRate());
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
@@ -168,7 +170,12 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
-		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        int p = fRates->periodicity(sig);
+        if (p == 1) {
+            fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        } else {
+            fClass->addExecCode(subst("if ((i%$3)==0) { output$0[i/$3] = $2$1; }", T(i), CS(sig), xcast(), T(p)));
+        }
 	}
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -186,6 +193,7 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 {
 	//contextor recursivness(0);
 	sig = prepare2(sig);		// optimize and annotate expression
+    std::cerr << "least common multiple rate (single) = " << fRates->commonRate() << std::endl;
 	fClass->addExecCode(subst("output[i] = $0;", CS(sig)));
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -275,7 +283,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
     else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
-	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
+	else if ( isSigInput(sig, &i) ) 				{ return generateInput      (sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
@@ -382,7 +390,12 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
-	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    int p = fRates->periodicity(sig);
+    if (p == 1) {
+        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    } else {
+        return generateCacheCode(sig, subst("$1input$0[i/$2]", idx, icast(), T(p)));
+    }
 }
 
 
@@ -466,9 +479,13 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return code;
     }
     
-    // check for expression occuring in a different rate expression
+    // check for expression occuring in a different rate expression, thus needing
+    // to be compiled in a separate statement event if they are not shared
+    
     int rate = fRates->rate(sig);
-    if ((rate != o->getMinRate()) || (rate != o->getMaxRate())) {
+    bool separate = (rate != o->getMinRate()) || (rate != o->getMaxRate());
+    
+    if (separate) {
         std::cerr << ppsig(sig) << " has rate " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
     }
 
@@ -481,14 +498,14 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         } else {
 		    return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
+        
+	} else if ((sharing > 1) || separate) {
+        
+        return generateVariableStore(sig, exp);
 
 	} else if (sharing == 1) {
 
         return exp;
-
-	} else if (sharing > 1) {
-
-        return generateVariableStore(sig, exp);
 
 	} else {
         cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
@@ -523,7 +540,12 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
         case kSamp :
 
             getTypedNames(t, "Temp", ctype, vname);
-            fClass->addExecCode(subst("$0 $1 = $2;", ctype, vname, exp));
+            int p = fRates->periodicity(sig);
+            if (p==1) {
+                fClass->addExecCode(subst("$0 $1 = $2;", ctype, vname, exp));
+            } else {
+                fClass->addExecCode(subst("$0 $1; if ((i%$3)==0) { $1 = $2; }", ctype, vname, exp, T(p)));
+            }
             break;
     }
     return vname;

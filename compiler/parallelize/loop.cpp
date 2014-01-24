@@ -39,7 +39,7 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
-        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
+        : fIsRecursive(true), fCommonRate(1), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -49,7 +49,7 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
+        : fIsRecursive(false), fCommonRate(1), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -79,10 +79,18 @@ bool Loop::isEmpty()
 /**
  * Add a line of pre code  (begin of the loop)
  */
-void Loop::addPreCode (const string& str)    
-{ 
-   // cerr << this << "->addExecCode " << str << endl;
-    fPreCode.push_back(str); 
+void Loop::addPreCode (const string& str)
+{
+    // cerr << this << "->addExecCode " << str << endl;
+    fPreCode.push_back(str);
+}
+
+/**
+ * Add a line of pre code  (begin of the loop)
+ */
+void Loop::setCommonRate (int rate)
+{
+    fCommonRate = rate;
 }
 
 /**
@@ -218,8 +226,12 @@ void Loop::printoneln(int n, ostream& fout)
             tab(n,fout); 
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         }*/
-            
-        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        
+        if (fCommonRate==1) {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        } else {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << "*" << fCommonRate << "; i++) {";
+        }
         if (fPreCode.size()>0) {
             tab(n+1,fout); fout << "// pre processing";
             printlines(n+1, fPreCode, fout);

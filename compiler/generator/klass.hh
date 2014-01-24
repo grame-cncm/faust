@@ -70,6 +70,7 @@ protected:
 	int				fNumOutputs;
     int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
     int             fNumPassives;               ///< number of passive widgets in the UI (bargraphs, etc.)
+    int             fCommonRate;
 
     set<string>			fIncludeFileSet;
 	set<string>			fLibrarySet;
@@ -120,7 +121,6 @@ protected:
     Klass*  getTopParentKlass()                 { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
     string  getFullClassName()                  { return (fParentKlass!=0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName(); }    ///< Returns the name of the class
 
-
     void    openLoop(const string& size);
     void    openLoop(Tree recsymbol, const string& size);
     void    closeLoop(Tree sig);
@@ -165,13 +165,14 @@ protected:
     void addSharedDecl (const string& str)          { fSharedDecl.push_back(str); }
     void addFirstPrivateDecl (const string& str)    { fFirstPrivateDecl.push_back(str); }
 
-    void addZone1 (const string& str)  { fZone1Code.push_back(str); }
-    void addZone2 (const string& str)  { fZone2Code.push_back(str); }
-    void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
-    void addZone2c (const string& str)  { fZone2cCode.push_back(str); }
-    void addZone3 (const string& str)  { fZone3Code.push_back(str); }
+    void addZone1 (const string& str)       { fZone1Code.push_back(str); }
+    void addZone2 (const string& str)       { fZone2Code.push_back(str); }
+    void addZone2b (const string& str)      { fZone2bCode.push_back(str); }
+    void addZone2c (const string& str)      { fZone2cCode.push_back(str); }
+    void addZone3 (const string& str)       { fZone3Code.push_back(str); }
  
-    void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
+    void setCommonRate(int rate)            { fTopLoop->setCommonRate(rate); }
+    void addPreCode ( const string& str)    { fTopLoop->addPreCode(str); }
     void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
