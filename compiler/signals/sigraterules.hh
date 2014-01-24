@@ -21,7 +21,7 @@ public:
     int rate(Tree sig);             ///< returns the rate of sig assuming that sig is a subexpression of lsig
     int commonRate();               ///< returns the least common multiple rate
     
-    int periodicity(Tree sig)       { return fCommonRate/rate(sig); }
+    int periodicity(Tree sig)       { int r = rate(sig); return fCommonRate/r; }
 
 };
 

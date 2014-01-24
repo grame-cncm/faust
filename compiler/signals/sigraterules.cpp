@@ -771,13 +771,22 @@ RateInferrer::RateInferrer(Tree lsig)
     fFullList = listRecursiveSignals(lsig);
     fRateEnv = inferreMultiRates(lsig, fSuccess);
     if (fSuccess) {
-        // nit the rate properties for the expressions in the environment
+        fCommonRate = 1;
+        // set the rate properties for the expressions in the environment
+        // in order to be able to compute the other rates
         for (Tree L=fRateEnv; isList(L); L = tl(L)) {
             Tree p = hd(L);
-            fRateProperty.set(hd(p),tree2int(tl(p)));
+            int r = tree2int(tl(p));
+            fRateProperty.set(hd(p),r);
+            fCommonRate = lcm(fCommonRate, r);
         }
-        // set common rate for further computation
-        fCommonRate = 1;
+        
+        // force computation of common rate
+        for (Tree L=lsig; isList(L); L = tl(L)) {
+            (void)rate(hd(L));
+        }
+        std:cerr << "common rate is : " << fCommonRate << std::endl;
+        
     } else {
         // rate inference failed
         fCommonRate = -1;
