@@ -776,6 +776,11 @@ RateInferrer::RateInferrer(Tree lsig)
             Tree p = hd(L);
             fRateProperty.set(hd(p),tree2int(tl(p)));
         }
+        // set common rate for further computation
+        fCommonRate = 1;
+    } else {
+        // rate inference failed
+        fCommonRate = -1;
     }
     TRACE(cerr << "EXIT RateInferrer constructor" << *lsig << endl);
 }
@@ -792,6 +797,7 @@ int RateInferrer::rate(Tree sig)
     } else {
         r = computeRate(sig);
         fRateProperty.set(sig, r);
+        fCommonRate = lcm(fCommonRate,r);
         return r;
     }
 }
@@ -862,4 +868,8 @@ int RateInferrer::computeRate(Tree sig)
     }
 }
 
+int RateInferrer::commonRate()
+{
+    return fCommonRate;
+}
 

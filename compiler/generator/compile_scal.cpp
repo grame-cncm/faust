@@ -156,6 +156,8 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 {
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
+    
+    std::cerr << "least common multiple rate = " << fRates->commonRate() << std::endl;
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
@@ -462,6 +464,12 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	// check reentrance
     if (getCompiledExpression(sig, code)) {
         return code;
+    }
+    
+    // check for expression occuring in a different rate expression
+    int rate = fRates->rate(sig);
+    if ((rate != o->getMinRate()) || (rate != o->getMaxRate())) {
+        std::cerr << ppsig(sig) << " has rate " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
     }
 
 	// check for expression occuring in delays
