@@ -112,11 +112,17 @@ class remote_dsp_aux : public dsp{
         
         jack_net_master_t*      fNetJack;           //Jack Connection
     
-        float**                 fInputs;            //Concatenation of control buffer & audio buffer
-        float**                 fOutputs;           //Concatenation of control buffer & audio buffer
+        float**                 fAudioInputs;       //Audio buffer
+        float**                 fAudioOutputs;      //Audio buffer
+        
+        float**                 fControlInputs;     //control buffer
+        float**                 fControlOutputs;    //control buffer
 
         FAUSTFLOAT*             fOutControl;        //Buffer containing the values of controls
         FAUSTFLOAT*             fInControl;         //Buffer containing the values of controls
+        
+        int                     fCounterIn;
+        int                     fCounterOut;
 
         void fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);

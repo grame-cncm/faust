@@ -36,12 +36,13 @@ class Server;
 
 using namespace std;
 
-class server_netjackaudio : public netjackaudio_control {  
+//class server_netjackaudio : public netjackaudio_control {  
+class server_netjackaudio : public netjackaudio_midicontrol {  
 
     public:
     
         server_netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio_control(celt, master_ip, master_port, mtu, latency)
+            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
         {}
         
         void error_cb(int error_code)
@@ -143,7 +144,8 @@ struct slave_dsp{
     string          fMTU;
     string          fLatency;
     
-    netjackaudio_control*   fAudio;  //NETJACK SLAVE 
+    //netjackaudio_control*   fAudio;  //NETJACK SLAVE 
+    server_netjackaudio*   fAudio;  //NETJACK SLAVE 
     
     llvm_dsp*               fDSP;          //Real DSP Instance 
     

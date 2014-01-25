@@ -1,5 +1,6 @@
 
 #include "remote_dsp_aux.h"
+#include "faust/gui/ControlUI.h"
 
 // Standard Callback to store a server response in strinstream
 size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
@@ -247,29 +248,41 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     fFactory = factory;
     fNetJack = NULL;
     
-    fInputs = new float*[getNumInputs() + 1];
-    fOutputs = new float*[getNumOutputs() + 1];
+    fAudioInputs = new float*[getNumInputs()];
+    fAudioOutputs = new float*[getNumOutputs()];
+    
+    fControlInputs = new float*[1];
+    fControlOutputs = new float*[1];
+    
+    fCounterIn = 0;
+    fCounterOut = 0;
 }
         
 remote_dsp_aux::~remote_dsp_aux(){
 
-    delete[] fInputs;
-    delete[] fOutputs;
-    
     if(fNetJack){
         
         delete[] fInControl;
         delete[] fOutControl;
         
+        delete[] fControlInputs[0];
+        delete[] fControlOutputs[0];
+        
         jack_net_master_close(fNetJack); 
         fNetJack = 0;
     }
+    
+    delete[] fAudioInputs;
+    delete[] fAudioOutputs;
+    
+    delete[] fControlInputs;
+    delete[] fControlOutputs;
 }
 
 void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer){
     
-    // Cleanup audio buffers only (not control one)
-    for (int i=1; i<size1; i++) {
+    // Cleanup audio buffers only 
+    for (int i = 0; i < size1; i++) {
         memset(buffer[i], 0, sizeof(float)*size2);
     }
 }
@@ -298,9 +311,6 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
     
     vector<itemInfo*>::iterator it;
     
-    int counterIn = 0;
-    int counterOut = 0;
-    
     for(it = jsonItems.begin(); it != jsonItems.end() ; it++){
         
         float init = strtod((*it)->init.c_str(), NULL);
@@ -316,20 +326,20 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
 //        Meta Data declaration for entry items
         if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close")!=0){
             
-            fInControl[counterIn] = init;
+            fInControl[fCounterIn] = init;
             isInItem = true;
             
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
-                ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
+                ui->declare(&fInControl[fCounterIn], it2->first.c_str(), it2->second.c_str());
         }
 //        Meta Data declaration for exit items
         else if((*it)->type.find("bargraph") != string::npos){
             
-            fOutControl[counterOut] = init;
+            fOutControl[fCounterOut] = init;
             isOutItem = true;
             
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++){
-                ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
+                ui->declare(&fOutControl[fCounterOut], it2->first.c_str(), it2->second.c_str());
             }
         }
 //      Meta Data declaration for group opening or closing
@@ -351,33 +361,33 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
             ui->openTabBox((*it)->label.c_str());
         
         else if((*it)->type.compare("vslider") == 0)
-            ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
+            ui->addVerticalSlider((*it)->label.c_str(), &fInControl[fCounterIn], init, min, max, step);
         
         else if((*it)->type.compare("hslider") == 0)
-            ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
+            ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[fCounterIn], init, min, max, step);            
         
         else if((*it)->type.compare("checkbox") == 0)
-            ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
+            ui->addCheckButton((*it)->label.c_str(), &fInControl[fCounterIn]);
         
         else if((*it)->type.compare("hbargraph") == 0)
-            ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
+            ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[fCounterOut], min, max);
         
         else if((*it)->type.compare("vbargraph") == 0)
-            ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
+            ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[fCounterOut], min, max);
         
         else if((*it)->type.compare("nentry") == 0)
-            ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
+            ui->addNumEntry((*it)->label.c_str(), &fInControl[fCounterIn], init, min, max, step);
         
         else if((*it)->type.compare("button") == 0)
-            ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
+            ui->addButton((*it)->label.c_str(), &fInControl[fCounterIn]);
         
         else if((*it)->type.compare("close") == 0)
             ui->closeBox();
             
         if(isInItem)
-            counterIn++;
+            fCounterIn++;
         if(isOutItem)
-            counterOut++;
+            fCounterOut++;
         
     }
     
@@ -386,16 +396,12 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
 
 void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
 {
-    fInputs[0] = fInControl;
-        
-    for(int j=0; j<getNumInputs();j++) {
-        fInputs[j+1] = &input[j][offset];
+    for(int j=0; j<getNumInputs(); j++) {
+        fAudioInputs[j] = &input[j][offset];
     }
     
-    fOutputs[0] = fOutControl;
-    
-    for(int j=0; j<getNumOutputs();j++) {
-        fOutputs[j+1] = &output[j][offset];
+    for(int j=0; j<getNumOutputs(); j++) {
+        fAudioOutputs[j] = &output[j][offset];
     }
 }
 
@@ -414,14 +420,18 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int offset = i*fBufferSize;
         setupBuffers(input, output, offset);
         
-        if ((res = jack_net_master_send(fNetJack, getNumInputs()+1, fInputs, 0, NULL)) < 0){
-            fillBufferWithZeros(getNumOutputs()+1, fBufferSize, fOutputs);
+        ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+        
+        if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
+            fillBufferWithZeros(getNumOutputs(), fBufferSize, fAudioOutputs);
             printf("jack_net_master_send failure %d\n", res);
         }
-        if ((res = jack_net_master_recv(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL)) < 0) {
+        if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
             printf("jack_net_master_recv failure %d\n", res);
-            fillBufferWithZeros(getNumOutputs()+1, fBufferSize, fOutputs);
+            fillBufferWithZeros(getNumOutputs(), fBufferSize, fAudioOutputs);
         }
+        
+        ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
     }
     
     if (lastCycle > 0) {
@@ -429,14 +439,18 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int offset = i*fBufferSize;
         setupBuffers(input, output, offset);
         
-        if ((res = jack_net_master_send_slice(fNetJack, getNumInputs()+1, fInputs, 0, NULL, lastCycle)) < 0){
-            fillBufferWithZeros(getNumOutputs()+1, lastCycle, fOutputs);
+        ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+        
+        if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
+            fillBufferWithZeros(getNumOutputs(), lastCycle, fAudioOutputs);
             printf("jack_net_master_send_slice failure %d\n", res);
         }
-        if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs()+1, fOutputs, 0, NULL, lastCycle)) < 0) {
+        if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
             printf("jack_net_master_recv_slice failure %d\n", res);
-            fillBufferWithZeros(getNumOutputs()+1, lastCycle, fOutputs);
+            fillBufferWithZeros(getNumOutputs(), lastCycle, fAudioOutputs);
         }
+        
+        ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
     }
 }
 
@@ -463,11 +477,18 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     fBufferSize = buffer_size;
      
 //  Init Control Buffers
+
     fOutControl = new float[buffer_size];
     fInControl = new float[buffer_size];
-    
+
+    fControlInputs[0] = new float[8192];
+    fControlOutputs[0] = new float[8192];
+ 
     memset(fOutControl, 0, sizeof(float)*buffer_size);
     memset(fInControl, 0, sizeof(float)*buffer_size);
+    
+    memset(fControlInputs[0], 0, sizeof(float)*8192);
+    memset(fControlOutputs[0], 0, sizeof(float)*8192);
     
     bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
     
