@@ -613,8 +613,11 @@ int main (int argc, char* argv[])
 	
 	endTiming("evaluation");
     
+    /*
+    In progress...
     ostream* box_dsp = new ofstream("dsp_box.dsp");
     *box_dsp << "process = " << boxpp(process) << ";" << endl;
+    */
 
 
 	/****************************************************************
