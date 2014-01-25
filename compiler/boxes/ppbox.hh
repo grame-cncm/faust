@@ -54,11 +54,20 @@ const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree 
 
 class boxpp : public virtual Garbageable
 {
+
+protected:
 	Tree 	box;
 	int		priority;
 public:
 	boxpp(Tree b, int p=0) : box(b), priority(p) {}
-	ostream& print (ostream& fout) const;
+	virtual ostream& print (ostream& fout) const;
+};
+
+class dsp_boxpp : public boxpp
+{
+public:
+	dsp_boxpp(Tree b, int p=0) : boxpp(b, p) {}
+	virtual ostream& print (ostream& fout) const;
 };
 
 inline ostream& operator << (ostream& file, const boxpp& bpp) { return bpp.print(file); }
