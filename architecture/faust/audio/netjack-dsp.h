@@ -51,7 +51,7 @@ class netjackaudio : public audio
     
         dsp* fDsp;
         jack_net_slave_t* fNet;
-        int fCelt;
+        int fNetFormat;
         std::string fMasterIP;
         int fMasterPort;
         int fMTU;
@@ -112,8 +112,8 @@ class netjackaudio : public audio
                 midi_outputs,
                 fMTU,
                 2,
-                (fCelt > 0) ? JackCeltEncoder : JackFloatEncoder,
-                (fCelt > 0) ? fCelt : 0,
+                (fNetFormat > 0) ? JackCeltEncoder : ((fNetFormat == -1) ? JackFloatEncoder : JackIntEncoder),
+                (fNetFormat > 0) ? fNetFormat : 0,
                 fLatency
             };
       
@@ -169,8 +169,8 @@ class netjackaudio : public audio
 
     public:
 
-        netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency = 2)
-            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fMTU(mtu), fLatency(latency)
+        netjackaudio(int net_format, const std::string& master_ip, int master_port, int mtu, int latency = 2)
+            : fDsp(0), fNet(0), fNetFormat(net_format), fMasterIP(master_ip), fMasterPort(master_port), fMTU(mtu), fLatency(latency)
         {}
         
         virtual ~netjackaudio() 
@@ -236,8 +236,8 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         
     public:
         
-        netjackaudio_control(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio(celt, master_ip, master_port, mtu, latency)
+        netjackaudio_control(int net_format, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio(net_format, master_ip, master_port, mtu, latency)
         {}
         
         virtual ~netjackaudio_control() 
@@ -292,8 +292,8 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI {
         
     public:
         
-        netjackaudio_midicontrol(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio(celt, master_ip, master_port, mtu, latency)
+        netjackaudio_midicontrol(int net_format, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio(net_format, master_ip, master_port, mtu, latency)
         {}
         
         virtual ~netjackaudio_midicontrol() 
