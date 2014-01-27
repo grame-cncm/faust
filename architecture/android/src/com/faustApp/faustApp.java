@@ -80,6 +80,7 @@ public class faustApp extends Activity {
 	static float[] OSCval;
 	boolean on = true; // process on/off
 	float metaDatAccelVal[][];
+	boolean metaDataVis[];
 	
 	// C++ components
 	faust f = new faust();
@@ -421,6 +422,7 @@ public class faustApp extends Activity {
 		UI.labels[n].setLayoutParams(paramsText);
 		UI.labels[n].setText(label+": " + Float.toString(init));
 		currentGroup[groupLevel-1].addView(UI.labels[n]);
+		if(metaDataVis[n] == true) UI.labels[n].setVisibility(View.GONE);
 
 		UI.labels[n].setOnTouchListener(new OnTouchListener() {
             @Override
@@ -492,7 +494,8 @@ public class faustApp extends Activity {
 	          }
 	    };
 	    UI.sliders[m].setOnSeekBarChangeListener(listener);
-	    //UI.sliders[m].setVisibility(4);
+	    
+	    if(metaDataVis[n] == true) UI.sliders[m].setVisibility(View.GONE);
 	}
 	
 	// create a vertical group for the UI
@@ -765,6 +768,9 @@ public class faustApp extends Activity {
         
         try {
         	receiver = new OSCPortIn(oscReceiverPort);
+        	
+        // visibility metadata
+        metaDataVis = new boolean [nbParams];
     	
         for(int j=0;j<nbUIEl;j++){
         	if(o.intArray_getitem(UIElType, j)==0){
@@ -793,8 +799,11 @@ public class faustApp extends Activity {
         		else metadatas[i] = "0";
         		metIndex++;
         		
-        		//if(metadatas[i].contains("accel")) System.out.println("Hey!");
-        		//if(metadatas[i] != "0") System.out.println("Hey: " + metadatas[i]);
+        		//Hide slider
+        		if(metadatas[i].contains("hidden")) {
+        			metaDataVis[i] = true;
+        		}
+        		else metaDataVis[i] = false;
         		
         		// create an OSC address respecting the Faust standards
     			OSCpath = "/";
