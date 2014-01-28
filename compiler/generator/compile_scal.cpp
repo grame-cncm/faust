@@ -170,6 +170,7 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
+        fClass->setOutputRate(i, fRates->rate(sig));
         int p = fRates->periodicity(sig);
         if (p == 1) {
             fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
@@ -283,7 +284,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
     else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
-	else if ( isSigInput(sig, &i) ) 				{ return generateInput      (sig, T(i)); 			}
+	else if ( isSigInput(sig, &i) ) 				{ fClass->setInputRate(i, fRates->rate(sig)); return generateInput(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
@@ -392,7 +393,8 @@ string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
     int p = fRates->periodicity(sig);
     if (p == 1) {
-        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        //return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        return subst("$1input$0[i]", idx, icast());
     } else {
         return generateCacheCode(sig, subst("$1input$0[i/$2]", idx, icast(), T(p)));
     }

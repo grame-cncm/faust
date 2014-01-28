@@ -767,13 +767,16 @@ void Klass::println(int n, ostream& fout)
                             << "DSPThreadPool::Destroy()"
                             << "; }";
     }
-
+    
     tab(n+1,fout); fout     << "virtual int getNumInputs() \t{ "
-                    << "return " << fNumInputs
-                    << "; }";
+        << "return " << fNumInputs
+        << "; }";
     tab(n+1,fout); fout 	<< "virtual int getNumOutputs() \t{ "
-                    << "return " << fNumOutputs
-                    << "; }";
+        << "return " << fNumOutputs
+        << "; }";
+    
+    tab(n+1,fout); fout     << "virtual int getInputRate (int i) \t{int rate[]=" << getInputRateString() << "; return rate[i]; }" ;
+    tab(n+1,fout); fout     << "virtual int getOutputRate(int i) \t{int rate[]=" << getOutputRateString() << "; return rate[i]; }" ;
 
     tab(n+1,fout); fout << "static void classInit(int samplingFreq) {";
         printlines (n+2, fStaticInitCode, fout);
@@ -1220,4 +1223,26 @@ void Klass::collectLibrary(set<string>& S)
 
 	for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->collectLibrary(S);
 	merge(S, fLibrarySet);
+}
+
+string Klass::getInputRateString()
+{
+    char sep = '{';
+    string s;
+    for (int i=0; i < fNumInputs; i++) {
+        s+=sep; s+=T(fInputRate[i]); sep=',';
+    }
+    s+='}';
+    return s;
+}
+
+string Klass::getOutputRateString()
+{
+    char sep = '{';
+    string s;
+    for (int i=0; i < fNumOutputs; i++) {
+        s+=sep; s+=T(fOutputRate[i]); sep=',';
+    }
+    s+='}';
+    return s;
 }
