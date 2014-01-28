@@ -401,7 +401,7 @@ string ScalarCompiler::generateInput (Tree sig, const string& idx)
 
 string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string& arg)
 {
-	string dst = subst("output$0[i]", idx);
+	string dst = subst("NEVERUSED output$0[i]", idx);
 	fClass->addExecCode(subst("$0 = $2$1;", dst, arg, xcast()));
 	return dst;
 }
@@ -473,7 +473,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	string 		vname, ctype, code;
 	int 		sharing = getSharingCount(sig);
 	Occurences* o = fOccMarkup.retrieveOccurences(sig);
-
+    
 	// check reentrance
     if (getCompiledExpression(sig, code)) {
         return code;
@@ -485,13 +485,13 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     int rate = fRates->rate(sig);
     bool separate = (rate != o->getMinRate()) || (rate != o->getMaxRate());
     
-    if (separate) {
-        std::cerr << ppsig(sig) << " has rate " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
-    }
-
+    //if (separate) {
+    //std::cerr << ppsig(sig) << " has rate " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
+    //}
+    
 	// check for expression occuring in delays
 	if (o->getMaxDelay()>0) {
-
+        
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing>1) {
             return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
@@ -502,17 +502,52 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	} else if ((sharing > 1) || separate) {
         
         return generateVariableStore(sig, exp);
-
+        
 	} else if (sharing == 1) {
-
+        
         return exp;
-
+        
 	} else {
         cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
 		exit(1);
 	}
-
+    
 	return "Error in generateCacheCode";
+}
+
+// called by up and down
+
+string ScalarCompiler::generateSeparateCode(Tree sig, const string& exp)
+{
+	string 		vname, ctype, code;
+	int 		sharing = getSharingCount(sig);
+	Occurences* o       = fOccMarkup.retrieveOccurences(sig);
+
+	// check for expression occuring in delays
+	if (o->getMaxDelay()>0) {
+        
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
+        if (sharing>1) {
+            return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
+        } else {
+		    return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+        }
+        
+	} else  {
+        
+        return generateVariableStore(sig, exp);
+        
+	}
+}
+
+
+string wrapPeriodicity(int p, const string& code)
+{
+    if (p==1) {
+        return subst("$0;", code);
+    } else {
+        return subst("if ((i%$0)==0) { $1; }", T(p), code);
+    }
 }
 
 
@@ -540,12 +575,8 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
         case kSamp :
 
             getTypedNames(t, "Temp", ctype, vname);
-            int p = fRates->periodicity(sig);
-            if (p==1) {
-                fClass->addExecCode(subst("$0 $1 = $2;", ctype, vname, exp));
-            } else {
-                fClass->addExecCode(subst("$0 $1; if ((i%$3)==0) { $1 = $2; }", ctype, vname, exp, T(p)));
-            }
+            fClass->addExecCode(subst("$0 $1;", ctype, vname));
+            fClass->addExecCode(wrapPeriodicity(fRates->periodicity(sig), subst("$0 = $1", vname, exp)));
             break;
     }
     return vname;
@@ -921,7 +952,8 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     // generate delayline for each element of a recursive definition
     for (int i=0; i<N; i++) {
         if (used[i]) {
-            generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le,i)));
+            Tree    s = nth(le,i);
+            generateDelayLine(s, ctype[i], vname[i], delay[i], CS(s));
         }
     }
 }
@@ -1170,12 +1202,18 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 {
 	int 	mxd, d;
 	string 	vecname;
+	Occurences* o = fOccMarkup.retrieveOccurences(sig);
+
+    int rate = fRates->rate(sig);
 
     //cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
     //cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
     //cerr << "ScalarCompiler::generateFixDelay del = " << *delay << endl;
 
     CS(exp); // ensure exp is compiled to have a vector name
+    
+    // ******** for debug purposes ********
+    std::cerr << ppsig(sig) << " has rate (in fix delay) " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
 
 	mxd = fOccMarkup.retrieveOccurences(exp)->getMaxDelay();
 
@@ -1226,6 +1264,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
     assert(mxd > 0);
+    int p = fRates->periodicity(sig);
 
     //bool odocc = fOccMarkup.retrieveOccurences(sig)->hasOutDelayOccurences();
 
@@ -1234,16 +1273,16 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
         fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
-        fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
+        fClass->addExecCode(wrapPeriodicity(p, subst("$0[0] = $1", vname, exp)));
 
         // generate post processing copy code to update delay values
         if (mxd == 1) {
-            fClass->addPostCode(subst("$0[1] = $0[0];", vname));
+            fClass->addPostCode(wrapPeriodicity(p, subst("$0[1] = $0[0]", vname)));
         } else if (mxd == 2) {
             //fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-            fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
+            fClass->addPostCode(wrapPeriodicity(p, subst("$0[2] = $0[1]; $0[1] = $0[0]", vname)));
         } else {
-            fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
+            fClass->addPostCode(wrapPeriodicity(p, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1]", T(mxd), vname)));
         }
         setVectorNameProperty(sig, vname);
         return subst("$0[0]", vname);
@@ -1261,23 +1300,26 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
         // execute
-        fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
+        fClass->addExecCode(wrapPeriodicity(p, subst("$0[(IOTA/$3)&$1] = $2", vname, T(N-1), exp, T(p))));
         setVectorNameProperty(sig, vname);
-        return subst("$0[IOTA&$1]", vname, T(N-1));
+        return subst("$0[(IOTA/$2)&$1]", vname, T(N-1), T(p));
     }
 }
 
 /**
- * Generate code for the delay mecchanism without using temporary variables
+ * Generate code for the delay lines induced by recursive definitions
  */
 
-void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp)
+void ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const string& vname, int mxd, const string& exp)
 {
+    int p = fRates->periodicity(sig);
+    
     //assert(mxd > 0);
     if (mxd == 0) {
         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
         // no need for a real vector
-        fClass->addExecCode(subst("$0 \t$1 = $2;", ctype, vname, exp));
+        fClass->addExecCode(subst("$0 \t$1;", ctype, vname));
+        fClass->addExecCode(wrapPeriodicity(p, subst("$0 = $1", vname, exp)));
 
 
     } else if (mxd < gMaxCopyDelay) {
@@ -1286,15 +1328,15 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
         fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
-        fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
+        fClass->addExecCode(wrapPeriodicity(p, subst("$0[0] = $1", vname, exp)));
 
         // generate post processing copy code to update delay values
         if (mxd == 1) {
-            fClass->addPostCode(subst("$0[1] = $0[0];", vname));
+            fClass->addPostCode(wrapPeriodicity(p, subst("$0[1] = $0[0]", vname)));
         } else if (mxd == 2) {
-            fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
+            fClass->addPostCode(wrapPeriodicity(p, subst("$0[2] = $0[1]; $0[1] = $0[0]", vname)));
         } else {
-            fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
+            fClass->addPostCode(wrapPeriodicity(p, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1]", T(mxd), vname)));
         }
 
     } else {
@@ -1310,7 +1352,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
         // execute
-        fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
+        fClass->addExecCode(wrapPeriodicity(p, subst("$0[(IOTA/$3)&$1] = $2", vname, T(N-1), exp, T(p))));
     }
 }
 
@@ -1320,7 +1362,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
 string ScalarCompiler::generateUpSample(Tree sig, Tree w, Tree x)
 {
-    return CS(x);
+    return generateSeparateCode(sig, CS(x));
 }
 
 /**
@@ -1329,7 +1371,7 @@ string ScalarCompiler::generateUpSample(Tree sig, Tree w, Tree x)
 
 string ScalarCompiler::generateDownSample(Tree sig, Tree w, Tree x)
 {
-    return CS(x);
+    return generateSeparateCode(sig, CS(x));
 }
 
 

@@ -73,8 +73,8 @@ class ScalarCompiler : public Compiler
 
     virtual string      CS (Tree sig);
     virtual string      generateCode (Tree sig);
-    virtual string      generateCacheCode(Tree sig, const string& exp) ;
-
+    virtual string      generateCacheCode(Tree sig, const string& exp);
+    virtual string      generateSeparateCode(Tree sig, const string& exp);
     virtual string      generateVariableStore(Tree sig, const string& exp);
 
 	string 		getFreshID (const string& prefix);
@@ -142,7 +142,7 @@ class ScalarCompiler : public Compiler
     virtual string  generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     string          generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void    generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+    virtual void    generateDelayLine(Tree sig, const string& ctype, const string& vname, int mxd, const string& exp);
 
     void            getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
     void            ensureIotaCode();
