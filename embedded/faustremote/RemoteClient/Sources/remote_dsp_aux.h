@@ -124,7 +124,7 @@ class remote_dsp_aux : public dsp{
         int                     fCounterIn;
         int                     fCounterOut;
 
-        void fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer);
+        void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
     
 //    Command-line parsing fonction

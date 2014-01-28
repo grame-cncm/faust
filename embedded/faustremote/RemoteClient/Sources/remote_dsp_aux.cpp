@@ -279,11 +279,11 @@ remote_dsp_aux::~remote_dsp_aux(){
     delete[] fControlOutputs;
 }
 
-void remote_dsp_aux::fillBufferWithZeros(int size1, int size2, FAUSTFLOAT** buffer){
+void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer){
     
     // Cleanup audio buffers only 
-    for (int i = 0; i < size1; i++) {
-        memset(buffer[i], 0, sizeof(float)*size2);
+    for (int i = 0; i < channels; i++) {
+        memset(&buffer[i][offset], 0, sizeof(float)*size);
     }
 }
 
@@ -423,12 +423,12 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
         
         if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
-            fillBufferWithZeros(getNumOutputs(), fBufferSize, fAudioOutputs);
+            fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
             printf("jack_net_master_send failure %d\n", res);
         }
         if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
             printf("jack_net_master_recv failure %d\n", res);
-            fillBufferWithZeros(getNumOutputs(), fBufferSize, fAudioOutputs);
+            fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
         }
         
         ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
@@ -441,13 +441,15 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         
         ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
         
+        fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
+        
         if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
-            fillBufferWithZeros(getNumOutputs(), lastCycle, fAudioOutputs);
+            fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
             printf("jack_net_master_send_slice failure %d\n", res);
         }
         if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
             printf("jack_net_master_recv_slice failure %d\n", res);
-            fillBufferWithZeros(getNumOutputs(), lastCycle, fAudioOutputs);
+            fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
         }
         
         ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
