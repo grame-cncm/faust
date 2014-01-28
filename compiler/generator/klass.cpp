@@ -1227,10 +1227,9 @@ void Klass::collectLibrary(set<string>& S)
 
 string Klass::getInputRateString()
 {
-    char sep = '{';
-    string s;
+    string s("{");
     for (int i=0; i < fNumInputs; i++) {
-        s+=sep; s+=T(fInputRate[i]); sep=',';
+        if (i>0) s+=','; s+=T(fInputRate[i]);
     }
     s+='}';
     return s;
@@ -1238,10 +1237,9 @@ string Klass::getInputRateString()
 
 string Klass::getOutputRateString()
 {
-    char sep = '{';
-    string s;
+    string s("{");
     for (int i=0; i < fNumOutputs; i++) {
-        s+=sep; s+=T(fOutputRate[i]); sep=',';
+        if (i>0) s+=','; s+=T(fOutputRate[i]);
     }
     s+='}';
     return s;

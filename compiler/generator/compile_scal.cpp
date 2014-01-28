@@ -157,7 +157,7 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
     
-    std::cerr << "least common multiple rate (multiple) = " << fRates->commonRate() << std::endl;
+    //std::cerr << "least common multiple rate (multiple) = " << fRates->commonRate() << std::endl;
     
     fClass->setCommonRate(fRates->commonRate());
 
@@ -194,7 +194,7 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 {
 	//contextor recursivness(0);
 	sig = prepare2(sig);		// optimize and annotate expression
-    std::cerr << "least common multiple rate (single) = " << fRates->commonRate() << std::endl;
+    //std::cerr << "least common multiple rate (single) = " << fRates->commonRate() << std::endl;
 	fClass->addExecCode(subst("output[i] = $0;", CS(sig)));
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -393,8 +393,8 @@ string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
     int p = fRates->periodicity(sig);
     if (p == 1) {
-        //return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
-        return subst("$1input$0[i]", idx, icast());
+        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        //return subst("$1input$0[i]", idx, icast());
     } else {
         return generateCacheCode(sig, subst("$1input$0[i/$2]", idx, icast(), T(p)));
     }
@@ -1215,7 +1215,7 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
     CS(exp); // ensure exp is compiled to have a vector name
     
     // ******** for debug purposes ********
-    std::cerr << ppsig(sig) << " has rate (in fix delay) " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
+    //std::cerr << ppsig(sig) << " has rate (in fix delay) " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
 
 	mxd = fOccMarkup.retrieveOccurences(exp)->getMaxDelay();
 

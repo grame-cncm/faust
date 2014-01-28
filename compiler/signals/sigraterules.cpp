@@ -785,7 +785,7 @@ RateInferrer::RateInferrer(Tree lsig)
         for (Tree L=lsig; isList(L); L = tl(L)) {
             (void)rate(hd(L));
         }
-        std:cerr << "common rate is : " << fCommonRate << std::endl;
+        TRACE(std:cerr << "common rate is : " << fCommonRate << std::endl);
         
     } else {
         // rate inference failed
