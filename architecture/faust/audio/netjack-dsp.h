@@ -112,7 +112,7 @@ class netjackaudio : public audio
                 midi_outputs,
                 fMTU,
                 2,
-                (fNetFormat > 0) ? JackCeltEncoder : ((fNetFormat == -1) ? JackFloatEncoder : JackIntEncoder),
+                (fNetFormat > 0) ? JackOpusEncoder : ((fNetFormat == -1) ? JackFloatEncoder : JackIntEncoder),
                 (fNetFormat > 0) ? fNetFormat : 0,
                 fLatency
             };
