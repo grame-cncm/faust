@@ -282,7 +282,16 @@ ostream& boxpp::print (ostream& fout) const
         fout << ')';
 
     } else if (isBoxWaveform(box)) {
+    
+        fout << "waveform";
+        char sep = '{';
+        for (size_t i=0; i<box->arity(); i++) {
+            fout << sep << boxpp(box->branch(i));
+            sep = ',';
+        }
+        fout << '}';
 
+        /*
         size_t n = box->arity();
 
         if (n < 6) {
@@ -298,6 +307,7 @@ ostream& boxpp::print (ostream& fout) const
             // large waveform print only first and last values
             fout << "waveform{" << box->branch(0) << ", ..<" << n-2 << ">..," << box->branch(n-1) << "}";
         }
+        */
 
     } else if (isBoxEnvironment(box)) {
         fout << "environment";
