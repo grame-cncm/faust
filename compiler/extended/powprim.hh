@@ -30,7 +30,7 @@ class PowPrim : public xtended
 
  public:
 
- 	PowPrim() : xtended("powf") {}
+ 	PowPrim() : xtended("pow") {}
 
 	virtual unsigned int arity () { return 2; }
 

@@ -132,6 +132,7 @@ static bool gPrintXMLSwitch = false;
 static bool gPrintDocSwitch = false;
 static int gBalancedSwitch = 0;
 static const char* gArchFile = 0;
+static bool gExportDSP = false;
 
 static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
 static bool gPrintFileListSwitch = false;
@@ -356,7 +357,11 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gGlobal->gInlineArchSwitch = true;
             i += 1;
-            
+        
+        } else if (isCmd(argv[i], "-e", "--export-dsp")) {
+            gExportDSP = true;
+            i += 1;
+         
         } else if (isCmd(argv[i], "-I", "--import-dir")) {
 
             char temp[PATH_MAX+1];
@@ -925,6 +930,11 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     *****************************************************************/
     int numInputs, numOutputs;
     Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    if (gExportDSP) {
+        cout << "process = " << boxpp(process) << ";" << endl;
+        return;
+    }
 
     /****************************************************************
      4 - compute output signals of 'process'
