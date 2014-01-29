@@ -621,7 +621,7 @@ static void doInferreRate(Tree sig, int* rate, Tree& E)
             E = multRateEnv(m/r, E);
         }
 
-    } else if ( isSigDownSample(sig, w, x) )  {
+    } else if ( isSigDownSample(sig, x, w) )  {
 
         // -- rate(down(n,x) = rate(x)/n
 
@@ -640,9 +640,9 @@ static void doInferreRate(Tree sig, int* rate, Tree& E)
             E = multRateEnv(m/r, E);
         }
 
-    } else if ( isSigUpSample(sig, w, x) )  {
+    } else if ( isSigUpSample(sig, x, w) )  {
 
-        // -- rate(up(n,x) = rate(x)*n
+        // -- rate(up(x,n) = rate(x)*n
 
         int n = checkSignalDenotesSize(w, sig);
         int r; inferreRate(x, &r, E);
@@ -838,12 +838,12 @@ int RateInferrer::computeRate(Tree sig)
         assert(vt);
         return vt->size() * rate(x);
 
-    } else if ( isSigUpSample(sig, n, x) ) {
+    } else if ( isSigUpSample(sig, x, n) ) {
 
         int i = checkSignalDenotesSize(n,sig);
         return rate(x) * i;
 
-    } else if ( isSigDownSample(sig, n, x) ) {
+    } else if ( isSigDownSample(sig, x, n) ) {
 
         int i = checkSignalDenotesSize(n,sig);
         int r = rate(x);

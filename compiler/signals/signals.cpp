@@ -138,12 +138,12 @@ Tree sigVectorAt (Tree s1, Tree s2)                     { return tree(SIGVECTORA
 bool isSigVectorAt(Tree a, Tree& s1, Tree& s2)          { return isTree(a, SIGVECTORAT, s1, s2); }
 
 Sym SIGUPSAMPLE = symbol ("SigUpsample");
-Tree sigUpSample (Tree n, Tree s)                       { return tree(SIGUPSAMPLE, n, s); }
-bool isSigUpSample (Tree a, Tree& n, Tree& s)           { return isTree(a, SIGUPSAMPLE, n, s); }
+Tree sigUpSample (Tree s, Tree n)                       { return tree(SIGUPSAMPLE, s, n); }
+bool isSigUpSample (Tree a, Tree& s, Tree& n)           { return isTree(a, SIGUPSAMPLE, s, n); }
 
 Sym SIGDOWNSAMPLE = symbol ("SigDownsample");
-Tree sigDownSample (Tree n, Tree s)                       { return tree(SIGDOWNSAMPLE, n, s); }
-bool isSigDownSample (Tree a, Tree& n, Tree& s)           { return isTree(a, SIGDOWNSAMPLE, n, s); }
+Tree sigDownSample (Tree s, Tree n)                       { return tree(SIGDOWNSAMPLE, s, n); }
+bool isSigDownSample (Tree a, Tree& s, Tree& n)           { return isTree(a, SIGDOWNSAMPLE, s, n); }
 
 
 // Arithmetical operations

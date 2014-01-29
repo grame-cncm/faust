@@ -140,11 +140,11 @@ bool isSigConcat (Tree a, Tree& s1, Tree& s2);
 Tree sigVectorAt (Tree s1, Tree s2);
 bool isSigVectorAt (Tree a, Tree& s1, Tree& s2);
 
-Tree sigUpSample (Tree n, Tree s);
-bool isSigUpSample (Tree a, Tree& n, Tree& s);
+Tree sigUpSample (Tree s, Tree n);
+bool isSigUpSample (Tree a, Tree& s, Tree& n);
 
-Tree sigDownSample (Tree n, Tree s);
-bool isSigDownSample (Tree a, Tree& n, Tree& s);
+Tree sigDownSample (Tree s, Tree n);
+bool isSigDownSample (Tree a, Tree& s, Tree& n);
 
 
 // arithmetical operations 

@@ -1362,7 +1362,7 @@ void ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const stri
  * Generate up sampling code
  */
 
-string ScalarCompiler::generateUpSample(Tree sig, Tree w, Tree x)
+string ScalarCompiler::generateUpSample(Tree sig, Tree x, Tree n)
 {
     return generateSeparateCode(sig, CS(x));
 }
@@ -1371,7 +1371,7 @@ string ScalarCompiler::generateUpSample(Tree sig, Tree w, Tree x)
  * Generate down sampling code
  */
 
-string ScalarCompiler::generateDownSample(Tree sig, Tree w, Tree x)
+string ScalarCompiler::generateDownSample(Tree sig, Tree x, Tree n)
 {
     return generateSeparateCode(sig, CS(x));
 }
