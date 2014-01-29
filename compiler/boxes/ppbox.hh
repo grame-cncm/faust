@@ -66,13 +66,6 @@ public:
 	virtual ostream& print (ostream& fout) const;
 };
 
-class dsp_boxpp : public boxpp
-{
-public:
-	dsp_boxpp(Tree b, int p=0) : boxpp(b, p) {}
-	virtual ostream& print (ostream& fout) const;
-};
-
 inline ostream& operator << (ostream& file, const boxpp& bpp) { return bpp.print(file); }
 
 

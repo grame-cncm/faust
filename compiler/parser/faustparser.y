@@ -5,7 +5,7 @@
 %{
 
 #include "tree.hh"
-#include "xtended.hh"
+#include "xtended.hh"/Documents/faust-sf-master/compiler/parser/faustparser.y
 #include "boxes.hh"
 #include "prim2.hh"
 #include "signals.hh"

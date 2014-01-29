@@ -10,7 +10,7 @@ class Log10Prim : public xtended
 
  public:
  
- 	Log10Prim() : xtended("log10f") {}
+    Log10Prim() : xtended("log10") {}
 	
 	virtual unsigned int arity () { return 1; }
 	

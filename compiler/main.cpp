@@ -156,6 +156,7 @@ bool			gPrintFileListSwitch = false;
 bool			gInlineArchSwitch = false;
 
 string			gClassName		= "mydsp";
+bool            gExportDSP      = false;
 
 list<string>    gImportDirList;                 // dir list enrobage.cpp/fopensearch() searches for imports, etc.
 
@@ -341,6 +342,10 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gInlineArchSwitch = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-e", "--export-dsp")) {
+            gExportDSP = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-I", "--import-dir")) {
 
@@ -440,6 +445,7 @@ void printhelp()
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
+    cout << "-e  \t--export-dsp export expanded DSP (all included libraries) \n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
@@ -613,13 +619,11 @@ int main (int argc, char* argv[])
 	
 	endTiming("evaluation");
     
-    /*
-    In progress...
-    ostream* box_dsp = new ofstream("dsp_box.dsp");
-    *box_dsp << "process = " << boxpp(process) << ";" << endl;
-    */
-
-
+    if (gExportDSP) {
+        cout << "process = " << boxpp(process) << ";" << endl;
+        return 0;
+    }
+ 
 	/****************************************************************
 	 3.5 - output file list is needed
 	*****************************************************************/
