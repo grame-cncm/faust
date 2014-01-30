@@ -82,16 +82,16 @@
 
 #ifdef _WIN32
 #include <windows.h>
-
-char *realpath(const char *path, char resolved_path[MAX_PATH])
-{
-	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0))
-		return resolved_path;
-	else
-		return "";
-}
-
 #define PATH_MAX MAX_PATH
+
+static char *realpath(const char *path, char resolved_path[MAX_PATH])
+{
+	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
+		return resolved_path;
+	} else {
+		return "";
+    }
+}
 
 #endif
 
@@ -106,6 +106,37 @@ extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* li
 extern "C" EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 using namespace std;
+
+typedef void* (*compile_fun)(void* arg);
+
+static void call_fun(compile_fun fun)
+{
+    pthread_t thread;
+    pthread_attr_t attr; 
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 524288 * 8); 
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    pthread_create(&thread, &attr, fun, NULL);
+    pthread_join(thread, NULL);
+}
+
+Tree gProcessTree;
+Tree gLsignalsTree;
+int gNumInputs, gNumOutputs;
+
+static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
+
+static void* thread_evaluateBlockDiagram(void* arg) 
+{
+    gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gNumInputs, gNumOutputs);
+    return 0;
+}
+
+static void* thread_boxPropagateSig(void* arg)
+{
+    gLsignalsTree = boxPropagateSig(gGlobal->nil, gProcessTree, makeSigInputList(gNumInputs));
+    return 0;
+}
 
 /****************************************************************
  						Global context variable
@@ -903,11 +934,13 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* libr
     /****************************************************************
      3 - evaluate 'process' definition
     *****************************************************************/
-    int numInputs, numOutputs;
-    Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
     
+    // int numInputs, numOutputs;
+    // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
     stringstream out("expanded_dsp");
-    out << "process = " << boxpp(process) << ";" << endl;
+    out << "process = " << boxpp(gProcessTree) << ";" << endl;
     return out.str();
 }
 
@@ -970,8 +1003,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     /****************************************************************
      3 - evaluate 'process' definition
     *****************************************************************/
-    int numInputs, numOutputs;
-    Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    // int numInputs, numOutputs;
+    // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    Tree process = gProcessTree;
+    int numInputs = gNumInputs;
+    int numOutputs = gNumOutputs;
     
     if (gExportDSP) {
         cout << "process = " << boxpp(process) << ";" << endl;
@@ -983,11 +1022,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     *****************************************************************/
     startTiming("propagation");
 
-    Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
-
+    //Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
+    
+    call_fun(thread_boxPropagateSig); // In a thread with more stack size...
+    Tree lsignals = gLsignalsTree;
+ 
     if (gGlobal->gDetailsSwitch) {
         cout << "output signals are : " << endl;
-        Tree ls =  lsignals;
+        Tree ls = lsignals;
         while (! isNil(ls)) {
             cout << ppsig(hd(ls)) << endl;
             ls = tl(ls);
@@ -1007,7 +1049,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-// For auxiliary thread
+// For auxiliary threads
 static const char* gName;
 static int gArgc;
 static const char** gArgv;
@@ -1018,8 +1060,6 @@ static string gResult;
 static char* gErrorMessage;
 static LLVMResult* gLLVMResult;
 static int gRes;
-
-typedef void* (*compile_fun)(void* arg);
 
 static void* thread_func1(void* arg) 
 {
@@ -1075,17 +1115,6 @@ static void* thread_func3(void* arg)
     return 0;
 }
 
-static void call_fun(compile_fun fun)
-{
-    pthread_t thread;
-    pthread_attr_t attr; 
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 524288 * 8); 
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-    pthread_create(&thread, &attr, fun, NULL);
-    pthread_join(thread, NULL);
-}
-
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     gName = name;
@@ -1095,7 +1124,9 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     gDrawPath = draw_path;
     gInput = input;
     gErrorMessage = error_msg;
-    call_fun(thread_func1);
+    //call_fun(thread_func1);
+    thread_func1(0);
+    assert(gLLVMResult);
     return gLLVMResult;
 }
 
@@ -1108,7 +1139,8 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* library_path,
     gDrawPath = draw_path;
     gInput = input;
     gErrorMessage = error_msg;
-    call_fun(thread_func2);
+    //call_fun(thread_func2);
+    thread_func2(0);
     return gRes;
 }
 
@@ -1121,7 +1153,8 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path,
     gDrawPath = draw_path;
     gInput = input;
     gErrorMessage = error_msg;
-    call_fun(thread_func3);
+    //call_fun(thread_func3);
+    thread_func3(0);
     return gResult;
 }
 

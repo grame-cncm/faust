@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(filename, DSP)) {
+	netjackaudio audio(celt, master_ip, master_port, DEFAULT_MTU);
+    if (!audio.init(filename, DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);
