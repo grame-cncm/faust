@@ -28,6 +28,8 @@
 #include <llvm/Module.h>
 #endif
 
+#include <string.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -73,6 +75,9 @@ int compile_faust(int argc, const char* argv[], const char* library_path, const 
  */
 
 LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+
+std::string expand_dsp(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+
 
 #ifdef __cplusplus
 }

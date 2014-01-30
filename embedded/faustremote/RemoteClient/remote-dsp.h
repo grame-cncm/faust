@@ -42,14 +42,15 @@ struct remote_dsp_factory;
  * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters (-vec/-sch/...)
- * @param ipServer - IP of remote machine that will compile your DSP 
- * @param portServer - Port on which the remote Server started
+ * @param library_path - Faust library path : if null, the default localization mechanism will be used
+ * @param ip_server - IP of remote machine that will compile your DSP 
+ * @param port_server - Port on which the remote Server started
  * @param error - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], const std::string& ipServer, int portServer, std::string& error, int opt_level = 3);
+remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], const std::string& library_path, const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
     
 /**
  * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
@@ -58,6 +59,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, 
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param library_path - Faust library path : if null, the default localization mechanism will be used
  * @param ipServer - IP of remote machine that will compile your DSP 
  * @param portServer - Port on which the remote Server started
  * @param error - the error string to be filled
@@ -65,7 +67,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, 
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], const std::string& ipServer, int portServer, std::string& error, int opt_level = 3);
+remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], const std::string& library_path, const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory.

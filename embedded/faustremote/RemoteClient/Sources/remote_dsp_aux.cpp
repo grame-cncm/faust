@@ -1,6 +1,7 @@
 
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
+#include "faust/llvm-dsp.h"
 
 // Standard Callback to store a server response in strinstream
 size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
@@ -201,10 +202,9 @@ static string PathToContent(const string& path)
 }
 
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile( const string& filename, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level){
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level){
     
     string name("");
-    
     string base = basename((char*)filename.c_str());
     
     int pos = base.find(".dsp");
@@ -212,24 +212,31 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile( const string& filenam
     if (pos != string::npos) {
         name = base.substr(0, pos);
     } else {
-        error = "File Extension is not the one expected (.dsp expected)";
+        error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     }
     
     printf("NAME = %s\n", name.c_str());
     
-    return createRemoteDSPFactoryFromString(name, PathToContent(filename), argc, argv, ipServer, portServer, error, opt_level);
+    return createRemoteDSPFactoryFromString(name, PathToContent(filename), argc, argv, library_path, ip_server, port_server, error_msg, opt_level);
 }
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level){
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level){
     
-    remote_dsp_factory* factory = new remote_dsp_factory();
+    std::string expanded = expandDSPFromString(name_app, dsp_content, argc, argv, library_path, "", error_msg);
+    printf("expanded %s\n", expanded.c_str());
     
-    if(factory->init(argc, argv, ipServer, portServer, name_app, dsp_content, error, opt_level)) {
-        return factory;
-    } else {
-        delete factory;
+    if (expanded == "") {
         return NULL;
+    } else {
+        remote_dsp_factory* factory = new remote_dsp_factory();
+   
+        if (factory->init(argc, argv, ip_server, port_server, name_app, expanded, error_msg, opt_level)) {
+            return factory;
+        } else {
+            delete factory;
+            return NULL;
+        }
     }
 }
 
@@ -654,7 +661,7 @@ static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_
 
 //--- Research of available remote machines
 
-EXPORT bool        getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList){
+EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList){
     
     DNSServiceRef sd;
     

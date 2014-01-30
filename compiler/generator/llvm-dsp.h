@@ -196,6 +196,13 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
 */
 void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
 
+std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
+                            const std::string& library_path, const std::string& draw_path, std::string& error_msg);
+
+std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
+                                const std::string& library_path, const std::string& draw_path, std::string& error_msg);
+
+
 /**
 * Instance class
 */
@@ -228,6 +235,7 @@ llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
  * @param dsp - the DSP instance to be deleted.
 */ 
 void deleteDSPInstance(llvm_dsp* dsp);
+
 
 /*!
  @}

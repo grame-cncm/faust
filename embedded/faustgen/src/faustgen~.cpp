@@ -1233,7 +1233,7 @@ int main(void)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s", FAUSTGEN_VERSION);
     post("LLVM powered Faust embedded compiler");
-    post("Copyright (c) 2012-2013 Grame");
+    post("Copyright (c) 2012-2014 Grame");
   
     // Process all messages coming to the object using a custom method
     REGISTER_METHOD_GIMME(faustgen, anything);

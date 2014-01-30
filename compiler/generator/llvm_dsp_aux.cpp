@@ -806,6 +806,33 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
+EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
+                                    const std::string& library_path, const std::string& draw_path, std::string& error_msg)
+{
+    int argc1 = argc + 1;
+    const char* argv1[32];
+	  
+    // Add 'filename" as first argument and copy others ones
+    argv1[0] = filename.c_str();
+	for (int i = 0; i < argc; i++) {
+        argv1[i+1] = argv[i];
+    }
+    char error_msg_aux[512];
+    string res = expand_dsp(argc1, argv1, library_path.c_str(), draw_path.c_str(), "", "", error_msg_aux);
+    error_msg = error_msg_aux;
+    return res;
+}
+
+EXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
+                                     const std::string& library_path, const std::string& draw_path, std::string& error_msg)
+{
+    char error_msg_aux[512];
+    string res = expand_dsp(argc, argv, library_path.c_str(), draw_path.c_str(), name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+    error_msg = error_msg_aux;
+    return res;
+}
+
+
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 

@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
             
             string content = pathToContent(filePath);
             
-            remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
+            remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, "", ipServer, portServer, errorFactory, 3);
             
             if(factory != NULL){
                 

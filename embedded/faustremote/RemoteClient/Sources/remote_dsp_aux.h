@@ -76,7 +76,7 @@ public:
 
     remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
 
-    bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error, int opt_level);
+    bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error_msg, int opt_level);
     void        stop();
     
     void         metadataRemoteDSPFactory(Meta* m);  
@@ -92,9 +92,9 @@ public:
     
 //---------------------- Public C++ interface
     
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level);
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level);
     
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ipServer, int portServer, string& error, int opt_level);
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error, int opt_level);
     
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
  

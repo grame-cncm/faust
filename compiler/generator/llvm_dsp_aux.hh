@@ -241,6 +241,15 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
+EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
+                                    const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                                    std::string& error_msg);
+
+EXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
+                                    const std::string& library_path, const std::string& draw_path, const std::string& target, 
+                                    std::string& error_msg);
+
+
 #ifdef WIN32
 
 //#ifdef __cplusplus
