@@ -103,7 +103,7 @@ typedef struct LLVMResult {
 
 extern "C" EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-extern "C" EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+extern "C" EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
 
 using namespace std;
 
@@ -901,7 +901,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-static string expand_dsp_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
+static string expand_dsp_internal(int argc, const char* argv[], const char* library_path, const char* name, const char* input = NULL)
 {
 
     /****************************************************************
@@ -912,8 +912,6 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* libr
         sprintf(full_library_path, "%s=%s", FAUST_LIB_PATH, library_path);
         putenv(full_library_path);
     }
-    
-    gGlobal->gDrawPath = string(draw_path);
     
     /****************************************************************
      1 - process command line
@@ -1105,7 +1103,7 @@ static void* thread_func3(void* arg)
     
     try {
         global::allocate();       
-        gResult = expand_dsp_internal(gArgc, gArgv, gLibraryPath, gDrawPath, gName, gInput);
+        gResult = expand_dsp_internal(gArgc, gArgv, gLibraryPath, gName, gInput);
         strcpy(gErrorMessage, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strncpy(gErrorMessage, e.Message().c_str(), 256);
@@ -1143,13 +1141,12 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* library_path,
     return gRes;
 }
 
-EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* name, const char* input, char* error_msg)
 {
     gName = name;
     gArgc = argc; 
     gArgv = argv;
     gLibraryPath = library_path;
-    gDrawPath = draw_path;
     gInput = input;
     gErrorMessage = error_msg;
     //call_fun(thread_func3);
