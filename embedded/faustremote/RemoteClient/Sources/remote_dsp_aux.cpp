@@ -223,15 +223,14 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level){
     
-    std::string expanded = expandDSPFromString(name_app, dsp_content, argc, argv, library_path, "", error_msg);
-    printf("expanded %s\n", expanded.c_str());
+    std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, library_path, "", error_msg);
     
-    if (expanded == "") {
+    if (expanded_dsp == "") {
         return NULL;
     } else {
         remote_dsp_factory* factory = new remote_dsp_factory();
    
-        if (factory->init(argc, argv, ip_server, port_server, name_app, expanded, error_msg, opt_level)) {
+        if (factory->init(argc, argv, ip_server, port_server, name_app, expanded_dsp, error_msg, opt_level)) {
             return factory;
         } else {
             delete factory;

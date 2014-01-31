@@ -1126,7 +1126,6 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     gErrorMessage = error_msg;
     //call_fun(thread_func1);
     thread_func1(0);
-    assert(gLLVMResult);
     return gLLVMResult;
 }
 
