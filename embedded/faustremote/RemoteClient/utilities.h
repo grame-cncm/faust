@@ -3,11 +3,6 @@
 
 #include <string>
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
-
 using namespace std;
 
 string pathToContent(string path);

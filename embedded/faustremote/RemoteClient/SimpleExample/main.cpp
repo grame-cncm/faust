@@ -102,8 +102,7 @@ int main(int argc, char* argv[])
             
             myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
-            
-            
+             
             //  STOP && DESALLOCATION OF ALL RESOURCES
             
             interface->stop();

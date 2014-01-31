@@ -2,12 +2,13 @@
 
 #include "utilities.h"
 
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
+
 #include <unistd.h>
-#include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 
 //Returns the content of a file passed in path
 string pathToContent(string path){
@@ -65,7 +66,7 @@ int lopt_Spe(int i, char *argv[], const char *name, char* path)
         if (!strcmp(argv[i], name)){
             strcpy(path, argv[i+1]);
         
-            if( argv[i+2] && !strcmp(argv[i+2], "--n"))
+            if (argv[i+2] && !strcmp(argv[i+2], "--n"))
                 return atoi(argv[i+3]);
             else
                 return 1;
