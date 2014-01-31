@@ -4,14 +4,11 @@
 #include "faust/llvm-dsp.h"
 
 // Standard Callback to store a server response in strinstream
-size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp){
-    
-    std::ostream& os = *static_cast<std::ostream*>(userp);
+size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
+{
+    std::ostream* os = static_cast<std::ostream*>(userp);
     std::streamsize len = size * nmemb;
-    if(os.write(static_cast<char*>(buf), len))
-        return len;
-    else
-        return 0;
+    return (os->write(static_cast<char*>(buf), len)) ? len : 0;
 }
 
 //------------------FACTORY
@@ -53,7 +50,6 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         stringstream ol;
         ol<<opt_level;
         finalRequest +=ol.str(); 
-        
         
         printf("finalRequest = %s\n", finalRequest.c_str());
 
@@ -100,7 +96,6 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
             }
             else if(respcode == 400)
                 error = oss.str();
-            
         }
         
         curl_easy_cleanup(curl); //Standard CleanUp
@@ -136,7 +131,6 @@ void remote_dsp_factory::stop(){
         curl_easy_cleanup(curl);
     }
 }
-
 
 // Decoding JSON from a string to
 // fUiItems : Structure containing the graphical items
@@ -179,7 +173,6 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
     }
 }
 
-
 //---------FACTORY
 
 #include <libgen.h>
@@ -201,6 +194,7 @@ static string PathToContent(const string& path)
     return result;
 }
 
+// Expernal API
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level){
     
@@ -394,7 +388,6 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
             fCounterIn++;
         if(isOutItem)
             fCounterOut++;
-        
     }
     
     setlocale(LC_ALL, tmp_local);
@@ -561,9 +554,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
                 printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
                 
                 jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(samplingFreq), "test_master", 5, partial_cycle};
-                
                 jack_slave_t result;
-                
                 fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
                 
                 if(fNetJack)

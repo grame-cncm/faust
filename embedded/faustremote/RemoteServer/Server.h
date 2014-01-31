@@ -28,7 +28,6 @@
 #include "TMutex.h"
 
 #define POSTBUFFERSIZE 512
-
 #define GET 0
 #define POST 1
 
@@ -36,7 +35,6 @@ class Server;
 
 using namespace std;
 
-//class server_netjackaudio : public netjackaudio_control {  
 class server_netjackaudio : public netjackaudio_midicontrol {  
 
     public:
@@ -69,8 +67,8 @@ struct connection_info_struct {
     
     int                 fConnectiontype;    // GET or POST
     
-    MHD_PostProcessor*  fPostprocessor;   // the POST processor used internally by microhttpd
-    int                 fAnswercode;         // used internally by microhttpd to see where things went wrong or right
+    MHD_PostProcessor*  fPostprocessor;     // the POST processor used internally by microhttpd
+    int                 fAnswercode;        // used internally by microhttpd to see where things went wrong or right
     
     std::string         fAnswerstring;      // the answer sent to the user after upload
     
@@ -82,7 +80,6 @@ struct connection_info_struct {
     string*             fCompilationOptions;
     string              fOpt_level;
     //---------------------------------------------
-    
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
     string              fIP;
@@ -185,7 +182,7 @@ public :
         
     struct          MHD_Daemon* fDaemon; //Running http daemon
         
-    DNSServiceRef*      fRegistrationService;
+    DNSServiceRef*  fRegistrationService;
     int             fPort; //Port on which server started
     
 //  Start server on specified port 
@@ -193,10 +190,10 @@ public :
     void            stop();
         
 // Callback of another thread to wait netjack audio connection without blocking the server
-    static void*        start_audioSlave(void *);
+    static void*    start_audioSlave(void *);
         
 // A new factory is indexed with the smallest index available
-    int                 getSmallestIndexAvailable();
+    int             getSmallestIndexAvailable();
         
 // Creates the html to send back
     int             send_page(MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
@@ -206,7 +203,7 @@ public :
     connection_info_struct* allocate_connection_struct(MHD_Connection *connection, const char *method);
         
 // Reaction to any kind of connection to the Server
-    static int      answer_to_connection	(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
+    static int      answer_to_connection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
         
         
 // Reaction to a GET request
@@ -224,10 +221,10 @@ public :
     bool        compile_Data(connection_info_struct* con_info);
         
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
-    bool                createInstance(connection_info_struct* con_info);
+    bool        createInstance(connection_info_struct* con_info);
     
 // Register Service as Available
-    void            registration();
+    void        registration();
 };
     
 #endif

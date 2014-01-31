@@ -79,7 +79,7 @@ public:
     bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error_msg, int opt_level);
     void        stop();
     
-    void         metadataRemoteDSPFactory(Meta* m);  
+    void        metadataRemoteDSPFactory(Meta* m);  
     
 //    ACCESSORS
     string              serverIP(){return fServerIP;}
