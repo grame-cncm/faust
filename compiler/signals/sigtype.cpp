@@ -160,7 +160,7 @@ Type INT_TGUI   = makeSimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
 
 // trying to accelerate type convergence
 //Type TREC   = TINT;
-Type TREC   = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval()); // kVect ou kScal ?
+Type TREC   = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0,0)); // kVect ou kScal ?
 
 
 Type operator| ( const Type& t1, const Type& t2)
