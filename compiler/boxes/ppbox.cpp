@@ -178,22 +178,20 @@ ostream& boxpp::print (ostream& fout) const
 
     // foreign elements
     else if (isBoxFFun(box, ff)) {
-        if (isffunction(ff)) {
-            fout << "ffunction(" << type2str(ffrestype(ff));
-            Tree namelist = nth(ffsignature(ff),1);
-            char sep = ' ';
-            for (int i = 0; i < gGlobal->gFloatSize; i++) {
-                fout << sep << tree2str(nth(namelist,i));
-                sep = '|';
-            }
-            sep = '(';
-            for (int i = 0; i < ffarity(ff); i++) {
-                fout << sep << type2str(ffargtype(ff, i));
-                sep = ',';
-            }
-            fout << ')';
-            fout << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
+        fout << "ffunction(" << type2str(ffrestype(ff));
+        Tree namelist = nth(ffsignature(ff),1);
+        char sep = ' ';
+        for (int i = 0; i < gGlobal->gFloatSize; i++) {
+            fout << sep << tree2str(nth(namelist,i));
+            sep = '|';
         }
+        sep = '(';
+        for (int i = 0; i < ffarity(ff); i++) {
+            fout << sep << type2str(ffargtype(ff, i));
+            sep = ',';
+        }
+        fout << ')';
+        fout << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
     } else if (isBoxFConst(box, type, name, file))
         fout << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')';
     else if (isBoxFVar(box, type, name, file))

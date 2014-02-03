@@ -406,7 +406,20 @@ static bool process_cmdline(int argc, const char* argv[])
                 gGlobal->gImportDirList.push_back(path);
                 i += 2;
             }
-		
+            
+        } else if (isCmd(argv[i], "-O", "--output-dir")) {
+        
+            char temp[PATH_MAX+1];
+            char* path = realpath(argv[i+1], temp);
+             if (path == 0) {
+                stringstream error;
+                error << "ERROR : invalid directory path " << argv[i+1] << endl;
+                throw faustexception(error.str());
+            } else {
+                gGlobal->gOutputDir = path;
+                i += 2;
+            }
+	
         } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
 			if (check_url(url)) {
@@ -576,8 +589,8 @@ static string fxname(const string& filename)
 
 string makeDrawPath()
 {
-    if (gGlobal->gDrawPath != "") {
-        return gGlobal->gDrawPath + "/" + gGlobal->gMasterName + ".dsp";
+    if (gGlobal->gOutputDir != "") {
+        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName + ".dsp";
     } else {
         return gGlobal->gMasterDocument;
     }
@@ -585,8 +598,8 @@ string makeDrawPath()
 
 static string makeDrawPathNoExt()
 {
-    if (gGlobal->gDrawPath != "") {
-        return gGlobal->gDrawPath + "/" + gGlobal->gMasterName;
+    if (gGlobal->gOutputDir != "") {
+        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName;
     } else if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
         return gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4);
     } else {
@@ -719,7 +732,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         ostream* dst;
 
         if (gGlobal->gOutputFile != "") {
-            dst = new ofstream(gGlobal->gOutputFile.c_str());
+            string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+            dst = new ofstream(outpath.c_str());
         } else {
             dst = &cout;
         }
@@ -1011,7 +1025,8 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     int numOutputs = gNumOutputs;
     
     if (gExportDSP) {
-        cout << "process = " << boxpp(process) << ";" << endl;
+        ofstream xout(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        xout << "process = " << boxpp(process) << ";" << endl;
         return;
     }
 

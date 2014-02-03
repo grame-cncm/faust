@@ -79,6 +79,7 @@
 #include "compatibility.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "files.hh"
 
 #define MAXIDCHARS 5				///< max numbers (characters) to represent ids (e.g. for directories).
 
@@ -124,11 +125,7 @@ static void		initCompilationDate();
 static struct tm* getCompilationDate();
 
 /* Files functions */
-static int		cholddir ();
-static int		mkchdir(const char* dirname);
-static int		makedir(const char* dirname);
-static void		getCurrentDir();
-static istream* openArchFile(const string& filename);
+static istream* openArchFile (const string& filename);
 static char*	legalFileName(const Tree t, int n, char* dst);
 static string	rmExternalDoubleQuotes(const string& s);
 static void		copyFaustSources(const char* projname, const vector<string>& pathnames);
@@ -906,75 +903,7 @@ static bool doesFileBeginWithCode(const string& faustfile)
 	}
 }	
 
-//------------------------ dealing with files -------------------------
-/**
- * Create a new directory in the current one.
- */
-static int makedir(const char* dirname)
-{
- 	char buffer[FAUST_PATH_MAX];
-	gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
-	
-	if (gGlobal->gCurrentDir.c_str() != 0) {
-		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			return 0;
-		}
-	}
-    stringstream error;
-    error << "ERROR in makedir for " << dirname << " : " << strerror(errno) << endl;
-    throw faustexception(error.str());
-}
-
-/**
- * Create a new directory in the current one, 
- * then 'cd' into this new directory.
- * 
- * @remark
- * The current directory is saved to be later restaured.
- */
-static int mkchdir(const char* dirname)
-{
-	char buffer[FAUST_PATH_MAX];
-	gGlobal->gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
-
-	if (gGlobal->gCurrentDir.c_str() != 0) {
-		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			if (chdir(dirname) == 0) {
-				return 0;
-			}
-		}
-	}
-    stringstream error;
-    error << "ERROR in mkchdir for " << dirname << " : " << strerror(errno) << endl;
-    throw faustexception(error.str());
-}
-
-/**
- * Switch back to the previously stored current directory
- */
-static int cholddir ()
-{
-	if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
-		return 0;
-	} else {
-        stringstream error;
-        error << "ERROR in cholddir : " << strerror(errno) << endl;
-        throw faustexception(error.str());
-	}
-}
-
-/**
- * Get current directory and store it in gCurrentDir.
- */
-static void getCurrentDir ()
-{
-	char buffer[FAUST_PATH_MAX];
-    gGlobal->gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
-}
-
-/**
+/*
  * Open architecture file.
  */
 static istream* openArchFile (const string& filename)
@@ -1037,7 +966,7 @@ static string rmExternalDoubleQuotes(const string& s)
     size_t i = s.find_first_not_of("\"");
     size_t j = s.find_last_not_of("\"");
 	
-    if ( (i != string::npos) & (j != string::npos) ) {
+    if ((i != string::npos) & (j != string::npos)) {
         return s.substr(i, 1+j-i);
     } else {
         return "";
