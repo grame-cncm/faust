@@ -60,9 +60,7 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
- * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param draw_path - the place where to put output files like SVG, ps, dot...
- * @param target - the LLVM machine target (using empty string will take current machine settings)
+  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *

@@ -262,11 +262,6 @@ extern "C" {
 
 // Public C interface
 
-EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
-                                            const char* name, const char* input, 
-                                            const char* target, 
-                                            char* error_msg, int opt_level);
-
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
                                                     int argc, const char *argv[], 
                                                     const char* target, 
