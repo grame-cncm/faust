@@ -342,11 +342,11 @@ propagate/propagate.o: generator/klass.hh generator/uitree.hh tlib/property.hh p
 propagate/propagate.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh propagate/labels.hh
 propagate/propagate.o: generator/Text.hh signals/ppsig.hh utils/names.hh
 signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
-signals/ppsig.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-signals/ppsig.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigtype.hh tlib/smartpointer.hh
-signals/ppsig.o: signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
-signals/ppsig.o: parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh
-signals/ppsig.o: signals/recursivness.hh
+signals/ppsig.o: generator/Text.hh signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+signals/ppsig.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh
+signals/ppsig.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/klass.hh
+signals/ppsig.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
+signals/ppsig.o: signals/sigvisitor.hh documentator/lateq.hh signals/recursivness.hh
 signals/prim2.o: signals/prim2.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
