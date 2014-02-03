@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
         argv1[i++] = "-t";
         argv1[i++] = "120";
 
-        compile_faust_internal(argc1, argv1, "", "", 0, 0);
+        compile_faust_internal(argc1, argv1, 0, 0);
     } catch (faustexception& e) {
         e.PrintMessage();
     }

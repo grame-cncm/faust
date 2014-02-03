@@ -502,14 +502,15 @@ class FaustLLVMOptimizer {
     
             if (fInput == "") { 
             
-                int argc = item.size() + 1;
+                int argc = item.size() + 2;
                 const char* argv[argc];
-                argv[0] = fFilename.c_str();
+                argv[0] = "-I";
+                argv[1] = fLibraryPath.c_str();
                 for (int i = 0; i < item.size(); i++) {
-                    argv[i + 1] = item[i].c_str();
+                    argv[i + 2] = item[i].c_str();
                 }
             
-                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", "", fTarget, fError, opt_level);
+                fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, opt_level);
                 
             } else {
                 
@@ -519,7 +520,7 @@ class FaustLLVMOptimizer {
                     argv[i] = item[i].c_str();
                 }
                 
-                fFactory = createDSPFactory(argc, argv, fLibraryPath, "", "", fInput, fTarget, fError, opt_level);
+                fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fInput, fError, opt_level);
             }
             
             if (!fFactory)  {

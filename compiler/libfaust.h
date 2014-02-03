@@ -29,6 +29,7 @@
 #endif
 
 #include <string.h>
+#include <list>
 
 #ifdef __cplusplus
 extern "C"
@@ -49,8 +50,6 @@ typedef struct LLVMResult {
  * 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
- * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param draw_path - the place where to put output files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a string
  * @param error_msg - the error string to be filled, has to be 256 characters long
@@ -58,15 +57,13 @@ typedef struct LLVMResult {
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
  
-int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
 /**
  * Compile a Faust program and produces an LLVM module.
  * 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
- * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param draw_path - the place where to put ouput files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
@@ -74,9 +71,11 @@ int compile_faust(int argc, const char* argv[], const char* library_path, const 
  * @return a LLVMResult with a LLVM module and LLVM context on success, 0 otherwise, with an error message in error_msg.
  */
 
-LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* name, const char* input, char* error_msg);
 
-std::string expand_dsp(int argc, const char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
+std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+
+std::list<std::string> get_import_dirs();
 
 
 #ifdef __cplusplus

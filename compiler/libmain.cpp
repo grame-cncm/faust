@@ -101,9 +101,10 @@ typedef struct LLVMResult {
     llvm::LLVMContext*  fContext;
 } LLVMResult;
 
-extern "C" EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-extern "C" EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
+extern "C" EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+extern "C" EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+extern "C" EXPORT std::list<std::string> get_import_dirs();
 
 using namespace std;
 
@@ -123,6 +124,8 @@ static void call_fun(compile_fun fun)
 Tree gProcessTree;
 Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
+
+std::list<std::string> get_import_dirs() { return gGlobal->gImportDirList; }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
@@ -915,18 +918,9 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-static string expand_dsp_internal(int argc, const char* argv[], const char* library_path, const char* name, const char* input = NULL)
+static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* input = NULL)
 {
 
-    /****************************************************************
-     0 - set library_path and draw_path
-    *****************************************************************/
-    if (library_path && strcmp(library_path, "") != 0) {
-        char full_library_path[512];
-        sprintf(full_library_path, "%s=%s", FAUST_LIB_PATH, library_path);
-        putenv(full_library_path);
-    }
-    
     /****************************************************************
      1 - process command line
     *****************************************************************/
@@ -956,7 +950,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* libr
     return out.str();
 }
 
-void compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
+void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input = NULL)
 {
     gHelpSwitch = false;
     gVersionSwitch = false;
@@ -972,17 +966,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     gPrintFileListSwitch = false;
     gOutputLang = 0;
   
-    /****************************************************************
-     0 - set library_path and draw_path
-    *****************************************************************/
-    if (library_path && strcmp(library_path, "") != 0) {
-        char full_library_path[512];
-        sprintf(full_library_path, "%s=%s", FAUST_LIB_PATH, library_path);
-        putenv(full_library_path);
-    }
-    
-    gGlobal->gDrawPath = string(draw_path);
-            
     /****************************************************************
      1 - process command line
     *****************************************************************/
@@ -1066,8 +1049,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
 static const char* gName;
 static int gArgc;
 static const char** gArgv;
-static const char* gLibraryPath;
-static const char* gDrawPath;
 static const char* gInput;
 static string gResult;
 static char* gErrorMessage;
@@ -1081,7 +1062,7 @@ static void* thread_func1(void* arg)
     
     try {
         global::allocate();
-        compile_faust_internal(gArgc, gArgv, gLibraryPath, gDrawPath, gName, gInput);
+        compile_faust_internal(gArgc, gArgv, gName, gInput);
         gLLVMResult = gGlobal->gLLVMResult;
         strcpy(gErrorMessage, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
@@ -1099,7 +1080,7 @@ static void* thread_func2(void* arg)
     
     try {
         global::allocate();     
-        compile_faust_internal(gArgc, gArgv, gLibraryPath, gDrawPath, gName, gInput);
+        compile_faust_internal(gArgc, gArgv, gName, gInput);
         strcpy(gErrorMessage, gGlobal->gErrorMsg);
         gRes = 0;
     } catch (faustexception& e) {
@@ -1118,7 +1099,7 @@ static void* thread_func3(void* arg)
     
     try {
         global::allocate();       
-        gResult = expand_dsp_internal(gArgc, gArgv, gLibraryPath, gName, gInput);
+        gResult = expand_dsp_internal(gArgc, gArgv, gName, gInput);
         strcpy(gErrorMessage, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strncpy(gErrorMessage, e.Message().c_str(), 256);
@@ -1128,13 +1109,11 @@ static void* thread_func3(void* arg)
     return 0;
 }
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
     gName = name;
     gArgc = argc; 
     gArgv = argv;
-    gLibraryPath = library_path;
-    gDrawPath = draw_path;
     gInput = input;
     gErrorMessage = error_msg;
     //call_fun(thread_func1);
@@ -1142,26 +1121,23 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     return gLLVMResult;
 }
 
-EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
     gName = name;
     gArgc = argc; 
     gArgv = argv;
-    gLibraryPath = library_path;
-    gDrawPath = draw_path;
-    gInput = input;
+     gInput = input;
     gErrorMessage = error_msg;
     //call_fun(thread_func2);
     thread_func2(0);
     return gRes;
 }
 
-EXPORT string expand_dsp(int argc, const char* argv[], const char* library_path, const char* name, const char* input, char* error_msg)
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
     gName = name;
     gArgc = argc; 
     gArgv = argv;
-    gLibraryPath = library_path;
     gInput = input;
     gErrorMessage = error_msg;
     //call_fun(thread_func3);

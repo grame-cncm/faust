@@ -51,8 +51,6 @@ struct llvm_dsp;
  * 
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
- * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param draw_path - the place where to put output files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a string
  * @param target - the LLVM machine target (using empty string will take current machine settings)
@@ -64,7 +62,7 @@ struct llvm_dsp;
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
 llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
-                                  const char* library_path, const char* draw_path, const char* name, 
+                                  const char* name, 
                                   const char* input, const char* target, 
                                   char* error_msg, int opt_level);
 
@@ -76,8 +74,6 @@ llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
- * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param draw_path - the place where to put output files like SVG, ps, dot...
  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled, has to be 256 characters long
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
@@ -85,7 +81,7 @@ llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
 llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
-                                           const char* library_path, const char* draw_path, const char* target, 
+                                           const char* target, 
                                            char* error_msg, int opt_level);
 
 /**

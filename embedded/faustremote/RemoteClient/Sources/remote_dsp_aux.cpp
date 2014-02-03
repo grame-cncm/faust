@@ -196,7 +196,7 @@ static string PathToContent(const string& path)
 
 // Expernal API
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level){
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[],  const string& ip_server, int port_server, string& error_msg, int opt_level){
     
     string name("");
     string base = basename((char*)filename.c_str());
@@ -212,12 +212,12 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     
     printf("NAME = %s\n", name.c_str());
     
-    return createRemoteDSPFactoryFromString(name, PathToContent(filename), argc, argv, library_path, ip_server, port_server, error_msg, opt_level);
+    return createRemoteDSPFactoryFromString(name, PathToContent(filename), argc, argv, ip_server, port_server, error_msg, opt_level);
 }
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const std::string& library_path, const string& ip_server, int port_server, string& error_msg, int opt_level){
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[],  const string& ip_server, int port_server, string& error_msg, int opt_level){
     
-    std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, library_path, "", error_msg);
+    std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg);
     
     if (expanded_dsp == "") {
         return NULL;
