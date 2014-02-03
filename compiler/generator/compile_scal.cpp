@@ -59,6 +59,8 @@ extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
 
+string makeDrawPath();
+
 static Klass* signal2klass (Klass* parent, const string& name, Tree sig)
 {
 	Type t = getCertifiedSigType(sig); //, NULLENV);
@@ -128,7 +130,7 @@ startTiming("ScalarCompiler::prepare");
 endTiming("ScalarCompiler::prepare");
 
     if (gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
+        ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
         sigToGraph(L3, dotfile);
     }
   	return L3;
