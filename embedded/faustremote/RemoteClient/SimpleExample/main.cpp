@@ -62,14 +62,22 @@ int main(int argc, char* argv[])
 //--- Separate compilation options
     for(int i=1; i<argc; i++){
             
-        if(string(argv[i]).find("--")!=string::npos){
-            i ++;
+        if (string(argv[i]).find("--")!=string::npos){
+            i++;
         }
         else{
-            arguments[nbArgument] = argv[i];
-            nbArgument++;
+            arguments[nbArgument++] = argv[i];
         }
     }
+    
+    string folder = filePath.substr(0, filePath.find_last_of('/'));
+     
+    printf("folder %s\n", folder.c_str());
+    
+    arguments[nbArgument++] = "-I";
+    arguments[nbArgument++] = folder.c_str();
+    argc += 2;
+    
               
     string content = pathToContent(filePath);
     

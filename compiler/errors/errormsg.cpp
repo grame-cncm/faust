@@ -30,6 +30,11 @@ using namespace std;
 
 const char* yyfilename;
 
+void lexerror(const char* msg)
+{
+    throw faustexception(msg);
+}
+
 void yyerror(const char* msg)
 {
     stringstream error;

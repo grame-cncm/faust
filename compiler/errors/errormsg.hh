@@ -33,6 +33,7 @@ const char* getDefFileProp(Tree sym);
 int 		getDefLineProp(Tree sym);
 
 // Parsing error
+void 		lexerror(const char* msg);
 void 		yyerror(const char* msg);
 
 // three levels or errors, warnings and remarks are provided during evaluation
