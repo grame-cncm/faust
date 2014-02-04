@@ -825,14 +825,17 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
 EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
                                      std::string& error_msg)
 {
-    int argc1 = argc + 1;
+    int argc1 = argc + 4;
     const char* argv1[32];
 	  
-    // Add 'filename" as first argument and copy others ones
-    argv1[0] = filename.c_str();
-	for (int i = 0; i < argc; i++) {
-        argv1[i+1] = argv[i];
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "llvm";
+    argv1[3] = filename.c_str();
+    for (int i = 0; i < argc; i++) {
+        argv1[i+4] = argv[i];
     }
+    
     char error_msg_aux[512];
     string res = expand_dsp(argc1, argv1, "", "", error_msg_aux);
     error_msg = error_msg_aux;
@@ -842,12 +845,21 @@ EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, cons
 EXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
                                      std::string& error_msg)
 {
+    int argc1 = argc + 3;
+    const char* argv1[32];
+	  
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "llvm";
+    for (int i = 0; i < argc; i++) {
+        argv1[i+3] = argv[i];
+    }
+    
     char error_msg_aux[512];
-    string res = expand_dsp(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+    string res = expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
     error_msg = error_msg_aux;
     return res;
 }
-
 
 // Public C interface
 

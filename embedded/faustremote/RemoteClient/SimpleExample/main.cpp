@@ -56,12 +56,12 @@ int main(int argc, char* argv[])
             
     string errorFactory("");
             
-    const char* arguments[argc];
+    const char* arguments[32];
     int nbArgument = 0;
-         
+          
 //--- Separate compilation options
     for(int i=1; i<argc; i++){
-            
+          
         if (string(argv[i]).find("--")!=string::npos){
             i++;
         }
@@ -71,13 +71,9 @@ int main(int argc, char* argv[])
     }
     
     string folder = filePath.substr(0, filePath.find_last_of('/'));
-     
-    printf("folder %s\n", folder.c_str());
     
     arguments[nbArgument++] = "-I";
     arguments[nbArgument++] = folder.c_str();
-    argc += 2;
-    
               
     string content = pathToContent(filePath);
     
@@ -95,9 +91,9 @@ int main(int argc, char* argv[])
                         
             QTGUI* interface = new QTGUI();
                     
-          jackaudio* audio = new jackaudio;
+            jackaudio* audio = new jackaudio;
             
-//        coreaudio* audio = new coreaudio(srate, fpb);
+//          coreaudio* audio = new coreaudio(srate, fpb);
                     
             DSP->buildUserInterface(interface);   
                     
