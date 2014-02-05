@@ -32,6 +32,7 @@ install:
 	install faust2mathdoc $(dest)
 	install faust2mathviewer $(dest)
 	install faust2msp $(dest)
+	install faust2w32msp $(dest)
 	install faust2max6 $(dest)
 	install faust2octave $(dest)
 	install faust2paqt $(dest)
@@ -81,6 +82,7 @@ uninstall:
 	rm -f $(dest)/faust2mathdoc
 	rm -f $(dest)/faust2mathviewer
 	rm -f $(dest)/faust2msp
+	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2max6
 	rm -f $(dest)/faust2octave
 	rm -f $(dest)/faust2paqt
