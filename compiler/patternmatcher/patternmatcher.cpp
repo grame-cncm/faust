@@ -568,7 +568,7 @@ Automaton *make_pattern_matcher(Tree R)
                 << " previous rule was: " 
                 << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
                 << endl;
-            strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
+            gGlobal->gErrorMsg = error.str();
 		} else {
             stringstream error;
             error << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;

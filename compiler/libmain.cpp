@@ -101,10 +101,10 @@ typedef struct LLVMResult {
     llvm::LLVMContext*  fContext;
 } LLVMResult;
 
-extern "C" EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-extern "C" EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-extern "C" EXPORT std::list<std::string> get_import_dirs();
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT std::list<std::string> get_import_dirs();
 
 using namespace std;
 
@@ -124,20 +124,29 @@ static void call_fun(compile_fun fun)
 Tree gProcessTree;
 Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
+string gErrorMessage;
 
 std::list<std::string> get_import_dirs() { return gGlobal->gImportDirList; }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
 static void* thread_evaluateBlockDiagram(void* arg) 
-{
-    gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gNumInputs, gNumOutputs);
+{   
+    try {
+        gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gNumInputs, gNumOutputs);
+    } catch (faustexception& e) {
+        gErrorMessage = e.Message();
+    }
     return 0;
 }
 
 static void* thread_boxPropagateSig(void* arg)
 {
-    gLsignalsTree = boxPropagateSig(gGlobal->nil, gProcessTree, makeSigInputList(gNumInputs));
+    try {
+        gLsignalsTree = boxPropagateSig(gGlobal->nil, gProcessTree, makeSigInputList(gNumInputs));
+    } catch (faustexception& e) {
+        gErrorMessage = e.Message();
+    }
     return 0;
 }
 
@@ -449,7 +458,7 @@ static bool process_cmdline(int argc, const char* argv[])
     }
     
     if (err != 0) {
-        strncpy(gGlobal->gErrorMsg, parse_error.str().c_str(), 256);
+        gGlobal->gErrorMsg = parse_error.str();
     }
 
 	return err == 0;
@@ -937,6 +946,9 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
     
     call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    if (!gProcessTree) {
+        throw faustexception(gErrorMessage);
+    }
     stringstream out("expanded_dsp");
     out << "process = " << boxpp(gProcessTree) << ";" << endl;
     return out.str();
@@ -995,6 +1007,9 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
     
     call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    if (!gProcessTree) {
+        throw faustexception(gErrorMessage);
+    }
     Tree process = gProcessTree;
     int numInputs = gNumInputs;
     int numOutputs = gNumOutputs;
@@ -1013,6 +1028,9 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     //Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
     
     call_fun(thread_boxPropagateSig); // In a thread with more stack size...
+    if (!gLsignalsTree) {
+        throw faustexception(gErrorMessage);
+    }
     Tree lsignals = gLsignalsTree;
  
     if (gGlobal->gDetailsSwitch) {
@@ -1037,103 +1055,60 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-// For auxiliary threads
-static const char* gName;
-static int gArgc;
-static const char** gArgv;
-static const char* gInput;
-static string gResult;
-static char* gErrorMessage;
-static LLVMResult* gLLVMResult;
-static int gRes;
-
-static void* thread_func1(void* arg) 
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
     gLLVMOut = false;
     gGlobal = NULL;
+    LLVMResult* res;
     
     try {
         global::allocate();
-        compile_faust_internal(gArgc, gArgv, gName, gInput);
-        gLLVMResult = gGlobal->gLLVMResult;
-        strcpy(gErrorMessage, gGlobal->gErrorMsg);
+        compile_faust_internal(argc, argv, name, input);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
+        res = gGlobal->gLLVMResult;
     } catch (faustexception& e) {
-        strncpy(gErrorMessage, e.Message().c_str(), 256);
+        strncpy(error_msg, e.Message().c_str(), 256);
+        res = NULL;
     }
     
     global::destroy();
-    return 0;
-}
-
-static void* thread_func2(void* arg) 
-{
-    gLLVMOut = true;
-    gGlobal = NULL;
-    
-    try {
-        global::allocate();     
-        compile_faust_internal(gArgc, gArgv, gName, gInput);
-        strcpy(gErrorMessage, gGlobal->gErrorMsg);
-        gRes = 0;
-    } catch (faustexception& e) {
-        strncpy(gErrorMessage, e.Message().c_str(), 256);
-        gRes = -1;
-    }
-    
-    global::destroy();
-    return 0;
-}
-
-static void* thread_func3(void* arg) 
-{
-    gGlobal = NULL;
-    gResult = "";
-    
-    try {
-        global::allocate();       
-        gResult = expand_dsp_internal(gArgc, gArgv, gName, gInput);
-        strcpy(gErrorMessage, gGlobal->gErrorMsg);
-    } catch (faustexception& e) {
-        strncpy(gErrorMessage, e.Message().c_str(), 256);
-    }
-    
-    global::destroy();
-    return 0;
-}
-
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
-{
-    gName = name;
-    gArgc = argc; 
-    gArgv = argv;
-    gInput = input;
-    gErrorMessage = error_msg;
-    //call_fun(thread_func1);
-    thread_func1(0);
-    return gLLVMResult;
+    return res;
 }
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
-    gName = name;
-    gArgc = argc; 
-    gArgv = argv;
-     gInput = input;
-    gErrorMessage = error_msg;
-    //call_fun(thread_func2);
-    thread_func2(0);
-    return gRes;
+    gLLVMOut = true;
+    gGlobal = NULL;
+    int res;
+    
+    try {
+        global::allocate();     
+        compile_faust_internal(argc, argv, name, input);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+        res = 0;
+    } catch (faustexception& e) {
+        strncpy(error_msg, e.Message().c_str(), 256);
+        res = -1;
+    }
+    
+    global::destroy();
+    return res;
 }
 
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
-    gName = name;
-    gArgc = argc; 
-    gArgv = argv;
-    gInput = input;
-    gErrorMessage = error_msg;
-    //call_fun(thread_func3);
-    thread_func3(0);
-    return gResult;
+    gGlobal = NULL;
+    string res = "";
+    
+    try {
+        global::allocate();       
+        res = expand_dsp_internal(argc, argv, name, input);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+    } catch (faustexception& e) {
+        strncpy(error_msg, e.Message().c_str(), 256);
+    }
+    
+    global::destroy();
+    return res;
 }
 

@@ -158,7 +158,7 @@ struct global {
     
     int                     gErrorCount;
     
-    char                    gErrorMsg[256];
+    string                  gErrorMsg;
   
     Tabber                  TABBER;
     

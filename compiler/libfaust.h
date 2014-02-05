@@ -31,11 +31,6 @@
 #include <string.h>
 #include <list>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 typedef struct LLVMResult {
     llvm::Module*       fModule;
     llvm::LLVMContext*  fContext;
@@ -76,11 +71,6 @@ LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* name, 
 std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
 std::list<std::string> get_import_dirs();
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

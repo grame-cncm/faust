@@ -126,7 +126,9 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
                 break;
 
 			default : {
-                snprintf(gGlobal->gErrorMsg, 256, "ERROR unrecognized state %d", state);
+                stringstream error;
+                error << "ERROR unrecognized state " << state << endl;
+                gGlobal->gErrorMsg, error.str();
 			}
         }
     }
