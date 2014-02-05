@@ -56,9 +56,10 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
     printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
     printf("AGRC = %i | argv = %p\n", argc, argv);
     
-    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", answer, opt_level);
+    string error_msg;
+    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", error_msg, opt_level);
     
-    printf("%s\n", answer.c_str());
+    printf("%s\n", error_msg.c_str());
     
     if(fLLVMFactory){
         

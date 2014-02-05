@@ -401,27 +401,19 @@ static bool process_cmdline(int argc, const char* argv[])
 
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
-            if (path == 0) {
-                stringstream error;
-                error << "ERROR : invalid directory path " << argv[i+1] << endl;
-                throw faustexception(error.str());
-            } else {
+            if (path) {
                 gGlobal->gImportDirList.push_back(path);
-                i += 2;
             }
+            i += 2;
             
         } else if (isCmd(argv[i], "-O", "--output-dir")) {
         
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
-             if (path == 0) {
-                stringstream error;
-                error << "ERROR : invalid directory path " << argv[i+1] << endl;
-                throw faustexception(error.str());
-            } else {
+            if (path) {
                 gGlobal->gOutputDir = path;
-                i += 2;
             }
+            i += 2;
 	
         } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
