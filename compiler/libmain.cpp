@@ -949,7 +949,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     if (!gProcessTree) {
         throw faustexception(gErrorMessage);
     }
-    stringstream out("expanded_dsp");
+    stringstream out;
     out << "process = " << boxpp(gProcessTree) << ";" << endl;
     return out.str();
 }

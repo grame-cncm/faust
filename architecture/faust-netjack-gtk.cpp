@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
         exit(1);
     } else {
-        factory = createDSPFactory(argc - 1 - inc_arg, (const char**)&argv[inc_arg + 1], "", "", "", "", "", error_msg);
+        factory = createDSPFactoryFromFile(argv[1], argc-2-inc_arg, (const char**)&argv[inc_arg+2], "", error_msg);
         DSP = createDSPInstance(factory);
         if (!DSP) {
             std::cerr << error_msg;

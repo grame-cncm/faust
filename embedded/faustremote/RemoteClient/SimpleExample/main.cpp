@@ -74,6 +74,7 @@ int main(int argc, char* argv[])
     
     arguments[nbArgument++] = "-I";
     arguments[nbArgument++] = folder.c_str();
+    //arguments[nbArgument++] = "-vec";
               
     string content = pathToContent(filePath);
     

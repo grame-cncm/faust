@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
         */
         
         std::string error_msg3;
-        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 5);
+        factory3 = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error_msg3, 5);
         if (factory3) {
             DSP = createDSPInstance(factory3);
             assert(DSP);
