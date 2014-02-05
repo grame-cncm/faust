@@ -32,7 +32,8 @@ const char* yyfilename;
 
 void lexerror(const char* msg)
 {
-    throw faustexception(msg);
+    string fullmsg = "ERROR: " + string(msg) + '\n';
+    throw faustexception(fullmsg);
 }
 
 void yyerror(const char* msg)

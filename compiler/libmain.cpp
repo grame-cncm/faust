@@ -433,9 +433,9 @@ static bool process_cmdline(int argc, const char* argv[])
 
 		} else {
             if (err == 0) {
-                parse_error << "unrecognized option(s) : \"" << argv[i] <<"\" ";
+                parse_error << "unrecognized option(s) : \"" << argv[i] <<"\"";
             } else {
-                parse_error << "\"" << argv[i] <<"\"";
+                parse_error << ",\"" << argv[i] <<"\"";
             }
             i++;
 			err++;
@@ -458,7 +458,7 @@ static bool process_cmdline(int argc, const char* argv[])
     }
     
     if (err != 0) {
-        gGlobal->gErrorMsg = parse_error.str();
+        throw faustexception("ERROR: " + parse_error.str() + '\n');
     }
 
 	return err == 0;
