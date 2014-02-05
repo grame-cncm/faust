@@ -90,9 +90,10 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
         
         fNumInstances = 1;
         return true;
-    }
-    else
+    } else {
+        answer = error_msg;
         return false;
+    }
 }
 
 // "Smart" Desallocation of factory depending on its running instances
