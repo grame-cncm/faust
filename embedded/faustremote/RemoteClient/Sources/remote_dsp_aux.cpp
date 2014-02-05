@@ -311,6 +311,9 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
     
     vector<itemInfo*>::iterator it;
     
+    int counterIn = 0;
+    int counterOut = 0;
+    
     for(it = jsonItems.begin(); it != jsonItems.end() ; it++){
         
         float init = strtod((*it)->init.c_str(), NULL);
@@ -326,20 +329,20 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
 //        Meta Data declaration for entry items
         if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close")!=0){
             
-            fInControl[fCounterIn] = init;
+            fInControl[counterIn] = init;
             isInItem = true;
             
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
-                ui->declare(&fInControl[fCounterIn], it2->first.c_str(), it2->second.c_str());
+                ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
         }
 //        Meta Data declaration for exit items
         else if((*it)->type.find("bargraph") != string::npos){
             
-            fOutControl[fCounterOut] = init;
+            fOutControl[counterOut] = init;
             isOutItem = true;
             
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++){
-                ui->declare(&fOutControl[fCounterOut], it2->first.c_str(), it2->second.c_str());
+                ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
             }
         }
 //      Meta Data declaration for group opening or closing
@@ -361,34 +364,38 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
             ui->openTabBox((*it)->label.c_str());
         
         else if((*it)->type.compare("vslider") == 0)
-            ui->addVerticalSlider((*it)->label.c_str(), &fInControl[fCounterIn], init, min, max, step);
+            ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
         else if((*it)->type.compare("hslider") == 0)
-            ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[fCounterIn], init, min, max, step);            
+            ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
         
         else if((*it)->type.compare("checkbox") == 0)
-            ui->addCheckButton((*it)->label.c_str(), &fInControl[fCounterIn]);
+            ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
         
         else if((*it)->type.compare("hbargraph") == 0)
-            ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[fCounterOut], min, max);
+            ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
         else if((*it)->type.compare("vbargraph") == 0)
-            ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[fCounterOut], min, max);
+            ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
         else if((*it)->type.compare("nentry") == 0)
-            ui->addNumEntry((*it)->label.c_str(), &fInControl[fCounterIn], init, min, max, step);
+            ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
         else if((*it)->type.compare("button") == 0)
-            ui->addButton((*it)->label.c_str(), &fInControl[fCounterIn]);
+            ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
         
         else if((*it)->type.compare("close") == 0)
             ui->closeBox();
             
         if(isInItem)
-            fCounterIn++;
+            counterIn++;
         if(isOutItem)
-            fCounterOut++;
+            counterOut++;
     }
+    
+    // Keep them for compute method...
+    fCounterIn = counterIn;
+    fCounterOut = counterOut;
     
     setlocale(LC_ALL, tmp_local);
 }
