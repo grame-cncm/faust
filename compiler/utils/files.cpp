@@ -21,18 +21,19 @@
  
 #include "files.hh"
 #include "compatibility.hh"
+#include "global.hh"
+#include "exception.hh"
 
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
-
-static string gCurrentDir;			///< Room to save current directory name.
 
 /**
  *Switch back to the previously stored current directory
@@ -40,11 +41,12 @@ static string gCurrentDir;			///< Room to save current directory name.
  
 int	cholddir()
 {
-    if (chdir(gCurrentDir.c_str()) == 0) {
+    if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
 		return 0;
 	} else {
-		perror("cholddir");
-		exit(errno);
+	    stringstream error;
+        error << "ERROR : cholddir : " << strerror(errno) << std::endl;
+        throw faustexception(error.str());
 	}
 }
 
@@ -56,9 +58,9 @@ int	cholddir()
 int mkchdir(string dirname)
 {
     char buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
+	gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
    
-	if (gCurrentDir.c_str() != 0) {
+	if (gGlobal->gCurrentDir.c_str() != 0) {
 		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			if (chdir(dirname.c_str()) == 0) {
@@ -66,28 +68,32 @@ int mkchdir(string dirname)
 			}
 		}
 	}
-	perror("mkchdir");
-	exit(errno);
+    
+    stringstream error;
+    error << "ERROR : mkchdir : " << strerror(errno) << std::endl;
+    throw faustexception(error.str());
 }
 
 int	makedir(string dirname)
 {
     char buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
+	gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
   
-	if (gCurrentDir.c_str() != 0) {
+	if (gGlobal->gCurrentDir.c_str() != 0) {
 		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			return 0;
 		}
 	}
-	perror("makedir");
-	exit(errno);
+    
+    stringstream error;
+    error << "ERROR : makedir : " << strerror(errno) << std::endl;
+    throw faustexception(error.str());
 }
 
 void getCurrentDir()
 {
     char buffer[FAUST_PATH_MAX];
-    gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
+    gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
 }
 
