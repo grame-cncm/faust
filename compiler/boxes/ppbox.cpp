@@ -87,7 +87,7 @@ const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
 
 const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
 {
-    if (ptr == sigWriteReadTable) 	return "wrtable";
+    if (ptr == sigWriteReadTable) 	return "rwtable";
     return "prim5???";
 }
 
