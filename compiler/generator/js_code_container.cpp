@@ -77,9 +77,6 @@ void JAVAScriptCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
-        tab(n+1, *fOut);
-        tab(n+1, *fOut);
-
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
