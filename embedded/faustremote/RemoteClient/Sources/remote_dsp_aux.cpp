@@ -505,19 +505,19 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
 //  PREPARE URL TO SEND TO SERVER
     
 // Parse NetJack Parameters
-    string finalRequest = "NJ_IP=";
+    string finalRequest = "NJ_ip=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", DEFAULT_MULTICAST_IP));
 
-    finalRequest += "&NJ_Port=";
+    finalRequest += "&NJ_port=";
     finalRequest += string(port);
     
-    finalRequest += "&NJ_Compression=";
+    finalRequest += "&NJ_compression=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_compression", "-1"));
     
-    finalRequest += "&NJ_Latency=";
+    finalRequest += "&NJ_latency=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_latency", "2"));
     
-    finalRequest += "&NJ_MTU=";
+    finalRequest += "&NJ_mtu=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_mtu", "1500"));
     
     finalRequest += "&factoryIndex=";

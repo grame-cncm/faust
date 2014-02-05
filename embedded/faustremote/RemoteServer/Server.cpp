@@ -412,19 +412,19 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         if(strcmp(key,"data") ==0 )
             con_info->fFaustCode+=data;        
             
-        if(strcmp(key,"NJ_IP") ==0 )
+        if(strcmp(key,"NJ_ip") ==0 )
             con_info->fIP = data;
         
-        if(strcmp(key,"NJ_Port") ==0 )
+        if(strcmp(key,"NJ_port") ==0 )
             con_info->fPort =data;        
         
-        if(strcmp(key,"NJ_Latency") ==0 )
+        if(strcmp(key,"NJ_latency") ==0 )
             con_info->fLatency = data;
         
-        if(strcmp(key,"NJ_Compression") ==0 )
+        if(strcmp(key,"NJ_compression") ==0 )
             con_info->fCV = data;        
         
-        if(strcmp(key,"NJ_MTU") ==0 )
+        if(strcmp(key,"NJ_mtu") ==0 )
             con_info->fMTU = data;
         
         if(strcmp(key,"factoryIndex") ==0 )
