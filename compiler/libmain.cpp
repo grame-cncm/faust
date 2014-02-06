@@ -101,8 +101,8 @@ typedef struct LLVMResult {
     llvm::LLVMContext*  fContext;
 } LLVMResult;
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 EXPORT std::list<std::string> get_import_dirs();
 
@@ -480,7 +480,7 @@ static void printhelp()
 {
 	printversion();
 	cout << "usage: faust [options] file1 [file2 ...]\n";
-	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a faust source file (.dsp extension).\n";
+	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
 
 	cout << "\noptions :\n";
 	cout << "---------\n";
@@ -700,7 +700,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     return process;
 }
 
-static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
+static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     // By default use "cpp" output
     if (!gOutputLang) {
@@ -711,7 +711,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     CodeContainer* container = NULL;
 
     startTiming("compilation");
-
+    
     if (strcmp(gOutputLang, "llvm") == 0) {
 
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
@@ -724,13 +724,18 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
-  
-        comp->compileMultiSignal(signals);
-        LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
-        gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
-        
-        if (gLLVMOut && gGlobal->gOutputFile == "") {
-            outs() << *gGlobal->gLLVMResult->fModule;
+         
+        if (generate) {
+            comp->compileMultiSignal(signals);
+            LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
+            gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
+            
+            if (gLLVMOut && gGlobal->gOutputFile == "") {
+                outs() << *gGlobal->gLLVMResult->fModule;
+            }
+        } else {
+            // To trigger 'sig.dot' generation
+            comp->prepare(signals);
         }
  
     } else {
@@ -956,7 +961,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     return out.str();
 }
 
-void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input = NULL)
+void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input, bool generate)
 {
     gHelpSwitch = false;
     gVersionSwitch = false;
@@ -1049,7 +1054,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     /****************************************************************
     5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
     *****************************************************************/
-    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
+    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs, generate);
 
     /****************************************************************
      6 - generate xml description, documentation or dot files
@@ -1057,7 +1062,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
     gLLVMOut = false;
     gGlobal = NULL;
@@ -1065,7 +1070,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     
     try {
         global::allocate();
-        compile_faust_internal(argc, argv, name, input);
+        compile_faust_internal(argc, argv, name, input, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
     } catch (faustexception& e) {
@@ -1077,7 +1082,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     return res;
 }
 
-EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
     gLLVMOut = true;
     gGlobal = NULL;
@@ -1085,7 +1090,7 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
     
     try {
         global::allocate();     
-        compile_faust_internal(argc, argv, name, input);
+        compile_faust_internal(argc, argv, name, input, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
         res = 0;
     } catch (faustexception& e) {

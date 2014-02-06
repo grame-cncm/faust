@@ -174,8 +174,20 @@ void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
-                            std::string& error_msg);
+std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
+                            
+
+/**
+ * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
+ 
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return true if compilation succedeed, false and an error_msg in case of failure.
+ */ 
+bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
 
 /**
  * From a DSP source string, creates a 'self-contained' DSP source string when all needed librairies have been included. 
@@ -192,6 +204,17 @@ std::string expandDSPFromString(const std::string& name_app, const std::string& 
                                 int argc, const char *argv[], 
                                 std::string& error_msg);
 
+/**
+* From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
+ 
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return true if compilation succedeed, false and an error_msg in case of failure.
+ */ 
+bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg);
 
 /**
 * Instance class

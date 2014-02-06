@@ -332,8 +332,8 @@ static void printfaustlisting(string& faustfile, ostream& docout)
 			if (foundclosedoc != string::npos && gGlobal->gStripDocSwitch) isInsideDoc = false;
 		}
 	} else {
-       stringstream error;
-        error << "ERROR : can't open faust source file " << faustfile << endl;
+        stringstream error;
+        error << "ERROR : can't open Faust source file " << faustfile << endl;
         throw faustexception(error.str());
 	}
 	

@@ -227,7 +227,7 @@ Tree SourceReader::parsefile(string fname)
         
         if (yyin == NULL) {
             stringstream error;
-            error << "ERROR : Unable to open file " << yyfilename << endl;
+            error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
         }
         

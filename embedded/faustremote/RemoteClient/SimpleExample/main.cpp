@@ -74,6 +74,15 @@ int main(int argc, char* argv[])
     
     arguments[nbArgument++] = "-I";
     arguments[nbArgument++] = folder.c_str();
+    // arguments[nbArgument++] = "-O";
+    //arguments[nbArgument++] = folder.c_str();
+    
+    arguments[nbArgument++] = "-ps";
+    arguments[nbArgument++] = "-tg";
+    arguments[nbArgument++] = "-sg";
+    arguments[nbArgument++] = "-svg";
+    arguments[nbArgument++] = "-xml";
+    //arguments[nbArgument++] = "-mdoc";
     //arguments[nbArgument++] = "-vec";
               
     string content = pathToContent(filePath);

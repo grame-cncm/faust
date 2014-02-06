@@ -66,7 +66,7 @@ int compile_faust(int argc, const char* argv[], const char* name, const char* in
  * @return a LLVMResult with a LLVM module and LLVM context on success, 0 otherwise, with an error message in error_msg.
  */
 
-LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* name, const char* input, char* error_msg);
+LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 
 std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 

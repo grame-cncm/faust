@@ -217,6 +217,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level){
     
+    generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
     std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg);
     
     if (expanded_dsp == "") {

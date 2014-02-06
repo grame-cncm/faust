@@ -81,7 +81,7 @@ LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const 
         }
     }
     
-    return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
+    return compile_faust_llvm(argc1, argv1, input_name, input, error_msg, true);
 }
 
 // Bitcode
@@ -634,9 +634,9 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, std::string&
 // Public API
 
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
-    const std::string& name, 
-    const std::string& input, const std::string& target, 
-    std::string& error_msg, int opt_level)
+                                        const std::string& name, 
+                                        const std::string& input, const std::string& target, 
+                                        std::string& error_msg, int opt_level)
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg, opt_level), error_msg);
 }
@@ -859,6 +859,68 @@ EXPORT std::string expandDSPFromString(const std::string& name_app, const std::s
     string res = expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
     error_msg = error_msg_aux;
     return res;
+}
+
+static bool CheckParameters(int argc, const char *argv[])
+{
+    for (int i = 0; i < argc; i++) {
+        if ((strcmp(argv[i], "-tg") == 0
+            || strcmp(argv[i], "-sg") == 0
+            || strcmp(argv[i], "-ps") == 0
+            || strcmp(argv[i], "-svg") == 0
+            || strcmp(argv[i], "-mdoc") == 0
+            || strcmp(argv[i], "-xml") == 0)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg)
+{
+    if (CheckParameters(argc, argv)) {
+    
+        int argc1 = argc + 4;
+        const char* argv1[32];
+          
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "llvm";
+        argv1[3] = filename.c_str();
+        for (int i = 0; i < argc; i++) {
+            argv1[i+4] = argv[i];
+        }
+        
+        char error_msg_aux[512];
+        compile_faust_llvm(argc1, argv1, "", "", error_msg_aux, false);
+        error_msg = error_msg_aux;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg)
+{
+    if (CheckParameters(argc, argv)) {
+    
+        int argc1 = argc + 3;
+        const char* argv1[32];
+          
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "llvm";
+        for (int i = 0; i < argc; i++) {
+            argv1[i+3] = argv[i];
+        }
+     
+        char error_msg_aux[512];
+        compile_faust_llvm(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux, false);
+        error_msg = error_msg_aux;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // Public C interface
