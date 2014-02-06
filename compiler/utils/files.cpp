@@ -24,6 +24,7 @@
 #include "global.hh"
 #include "exception.hh"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
