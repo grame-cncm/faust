@@ -19,7 +19,7 @@ fi
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-MYGCCFLAGS="-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+MYGCCFLAGS="-O3 $MARCH -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 #-------------------------------------------------------------------
@@ -71,7 +71,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-    faust -i -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp"
+    faust -i -a plotmr.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
