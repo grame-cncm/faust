@@ -212,12 +212,12 @@ void* Server::start_audioSlave(void *arg ){
         
         if (dspToStart->fAudio->init(dspToStart->fSlaveFactory->fNameApp.c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start())
-                printf("Start Slave Audio Failed\n");
+                printf("Start slave audio failed\n");
             else
                 dspToStart->fServer->fRunningDsp.push_back(dspToStart);
         }
         else
-            printf("Init Slave Audio Failed\n");
+            printf("Init slave audio failed\n");
         
         dspToStart->fServer->fLocker.Unlock();
     }
@@ -406,42 +406,41 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     if (size > 0) {
         
-        if(strcmp(key,"name") ==0 )
+        if(strcmp(key,"name") == 0)
             con_info->fNameApp+=data;
         
-        if(strcmp(key,"data") ==0 )
+        if(strcmp(key,"data") == 0)
             con_info->fFaustCode+=data;        
             
-        if(strcmp(key,"NJ_ip") ==0 )
+        if(strcmp(key,"NJ_ip") == 0) 
             con_info->fIP = data;
         
-        if(strcmp(key,"NJ_port") ==0 )
-            con_info->fPort =data;        
+        if(strcmp(key,"NJ_port") == 0) 
+            con_info->fPort =data;   
         
-        if(strcmp(key,"NJ_latency") ==0 )
+        if(strcmp(key,"NJ_latency") == 0)
             con_info->fLatency = data;
         
-        if(strcmp(key,"NJ_compression") ==0 )
+        if(strcmp(key,"NJ_compression") == 0)
             con_info->fCV = data;        
         
-        if(strcmp(key,"NJ_mtu") ==0 )
+        if(strcmp(key,"NJ_mtu") == 0) 
             con_info->fMTU = data;
         
-        if(strcmp(key,"factoryIndex") ==0 )
+        if(strcmp(key,"factoryIndex") == 0)
             con_info->fFactoryIndex = data;
 
-        if(strcmp(key,"number_options") ==0 ){
-            
+        if(strcmp(key,"number_options") == 0){
             con_info->fNumCompilOptions = atoi(data);
             con_info->fCompilationOptions = new string[con_info->fNumCompilOptions];
             con_info->fIndicator = 0;
         }
-        if(strcmp(key,"options") ==0){
+        if(strcmp(key,"options") == 0){
             con_info->fCompilationOptions[con_info->fIndicator] = data;
             con_info->fIndicator++;
         }
         
-        if(strcmp(key,"opt_level") ==0 )
+        if(strcmp(key,"opt_level") == 0)
             con_info->fOpt_level = data;
     }
     

@@ -212,9 +212,11 @@ static bool process_cmdline(int argc, const char* argv[])
 		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
 			i += 1;
+            
         } else if (isCmd(argv[i], "-lang", "--language") && (i+1 < argc)) {
 			gOutputLang = argv[i+1];
 			i += 2;
+            
         } else if (isCmd(argv[i], "-v", "--version")) {
 			gVersionSwitch = true;
 			i += 1;
