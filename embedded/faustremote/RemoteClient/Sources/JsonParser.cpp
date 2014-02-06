@@ -232,14 +232,14 @@ bool parseChar(const char*& p, char x)
 // Parse a quoted string "..." and store the result in s, reports an error if it fails
 bool parseString(const char*& p, string& s)
 {
-    string      str;
+    string str;
 
     skipBlank(p);
 
     const char* saved = p;
 
     if (*p++ == '"') {
-        while ( (*p != 0) && (*p != '"') ) {
+        while ((*p != 0) && (*p != '"')) {
             str += *p++;
         }
         if (*p++=='"') {

@@ -24,8 +24,9 @@ struct myMeta : public Meta
     string name;
     
     virtual void declare(const char* key, const char* value){
-        if(strcmp(key, "name") == 0)
+        if(strcmp(key, "name") == 0) {
             name = value;
+        }
     }
 };
 
@@ -65,7 +66,6 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
         
         myMeta metadata;
         metadataDSPFactory(fLLVMFactory, &metadata);
-        
         fNameApp = metadata.name;
         
         //This instance is used only to build json interface, then it's deleted
@@ -74,9 +74,7 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
         stringstream s;
         s<<factoryIndex;
         
-        string nameOfApp(fNameApp.c_str());
-        
-        httpdfaust::jsonfaustui json(nameOfApp.c_str(), "", 0);
+        httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
         dsp->buildUserInterface(&json);
         json.numInput(dsp->getNumInputs());
         json.numOutput(dsp->getNumOutputs());
