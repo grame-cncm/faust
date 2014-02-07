@@ -48,7 +48,7 @@ struct llvm_dsp_factory;
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
- */ 
+*/ 
 llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], 
                                         const std::string& target, 
                                         std::string& error_msg, int opt_level = 3);
@@ -60,12 +60,12 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
-  * @param target - the LLVM machine target (using empty string will take current machine settings)
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
- */ 
+*/ 
 llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
                                             const std::string& target, 
                                             std::string& error_msg, int opt_level = 3);
@@ -172,10 +172,27 @@ void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return a valid DSP factory on success, otherwise a null pointer.
- */ 
-std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
+ * @return the expanded DSP as a string (possibly empty).
+*/ 
+std::string expandDSPFromFile(const std::string& filename, 
+                            int argc, const char *argv[], 
+                            std::string& error_msg);
                             
+/**
+ * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ 
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return the expanded DSP as a string (possibly empty).
+*/ 
+std::string expandDSPFromString(const std::string& name_app, 
+                                const std::string& dsp_content, 
+                                int argc, const char *argv[], 
+                                std::string& error_msg);
 
 /**
  * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
@@ -186,11 +203,11 @@ std::string expandDSPFromFile(const std::string& filename, int argc, const char 
  * @param error_msg - the error string to be filled
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
- */ 
+*/ 
 bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
 
 /**
- * From a DSP source string, creates a 'self-contained' DSP source string when all needed librairies have been included. 
+ * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
  
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
@@ -198,26 +215,12 @@ bool generateAuxFilesFromFile(const std::string& filename, int argc, const char 
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return a valid DSP factory on success, otherwise a null pointer.
- */ 
-std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, 
-                                int argc, const char *argv[], 
-                                std::string& error_msg);
-
-/**
-* From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
- 
- * @param filename - the DSP filename
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled
- *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
- */ 
+*/ 
 bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg);
 
 /**
-* Instance class
+ * Instance class
 */
 class llvm_dsp : public dsp {
                
@@ -248,7 +251,6 @@ llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
  * @param dsp - the DSP instance to be deleted.
 */ 
 void deleteDSPInstance(llvm_dsp* dsp);
-
 
 /*!
  @}

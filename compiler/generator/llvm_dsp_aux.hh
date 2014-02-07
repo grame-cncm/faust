@@ -239,12 +239,11 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
 EXPORT std::string expandDSPFromFile(const std::string& filename, 
                                     int argc, const char *argv[], 
-                                    const std::string& target, 
                                     std::string& error_msg);
 
-EXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, 
+EXPORT std::string expandDSPFromString(const std::string& name_app, 
+                                    const std::string& dsp_content, 
                                     int argc, const char *argv[], 
-                                    const std::string& target, 
                                     std::string& error_msg);
 
 EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
@@ -309,6 +308,19 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
+
+EXPORT const char* expandCDSPFromFile(const char* filename, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg);
+
+EXPORT const char* expandCDSPFromString(const char* name_app, 
+                                    const char* dsp_content, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg);
+
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg);
+
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg);
 
 #ifdef __cplusplus
 }

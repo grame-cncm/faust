@@ -822,7 +822,8 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
-EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
+EXPORT std::string expandDSPFromFile(const std::string& filename, 
+                                    int argc, const char *argv[], 
                                      std::string& error_msg)
 {
     int argc1 = argc + 4;
@@ -842,8 +843,10 @@ EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, cons
     return res;
 }
 
-EXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
-                                     std::string& error_msg)
+EXPORT std::string expandDSPFromString(const std::string& name_app, 
+                                    const std::string& dsp_content, 
+                                    int argc, const char *argv[], 
+                                    std::string& error_msg)
 {
     int argc1 = argc + 3;
     const char* argv1[32];
@@ -931,7 +934,7 @@ EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
 {
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg_aux, opt_level), error_msg_aux);
-    error_msg = (char*)error_msg_aux.c_str();
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
@@ -950,7 +953,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
     
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, "", "", target, error_msg_aux, opt_level), error_msg_aux);
-    error_msg = (char*)error_msg_aux.c_str();
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
@@ -960,7 +963,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
 {
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name_app, dsp_content, target, error_msg_aux, opt_level), error_msg_aux);
-    error_msg = (char*)error_msg_aux.c_str();
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
@@ -976,7 +979,10 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
 
 EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
-    return writeDSPFactoryToBitcode(factory).c_str();
+    string str = writeDSPFactoryToBitcode(factory);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level)
@@ -996,7 +1002,10 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
 
 EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
-    return writeDSPFactoryToIR(factory).c_str();
+    string str = writeDSPFactoryToIR(factory);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level)
@@ -1047,4 +1056,89 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
     delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+}
+
+EXPORT const char* expandCDSPFromFile(const char* filename, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg)
+{
+    int argc1 = argc + 4;
+    const char* argv1[32];
+	  
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "llvm";
+    argv1[3] = filename;
+    for (int i = 0; i < argc; i++) {
+        argv1[i+4] = argv[i];
+    }
+    
+    string str = expand_dsp(argc1, argv1, "", "", error_msg);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
+}
+
+EXPORT const char* expandCDSPFromString(const char* name_app, 
+                                    const char* dsp_content, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg)
+{
+    int argc1 = argc + 3;
+    const char* argv1[32];
+	  
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "llvm";
+    for (int i = 0; i < argc; i++) {
+        argv1[i+3] = argv[i];
+    }
+    
+    string str = expand_dsp(argc1, argv1, name_app, dsp_content, error_msg);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
+}
+
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg)
+{
+    if (CheckParameters(argc, argv)) {
+    
+        int argc1 = argc + 4;
+        const char* argv1[32];
+          
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "llvm";
+        argv1[3] = filename;
+        for (int i = 0; i < argc; i++) {
+            argv1[i+4] = argv[i];
+        }
+        
+        compile_faust_llvm(argc1, argv1, "", "", error_msg, false);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg)
+{
+    if (CheckParameters(argc, argv)) {
+    
+        int argc1 = argc + 3;
+        const char* argv1[32];
+          
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "llvm";
+        for (int i = 0; i < argc; i++) {
+            argv1[i+3] = argv[i];
+        }
+     
+        compile_faust_llvm(argc1, argv1, name_app, dsp_content, error_msg, false);
+        return true;
+    } else {
+        return false;
+    }
 }
