@@ -472,14 +472,14 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST: DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
 {
 	printversion();
-	cout << "usage: faust [options] file1 [file2 ...]\n";
+	cout << "usage : faust [options] file1 [file2 ...]\n";
 	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
 
 	cout << "\noptions :\n";
@@ -491,10 +491,10 @@ static void printhelp()
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \tprint block-diagram --svg file\n";
-    cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
-    cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \t\tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
+    cout << "-mdlang <l>\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
+    cout << "-stripdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -507,11 +507,11 @@ static void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-	cout << "-i \t--inline-architecture-files \n";
+	cout << "-i \t\t --inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-    cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
-    cout << "-o <file> \tC++ output file\n";
+    cout << "-time \t\t --compilation-time, flag to display compilation phases timing information\n";
+    cout << "-o <file> \tC, C++, JAVA, JavaScript or LLVM IR output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
