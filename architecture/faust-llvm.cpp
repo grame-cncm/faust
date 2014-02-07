@@ -333,14 +333,16 @@ class audio_simulator : public audio {
             fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
             memset(fOutChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
         }
+        return true;
     }
     virtual bool start()
     {
         while (--fCount > 0) {
             printf("Render one buffer\n");
             render();
-            sleep(0.1);
+            usleep(100000);
         }
+        return true;
     }
 	virtual void stop()
     {}
@@ -366,7 +368,7 @@ class audio_simulator : public audio {
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     char jackname[256];
 	snprintf(jackname, 255, "%s", basename(argv[0]));
@@ -377,8 +379,10 @@ int main(int argc, char *argv[] )
         exit(-1);
     }
     
+    //printf("argv[1]%
+    
     // Error check to add....
-    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg, 3);
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error_msg, 3);
      
     /*
     // Another possibility by directly giving the Faust program as a string
@@ -393,7 +397,7 @@ int main(int argc, char *argv[] )
     // Faust program
     std::string faust_program = "process = +;";
     
-    llvm_dsp_factory* factory = createDSPFactory(argc1, argv1, "", "", "test", faust_program, "", error_msg, 3);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(argc1, argv1, "test", faust_program, "", error_msg, 3);
     */
     
     dsp* DSP = createDSPInstance(factory);
