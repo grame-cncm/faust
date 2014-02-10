@@ -170,7 +170,7 @@ void inject(ostream& dst, const string fname)
         } else {
             stringstream error;
             error << "NOT FOUND " << fname << endl;
-            strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
+            gGlobal->gErrorMsg = error.str();
         }
     }
 }

@@ -128,9 +128,9 @@ install :
 	# install sound converter
 	([ -e faust-waveform-converter ] && cp faust-waveform-converter $(prefix)/bin) || echo faust-waveform-converter not available	
 	#install faustremote
-	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  /usr/local/lib/faust/) || echo remote not compiled
-	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  /usr/local/bin) || echo remote not compiled
-	cp embedded/faustremote/RemoteClient/remote-dsp.h  /usr/local/include/faust/
+	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/faust/) || echo remote not compiled
+	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
+	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/

@@ -15,8 +15,9 @@ CFLAGS        = -pipe -g -gdwarf-2 -arch x86_64 -Xarch_x86_64 -mmacosx-version-m
 CXXFLAGS      = -pipe -Wno-unused-variable -g -g -gdwarf-2 -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5 -Wall -W $(DEFINES)
 INCPATH       = -I/usr/local/Qt4.8/mkspecs/macx-g++ -I. -I/Library/Frameworks/QtCore.framework/Versions/4/Headers -I/usr/include/QtCore -I/Library/Frameworks/QtGui.framework/Versions/4/Headers -I/usr/include/QtGui -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I/opt/local/include/faust
 LINK          = g++
+LLVM_CONFIG   = llvm-config
 LFLAGS        = -headerpad_max_install_names -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5
-LIBS          = $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lcurl -ljack -ljacknet -L/usr/local/lib/faust -lfaustremote -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore 
+LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lcurl -ljack -ljacknet -L/usr/local/lib/faust -lfaust -lfaustremote -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore 
 
 
 ####### Install
@@ -46,10 +47,10 @@ FORCE:
 moc_faustqt.o: moc_faustqt.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_faustqt.o moc_faustqt.cpp
 	
-utilities.o: utilities.cpp utilities.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o utilities.cpp
+utilities.o: ../utilities.cpp ../utilities.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../utilities.cpp
 	
-main.o: main.cpp utilities.h
+main.o: main.cpp ../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 moc_faustqt.cpp: /usr/local/include/faust/gui/faustqt.h

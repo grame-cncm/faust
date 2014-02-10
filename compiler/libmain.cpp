@@ -82,16 +82,16 @@
 
 #ifdef _WIN32
 #include <windows.h>
-
-char *realpath(const char *path, char resolved_path[MAX_PATH])
-{
-	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0))
-		return resolved_path;
-	else
-		return "";
-}
-
 #define PATH_MAX MAX_PATH
+
+static char *realpath(const char *path, char resolved_path[MAX_PATH])
+{
+	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
+		return resolved_path;
+	} else {
+		return "";
+    }
+}
 
 #endif
 
@@ -101,10 +101,54 @@ typedef struct LLVMResult {
     llvm::LLVMContext*  fContext;
 } LLVMResult;
 
-extern "C" EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-extern "C" EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT std::list<std::string> get_import_dirs();
 
 using namespace std;
+
+typedef void* (*compile_fun)(void* arg);
+
+static void call_fun(compile_fun fun)
+{
+    pthread_t thread;
+    pthread_attr_t attr; 
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 524288 * 8); 
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    pthread_create(&thread, &attr, fun, NULL);
+    pthread_join(thread, NULL);
+}
+
+Tree gProcessTree;
+Tree gLsignalsTree;
+int gNumInputs, gNumOutputs;
+string gErrorMessage;
+
+std::list<std::string> get_import_dirs() { return gGlobal->gImportDirList; }
+
+static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
+
+static void* thread_evaluateBlockDiagram(void* arg) 
+{   
+    try {
+        gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gNumInputs, gNumOutputs);
+    } catch (faustexception& e) {
+        gErrorMessage = e.Message();
+    }
+    return 0;
+}
+
+static void* thread_boxPropagateSig(void* arg)
+{
+    try {
+        gLsignalsTree = boxPropagateSig(gGlobal->nil, gProcessTree, makeSigInputList(gNumInputs));
+    } catch (faustexception& e) {
+        gErrorMessage = e.Message();
+    }
+    return 0;
+}
 
 /****************************************************************
  						Global context variable
@@ -132,6 +176,7 @@ static bool gPrintXMLSwitch = false;
 static bool gPrintDocSwitch = false;
 static int gBalancedSwitch = 0;
 static const char* gArchFile = 0;
+static bool gExportDSP = false;
 
 static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
 static bool gPrintFileListSwitch = false;
@@ -167,9 +212,11 @@ static bool process_cmdline(int argc, const char* argv[])
 		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
 			i += 1;
+            
         } else if (isCmd(argv[i], "-lang", "--language") && (i+1 < argc)) {
 			gOutputLang = argv[i+1];
 			i += 2;
+            
         } else if (isCmd(argv[i], "-v", "--version")) {
 			gVersionSwitch = true;
 			i += 1;
@@ -356,20 +403,29 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gGlobal->gInlineArchSwitch = true;
             i += 1;
-            
+        
+        } else if (isCmd(argv[i], "-e", "--export-dsp")) {
+            gExportDSP = true;
+            i += 1;
+         
         } else if (isCmd(argv[i], "-I", "--import-dir")) {
 
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
-            if (path == 0) {
-                stringstream error;
-                error << "ERROR : invalid directory path " << argv[i+1] << endl;
-                throw faustexception(error.str());
-            } else {
+            if (path) {
                 gGlobal->gImportDirList.push_back(path);
-                i += 2;
             }
-		
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-O", "--output-dir")) {
+        
+            char temp[PATH_MAX+1];
+            char* path = realpath(argv[i+1], temp);
+            if (path) {
+                gGlobal->gOutputDir = path;
+            }
+            i += 2;
+	
         } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
 			if (check_url(url)) {
@@ -379,9 +435,9 @@ static bool process_cmdline(int argc, const char* argv[])
 
 		} else {
             if (err == 0) {
-                parse_error << "unrecognized option(s) : \"" << argv[i] <<"\" ";
+                parse_error << "unrecognized option(s) : \"" << argv[i] <<"\"";
             } else {
-                parse_error << "\"" << argv[i] <<"\"";
+                parse_error << ",\"" << argv[i] <<"\"";
             }
             i++;
 			err++;
@@ -404,7 +460,7 @@ static bool process_cmdline(int argc, const char* argv[])
     }
     
     if (err != 0) {
-        strncpy(gGlobal->gErrorMsg, parse_error.str().c_str(), 256);
+        throw faustexception("ERROR: " + parse_error.str() + '\n');
     }
 
 	return err == 0;
@@ -416,15 +472,15 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST: DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
 {
 	printversion();
-	cout << "usage: faust [options] file1 [file2 ...]\n";
-	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a faust source file (.dsp extension).\n";
+	cout << "usage : faust [options] file1 [file2 ...]\n";
+	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
 
 	cout << "\noptions :\n";
 	cout << "---------\n";
@@ -435,10 +491,10 @@ static void printhelp()
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \tprint block-diagram --svg file\n";
-    cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
-    cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \t\tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
+    cout << "-mdlang <l>\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
+    cout << "-stripdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -451,11 +507,11 @@ static void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-	cout << "-i \t--inline-architecture-files \n";
+	cout << "-i \t\t --inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-    cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
-    cout << "-o <file> \tC++ output file\n";
+    cout << "-time \t\t --compilation-time, flag to display compilation phases timing information\n";
+    cout << "-o <file> \tC, C++, JAVA, JavaScript or LLVM IR output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
@@ -539,8 +595,8 @@ static string fxname(const string& filename)
 
 string makeDrawPath()
 {
-    if (gGlobal->gDrawPath != "") {
-        return gGlobal->gDrawPath + "/" + gGlobal->gMasterName + ".dsp";
+    if (gGlobal->gOutputDir != "") {
+        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName + ".dsp";
     } else {
         return gGlobal->gMasterDocument;
     }
@@ -548,8 +604,8 @@ string makeDrawPath()
 
 static string makeDrawPathNoExt()
 {
-    if (gGlobal->gDrawPath != "") {
-        return gGlobal->gDrawPath + "/" + gGlobal->gMasterName;
+    if (gGlobal->gOutputDir != "") {
+        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName;
     } else if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
         return gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4);
     } else {
@@ -644,7 +700,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     return process;
 }
 
-static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
+static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     // By default use "cpp" output
     if (!gOutputLang) {
@@ -655,7 +711,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     CodeContainer* container = NULL;
 
     startTiming("compilation");
-
+    
     if (strcmp(gOutputLang, "llvm") == 0) {
 
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
@@ -668,13 +724,18 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
-  
-        comp->compileMultiSignal(signals);
-        LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
-        gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
-        
-        if (gLLVMOut && gGlobal->gOutputFile == "") {
-            outs() << *gGlobal->gLLVMResult->fModule;
+         
+        if (generate) {
+            comp->compileMultiSignal(signals);
+            LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
+            gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
+            
+            if (gLLVMOut && gGlobal->gOutputFile == "") {
+                outs() << *gGlobal->gLLVMResult->fModule;
+            }
+        } else {
+            // To trigger 'sig.dot' generation
+            comp->prepare(signals);
         }
  
     } else {
@@ -682,7 +743,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         ostream* dst;
 
         if (gGlobal->gOutputFile != "") {
-            dst = new ofstream(gGlobal->gOutputFile.c_str());
+            string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+            dst = new ofstream(outpath.c_str());
         } else {
             dst = &cout;
         }
@@ -864,7 +926,42 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-void compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
+static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* input = NULL)
+{
+
+    /****************************************************************
+     1 - process command line
+    *****************************************************************/
+    process_cmdline(argc, argv);
+   
+    /****************************************************************
+     2 - parse source files
+    *****************************************************************/
+    if (input) {
+        gGlobal->gInputString = input;
+        gGlobal->gInputFiles.push_back(name);
+    }
+    parseSourceFiles();
+    
+    initFaustDirectories();
+
+    /****************************************************************
+     3 - evaluate 'process' definition
+    *****************************************************************/
+    
+    // int numInputs, numOutputs;
+    // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    if (!gProcessTree) {
+        throw faustexception(gErrorMessage);
+    }
+    stringstream out;
+    out << "process = " << boxpp(gProcessTree) << ";" << endl;
+    return out.str();
+}
+
+void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input, bool generate)
 {
     gHelpSwitch = false;
     gVersionSwitch = false;
@@ -880,17 +977,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     gPrintFileListSwitch = false;
     gOutputLang = 0;
   
-    /****************************************************************
-     0 - set library_path and draw_path
-    *****************************************************************/
-    if (library_path && strcmp(library_path, "") != 0) {
-        char full_library_path[512];
-        sprintf(full_library_path, "%s=%s", FAUST_LIB_PATH, library_path);
-        putenv(full_library_path);
-    }
-    
-    gGlobal->gDrawPath = string(draw_path);
-            
     /****************************************************************
      1 - process command line
     *****************************************************************/
@@ -923,19 +1009,40 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     /****************************************************************
      3 - evaluate 'process' definition
     *****************************************************************/
-    int numInputs, numOutputs;
-    Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    // int numInputs, numOutputs;
+    // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+    
+    call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    if (!gProcessTree) {
+        throw faustexception(gErrorMessage);
+    }
+    Tree process = gProcessTree;
+    int numInputs = gNumInputs;
+    int numOutputs = gNumOutputs;
+    
+    if (gExportDSP) {
+        ofstream xout(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        xout << "process = " << boxpp(process) << ";" << endl;
+        return;
+    }
 
     /****************************************************************
      4 - compute output signals of 'process'
     *****************************************************************/
     startTiming("propagation");
 
-    Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
-
+    //Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
+    
+    call_fun(thread_boxPropagateSig); // In a thread with more stack size...
+    if (!gLsignalsTree) {
+        throw faustexception(gErrorMessage);
+    }
+    Tree lsignals = gLsignalsTree;
+ 
     if (gGlobal->gDetailsSwitch) {
         cout << "output signals are : " << endl;
-        Tree ls =  lsignals;
+        Tree ls = lsignals;
         while (! isNil(ls)) {
             cout << ppsig(hd(ls)) << endl;
             ls = tl(ls);
@@ -947,7 +1054,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     /****************************************************************
     5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
     *****************************************************************/
-    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
+    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs, generate);
 
     /****************************************************************
      6 - generate xml description, documentation or dot files
@@ -955,35 +1062,37 @@ void compile_faust_internal(int argc, const char* argv[], const char* library_pa
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
-    LLVMResult* result = NULL;
     gLLVMOut = false;
     gGlobal = NULL;
+    LLVMResult* res;
     
     try {
         global::allocate();
-        compile_faust_internal(argc, argv, library_path, draw_path, name, input);
-        result = gGlobal->gLLVMResult;
-        strcpy(error_msg, gGlobal->gErrorMsg);
+        compile_faust_internal(argc, argv, name, input, generate);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
+        res = gGlobal->gLLVMResult;
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
+        res = NULL;
     }
     
     global::destroy();
-    return result;
+    return res;
 }
 
-EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
     gLLVMOut = true;
     gGlobal = NULL;
-    int res = 0;
+    int res;
     
     try {
-        global::allocate();        
-        compile_faust_internal(argc, argv, library_path, draw_path, name, input);
-        strcpy(error_msg, gGlobal->gErrorMsg);
+        global::allocate();     
+        compile_faust_internal(argc, argv, name, input, generate);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+        res = 0;
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
         res = -1;
@@ -992,3 +1101,21 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* library_path,
     global::destroy();
     return res;
 }
+
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+{
+    gGlobal = NULL;
+    string res = "";
+    
+    try {
+        global::allocate();       
+        res = expand_dsp_internal(argc, argv, name, input);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+    } catch (faustexception& e) {
+        strncpy(error_msg, e.Message().c_str(), 256);
+    }
+    
+    global::destroy();
+    return res;
+}
+

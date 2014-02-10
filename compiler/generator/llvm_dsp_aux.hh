@@ -112,15 +112,14 @@ class llvm_dsp_factory {
         computeFun fCompute;
         metadataFun fMetadata;
         
-        string fLibraryPath;
-        
         bool fScheduler;
         
         void* LoadOptimize(const std::string& function);
         
         LLVMResult* CompileModule(int argc, const char *argv[], 
-            const char* library_path, const char* draw_path,
             const char* input_name, const char* input, char* error_msg);
+            
+        Module* LoadSchedulerModule();
             
         void Init();
         
@@ -129,7 +128,7 @@ class llvm_dsp_factory {
   public:
   
         llvm_dsp_factory(int argc, const char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
+                        const std::string& name, 
                         const std::string& input, const std::string& target, 
                         std::string& error_msg, int opt_level = 3);
               
@@ -185,18 +184,15 @@ class llvm_dsp_aux : public dsp {
 
 // Public C++ interface
 
-EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
-                        const std::string& input, const std::string& target, 
-                        std::string& error_msg, int opt_level = 3);
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
+                                                int argc, const char *argv[], 
+                                                const std::string& target, 
+                                                std::string& error_msg, int opt_level = 3);
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
-                        std::string& error_msg, int opt_level = 3);
-
-EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
-                        std::string& error_msg, int opt_level = 3);
+EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+                                                    int argc, const char *argv[], 
+                                                    const std::string& target, 
+                                                    std::string& error_msg, int opt_level = 3);
                         
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
 
@@ -241,6 +237,20 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
+EXPORT std::string expandDSPFromFile(const std::string& filename, 
+                                    int argc, const char *argv[], 
+                                    std::string& error_msg);
+
+EXPORT std::string expandDSPFromString(const std::string& name_app, 
+                                    const std::string& dsp_content, 
+                                    int argc, const char *argv[], 
+                                    std::string& error_msg);
+
+EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
+
+EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg);
+
+
 #ifdef WIN32
 
 //#ifdef __cplusplus
@@ -255,18 +265,15 @@ extern "C" {
 
 // Public C interface
 
-EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* name, 
-                        const char* input, const char* target, 
-                        char* error_msg, int opt_level);
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
+                                                    int argc, const char *argv[], 
+                                                    const char* target, 
+                                                    char* error_msg, int opt_level);
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* target, 
-                        char* error_msg, int opt_level);
-
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
-                        const char* library_path, const char* draw_path, const char* target, 
-                        char* error_msg, int opt_level);
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, 
+                                                    int argc, const char *argv[], 
+                                                    const char* target, 
+                                                    char* error_msg, int opt_level);
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
 
@@ -301,6 +308,19 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
+
+EXPORT const char* expandCDSPFromFile(const char* filename, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg);
+
+EXPORT const char* expandCDSPFromString(const char* name_app, 
+                                    const char* dsp_content, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg);
+
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg);
+
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg);
 
 #ifdef __cplusplus
 }

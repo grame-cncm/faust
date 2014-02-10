@@ -187,6 +187,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     // Prepare compile options
     std::string error;
  	const char* argv[32];
+    
+    fCompileOptions.push_back("-I");
+    fCompileOptions.push_back(fLibraryPath);
+    fCompileOptions.push_back("-O");
+    fCompileOptions.push_back(fDrawPath);
+    
 	assert(fCompileOptions.size() < 32);
     vector<string>::const_iterator it;
     int i = 0;
@@ -194,7 +200,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i] = (char*)(*it).c_str();
     }
     
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, fLibraryPath, fDrawPath, getTarget(), error, LLVM_OPTIMIZATION);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
     
     if (factory) {
         return factory;
@@ -1233,7 +1239,7 @@ int main(void)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s", FAUSTGEN_VERSION);
     post("LLVM powered Faust embedded compiler");
-    post("Copyright (c) 2012-2013 Grame");
+    post("Copyright (c) 2012-2014 Grame");
   
     // Process all messages coming to the object using a custom method
     REGISTER_METHOD_GIMME(faustgen, anything);

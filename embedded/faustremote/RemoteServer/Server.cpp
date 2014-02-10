@@ -24,8 +24,9 @@ struct myMeta : public Meta
     string name;
     
     virtual void declare(const char* key, const char* value){
-        if(strcmp(key, "name") == 0)
+        if(strcmp(key, "name") == 0) {
             name = value;
+        }
     }
 };
 
@@ -39,7 +40,6 @@ slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const stri
     
     if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryIndex, answer))
         return newFactory;
-    
     else
         return NULL;
 }
@@ -57,15 +57,15 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
     printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
     printf("AGRC = %i | argv = %p\n", argc, argv);
     
-    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", "", "", answer, opt_level);
+    string error_msg;
+    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", error_msg, opt_level);
     
-    printf("ERROR = %s\n", answer.c_str());
+    printf("%s\n", error_msg.c_str());
     
     if(fLLVMFactory){
         
         myMeta metadata;
         metadataDSPFactory(fLLVMFactory, &metadata);
-        
         fNameApp = metadata.name;
         
         //This instance is used only to build json interface, then it's deleted
@@ -74,9 +74,7 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
         stringstream s;
         s<<factoryIndex;
         
-        string nameOfApp(fNameApp.c_str());
-        
-        httpdfaust::jsonfaustui json(nameOfApp.c_str(), "", 0);
+        httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
         dsp->buildUserInterface(&json);
         json.numInput(dsp->getNumInputs());
         json.numOutput(dsp->getNumOutputs());
@@ -90,9 +88,10 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
         
         fNumInstances = 1;
         return true;
-    }
-    else
+    } else {
+        answer = error_msg;
         return false;
+    }
 }
 
 // "Smart" Desallocation of factory depending on its running instances
@@ -146,7 +145,6 @@ slave_dsp::~slave_dsp(){
     delete fAudio;
     deleteDSPInstance(fDSP);
     deleteSlaveDSPFactory(fSlaveFactory);
-    
 }
 
 //----------------SERVER----------------------------------------
@@ -172,7 +170,6 @@ bool Server::start(int port){
                                request_completed, NULL, MHD_OPTION_END);
 
     if(fDaemon){
-        
         fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
         registration();
         return true;
@@ -205,7 +202,7 @@ void* Server::start_audioSlave(void *arg ){
     
     if(dspToStart->fServer->fLocker.Lock()){
         
-        dspToStart->fAudio = new netjackaudio_control(atoi(dspToStart->fCV.c_str()), 
+        dspToStart->fAudio = new server_netjackaudio(atoi(dspToStart->fCV.c_str()), 
                                                       dspToStart->fIP, 
                                                       atoi(dspToStart->fPort.c_str()), 
                                                       DEFAULT_MTU, 
@@ -213,12 +210,12 @@ void* Server::start_audioSlave(void *arg ){
         
         if (dspToStart->fAudio->init(dspToStart->fSlaveFactory->fNameApp.c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start())
-                printf("Start Slave Audio Failed\n");
+                printf("Start slave audio failed\n");
             else
                 dspToStart->fServer->fRunningDsp.push_back(dspToStart);
         }
         else
-            printf("Init Slave Audio Failed\n");
+            printf("Init slave audio failed\n");
         
         dspToStart->fServer->fLocker.Unlock();
     }
@@ -232,12 +229,7 @@ int Server::getSmallestIndexAvailable(){
     int i = 0;
     
     while(found && fAvailableFactories.size() != 0){
-    
-        if(fAvailableFactories.find(i) != fAvailableFactories.end())
-            found = true;
-        else
-            found = false;
-        
+        found = (fAvailableFactories.find(i) != fAvailableFactories.end());
         i++;
     }
     
@@ -272,7 +264,6 @@ void Server::stop_NotActive_DSP(){
         if(!(*it)->fAudio->is_connexion_active()){
             slave_dsp* toDelete = *it;
             it = fRunningDsp.erase(it);
-            
             deleteSlaveDSPInstance(toDelete);
         }
         else
@@ -413,42 +404,41 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     if (size > 0) {
         
-        if(strcmp(key,"name") ==0 )
+        if(strcmp(key,"name") == 0)
             con_info->fNameApp+=data;
         
-        if(strcmp(key,"data") ==0 )
+        if(strcmp(key,"data") == 0)
             con_info->fFaustCode+=data;        
             
-        if(strcmp(key,"NJ_IP") ==0 )
+        if(strcmp(key,"NJ_ip") == 0) 
             con_info->fIP = data;
         
-        if(strcmp(key,"NJ_Port") ==0 )
-            con_info->fPort =data;        
+        if(strcmp(key,"NJ_port") == 0) 
+            con_info->fPort =data;   
         
-        if(strcmp(key,"NJ_Latency") ==0 )
+        if(strcmp(key,"NJ_latency") == 0)
             con_info->fLatency = data;
         
-        if(strcmp(key,"NJ_Compression") ==0 )
+        if(strcmp(key,"NJ_compression") == 0)
             con_info->fCV = data;        
         
-        if(strcmp(key,"NJ_MTU") ==0 )
+        if(strcmp(key,"NJ_mtu") == 0) 
             con_info->fMTU = data;
         
-        if(strcmp(key,"factoryIndex") ==0 )
+        if(strcmp(key,"factoryIndex") == 0)
             con_info->fFactoryIndex = data;
 
-        if(strcmp(key,"number_options") ==0 ){
-            
+        if(strcmp(key,"number_options") == 0){
             con_info->fNumCompilOptions = atoi(data);
             con_info->fCompilationOptions = new string[con_info->fNumCompilOptions];
             con_info->fIndicator = 0;
         }
-        if(strcmp(key,"options") ==0){
+        if(strcmp(key,"options") == 0){
             con_info->fCompilationOptions[con_info->fIndicator] = data;
             con_info->fIndicator++;
         }
         
-        if(strcmp(key,"opt_level") ==0 )
+        if(strcmp(key,"opt_level") == 0)
             con_info->fOpt_level = data;
     }
     
@@ -477,7 +467,6 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
     
     delete con_info;
     *con_cls = NULL;
-    
 }
 
 // Create DSP Factory 

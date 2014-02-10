@@ -176,13 +176,12 @@ ostream& ppsig::printextended (ostream& fout, Tree sig) const
 	fout << ')';
 	return fout;
 }
-	
-	
+		
 ostream& ppsig::print (ostream& fout) const
 {
 	int 	i;
 	double	r;
-    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, wf;
+    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
 	else if ( isProj(sig, &i, x) ) 					{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}

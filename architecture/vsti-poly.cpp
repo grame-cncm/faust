@@ -713,6 +713,7 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				else { // Note off
 					// Find the voice to be turned off
 					int currentVoice;
+					bool voiceFound = false;
 					std::list<voice_node*>::iterator voice_iter = m_playingVoices.begin();
 					for (; voice_iter != m_playingVoices.end(); voice_iter++) {
 						if (currentNote == (*voice_iter)->note) {
@@ -720,6 +721,7 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 							TRACE( fprintf(stderr, "=== Faust VSTi: Found matching voice for note %d: %d\n", currentNote, currentVoice) );
 							if (std::find(m_releasedVoices.begin(), m_releasedVoices.end(), currentVoice) == m_releasedVoices.end()) {
 								m_releasedVoices.push_back(currentVoice);
+								voiceFound = true;
 							}
 						}
 					}
@@ -731,7 +733,9 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 					compute(inputs, outptr, currentDelta - previousDelta);
 					free(outptr);
 					// Note end
-					m_voices[currentVoice]->setGate(0);
+					if (voiceFound) {
+						m_voices[currentVoice]->setGate(0);
+					}
 				}
 				previousDelta = currentDelta;
 			}
@@ -763,11 +767,6 @@ void Faust :: compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 			outputs[i][frame] = 0;
 		}
 	}
-
-#ifdef MONOPHONY
-	m_dsp->compute(sampleFrames, inputs, outputs);
-	return;
-#endif
 
 	if (sampleFrames > (VstInt32)m_tempOutputSize) {
 		// if requested number of samples to synthesize exceeds current temporary buffer

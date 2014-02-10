@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-#include "utilities.h"
+#include "../utilities.h"
 #include "faust/remote-dsp.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/coreaudio-dsp.h"
@@ -44,36 +44,50 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    string ipServer = loptions(argc, argv, "--ipserver", "localhost");
-    int portServer = lopt(argc, argv, "--portserver", 7777);
+    string ipServer = loptions(argv, "--ipserver", "localhost");
+    int portServer = lopt(argv, "--portserver", 7777);
     
-    int srate = lopt(argc, argv, "--frequency", 44100);
-    int	fpb = lopt(argc, argv, "--buffer", 512);
+    int srate = lopt(argv, "--frequency", 44100);
+    int	fpb = lopt(argv, "--buffer", 512);
 
     QApplication myApp(argc, argv);
     
-    string filePath = loptions(argc, argv, "--file", "");
+    string filePath = loptions(argv, "--file", "");
             
     string errorFactory("");
             
-    const char* arguments[argc];
+    const char* arguments[32];
     int nbArgument = 0;
-         
+          
 //--- Separate compilation options
     for(int i=1; i<argc; i++){
-            
-        if(string(argv[i]).find("--")!=string::npos){
-            i ++;
+          
+        if (string(argv[i]).find("--")!=string::npos){
+            i++;
         }
         else{
-            arguments[nbArgument] = argv[i];
-            nbArgument++;
+            arguments[nbArgument++] = argv[i];
         }
     }
+    
+    string folder = filePath.substr(0, filePath.find_last_of('/'));
+    
+    arguments[nbArgument++] = "-I";
+    arguments[nbArgument++] = folder.c_str();
+    // arguments[nbArgument++] = "-O";
+    //arguments[nbArgument++] = folder.c_str();
+    
+    arguments[nbArgument++] = "-ps";
+    arguments[nbArgument++] = "-tg";
+    arguments[nbArgument++] = "-sg";
+    arguments[nbArgument++] = "-svg";
+    arguments[nbArgument++] = "-xml";
+    //arguments[nbArgument++] = "-mdoc";
+    //arguments[nbArgument++] = "-vec";
               
     string content = pathToContent(filePath);
     
-    remote_dsp_factory* factory = createRemoteDSPFactory(nbArgument, arguments, ipServer, portServer, content, errorFactory, 3);
+    remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
             
     if(factory != NULL){
                 
@@ -87,9 +101,9 @@ int main(int argc, char* argv[])
                         
             QTGUI* interface = new QTGUI();
                     
-          jackaudio* audio = new jackaudio;
+            jackaudio* audio = new jackaudio;
             
-//        coreaudio* audio = new coreaudio(srate, fpb);
+//          coreaudio* audio = new coreaudio(srate, fpb);
                     
             DSP->buildUserInterface(interface);   
                     
@@ -102,8 +116,7 @@ int main(int argc, char* argv[])
             
             myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
-            
-            
+             
             //  STOP && DESALLOCATION OF ALL RESOURCES
             
             interface->stop();

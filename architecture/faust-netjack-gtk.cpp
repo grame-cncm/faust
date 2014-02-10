@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
         exit(1);
     } else {
-        factory = createDSPFactory(argc - 1 - inc_arg, (const char**)&argv[inc_arg + 1], "", "", "", "", "", error_msg);
+        factory = createDSPFactoryFromFile(argv[1], argc-2-inc_arg, (const char**)&argv[inc_arg+2], "", error_msg);
         DSP = createDSPInstance(factory);
         if (!DSP) {
             std::cerr << error_msg;
@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(filename, DSP)) {
+	netjackaudio audio(celt, master_ip, master_port, DEFAULT_MTU);
+    if (!audio.init(filename, DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);

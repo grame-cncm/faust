@@ -23,7 +23,7 @@
 
 using namespace std;
 
-bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
+static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
 {
     if (dynamic_cast<DeclareVarInst*>(a)) {
         DeclareVarInst* inst = dynamic_cast<DeclareVarInst*>(a);
@@ -38,3 +38,14 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
     }
 }
 
+#ifdef _WIN32
+bool sortArrayDeclarations(const StatementInst*& a, const StatementInst*& b)
+{
+    return sortArrayDeclarationsAux(a, b);
+}
+#else
+bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
+{
+    return sortArrayDeclarationsAux(a, b);
+}
+#endif

@@ -6,6 +6,10 @@
 #include "tree.hh"
 #include "faustparser.hpp"
 #include "compatibility.hh"
+#include "errormsg.hh"
+
+#define YY_FATAL_ERROR lexerror
+
 %}
 
 DIGIT    [0-9]

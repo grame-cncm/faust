@@ -24,11 +24,11 @@ int main(int argc, char* argv[])
     Server server;
     
     if (!server.start(port)) {
-        std::cerr << "Unable to Start Faust Remote Processing Server" << std::endl;
+        std::cerr << "Unable to start Faust Remote Processing Server" << std::endl;
         return 1;
     }
     else
-        std::cerr << "Faust Remote Processing Server is Running On Port : "<< port<<std::endl;
+        std::cerr << "Faust Remote Processing Server is running on port : "<< port<<std::endl;
     
     getchar();
     

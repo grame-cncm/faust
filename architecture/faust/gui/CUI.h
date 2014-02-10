@@ -86,13 +86,11 @@ typedef struct {
 
 } MetaGlue;
 
-void declareMetaGlue(void* cpp_interface, const char* key, const char* value);
-
 /***************************************
  *  Interface for the DSP object
  ***************************************/
 
-typedef struct llvm_dsp_imp {};
+struct llvm_dsp_imp;
 
 typedef struct llvm_dsp_imp* (* newDspFun) ();
 typedef void (* deleteDspFun) (struct llvm_dsp_imp* dsp);

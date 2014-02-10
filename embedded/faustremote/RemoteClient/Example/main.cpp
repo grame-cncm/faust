@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-#include "utilities.h"
+#include "../utilities.h"
 #include "faust/remote-dsp.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/coreaudio-dsp.h"
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
             string errorFactory("");
             
             const char* arguments[argc];
-            int nbArgument;
+            int nbArgument = 0;
             
             for(int i=1; i<argc; i++){
                 
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
             
             string content = pathToContent(filePath);
             
-            remote_dsp_factory* factory = createRemoteDSPFactory(nbArgument, arguments, ipServer, portServer, content, errorFactory, 3);
+            remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
             
             if(factory != NULL){
                 

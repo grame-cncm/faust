@@ -18,28 +18,15 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+ 
+#ifndef __FILES__
+#define __FILES__
 
-#ifndef _ERRORMSG_
-#define _ERRORMSG_
+#include <string>
 
-#include "tlib.hh"
-
-extern int 			yylineno;
-extern const char * yyfilename;
-
-// associate and retrieve file and line properties to a symbol
-void 		setDefProp(Tree sym, const char* filename, int lineno);
-const char* getDefFileProp(Tree sym);
-int 		getDefLineProp(Tree sym);
-
-// Parsing error
-void 		lexerror(const char* msg);
-void 		yyerror(const char* msg);
-
-// three levels or errors, warnings and remarks are provided during evaluation
-void 		evalerror(const char* filename, int linenum, const char* msg, Tree exp);
-void        evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp);
-void 		evalwarning(const char* filename, int linenum, const char* msg, Tree exp);
-void 		evalremark(const char* filename, int linenum, const char* msg, Tree exp);
+int	cholddir();
+int mkchdir(std::string dirname);
+int	makedir(std::string dirname);
+void getCurrentDir();
 
 #endif

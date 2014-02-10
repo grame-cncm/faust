@@ -2,12 +2,13 @@
 
 #include "utilities.h"
 
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
+
 #include <unistd.h>
-#include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 
 //Returns the content of a file passed in path
 string pathToContent(string path){
@@ -44,18 +45,35 @@ bool isStringInt(const char* word){
     return returning;
 }
 
-long lopt(int argc, char *argv[], const char *name, long def)
+long lopt(char *argv[], const char *name, long def)
 {
 	int	i;
-	for (i = 0; i<argc; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
+	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
 	return def;
 }
 
-const char* loptions(int argc, char *argv[], const char *name, const char* def)
+const char* loptions(char *argv[], const char *name, const char* def)
 {
 	int	i;
-	for (i = 0; i<argc; i++) if (!strcmp(argv[i], name)) return argv[i+1];
+	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
 	return def;
+}
+
+int lopt_Spe(int i, char *argv[], const char *name, char* path)
+{
+//	int	i;
+//	for (i = 0; argv[i]; i++){
+        if (!strcmp(argv[i], name)){
+            strcpy(path, argv[i+1]);
+        
+            if (argv[i+2] && !strcmp(argv[i+2], "--n"))
+                return atoi(argv[i+3]);
+            else
+                return 1;
+        }
+//    }	
+    
+    return 0;
 }
 
 

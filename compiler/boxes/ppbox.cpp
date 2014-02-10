@@ -26,6 +26,7 @@
 #include "prim2.hh"
 #include "xtended.hh"
 #include "exception.hh"
+#include "global.hh"
 
 const char * prim0name(CTree *(*ptr) ())
 {
@@ -84,7 +85,7 @@ const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
 
 const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
 {
-    if (ptr == sigWriteReadTable) 	return "wrtable";
+    if (ptr == sigWriteReadTable) 	return "rwtable";
     return "prim5???";
 }
 
@@ -113,6 +114,30 @@ static void printRule(ostream& fout, Tree rule)
 	 affichage d'une expression box comme en entree
 *****************************************************************************/
 
+// if t has a node of type symbol, return its name otherwise error		
+static string tree2quotedstr (Tree t)
+{
+	return "\"" + string(tree2str(t)) + "\"";
+}
+
+static string type2str(int type)
+{
+	switch (type) {
+    
+        case 0:
+            return "int";
+            
+        case 1:
+            return "float";
+            
+        default:
+            return "";
+
+    }
+}	
+
+// if t has a node of type symbol, return its name otherwise error		
+
 ostream& boxpp::print (ostream& fout) const
 {
     int		i, id;
@@ -132,7 +157,6 @@ ostream& boxpp::print (ostream& fout) const
 
     xtended* xt = (xtended*) getUserData(box);
 
-
     // primitive elements
     if (xt) 						fout << xt->name();
     else if (isBoxInt(box, &i))			fout << i;
@@ -148,19 +172,33 @@ ostream& boxpp::print (ostream& fout) const
     else if (isBoxPrim5(box, &p5))		fout << prim5name(p5);
 
     else if (isBoxAbstr(box,arg,body))	fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
-    else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << boxpp(args) ;
+    else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << "TOTO" << boxpp(args) ;
 
     else if (isBoxWithLocalDef(box, body, ldef))	fout << boxpp(body) << " with { " << envpp(ldef) << " }";
 
     // foreign elements
-    else if (isBoxFFun(box, ff))		fout << "ffunction(" << ffname(ff) << ')';
-    else if (isBoxFConst(box, type, name, file))
-        fout << "fconstant(" /*<< tree2str(type) */<< tree2str(name) << ')';
+    else if (isBoxFFun(box, ff)) {
+        fout << "ffunction(" << type2str(ffrestype(ff));
+        Tree namelist = nth(ffsignature(ff),1);
+        char sep = ' ';
+        for (int i = 0; i < gGlobal->gFloatSize; i++) {
+            fout << sep << tree2str(nth(namelist,i));
+            sep = '|';
+        }
+        sep = '(';
+        for (int i = 0; i < ffarity(ff); i++) {
+            fout << sep << type2str(ffargtype(ff, i));
+            sep = ',';
+        }
+        fout << ')';
+        fout << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
+    } else if (isBoxFConst(box, type, name, file))
+        fout << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')';
     else if (isBoxFVar(box, type, name, file))
-        fout << "fvariable(" << tree2str(name) << ')';
+        fout << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')';
 
     // block diagram binary operator
-    else if (isBoxSeq(box, t1, t2))		streambinop(fout, t1, ":", t2, 1, priority);
+    else if (isBoxSeq(box, t1, t2))		streambinop(fout, t1, " : ", t2, 1, priority);
     else if (isBoxSplit(box, t1, t2))	streambinop(fout, t1, "<:", t2, 1, priority);
     else if (isBoxMerge(box, t1, t2)) 	streambinop(fout, t1, ":>", t2, 1, priority);
     else if (isBoxPar(box, t1, t2)) 	streambinop(fout, t1,",",t2, 2, priority);
@@ -176,11 +214,11 @@ ostream& boxpp::print (ostream& fout) const
     else if (isBoxOutputs(box, t1))         fout << "outputs(" << boxpp(t1) << ")";
 
     // user interface
-    else if (isBoxButton(box, label))	fout << "button(" << tree2str(label) << ')';
-    else if (isBoxCheckbox(box, label))	fout << "checkbox(" << tree2str(label) << ')';
+    else if (isBoxButton(box, label))	fout << "button(" << tree2quotedstr(label) << ')';
+    else if (isBoxCheckbox(box, label))	fout << "checkbox(" << tree2quotedstr(label) << ')';
     else if (isBoxVSlider(box, label, cur, min, max, step)) 	{
         fout << "vslider("
-             << tree2str(label) << ", "
+             << tree2quotedstr(label) << ", "
              << boxpp(cur) << ", "
              << boxpp(min) << ", "
              << boxpp(max) << ", "
@@ -188,36 +226,36 @@ ostream& boxpp::print (ostream& fout) const
     }
     else if (isBoxHSlider(box, label, cur, min, max, step)) 	{
         fout << "hslider("
-             << tree2str(label) << ", "
+             << tree2quotedstr(label) << ", "
              << boxpp(cur) << ", "
              << boxpp(min) << ", "
              << boxpp(max) << ", "
              << boxpp(step)<< ')';
     }
     else if (isBoxVGroup(box, label, t1)) {
-        fout << "vgroup(" << tree2str(label) << ", " << boxpp(t1, 0) << ')';
+        fout << "vgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
     }
     else if (isBoxHGroup(box, label, t1)) {
-        fout << "hgroup(" << tree2str(label) << ", " << boxpp(t1, 0) << ')';
+        fout << "hgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
     }
     else if (isBoxTGroup(box, label, t1)) {
-        fout << "tgroup(" << tree2str(label) << ", " << boxpp(t1, 0) << ')';
+        fout << "tgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
     }
     else if (isBoxHBargraph(box, label, min, max)) 	{
         fout << "hbargraph("
-             << tree2str(label) << ", "
+             << tree2quotedstr(label) << ", "
              << boxpp(min) << ", "
              << boxpp(max) << ')';
     }
     else if (isBoxVBargraph(box, label, min, max)) 	{
         fout << "vbargraph("
-             << tree2str(label) << ", "
+             << tree2quotedstr(label) << ", "
              << boxpp(min) << ", "
              << boxpp(max) << ')';
     }
     else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{
         fout << "nentry("
-             << tree2str(label) << ", "
+             << tree2quotedstr(label) << ", "
              << boxpp(cur) << ", "
              << boxpp(min) << ", "
              << boxpp(max) << ", "
@@ -240,7 +278,16 @@ ostream& boxpp::print (ostream& fout) const
         fout << ')';
 
     } else if (isBoxWaveform(box)) {
+    
+        fout << "waveform";
+        char sep = '{';
+        for (size_t i=0; i<box->arity(); i++) {
+            fout << sep << boxpp(box->branch(i));
+            sep = ',';
+        }
+        fout << '}';
 
+        /*
         size_t n = box->arity();
 
         if (n < 6) {
@@ -256,6 +303,7 @@ ostream& boxpp::print (ostream& fout) const
             // large waveform print only first and last values
             fout << "waveform{" << box->branch(0) << ", ..<" << n-2 << ">..," << box->branch(n-1) << "}";
         }
+        */
 
     } else if (isBoxEnvironment(box)) {
         fout << "environment";
@@ -268,20 +316,21 @@ ostream& boxpp::print (ostream& fout) const
     }
     else if (isBoxComponent(box, label)) {
         fout << "component("
-             << tree2str(label) << ')';
+             << tree2quotedstr(label) << ')';
     }
     else if (isBoxAccess(box, t1, t2)) {
         fout << boxpp(t1) << '.' << boxpp(t2);
     }
     else if (isImportFile(box, label)) {
         fout << "import("
-             << tree2str(label) << ')';
+             << tree2quotedstr(label) << ')';
     }
     else if (isBoxSlot(box, &id)) {
-        fout << "#" << id;
+        //fout << "#" << id;
+        fout << "x" << id;
     }
     else if (isBoxSymbolic(box, slot, body)) {
-        fout << "[" << boxpp(slot) << ">" << boxpp(body) << "]";
+        fout << "\\(" << boxpp(slot) << ").(" << boxpp(body) << ")";
     }
 
     // Pattern Matching Extensions
@@ -312,8 +361,13 @@ ostream& boxpp::print (ostream& fout) const
     else if (isBoxError(box)) {
         fout << "ERROR";
     }
-
-	// None of the previous tests succeded, then it is not a valid box
+   
+    //else if (isImportFile(box, filename)) {
+    //    printf("filename %s\n", tree2str(filename));
+    //    fout << tree2quotedstr(filename);
+    //}
+   
+    // None of the previous tests succeded, then it is not a valid box
 	else {
         stringstream error;
         error << "Error in box::print() : " << *box << " is not a valid box" << endl;
@@ -322,7 +376,6 @@ ostream& boxpp::print (ostream& fout) const
 
     return fout;
 }
-
 
 /*****************************************************************************
 	 affichage d'un environnement

@@ -25,7 +25,7 @@ first: all
 all: $(objects) libfaustremote.a
 
 
-libfaustremote.a :
+libfaustremote.a : $(objects)
 		libtool -static $(LIBFLAGS) $(objects) -o libfaustremote.a 
 
 install:

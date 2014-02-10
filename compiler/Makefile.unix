@@ -140,6 +140,7 @@ boxes/ppbox.o: tlib/list.hh tlib/symbol.hh garbageable.hh tlib/tree.hh tlib/node
 boxes/ppbox.o: tlib/num.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 boxes/ppbox.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh tlib/property.hh
 boxes/ppbox.o: generator/Text.hh extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh errors/exception.hh
+boxes/ppbox.o: global.hh parser/sourcereader.hh evaluate/loopDetector.hh tlib/occurrences.hh
 documentator/doc.o: boxes/ppbox.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 documentator/doc.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
 documentator/doc.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
@@ -150,6 +151,7 @@ documentator/doc.o: normalize/privatise.hh signals/recursivness.hh documentator/
 documentator/doc.o: signals/sigtyperules.hh generator/occurences.hh generator/description.hh generator/uitree.hh
 documentator/doc.o: documentator/doc_lang.hh documentator/doc_notice.hh documentator/doc_autodoc.hh
 documentator/doc.o: tlib/compatibility.hh errors/exception.hh global.hh evaluate/loopDetector.hh tlib/occurrences.hh
+documentator/doc.o: utils/files.hh
 documentator/doc_Text.o: documentator/doc_Text.hh tlib/compatibility.hh generator/floats.hh generator/instructions.hh
 documentator/doc_Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh tlib/tree.hh
 documentator/doc_Text.o: generator/Text.hh
@@ -208,6 +210,7 @@ draw/drawschema.o: tlib/occurrences.hh draw/device/devLib.h draw/device/SVGDev.h
 draw/drawschema.o: draw/device/PSDev.h extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
 draw/drawschema.o: boxes/boxcomplexity.hh draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh utils/names.hh
 draw/drawschema.o: propagate/propagate.hh generator/description.hh generator/uitree.hh errors/exception.hh
+draw/drawschema.o: utils/files.hh
 draw/sigToGraph.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 draw/sigToGraph.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh
 draw/sigToGraph.o: signals/interval.hh generator/instructions.hh tlib/property.hh generator/Text.hh
@@ -457,7 +460,7 @@ parser/enrobage.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/prop
 parser/enrobage.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
 parser/enrobage.o: evaluate/loopDetector.hh tlib/occurrences.hh parser/sourcefetcher.hh errors/exception.hh
 parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh garbageable.hh tlib/node.hh parser/faustparser.hpp
-parser/faustlexer.o: tlib/compatibility.hh
+parser/faustlexer.o: tlib/compatibility.hh errors/errormsg.hh tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 parser/faustparser.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 parser/faustparser.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
 parser/faustparser.o: signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -550,6 +553,7 @@ tlib/shlysis.o: tlib/shlysis.hh tlib/list.hh tlib/symbol.hh garbageable.hh tlib/
 tlib/shlysis.o: tlib/compatibility.hh
 tlib/symbol.o: tlib/symbol.hh garbageable.hh tlib/compatibility.hh
 tlib/tree.o: tlib/tree.hh tlib/symbol.hh garbageable.hh tlib/node.hh errors/exception.hh
+utils/files.o: utils/files.hh tlib/compatibility.hh
 utils/names.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 utils/names.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh utils/names.hh propagate/propagate.hh
 utils/names.o: boxes/boxes.hh tlib/property.hh documentator/doc_Text.hh generator/Text.hh global.hh

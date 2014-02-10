@@ -905,7 +905,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         
         static string replaceChar(string str, char ch1, char ch2) 
         {
-            for (int i = 0; i < str.length(); ++i) {
+            for (unsigned int i = 0; i < str.length(); ++i) {
                 if (str[i] == ch1) {
                     str[i] = ch2;
                 }
@@ -1679,7 +1679,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             std::vector<Constant*> num_array;
             
-            for (int i = 0; i < inst->fNumTable.size(); i++) {
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 num_array.push_back(static_cast<ConstantFP*>(genFloat(fModule, inst->fNumTable[i], 1)));
             }
             
@@ -1696,7 +1696,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             std::vector<Constant*> num_array;
             
-            for (int i = 0; i < inst->fNumTable.size(); i++) {
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 num_array.push_back(static_cast<ConstantFP*>(genDouble(fModule, inst->fNumTable[i], 1)));
             }
             
@@ -1718,7 +1718,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
            std::vector<Constant*> num_array;
             
-            for (int i = 0; i < inst->fNumTable.size(); i++) {
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 num_array.push_back(static_cast<ConstantFP*>(genInt32(fModule, inst->fNumTable[i], 1)));
             }
             

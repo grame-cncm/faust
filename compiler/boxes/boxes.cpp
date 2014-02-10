@@ -462,7 +462,7 @@ static Tree preparePattern(Tree box)
         else if (isBoxISum(box, t1, t2, t3)) 	return boxISum ( t1, t2, preparePattern(t3) );
         else if (isBoxIProd(box, t1, t2, t3)) 	return boxIProd( t1, t2, preparePattern(t3) );
 
-        // static informatio
+        // static information
         else if (isBoxInputs(box, t1))          return boxInputs ( preparePattern(t1) );
         else if (isBoxOutputs(box, t1))         return boxOutputs( preparePattern(t1) );
 

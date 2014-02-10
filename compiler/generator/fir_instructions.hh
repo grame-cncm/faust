@@ -391,7 +391,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(FloatArrayNumInst* inst)
         {
             char sep = '{';
-            for (int i = 0; i < inst->fNumTable.size(); i++) {
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 *fOut << sep << checkFloat(inst->fNumTable[i]);
                  sep = ',';
             }
@@ -410,7 +410,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(IntArrayNumInst* inst)
         {
             char sep = '{';
-            for (int i = 0; i < inst->fNumTable.size(); i++) {
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 *fOut << sep << inst->fNumTable[i];
                  sep = ',';
             }
@@ -438,7 +438,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DoubleArrayNumInst* inst)
         {
             char sep = '{';
-            for (int i = 0; i < inst->fNumTable.size(); i++) {
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 *fOut << sep << checkDouble(inst->fNumTable[i]);
                  sep = ',';
             }

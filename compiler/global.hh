@@ -87,6 +87,7 @@ struct global {
     string          gMasterName;
     string          gDocName;
     list< string >  gImportDirList;
+    string          gOutputDir;
     Tree			gExpandedDefList;
 
     //-- command line arguments
@@ -157,7 +158,7 @@ struct global {
     
     int                     gErrorCount;
     
-    char                    gErrorMsg[256];
+    string                  gErrorMsg;
   
     Tabber                  TABBER;
     
