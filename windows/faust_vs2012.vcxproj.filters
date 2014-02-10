@@ -339,6 +339,9 @@
     <ClCompile Include="..\compiler\parser\sourcereader.cpp">
       <Filter>parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\compiler\parser\faustlexer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
