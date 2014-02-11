@@ -53,7 +53,7 @@ struct llvm_dsp;
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param target - the LLVM machine target (using empty string will take current machine settings)
- * @param error_msg - the error string to be filled, has to be 255 characters long
+ * @param error_msg - the error string to be filled, has to be 256 characters long
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
@@ -72,7 +72,7 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param target - the LLVM machine target (using empty string will take current machine settings)
- * @param error_msg - the error string to be filled, has to be 255 characters long
+ * @param error_msg - the error string to be filled, has to be 256 characters long
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.

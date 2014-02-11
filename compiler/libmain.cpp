@@ -110,6 +110,15 @@ using namespace std;
 
 typedef void* (*compile_fun)(void* arg);
 
+#ifdef _WIN32 
+
+static void call_fun(compile_fun fun)
+{
+    fun(NULL);
+}
+
+#else
+
 static void call_fun(compile_fun fun)
 {
     pthread_t thread;
@@ -120,6 +129,8 @@ static void call_fun(compile_fun fun)
     pthread_create(&thread, &attr, fun, NULL);
     pthread_join(thread, NULL);
 }
+
+#endif
 
 Tree gProcessTree;
 Tree gLsignalsTree;
