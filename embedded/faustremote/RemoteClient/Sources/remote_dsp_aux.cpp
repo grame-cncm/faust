@@ -217,14 +217,14 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level){
     
-    generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
-    std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg);
+    std::string expanded_dsp;
     
-    if (expanded_dsp == "") {
+    if (!generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg)) {
+        return NULL;
+    } else if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg)) == "") {
         return NULL;
     } else {
         remote_dsp_factory* factory = new remote_dsp_factory();
-   
         if (factory->init(argc, argv, ip_server, port_server, name_app, expanded_dsp, error_msg, opt_level)) {
             return factory;
         } else {
