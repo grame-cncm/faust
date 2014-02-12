@@ -63,7 +63,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             fMathLibTable["acosf"] = "(float)java.lang.Math.acos";
             
             fMathLibTable["asin"] = "java.lang.Math.asin";
-            fMathLibTable["asinf"] = "(cloat)java.lang.Math.asin";
+            fMathLibTable["asinf"] = "(float)java.lang.Math.asin";
             
             fMathLibTable["atan"] = "java.lang.Math.atan";
             fMathLibTable["atanf"] = "(float)java.lang.Math.atan";
