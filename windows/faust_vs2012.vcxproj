@@ -278,6 +278,7 @@
     <ClCompile Include="..\compiler\tlib\shlysis.cpp" />
     <ClCompile Include="..\compiler\tlib\symbol.cpp" />
     <ClCompile Include="..\compiler\tlib\tree.cpp" />
+    <ClCompile Include="..\compiler\utils\files.cpp" />
     <ClCompile Include="..\compiler\utils\names.cpp" />
     <ClCompile Include="..\compiler\main.cpp" />
   </ItemGroup>
@@ -418,6 +419,7 @@
     <None Include="..\compiler\tlib\symbol.hh" />
     <None Include="..\compiler\tlib\tlib.hh" />
     <None Include="..\compiler\tlib\tree.hh" />
+    <None Include="..\compiler\utils\files.hh" />
     <None Include="..\compiler\utils\names.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
