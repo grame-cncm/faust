@@ -219,13 +219,12 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     std::string expanded_dsp;
     
-    // Use for it's possible 'side effects', that is generating files
+    // Use for it's possible 'side effects', that is generating SVG, XML... files
     generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
     
     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg)) == "") {
         return NULL;
     } else {
-         printf("createRemoteDSPFactoryFromString expanded_dsp %s\n", expanded_dsp.c_str());
         remote_dsp_factory* factory = new remote_dsp_factory();
         if (factory->init(argc, argv, ip_server, port_server, name_app, expanded_dsp, error_msg, opt_level)) {
             return factory;
