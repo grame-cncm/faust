@@ -13,6 +13,8 @@ Title
 // init() once the page has finished loading.
 window.onload = init;
 
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+
 <<includeIntrinsic>>
 
 <<includeclass>>
@@ -72,7 +74,9 @@ function create_mydsp(audio_context, user_interface, meta_interface, buffer_size
     console.log(this.dsp.getNumInputs());
     console.log(this.dsp.getNumOutputs());
     
-    this.processor = audio_context.createJavaScriptNode(buffer_size, this.dsp.getNumInputs(), this.dsp.getNumOutputs());
+    this.processor = (isWebKitAudio) 
+        ? audio_context.createJavaScriptNode(buffer_size, this.dsp.getNumInputs(), this.dsp.getNumOutputs())
+        : audio_context.createScriptProcessor(buffer_size, this.dsp.getNumInputs(), this.dsp.getNumOutputs());
     this.processor.onaudioprocess = process_mydsp(this);
     
     return this.processor;
@@ -87,9 +91,23 @@ function loadSample(url)
     request.responseType = "arraybuffer";
 
     request.onload = function() { 
-        source.buffer = context.createBuffer(request.response, false);
+    
+        if (isWebKitAudio) {
+            source.buffer = context.createBuffer(request.response, false);
+        } else {
+            context.decodeAudioData(request.response, function onSuccess(decodedBuffer) {
+                source.buffer = decodedBuffer;
+            }, function onFailure() {
+                console.log("Decoding the audio buffer failed");
+            });
+        }
+        
         source.loop = true;
-        source.noteOn(0);
+        if (isWebKitAudio) {
+            source.noteOn(0);
+        } else {
+            source.start(0);
+        }
     }
 
     request.send();
@@ -103,7 +121,7 @@ var faustdsp;
 
 function initAudio(buffer_size) 
 {
-    context = new webkitAudioContext();
+    context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
     
     meta = new Meta(document.getElementById("FaustMeta"));
     ui = new JUI(document.getElementById("FaustUI"));
@@ -121,7 +139,11 @@ function playsound()
 {
     var url = $("#sound").val();
     if (source) {
-        source.noteOff(0);
+        if (isWebKitAudio) {
+            source.noteOff(0);
+        } else {
+            source.stop(0);
+        }
         source.disconnect(0);
         source = null;
     }
@@ -132,7 +154,11 @@ function playsound()
 
 function stopsound()
 {
-    source.noteOff(0);
+    if (isWebKitAudio) {
+        source.noteOff(0);
+    } else {
+        source.stop(0);
+    }
     source.disconnect(0);
 }
 
