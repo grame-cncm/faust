@@ -253,9 +253,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     if (!fResult || !fResult->fModule) {
         return false;
     }
-    
-    fResult->fModule->addLibrary("m");
-    
+     
     InitializeAllTargets();
     InitializeAllTargetMCs();
   
