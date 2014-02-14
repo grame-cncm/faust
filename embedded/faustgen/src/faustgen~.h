@@ -59,11 +59,13 @@
     #include "bench-llvm.cpp"
     #define FAUST_LIBRARY_PATH "/Contents/Resources/"
     #define FAUST_DRAW_PATH "/var/tmp/"
+    #define SEPARATOR '/'
 #endif
 
 #ifdef WIN32
     #define FAUST_LIBRARY_PATH "\\faustgen-resources\\"
     #define FAUST_DRAW_PATH "\\faustgen-resources\\"
+    #define SEPARATOR '\\'
 #endif
 
 #define LLVM_OPTIMIZATION 3

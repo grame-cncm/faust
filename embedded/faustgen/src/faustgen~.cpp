@@ -627,6 +627,19 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     sysfile_close(fh);
     fSourceCodeSize = sysmem_handlesize(fSourceCode);
     
+    // Add DSP file enclosing folder pathname in the '-I' list
+    char full_path[MAX_FILENAME_CHARS];
+    if (path_topathname(path, filename, full_path) == 0) {
+        string full_path_str = full_path;
+        size_t first = full_path_str.find_first_of(SEPARATOR);
+        size_t last = full_path_str.find_last_of(SEPARATOR);
+        string folder_path = (first != string::npos && last != string::npos) ? full_path_str.substr(first, last - first) : "";
+        if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end() ) {
+            fCompileOptions.push_back("-I");
+            fCompileOptions.push_back(folder_path);
+        }
+    }
+    
     // Update all instances
     set<faustgen*>::const_iterator it;
     for (it = fInstances.begin(); it != fInstances.end(); it++) {
