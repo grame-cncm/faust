@@ -44,6 +44,19 @@ static string getTarget()
 static string getTarget() { return ""; }
 #endif
 
+static string getFolderFromFilename(const string& fullpath)
+{
+    size_t first = fullpath.find_first_of(SEPARATOR);
+    size_t last = fullpath.find_last_of(SEPARATOR);
+    return (first != string::npos && last != string::npos) ? fullpath.substr(first, last - first) : "";
+}
+
+static string getFolderFromPath(const string& fullpath)
+{
+    size_t first = fullpath.find_first_of(SEPARATOR);
+    return (first != string::npos) ? fullpath.substr(first, fullpath.size() - first) : "";
+}
+
 struct Max_Meta : public Meta
 {
     void declare(const char* key, const char* value)
@@ -585,6 +598,16 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
     }
 }
 
+void faustgen_factory::librarypath(long inlet, t_symbol* s)
+{
+    if (s != gensym("")) {
+        string folder_path = getFolderFromPath(s->s_name);
+        if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end()) {
+            fLibraryPath.push_back(folder_path);
+        }
+    }
+}
+
 void faustgen_factory::read(long inlet, t_symbol* s)
 {
     char filename[MAX_FILENAME_CHARS];
@@ -633,10 +656,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     // Add DSP file enclosing folder pathname in the '-I' list
     char full_path[MAX_FILENAME_CHARS];
     if (path_topathname(path, filename, full_path) == 0) {
-        string full_path_str = full_path;
-        size_t first = full_path_str.find_first_of(SEPARATOR);
-        size_t last = full_path_str.find_last_of(SEPARATOR);
-        string folder_path = (first != string::npos && last != string::npos) ? full_path_str.substr(first, last - first) : "";
+        string folder_path = getFolderFromFilename(full_path);
         if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end()) {
             fLibraryPath.push_back(folder_path);
         }
@@ -884,13 +904,13 @@ static int count_digit(const string& name)
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     bool res = false;
-    
+    string name = string((s)->s_name);
+
     if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
-    if (ac == 0) {
+    if (ac == 0 && fDSPUI.isValue(name)) {
         
-        string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
         fDSPUI.setValue(name, off);
@@ -902,8 +922,6 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
         return;
     }
-
-    string name = string((s)->s_name);
     
     // List of values
     if (check_digit(name)) {
@@ -986,6 +1004,11 @@ void faustgen::read(long inlet, t_symbol* s)
 void faustgen::write(long inlet, t_symbol* s)
 {
     fDSPfactory->write(inlet, s);
+}
+
+void faustgen::librarypath(long inlet, t_symbol* s)
+{
+    fDSPfactory->librarypath(inlet, s);
 }
 
 // Called when saving the Max patcher, this function saves the necessary data inside the json file (faust sourcecode)
@@ -1269,6 +1292,7 @@ int main(void)
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);
     REGISTER_METHOD_DEFSYM(faustgen, write);
+    REGISTER_METHOD_DEFSYM(faustgen, librarypath);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);

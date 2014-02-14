@@ -168,6 +168,7 @@ class faustgen_factory {
         
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        void librarypath(long inlet, t_symbol* s);
         
         char* get_sourcecode() { return *fSourceCode; }
         
@@ -275,6 +276,7 @@ class faustgen : public MspCpp5<faustgen> {
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        void librarypath(long inlet, t_symbol* s);
         
         void mute(long inlet, long mute);
          
