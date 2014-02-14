@@ -312,7 +312,7 @@ void faustgen_factory::default_compile_options()
     // Clear and set default value
     fCompileOptions.clear();
     
-    // By default whn double
+    // By default when double
     if (sizeof(FAUSTFLOAT) == 8) {
         add_compile_option("-double");
     }
@@ -351,40 +351,17 @@ void faustgen_factory::default_compile_options()
 
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
-    t_max_err err;
-    
     // Read sourcecode "faustgen_version" key
     const char* faustgen_version;  
-    err = dictionary_getstring(d, gensym("version"), &faustgen_version);  
+    t_max_err err = dictionary_getstring(d, gensym("version"), &faustgen_version);  
       
     if (err != MAX_ERR_NONE) {
         post("Cannot read \"version\" key, so ignore bitcode, force recompilation and use default compileoptions");
-        // Use default option
-        default_compile_options();
         goto read_sourcecode;
     } else if (strcmp(faustgen_version, FAUSTGEN_VERSION) != 0) {
         post("Older version of faustgen~ (%s versus %s), so ignore bitcode, force recompilation and use default compileoptions", FAUSTGEN_VERSION, faustgen_version);
-        // Use default option
-        default_compile_options();
         goto read_sourcecode;
     }
-    
-    // Read sourcecode "compileoptions" key
-    /*
-    long argc;
-    t_atom* argv;
-    err = dictionary_getatoms(d, gensym("compile_options"), &argc, &argv);
-    if (err == MAX_ERR_NONE) {
-        t_atom* ap = argv;
-        for (int i = 0; i < argc; i++, ap++) {
-			fCompileOptions.push_back(atom_getsym(ap)->s_name);
-        }
-    } else {
-        // If not found, use default option
-        default_compile_options();
-    }
-    */
-    default_compile_options();
     
     // Read bitcode size key
     err = dictionary_getlong(d, gensym("bitcode_size"), (t_atom_long*)&fBitCodeSize); 
@@ -435,29 +412,7 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     
     // Save faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
-    
-    /*
-    // Save compile options
-    t_atom* compileoptions = 0;
-    long ac;
-    char res;
-    
-    print_compile_options();
-    atom_alloc_array(fCompileOptions.size(), &ac, &compileoptions, &res);
-    
-    if (res) {
-        CompileOptionsIt it;
-        t_atom*ap = compileoptions;
-        for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++, ap++) {
-            atom_setsym(ap, gensym((char*)(*it).c_str()));
-        }
-        dictionary_chuckentry(d, gensym("compile_options"));
-        dictionary_appendatoms(d, gensym("compile_options"), fCompileOptions.size(), compileoptions);
-    } else {
-        post("Cannot allocate atom array...");
-    }
-    */
-    
+     
     // Save source code
     if (fSourceCodeSize) {
         dictionary_appendlong(d, gensym("sourcecode_size"), fSourceCodeSize);
@@ -749,13 +704,9 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         post("No argument entered, no additional compilation option will be used");
     }
     
-    /*
-    // First reset compiler options
-    default_compile_options();
-    */
-    
-    bool optimize = false;
+    // Clear options
     fOptions.clear();
+    bool optimize = false;
     int i;
     t_atom* ap;
   

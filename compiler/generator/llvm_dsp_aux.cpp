@@ -280,6 +280,8 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     std::string err;
     // Link with "scheduler" code
     if (fScheduler) {
+        // TODO
+        /*
         Module* scheduler = LoadSchedulerModule();
         if (scheduler) {
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
@@ -293,6 +295,9 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
             error_msg = "File scheduler.ll not found...";
             return false;
         }
+        */
+        error_msg = "File scheduler.ll not found...";
+        return false;
     }
     
     if (fTarget != "") {
@@ -471,6 +476,8 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
 
     // Link with "scheduler" code
     if (fScheduler) {
+        // TODO
+        /*
         Module* scheduler = LoadSchedulerModule();
         if (scheduler) {
             if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
@@ -484,6 +491,9 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
             error_msg = "File scheduler.ll not found...";
             return false;
         }
+        */
+        error_msg = "File scheduler.ll not found...";
+        return false;
     }
     
     // Taken from LLVM Opt.cpp
