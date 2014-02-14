@@ -51,6 +51,7 @@
 #else
 #include <llvm/Target/TargetData.h>
 #endif
+
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
@@ -112,12 +113,13 @@ class llvm_dsp_factory {
         computeFun fCompute;
         metadataFun fMetadata;
         
-        bool fScheduler;
-        
         void* LoadOptimize(const std::string& function);
         
-        LLVMResult* CompileModule(int argc, const char *argv[], 
-            const char* input_name, const char* input, char* error_msg);
+        LLVMResult* CompileModule(int argc, 
+                                const char *argv[], 
+                                const char* input_name, 
+                                const char* input, 
+                                char* error_msg);
             
         Module* LoadSchedulerModule();
             

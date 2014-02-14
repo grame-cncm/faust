@@ -84,6 +84,9 @@
 #include <windows.h>
 #define PATH_MAX MAX_PATH
 
+#include <llvm/Linker.h>
+using namespace llvm;
+
 static char *realpath(const char *path, char resolved_path[MAX_PATH])
 {
 	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
@@ -104,7 +107,9 @@ typedef struct LLVMResult {
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-EXPORT void get_import_dirs(std::list<std::string>& import_dirs);
+
+Module* LoadModule(const std::string filename, LLVMContext* context);
+bool LinkModules(Module* dst, Module* src, char* error_message);
 
 using namespace std;
 
@@ -136,8 +141,6 @@ Tree gProcessTree;
 Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
 string gErrorMessage;
-
-void get_import_dirs(std::list<std::string>& import_dirs) { import_dirs = gGlobal->gImportDirList; }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
@@ -1073,6 +1076,19 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
+static Module* load_module(llvm::LLVMContext* context, const string& module)
+{
+    list<string>::iterator it;
+    
+    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+        string filename = *it + "/" + module;
+        Module* scheduler = LoadModule(filename, context);
+        if (scheduler) return scheduler;
+    }
+        
+    return 0;
+}
+
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
     gLLVMOut = false;
@@ -1080,10 +1096,23 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     LLVMResult* res;
     
     try {
+    
+        // Compile module
         global::allocate();
         compile_faust_internal(argc, argv, name, input, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
+        
+        // Check scheduler mode
+        for (int i = 0; i < argc; i++) {
+            if (strcmp(argv[i], "-sch") == 0) {
+                if (!LinkModules(res->fModule, load_module(res->fContext, "scheduler.ll"), error_msg)) {
+                    res = NULL;
+                }
+                break;
+            }
+        }
+        
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
         res = NULL;

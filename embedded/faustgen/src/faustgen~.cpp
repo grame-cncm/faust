@@ -786,8 +786,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 { 
     m_siginlets = 0;
     m_sigoutlets = 0;
-    
-
+   
     fDSP = 0;
     fDSPfactory = 0;
     fEditor = 0;
@@ -1045,8 +1044,7 @@ void faustgen::dblclick(long inlet)
             // Open the libraries
             display_libraries();
             break;
-
-            
+          
         default:
             break;
     }

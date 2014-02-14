@@ -50,7 +50,7 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-static Module* LoadModule(const std::string filename, LLVMContext* context)
+Module* LoadModule(const std::string filename, LLVMContext* context)
 {
     SMDiagnostic err;
     Module* module = ParseIRFile(filename, err, *context);
@@ -67,18 +67,33 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
     }
 }
 
+bool LinkModules(Module* dst, Module* src, char* error_message)
+{
+    string err;
+    
+    if (!src) {
+        strcpy(error_message, "File scheduler.ll not found...");
+        return false;
+    } else if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+        delete src;
+        sprintf(error_message, "Cannot link scheduler module : %s", err.c_str());
+        return false;
+    } else {
+        delete src;
+        return true;
+    }
+}
+
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* input_name, const char* input, char* error_msg)
 {
     int argc1 = argc + 3;
  	const char* argv1[32];
+    
     argv1[0] = "faust";
 	argv1[1] = "-lang";
 	argv1[2] = "llvm";
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
-        if (strcmp(argv[i], "-sch") == 0) {
-            fScheduler = true;
-        }
     }
     
     return compile_faust_llvm(argc1, argv1, input_name, input, error_msg, true);
@@ -173,7 +188,6 @@ void llvm_dsp_factory::Init()
     fBuildUserInterface = 0;
     fInit = 0;
     fCompute = 0;
-    fScheduler = false;
 }
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
@@ -181,21 +195,6 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     assert(fResult->fModule);
     assert(fJIT);
     return new llvm_dsp_aux(this, fNew());
-}
-
-Module* llvm_dsp_factory::LoadSchedulerModule()
-{
-    list<string>::iterator it;
-    std::list<std::string> import_dirs;
-    get_import_dirs(import_dirs);
-    
-    for (it = import_dirs.begin(); it != import_dirs.end(); it++) {
-        string filename = *it + "/" + "scheduler.ll";
-        Module* scheduler = LoadModule(filename, fResult->fContext);
-        if (scheduler) return scheduler;
-    }
-        
-    return 0;
 }
 
 #if defined(LLVM_33) || defined(LLVM_34)
@@ -278,28 +277,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     initializeTarget(Registry);
     
     std::string err;
-    // Link with "scheduler" code
-    if (fScheduler) {
-        // TODO
-        /*
-        Module* scheduler = LoadSchedulerModule();
-        if (scheduler) {
-            if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                error_msg = "Cannot link scheduler module : " + err;
-                delete scheduler;
-                return false;
-            } else {
-                delete scheduler;
-            }
-        } else {
-            error_msg = "File scheduler.ll not found...";
-            return false;
-        }
-        */
-        error_msg = "File scheduler.ll not found...";
-        return false;
-    }
-    
+      
     if (fTarget != "") {
         fResult->fModule->setTargetTriple(fTarget);
     } else {
@@ -474,28 +452,6 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     fpm.add(new TargetData(*fJIT->getTargetData()));
 #endif
 
-    // Link with "scheduler" code
-    if (fScheduler) {
-        // TODO
-        /*
-        Module* scheduler = LoadSchedulerModule();
-        if (scheduler) {
-            if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                error_msg = "Cannot link scheduler module : " + err;
-                delete scheduler;
-                return false;
-            } else {
-                delete scheduler;
-            }
-        } else {
-            error_msg = "File scheduler.ll not found...";
-            return false;
-        }
-        */
-        error_msg = "File scheduler.ll not found...";
-        return false;
-    }
-    
     // Taken from LLVM Opt.cpp
     PassManagerBuilder Builder;
     Builder.OptLevel = fOptLevel;
