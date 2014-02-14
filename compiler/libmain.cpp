@@ -84,9 +84,6 @@
 #include <windows.h>
 #define PATH_MAX MAX_PATH
 
-#include <llvm/Linker.h>
-using namespace llvm;
-
 static char *realpath(const char *path, char resolved_path[MAX_PATH])
 {
 	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {

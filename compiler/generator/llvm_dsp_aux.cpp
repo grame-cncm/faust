@@ -72,11 +72,11 @@ bool LinkModules(Module* dst, Module* src, char* error_message)
     string err;
     
     if (!src) {
-        strcpy(error_message, "File scheduler.ll not found...");
+        strcpy(error_message, "File scheduler.ll not found...\n");
         return false;
     } else if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
         delete src;
-        sprintf(error_message, "Cannot link scheduler module : %s", err.c_str());
+        sprintf(error_message, "Cannot link scheduler module : %s\n", err.c_str());
         return false;
     } else {
         delete src;
