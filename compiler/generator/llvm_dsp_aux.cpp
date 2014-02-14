@@ -185,14 +185,13 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 
 Module* llvm_dsp_factory::LoadSchedulerModule()
 {
-    list< string >::iterator it;
-    
+    list<string>::iterator it;
     std::list<std::string>& import_dirs = get_import_dirs();
     
     for (it = import_dirs.begin(); it != import_dirs.end(); it++) {
-        string filname = *it + "scheduler.ll";
-         Module* scheduler = LoadModule(filname, fResult->fContext);
-         if (scheduler) return scheduler;
+        string filename = *it + "/" + "scheduler.ll";
+        Module* scheduler = LoadModule(filename, fResult->fContext);
+        if (scheduler) return scheduler;
     }
         
     return 0;
