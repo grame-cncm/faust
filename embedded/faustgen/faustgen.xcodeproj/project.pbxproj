@@ -639,7 +639,7 @@
 		5B3AA3A3158B65190050941C /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = NO;

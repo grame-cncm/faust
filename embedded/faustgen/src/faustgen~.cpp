@@ -195,29 +195,18 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     // To be sure we get a correct SVG diagram...
     remove_svg();
     
-    // Prepare compile options
-    std::string error;
- 	const char* argv[32];
-    
-    list<string>::const_iterator it1;
-    for (it1 = fLibraryPath.begin(); it1 != fLibraryPath.end(); it1++) {
-        if (find(fCompileOptions.begin(), fCompileOptions.end(), (*it1)) == fCompileOptions.end()) {
-            fCompileOptions.push_back("-I");
-            fCompileOptions.push_back((*it1));
-        }
-    }
-    if (find(fCompileOptions.begin(), fCompileOptions.end(), fDrawPath) == fCompileOptions.end()) {
-        fCompileOptions.push_back("-O");
-        fCompileOptions.push_back(fDrawPath);
-    }
-    
+    default_compile_options();
     print_compile_options();
     
-    assert(fCompileOptions.size() < 32);
-    CompileOptionsIt it;
+    // Prepare compile options
+    std::string error;
+ 	const char* argv[64];
+    
+    assert(fCompileOptions.size() < 64);
+    StringVectorIt it;
     int i = 0;
-    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++, i++) {
-        argv[i] = (char*)(*it).c_str();
+    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
+        argv[i++] = (char*)(*it).c_str();
     }
     
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
@@ -284,11 +273,33 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
     return dsp;
 }
 
+void faustgen_factory::add_library_path(const string& library_path)
+{
+    if ((library_path != "") && find(fLibraryPath.begin(), fLibraryPath.end(), library_path) == fLibraryPath.end()) {
+        fLibraryPath.push_back(library_path);
+    }
+}
+
+void faustgen_factory::add_compile_option(const string& key, const string& value)
+{
+    if ((value != "") && find(fCompileOptions.begin(), fCompileOptions.end(), value) == fCompileOptions.end()) {
+        fCompileOptions.push_back(key);
+        fCompileOptions.push_back(value);
+    }
+}
+
+void faustgen_factory::add_compile_option(const string& value)
+{
+    if ((value != "") && find(fCompileOptions.begin(), fCompileOptions.end(), value) == fCompileOptions.end()) {
+        fCompileOptions.push_back(value);
+    }
+}
+
 void faustgen_factory::print_compile_options()
 {
     if (fCompileOptions.size() > 0) {
         post("-----------------------------");
-        CompileOptionsIt it;
+        StringVectorIt it;
         for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
             post("Compile option = %s", (*it).c_str());
         }
@@ -301,25 +312,40 @@ void faustgen_factory::default_compile_options()
     // Clear and set default value
     fCompileOptions.clear();
     
+    // By default whn double
     if (sizeof(FAUSTFLOAT) == 8) {
-        fCompileOptions.push_back("-double");
+        add_compile_option("-double");
     }
     
     // Add -svg to current compile options
-    fCompileOptions.push_back("-svg");
-
+    add_compile_option("-svg");
+    
+    // All library paths
+    StringVectorIt it;
+    for (it = fLibraryPath.begin(); it != fLibraryPath.end(); it++) {
+        add_compile_option("-I", *it);
+    }
+    
+    // Draw path
+    add_compile_option("-O", fDrawPath);
+    
+    // All options set in the 'compileoptions' message
+    for (it = fOptions.begin(); it != fOptions.end(); it++) {
+        add_compile_option(*it);
+    }
+  
     // Vector mode by default
     /*
-    fCompileOptions.push_back("-vec");
-    fCompileOptions.push_back("-lv");
-    fCompileOptions.push_back("1");
+    add_compile_option("-vec");
+    add_compile_option("-lv");
+    add_compile_option("1");
     */
     /*
     Seems not necessary...
     fCompileOptions.push_back("-vs");
     stringstream num;
     num << sys_getblksize();
-    fCompileOptions.push_back(num.str());
+    add_compile_option(num.str());
     */
 }
 
@@ -344,6 +370,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // Read sourcecode "compileoptions" key
+    /*
     long argc;
     t_atom* argv;
     err = dictionary_getatoms(d, gensym("compile_options"), &argc, &argv);
@@ -356,6 +383,8 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
         // If not found, use default option
         default_compile_options();
     }
+    */
+    default_compile_options();
     
     // Read bitcode size key
     err = dictionary_getlong(d, gensym("bitcode_size"), (t_atom_long*)&fBitCodeSize); 
@@ -402,11 +431,12 @@ default_sourcecode:
 // This function saves the necessary data inside the json file (Faust sourcecode)
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
-    post("Saving object version, compiler options, sourcecode and bitcode...");
+    post("Saving object version, sourcecode and bitcode...");
     
     // Save faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
     
+    /*
     // Save compile options
     t_atom* compileoptions = 0;
     long ac;
@@ -426,6 +456,7 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     } else {
         post("Cannot allocate atom array...");
     }
+    */
     
     // Save source code
     if (fSourceCodeSize) {
@@ -601,10 +632,7 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
 void faustgen_factory::librarypath(long inlet, t_symbol* s)
 {
     if (s != gensym("")) {
-        string folder_path = getFolderFromPath(s->s_name);
-        if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end()) {
-            fLibraryPath.push_back(folder_path);
-        }
+        add_library_path(getFolderFromPath(s->s_name));
     }
 }
 
@@ -656,10 +684,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     // Add DSP file enclosing folder pathname in the '-I' list
     char full_path[MAX_FILENAME_CHARS];
     if (path_topathname(path, filename, full_path) == 0) {
-        string folder_path = getFolderFromFilename(full_path);
-        if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end()) {
-            fLibraryPath.push_back(folder_path);
-        }
+        add_library_path(getFolderFromFilename(full_path));
     }
     
     // Update all instances
@@ -724,14 +749,16 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         post("No argument entered, no additional compilation option will be used");
     }
     
-    int i;
-    t_atom* ap;
-    
+    /*
     // First reset compiler options
     default_compile_options();
+    */
     
     bool optimize = false;
-   
+    fOptions.clear();
+    int i;
+    t_atom* ap;
+  
     // Increment ap each time to get to the next atom
     for (i = 0, ap = argv; i < argc; i++, ap++) {
         switch (atom_gettype(ap)) {
@@ -739,7 +766,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 std::stringstream num;
 				num << atom_getlong(ap);
 				string res = num.str();
-				fCompileOptions.push_back(res.c_str());
+				fOptions.push_back(res.c_str());
 				break;
             }
             case A_FLOAT:
@@ -750,7 +777,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 if (strcmp("-opt", atom_getsym(ap)->s_name) == 0) {
                     optimize = true;
                 } else {
-                    fCompileOptions.push_back(atom_getsym(ap)->s_name);
+                    fOptions.push_back(atom_getsym(ap)->s_name);
                 }
 				break;
             default:
@@ -765,16 +792,9 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         
 	#ifndef WIN32
         FaustLLVMOptimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), 2000, sys_getblksize());
-        fCompileOptions = optimizer.findOptimize();
+        fOptions = optimizer.findOptimize();
 	#endif
         
-        if (sizeof(FAUSTFLOAT) == 8) {
-            fCompileOptions.push_back("-double");
-        }
-    
-        // Add -svg to current compile options
-        fCompileOptions.push_back("-svg");
-   
         post("Optimal compilation options found");
     }
     
@@ -865,7 +885,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen() 
 { 
-     free_dsp();
+    free_dsp();
      
     if (fEditor) {
         object_free(fEditor);

@@ -186,7 +186,8 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 Module* llvm_dsp_factory::LoadSchedulerModule()
 {
     list<string>::iterator it;
-    std::list<std::string>& import_dirs = get_import_dirs();
+    std::list<std::string> import_dirs;
+    get_import_dirs(import_dirs);
     
     for (it = import_dirs.begin(); it != import_dirs.end(); it++) {
         string filename = *it + "/" + "scheduler.ll";

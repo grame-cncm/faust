@@ -110,7 +110,7 @@ class faustgen;
 
 class faustgen_factory {
 
-    typedef vector<string>::const_iterator CompileOptionsIt;
+    typedef vector<string>::const_iterator StringVectorIt;
 
     private:
       
@@ -123,8 +123,10 @@ class faustgen_factory {
         long fBitCodeSize;              // length of the bitcode string
         char** fBitCode;                // bitcode string
         
-        list<string> fLibraryPath;      // path towards the Faust libraries
+        vector<string> fLibraryPath;    // path towards the Faust libraries
         string fDrawPath;               // path where to put SVG files
+        
+        vector<string> fOptions;        // options set in the 'compileoptions' message
                  
         int fFaustNumber;               // faustgen object's number inside the patcher
         
@@ -134,13 +136,17 @@ class faustgen_factory {
            
         t_systhread_mutex fDSPMutex;    // mutex to protect RT audio thread when recompiling DSP
      
-        vector<string> fCompileOptions; // Faust compiler options
+        vector<string> fCompileOptions; // Faust compiler options i
         
         int m_siginlets;
         int m_sigoutlets;
         
         bool open_file(const char* file);
         bool open_file(const char* appl, const char* file);
+        
+        void add_library_path(const string& library_path);
+        void add_compile_option(const string& key, const string& value);
+        void add_compile_option(const string& value);
         
     public:
     

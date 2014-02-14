@@ -70,7 +70,7 @@ LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* name, 
 
 std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
-std::list<std::string>& get_import_dirs();
+void get_import_dirs(std::list<std::string>& import_dirs);
 
 #endif
 
