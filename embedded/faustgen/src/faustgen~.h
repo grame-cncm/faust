@@ -108,7 +108,9 @@ class faustgen;
 
 class faustgen_factory {
 
-     private:
+    typedef vector<string>::const_iterator CompileOptionsIt;
+
+    private:
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory

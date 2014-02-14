@@ -188,13 +188,17 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     std::string error;
  	const char* argv[32];
     
-    fCompileOptions.push_back("-I");
-    fCompileOptions.push_back(fLibraryPath);
-    fCompileOptions.push_back("-O");
-    fCompileOptions.push_back(fDrawPath);
+    if (find(fCompileOptions.begin(), fCompileOptions.end(), fLibraryPath) == fCompileOptions.end()) {
+        fCompileOptions.push_back("-I");
+        fCompileOptions.push_back(fLibraryPath);
+    }
+    if (find(fCompileOptions.begin(), fCompileOptions.end(), fDrawPath) == fCompileOptions.end()) {
+        fCompileOptions.push_back("-O");
+        fCompileOptions.push_back(fDrawPath);
+    }
     
 	assert(fCompileOptions.size() < 32);
-    vector<string>::const_iterator it;
+    CompileOptionsIt it;
     int i = 0;
     for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++, i++) {
         argv[i] = (char*)(*it).c_str();
@@ -208,7 +212,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         if (fUpdateInstance == instance) {
             instance->hilight_on(error);
         }
-		post("Invalid Faust code or compile options : %s", error);
+		post("Invalid Faust code or compile options : %s", error.c_str());
         return 0;
     }
 }
@@ -268,7 +272,7 @@ void faustgen_factory::print_compile_options()
 {
     if (fCompileOptions.size() > 0) {
         post("-----------------------------");
-        vector<string>::const_iterator it;
+        CompileOptionsIt it;
         for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
             post("Compile option = %s", (*it).c_str());
         }
@@ -396,7 +400,7 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     atom_alloc_array(fCompileOptions.size(), &ac, &compileoptions, &res);
     
     if (res) {
-        vector<string>::const_iterator it;
+        CompileOptionsIt it;
         t_atom*ap = compileoptions;
         for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++, ap++) {
             atom_setsym(ap, gensym((char*)(*it).c_str()));
