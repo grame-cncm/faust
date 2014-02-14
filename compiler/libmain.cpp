@@ -104,7 +104,7 @@ typedef struct LLVMResult {
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-EXPORT std::list<std::string> get_import_dirs();
+EXPORT std::list<std::string>& get_import_dirs();
 
 using namespace std;
 
@@ -137,7 +137,7 @@ Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
 string gErrorMessage;
 
-std::list<std::string> get_import_dirs() { return gGlobal->gImportDirList; }
+std::list<std::string>& get_import_dirs() { return gGlobal->gImportDirList; }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
