@@ -78,7 +78,7 @@ faustgen_factory::faustgen_factory(const string& name)
     assert(res);
     
     // Built the complete resource path
-    fLibraryPath = string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH);
+    fLibraryPath.push_back(string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH));
 
 	// Draw path in temporary folder
     fDrawPath = string(FAUST_DRAW_PATH);
@@ -93,7 +93,7 @@ faustgen_factory::faustgen_factory(const string& name)
 		string str_name = string(name);
 		str_name = str_name.substr(0, str_name.find_last_of("\\"));
 		// Built the complete resource path
-		fLibraryPath = string(str_name) + string(FAUST_LIBRARY_PATH);
+		fLibraryPath.push_back(string(str_name) + string(FAUST_LIBRARY_PATH));
 		// Draw path in temporary folder
         TCHAR lpTempPathBuffer[MAX_PATH];
         // Gets the temp path env string (no guarantee it's a valid path).
@@ -108,7 +108,6 @@ faustgen_factory::faustgen_factory(const string& name)
 		FreeLibrary(handle);
 	} else {
 		post("Error : cannot locate faustgen~.mxe...");
-		fLibraryPath = "";
 		fDrawPath = "";
 	}
  #endif
@@ -182,22 +181,26 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     
     // To be sure we get a correct SVG diagram...
     remove_svg();
-    print_compile_options();
     
     // Prepare compile options
     std::string error;
  	const char* argv[32];
     
-    if (find(fCompileOptions.begin(), fCompileOptions.end(), fLibraryPath) == fCompileOptions.end()) {
-        fCompileOptions.push_back("-I");
-        fCompileOptions.push_back(fLibraryPath);
+    list<string>::const_iterator it1;
+    for (it1 = fLibraryPath.begin(); it1 != fLibraryPath.end(); it1++) {
+        if (find(fCompileOptions.begin(), fCompileOptions.end(), (*it1)) == fCompileOptions.end()) {
+            fCompileOptions.push_back("-I");
+            fCompileOptions.push_back((*it1));
+        }
     }
     if (find(fCompileOptions.begin(), fCompileOptions.end(), fDrawPath) == fCompileOptions.end()) {
         fCompileOptions.push_back("-O");
         fCompileOptions.push_back(fDrawPath);
     }
     
-	assert(fCompileOptions.size() < 32);
+    print_compile_options();
+    
+    assert(fCompileOptions.size() < 32);
     CompileOptionsIt it;
     int i = 0;
     for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++, i++) {
@@ -488,9 +491,9 @@ bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
 #ifdef WIN32
-	sprintf(command, "start \"\" \"%s%s\"", fLibraryPath.c_str(), file);
+	sprintf(command, "start \"\" \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
 #else
-	sprintf(command, "open \"%s%s\"", fLibraryPath.c_str(), file);
+	sprintf(command, "open \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
 #endif
 	post(command);
     return (system(command) == 0);
@@ -500,9 +503,9 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
 #ifdef WIN32
-  	sprintf(command, "start \"\" %s \"%s%s\"", appl, fLibraryPath.c_str(), file);	
+  	sprintf(command, "start \"\" %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);	
 #else
-	sprintf(command, "open -a %s \"%s%s\"", appl, fLibraryPath.c_str(), file);
+	sprintf(command, "open -a %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
 #endif
     return (system(command) == 0);
 }
@@ -634,9 +637,8 @@ void faustgen_factory::read(long inlet, t_symbol* s)
         size_t first = full_path_str.find_first_of(SEPARATOR);
         size_t last = full_path_str.find_last_of(SEPARATOR);
         string folder_path = (first != string::npos && last != string::npos) ? full_path_str.substr(first, last - first) : "";
-        if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end() ) {
-            fCompileOptions.push_back("-I");
-            fCompileOptions.push_back(folder_path);
+        if ((folder_path != "") && find(fCompileOptions.begin(), fCompileOptions.end(), folder_path) == fCompileOptions.end()) {
+            fLibraryPath.push_back(folder_path);
         }
     }
     
@@ -742,7 +744,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         post("Start looking for optimal compilation options...");
         
 	#ifndef WIN32
-        FaustLLVMOptimizer optimizer(string(*fSourceCode), fLibraryPath, getTarget(), 2000, sys_getblksize());
+        FaustLLVMOptimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), 2000, sys_getblksize());
         fCompileOptions = optimizer.findOptimize();
 	#endif
         

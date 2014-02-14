@@ -123,7 +123,7 @@ class faustgen_factory {
         long fBitCodeSize;              // length of the bitcode string
         char** fBitCode;                // bitcode string
         
-        string fLibraryPath;            // path towards the faust libraries
+        list<string> fLibraryPath;      // path towards the Faust libraries
         string fDrawPath;               // path where to put SVG files
                  
         int fFaustNumber;               // faustgen object's number inside the patcher
