@@ -1073,14 +1073,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-static Module* load_module(llvm::LLVMContext* context, const string& module)
+static Module* load_module(llvm::LLVMContext* context, const string& module_name)
 {
     list<string>::iterator it;
     
     for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-        string filename = *it + "/" + module;
-        Module* scheduler = LoadModule(filename, context);
-        if (scheduler) return scheduler;
+        string filename = *it + "/" + module_name;
+        Module* module = LoadModule(filename, context);
+        if (module) return module;
     }
         
     return 0;
