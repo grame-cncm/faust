@@ -528,12 +528,12 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += "&factoryIndex=";
     finalRequest += fFactory->index();
     
-    printf("finalRequest = %s\n", finalRequest.c_str());
+    //printf("finalRequest = %s\n", finalRequest.c_str());
     
 //  Curl Connection setup
     CURL *curl = curl_easy_init();
     
-    bool   isInitSuccessfull = false;
+    bool isInitSuccessfull = false;
     
     if (curl) {
         
@@ -544,8 +544,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) finalRequest.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
         

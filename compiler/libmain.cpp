@@ -137,7 +137,7 @@ static void call_fun(compile_fun fun)
 Tree gProcessTree;
 Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
-string gErrorMessage;
+string gErrorMessage = "";
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
