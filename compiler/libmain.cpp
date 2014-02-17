@@ -104,11 +104,22 @@ typedef struct LLVMResult {
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-EXPORT std::list<std::string> get_import_dirs();
+
+Module* LoadModule(const std::string filename, LLVMContext* context);
+bool LinkModules(Module* dst, Module* src, char* error_message);
 
 using namespace std;
 
 typedef void* (*compile_fun)(void* arg);
+
+#ifdef _WIN32 
+
+static void call_fun(compile_fun fun)
+{
+    fun(NULL);
+}
+
+#else
 
 static void call_fun(compile_fun fun)
 {
@@ -121,12 +132,12 @@ static void call_fun(compile_fun fun)
     pthread_join(thread, NULL);
 }
 
+#endif
+
 Tree gProcessTree;
 Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
 string gErrorMessage;
-
-std::list<std::string> get_import_dirs() { return gGlobal->gImportDirList; }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
@@ -472,14 +483,14 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST: DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
 {
 	printversion();
-	cout << "usage: faust [options] file1 [file2 ...]\n";
+	cout << "usage : faust [options] file1 [file2 ...]\n";
 	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
 
 	cout << "\noptions :\n";
@@ -491,10 +502,10 @@ static void printhelp()
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \tprint block-diagram --svg file\n";
-    cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
-    cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \t\tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
+    cout << "-mdlang <l>\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
+    cout << "-stripdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -507,11 +518,11 @@ static void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-	cout << "-i \t--inline-architecture-files \n";
+	cout << "-i \t\t --inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-    cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
-    cout << "-o <file> \tC++ output file\n";
+    cout << "-time \t\t --compilation-time, flag to display compilation phases timing information\n";
+    cout << "-o <file> \tC, C++, JAVA, JavaScript or LLVM IR output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
@@ -1062,6 +1073,19 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
+static Module* load_module(llvm::LLVMContext* context, const string& module_name)
+{
+    list<string>::iterator it;
+    
+    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+        string filename = *it + "/" + module_name;
+        Module* module = LoadModule(filename, context);
+        if (module) return module;
+    }
+        
+    return 0;
+}
+
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
     gLLVMOut = false;
@@ -1069,10 +1093,23 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     LLVMResult* res;
     
     try {
+    
+        // Compile module
         global::allocate();
         compile_faust_internal(argc, argv, name, input, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
+        
+        // Check scheduler mode
+        for (int i = 0; i < argc; i++) {
+            if (strcmp(argv[i], "-sch") == 0) {
+                if (!LinkModules(res->fModule, load_module(res->fContext, "scheduler.ll"), error_msg)) {
+                    res = NULL;
+                }
+                break;
+            }
+        }
+        
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
         res = NULL;

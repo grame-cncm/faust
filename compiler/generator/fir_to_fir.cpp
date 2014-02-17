@@ -39,7 +39,13 @@ static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
 }
 
 #ifdef _WIN32
+/*
 bool sortArrayDeclarations(const StatementInst*& a, const StatementInst*& b)
+{
+    return sortArrayDeclarationsAux(a, b);
+}
+*/
+bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
 {
     return sortArrayDeclarationsAux(a, b);
 }

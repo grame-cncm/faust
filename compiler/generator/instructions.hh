@@ -1771,7 +1771,7 @@ struct InstBuilder
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
     {
         if (ctype == Typed::kFloat) {
-            return new FloatNumInst(num);
+            return new FloatNumInst(float(num));
         } else if (ctype == Typed::kFloatMacro) {
             return genCastNumInst(new DoubleNumInst(num), genBasicTyped(Typed::kFloatMacro));
         } else if (ctype == Typed::kDouble) {

@@ -128,8 +128,8 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
 			default : {
                 stringstream error;
                 error << "ERROR unrecognized state " << state << endl;
-                gGlobal->gErrorMsg, error.str();
-			}
+                gGlobal->gErrorMsg = error.str();
+            }
         }
     }
     label = rmWhiteSpaces(label);
@@ -214,8 +214,8 @@ void Description::print(int n, ostream& fout)
 
 			// widget layout
 			tab(n+2,fout);	fout << "<layout>";
-				for (	t = fLayoutTabs.begin(), s = fLayoutLines.begin();
-						s != fLayoutLines.end(); t++, s++) {
+				for (t = fLayoutTabs.begin(), s = fLayoutLines.begin();
+                    s != fLayoutLines.end(); t++, s++) {
 					tab(n+3+*t, fout); fout << *s;
 				}
 			tab(n+2,fout);	fout << "</layout>";
@@ -238,8 +238,8 @@ void Description::addGroup(int level, Tree t)
 
 	if (isUiFolder(t, label, elements)) {
 
-		const int		orient = tree2int(left(label));
-		const char * 	str = tree2str(right(label));
+		const int	orient = tree2int(left(label));
+		const char* str = tree2str(right(label));
 
 		addLayoutLine(level, subst("<group type=\"$0\">", groupnames[orient]));
 		addLayoutLine(level+1, subst("<label>$0</label>", xmlize(str)));
@@ -271,16 +271,16 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 
 	// add an active widget description
 
-	if ( isSigButton(sig, path) ) 					{
+	if (isSigButton(sig, path)) 					{
 
 		fWidgetID++;
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"button\" id=\"$0\">", T(fWidgetID)));
-			addActiveLine(subst("\t<label>$0</label>", xmlize(tree2str(label))));
-			addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
+        addActiveLine(subst("\t<label>$0</label>", xmlize(tree2str(label))));
+        addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
 		addActiveLine("</widget>");
 
-	} else if ( isSigCheckbox(sig, path) ) 			{
+	} else if (isSigCheckbox(sig, path)) 			{
 
 		fWidgetID++;
 		fActiveWidgetCount++;
@@ -289,7 +289,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 			addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
 		addActiveLine("</widget>");
 
-	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
+	} else if (isSigVSlider(sig, path,c,x,y,z))     {
 
 		fWidgetID++;
 		fActiveWidgetCount++;
@@ -302,7 +302,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 
-	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
+	} else if (isSigHSlider(sig, path,c,x,y,z))     {
 
 		fWidgetID++;
 		fActiveWidgetCount++;
@@ -315,7 +315,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 
-	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
+	} else if (isSigNumEntry(sig, path,c,x,y,z))	{
 
 		fWidgetID++;
 		fActiveWidgetCount++;
@@ -328,10 +328,9 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 
-
 	// add a passive widget description
 
-	} else if ( isSigVBargraph(sig,path,x,y,z) )	{
+	} else if (isSigVBargraph(sig,path,x,y,z))      {
 
 		fWidgetID++;
 		fPassiveWidgetCount++;
@@ -342,7 +341,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2double(y))));
 		addPassiveLine("</widget>");
 
-	} else if ( isSigHBargraph(sig,path,x,y,z) )	{
+	} else if (isSigHBargraph(sig,path,x,y,z))      {
 
 		fWidgetID++;
 		fPassiveWidgetCount++;

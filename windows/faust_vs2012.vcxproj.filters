@@ -339,6 +339,12 @@
     <ClCompile Include="..\compiler\parser\sourcereader.cpp">
       <Filter>parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\compiler\parser\faustlexer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\utils\files.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
@@ -740,6 +746,9 @@
       <Filter>tlib</Filter>
     </None>
     <None Include="..\compiler\utils\names.hh">
+      <Filter>utils</Filter>
+    </None>
+    <None Include="..\compiler\utils\files.hh">
       <Filter>utils</Filter>
     </None>
   </ItemGroup>

@@ -54,13 +54,13 @@ class ControlUI  : public UI {
             }
         }
         
-        void encode_midi_control(void* control_buffer, unsigned int count)
+        void encode_midi_control(void* midi_control_buffer, unsigned int count)
         { 
             assert(fControlOut.size() < count);
-            jack_midi_reset_buffer(control_buffer);
+            jack_midi_reset_buffer(midi_control_buffer);
           
             for (unsigned int i = 0; i < fControlOut.size(); i++) {
-                jack_midi_data_t* buffer = jack_midi_event_reserve(control_buffer, i, 4);
+                jack_midi_data_t* buffer = jack_midi_event_reserve(midi_control_buffer, i, 4);
                 assert(buffer);
                 *((float*)buffer) = *fControlOut[i];
             }
@@ -77,13 +77,13 @@ class ControlUI  : public UI {
             }
         }
         
-        void decode_midi_control(void* control_buffer, unsigned int count)
+        void decode_midi_control(void* midi_control_buffer, unsigned int count)
         {
-            assert(fControlIn.size() < count);
+            assert(jack_midi_get_event_count(midi_control_buffer) <= count);
             
-            for (int i = 0; i < jack_midi_get_event_count(control_buffer); i++) {
+            for (int i = 0; i < jack_midi_get_event_count(midi_control_buffer); i++) {
                 jack_midi_event_t in_event;
-                jack_midi_event_get(&in_event, control_buffer, i);
+                jack_midi_event_get(&in_event, midi_control_buffer, i);
                 *fControlIn[i] = *((float*)in_event.buffer);
             }
         }

@@ -37,7 +37,6 @@ d. Use instances as any "static" DSP
         virtual void    init(int samplingFreq);
   
         virtual void    buildUserInterface(UI* ui);
-    
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
 e. deleteRemoteDSPInstance(remote_dsp* dsp)

@@ -59,11 +59,13 @@
     #include "bench-llvm.cpp"
     #define FAUST_LIBRARY_PATH "/Contents/Resources/"
     #define FAUST_DRAW_PATH "/var/tmp/"
+    #define SEPARATOR '/'
 #endif
 
 #ifdef WIN32
     #define FAUST_LIBRARY_PATH "\\faustgen-resources\\"
     #define FAUST_DRAW_PATH "\\faustgen-resources\\"
+    #define SEPARATOR '\\'
 #endif
 
 #define LLVM_OPTIMIZATION 3
@@ -108,7 +110,9 @@ class faustgen;
 
 class faustgen_factory {
 
-     private:
+    typedef vector<string>::const_iterator StringVectorIt;
+
+    private:
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
@@ -119,8 +123,10 @@ class faustgen_factory {
         long fBitCodeSize;              // length of the bitcode string
         char** fBitCode;                // bitcode string
         
-        string fLibraryPath;            // path towards the faust libraries
+        vector<string> fLibraryPath;    // path towards the Faust libraries
         string fDrawPath;               // path where to put SVG files
+        
+        vector<string> fOptions;        // options set in the 'compileoptions' message
                  
         int fFaustNumber;               // faustgen object's number inside the patcher
         
@@ -130,13 +136,17 @@ class faustgen_factory {
            
         t_systhread_mutex fDSPMutex;    // mutex to protect RT audio thread when recompiling DSP
      
-        vector<string> fCompileOptions; // Faust compiler options
+        vector<string> fCompileOptions; // Faust compiler options i
         
         int m_siginlets;
         int m_sigoutlets;
         
         bool open_file(const char* file);
         bool open_file(const char* appl, const char* file);
+        
+        void add_library_path(const string& library_path);
+        void add_compile_option(const string& key, const string& value);
+        void add_compile_option(const string& value);
         
     public:
     
@@ -164,6 +174,7 @@ class faustgen_factory {
         
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        void librarypath(long inlet, t_symbol* s);
         
         char* get_sourcecode() { return *fSourceCode; }
         
@@ -271,6 +282,7 @@ class faustgen : public MspCpp5<faustgen> {
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        void librarypath(long inlet, t_symbol* s);
         
         void mute(long inlet, long mute);
          

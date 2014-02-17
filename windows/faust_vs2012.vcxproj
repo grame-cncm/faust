@@ -26,8 +26,8 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -38,8 +38,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -71,6 +71,7 @@
     <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>faust</TargetName>
+    <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
@@ -83,6 +84,7 @@
     <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>faust</TargetName>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
@@ -94,11 +96,11 @@
     <ClCompile>
       <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;..\compiler;..\architecture;..\..\DevTools\llvm-3.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;LLVM_34;_EXPORTING;_SECURE_SCL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -107,17 +109,18 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;LLVMAArch64AsmParser.lib;LLVMAArch64AsmPrinter.lib;LLVMAArch64CodeGen.lib;LLVMAArch64Desc.lib;LLVMAArch64Disassembler.lib;LLVMAArch64Info.lib;LLVMAArch64Utils.lib;LLVMAnalysis.lib;LLVMARMAsmParser.lib;LLVMARMAsmPrinter.lib;LLVMARMCodeGen.lib;LLVMARMDesc.lib;LLVMARMDisassembler.lib;LLVMARMInfo.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMCppBackEndCodeGen.lib;LLVMCppBackEndInfo.lib;LLVMDebugInfo.lib;LLVMExecutionEngine.lib;LLVMHexagonAsmPrinter.lib;LLVMHexagonCodeGen.lib;LLVMHexagonDesc.lib;LLVMHexagonInfo.lib;LLVMInstCombine.lib;LLVMInstrumentation.lib;LLVMInterpreter.lib;LLVMipa.lib;LLVMipo.lib;LLVMIRReader.lib;LLVMJIT.lib;LLVMLinker.lib;LLVMLTO.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCJIT.lib;LLVMMCParser.lib;LLVMMipsAsmParser.lib;LLVMMipsAsmPrinter.lib;LLVMMipsCodeGen.lib;LLVMMipsDesc.lib;LLVMMipsDisassembler.lib;LLVMMipsInfo.lib;LLVMMSP430AsmPrinter.lib;LLVMMSP430CodeGen.lib;LLVMMSP430Desc.lib;LLVMMSP430Info.lib;LLVMNVPTXAsmPrinter.lib;LLVMNVPTXCodeGen.lib;LLVMNVPTXDesc.lib;LLVMNVPTXInfo.lib;LLVMObjCARCOpts.lib;LLVMObject.lib;LLVMOption.lib;LLVMPowerPCAsmParser.lib;LLVMPowerPCAsmPrinter.lib;LLVMPowerPCCodeGen.lib;LLVMPowerPCDesc.lib;LLVMPowerPCInfo.lib;LLVMR600AsmPrinter.lib;LLVMR600CodeGen.lib;LLVMR600Desc.lib;LLVMR600Info.lib;LLVMRuntimeDyld.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSparcCodeGen.lib;LLVMSparcDesc.lib;LLVMSparcInfo.lib;LLVMSupport.lib;LLVMSystemZAsmParser.lib;LLVMSystemZAsmPrinter.lib;LLVMSystemZCodeGen.lib;LLVMSystemZDesc.lib;LLVMSystemZDisassembler.lib;LLVMSystemZInfo.lib;LLVMTableGen.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;LLVMXCoreAsmPrinter.lib;LLVMXCoreCodeGen.lib;LLVMXCoreDesc.lib;LLVMXCoreDisassembler.lib;LLVMXCoreInfo.lib;gtest.lib;gtest_main.lib;JITTests.lib;MCJITTests.lib;LTO.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\DevTools\llvm-3.4\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;..\..\DevTools\llvm-3.4\include;..\compiler;..\architecture;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;LLVM_34;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -126,7 +129,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;LLVMAArch64AsmParser.lib;LLVMAArch64AsmPrinter.lib;LLVMAArch64CodeGen.lib;LLVMAArch64Desc.lib;LLVMAArch64Disassembler.lib;LLVMAArch64Info.lib;LLVMAArch64Utils.lib;LLVMAnalysis.lib;LLVMARMAsmParser.lib;LLVMARMAsmPrinter.lib;LLVMARMCodeGen.lib;LLVMARMDesc.lib;LLVMARMDisassembler.lib;LLVMARMInfo.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMCppBackEndCodeGen.lib;LLVMCppBackEndInfo.lib;LLVMDebugInfo.lib;LLVMExecutionEngine.lib;LLVMHexagonAsmPrinter.lib;LLVMHexagonCodeGen.lib;LLVMHexagonDesc.lib;LLVMHexagonInfo.lib;LLVMInstCombine.lib;LLVMInstrumentation.lib;LLVMInterpreter.lib;LLVMipa.lib;LLVMipo.lib;LLVMIRReader.lib;LLVMJIT.lib;LLVMLinker.lib;LLVMLTO.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCJIT.lib;LLVMMCParser.lib;LLVMMipsAsmParser.lib;LLVMMipsAsmPrinter.lib;LLVMMipsCodeGen.lib;LLVMMipsDesc.lib;LLVMMipsDisassembler.lib;LLVMMipsInfo.lib;LLVMMSP430AsmPrinter.lib;LLVMMSP430CodeGen.lib;LLVMMSP430Desc.lib;LLVMMSP430Info.lib;LLVMNVPTXAsmPrinter.lib;LLVMNVPTXCodeGen.lib;LLVMNVPTXDesc.lib;LLVMNVPTXInfo.lib;LLVMObjCARCOpts.lib;LLVMObject.lib;LLVMOption.lib;LLVMPowerPCAsmParser.lib;LLVMPowerPCAsmPrinter.lib;LLVMPowerPCCodeGen.lib;LLVMPowerPCDesc.lib;LLVMPowerPCInfo.lib;LLVMR600AsmPrinter.lib;LLVMR600CodeGen.lib;LLVMR600Desc.lib;LLVMR600Info.lib;LLVMRuntimeDyld.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSparcCodeGen.lib;LLVMSparcDesc.lib;LLVMSparcInfo.lib;LLVMSupport.lib;LLVMSystemZAsmParser.lib;LLVMSystemZAsmPrinter.lib;LLVMSystemZCodeGen.lib;LLVMSystemZDesc.lib;LLVMSystemZDisassembler.lib;LLVMSystemZInfo.lib;LLVMTableGen.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;LLVMXCoreAsmPrinter.lib;LLVMXCoreCodeGen.lib;LLVMXCoreDesc.lib;LLVMXCoreDisassembler.lib;LLVMXCoreInfo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\DevTools\llvm-3.4\lib\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,7 +152,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;LLVMAArch64AsmParser.lib;LLVMAArch64AsmPrinter.lib;LLVMAArch64CodeGen.lib;LLVMAArch64Desc.lib;LLVMAArch64Disassembler.lib;LLVMAArch64Info.lib;LLVMAArch64Utils.lib;LLVMAnalysis.lib;LLVMARMAsmParser.lib;LLVMARMAsmPrinter.lib;LLVMARMCodeGen.lib;LLVMARMDesc.lib;LLVMARMDisassembler.lib;LLVMARMInfo.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMCppBackEndCodeGen.lib;LLVMCppBackEndInfo.lib;LLVMDebugInfo.lib;LLVMExecutionEngine.lib;LLVMHexagonAsmPrinter.lib;LLVMHexagonCodeGen.lib;LLVMHexagonDesc.lib;LLVMHexagonInfo.lib;LLVMInstCombine.lib;LLVMInstrumentation.lib;LLVMInterpreter.lib;LLVMipa.lib;LLVMipo.lib;LLVMIRReader.lib;LLVMJIT.lib;LLVMLinker.lib;LLVMLTO.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCJIT.lib;LLVMMCParser.lib;LLVMMipsAsmParser.lib;LLVMMipsAsmPrinter.lib;LLVMMipsCodeGen.lib;LLVMMipsDesc.lib;LLVMMipsDisassembler.lib;LLVMMipsInfo.lib;LLVMMSP430AsmPrinter.lib;LLVMMSP430CodeGen.lib;LLVMMSP430Desc.lib;LLVMMSP430Info.lib;LLVMNVPTXAsmPrinter.lib;LLVMNVPTXCodeGen.lib;LLVMNVPTXDesc.lib;LLVMNVPTXInfo.lib;LLVMObjCARCOpts.lib;LLVMObject.lib;LLVMOption.lib;LLVMPowerPCAsmParser.lib;LLVMPowerPCAsmPrinter.lib;LLVMPowerPCCodeGen.lib;LLVMPowerPCDesc.lib;LLVMPowerPCInfo.lib;LLVMR600AsmPrinter.lib;LLVMR600CodeGen.lib;LLVMR600Desc.lib;LLVMR600Info.lib;LLVMRuntimeDyld.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSparcCodeGen.lib;LLVMSparcDesc.lib;LLVMSparcInfo.lib;LLVMSupport.lib;LLVMSystemZAsmParser.lib;LLVMSystemZAsmPrinter.lib;LLVMSystemZCodeGen.lib;LLVMSystemZDesc.lib;LLVMSystemZDisassembler.lib;LLVMSystemZInfo.lib;LLVMTableGen.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;LLVMXCoreAsmPrinter.lib;LLVMXCoreCodeGen.lib;LLVMXCoreDesc.lib;LLVMXCoreDisassembler.lib;LLVMXCoreInfo.lib;gtest.lib;gtest_main.lib;JITTests.lib;MCJITTests.lib;LTO.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;LLVMAArch64AsmParser.lib;LLVMAArch64AsmPrinter.lib;LLVMAArch64CodeGen.lib;LLVMAArch64Desc.lib;LLVMAArch64Disassembler.lib;LLVMAArch64Info.lib;LLVMAArch64Utils.lib;LLVMAnalysis.lib;LLVMARMAsmParser.lib;LLVMARMAsmPrinter.lib;LLVMARMCodeGen.lib;LLVMARMDesc.lib;LLVMARMDisassembler.lib;LLVMARMInfo.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMCppBackEndCodeGen.lib;LLVMCppBackEndInfo.lib;LLVMDebugInfo.lib;LLVMExecutionEngine.lib;LLVMHexagonAsmPrinter.lib;LLVMHexagonCodeGen.lib;LLVMHexagonDesc.lib;LLVMHexagonInfo.lib;LLVMInstCombine.lib;LLVMInstrumentation.lib;LLVMInterpreter.lib;LLVMipa.lib;LLVMipo.lib;LLVMIRReader.lib;LLVMJIT.lib;LLVMLinker.lib;LLVMLTO.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCJIT.lib;LLVMMCParser.lib;LLVMMipsAsmParser.lib;LLVMMipsAsmPrinter.lib;LLVMMipsCodeGen.lib;LLVMMipsDesc.lib;LLVMMipsDisassembler.lib;LLVMMipsInfo.lib;LLVMMSP430AsmPrinter.lib;LLVMMSP430CodeGen.lib;LLVMMSP430Desc.lib;LLVMMSP430Info.lib;LLVMNVPTXAsmPrinter.lib;LLVMNVPTXCodeGen.lib;LLVMNVPTXDesc.lib;LLVMNVPTXInfo.lib;LLVMObjCARCOpts.lib;LLVMObject.lib;LLVMOption.lib;LLVMPowerPCAsmParser.lib;LLVMPowerPCAsmPrinter.lib;LLVMPowerPCCodeGen.lib;LLVMPowerPCDesc.lib;LLVMPowerPCInfo.lib;LLVMR600AsmPrinter.lib;LLVMR600CodeGen.lib;LLVMR600Desc.lib;LLVMR600Info.lib;LLVMRuntimeDyld.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSparcCodeGen.lib;LLVMSparcDesc.lib;LLVMSparcInfo.lib;LLVMSupport.lib;LLVMSystemZAsmParser.lib;LLVMSystemZAsmPrinter.lib;LLVMSystemZCodeGen.lib;LLVMSystemZDesc.lib;LLVMSystemZDisassembler.lib;LLVMSystemZInfo.lib;LLVMTableGen.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;LLVMXCoreAsmPrinter.lib;LLVMXCoreCodeGen.lib;LLVMXCoreDesc.lib;LLVMXCoreDisassembler.lib;LLVMXCoreInfo.lib;gtest.lib;gtest_main.lib;LTO.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\DevTools\llvm-3.4\lib\Release</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>_</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -248,6 +252,7 @@
     <ClCompile Include="..\compiler\parallelize\code_loop.cpp" />
     <ClCompile Include="..\compiler\parallelize\colorize.cpp" />
     <ClCompile Include="..\compiler\parser\enrobage.cpp" />
+    <ClCompile Include="..\compiler\parser\faustlexer.cpp" />
     <ClCompile Include="..\compiler\parser\faustparser.cpp" />
     <ClCompile Include="..\compiler\parser\sourcefetcher.cpp" />
     <ClCompile Include="..\compiler\parser\sourcereader.cpp" />
@@ -273,6 +278,7 @@
     <ClCompile Include="..\compiler\tlib\shlysis.cpp" />
     <ClCompile Include="..\compiler\tlib\symbol.cpp" />
     <ClCompile Include="..\compiler\tlib\tree.cpp" />
+    <ClCompile Include="..\compiler\utils\files.cpp" />
     <ClCompile Include="..\compiler\utils\names.cpp" />
     <ClCompile Include="..\compiler\main.cpp" />
   </ItemGroup>
@@ -413,6 +419,7 @@
     <None Include="..\compiler\tlib\symbol.hh" />
     <None Include="..\compiler\tlib\tlib.hh" />
     <None Include="..\compiler\tlib\tree.hh" />
+    <None Include="..\compiler\utils\files.hh" />
     <None Include="..\compiler\utils\names.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

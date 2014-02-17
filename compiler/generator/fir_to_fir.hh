@@ -25,7 +25,7 @@
 #include "instructions.hh"
 
 #ifdef _WIN32
-bool sortArrayDeclarations(const StatementInst* & a, const StatementInst* & b);
+bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 #else
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 #endif

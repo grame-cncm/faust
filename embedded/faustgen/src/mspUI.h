@@ -191,6 +191,10 @@ class mspUI : public UI
             fDeclareTable[key] = val;
         }
        
+        bool isValue(string name) 
+        {
+            return fUITable.count(name);
+        }
         bool setValue(string name, FAUSTFLOAT f)
         {
             if (fUITable.count(name)) {

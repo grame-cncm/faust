@@ -5,6 +5,8 @@
 
 <!-- WebAudio API -->
 
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+
 process_mydsp = function(obj) 
 {
     function process_aux_mydsp(event) 
@@ -58,7 +60,9 @@ function create_mydsp(audio_context, user_interface, meta_interface, buffer_size
     console.log(this.dsp.getNumInputs());
     console.log(this.dsp.getNumOutputs());
     
-    this.processor = audio_context.createJavaScriptNode(buffer_size, this.dsp.getNumInputs(), this.dsp.getNumOutputs());
+    this.processor = (isWebKitAudio) 
+        ? audio_context.createJavaScriptNode(buffer_size, this.dsp.getNumInputs(), this.dsp.getNumOutputs())
+        : audio_context.createScriptProcessor(buffer_size, this.dsp.getNumInputs(), this.dsp.getNumOutputs());
     this.processor.onaudioprocess = process_mydsp(this);
     
     return this.processor;

@@ -142,5 +142,3 @@ bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int
 
 #endif
 
-
-

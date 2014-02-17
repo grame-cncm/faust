@@ -31,10 +31,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     private:
 
         map <string, string> fMathLibTable;
+        Typed::VarType fCurType;
 
     public:
 
-        ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, ".", tab)
+        ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, ".", tab), fCurType(Typed::kNoType)
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
@@ -190,6 +191,20 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             generateFunDefBody(inst);
         }
         
+        virtual void visit(LoadVarInst* inst)
+        {
+            TextInstVisitor::visit(inst);
+             
+            if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
+                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
+                if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+                    fCurType = Typed::getTypeFromPtr(fCurType);
+                }
+            } else {
+                fCurType = Typed::kNoType;
+            }
+        }
+        
         virtual void visit(NamedAddress* named)
         {   
             if (named->getAccess() & Address::kStruct) {
@@ -208,12 +223,26 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(FloatNumInst* inst)
         {
             *fOut << inst->fNum;
+            fCurType = Typed::kFloat;
+        }
+        
+        virtual void visit(IntNumInst* inst)
+        {
+            *fOut << inst->fNum;
+            fCurType = Typed::kInt;
+        }
+        
+        virtual void visit(BoolNumInst* inst)
+        {
+            *fOut << inst->fNum;
+            fCurType = Typed::kBool;
         }
         
         // No . syntax for double in JS
         virtual void visit(DoubleNumInst* inst)
         {
             *fOut << inst->fNum;
+            fCurType = Typed::kInt;
         }
 
         virtual void visit(CastNumInst* inst)

@@ -50,7 +50,7 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-static Module* LoadModule(const std::string filename, LLVMContext* context)
+Module* LoadModule(const std::string filename, LLVMContext* context)
 {
     SMDiagnostic err;
     Module* module = ParseIRFile(filename, err, *context);
@@ -67,18 +67,33 @@ static Module* LoadModule(const std::string filename, LLVMContext* context)
     }
 }
 
+bool LinkModules(Module* dst, Module* src, char* error_message)
+{
+    string err;
+    
+    if (!src) {
+        strcpy(error_message, "File scheduler.ll not found...\n");
+        return false;
+    } else if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+        delete src;
+        sprintf(error_message, "Cannot link scheduler module : %s\n", err.c_str());
+        return false;
+    } else {
+        delete src;
+        return true;
+    }
+}
+
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* input_name, const char* input, char* error_msg)
 {
     int argc1 = argc + 3;
  	const char* argv1[32];
+    
     argv1[0] = "faust";
 	argv1[1] = "-lang";
 	argv1[2] = "llvm";
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
-        if (strcmp(argv[i], "-sch") == 0) {
-            fScheduler = true;
-        }
     }
     
     return compile_faust_llvm(argc1, argv1, input_name, input, error_msg, true);
@@ -173,7 +188,6 @@ void llvm_dsp_factory::Init()
     fBuildUserInterface = 0;
     fInit = 0;
     fCompute = 0;
-    fScheduler = false;
 }
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
@@ -181,21 +195,6 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     assert(fResult->fModule);
     assert(fJIT);
     return new llvm_dsp_aux(this, fNew());
-}
-
-Module* llvm_dsp_factory::LoadSchedulerModule()
-{
-    list< string >::iterator it;
-    
-    std::list<std::string> import_dirs = get_import_dirs();
-    
-    for (it = import_dirs.begin(); it != import_dirs.end(); it++) {
-        string filname = *it + "scheduler.ll";
-         Module* scheduler = LoadModule(filname, fResult->fContext);
-         if (scheduler) return scheduler;
-    }
-        
-    return 0;
 }
 
 #if defined(LLVM_33) || defined(LLVM_34)
@@ -253,7 +252,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     if (!fResult || !fResult->fModule) {
         return false;
     }
-    
+     
     InitializeAllTargets();
     InitializeAllTargetMCs();
   
@@ -278,23 +277,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     initializeTarget(Registry);
     
     std::string err;
-    // Link with "scheduler" code
-    if (fScheduler) {
-        Module* scheduler = LoadSchedulerModule();
-        if (scheduler) {
-            if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                error_msg = "Cannot link scheduler module : " + err;
-                delete scheduler;
-                return false;
-            } else {
-                delete scheduler;
-            }
-        } else {
-            error_msg = "File scheduler.ll not found...";
-            return false;
-        }
-    }
-    
+      
     if (fTarget != "") {
         fResult->fModule->setTargetTriple(fTarget);
     } else {
@@ -401,6 +384,8 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
         return false;
     }
     
+    fResult->fModule->addLibrary("m");
+    
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
@@ -467,23 +452,6 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     fpm.add(new TargetData(*fJIT->getTargetData()));
 #endif
 
-    // Link with "scheduler" code
-    if (fScheduler) {
-        Module* scheduler = LoadSchedulerModule();
-        if (scheduler) {
-            if (Linker::LinkModules(fResult->fModule, scheduler, Linker::DestroySource, &err)) {
-                error_msg = "Cannot link scheduler module : " + err;
-                delete scheduler;
-                return false;
-            } else {
-                delete scheduler;
-            }
-        } else {
-            error_msg = "File scheduler.ll not found...";
-            return false;
-        }
-    }
-    
     // Taken from LLVM Opt.cpp
     PassManagerBuilder Builder;
     Builder.OptLevel = fOptLevel;
@@ -822,7 +790,8 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
-EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, const char *argv[], 
+EXPORT std::string expandDSPFromFile(const std::string& filename, 
+                                    int argc, const char *argv[], 
                                      std::string& error_msg)
 {
     int argc1 = argc + 4;
@@ -842,8 +811,10 @@ EXPORT std::string expandDSPFromFile(const std::string& filename, int argc, cons
     return res;
 }
 
-EXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
-                                     std::string& error_msg)
+EXPORT std::string expandDSPFromString(const std::string& name_app, 
+                                    const std::string& dsp_content, 
+                                    int argc, const char *argv[], 
+                                    std::string& error_msg)
 {
     int argc1 = argc + 3;
     const char* argv1[32];
@@ -931,7 +902,7 @@ EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
 {
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg_aux, opt_level), error_msg_aux);
-    error_msg = (char*)error_msg_aux.c_str();
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
@@ -950,7 +921,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
     
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, "", "", target, error_msg_aux, opt_level), error_msg_aux);
-    error_msg = (char*)error_msg_aux.c_str();
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
@@ -960,7 +931,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
 {
     std::string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name_app, dsp_content, target, error_msg_aux, opt_level), error_msg_aux);
-    error_msg = (char*)error_msg_aux.c_str();
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
@@ -976,7 +947,10 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
 
 EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
-    return writeDSPFactoryToBitcode(factory).c_str();
+    string str = writeDSPFactoryToBitcode(factory);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level)
@@ -996,7 +970,10 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
 
 EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
-    return writeDSPFactoryToIR(factory).c_str();
+    string str = writeDSPFactoryToIR(factory);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level)
@@ -1047,4 +1024,89 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
     delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+}
+
+EXPORT const char* expandCDSPFromFile(const char* filename, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg)
+{
+    int argc1 = argc + 4;
+    const char* argv1[32];
+	  
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "llvm";
+    argv1[3] = filename;
+    for (int i = 0; i < argc; i++) {
+        argv1[i+4] = argv[i];
+    }
+    
+    string str = expand_dsp(argc1, argv1, "", "", error_msg);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
+}
+
+EXPORT const char* expandCDSPFromString(const char* name_app, 
+                                    const char* dsp_content, 
+                                    int argc, const char *argv[], 
+                                    char* error_msg)
+{
+    int argc1 = argc + 3;
+    const char* argv1[32];
+	  
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "llvm";
+    for (int i = 0; i < argc; i++) {
+        argv1[i+3] = argv[i];
+    }
+    
+    string str = expand_dsp(argc1, argv1, name_app, dsp_content, error_msg);
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
+}
+
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg)
+{
+    if (CheckParameters(argc, argv)) {
+    
+        int argc1 = argc + 4;
+        const char* argv1[32];
+          
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "llvm";
+        argv1[3] = filename;
+        for (int i = 0; i < argc; i++) {
+            argv1[i+4] = argv[i];
+        }
+        
+        compile_faust_llvm(argc1, argv1, "", "", error_msg, false);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg)
+{
+    if (CheckParameters(argc, argv)) {
+    
+        int argc1 = argc + 3;
+        const char* argv1[32];
+          
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "llvm";
+        for (int i = 0; i < argc; i++) {
+            argv1[i+3] = argv[i];
+        }
+     
+        compile_faust_llvm(argc1, argv1, name_app, dsp_content, error_msg, false);
+        return true;
+    } else {
+        return false;
+    }
 }
