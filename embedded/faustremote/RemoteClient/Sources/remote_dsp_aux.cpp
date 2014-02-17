@@ -79,6 +79,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
 //        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,10); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 10);
         
         CURLcode res = curl_easy_perform(curl);
         
@@ -262,14 +264,15 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
 remote_dsp_aux::~remote_dsp_aux(){
 
     if(fNetJack){
+    
+        jack_net_master_close(fNetJack); 
         
         delete[] fInControl;
         delete[] fOutControl;
         
         delete[] fControlInputs[0];
         delete[] fControlOutputs[0];
-        
-        jack_net_master_close(fNetJack); 
+    
         fNetJack = 0;
     }
     
