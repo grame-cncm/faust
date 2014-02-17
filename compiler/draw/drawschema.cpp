@@ -131,7 +131,6 @@ static bool				sFoldingFlag;		// true with complex block-diagrams
 static stack<Tree>		gPendingExp;		// Expressions that need to be drawn
 static set<Tree>		gDrawnExp;			// Expressions drawn or scheduled so far
 static const char* 		gDevSuffix;			// .svg or .ps used to choose output device
-static char 			gCurrentDir[512];	// room to save current directory name
 static string			gSchemaFileName;	// name of schema file beeing generated
 static map<Tree,string>	gBackLink;			// link to enclosing file for sub schema
 
