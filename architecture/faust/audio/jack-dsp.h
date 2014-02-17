@@ -187,7 +187,16 @@ class jackaudio : public audio {
 
         virtual bool init(const char* name, dsp* DSP) 
         {
-            fDsp = DSP;
+            if(!init(name))
+                return false;
+            
+            set_dsp(DSP);
+            
+            return true;
+        }
+
+        virtual bool init(const char* name) 
+        {
             if ((fClient = jack_client_open(name, JackNullOption, NULL)) == 0) {
                 fprintf(stderr, "JACK server not running ?\n");
                 return false;
@@ -195,23 +204,29 @@ class jackaudio : public audio {
         #ifdef JACK_IOS
             jack_custom_publish_data(fClient, "icon.png", fIconData, fIconSize);
         #endif
-            
+        
         #ifdef _OPENMP
             jack_set_process_thread(fClient, _jack_thread, this);
         #else
             jack_set_process_callback(fClient, _jack_process, this);
         #endif
-
+        
             jack_set_sample_rate_callback(fClient, _jack_srate, this);
             jack_set_buffer_size_callback(fClient, _jack_buffersize, this);
             jack_on_info_shutdown(fClient, _jack_info_shutdown, this);
-
+        
+            return true;
+        }    
+    
+        virtual bool set_dsp(dsp* DSP){
+            fDsp = DSP;
+            
             fNumInChans  = fDsp->getNumInputs();
             fNumOutChans = fDsp->getNumOutputs();
             
             fInputPorts = new jack_port_t*[fNumInChans];
             fOutputPorts = new jack_port_t*[fNumOutChans];
-        
+            
             for (int i = 0; i < fNumInChans; i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
@@ -222,10 +237,11 @@ class jackaudio : public audio {
                 snprintf(buf, 256, "out_%d", i);
                 fOutputPorts[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
             }
+            
             fDsp->init(jack_get_sample_rate(fClient));
             return true;
         }
-
+    
         virtual bool start() 
         {
             if (jack_activate(fClient)) {
