@@ -69,10 +69,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         
 // Connection Setups
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) (finalRequest.size()));
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
         
         std::ostringstream oss;
         
@@ -113,17 +112,18 @@ void remote_dsp_factory::stop(){
     
     if (curl) {
         
-        // The index of the factory to delete has to be sent
-        string finalRequest = "factoryIndex=";
-        finalRequest += fIndex;
+        printf("fIndex = %s\n", fIndex.c_str());
+        printf("fIP = %s\n", fServerIP.c_str());
         
-        string ip(fServerIP);
-        ip += "/DeleteFactory";
+        // The index of the factory to delete has to be sent
+        string finalRequest = string("factoryIndex=") + fIndex;
+        
+        string ip = fServerIP + string("/DeleteFactory");
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
         
         CURLcode res = curl_easy_perform(curl);
         
@@ -696,3 +696,4 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     else
         return false;
 }
+

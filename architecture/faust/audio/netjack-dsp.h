@@ -104,7 +104,16 @@ class netjackaudio : public audio
 
         bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
         {
-            fDsp = DSP;
+            if(init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
+                set_dsp_aux(DSP);
+                return true;
+            }
+            else
+                return false;
+        }
+    
+        bool init_aux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
+        {
             jack_slave_t request = {
                 audio_inputs,
                 audio_outputs,
@@ -134,8 +143,13 @@ class netjackaudio : public audio
             
             jack_set_net_slave_error_callback(fNet, net_error, this);
 
-            fDsp->init(fResult.sample_rate);
             return true;
+        }
+    
+        void set_dsp_aux(dsp* DSP) 
+        {
+            fDsp = DSP;
+            fDsp->init(fResult.sample_rate);
         }
         
         // Possibly to be redefined by subclasses

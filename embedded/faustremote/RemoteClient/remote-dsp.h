@@ -33,8 +33,14 @@ extern "C"
 {
 #endif
 
-struct remote_dsp_factory;
-
+class remote_dsp_factory{
+        
+    public: 
+    
+    int                 numInputs();
+    int                 numOutputs();
+};
+    
 /**
  * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that
  returns a JSON application.
