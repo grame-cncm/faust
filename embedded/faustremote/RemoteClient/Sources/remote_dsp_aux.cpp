@@ -117,7 +117,6 @@ void remote_dsp_factory::stop(){
         
         // The index of the factory to delete has to be sent
         string finalRequest = string("factoryIndex=") + fIndex;
-        
         string ip = fServerIP + string("/DeleteFactory");
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -237,13 +236,18 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     }
 }
 
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
-    
-    factory->stop();
-    delete factory;
+EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
+{
+    if (factory) {
+        factory->stop();
+        delete factory;
+    }
 }
 
-EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m){factory->metadataRemoteDSPFactory(m);}
+EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
+{
+    factory->metadataRemoteDSPFactory(m);
+}
 
 //--------------------INSTANCES
 
@@ -264,7 +268,7 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
         
 remote_dsp_aux::~remote_dsp_aux(){
 
-    if(fNetJack){
+    if (fNetJack){
     
         jack_net_master_close(fNetJack); 
         
