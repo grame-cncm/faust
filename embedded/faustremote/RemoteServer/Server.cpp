@@ -400,7 +400,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
     
-//    printf("FLServer::iterate_post %s\n", key);
+    printf("FLServer::iterate_post %s\n", key);
     
     if (size > 0) {
         
@@ -429,13 +429,20 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
             con_info->fFactoryIndex = data;
 
         if(strcmp(key,"number_options") == 0){
+            
+            printf("num_options = %s\n", data);
+            
             con_info->fNumCompilOptions = atoi(data);
             con_info->fCompilationOptions = new string[con_info->fNumCompilOptions];
             con_info->fIndicator = 0;
         }
         if(strcmp(key,"options") == 0){
-            con_info->fCompilationOptions[con_info->fIndicator] = data;
-            con_info->fIndicator++;
+            
+            printf("con_info Indicator = %i || %i\n", con_info->fIndicator, con_info->fNumCompilOptions);
+            if(con_info->fNumCompilOptions != 0){
+                con_info->fCompilationOptions[con_info->fIndicator] = data;
+                con_info->fIndicator++;
+            }
         }
         
         if(strcmp(key,"opt_level") == 0)

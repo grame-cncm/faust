@@ -26,10 +26,6 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
 
         string finalRequest = "name=";
         finalRequest += nameApp;
-        finalRequest += "&data=";
-        
-// Transforming faustCode to URL format
-        finalRequest += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
         
 // Adding Compilation Options to request data
         
@@ -53,6 +49,13 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         
         printf("finalRequest = %s\n", finalRequest.c_str());
 
+        
+        finalRequest += "&data=";
+        
+        // Transforming faustCode to URL format
+        finalRequest += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
+        
+        
         fServerIP = "http://";
         fServerIP += ipServer;
         fServerIP += ":";
@@ -67,6 +70,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         
         printf("ip = %s\n", ip.c_str());
         
+        
+        
 // Connection Setups
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -78,8 +83,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
 //        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,10); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 10);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
         
         CURLcode res = curl_easy_perform(curl);
         
@@ -124,6 +129,8 @@ void remote_dsp_factory::stop(){
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
         
         CURLcode res = curl_easy_perform(curl);
         
@@ -544,10 +551,12 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(finalRequest.c_str()));
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
         
         CURLcode res = curl_easy_perform(curl);
         
