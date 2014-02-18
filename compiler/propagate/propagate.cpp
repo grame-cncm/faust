@@ -201,7 +201,7 @@ bool getPropagateProperty(Tree args, siglist&  lsig)
  * @return the resulting list of output signals
  */
 
-siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
+siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
 
 /**
@@ -213,7 +213,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
  * @return the resulting list of output signals
  */
 
-siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
+siglist propagate (Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     Tree args = tree(gGlobal->PROPAGATEPROPERTY,slotenv,path,box,listConvert(lsig));
     siglist result;
