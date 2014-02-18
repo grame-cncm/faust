@@ -134,9 +134,10 @@ static void call_fun(compile_fun fun)
 
 #endif
 
-Tree gProcessTree;
-Tree gLsignalsTree;
-int gNumInputs, gNumOutputs;
+Tree gProcessTree = 0;
+Tree gLsignalsTree = 0;
+int gNumInputs = 0;
+int gNumOutputs = 0;
 string gErrorMessage = "";
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
