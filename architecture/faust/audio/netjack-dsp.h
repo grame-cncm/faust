@@ -104,12 +104,12 @@ class netjackaudio : public audio
 
         bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
         {
-            if(init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
-                set_dsp_aux(DSP);
+            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
+                set_dsp(DSP);
                 return true;
-            }
-            else
+            } else {
                 return false;
+            }
         }
     
         bool init_aux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
@@ -146,7 +146,7 @@ class netjackaudio : public audio
             return true;
         }
     
-        void set_dsp_aux(dsp* DSP) 
+        void set_dsp(dsp* DSP) 
         {
             fDsp = DSP;
             fDsp->init(fResult.sample_rate);
