@@ -1100,13 +1100,15 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
         
-        // Check scheduler mode
-        for (int i = 0; i < argc; i++) {
-            if (strcmp(argv[i], "-sch") == 0) {
-                if (!LinkModules(res->fModule, load_module(res->fContext, "scheduler.ll"), error_msg)) {
-                    res = NULL;
+        if (res) {
+            // Check scheduler mode
+            for (int i = 0; i < argc; i++) {
+                if (strcmp(argv[i], "-sch") == 0) {
+                    if (!LinkModules(res->fModule, load_module(res->fContext, "scheduler.ll"), error_msg)) {
+                        res = NULL;
+                    }
+                    break;
                 }
-                break;
             }
         }
         
