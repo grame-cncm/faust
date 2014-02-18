@@ -122,7 +122,6 @@ void remote_dsp_factory::stop(){
         
         // The index of the factory to delete has to be sent
         string finalRequest = string("factoryIndex=") + fIndex;
-        
         string ip = fServerIP + string("/DeleteFactory");
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -188,18 +187,28 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
 
 static string PathToContent(const string& path)
 {
-    ifstream f(path.c_str());
-    string result;
-    char line[4096];
+    ifstream file(path.c_str());
+   
+    // Compute file size in bytes
+    int begin = file.tellg();
+    file.seekg (0, ios::end);
+    int end = file.tellg();
+    int size = end - begin;
+    file.seekg(0);
     
-    while (f.getline(line, 4096)) {
+    // And allocate line to that a single line can be read...
+    char* line = new char[size];
+    string result;
+      
+    while (file.getline(line, size)) {
         result += line;
-        if (!f.fail()) {
+        if (!file.fail()) {
             result += "\n";
         }
     }
     
-    f.close();
+    delete [] line;
+    file.close();
     return result;
 }
 
@@ -244,13 +253,18 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     }
 }
 
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory){
-    
-    factory->stop();
-    delete factory;
+EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
+{
+    if (factory) {
+        factory->stop();
+        delete factory;
+    }
 }
 
-EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m){factory->metadataRemoteDSPFactory(m);}
+EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
+{
+    factory->metadataRemoteDSPFactory(m);
+}
 
 //--------------------INSTANCES
 
@@ -271,7 +285,7 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
         
 remote_dsp_aux::~remote_dsp_aux(){
 
-    if(fNetJack){
+    if (fNetJack){
     
         jack_net_master_close(fNetJack); 
         
@@ -535,12 +549,12 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += "&factoryIndex=";
     finalRequest += fFactory->index();
     
-    printf("finalRequest = %s\n", finalRequest.c_str());
+    //printf("finalRequest = %s\n", finalRequest.c_str());
     
 //  Curl Connection setup
     CURL *curl = curl_easy_init();
     
-    bool   isInitSuccessfull = false;
+    bool isInitSuccessfull = false;
     
     if (curl) {
         

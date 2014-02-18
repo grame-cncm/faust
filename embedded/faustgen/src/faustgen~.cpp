@@ -199,7 +199,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     print_compile_options();
     
     // Prepare compile options
-    std::string error;
+    string error;
  	const char* argv[64];
     
     assert(fCompileOptions.size() < 64);
@@ -422,7 +422,7 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     // Save bitcode
     if (fDSPfactory) {
         string bitcode = writeDSPFactoryToBitcode(fDSPfactory);
-        std::string encoded_bitcode = base64_encode((const unsigned char*)bitcode.c_str(), bitcode.size());
+        string encoded_bitcode = base64_encode((const unsigned char*)bitcode.c_str(), bitcode.size());
         dictionary_appendlong(d, gensym("bitcode_size"), encoded_bitcode.size());
         dictionary_appendstring(d, gensym("bitcode"), encoded_bitcode.c_str());  
     }
@@ -714,7 +714,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     for (i = 0, ap = argv; i < argc; i++, ap++) {
         switch (atom_gettype(ap)) {
             case A_LONG: {
-                std::stringstream num;
+                stringstream num;
 				num << atom_getlong(ap);
 				string res = num.str();
 				fOptions.push_back(res.c_str());
@@ -1142,7 +1142,7 @@ void faustgen::display_libraries()
     fDSPfactory->display_libraries();
 }
 
-void faustgen::hilight_on(const std::string& error)
+void faustgen::hilight_on(const string& error)
 {
     t_jrgba color;
     jrgba_set(&color, 1.0, 0.0, 0.0, 1.0);

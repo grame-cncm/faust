@@ -126,7 +126,7 @@ static void call_fun(compile_fun fun)
     pthread_t thread;
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 524288 * 8); 
+    pthread_attr_setstacksize(&attr, 524288 * 128);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     pthread_create(&thread, &attr, fun, NULL);
     pthread_join(thread, NULL);
@@ -137,7 +137,7 @@ static void call_fun(compile_fun fun)
 Tree gProcessTree;
 Tree gLsignalsTree;
 int gNumInputs, gNumOutputs;
-string gErrorMessage;
+string gErrorMessage = "";
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
