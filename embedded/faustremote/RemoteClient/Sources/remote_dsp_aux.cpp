@@ -281,10 +281,14 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     
     fCounterIn = 0;
     fCounterOut = 0;
+    
+    printf("remote_dsp_aux::remote_dsp_aux = %p\n", this);
 }
         
 remote_dsp_aux::~remote_dsp_aux(){
 
+    printf("remote_dsp_aux::~remote_dsp_aux = %p\n", this);
+    
     if (fNetJack){
     
         jack_net_master_close(fNetJack); 
@@ -439,6 +443,8 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
 
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
+    
+//    printf("remote_dsp_aux::compute = %p\n", this);
     
     int numberOfCycles = count/fBufferSize;
     int lastCycle = count%fBufferSize;
@@ -605,6 +611,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     }
     else
         error = "Impossible to open http connection";
+    
+    printf("remote_dsp_aux::init = %p || inputs = %i || outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
     
     return isInitSuccessfull;
 }                        

@@ -193,6 +193,7 @@ public :
     static void*    start_audioSlave(void *);
         
 // A new factory is indexed with the smallest index available
+    int             fNextIndexAvailable;
     int             getSmallestIndexAvailable();
         
 // Creates the html to send back

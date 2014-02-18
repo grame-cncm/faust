@@ -152,6 +152,7 @@ slave_dsp::~slave_dsp(){
 Server::Server(){
     fError = "";
     fDaemon = NULL;
+    fNextIndexAvailable = 0;
 }
 
 Server::~Server(){}
@@ -211,8 +212,10 @@ void* Server::start_audioSlave(void *arg ){
         if (dspToStart->fAudio->init(dspToStart->fSlaveFactory->fNameApp.c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start())
                 printf("Start slave audio failed\n");
-            else
+            else{
+                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fDSP->getNumInputs(), dspToStart->fDSP->getNumOutputs());
                 dspToStart->fServer->fRunningDsp.push_back(dspToStart);
+            }
         }
         else
             printf("Init slave audio failed\n");
@@ -225,15 +228,9 @@ void* Server::start_audioSlave(void *arg ){
 //---- Every new factory is mapped with an unique index : the smallest one unused
 int Server::getSmallestIndexAvailable(){
 
-    bool found = true;
-    int i = 0;
+    fNextIndexAvailable++;
     
-    while(found && fAvailableFactories.size() != 0){
-        found = (fAvailableFactories.find(i) != fAvailableFactories.end());
-        i++;
-    }
-    
-    return i;
+    return fNextIndexAvailable;
 }
  
 //---- Creating response page with right header syntaxe
@@ -400,7 +397,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
     
-    printf("FLServer::iterate_post %s\n", key);
+//    printf("FLServer::iterate_post %s\n", key);
     
     if (size > 0) {
         
