@@ -5,6 +5,9 @@
 #include <list>
 #include <map>
 
+#ifndef GUI_MEMORY_MANAGER 
+#define GUI_MEMORY_MANAGER 1
+#endif
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
@@ -21,10 +24,12 @@ class clist : public std::list<uiItem*>
     
         virtual ~clist() 
         {
+    #if (GUI_MEMORY_MANAGER == 1)
             std::list<uiItem*>::iterator it;
             for (it = begin(); it != end(); it++) {
                 delete (*it);
             }
+    #endif
         }
 };
 

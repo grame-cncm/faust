@@ -31,6 +31,7 @@
 #include "faust/osc/MessageDriven.h"
 #include "faust/osc/Message.h"
 
+#define GUI_MEMORY_MANAGER 0
 #include "faust/gui/GUI.h"
 class GUI;
 
