@@ -1268,7 +1268,7 @@ class coreaudio : public audio {
   
     coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
     coreaudio(int fpb) : fSampleRate(-1), fFramesPerBuf(fpb) {}
-	virtual ~coreaudio() {}
+	virtual ~coreaudio() { fAudioDevice.Close(); }
 
 	virtual bool init(const char* /*name*/, dsp* DSP) 
     {
@@ -1293,7 +1293,6 @@ class coreaudio : public audio {
 	virtual void stop() 
     {
 		fAudioDevice.Stop();
-		fAudioDevice.Close();
 	}
     
     virtual int get_buffer_size() { return fFramesPerBuf; }

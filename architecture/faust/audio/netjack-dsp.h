@@ -188,7 +188,12 @@ class netjackaudio : public audio
         {}
         
         virtual ~netjackaudio() 
-        {}
+        {
+            stop();
+            if (fNet) {
+                jack_net_slave_close(fNet);
+            }
+        }
 
         virtual bool init(const char* name, dsp* DSP) 
         {
@@ -206,8 +211,9 @@ class netjackaudio : public audio
 
         virtual void stop() 
         {
-            jack_net_slave_deactivate(fNet);
-            jack_net_slave_close(fNet);
+            if (fNet) {
+                jack_net_slave_deactivate(fNet);
+            }
         }
         
         virtual int get_buffer_size() { return fResult.buffer_size; }
