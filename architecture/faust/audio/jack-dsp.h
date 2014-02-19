@@ -64,14 +64,14 @@ class jackaudio : public audio {
         int				fNumInChans;		// number of input channels
         int				fNumOutChans;       // number of output channels
     
-        jack_port_t**	fInputPorts;       // JACK input ports
-        jack_port_t**	fOutputPorts;      // JACK output ports
+        jack_port_t**	fInputPorts;        // JACK input ports
+        jack_port_t**	fOutputPorts;       // JACK output ports
     
         shutdown_callback fShutdown;        // Shutdown callback to be called by libjack
-        void*           fShutdownArg;
-        void*           fIconData;
-        int             fIconSize;
-        bool            fAutoConnect;
+        void*           fShutdownArg;       // Shutdown callback data
+        void*           fIconData;          // iOS specific
+        int             fIconSize;          // iOS specific
+        bool            fAutoConnect;       // autoconnect with system in/out ports
         
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
     
@@ -177,7 +177,19 @@ class jackaudio : public audio {
         
         virtual ~jackaudio() 
         { 
-            stop(); 
+            stop();
+            
+            for (int i = 0; i < fNumInChans; i++) {
+                jack_port_unregister(fClient, fInputPorts[i]);
+            }
+            for (int i = 0; i < fNumOutChans; i++) {
+                jack_port_unregister(fClient, fOutputPorts[i]);
+            }
+            jack_client_close(fClient);
+                   
+            delete[] fInputPorts;
+            delete[] fOutputPorts;
+            
             if (fIconData) {
                 free(fIconData);
             }
@@ -258,21 +270,8 @@ class jackaudio : public audio {
 
         virtual void stop() 
         {
-            if (fClient) {
-                save_connections();
-                jack_deactivate(fClient);
-                for (int i = 0; i < fNumInChans; i++) {
-                    jack_port_unregister(fClient, fInputPorts[i]);
-                }
-                for (int i = 0; i < fNumOutChans; i++) {
-                    jack_port_unregister(fClient, fOutputPorts[i]);
-                }
-                jack_client_close(fClient);
-                fClient = 0;
-                
-                delete[] fInputPorts;
-                delete[] fOutputPorts;
-            }
+            save_connections();
+            jack_deactivate(fClient);
         }
     
         virtual void shutdown(shutdown_callback cb, void* arg)

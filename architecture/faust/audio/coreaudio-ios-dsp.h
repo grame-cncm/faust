@@ -654,7 +654,7 @@ class iosaudio : public audio {
     
 public:
     iosaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
-	virtual ~iosaudio() {}
+	virtual ~iosaudio() { fAudioDevice.Close(); }
     
 	virtual bool init(const char* /*name*/, dsp* DSP) 
     {
@@ -678,8 +678,7 @@ public:
 	virtual void stop() 
     {
 		fAudioDevice.Stop();
-		fAudioDevice.Close();
- 	}
+	}
     
     virtual int get_buffer_size() { return fFramesPerBuf; }
     virtual int get_sample_rate() { return fSampleRate; }
