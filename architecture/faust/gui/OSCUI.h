@@ -8,7 +8,6 @@
 #ifndef __OSCUI__
 #define __OSCUI__
 
-#define GUI_MEMORY_MANAGER 0
 #include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
 #include <vector>
