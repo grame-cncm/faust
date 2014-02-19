@@ -1172,6 +1172,16 @@ int main(int argc, char *argv[] )
     jack_client_close(client);
     interface->saveState(rcfilename);
         
+    // desallocation
+    delete interface;
+    delete finterface;
+#ifdef HTTPCTRL
+	 delete httpdinterface;
+#endif
+#ifdef OSCCTRL
+	 delete oscinterface;
+#endif
+
     return 0;
 }
 
