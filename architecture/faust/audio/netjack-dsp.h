@@ -104,12 +104,12 @@ class netjackaudio : public audio
 
         bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
         {
-            if(init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
-                set_dsp_aux(DSP);
+            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
+                set_dsp(DSP);
                 return true;
-            }
-            else
+            } else {
                 return false;
+            }
         }
     
         bool init_aux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
@@ -146,7 +146,7 @@ class netjackaudio : public audio
             return true;
         }
     
-        void set_dsp_aux(dsp* DSP) 
+        void set_dsp(dsp* DSP) 
         {
             fDsp = DSP;
             fDsp->init(fResult.sample_rate);
@@ -188,7 +188,12 @@ class netjackaudio : public audio
         {}
         
         virtual ~netjackaudio() 
-        {}
+        {
+            stop();
+            if (fNet) {
+                jack_net_slave_close(fNet);
+            }
+        }
 
         virtual bool init(const char* name, dsp* DSP) 
         {
@@ -206,8 +211,9 @@ class netjackaudio : public audio
 
         virtual void stop() 
         {
-            jack_net_slave_deactivate(fNet);
-            jack_net_slave_close(fNet);
+            if (fNet) {
+                jack_net_slave_deactivate(fNet);
+            }
         }
         
         virtual int get_buffer_size() { return fResult.buffer_size; }
