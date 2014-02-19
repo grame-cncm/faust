@@ -187,11 +187,10 @@ class jackaudio : public audio {
 
         virtual bool init(const char* name, dsp* DSP) 
         {
-            if(!init(name))
+            if (!init(name)) {
                 return false;
-            
+            }
             set_dsp(DSP);
-            
             return true;
         }
 
