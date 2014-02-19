@@ -903,8 +903,13 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
     virtual ~TCoreAudioRenderer()
         {}
-
-    int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& samplerate)
+    
+    int OpenDefault(dsp* DSP, int inChan, int outChan, int bufferSize, int& samplerate){
+        OpenDefault(inChan, outChan, bufferSize, samplerate);
+        set_dsp(DSP);
+    }
+    
+    int OpenDefault(int inChan, int outChan, int bufferSize, int& samplerate)
     {
         OSStatus err = noErr;
         ComponentResult err1;
@@ -914,7 +919,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
         int in_nChannels, out_nChannels;
         
-        fDSP = dsp;
         fDevNumInChans = inChan;
         fDevNumOutChans = outChan;
         
@@ -1194,6 +1198,10 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return OPEN_ERR;
     }
     
+    void set_dsp(dsp* DSP){
+        fDSP = DSP;
+    }
+    
     int Close()
     {
         fClients--;
@@ -1272,10 +1280,11 @@ class coreaudio : public audio {
 
 	virtual bool init(const char* /*name*/, dsp* DSP) 
     {
-		if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+		if (fAudioDevice.OpenDefault(DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
 			printf("Cannot open CoreAudio device\n");
 			return false;
 		}
+        fAudioDevice.set_dsp(DSP);
         // If -1 was given, fSampleRate will be changed by OpenDefault
         DSP->init(fSampleRate);
         return true;
