@@ -675,7 +675,6 @@ static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_
         pos = remainingString.find("._");
         
         string serviceIP = remainingString.substr(0, pos);
-        
         string hostName = remainingString.substr(pos+2, string::npos);
         
         if(flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing){
@@ -701,30 +700,28 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 //  Initialize DNSServiceREF && bind it to its callback
     DNSServiceErrorType err = DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList);
     
-    if(err == kDNSServiceErr_NoError){
+    if (err == kDNSServiceErr_NoError){
         
 //      SELECT IS USED TO SET TIMEOUT  
+
+        int fd = DNSServiceRefSockFD(sd);
+        int nfds = fd + 1;
+        struct timeval tv = { 0, 100000 };
+        
         fd_set readfds;
         FD_ZERO(&readfds);
+        FD_SET(fd, &readfds);
         
-        FD_SET(DNSServiceRefSockFD(sd), &readfds);
-        
-        struct timeval tv = { 0, 100 };
-        int result = select(0, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
-        
-        if (result < 0) 
-            printf("SELECT ERROR\n");
-        
-//      Process Result will call the appriate callback binded to ServiceRef
-        else
+        if (select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0 && FD_ISSET(fd, &readfds)) {
             DNSServiceErrorType err = DNSServiceProcessResult(sd);
+        }
         
 //      Cleanup DNSService  
+
         DNSServiceRefDeallocate(sd);
-        
         return true;
-    }
-    else
+    } else {
         return false;
+    }
 }
 
