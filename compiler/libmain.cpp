@@ -78,7 +78,7 @@
 #include "garbageable.hh"
 #include "export.hh"
 
-#define FAUSTVERSION "2.0.a12"
+#define FAUSTVERSION "2.0.a13"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -110,6 +110,13 @@ bool LinkModules(Module* dst, Module* src, char* error_message);
 
 using namespace std;
 
+// Globals to transfer results in thread based evaluation
+static Tree gProcessTree = 0;
+static Tree gLsignalsTree = 0;
+static int gNumInputs = 0;
+static int gNumOutputs = 0;
+static string gErrorMessage = "";
+
 typedef void* (*compile_fun)(void* arg);
 
 #ifdef _WIN32 
@@ -133,12 +140,6 @@ static void call_fun(compile_fun fun)
 }
 
 #endif
-
-Tree gProcessTree = 0;
-Tree gLsignalsTree = 0;
-int gNumInputs = 0;
-int gNumOutputs = 0;
-string gErrorMessage = "";
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
@@ -1091,6 +1092,13 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 {
     gLLVMOut = false;
     gGlobal = NULL;
+    
+    gProcessTree = 0;
+    gLsignalsTree = 0;
+    gNumInputs = 0;
+    gNumOutputs = 0;
+    gErrorMessage = "";
+
     LLVMResult* res;
     
     try {
@@ -1126,6 +1134,13 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
 {
     gLLVMOut = true;
     gGlobal = NULL;
+    
+    gProcessTree = 0;
+    gLsignalsTree = 0;
+    gNumInputs = 0;
+    gNumOutputs = 0;
+    gErrorMessage = "";
+    
     int res;
     
     try {
@@ -1145,6 +1160,13 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
     gGlobal = NULL;
+    
+    gProcessTree = 0;
+    gLsignalsTree = 0;
+    gNumInputs = 0;
+    gNumOutputs = 0;
+    gErrorMessage = "";
+    
     string res = "";
     
     try {
