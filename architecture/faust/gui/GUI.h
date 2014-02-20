@@ -22,8 +22,7 @@ class clist : public std::list<uiItem*>
         {
             std::list<uiItem*>::iterator it;
             for (it = begin(); it != end(); it++) {
-                // TODO
-                //delete (*it);
+                delete (*it);
             }
         }
 };
@@ -100,7 +99,7 @@ class uiItem
 	uiItem (GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
  		ui->registerZone(zone, this); 
-	}
+ 	}
 	
   public :
   
