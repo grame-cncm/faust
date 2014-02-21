@@ -174,7 +174,7 @@ ostream& boxpp::print (ostream& fout) const
     else if (isBoxPrim5(box, &p5))		fout << prim5name(p5);
 
     else if (isBoxAbstr(box,arg,body))	fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
-    else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << "TOTO" << boxpp(args) ;
+    else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << boxpp(args) ;
 
     else if (isBoxWithLocalDef(box, body, ldef))	fout << boxpp(body) << " with { " << envpp(ldef) << " }";
 

@@ -681,7 +681,7 @@ class alsaaudio : public audio
 	virtual void stop() {
 		if (fRunning) {
 			fRunning = false;
-			pthread_join (fAudioThread, 0);
+			pthread_join(fAudioThread, 0);
 		}
 	}
     
