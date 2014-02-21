@@ -80,7 +80,7 @@ private:
     
 public: 
 
-    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, string& error);
+    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, string& error);
 
     bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error_msg, int opt_level);
     void        stop();
@@ -171,7 +171,7 @@ public:
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                         int argc, const char *argv[], 
                                         int samplingRate, int bufferSize, 
-                                        RemoteDSPErrorCallback errror_callback,
+                                        RemoteDSPErrorCallback error_callback,
                                         void* errror_callback_arg,
                                         string& error);
 

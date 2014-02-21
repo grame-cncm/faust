@@ -114,9 +114,9 @@ class remote_dsp : public dsp{
 #define WRITE_ERROR  -2
 
 /**
- * Prototype for DSP instance Error callback.
+ * Prototype for DSP instance error callback.
  * @param error_code an error code (see "Possible error codes")
- * @param arg pointer to a client supplied structure supplied by createRemoteDSPInstance()
+ * @param arg pointer to a client supplied structure given by createRemoteDSPInstance()
  */
 typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
 
@@ -137,8 +137,8 @@ typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
  *                  --NJ_partial ==> default is 'false'
  * @param samplingRate - NetJack slave sampling Rate
  * @param bufferSize - NetJack slave buffer Size
- * @param errror_callback - Error callback
- * @param errror_callback_arg - Error callback argument
+ * @param error_callback - Error callback
+ * @param error_callback_arg - Error callback argument
  * @param error - the error string to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
@@ -146,8 +146,8 @@ typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
 remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                     int argc, const char *argv[], 
                                     int samplingRate, int bufferSize, 
-                                    RemoteDSPErrorCallback errror_callback,
-                                    void* errror_callback_arg,
+                                    RemoteDSPErrorCallback error_callback,
+                                    void* error_callback_arg,
                                     string& error);
 
 /**
