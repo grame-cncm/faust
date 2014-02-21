@@ -63,6 +63,13 @@ CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addpr
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
+LLVMSHLIB = $(wildcard $(shell $(LLVM_CONFIG) --libdir)/libLLVM-$(shell $(LLVM_CONFIG) --version).$(LIB_EXT))
+
+ifeq ($(LLVMSHLIB),)
+LLVMLIBS = $(shell $(LLVM_CONFIG) --libs)
+else
+LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
+endif
 
 ifeq ($(system), Darwin)
 all : faust libfaust.a
@@ -81,7 +88,7 @@ main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
 faust : $(objects) main.o libmain.o global.o scheduler.ll
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags --libs all` -ldl -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -o faust
 
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
