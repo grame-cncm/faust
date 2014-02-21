@@ -51,6 +51,12 @@ extern "C"
 
 using namespace std;
 
+#define NO_ERROR      0
+#define READ_ERROR   -1
+#define WRITE_ERROR  -2
+
+typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
+
 class remote_dsp_aux;
 
 // Standard Callback to store a server response in strinstream
@@ -74,7 +80,7 @@ private:
     
 public: 
 
-    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
+    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, string& error);
 
     bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error_msg, int opt_level);
     void        stop();
@@ -99,9 +105,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
  
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
-    
-//------
-    
+        
 class remote_dsp_aux : public dsp{
 
     private:
@@ -123,6 +127,9 @@ class remote_dsp_aux : public dsp{
         
         int                     fCounterIn;
         int                     fCounterOut;
+        
+        RemoteDSPErrorCallback  fErrorCallback;
+        void*                   fErrorCallbackArg;
 
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
@@ -144,7 +151,7 @@ class remote_dsp_aux : public dsp{
     
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-        bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, string& error);
+        bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, string& error);
 };
     
 class EXPORT remote_dsp : public dsp{
@@ -161,7 +168,12 @@ public:
     virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
-EXPORT remote_dsp*  createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error);
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
+                                        int argc, const char *argv[], 
+                                        int samplingRate, int bufferSize, 
+                                        RemoteDSPErrorCallback errror_callback,
+                                        void* errror_callback_arg,
+                                        string& error);
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
     

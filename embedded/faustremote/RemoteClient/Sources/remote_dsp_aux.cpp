@@ -169,11 +169,14 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) {
 }   
 
 // Create Remote DSP Instance from factory
-remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, string& error){
+remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
+                                                            int samplingRate, int bufferSize, 
+                                                            RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, 
+                                                            string& error){
  
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     
-    if(dsp->init(argc, argv, samplingRate, bufferSize, error)){
+    if(dsp->init(argc, argv, samplingRate, bufferSize, errror_callback, errror_callback_arg, error)){
         return dsp; 
     } else {
         delete dsp;
@@ -281,6 +284,9 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     
     fCounterIn = 0;
     fCounterOut = 0;
+    
+    fErrorCallback = 0;
+    fErrorCallbackArg = 0;
     
     printf("remote_dsp_aux::remote_dsp_aux = %p\n", this);
 }
@@ -462,11 +468,15 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         
         if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
             fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-            printf("jack_net_master_send failure %d\n", res);
+            if (fErrorCallback) {
+                fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+            }
         }
         if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
-            printf("jack_net_master_recv failure %d\n", res);
             fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
+            if (fErrorCallback) {
+                fErrorCallback(READ_ERROR, fErrorCallbackArg);
+            }
         }
         
         ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
@@ -483,11 +493,15 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         
         if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
             fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-            printf("jack_net_master_send_slice failure %d\n", res);
+            if (fErrorCallback) {
+                fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+            }
         }
         if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
-            printf("jack_net_master_recv_slice failure %d\n", res);
             fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
+            if (fErrorCallback) {
+                fErrorCallback(READ_ERROR, fErrorCallbackArg);
+            }
         }
         
         ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
@@ -512,9 +526,12 @@ void remote_dsp_aux::init(int /*samplingFreq*/){}
 // The URL extension used is /CreateInstance
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
-bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, string& error){
+bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, string& error){
     
     fBufferSize = buffer_size;
+    
+    fErrorCallback = errror_callback;
+    fErrorCallbackArg = errror_callback_arg;
      
 //  Init Control Buffers
 
@@ -621,9 +638,9 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
 
 //---------INSTANCES
 
-EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate,int bufferSize, string& error){
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, string& error){
     
-    return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, samplingRate, bufferSize, error));
+    return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, samplingRate, bufferSize, errror_callback, errror_callback_arg, error));
 }
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp){

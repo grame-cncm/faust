@@ -37,8 +37,8 @@ class remote_dsp_factory{
         
     public: 
     
-    int                 numInputs();
-    int                 numOutputs();
+        int numInputs();
+        int numOutputs();
 };
     
 /**
@@ -106,10 +106,25 @@ class remote_dsp : public dsp{
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
+/*
+    Possible error codes
+*/
+#define NO_ERROR      0
+#define READ_ERROR   -1
+#define WRITE_ERROR  -2
+
+/**
+ * Prototype for DSP instance Error callback.
+ * @param error_code an error code (see "Possible error codes")
+ * @param arg pointer to a client supplied structure supplied by createRemoteDSPInstance()
+ */
+typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
+
 /**
  * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize. 
- * If '--NJ_partial' is set, then the remote_dsp compute method can be safely called with a number of frames below bufferSize, 
- * partial buffers will be sent and received.
+ * If '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
+ * a number of frames below bufferSize, partial buffers will be sent and received.
+ * An error callabck can be set to be notified in case of network transmision errors.
  * 
  * @param factory - the Remote DSP factory
  * @param argc - the number of parameters in argv array
@@ -122,11 +137,18 @@ class remote_dsp : public dsp{
  *                  --NJ_partial ==> default is 'false'
  * @param samplingRate - NetJack slave sampling Rate
  * @param bufferSize - NetJack slave buffer Size
+ * @param errror_callback - Error callback
+ * @param errror_callback_arg - Error callback argument
  * @param error - the error string to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
-remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, std::string& error);
+remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
+                                    int argc, const char *argv[], 
+                                    int samplingRate, int bufferSize, 
+                                    RemoteDSPErrorCallback errror_callback,
+                                    void* errror_callback_arg,
+                                    string& error);
 
 /**
  * Destroy a remote DSP instance.
