@@ -148,7 +148,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                     int samplingRate, int bufferSize, 
                                     RemoteDSPErrorCallback error_callback,
                                     void* error_callback_arg,
-                                    string& error);
+                                    std::string& error);
 
 /**
  * Destroy a remote DSP instance.
