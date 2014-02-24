@@ -18,13 +18,8 @@ class clist : public std::list<uiItem*>
 {
     public:
     
-        virtual ~clist() 
-        {
-            std::list<uiItem*>::iterator it;
-            for (it = begin(); it != end(); it++) {
-                delete (*it);
-            }
-        }
+        virtual ~clist();
+        
 };
 
 class GUI : public UI
@@ -173,5 +168,13 @@ inline void GUI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
 { 
 	new uiCallbackItem(this, zone, foo, data); 
 };
+
+inline clist::~clist() 
+{
+    std::list<uiItem*>::iterator it;
+    for (it = begin(); it != end(); it++) {
+        delete (*it);
+    }
+}
 
 #endif
