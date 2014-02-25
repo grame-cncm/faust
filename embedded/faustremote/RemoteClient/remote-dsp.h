@@ -33,6 +33,13 @@ extern "C"
 {
 #endif
 
+enum{
+    ERROR_FACTORY_NOTFOUND,
+    ERROR_INSTANCE_NOTCREATED,
+    ERROR_NETJACK_NOTSTARTED,
+    ERROR_CURL_CONNECTION
+};
+    
 class remote_dsp_factory{
         
     public: 
@@ -148,7 +155,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                     int samplingRate, int bufferSize, 
                                     RemoteDSPErrorCallback error_callback,
                                     void* error_callback_arg,
-                                    std::string& error);
+                                    int& error);
 
 /**
  * Destroy a remote DSP instance.
