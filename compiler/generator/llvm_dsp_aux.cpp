@@ -58,7 +58,7 @@ Module* LoadModule(const std::string filename, LLVMContext* context)
     if (module) {
         return module;
     } else {
-     #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
         err.print("ParseIRFile failed :", errs());
     #else
         err.Print("ParseIRFile failed :", errs());
@@ -71,12 +71,9 @@ bool LinkModules(Module* dst, Module* src, char* error_message)
 {
     string err;
     
-    if (!src) {
-        strcpy(error_message, "File scheduler.ll not found...\n");
-        return false;
-    } else if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
         delete src;
-        sprintf(error_message, "Cannot link scheduler module : %s\n", err.c_str());
+        sprintf(error_message, "cannot link module : %s", err.c_str());
         return false;
     } else {
         delete src;

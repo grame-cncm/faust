@@ -78,7 +78,7 @@
 #include "garbageable.hh"
 #include "export.hh"
 
-#define FAUSTVERSION "2.0.a13"
+#define FAUSTVERSION "2.0.a14"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -140,6 +140,40 @@ static void call_fun(compile_fun fun)
 }
 
 #endif
+
+static Module* load_module(const string& module_name, llvm::LLVMContext* context)
+{
+    list<string>::iterator it;
+    
+    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+        string file_name = *it + "/" + module_name;
+        Module* module = LoadModule(file_name, context);
+        if (module) return module;
+    }
+        
+    return 0;
+}
+
+static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* error)
+{
+    list<string>::iterator it;
+    
+    for (it = gGlobal->gLibraryList.begin(); it != gGlobal->gLibraryList.end(); it++) {
+        string module_name = *it;
+        
+        Module* src = load_module(module_name, context);
+        if (!src) {
+            sprintf(error, "cannot load module : %s", module_name.c_str());
+            return 0;
+        }
+        
+        if (!LinkModules(dst, src, error)) {
+            return 0;
+        }
+    }
+        
+    return dst;
+}
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
@@ -346,6 +380,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
 			gGlobal->gSchedulerSwitch = true;
+            gGlobal->gLibraryList.push_back("scheduler.ll");
 			i += 1;
 
          } else if (isCmd(argv[i], "-ocl", "--openCL")) {
@@ -430,6 +465,10 @@ static bool process_cmdline(int argc, const char* argv[])
             }
             i += 2;
             
+        } else if (isCmd(argv[i], "-l", "--library")) {
+            gGlobal->gLibraryList.push_back(argv[i+1]);
+            i += 2;
+           
         } else if (isCmd(argv[i], "-O", "--output-dir")) {
         
             char temp[PATH_MAX+1];
@@ -520,10 +559,10 @@ static void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-	cout << "-i \t\t --inline-architecture-files \n";
+	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-    cout << "-time \t\t --compilation-time, flag to display compilation phases timing information\n";
+    cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC, C++, JAVA, JavaScript or LLVM IR output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
@@ -533,9 +572,9 @@ static void printhelp()
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
-    cout << "-ocl    \t--openCL generate tasks with OpenCL \n";
-    cout << "-cuda   \t--cuda generate tasks with CUDA \n";
-	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
+    cout << "-ocl    \t--openCL generate tasks with OpenCL (experimental) \n";
+    cout << "-cuda   \t--cuda generate tasks with CUDA (experimental) \n";
+    cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
     cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, fir (default cpp)\n";
@@ -546,6 +585,7 @@ static void printhelp()
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
+    cout << "-l <file> \t--library <file> link with the LLVM module <file>\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
@@ -742,10 +782,19 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp->compileMultiSignal(signals);
             LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
             gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
+             
+            // Possibly link with additional LLVM modules
+            char error[256];
+            if (!link_all_modules(gGlobal->gLLVMResult->fContext, gGlobal->gLLVMResult->fModule, error)) {
+                stringstream llvm_error;
+                llvm_error << "ERROR : " << error << endl;
+                throw faustexception(llvm_error.str());
+            }
             
             if (gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
             }
+            
         } else {
             // To trigger 'sig.dot' generation
             comp->prepare(signals);
@@ -860,7 +909,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     if (scheduler_include) {
                         streamCopy(*scheduler_include, *dst);
                     }
-                     delete(scheduler_include);
+                    delete(scheduler_include);
                 }
 
                 if ((strcmp(gOutputLang, "c") == 0) || (strcmp(gOutputLang, "cpp") == 0)) {
@@ -1075,19 +1124,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-static Module* load_module(llvm::LLVMContext* context, const string& module_name)
-{
-    list<string>::iterator it;
-    
-    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-        string filename = *it + "/" + module_name;
-        Module* module = LoadModule(filename, context);
-        if (module) return module;
-    }
-        
-    return 0;
-}
-
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
     gLLVMOut = false;
@@ -1108,19 +1144,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
         compile_faust_internal(argc, argv, name, input, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
-        
-        if (res) {
-            // Check scheduler mode
-            for (int i = 0; i < argc; i++) {
-                if (strcmp(argv[i], "-sch") == 0) {
-                    if (!LinkModules(res->fModule, load_module(res->fContext, "scheduler.ll"), error_msg)) {
-                        res = NULL;
-                    }
-                    break;
-                }
-            }
-        }
-        
+            
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
         res = NULL;
