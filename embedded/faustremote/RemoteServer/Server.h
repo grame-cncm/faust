@@ -62,6 +62,12 @@ class server_netjackaudio : public netjackaudio_midicontrol {
         }
 };
 
+//Structure for SHA-1 responses
+struct string_and_exitstatus {
+    string str;
+    int exitstatus;
+};
+
 // Structured handled by libmicrohttp related to a connection
 struct connection_info_struct {
     
@@ -87,7 +93,7 @@ struct connection_info_struct {
     string              fCV;
     string              fMTU;
     string              fLatency;
-    string              fFactoryIndex;
+    string              fSHAKey;
     //--------------------------------------------- 
     
     void init(){
@@ -101,7 +107,7 @@ struct connection_info_struct {
         fCV = "";
         fMTU = "";
         fLatency = "";
-        fFactoryIndex = "";
+        fSHAKey = "";
     }
 };
     
@@ -122,7 +128,7 @@ struct slave_dsp_factory{
     
     bool delete_Factory();
     slave_dsp_factory* clone();
-    bool init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex,  string& answer);
+    bool init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey,  string& answer);
     
 };
     
@@ -164,8 +170,6 @@ class Server{
         
     string          fError;
         
-    list<pair<MHD_Connection*, connection_info_struct*> > fConnections;
-        
 public :
         
     Server();
@@ -175,7 +179,7 @@ public :
         
 // Factories that can be instanciated. 
 // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
-    map<int, slave_dsp_factory*>         fAvailableFactories;
+    map<string, slave_dsp_factory*>         fAvailableFactories;
         
 // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
     list<slave_dsp*>          fRunningDsp;
@@ -191,11 +195,7 @@ public :
         
 // Callback of another thread to wait netjack audio connection without blocking the server
     static void*    start_audioSlave(void *);
-        
-// A new factory is indexed with the smallest index available
-    int             fNextIndexAvailable;
-    int             getSmallestIndexAvailable();
-        
+            
 // Creates the html to send back
     int             send_page(MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
         
@@ -217,6 +217,14 @@ public :
     static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
         
     static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
+    
+    /*
+     * Generates an SHA-1 key for Faust file and returns 0 for success
+     * or 1 for failure along with the key in the string_and_exitstatus structure.
+     * If the evaluation fails, the appropriate error message is set. More info
+     * on the con_info structure is in Server.h.
+     */
+    string_and_exitstatus   generate_sha1(connection_info_struct *con_info);
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);

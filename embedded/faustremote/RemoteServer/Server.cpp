@@ -13,6 +13,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include "Codes.h"
+
+#include <openssl/sha.h>
+
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
@@ -34,11 +38,11 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryIndex, answer))
+    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryKey, answer))
         return newFactory;
     else
         return NULL;
@@ -52,7 +56,7 @@ void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex, string& answer){
+bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey, string& answer){
     
     printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
     printf("AGRC = %i | argv = %p\n", argc, argv);
@@ -71,14 +75,14 @@ bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp,
         //This instance is used only to build json interface, then it's deleted
         llvm_dsp* dsp = createDSPInstance(fLLVMFactory);
         
-        stringstream s;
-        s<<factoryIndex;
+//        stringstream s;
+//        s<<factoryIndex;
         
         httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
         dsp->buildUserInterface(&json);
         json.numInput(dsp->getNumInputs());
         json.numOutput(dsp->getNumOutputs());
-        json.declare("indexFactory", s.str().c_str());
+        json.declare("factoryKey", factoryKey.c_str());
         
         printf("JSON = %s\n", json.json().c_str());
         
@@ -152,7 +156,6 @@ slave_dsp::~slave_dsp(){
 Server::Server(){
     fError = "";
     fDaemon = NULL;
-    fNextIndexAvailable = 0;
 }
 
 Server::~Server(){}
@@ -223,14 +226,6 @@ void* Server::start_audioSlave(void *arg ){
         dspToStart->fServer->fLocker.Unlock();
     }
     return NULL;
-}
-  
-//---- Every new factory is mapped with an unique index : the smallest one unused
-int Server::getSmallestIndexAvailable(){
-
-    fNextIndexAvailable++;
-    
-    return fNextIndexAvailable;
 }
  
 //---- Creating response page with right header syntaxe
@@ -372,11 +367,11 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
         }
         else if(strcmp(url, "/DeleteFactory") == 0){
                     
-            slave_dsp_factory* toDelete = fAvailableFactories[atoi(con_info->fFactoryIndex.c_str())];
+            slave_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey.c_str()];
             
             if(toDelete){
                 
-                fAvailableFactories.erase(atoi(con_info->fFactoryIndex.c_str()));
+                fAvailableFactories.erase(con_info->fSHAKey.c_str());
                 deleteSlaveDSPFactory(toDelete);
                 
                 return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
@@ -422,8 +417,8 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         if(strcmp(key,"NJ_mtu") == 0) 
             con_info->fMTU = data;
         
-        if(strcmp(key,"factoryIndex") == 0)
-            con_info->fFactoryIndex = data;
+        if(strcmp(key,"factoryKey") == 0)
+            con_info->fSHAKey = data;
 
         if(strcmp(key,"number_options") == 0){
             
@@ -476,19 +471,28 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-    int factoryIndex = getSmallestIndexAvailable();
-
-    const char* compilationOptions[con_info->fNumCompilOptions];
+    string factoryKey;
     
-    for(int i=0; i<con_info->fNumCompilOptions; i++)
-        compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+    string_and_exitstatus structure = generate_sha1(con_info);
     
-    slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryIndex, con_info->fAnswerstring);
-    
-    if(realFactory){
-    
-        fAvailableFactories[factoryIndex] = realFactory;
-        return true;
+    if(!structure.exitstatus){
+        
+        factoryKey = structure.str;
+        
+        const char* compilationOptions[con_info->fNumCompilOptions];
+        
+        for(int i=0; i<con_info->fNumCompilOptions; i++)
+            compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+        
+        slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryKey, con_info->fAnswerstring);
+        
+        if(realFactory){
+            
+            fAvailableFactories[factoryKey] = realFactory;
+            return true;
+        }
+        else
+            return false;
     }
     else
         return false;
@@ -499,7 +503,7 @@ bool Server::createInstance(connection_info_struct* con_info){
     
 //    printf("CREATEINSTANCE WITH INDEX= %s\n", con_info->factoryIndex.c_str());
     
-    slave_dsp_factory* realFactory = fAvailableFactories[atoi(con_info->fFactoryIndex.c_str())];
+    slave_dsp_factory* realFactory = fAvailableFactories[con_info->fSHAKey.c_str()];
     
     if(realFactory != NULL){
         
@@ -507,15 +511,22 @@ bool Server::createInstance(connection_info_struct* con_info){
         
         pthread_t myNewThread;
         
-        if(!pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp))
+        if(dsp && !pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp))
             return true;
         else{
-            con_info->fAnswerstring = "ERROR = Impossible to create new audio thread in server";
+            stringstream s;
+            s<<ERROR_INSTANCE_NOTCREATED;
+            
+            con_info->fAnswerstring = s.str();
             return false;
         }
     }
     else{
-        con_info->fAnswerstring = "ERROR = Factory not found";
+        
+        stringstream s;
+        s<<ERROR_FACTORY_NOTFOUND;
+        
+        con_info->fAnswerstring = s.str();
         return false;
     }    
 }
@@ -564,6 +575,42 @@ void Server::registration(){
         printf("ERROR DURING REGISTRATION\n");
 }
 
+/*
+ * Generates an SHA-1 key for Faust file or archive and returns 0 for success
+ * or 1 for failure along with the key in the string_and_exitstatus structure.
+ * If the evaluation fails, the appropriate error message is set. More info
+ * on the con_info structure is in Server.h.
+ */
 
+string_and_exitstatus Server::generate_sha1(connection_info_struct *con_info)
+{
+    string source = con_info->fFaustCode;
+//    string compilationOptions;
+    string hash = "";
+    
+    unsigned char obuf[20];
+    
+    SHA1((const unsigned char *)(source.c_str()), source.length(), obuf);
+    char buffer[20];
+    stringstream ss;
+    
+    for (int i=0; i < 20; i++) {
+        sprintf(buffer, "%02x", obuf[i]);
+        ss << buffer;
+    }
+    
+    hash = ss.str();
+    
+    string_and_exitstatus res;
+    res.exitstatus = hash.length() == 40 ? 0 : 1;
+    
+    printf("EXIT STATUS = %i\n", res.exitstatus);
+    
+    res.str = hash;
+    if (res.exitstatus) {
+        con_info->fAnswerstring = "Impossible to generate SHA1 key";
+    }
+    return res;
+}
 
 

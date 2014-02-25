@@ -117,11 +117,11 @@ void remote_dsp_factory::stop(){
     
     if (curl) {
         
-        printf("fIndex = %s\n", fIndex.c_str());
+        printf("fIndex = %s\n", fSHAKey.c_str());
         printf("fIP = %s\n", fServerIP.c_str());
         
         // The index of the factory to delete has to be sent
-        string finalRequest = string("factoryIndex=") + fIndex;
+        string finalRequest = string("factoryKey=") + fSHAKey;
         string ip = fServerIP + string("/DeleteFactory");
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -155,8 +155,8 @@ void remote_dsp_factory::decodeJson(const string& json){
     fNumOutputs = atoi(fMetadatas["outputs"].c_str());
     fMetadatas.erase("outputs");
     
-    fIndex = fMetadatas["indexFactory"];
-    fMetadatas.erase("indexFactory");
+    fSHAKey = fMetadatas["factoryKey"];
+    fMetadatas.erase("factoryKey");
 }
 
 // Declaring meta datas
@@ -172,7 +172,7 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) {
 remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
                                                             int samplingRate, int bufferSize, 
                                                             RemoteDSPErrorCallback error_callback, void* error_callback_arg, 
-                                                            string& error){
+                                                            int& error){
  
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     
@@ -521,7 +521,7 @@ void remote_dsp_aux::init(int /*samplingFreq*/){}
 // The URL extension used is /CreateInstance
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
-bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, string& error){
+bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
     
     fBufferSize = buffer_size;
     
@@ -564,8 +564,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += "&NJ_mtu=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_mtu", "1500"));
     
-    finalRequest += "&factoryIndex=";
-    finalRequest += fFactory->index();
+    finalRequest += "&factoryKey=";
+    finalRequest += fFactory->key();
     
     //printf("finalRequest = %s\n", finalRequest.c_str());
     
@@ -593,7 +593,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
         CURLcode res = curl_easy_perform(curl);
         
         if(res != CURLE_OK)
-            error = curl_easy_strerror(res);
+            error = ERROR_CURL_CONNECTION;
         else{
             
             long respcode; //response code of the http transaction
@@ -613,16 +613,16 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
                 if(fNetJack)
                     isInitSuccessfull = true;
                 else
-                    error = "Impossible to open NetJack master";
+                    error = ERROR_NETJACK_NOTSTARTED;
             }
             else if(respcode == 400)
-                error = oss.str();
+                error = atoi(oss.str().c_str());
         }
         
         curl_easy_cleanup(curl);
     }
     else
-        error = "Impossible to open http connection";
+        error = ERROR_CURL_CONNECTION;
     
     printf("remote_dsp_aux::init = %p || inputs = %i || outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
     
@@ -633,7 +633,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
 
 //---------INSTANCES
 
-EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, string& error){
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
     
     return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, samplingRate, bufferSize, error_callback, error_callback_arg, error));
 }

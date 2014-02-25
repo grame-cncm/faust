@@ -51,6 +51,14 @@ extern "C"
 
 using namespace std;
 
+enum{
+    ERROR_FACTORY_NOTFOUND,
+    ERROR_INSTANCE_NOTCREATED,
+    ERROR_NETJACK_NOTSTARTED,
+    ERROR_CURL_CONNECTION
+};
+
+    
 #define NO_ERROR      0
 #define READ_ERROR   -1
 #define WRITE_ERROR  -2
@@ -66,7 +74,7 @@ class remote_dsp_factory{
     
 private:
     
-    string      fIndex;             //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
+    string      fSHAKey;             //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
     
     int         fNumInputs;
     int         fNumOutputs;        //Num of In/Output of compiled DSP factory
@@ -80,7 +88,7 @@ private:
     
 public: 
 
-    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, string& error);
+    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error);
 
     bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error_msg, int opt_level);
     void        stop();
@@ -92,7 +100,7 @@ public:
     vector<itemInfo*>   itemList(){return fUiItems;}
     int                 numInputs(){return fNumInputs;}
     int                 numOutputs(){return fNumOutputs;}
-    string              index(){return fIndex;}
+    string              key(){return fSHAKey;}
     
 };
     
@@ -151,7 +159,7 @@ class remote_dsp_aux : public dsp{
     
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-        bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, string& error);
+        bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, int& error);
 };
     
 class EXPORT remote_dsp : public dsp{
@@ -173,7 +181,7 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                         int samplingRate, int bufferSize, 
                                         RemoteDSPErrorCallback error_callback,
                                         void* errror_callback_arg,
-                                        string& error);
+                                        int& error);
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
     
