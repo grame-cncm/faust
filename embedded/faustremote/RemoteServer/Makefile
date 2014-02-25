@@ -37,7 +37,7 @@ clean:
 
 ####### Compile
 
-Server.o: Server.cpp Server.h TMutex.h Codes.h
+Server.o: Server.cpp Server.h TMutex.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Server.o Server.cpp
 
 main.o: main.cpp Server.h

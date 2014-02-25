@@ -13,13 +13,15 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "Codes.h"
-
 #include <openssl/sha.h>
 
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
+enum{
+    ERROR_FACTORY_NOTFOUND,
+    ERROR_INSTANCE_NOTCREATED
+};
 
 // Declare is called for every metadata coded in the faust DSP
 // That way, we get the faust name declared in the faust DSP
