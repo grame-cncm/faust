@@ -274,6 +274,8 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineMaxStackSize = MAX_STACK_SIZE;
     
     gIndex = 0;
+    
+    gInPlace = false;
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built

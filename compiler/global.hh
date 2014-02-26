@@ -413,6 +413,8 @@ struct global {
     char* gCurrentLocal;
     
     int gAllocationCount;
+    
+    bool gInPlace;  // add cache to input for correct in-place computations
    
     // GC
     static list<Garbageable*> gObjectTable;
