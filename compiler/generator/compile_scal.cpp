@@ -53,6 +53,7 @@
 
 using namespace std;
 
+extern bool     gInPlace;
 extern bool     gDrawSignals;
 extern bool     gLessTempSwitch;
 extern int      gMaxCopyDelay;
@@ -159,6 +160,9 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+        if (gInPlace) {
+        	CS(sigInput(i));
+        }
     }
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
@@ -376,7 +380,12 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
-	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    if (gInPlace) {
+        // inputs must be cached for in-place transformations
+        return generateVariableStore(sig, subst("$1input$0[i]", idx, icast()));
+    } else {
+        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    }
 }
 
 
