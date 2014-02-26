@@ -160,6 +160,7 @@ bool            gExportDSP      = false;
 
 list<string>    gImportDirList;                 // dir list enrobage.cpp/fopensearch() searches for imports, etc.
 string          gOutputDir;                     // output directory for additionnal generated ressources : -SVG, XML...etc...
+bool            gInPlace        = false;        // add cache to input for correct in-place computations
 
 //-- command line tools
 
@@ -390,6 +391,10 @@ bool process_cmdline(int argc, char* argv[])
                 gOutputDir = path;
                 i += 2;
             }
+             
+         } else if (isCmd(argv[i], "-inpl", "--in-place")) {
+             gInPlace = true;
+             i += 1;
 
         } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
