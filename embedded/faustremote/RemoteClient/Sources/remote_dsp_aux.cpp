@@ -283,6 +283,8 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     fErrorCallback = 0;
     fErrorCallbackArg = 0;
     
+    fRunningFlag = true;
+    
     printf("remote_dsp_aux::remote_dsp_aux = %p\n", this);
 }
         
@@ -447,59 +449,65 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     
 //    printf("remote_dsp_aux::compute = %p\n", this);
     
-    int numberOfCycles = count/fBufferSize;
-    int lastCycle = count%fBufferSize;
-    int res;
-   
-    // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
-    int i = 0;
-    
-    for (i=0; i<numberOfCycles; i++) {
-    
-        int offset = i*fBufferSize;
-        setupBuffers(input, output, offset);
+    if(fRunningFlag){
         
-        ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+        int numberOfCycles = count/fBufferSize;
+        int lastCycle = count%fBufferSize;
+        int res;
         
-        if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
-            fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+        // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
+        int i = 0;
+        
+        for (i=0; i<numberOfCycles; i++) {
+            
+            int offset = i*fBufferSize;
+            setupBuffers(input, output, offset);
+            
+            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            
+            if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
+                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
+                if (fErrorCallback) {
+                    fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+                }
             }
-        }
-        if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
-            fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(READ_ERROR, fErrorCallbackArg);
+            if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
+                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
+                if (fErrorCallback) {
+                    fErrorCallback(READ_ERROR, fErrorCallbackArg);
+                }
             }
+            
+            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
         
-        ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+        if (lastCycle > 0) {
+            
+            int offset = i*fBufferSize;
+            setupBuffers(input, output, offset);
+            
+            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            
+            fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
+            
+            if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
+                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
+                if (fErrorCallback) {
+                    fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+                }
+            }
+            if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
+                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
+                if (fErrorCallback) {
+                    fErrorCallback(READ_ERROR, fErrorCallbackArg);
+                }
+            }
+            
+            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+        }
     }
-    
-    if (lastCycle > 0) {
-    
-        int offset = i*fBufferSize;
-        setupBuffers(input, output, offset);
-        
-        ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-        
-        fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
-        
-        if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
-            fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
-            }
-        }
-        if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
-            fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(READ_ERROR, fErrorCallbackArg);
-            }
-        }
-        
-        ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+    else{
+        fillBufferWithZerosOffset(getNumOutputs(), 0, count, output);
     }
 }
 
@@ -512,6 +520,10 @@ int remote_dsp_aux::getNumInputs(){
 int remote_dsp_aux::getNumOutputs(){ 
     
     return fFactory->numOutputs();
+}
+
+void remote_dsp_aux::setRunningFlag(bool val){
+    fRunningFlag = val;
 }
 
 // Useless fonction in our case but required for a DSP interface
@@ -648,9 +660,14 @@ EXPORT int remote_dsp::getNumInputs()
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumInputs();
 }
 
-int EXPORT remote_dsp::getNumOutputs()
+EXPORT int remote_dsp::getNumOutputs()
 {
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
+}
+
+EXPORT void remote_dsp::setRunningFlag(bool val)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->setRunningFlag(val);
 }
 
 EXPORT void remote_dsp::init(int samplingFreq)

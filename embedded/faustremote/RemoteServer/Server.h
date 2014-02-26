@@ -37,11 +37,15 @@ using namespace std;
 
 class server_netjackaudio : public netjackaudio_midicontrol {  
 
+    int     fNumberRestartAttempts;
+
     public:
     
         server_netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
             :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
-        {}
+        {
+            fNumberRestartAttempts = 0;
+        }
         
         void error_cb(int error_code)
         {
@@ -226,7 +230,7 @@ public :
      * If the evaluation fails, the appropriate error message is set. More info
      * on the con_info structure is in Server.h.
      */
-    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv);
+    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv, const string& opt_value);
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);

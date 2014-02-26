@@ -105,6 +105,8 @@ class remote_dsp : public dsp{
     
         virtual int     getNumInputs();
         virtual int     getNumOutputs();
+    
+        void            setRunningFlag(bool val);
 
         virtual void    init(int samplingFreq);
     

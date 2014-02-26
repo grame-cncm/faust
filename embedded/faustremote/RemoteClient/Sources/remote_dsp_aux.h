@@ -139,6 +139,8 @@ class remote_dsp_aux : public dsp{
         RemoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
 
+        bool                    fRunningFlag;
+    
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
     
@@ -152,6 +154,8 @@ class remote_dsp_aux : public dsp{
     
         virtual int     getNumInputs();
         virtual int     getNumOutputs();
+    
+        void    setRunningFlag(bool val);
 
         virtual void    init(int samplingFreq);
     
@@ -168,6 +172,8 @@ public:
     
     virtual int     getNumInputs();
     virtual int     getNumOutputs();
+    
+    void    setRunningFlag(bool val);
     
     virtual void    init(int samplingFreq);
     

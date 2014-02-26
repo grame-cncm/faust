@@ -497,7 +497,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
     
     con_info->fCharCompilationOptions = (const char**) newoptions;
     
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, con_info->fNumCompilOptions, con_info->fCharCompilationOptions);
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, con_info->fNumCompilOptions, con_info->fCharCompilationOptions, con_info->fOpt_level);
     
     if(!structure.exitstatus){
         
@@ -620,7 +620,7 @@ void Server::registration(){
  * on the con_info structure is in Server.h.
  */
 
-string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, const char** argv)
+string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, const char** argv, const string& opt_value)
 {
     string source(faustCode);
     
@@ -628,6 +628,8 @@ string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, c
         source += " "; 
         source += argv[i];
     }
+    
+    source+=opt_value;
     
     string hash = "";
     
