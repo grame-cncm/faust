@@ -404,7 +404,7 @@ bool process_cmdline(int argc, char* argv[])
 			i++;
 
 		} else {
-			cerr << "faust: unrecognized option \"" << argv[i] <<"\"" << endl;
+			std::cerr << "faust: unrecognized option \"" << argv[i] <<"\"" << endl;
 			i++;
 			err++;
 		}
@@ -412,6 +412,11 @@ bool process_cmdline(int argc, char* argv[])
 
     // adjust related options
     if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
+    
+    if (gInPlace && gVectorSwitch) {
+        std::cerr << "ERROR : 'in-place' option can only be used in scalar mode" << endl;
+        exit(-1);
+    }   
 
 	return err == 0;
 }
@@ -446,10 +451,10 @@ void printhelp()
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \tprint block-diagram --svg file\n";
-    cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
-    cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \t\tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
+    cout << "-mdlang <l> \tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
+    cout << "-stripdoc  \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -462,10 +467,10 @@ void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-	cout << "-i \t--inline-architecture-files \n";
+	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-	cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
+	cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC++ output file\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
@@ -483,7 +488,8 @@ void printhelp()
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
     cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
-    cout << "-e  \t--export-dsp export expanded DSP (all included libraries) \n";
+    cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
+    cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
   	cout << "\nexample :\n";
 	cout << "---------\n";
 
