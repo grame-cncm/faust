@@ -56,43 +56,49 @@ void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
         delete smartPtr;
 }
 
+string slave_dsp_factory::getJson(const string& factoryKey){
+    
+    myMeta metadata;
+    metadataDSPFactory(fLLVMFactory, &metadata);
+    fNameApp = metadata.name;
+        
+        //This instance is used only to build json interface, then it's deleted
+    llvm_dsp* dsp = createDSPInstance(fLLVMFactory);
+        
+    httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
+    dsp->buildUserInterface(&json);
+    json.numInput(dsp->getNumInputs());
+    json.numOutput(dsp->getNumOutputs());
+    json.declare("factoryKey", factoryKey.c_str());
+    
+    printf("JSON = %s\n", json.json().c_str());
+        
+    string answer = json.json();
+        
+    deleteDSPInstance(dsp);
+    
+    fNumInstances = 1;
+    
+    return answer;
+}
+
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
 bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey, string& answer){
     
     printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
-    printf("AGRC = %i | argv = %p\n", argc, argv);
+
+    for(int i=0; i<argc; i++)
+        printf("argv = %s\n", argv[i]);
     
     string error_msg;
+    
     fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", error_msg, opt_level);
     
     printf("%s\n", error_msg.c_str());
     
     if(fLLVMFactory){
-        
-        myMeta metadata;
-        metadataDSPFactory(fLLVMFactory, &metadata);
-        fNameApp = metadata.name;
-        
-        //This instance is used only to build json interface, then it's deleted
-        llvm_dsp* dsp = createDSPInstance(fLLVMFactory);
-        
-//        stringstream s;
-//        s<<factoryIndex;
-        
-        httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
-        dsp->buildUserInterface(&json);
-        json.numInput(dsp->getNumInputs());
-        json.numOutput(dsp->getNumOutputs());
-        json.declare("factoryKey", factoryKey.c_str());
-        
-        printf("JSON = %s\n", json.json().c_str());
-        
-        answer = json.json();
-        
-        deleteDSPInstance(dsp);
-        
-        fNumInstances = 1;
+        answer = getJson(factoryKey);
         return true;
     } else {
         answer = error_msg;
@@ -432,9 +438,10 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         }
         if(strcmp(key,"options") == 0){
             
-            printf("con_info Indicator = %i || %i\n", con_info->fIndicator, con_info->fNumCompilOptions);
+//            printf("con_info Indicator = %i || %i\n", con_info->fIndicator, con_info->fNumCompilOptions);
             if(con_info->fNumCompilOptions != 0){
                 con_info->fCompilationOptions[con_info->fIndicator] = data;
+                printf("COMPILATION OPTIONS = %s\n", data);
                 con_info->fIndicator++;
             }
         }
@@ -462,8 +469,8 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
         
         if (NULL != con_info->fPostprocessor)
             MHD_destroy_post_processor(con_info->fPostprocessor);
-        if(con_info->fNumCompilOptions != 0)
-            delete[] con_info->fCompilationOptions;
+//        if(con_info->fNumCompilOptions != 0)
+//            delete[] con_info->fCompilationOptions;
     }
     
     delete con_info;
@@ -473,31 +480,55 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-    string factoryKey;
+    const char* compilationOptions[con_info->fNumCompilOptions];
     
-    string_and_exitstatus structure = generate_sha1(con_info);
+    for(int i=0; i<con_info->fNumCompilOptions; i++)
+        compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+    
+    string* newoptions= reorganizeCompilationOptions(con_info->fCompilationOptions, con_info->fNumCompilOptions);
+    
+    for(int i=0; i<con_info->fNumCompilOptions; i++)
+        compilationOptions[i] = newoptions[i].c_str();
+    
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, con_info->fNumCompilOptions, compilationOptions);
     
     if(!structure.exitstatus){
         
-        factoryKey = structure.str;
+        string factoryKey = structure.str;
+        slave_dsp_factory* realFactory;
         
-        const char* compilationOptions[con_info->fNumCompilOptions];
+        bool alreadyCompiled = false;
         
-        for(int i=0; i<con_info->fNumCompilOptions; i++)
-            compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+        realFactory = fAvailableFactories[factoryKey];
         
-        slave_dsp_factory* realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryKey, con_info->fAnswerstring);
+        printf("Server::compile_Data SHAKEY = %s\n", factoryKey.c_str());
         
-        if(realFactory){
+        if(realFactory != NULL)
+            alreadyCompiled = true;
+        
+        if(!alreadyCompiled){
             
-            fAvailableFactories[factoryKey] = realFactory;
+            printf("COMPILE FACTORY \n");
+            
+            realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryKey, con_info->fAnswerstring);
+            
+            if(realFactory){
+                
+                fAvailableFactories[factoryKey] = realFactory;
+                return true;
+            }
+            else
+                return false;
+        }  
+        else{
+            con_info->fAnswerstring = realFactory->getJson(factoryKey);
             return true;
         }
-        else
-            return false;
-    }
-    else
+    } 
+    else{
+        con_info->fAnswerstring = "Impossible to generate SHA1 key";
         return false;
+    }
 }
 
 // Create DSP Instance
@@ -584,10 +615,15 @@ void Server::registration(){
  * on the con_info structure is in Server.h.
  */
 
-string_and_exitstatus Server::generate_sha1(connection_info_struct *con_info)
+string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, const char** argv)
 {
-    string source = con_info->fFaustCode;
-//    string compilationOptions;
+    string source(faustCode);
+    
+    for(int i=0; i<argc; i++){
+        source += " "; 
+        source += argv[i];
+    }
+    
     string hash = "";
     
     unsigned char obuf[20];
@@ -609,10 +645,113 @@ string_and_exitstatus Server::generate_sha1(connection_info_struct *con_info)
     printf("EXIT STATUS = %i\n", res.exitstatus);
     
     res.str = hash;
-    if (res.exitstatus) {
-        con_info->fAnswerstring = "Impossible to generate SHA1 key";
-    }
+    
     return res;
 }
+
+/* Reorganizes the compilation options
+ * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
+ */
+
+bool Server::parseKey(int numOptions, string* options, const string& key, int& position){
+    
+    for(int i=0; i<numOptions; i++){
+        
+        if(options[i].compare(key) == 0){
+            position = i;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool Server::addKey(int numOptions, string* options, string* newoptions, const string& key, const string& defaultKey, int& position, int& iterator){
+    
+    if(parseKey(numOptions, options, key, position)){
+        newoptions[iterator] = options[position];
+        iterator++;
+        return true;
+    }
+    else if(defaultKey.compare("") != 0){
+        newoptions[iterator] = defaultKey;
+        iterator++;
+    }
+
+    return false;
+}
+
+void Server::addKeyValue(int numOptions, string* options, string* newoptions, const string& key, const string& defaultValue, int& iterator){
+    
+    int position = 0;
+    
+    if(addKey(numOptions, options, newoptions, key, "", position, iterator)){
+        
+        if(position+1<numOptions && options[position+1].find("-") == string::npos)
+            newoptions[iterator] = options[position+1];
+        else
+            newoptions[iterator] = defaultValue;
+
+        iterator++;
+    }
+    else
+        printf("KEY NOT ADDED\n");
+}
+
+string* Server::reorganizeCompilationOptions(string* options, int& numOptions){
+    
+//    EXPERIMENTAL VALUE
+    string* newoptions = new string[numOptions+5];
+
+    int iterator = 0;
+    
+    bool vectorize = false;
+    
+    int position = 0;
+    
+//------STEP 1
+    
+    addKey(numOptions, options, newoptions, "-double", "-single", position, iterator);
+
+//------STEP 2
+    if(addKey(numOptions, options, newoptions, "-sch", "", position, iterator))
+        vectorize = true;
+        
+    if(addKey(numOptions, options, newoptions, "-omp", "", position, iterator)){
+        vectorize = true;
+        addKey(numOptions, options, newoptions, "-pl", "", position, iterator);
+    }
+    
+    if(vectorize){
+        newoptions[iterator] = "-vec";
+        iterator++;
+    }
+//------STEP3
+    if(vectorize || addKey(numOptions, options, newoptions, "-vec", "", position, iterator)){
+
+        addKey(numOptions, options, newoptions, "-dfs", "", position, iterator);
+        addKey(numOptions, options, newoptions, "-vls", "", position, iterator);
+        addKey(numOptions, options, newoptions, "-fun", "", position, iterator);
+        addKey(numOptions, options, newoptions, "-g", "", position, iterator);
+        addKeyValue(numOptions, options, newoptions, "-vs", "32", iterator);
+        addKeyValue(numOptions, options, newoptions, "-lv", "0", iterator);
+    }
+    else{
+        addKey(numOptions, options, newoptions, "-sca", "-sca", position, iterator);
+    }
+    
+    addKey(numOptions, options, newoptions, "-mcd", "", position, iterator);
+    
+    printf("ITERATOR = %i\n", iterator);
+    
+    for(int i=0; i<iterator; i++)
+        printf("New Options = %s\n", newoptions[i].c_str());
+    
+    numOptions = iterator;
+
+    return newoptions;
+}
+
+
 
 

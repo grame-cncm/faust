@@ -126,9 +126,10 @@ struct slave_dsp_factory{
     
     int                 fNumInstances;
     
-    bool delete_Factory();
-    slave_dsp_factory* clone();
-    bool init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey,  string& answer);
+    bool                delete_Factory();
+    slave_dsp_factory*  clone();
+    bool                init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey,  string& answer);
+    string              getJson(const string& factoryKey);
     
 };
     
@@ -224,13 +225,21 @@ public :
      * If the evaluation fails, the appropriate error message is set. More info
      * on the con_info structure is in Server.h.
      */
-    string_and_exitstatus   generate_sha1(connection_info_struct *con_info);
+    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv);
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
         
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
     bool        createInstance(connection_info_struct* con_info);
+    
+    /* Reorganizes the compilation options
+     * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
+     */
+    string*    reorganizeCompilationOptions(string* options, int& numOptions);
+    void    addKeyValue(int numOptions, string* options, string* newoptions, const string& key, const string& defaultValue, int& iterator);
+    bool    addKey(int numOptions, string* options, string* newoptions, const string& key, const string& defaultKey, int& position, int& iterator);
+    bool    parseKey(int numOptions, string* options, const string& key, int& position);
     
 // Register Service as Available
     void        registration();
