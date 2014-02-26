@@ -87,6 +87,7 @@ struct global {
     string          gMasterName;
     string          gDocName;
     list<string>    gImportDirList;
+    list<string>    gLibraryList;
     string          gOutputDir;
     Tree            gExpandedDefList;
 
