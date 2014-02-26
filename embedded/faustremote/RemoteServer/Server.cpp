@@ -469,8 +469,12 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
         
         if (NULL != con_info->fPostprocessor)
             MHD_destroy_post_processor(con_info->fPostprocessor);
-//        if(con_info->fNumCompilOptions != 0)
-//            delete[] con_info->fCompilationOptions;
+        if(con_info->fNumCompilOptions != 0){
+            for(int i =0; i<con_info->fNumCompilOptions; i++)
+                delete con_info->fCharCompilationOptions[i];
+            
+            delete[] con_info->fCharCompilationOptions;
+        }
     }
     
     delete con_info;
@@ -480,17 +484,20 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-    const char* compilationOptions[con_info->fNumCompilOptions];
+//    const char* compilationOptions[con_info->fNumCompilOptions];
+//    
+//    for(int i=0; i<con_info->fNumCompilOptions; i++)
+//        compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
     
-    for(int i=0; i<con_info->fNumCompilOptions; i++)
-        compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+    int newNumber = con_info->fNumCompilOptions+5;
     
-    string* newoptions= reorganizeCompilationOptions(con_info->fCompilationOptions, con_info->fNumCompilOptions);
+    char** newoptions = new char*[newNumber];
     
-    for(int i=0; i<con_info->fNumCompilOptions; i++)
-        compilationOptions[i] = newoptions[i].c_str();
+    reorganizeCompilationOptions(con_info->fCompilationOptions, con_info->fNumCompilOptions, newoptions);
     
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, con_info->fNumCompilOptions, compilationOptions);
+    con_info->fCharCompilationOptions = (const char**) newoptions;
+    
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, con_info->fNumCompilOptions, con_info->fCharCompilationOptions);
     
     if(!structure.exitstatus){
         
@@ -508,9 +515,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
         
         if(!alreadyCompiled){
             
-            printf("COMPILE FACTORY \n");
-            
-            realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, compilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryKey, con_info->fAnswerstring);
+            realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, con_info->fCharCompilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryKey, con_info->fAnswerstring);
             
             if(realFactory){
                 
@@ -649,15 +654,12 @@ string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, c
     return res;
 }
 
-/* Reorganizes the compilation options
- * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
- */
-
+//Look for 'key' in 'options' and modify the parameter 'position' if found
 bool Server::parseKey(int numOptions, string* options, const string& key, int& position){
     
     for(int i=0; i<numOptions; i++){
         
-        if(options[i].compare(key) == 0){
+        if(key.compare(options[i]) == 0){
             position = i;
             return true;
         }
@@ -666,60 +668,70 @@ bool Server::parseKey(int numOptions, string* options, const string& key, int& p
     return false;
 }
 
-bool Server::addKey(int numOptions, string* options, string* newoptions, const string& key, const string& defaultKey, int& position, int& iterator){
+//Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
+//#return true if 'key' was added
+bool Server::addKeyIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultKey, int& position, int& iterator){
     
     if(parseKey(numOptions, options, key, position)){
-        newoptions[iterator] = options[position];
+        
+        newoptions[iterator] = new char[options[position].length()+1];
+        
+        strcpy(newoptions[iterator],options[position].c_str());
         iterator++;
         return true;
     }
     else if(defaultKey.compare("") != 0){
-        newoptions[iterator] = defaultKey;
+        newoptions[iterator] = new char[defaultKey.length()+1];
+        strcpy(newoptions[iterator],defaultKey.c_str());
         iterator++;
     }
 
     return false;
 }
 
-void Server::addKeyValue(int numOptions, string* options, string* newoptions, const string& key, const string& defaultValue, int& iterator){
+//Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
+void Server::addKeyValueIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultValue, int& iterator){
     
     int position = 0;
     
-    if(addKey(numOptions, options, newoptions, key, "", position, iterator)){
+    if(addKeyIfExisting(numOptions, options, newoptions, key, "", position, iterator)){
         
-        if(position+1<numOptions && options[position+1].find("-") == string::npos)
-            newoptions[iterator] = options[position+1];
-        else
-            newoptions[iterator] = defaultValue;
-
+        if(position+1<numOptions && options[position+1].find("-") == string::npos){
+            
+            newoptions[iterator] = new char[options[position+1].length()+1];
+            
+            strcpy(newoptions[iterator],options[position+1].c_str());
+        }
+        else{
+            newoptions[iterator] = new char[defaultValue.length()+1];
+            strcpy(newoptions[iterator],defaultValue.c_str());
+        }
         iterator++;
     }
-    else
-        printf("KEY NOT ADDED\n");
 }
 
-string* Server::reorganizeCompilationOptions(string* options, int& numOptions){
-    
-//    EXPERIMENTAL VALUE
-    string* newoptions = new string[numOptions+5];
+/* Reorganizes the compilation options
+ * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
+ */
+void Server::reorganizeCompilationOptions(string* options, int& numOptions, char** newoptions){
+
 
     int iterator = 0;
+    int position = 0;
     
     bool vectorize = false;
     
-    int position = 0;
-    
 //------STEP 1
     
-    addKey(numOptions, options, newoptions, "-double", "-single", position, iterator);
+    addKeyIfExisting(numOptions, options, newoptions, "-double", "-single", position, iterator);
 
 //------STEP 2
-    if(addKey(numOptions, options, newoptions, "-sch", "", position, iterator))
+    if(addKeyIfExisting(numOptions, options, newoptions, "-sch", "", position, iterator))
         vectorize = true;
         
-    if(addKey(numOptions, options, newoptions, "-omp", "", position, iterator)){
+    if(addKeyIfExisting(numOptions, options, newoptions, "-omp", "", position, iterator)){
         vectorize = true;
-        addKey(numOptions, options, newoptions, "-pl", "", position, iterator);
+        addKeyIfExisting(numOptions, options, newoptions, "-pl", "", position, iterator);
     }
     
     if(vectorize){
@@ -727,29 +739,24 @@ string* Server::reorganizeCompilationOptions(string* options, int& numOptions){
         iterator++;
     }
 //------STEP3
-    if(vectorize || addKey(numOptions, options, newoptions, "-vec", "", position, iterator)){
+    if(vectorize || addKeyIfExisting(numOptions, options, newoptions, "-vec", "", position, iterator)){
 
-        addKey(numOptions, options, newoptions, "-dfs", "", position, iterator);
-        addKey(numOptions, options, newoptions, "-vls", "", position, iterator);
-        addKey(numOptions, options, newoptions, "-fun", "", position, iterator);
-        addKey(numOptions, options, newoptions, "-g", "", position, iterator);
-        addKeyValue(numOptions, options, newoptions, "-vs", "32", iterator);
-        addKeyValue(numOptions, options, newoptions, "-lv", "0", iterator);
+        addKeyIfExisting(numOptions, options, newoptions, "-dfs", "", position, iterator);
+        addKeyIfExisting(numOptions, options, newoptions, "-vls", "", position, iterator);
+        addKeyIfExisting(numOptions, options, newoptions, "-fun", "", position, iterator);
+        addKeyIfExisting(numOptions, options, newoptions, "-g", "", position, iterator);
+        addKeyValueIfExisting(numOptions, options, newoptions, "-vs", "32", iterator);
+        addKeyValueIfExisting(numOptions, options, newoptions, "-lv", "0", iterator);
     }
     else{
-        addKey(numOptions, options, newoptions, "-sca", "-sca", position, iterator);
+        addKeyIfExisting(numOptions, options, newoptions, "-scal", "-scal", position, iterator);
     }
     
-    addKey(numOptions, options, newoptions, "-mcd", "", position, iterator);
-    
-    printf("ITERATOR = %i\n", iterator);
-    
-    for(int i=0; i<iterator; i++)
-        printf("New Options = %s\n", newoptions[i].c_str());
+    addKeyIfExisting(numOptions, options, newoptions, "-mcd", "", position, iterator);
     
     numOptions = iterator;
 
-    return newoptions;
+    delete[] options;
 }
 
 

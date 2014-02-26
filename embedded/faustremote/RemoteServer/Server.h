@@ -85,6 +85,7 @@ struct connection_info_struct {
     int                 fIndicator;
     string*             fCompilationOptions;
     string              fOpt_level;
+    const char**        fCharCompilationOptions;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
@@ -236,9 +237,9 @@ public :
     /* Reorganizes the compilation options
      * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
      */
-    string*    reorganizeCompilationOptions(string* options, int& numOptions);
-    void    addKeyValue(int numOptions, string* options, string* newoptions, const string& key, const string& defaultValue, int& iterator);
-    bool    addKey(int numOptions, string* options, string* newoptions, const string& key, const string& defaultKey, int& position, int& iterator);
+    void   reorganizeCompilationOptions(string* options, int& numOptions, char**);
+    void    addKeyValueIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultValue, int& iterator);
+    bool    addKeyIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultKey, int& position, int& iterator);
     bool    parseKey(int numOptions, string* options, const string& key, int& position);
     
 // Register Service as Available
