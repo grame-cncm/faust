@@ -149,6 +149,15 @@ slave_dsp::slave_dsp(slave_dsp_factory* smartFactory, const string& compression,
     fDSP = createDSPInstance(fSlaveFactory->fLLVMFactory);
 }
 
+
+bool slave_dsp::start_audio(){
+    return fAudio->start();
+}
+
+void slave_dsp::stop_audio(){
+    fAudio->stop();
+}
+
 // Desallocation of slave dsp resources
 slave_dsp::~slave_dsp(){
     
@@ -335,7 +344,7 @@ int Server::answer_to_connection	(void *cls, MHD_Connection *connection, const c
     
 // For now GET is not a request supported for now
 int Server::answer_get(MHD_Connection* connection){
-
+    
     return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
 }
     
@@ -387,6 +396,16 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
             else
                 return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
         }
+        else if(strcmp(url, "/StartAudio") == 0){
+            
+            startAudio(con_info->fSHAKey);
+            return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
+        }
+        else if(strcmp(url, "/StopAudio") == 0){
+            
+            stopAudio(con_info->fSHAKey);
+            return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
+        }
         else{
             return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
     
@@ -427,6 +446,9 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         
         if(strcmp(key,"factoryKey") == 0)
             con_info->fSHAKey = data;
+        
+        if(strcmp(key,"instanceKey") == 0)
+            con_info->fInstanceKey = data;
 
         if(strcmp(key,"number_options") == 0){
             
@@ -479,6 +501,34 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
     
     delete con_info;
     *con_cls = NULL;
+}
+
+// Start/Stop DSP Instance from its SHAKEY
+bool Server::startAudio(const string& shakey){
+    
+    list<slave_dsp*>::iterator it;
+    
+    for(it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
+        
+        if(shakey.compare((*it)->key())==0){
+            if((*it)->start_audio())
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void Server::stopAudio(const string& shakey){
+    
+    list<slave_dsp*>::iterator it;
+    
+    for(it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
+        
+        if(shakey.compare((*it)->key())==0){
+            (*it)->stop_audio();
+        }
+    }
 }
 
 // Create DSP Factory 
@@ -549,8 +599,10 @@ bool Server::createInstance(connection_info_struct* con_info){
         
         pthread_t myNewThread;
         
-        if(dsp && !pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp))
+        if(dsp && !pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp)){
+            dsp->setKey(con_info->fInstanceKey);
             return true;
+        }
         else{
             stringstream s;
             s<<ERROR_INSTANCE_NOTCREATED;

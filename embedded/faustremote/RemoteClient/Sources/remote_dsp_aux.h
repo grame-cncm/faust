@@ -162,6 +162,10 @@ class remote_dsp_aux : public dsp{
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
         bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, int& error);
+    
+    
+        void        startAudio();
+        void        stopAudio();
 };
     
 class EXPORT remote_dsp : public dsp{
@@ -176,6 +180,9 @@ public:
     virtual void    buildUserInterface(UI* ui);
     
     virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+    void        startAudio();
+    void        stopAudio();
 };
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 

@@ -579,6 +579,13 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += "&factoryKey=";
     finalRequest += fFactory->key();
     
+    finalRequest += "&instanceKey=";
+    
+    stringstream s;
+    s<<this;
+    
+    finalRequest += s.str();
+    
     //printf("finalRequest = %s\n", finalRequest.c_str());
     
 //  Curl Connection setup
@@ -641,6 +648,74 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     return isInitSuccessfull;
 }                        
 
+//bool sendRequest(){
+//    
+//}
+
+
+void remote_dsp_aux::stopAudio(){
+//  Curl Connection setup
+    CURL *curl = curl_easy_init();
+    
+    if (curl) {
+        
+        string finalRequest = "instanceKey=";
+        stringstream s;
+        s<<this;
+        
+        finalRequest += s.str();
+        
+        printf("REQUEST = %s\n", finalRequest.c_str());
+        
+        string ip = fFactory->serverIP();
+        ip += "/StopAudio";
+        
+        std::ostringstream oss;
+        
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        curl_easy_cleanup(curl);
+    }
+}
+
+void remote_dsp_aux::startAudio(){
+    //  Curl Connection setup
+    CURL *curl = curl_easy_init();
+    
+    if (curl) {
+        
+        string finalRequest = "instanceKey=";
+        
+        stringstream s;
+        s<<this;
+        
+        finalRequest += s.str();
+        
+        printf("REQUEST = %s\n", finalRequest.c_str());
+        
+        string ip = fFactory->serverIP();
+        ip += "/StartAudio";
+    
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        curl_easy_cleanup(curl);
+    }
+}
+
 //----------------------------------REMOTE DSP API-------------------------------------------
 
 //---------INSTANCES
@@ -678,6 +753,14 @@ EXPORT void remote_dsp::buildUserInterface(UI* interface)
 EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
+}
+
+EXPORT void remote_dsp::startAudio(){
+    reinterpret_cast<remote_dsp_aux*>(this)->startAudio();
+}
+
+EXPORT void remote_dsp::stopAudio(){
+    reinterpret_cast<remote_dsp_aux*>(this)->stopAudio();
 }
 
 //------ DISCOVERY OF AVAILABLE MACHINES
