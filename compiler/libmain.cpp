@@ -78,7 +78,7 @@
 #include "garbageable.hh"
 #include "export.hh"
 
-#define FAUSTVERSION "2.0.a14"
+#define FAUSTVERSION "2.0.a15"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -477,7 +477,11 @@ static bool process_cmdline(int argc, const char* argv[])
                 gGlobal->gOutputDir = path;
             }
             i += 2;
-	
+            
+        } else if (isCmd(argv[i], "-inpl", "--in-place")) {
+             gGlobal->gInPlace = true;
+             i += 1;
+
         } else if (argv[i][0] != '-') {
             const char* url = strip_start(argv[i]);
 			if (check_url(url)) {
@@ -498,6 +502,10 @@ static bool process_cmdline(int argc, const char* argv[])
 
     // adjust related options
     if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
+    
+    if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
+    }  
     
     if (gGlobal->gVecSize < 4) {
         stringstream error;
@@ -586,7 +594,10 @@ static void printhelp()
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
     cout << "-l <file> \t--library <file> link with the LLVM module <file>\n";
-
+    cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
+    cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
+    cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
+ 
 	cout << "\nexample :\n";
 	cout << "---------\n";
 

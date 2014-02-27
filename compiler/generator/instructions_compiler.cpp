@@ -310,6 +310,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             string name = subst("input$0", T(index));
             pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
                 InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
+            if (gGlobal->gInPlace) {
+                CS(sigInput(index));
+            }
         }
 
         // "output" and "outputs" used as a name convention
@@ -670,9 +673,15 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     //int rate = getSigRate(sig);
     int rate = 1;
     fContainer->setInputRate(idx, rate);
+    
+    ValueInst* res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
 
-    ValueInst* res = InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex());
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(res));
+    if (gGlobal->gInPlace) {
+        // inputs must be cached for in-place transformations
+        return generateVariableStore(sig, res);
+    } else {
+        return generateCacheCode(sig, res);
+    }
 }
 
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
