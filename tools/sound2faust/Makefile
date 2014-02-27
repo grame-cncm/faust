@@ -6,7 +6,7 @@ prefix := $(DESTDIR)$(PREFIX)
 
 sound2faust : sound2faust.cpp
 
-	g++ -O3 sound2faust.cpp -lsndfile -o sound2faust
+	g++ -O3 sound2faust.cpp `pkg-config  --cflags --libs sndfile` -o sound2faust
 
 
 install :
