@@ -23,6 +23,7 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+	
 
 dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
@@ -39,9 +40,9 @@ win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
-converter: architecture/faust-waveform-converter.cpp
+sound2faust: 
 
-	g++ -O3 architecture/faust-waveform-converter.cpp -lsndfile -o faust-waveform-converter
+	$(MAKE) -C tools/sound2faust
 
 .PHONY: clean depend install uninstall dist parser help
 
@@ -50,10 +51,11 @@ help :
 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
 	@echo "make or make all : compile the faust compiler"
 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
+	@echo "make sound2faust : compile sound to DSP file converter"
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
-	@echo "make install : install the compiler and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
+	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a Faust distribution as a .zip file"
 	@echo "make log : make a changelog file"
@@ -126,7 +128,7 @@ install :
 	# install faust2xxx tools
 	make -C tools/faust2appls install
 	# install sound converter
-	([ -e faust-waveform-converter ] && cp faust-waveform-converter $(prefix)/bin) || echo faust-waveform-converter not available	
+	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled	
 	#install faustremote
 	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/faust/) || echo remote not compiled
 	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
