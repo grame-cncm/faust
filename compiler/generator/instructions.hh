@@ -927,9 +927,9 @@ struct ArrayNumInst : public ValueInst, public SimpleValueInst
         fNumTable.resize(size);
     }
     
-    void setValue(int index, float num) { fNumTable[index] = num; }
-    void addValue(float num) { fNumTable.push_back(num); }
-    float getValue(int index) { return fNumTable[index]; }
+    void setValue(int index, TYPE num) { fNumTable[index] = num; }
+    void addValue(TYPE num) { fNumTable.push_back(num); }
+    TYPE getValue(int index) { return fNumTable[index]; }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
     

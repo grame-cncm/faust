@@ -1582,8 +1582,13 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     for (int k = 0; k < size; k++) {
         double r;
         int i;
-        if (isSigInt(sig->branch(k), &i)) {			
-            dynamic_cast<IntArrayNumInst*>(num_array)->setValue(k, i);
+        if (isSigInt(sig->branch(k), &i)) {   
+            IntArrayNumInst* int_num_array = dynamic_cast<IntArrayNumInst*>(num_array);
+            if (int_num_array) {
+                int_num_array->setValue(k, i);
+            } else {
+                assert(false);
+            }
         } else if (isSigReal(sig->branch(k), &r)) {
             FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
             DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
@@ -1591,6 +1596,8 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 float_array->setValue(k, r);
             } else if (double_array) {
                 double_array->setValue(k, r);
+            } else {
+                assert(false);
             }
         }
     }
