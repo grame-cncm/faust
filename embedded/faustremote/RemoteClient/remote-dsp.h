@@ -105,8 +105,6 @@ class remote_dsp : public dsp{
     
         virtual int     getNumInputs();
         virtual int     getNumOutputs();
-    
-        void            setRunningFlag(bool val);
 
         virtual void    init(int samplingFreq);
     
@@ -126,8 +124,9 @@ class remote_dsp : public dsp{
  * Prototype for DSP instance error callback.
  * @param error_code an error code (see "Possible error codes")
  * @param arg pointer to a client supplied structure given by createRemoteDSPInstance()
+ * #return -1 error processed / 0 error not processed
  */
-typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 
 /**
  * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize. 

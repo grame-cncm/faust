@@ -63,7 +63,7 @@ enum{
 #define READ_ERROR   -1
 #define WRITE_ERROR  -2
 
-typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 
 class remote_dsp_aux;
 
@@ -154,8 +154,6 @@ class remote_dsp_aux : public dsp{
     
         virtual int     getNumInputs();
         virtual int     getNumOutputs();
-    
-        void    setRunningFlag(bool val);
 
         virtual void    init(int samplingFreq);
     
@@ -172,8 +170,6 @@ public:
     
     virtual int     getNumInputs();
     virtual int     getNumOutputs();
-    
-    void    setRunningFlag(bool val);
     
     virtual void    init(int samplingFreq);
     

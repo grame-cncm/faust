@@ -468,13 +468,15 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
             if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
                 fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
                 if (fErrorCallback) {
-                    fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
+                        fRunningFlag = false;
                 }
             }
             if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
                 fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
                 if (fErrorCallback) {
-                    fErrorCallback(READ_ERROR, fErrorCallbackArg);
+                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
+                    fRunningFlag = false;
                 }
             }
             
@@ -493,13 +495,15 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
             if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
                 fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
                 if (fErrorCallback) {
-                    fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
+                        fRunningFlag = false;
                 }
             }
             if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
                 fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
                 if (fErrorCallback) {
-                    fErrorCallback(READ_ERROR, fErrorCallbackArg);
+                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
+                        fRunningFlag = false;
                 }
             }
             
@@ -520,10 +524,6 @@ int remote_dsp_aux::getNumInputs(){
 int remote_dsp_aux::getNumOutputs(){ 
     
     return fFactory->numOutputs();
-}
-
-void remote_dsp_aux::setRunningFlag(bool val){
-    fRunningFlag = val;
 }
 
 // Useless fonction in our case but required for a DSP interface
@@ -663,11 +663,6 @@ EXPORT int remote_dsp::getNumInputs()
 EXPORT int remote_dsp::getNumOutputs()
 {
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
-}
-
-EXPORT void remote_dsp::setRunningFlag(bool val)
-{
-    reinterpret_cast<remote_dsp_aux*>(this)->setRunningFlag(val);
 }
 
 EXPORT void remote_dsp::init(int samplingFreq)
