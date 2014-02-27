@@ -37,11 +37,15 @@ using namespace std;
 
 class server_netjackaudio : public netjackaudio_midicontrol {  
 
+    int     fNumberRestartAttempts;
+
     public:
     
         server_netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
             :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
-        {}
+        {
+            fNumberRestartAttempts = 0;
+        }
         
         void error_cb(int error_code)
         {
@@ -60,6 +64,11 @@ class server_netjackaudio : public netjackaudio_midicontrol {
                     break;
             }
         }
+    
+//        virtual int restart_cb()
+//        {
+//            return -1;
+//        }
 };
 
 //Structure for SHA-1 responses
@@ -95,6 +104,7 @@ struct connection_info_struct {
     string              fMTU;
     string              fLatency;
     string              fSHAKey;
+    string              fInstanceKey;
     //--------------------------------------------- 
     
     void init(){
@@ -141,7 +151,9 @@ void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 //
 struct slave_dsp{
-        
+    
+    string          fInstanceKey;
+    
     //    NETJACK PARAMETERS
     string          fIP;
     string          fPort;
@@ -162,6 +174,14 @@ struct slave_dsp{
     
     slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
     ~slave_dsp();
+    
+    
+    bool start_audio();
+    
+    void stop_audio();
+    
+    string  key(){return fInstanceKey;}
+    void    setKey(const string& key){fInstanceKey = key;}
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
@@ -226,13 +246,17 @@ public :
      * If the evaluation fails, the appropriate error message is set. More info
      * on the con_info structure is in Server.h.
      */
-    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv);
+    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv, const string& opt_value);
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
         
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
     bool        createInstance(connection_info_struct* con_info);
+    
+    bool        startAudio(const string& shakey);
+    
+    void        stopAudio(const string& shakey);
     
     /* Reorganizes the compilation options
      * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)

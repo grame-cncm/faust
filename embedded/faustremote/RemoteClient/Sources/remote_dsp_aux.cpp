@@ -283,6 +283,8 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     fErrorCallback = 0;
     fErrorCallbackArg = 0;
     
+    fRunningFlag = true;
+    
     printf("remote_dsp_aux::remote_dsp_aux = %p\n", this);
 }
         
@@ -447,59 +449,69 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     
 //    printf("remote_dsp_aux::compute = %p\n", this);
     
-    int numberOfCycles = count/fBufferSize;
-    int lastCycle = count%fBufferSize;
-    int res;
-   
-    // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
-    int i = 0;
-    
-    for (i=0; i<numberOfCycles; i++) {
-    
-        int offset = i*fBufferSize;
-        setupBuffers(input, output, offset);
+    if(fRunningFlag){
         
-        ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+        int numberOfCycles = count/fBufferSize;
+        int lastCycle = count%fBufferSize;
+        int res;
         
-        if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
-            fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
+        // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
+        int i = 0;
+        
+        for (i=0; i<numberOfCycles; i++) {
+            
+            int offset = i*fBufferSize;
+            setupBuffers(input, output, offset);
+            
+            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            
+            if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
+                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
+                if (fErrorCallback) {
+                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
+                        fRunningFlag = false;
+                }
             }
-        }
-        if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
-            fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(READ_ERROR, fErrorCallbackArg);
+            if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
+                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
+                if (fErrorCallback) {
+                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
+                    fRunningFlag = false;
+                }
             }
+            
+            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
         
-        ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+        if (lastCycle > 0) {
+            
+            int offset = i*fBufferSize;
+            setupBuffers(input, output, offset);
+            
+            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            
+            fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
+            
+            if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
+                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
+                if (fErrorCallback) {
+                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
+                        fRunningFlag = false;
+                }
+            }
+            if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
+                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
+                if (fErrorCallback) {
+                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
+                        fRunningFlag = false;
+                }
+            }
+            
+            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+        }
     }
-    
-    if (lastCycle > 0) {
-    
-        int offset = i*fBufferSize;
-        setupBuffers(input, output, offset);
-        
-        ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-        
-        fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
-        
-        if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
-            fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(WRITE_ERROR, fErrorCallbackArg);
-            }
-        }
-        if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
-            fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-            if (fErrorCallback) {
-                fErrorCallback(READ_ERROR, fErrorCallbackArg);
-            }
-        }
-        
-        ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+    else{
+        fillBufferWithZerosOffset(getNumOutputs(), 0, count, output);
     }
 }
 
@@ -567,6 +579,13 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     finalRequest += "&factoryKey=";
     finalRequest += fFactory->key();
     
+    finalRequest += "&instanceKey=";
+    
+    stringstream s;
+    s<<this;
+    
+    finalRequest += s.str();
+    
     //printf("finalRequest = %s\n", finalRequest.c_str());
     
 //  Curl Connection setup
@@ -629,6 +648,74 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     return isInitSuccessfull;
 }                        
 
+//bool sendRequest(){
+//    
+//}
+
+
+void remote_dsp_aux::stopAudio(){
+//  Curl Connection setup
+    CURL *curl = curl_easy_init();
+    
+    if (curl) {
+        
+        string finalRequest = "instanceKey=";
+        stringstream s;
+        s<<this;
+        
+        finalRequest += s.str();
+        
+        printf("REQUEST = %s\n", finalRequest.c_str());
+        
+        string ip = fFactory->serverIP();
+        ip += "/StopAudio";
+        
+        std::ostringstream oss;
+        
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        curl_easy_cleanup(curl);
+    }
+}
+
+void remote_dsp_aux::startAudio(){
+    //  Curl Connection setup
+    CURL *curl = curl_easy_init();
+    
+    if (curl) {
+        
+        string finalRequest = "instanceKey=";
+        
+        stringstream s;
+        s<<this;
+        
+        finalRequest += s.str();
+        
+        printf("REQUEST = %s\n", finalRequest.c_str());
+        
+        string ip = fFactory->serverIP();
+        ip += "/StartAudio";
+    
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        curl_easy_cleanup(curl);
+    }
+}
+
 //----------------------------------REMOTE DSP API-------------------------------------------
 
 //---------INSTANCES
@@ -648,7 +735,7 @@ EXPORT int remote_dsp::getNumInputs()
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumInputs();
 }
 
-int EXPORT remote_dsp::getNumOutputs()
+EXPORT int remote_dsp::getNumOutputs()
 {
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
 }
@@ -666,6 +753,14 @@ EXPORT void remote_dsp::buildUserInterface(UI* interface)
 EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
+}
+
+EXPORT void remote_dsp::startAudio(){
+    reinterpret_cast<remote_dsp_aux*>(this)->startAudio();
+}
+
+EXPORT void remote_dsp::stopAudio(){
+    reinterpret_cast<remote_dsp_aux*>(this)->stopAudio();
 }
 
 //------ DISCOVERY OF AVAILABLE MACHINES
