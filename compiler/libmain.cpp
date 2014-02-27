@@ -1202,7 +1202,7 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     gNumOutputs = 0;
     gErrorMessage = "";
     
-    string res = "";
+    string res;
     
     try {
         global::allocate();       
@@ -1210,6 +1210,7 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
+        res = "";
     }
     
     global::destroy();

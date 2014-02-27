@@ -146,7 +146,7 @@ typedef void (*RemoteDSPErrorCallback) (int error_code, void* arg);
  * @param bufferSize - NetJack slave buffer Size
  * @param error_callback - Error callback
  * @param error_callback_arg - Error callback argument
- * @param error - the error string to be filled
+ * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
