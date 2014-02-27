@@ -96,9 +96,9 @@ int main(int argc, char* argv[])
                 
                 for(int j = 0; j<numberInstances; j++){
                     
-                    string errorInstance("");
+                    int errorInstance;
                     
-                    remote_dsp* DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, errorInstance);
+                    remote_dsp* DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, NULL, NULL, errorInstance);
                     
                     if(DSP != NULL){
                         
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
                         
                     }
                     else{
-                        printf("CREATE INSTANCE FAILED = %s\n", errorInstance.c_str());
+                        printf("CREATE INSTANCE FAILED = %d\n", errorInstance);
                     }
                 }
             }
