@@ -595,3 +595,17 @@ StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vnam
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
     return loop;
 }
+
+ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
+{
+    string vname;
+    int size;
+
+    declareWaveform(sig, vname, size);
+    
+    string idx = subst("$0_idx", vname);
+    FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadStackVar("count")) % InstBuilder::genIntNumInst(size);
+    pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index1));
+    FIRIndex index2 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % InstBuilder::genIntNumInst(size);
+    return generateCacheCode(sig, InstBuilder::genLoadArrayStaticStructVar(vname, index2));
+}

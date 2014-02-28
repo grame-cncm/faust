@@ -47,6 +47,8 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
         virtual void       generateCodeRecursions(Tree sig);
         virtual ValueInst* generateCodeNonRec(Tree sig);
         virtual ValueInst* generateLoopCode(Tree sig);
+        
+        virtual ValueInst* generateWaveform(Tree sig);
 
         void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
         void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
