@@ -1579,29 +1579,40 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size);
     ValueInst* num_array = InstBuilder::genArrayNumInst(ctype, size);
     
-    for (int k = 0; k < size; k++) {
-        double r;
-        int i;
-        if (isSigInt(sig->branch(k), &i)) {   
-            IntArrayNumInst* int_num_array = dynamic_cast<IntArrayNumInst*>(num_array);
-            if (int_num_array) {
+    double r;
+    int i;
+        
+    if (ctype == Typed::kInt) {
+        IntArrayNumInst* int_num_array = dynamic_cast<IntArrayNumInst*>(num_array);
+        for (int k = 0; k < size; k++) {
+            if (isSigInt(sig->branch(k), &i)) {   
                 int_num_array->setValue(k, i);
-            } else {
-                assert(false);
-            }
-        } else if (isSigReal(sig->branch(k), &r)) {
-            FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
-            DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
-            if (float_array) {
-                float_array->setValue(k, r);
-            } else if (double_array) {
-                double_array->setValue(k, r);
-            } else {
-                assert(false);
+            } else if (isSigReal(sig->branch(k), &r)) {
+                int_num_array->setValue(k, int(r));
             }
         }
+    } else if (ctype == Typed::kFloat) {
+        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+        for (int k = 0; k < size; k++) {
+            if (isSigInt(sig->branch(k), &i)) {   
+                float_array->setValue(k, float(i));
+            } else if (isSigReal(sig->branch(k), &r)) {
+                float_array->setValue(k, float(r));
+            }
+        }
+    } else if (ctype == Typed::kDouble) {
+        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+        for (int k = 0; k < size; k++) {
+            if (isSigInt(sig->branch(k), &i)) {   
+                double_array->setValue(k, double(i));
+            } else if (isSigReal(sig->branch(k), &r)) {
+                double_array->setValue(k, r);
+            }
+        }
+    } else {
+        assert(false);
     }
-    
+   
     pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
     string idx = subst("$0_idx", vname);
     pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
