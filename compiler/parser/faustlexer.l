@@ -63,13 +63,17 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 {DIGIT}+    		return INT;
 
-
-{DIGIT}+"."{DIGIT}* 				return FLOAT;
-{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+ 	return FLOAT;
-{DIGIT}+e[-+]?{DIGIT}+ 				return FLOAT;
-"."{DIGIT}+ 						return FLOAT;
-"."{DIGIT}+e[-+]?{DIGIT}+ 			return FLOAT;
-
+{DIGIT}+"f"                             return FLOAT;
+{DIGIT}+"."{DIGIT}*                     return FLOAT;
+{DIGIT}+"."{DIGIT}*"f"                  return FLOAT;
+{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+       return FLOAT;
+{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+"f"    return FLOAT;
+{DIGIT}+e[-+]?{DIGIT}+                  return FLOAT;
+{DIGIT}+e[-+]?{DIGIT}+"f"               return FLOAT;
+"."{DIGIT}+                             return FLOAT;
+"."{DIGIT}+"f"                          return FLOAT;
+"."{DIGIT}+e[-+]?{DIGIT}+               return FLOAT;
+"."{DIGIT}+e[-+]?{DIGIT}+"f"            return FLOAT;
 
 ":"   		return SEQ;
 ","   		return PAR;
