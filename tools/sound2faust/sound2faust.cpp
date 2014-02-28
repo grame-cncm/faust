@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
     
     if (!deinterleave) {
      
+        // Generates one interleaved waveform
         *dst << RemoveEnding(base_name) << " = waveform";
         int nbf;
         char sep = '{';
@@ -75,6 +76,8 @@ int main(int argc, char *argv[])
        *dst << "};" << std::endl;
        
     } else {
+        
+        // Generates separated mono waveforms
         for (int chan = 0; chan < snd_info.channels; chan++) {
             sf_seek(soundfile, 0, SEEK_SET);
             *dst << RemoveEnding(base_name) << chan << " = waveform";
@@ -92,5 +95,26 @@ int main(int argc, char *argv[])
             } while (nbf == BUFFER_SIZE);
             *dst << "};" << std::endl;
         }
+        
+        // And generates one multi-channels waveform
+        *dst << RemoveEnding(base_name) << " = ";
+        
+        char sep = '(';
+        for (int chan = 0; chan < snd_info.channels; chan++) {
+            *dst << sep << RemoveEnding(base_name) << chan;
+             sep = ',';
+        }
+        
+        *dst << "):";
+        
+        sep = '(';
+        for (int chan = 0; chan < snd_info.channels; chan++) {
+            *dst << sep << "(!,_)";
+             sep = ',';
+        }
+        
+        *dst << ");" << std::endl;
     }
+    
+    dst->flush();
 }
