@@ -1086,7 +1086,7 @@ string ScalarCompiler::generateXtended 	(Tree sig)
  */
 void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
-        fVectorProperty.set(sig, vecname);
+    fVectorProperty.set(sig, vecname);
 }
 
 
@@ -1226,7 +1226,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     } else {
 
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int     N = pow2limit(mxd+1);
+        int N = pow2limit(mxd+1);
 
         // we need a iota index
         ensureIotaCode();
@@ -1275,7 +1275,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
 
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int     N = pow2limit(mxd+1);
+        int N = pow2limit(mxd+1);
 
         // we need a iota index
         ensureIotaCode();
@@ -1309,17 +1309,13 @@ void ScalarCompiler::ensureIotaCode()
  */
 void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
 {
-
     // computes C type and unique name for the waveform
-
-    string		ctype;
+    string ctype;
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
-
 
     size = sig->arity();
 
     // Converts waveform into a string : "{a,b,c,...}"
-
     stringstream content;
 
     char sep = '{';
@@ -1328,17 +1324,14 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
         sep = ',';
     }
     content << '}';
-
-
+  
     // Declares the Waveform
-
     fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
     fClass->getTopParentKlass()->addStaticFields(
                 subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size) )
                 + content.str() + ";");
-
 }
 
 string ScalarCompiler::generateWaveform(Tree sig)
@@ -1347,6 +1340,6 @@ string ScalarCompiler::generateWaveform(Tree sig)
     int     size;
 
     declareWaveform(sig, vname, size);
-    fClass->addPostCode(subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size)) );
-    return subst("$0[idx$0]", vname);
+    fClass->addPostCode(subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size)));
+    return generateCacheCode(sig, subst("$0[idx$0]", vname));
 }
