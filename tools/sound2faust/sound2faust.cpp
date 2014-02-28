@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         do {
             nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
             for (int i = 0; i < nbf * snd_info.channels; i++) {
-                *dst << sep << buffer[i];
+                *dst << sep << buffer[i] << 'f';
                 sep = ',';
             }
             
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
                 nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
                 for (int i = 0; i < nbf * snd_info.channels; i++) {
                     if (i % snd_info.channels == chan) {
-                        *dst << sep << buffer[i];
+                        *dst << sep << buffer[i] << 'f';
                         sep = ',';
                     }
                 }
