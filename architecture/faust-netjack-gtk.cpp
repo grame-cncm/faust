@@ -41,13 +41,6 @@
 
 std::list<GUI*> GUI::fGuiList;
 
-static bool isopt(char *argv[], const char *name)
-{
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
-	return false;
-}
-
 int main(int argc, char *argv[])
 {
 	char	appname[256];
