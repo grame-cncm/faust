@@ -103,6 +103,15 @@ using namespace std;
 
 #define VECTOR_ALIGN 0
 
+/*
+#define LLVM_MALLOC     "llvm_malloc"
+#define LLVM_FREE       "llvm_free"
+*/
+
+#define LLVM_MALLOC     "malloc"
+#define LLVM_FREE       "free"
+
+
 using namespace llvm;
 
 typedef llvm::Value* LlvmValue;
@@ -308,11 +317,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
 
             Function* func_free = NULL;
-            if (!fModule->getFunction("free")) {
-                func_free = Function::Create(free_type, GlobalValue::ExternalLinkage, "free", fModule);
+            if (!fModule->getFunction(LLVM_FREE)) {
+                func_free = Function::Create(free_type, GlobalValue::ExternalLinkage, LLVM_FREE, fModule);
                 func_free->setCallingConv(CallingConv::C);
             } else {
-                func_free = fModule->getFunction("free");
+                func_free = fModule->getFunction(LLVM_FREE);
             }
 
             // Generates llvm_free_dsp
@@ -348,11 +357,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FunctionType* malloc_type = FunctionType::get(malloc_ptr, MAKE_VECTOR_OF_TYPES(malloc_args), false);
 
             Function* func_malloc = NULL;
-            if (!fModule->getFunction("malloc")) {
-                func_malloc = Function::Create(malloc_type, GlobalValue::ExternalLinkage, "malloc", fModule);
+            if (!fModule->getFunction(LLVM_MALLOC)) {
+                func_malloc = Function::Create(malloc_type, GlobalValue::ExternalLinkage, LLVM_MALLOC, fModule);
                 func_malloc->setCallingConv(CallingConv::C);
             } else {
-                func_malloc = fModule->getFunction("malloc");
+                func_malloc = fModule->getFunction(LLVM_MALLOC);
             }
             
             VECTOR_OF_TYPES allocate_args;
@@ -683,12 +692,12 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
             FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
 
             Function* func_free = NULL;
-            if (!fModule->getFunction("free")) {
-                func_free = Function::Create(free_type, GlobalValue::ExternalLinkage, "free", fModule);
+            if (!fModule->getFunction(LLVM_FREE)) {
+                func_free = Function::Create(free_type, GlobalValue::ExternalLinkage, LLVM_FREE, fModule);
                 func_free->setCallingConv(CallingConv::C);
                 func_free->setAlignment(2);
             } else {
-                func_free = fModule->getFunction("free");
+                func_free = fModule->getFunction(LLVM_FREE);
             }
 
             VECTOR_OF_TYPES destroy_args;
