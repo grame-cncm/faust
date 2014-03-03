@@ -68,6 +68,67 @@ class dsp {
  	virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
 };
 
+class dsp_adapter : public dsp {
+    
+private:
+    
+    float** fAdaptedInputs;
+    float** fAdaptedOutputs;
+    int fHardwareInputs;
+    int fHardwareOutputs;
+    dsp* fDsp;
+    
+public:
+    
+    dsp_adapter(dsp* dsp, int hardware_inputs, int hardware_outputs, int buffer_size)
+    {
+        fDsp = dsp;
+        fHardwareInputs = hardware_inputs;
+        fHardwareOutputs = hardware_outputs;
+        
+        fAdaptedInputs = new float*[dsp->getNumInputs()];
+        for (int i = 0; i < dsp->getNumInputs() - hardware_inputs; i++) {
+            fAdaptedInputs[i + hardware_inputs] = new FAUSTFLOAT[buffer_size];
+            memset(fAdaptedInputs[i + hardware_inputs] , 0, sizeof(FAUSTFLOAT) * buffer_size);
+        }
+        
+        fAdaptedOutputs = new float*[dsp->getNumOutputs()];
+        for (int i = 0; i < dsp->getNumOutputs() - hardware_outputs; i++) {
+            fAdaptedOutputs[i + hardware_outputs] = new FAUSTFLOAT[buffer_size];
+            memset(fAdaptedOutputs[i + hardware_outputs] , 0, sizeof(FAUSTFLOAT) * buffer_size);
+        }
+    }
+    
+    virtual~ dsp_adapter()
+    {
+        for (int i = 0; i < fDsp->getNumInputs(); i++) {
+            delete [] fAdaptedInputs[i];
+        }
+        delete [] fAdaptedInputs;
+        for (int i = 0; i < fDsp->getNumOutputs(); i++) {
+            delete [] fAdaptedOutputs[i];
+        }
+        delete [] fAdaptedOutputs;
+        delete fDsp;
+    }
+    
+    int getNumInputs() 	{return fDsp->getNumInputs();}
+    int getNumOutputs() {return fDsp->getNumOutputs();}
+    void buildUserInterface(UI* ui_interface) {return fDsp->buildUserInterface(ui_interface);}
+    void init(int samplingRate) {return fDsp->init(samplingRate);}
+   
+    void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        for (int i = 0; i < fHardwareInputs; i++) {
+            fAdaptedInputs[i] = inputs[i];
+        }
+        for (int i = 0; i < fHardwareOutputs; i++) {
+            fAdaptedOutputs[i] = outputs[i];
+        }
+        fDsp->compute(len, fAdaptedInputs, fAdaptedOutputs);
+    }
+};
+
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__

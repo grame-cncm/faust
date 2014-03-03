@@ -90,21 +90,35 @@ class portaudio : public audio {
             stop(); 
             Pa_Terminate();
         }
-
+        
         virtual bool init(const char* name, dsp* DSP)
         {
             fDsp = DSP;
+            if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())){
+                fDsp->init(fSampleRate);
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        bool init(const char* name, int numInputs, int numOutputs)
+        {            
             if (pa_error(Pa_Initialize())) {
                 return false;
             }
-
+        
             const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
             const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
-         
+          
             if (fDsp->getNumInputs() > idev->maxInputChannels || fDsp->getNumOutputs() > odev->maxOutputChannels) {
                 printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
                         fDsp->getNumInputs(), fDsp->getNumOutputs(), 
                         idev->maxInputChannels, odev->maxOutputChannels);
+                fDsp = new dsp_adapter(fDsp, idev->maxInputChannels, odev->maxOutputChannels, fBufferSize);
+            }
+            
+            if (pa_error(Pa_Initialize())) {
                 return false;
             }
             
@@ -131,6 +145,11 @@ class portaudio : public audio {
 
             fDsp->init(fSampleRate);
             return true;
+        }
+    
+        void set_dsp_aux(dsp* DSP){
+            fDsp = DSP;
+            fDsp->init(fSampleRate);
         }
 
         virtual bool start() 
