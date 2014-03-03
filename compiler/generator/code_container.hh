@@ -241,7 +241,9 @@ class CodeContainer : public virtual Garbageable {
 
         void generateDeclarations(InstVisitor* visitor)
         {
+#ifndef _WIN32
             fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
+#endif
             handleDeclarations(visitor);
         }
         

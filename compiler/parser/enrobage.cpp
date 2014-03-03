@@ -440,6 +440,15 @@ FILE* fopensearch(const char* filename, string& fullpath)
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
+
+	for (list< string >::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
+		std::cerr << "found file : " << *i << std::endl;
+        if ((f = fopenat(fullpath, *i, filename))) {
+            //std::cerr << "found file : " << fullpath << std::endl;
+            return f;
+        }
+    }
+
     if ((f = fopenat(fullpath, gGlobal->gMasterDirectory, filename))) { 
     	return f;
     }
