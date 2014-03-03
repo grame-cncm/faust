@@ -143,15 +143,21 @@ static void call_fun(compile_fun fun)
 
 static Module* load_module(const string& module_name, llvm::LLVMContext* context)
 {
-    list<string>::iterator it;
+    Module* module = LoadModule(module_name, context);
     
-    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-        string file_name = *it + "/" + module_name;
-        Module* module = LoadModule(file_name, context);
-        if (module) return module;
+    // Try as a complete path
+    if (module) {
+        return module;
+    } else {
+    // Otherwise use import directories
+        list<string>::iterator it;
+        for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+            string file_name = *it + "/" + module_name;
+            Module* module = LoadModule(file_name, context);
+            if (module) return module;
+        }
+        return 0;
     }
-        
-    return 0;
 }
 
 static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* error)
