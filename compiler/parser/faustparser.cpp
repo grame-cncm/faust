@@ -96,8 +96,8 @@ extern bool         gLstDistributedSwitch;
 extern bool        	gLstMdocTagsSwitch;
 	
 extern map<Tree, set<Tree> > gMetaDataSet;
-extern vector<Tree> gDocVector;
-
+extern vector<Tree>          gDocVector;
+extern tvec                  gWaveForm; 
 
 int yylex();
 
@@ -2015,13 +2015,13 @@ yyreduce:
   case 7:
 /* Line 1787 of yacc.c  */
 #line 324 "parser/faustparser.y"
-    { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),nil); }
+    { gWaveForm.push_back((yyvsp[(1) - (1)].exp)); }
     break;
 
   case 8:
 /* Line 1787 of yacc.c  */
 #line 325 "parser/faustparser.y"
-    { (yyval.exp) = cons ((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); }
+    { gWaveForm.push_back((yyvsp[(3) - (3)].exp)); }
     break;
 
   case 9:
@@ -2831,7 +2831,7 @@ yyreduce:
   case 143:
 /* Line 1787 of yacc.c  */
 #line 527 "parser/faustparser.y"
-    { (yyval.exp) = boxWaveform(reverse((yyvsp[(3) - (4)].exp))); }
+    { (yyval.exp) = boxWaveform(gWaveForm); gWaveForm.clear(); }
     break;
 
   case 144:

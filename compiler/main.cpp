@@ -91,7 +91,7 @@ SourceReader	gReader;
 map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
 extern string gDocLang;
-
+tvec gWaveForm;
 
 /****************************************************************
  				Command line tools and arguments

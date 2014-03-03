@@ -89,20 +89,12 @@ bool isBoxReal(Tree t, double* r)	{ return isDouble(t->node(), r); }
 
 Sym BOXWAVEFORM = symbol ("BoxWaveform");
 
-Tree boxWaveform (Tree numlist)
+Tree boxWaveform (const tvec& br)
 {
-    tvec br;
-    while (isList(numlist)) {
-        br.push_back(hd(numlist));
-        numlist = tl(numlist);
-    }
     return tree(BOXWAVEFORM, br);
 }
 
-//bool isBoxWaveform (Tree s, const tvec& branches) 	{ return isTree(s, BOXWAVEFORM, branches); }
 bool isBoxWaveform (Tree s) 				{ return isTree(s, BOXWAVEFORM); }
-
-
 
 /*****************************************************************************
 							   	Wire and Cut
