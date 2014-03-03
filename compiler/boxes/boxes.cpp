@@ -81,18 +81,12 @@ bool isBoxReal(Tree t, double* r)	{ return isDouble(t->node(), r); }
 							 Waveform
 *****************************************************************************/
 
-Tree boxWaveform (Tree numlist)
+Tree boxWaveform (const tvec& br)
 {
-    tvec br;
-    while (isList(numlist)) {
-        br.push_back(hd(numlist));
-        numlist = tl(numlist);
-    }
     return tree(gGlobal->BOXWAVEFORM, br);
 }
 
-//bool isBoxWaveform (Tree s, const tvec& branches) 	{ return isTree(s, BOXWAVEFORM, branches); }
-bool isBoxWaveform (Tree s) 				{ return isTree(s, gGlobal->BOXWAVEFORM); }
+bool isBoxWaveform (Tree s) 		{ return isTree(s, gGlobal->BOXWAVEFORM); }
 
 /*****************************************************************************
 							   	Wire and Cut

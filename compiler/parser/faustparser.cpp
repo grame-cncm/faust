@@ -2008,13 +2008,13 @@ yyreduce:
   case 7:
 /* Line 1787 of yacc.c  */
 #line 317 "parser/faustparser.y"
-    { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),gGlobal->nil); }
+    { gGlobal->gWaveForm.push_back((yyvsp[(1) - (1)].exp)); }
     break;
 
   case 8:
 /* Line 1787 of yacc.c  */
 #line 318 "parser/faustparser.y"
-    { (yyval.exp) = cons ((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); }
+    { gGlobal->gWaveForm.push_back((yyvsp[(3) - (3)].exp)); }
     break;
 
   case 9:
@@ -2824,7 +2824,7 @@ yyreduce:
   case 143:
 /* Line 1787 of yacc.c  */
 #line 520 "parser/faustparser.y"
-    { (yyval.exp) = boxWaveform(reverse((yyvsp[(3) - (4)].exp))); }
+    { (yyval.exp) = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
     break;
 
   case 144:

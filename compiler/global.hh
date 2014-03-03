@@ -77,6 +77,7 @@ struct global {
 
     MetaDataSet     gMetaDataSet;
     string          gDocLang;
+    tvec            gWaveForm; 
 
     //-- globals
     string          gFaustSuperSuperDirectory;
