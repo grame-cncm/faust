@@ -184,13 +184,13 @@ class mspUI : public UI
         }
         
         // To be implemented
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
     
-        void openTabBox(const char* label) {}
-        void openHorizontalBox(const char* label) {}
-        void openVerticalBox(const char* label) {}
-        void closeBox() {}
+        void openTabBox(const char* label) {fDeclareTable.clear();}
+        void openHorizontalBox(const char* label) {fDeclareTable.clear();}
+        void openVerticalBox(const char* label) {fDeclareTable.clear();}
+        void closeBox() {fDeclareTable.clear();}
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
