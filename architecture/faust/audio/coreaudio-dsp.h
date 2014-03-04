@@ -906,13 +906,13 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
     int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& samplerate)
     {
-        OSStatus err = noErr;
-        ComponentResult err1;
+        OSStatus err;
         UInt32 outSize;
         UInt32 enableIO;
         Boolean isWritable;
         AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
-        int in_nChannels, out_nChannels;
+        int in_nChannels = 0;
+        int out_nChannels = 0;
         
         fDSP = dsp;
         fDevNumInChans = inChan;
@@ -956,27 +956,27 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
     #ifdef MAC_OS_X_VERSION_10_5
         ComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
         Component HALOutput = FindNextComponent(NULL, &cd);
-        err1 = OpenAComponent(HALOutput, &fAUHAL);
-        if (err1 != noErr) {
+        err = OpenAComponent(HALOutput, &fAUHAL);
+        if (err != noErr) {
             printf("Error calling OpenAComponent\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
     #else 
         AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
         AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
-        err1 = AudioComponentInstanceNew(HALOutput, &fAUHAL);
-        if (err1 != noErr) {
+        err = AudioComponentInstanceNew(HALOutput, &fAUHAL);
+        if (err != noErr) {
             printf("Error calling AudioComponentInstanceNew\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
     #endif
         
-        err1 = AudioUnitInitialize(fAUHAL);
-        if (err1 != noErr) {
+        err = AudioUnitInitialize(fAUHAL);
+        if (err != noErr) {
             printf("Cannot initialize AUHAL unit\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
         
@@ -988,10 +988,10 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             printf("OpenAUHAL : setup AUHAL input off\n");
         }
         
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
-        if (err1 != noErr) {
+        err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
+        if (err != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
             
@@ -1003,55 +1003,55 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             printf("OpenAUHAL : setup AUHAL output off\n");
         }
         
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
-        if (err1 != noErr) {
+        err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
+        if (err != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO,kAudioUnitScope_Output\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
     
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &fDeviceID, sizeof(AudioDeviceID));
-        if (err1 != noErr) {
+        err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &fDeviceID, sizeof(AudioDeviceID));
+        if (err != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_CurrentDevice\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
         
         if (inChan > 0) {
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
-                printError(err1);
+                printError(err);
                 goto error;
             }
         }
         
         if (outChan > 0) {
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, (UInt32*)&bufferSize, sizeof(UInt32));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, (UInt32*)&bufferSize, sizeof(UInt32));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
-                printError(err1);
+                printError(err);
                 goto error;
             }
         }
         
-        err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
-        if (err1 != noErr) {
+        err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
+        if (err != noErr) {
             //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
-            //printError(err1);
+            //printError(err);
+        } else {
+            in_nChannels = (err == noErr) ? outSize / sizeof(SInt32) : 0;
+            //printf("in_nChannels = %ld\n", in_nChannels);
         }
-        
-        in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-        //printf("in_nChannels = %ld\n", in_nChannels);
-        
-        err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
-        if (err1 != noErr) {
+                
+        err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
+        if (err != noErr) {
             //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
-            //printError(err1);
+            //printError(err);
+        } else {
+            out_nChannels = (err == noErr) ? outSize / sizeof(SInt32) : 0;
+            //printf("out_nChannels = %ld\n", out_nChannels);
         }
-        
-        out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-        //printf("out_nChannels = %ld\n", out_nChannels);
         
         /*
          Just ignore this case : seems to work without any further change...
@@ -1075,9 +1075,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 chanArr[i] = i;
             }
             AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * in_nChannels);
-            if (err1 != noErr) {
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 1\n");
-                printError(err1);
+                printError(err);
             }
         }
         
@@ -1089,19 +1089,19 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             for (int i = 0; i < outChan; i++) {
                 chanArr[i] = i;
             }
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * out_nChannels);
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * out_nChannels);
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 0\n");
-                printError(err1);
+                printError(err);
             }
         }
         
         if (inChan > 0) {
             outSize = sizeof(AudioStreamBasicDescription);
-            err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
-            if (err1 != noErr) {
+            err = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
+            if (err != noErr) {
                 printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
             //PrintStreamDesc(&srcFormat);
             
@@ -1116,19 +1116,19 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             //PrintStreamDesc(&srcFormat);
             
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
         }
         
         if (outChan > 0) {
             outSize = sizeof(AudioStreamBasicDescription);
-            err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
-            if (err1 != noErr) {
+            err = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
+            if (err != noErr) {
                 printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
             //PrintStreamDesc(&dstFormat);
             
@@ -1143,10 +1143,10 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             //PrintStreamDesc(&dstFormat);
             
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
         }
         
@@ -1154,20 +1154,20 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             AURenderCallbackStruct output;
             output.inputProc = Render;
             output.inputProcRefCon = this;
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &output, sizeof(output));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &output, sizeof(output));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 1\n");
-                printError(err1);
+                printError(err);
                 goto error;
             }
         } else {
             AURenderCallbackStruct output;
             output.inputProc = Render;
             output.inputProcRefCon = this;
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 0\n");
-                printError(err1);
+                printError(err);
                 goto error;
             }
         }
