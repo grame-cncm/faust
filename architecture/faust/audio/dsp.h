@@ -89,13 +89,13 @@ public:
         fAdaptedInputs = new float*[dsp->getNumInputs()];
         for (int i = 0; i < dsp->getNumInputs() - hardware_inputs; i++) {
             fAdaptedInputs[i + hardware_inputs] = new FAUSTFLOAT[buffer_size];
-            memset(fAdaptedInputs[i + hardware_inputs] , 0, sizeof(FAUSTFLOAT) * buffer_size);
+            memset(fAdaptedInputs[i + hardware_inputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
         }
         
         fAdaptedOutputs = new float*[dsp->getNumOutputs()];
         for (int i = 0; i < dsp->getNumOutputs() - hardware_outputs; i++) {
             fAdaptedOutputs[i + hardware_outputs] = new FAUSTFLOAT[buffer_size];
-            memset(fAdaptedOutputs[i + hardware_outputs] , 0, sizeof(FAUSTFLOAT) * buffer_size);
+            memset(fAdaptedOutputs[i + hardware_outputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
         }
     }
     
@@ -117,7 +117,7 @@ public:
     void buildUserInterface(UI* ui_interface) {return fDsp->buildUserInterface(ui_interface);}
     void init(int samplingRate) {return fDsp->init(samplingRate);}
    
-    void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         for (int i = 0; i < fHardwareInputs; i++) {
             fAdaptedInputs[i] = inputs[i];
