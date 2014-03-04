@@ -73,8 +73,8 @@ class dsp_adapter : public dsp {
     
 private:
     
-    float** fAdaptedInputs;
-    float** fAdaptedOutputs;
+    FAUSTFLOAT** fAdaptedInputs;
+    FAUSTFLOAT** fAdaptedOutputs;
     int fHardwareInputs;
     int fHardwareOutputs;
     dsp* fDsp;
@@ -87,13 +87,13 @@ public:
         fHardwareInputs = hardware_inputs;
         fHardwareOutputs = hardware_outputs;
         
-        fAdaptedInputs = new float*[dsp->getNumInputs()];
+        fAdaptedInputs = new FAUSTFLOAT*[dsp->getNumInputs()];
         for (int i = 0; i < dsp->getNumInputs() - hardware_inputs; i++) {
             fAdaptedInputs[i + hardware_inputs] = new FAUSTFLOAT[buffer_size];
             memset(fAdaptedInputs[i + hardware_inputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
         }
         
-        fAdaptedOutputs = new float*[dsp->getNumOutputs()];
+        fAdaptedOutputs = new FAUSTFLOAT*[dsp->getNumOutputs()];
         for (int i = 0; i < dsp->getNumOutputs() - hardware_outputs; i++) {
             fAdaptedOutputs[i + hardware_outputs] = new FAUSTFLOAT[buffer_size];
             memset(fAdaptedOutputs[i + hardware_outputs], 0, sizeof(FAUSTFLOAT) * buffer_size);

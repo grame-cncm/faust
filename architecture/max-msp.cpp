@@ -98,7 +98,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.52"
+#define EXTERNAL_VERSION "0.53"
 
 class mspUI;
 
@@ -154,7 +154,7 @@ class mspUIObject {
 
 	public:
 
-		mspUIObject(const char* label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
+		mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 
 		virtual void setValue(double f) {*fZone = range(0.0,1.0,f);}
@@ -167,7 +167,7 @@ class mspCheckButton : public mspUIObject {
 
 	public:
 
-		mspCheckButton(const char* label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
+		mspCheckButton(const string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
 		virtual ~mspCheckButton() {}
 
 		void toString(char* buffer)
@@ -181,7 +181,7 @@ class mspButton : public mspUIObject {
 
 	public:
 
-		mspButton(const char* label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
+		mspButton(const string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
 		virtual ~mspButton() {}
 
 		void toString(char* buffer)
@@ -202,13 +202,15 @@ class mspSlider : public mspUIObject{
 
 	public:
 
-		mspSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+		mspSlider(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 			:mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
 		virtual ~mspSlider() {}
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "Slider(float): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
+            stringstream s; 
+            s << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
+            strcpy(buffer, s.str().c_str());
 		}
 
 		void setValue(double f) {*fZone = range(fMin,fMax,f);}
@@ -224,6 +226,26 @@ class mspUI : public UI
 		map<string, mspUIObject*> fUITable;
         map<const char*, const char*> fDeclareTable;
         //FAUSTFLOAT* fMultiTable[MULTI_SIZE];
+    
+        string CreateLabel(const char* label)
+        {
+            map<const char*, const char*>::reverse_iterator it;
+            if (fDeclareTable.size() > 0) {
+                unsigned int i = 0;
+                string res = string(label) + "[";
+                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
+                    res = res + (*it).first + ":" + (*it).second;
+                    if (i < fDeclareTable.size() - 1) {
+                        res += ",";
+                    }
+                }
+                res += "]";
+                fDeclareTable.clear();
+                return res;
+            } else {
+                return string(label);
+            }
+        }
 
 	public:
     
@@ -242,29 +264,13 @@ class mspUI : public UI
 			clear();
    		}
      
-		void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(label, zone);}
+		void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(CreateLabel(label), zone);}
 
-		void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
+		void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(CreateLabel(label), zone);}
 
 		void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            map<const char*, const char*>::reverse_iterator it;
-            
-            if (fDeclareTable.size() > 0) {
-                unsigned int i = 0;
-                string res = string(label) + "[";
-                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
-                    res = res + (*it).first + ":" + (*it).second;
-                    if (i < fDeclareTable.size() - 1) {
-                        res += ",";
-                    }
-                }
-                res += "]";
-                fUITable[string(label)] = new mspSlider(res.c_str(), zone, init, min, max, step);
-                fDeclareTable.clear();
-            } else {
-                fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
-            }
+            fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
         }
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -279,7 +285,7 @@ class mspUI : public UI
 
 		void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 		{
-			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
+			fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
 		}
           
         // To be implemented
@@ -313,10 +319,15 @@ class mspUI : public UI
             }
 		}
         */
+    
+        bool isValue(string name) 
+        {
+            return fUITable.count(name);
+        }
 
 		bool setValue(string name, double f)
 		{
-			if (fUITable.count(name)) {
+     		if (fUITable.count(name)) {
                 fUITable[name]->setValue(f);
                 return true;
             } else {
@@ -359,11 +370,12 @@ static int count_digit(const string& name)
 void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
     bool res = false;
-    
+    string name = string((s)->s_name);
+     
     if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
-    if (ac == 0) {
+    if (ac == 0 && obj->dspUI->isValue(name)) {
         
         string name = string((s)->s_name);
         float off = 0.0f;
@@ -377,10 +389,7 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
         return;
     }
-
-    string name = string((s)->s_name);
-    //printf("param_name name = %s  ac = %d\n", (s)->s_name, ac);
-    
+ 
     // List of values
     if (check_digit(name)) {
         
@@ -442,6 +451,7 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
     // Standard parameter
     } else {
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+        //printf("name = %s value = %f\n", name.c_str(), value);
         res = obj->dspUI->setValue(name, value); // Doesn't have any effect if name is unknown
     }
     
@@ -561,8 +571,7 @@ extern "C" int main(void)
 	// Add the same method for every parameters and use the symbol as a selector
 	// inside this method
 	for (mspUI::iterator it = dspUI.begin(); it != dspUI.end(); ++it) {
-		char* name = const_cast<char*>(it->second->getName().c_str());
-		addmess((method)faust_method, name, A_GIMME, 0);
+        addmess((method)faust_method, (char*)(it->first.c_str()), A_GIMME, 0);
 	}
 
 	addmess((method)faust_dsp, (char*)"dsp", A_CANT, 0);
