@@ -291,6 +291,31 @@ void TiPhoneCoreAudioRenderer::AudioSessionPropertyListener(void* inClientData,
     }
 }
 
+static int SetAudioCategory(int input, int output)
+{
+    // Set the audioCategory the way Faust DSP wants
+    UInt32 audioCategory;
+    if ((input > 0) && (output > 0)) {
+        audioCategory = kAudioSessionCategory_PlayAndRecord;
+        printf("kAudioSessionCategory_PlayAndRecord\n");
+    } else if (input > 0) {
+        audioCategory = kAudioSessionCategory_RecordAudio;
+        printf("kAudioSessionCategory_RecordAudio\n");
+    } else  if (output > 0) {
+        audioCategory = kAudioSessionCategory_MediaPlayback;
+        printf("kAudioSessionCategory_MediaPlayback\n");
+    }
+    
+    OSStatus err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
+    if (err != noErr) {
+        printf("Couldn't set audio category\n");
+        printError(err);
+        return OPEN_ERR;
+    }
+    
+    return NO_ERR;
+}
+
 int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
 {
     OSStatus err;
@@ -311,23 +336,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     AudioSessionAddPropertyListener(kAudioSessionProperty_AudioInputAvailable, AudioSessionPropertyListener, this);
     AudioSessionAddPropertyListener(kAudioSessionProperty_ServerDied, AudioSessionPropertyListener, this);
     
-    // Set the audioCategory the way Faust DSP wants
-    UInt32 audioCategory;
-    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0)) {
-        audioCategory = kAudioSessionCategory_PlayAndRecord;
-        printf("kAudioSessionCategory_PlayAndRecord\n");
-    } else if (fDevNumInChans > 0) {
-        audioCategory = kAudioSessionCategory_RecordAudio;
-        printf("kAudioSessionCategory_RecordAudio\n");
-    } else  if (fDevNumOutChans > 0) {
-        audioCategory = kAudioSessionCategory_MediaPlayback;
-        printf("kAudioSessionCategory_MediaPlayback\n");
-    }
-    
-    err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
-    if (err != noErr) {
-        printf("Couldn't set audio category\n");
-        printError(err);
+    if (SetAudioCategory(fDevNumInChans, fDevNumOutChans) != NO_ERR) {
         return OPEN_ERR;
     }
     
@@ -352,22 +361,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         printf("Get hw output channels %d\n", fHWNumOutChans);
     }
     
-    // Possibly reset the audioCategory the way Hardware allows
-    if ((fHWNumInChans > 0) && (fHWNumOutChans > 0)) {
-        audioCategory = kAudioSessionCategory_PlayAndRecord;
-        printf("kAudioSessionCategory_PlayAndRecord\n");
-    } else if (fHWNumInChans > 0) {
-        audioCategory = kAudioSessionCategory_RecordAudio;
-        printf("kAudioSessionCategory_RecordAudio\n");
-    } else  if (fHWNumOutChans > 0) {
-        audioCategory = kAudioSessionCategory_MediaPlayback;
-        printf("kAudioSessionCategory_MediaPlayback\n");
-    }
-    
-    err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
-    if (err != noErr) {
-        printf("Couldn't set audio category\n");
-        printError(err);
+    if (SetAudioCategory(fHWNumInChans, fHWNumOutChans) != NO_ERR) {
         return OPEN_ERR;
     }
     
