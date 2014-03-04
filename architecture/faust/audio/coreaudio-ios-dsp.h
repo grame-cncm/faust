@@ -68,7 +68,7 @@ using namespace std;
 
 class TiPhoneCoreAudioRenderer
 {
-
+    
 private:
 
     AudioUnit fAUHAL;
@@ -212,17 +212,10 @@ OSStatus TiPhoneCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFl
         float* fInChannel[fDevNumInChans];
         float* fOutChannel[fDevNumOutChans];
         
-        if (fHWNumInChans == 1) {
-            // Mono ==> stereo
-            for (int chan = 0; chan < fDevNumInChans; chan++) {
-                fInChannel[chan] = (float*)fCAInputData->mBuffers[0].mData;
-            }
-        } else {
-            for (int chan = 0; chan < fDevNumInChans; chan++) {
-                fInChannel[chan] = (float*)fCAInputData->mBuffers[chan].mData;
-            }
+        for (int chan = 0; chan < fDevNumInChans; chan++) {
+            fInChannel[chan] = (float*)fCAInputData->mBuffers[chan].mData;
         }
-        
+     
         for (int chan = 0; chan < fDevNumOutChans; chan++) {
             fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
         }
@@ -318,9 +311,9 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     AudioSessionAddPropertyListener(kAudioSessionProperty_AudioInputAvailable, AudioSessionPropertyListener, this);
     AudioSessionAddPropertyListener(kAudioSessionProperty_ServerDied, AudioSessionPropertyListener, this);
     
+    // Set the audioCategory the way Faust DSP wants
     UInt32 audioCategory;
-    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0))
-    {
+    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0)) {
         audioCategory = kAudioSessionCategory_PlayAndRecord;
         printf("kAudioSessionCategory_PlayAndRecord\n");
     } else if (fDevNumInChans > 0) {
@@ -331,7 +324,47 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         printf("kAudioSessionCategory_MediaPlayback\n");
     }
     
-	err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
+    err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
+    if (err != noErr) {
+        printf("Couldn't set audio category\n");
+        printError(err);
+        return OPEN_ERR;
+    }
+    
+    // Scan Hardware
+    outSize = sizeof(fHWNumInChans);
+    err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &outSize, &fHWNumInChans);
+    if (err != noErr) {
+        printf("Couldn't get hw input channels\n");
+        fHWNumInChans = 0;
+        printError(err);
+    } else {
+        printf("Get hw input channels %d\n", fHWNumInChans);
+    }
+    
+    outSize = sizeof(fHWNumOutChans);
+    err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputNumberChannels, &outSize, &fHWNumOutChans);
+    if (err != noErr) {
+        printf("Couldn't get hw output channels\n");
+        printError(err);
+        fHWNumOutChans = 0;
+    } else {
+        printf("Get hw output channels %d\n", fHWNumOutChans);
+    }
+    
+    // Possibly reset the audioCategory the way Hardware allows
+    if ((fHWNumInChans > 0) && (fHWNumOutChans > 0)) {
+        audioCategory = kAudioSessionCategory_PlayAndRecord;
+        printf("kAudioSessionCategory_PlayAndRecord\n");
+    } else if (fHWNumInChans > 0) {
+        audioCategory = kAudioSessionCategory_RecordAudio;
+        printf("kAudioSessionCategory_RecordAudio\n");
+    } else  if (fHWNumOutChans > 0) {
+        audioCategory = kAudioSessionCategory_MediaPlayback;
+        printf("kAudioSessionCategory_MediaPlayback\n");
+    }
+    
+    err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
     if (err != noErr) {
         printf("Couldn't set audio category\n");
         printError(err);
@@ -362,40 +395,6 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         return OPEN_ERR;
     } else {
         printf("Get hw buffer duration %f\n", hwBufferSize);
-    }
-    
-    outSize = sizeof(fHWNumInChans);
-	err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &outSize, &fHWNumInChans);
-    if (err != noErr) {
-        printf("Couldn't get hw input channels\n");
-        fHWNumInChans = 0;
-        printError(err);
-    } else {
-        printf("Get hw input channels %d\n", fHWNumInChans);
-    }
-    
-    if (fDevNumInChans > fHWNumInChans) {
-        if ((fDevNumInChans == 2 && fHWNumInChans == 1)) { // Only mono ==> stereo is accepted
-            printf("hardware ins = %d wanted = %d, so mono to stereo\n", fHWNumInChans, fDevNumInChans);
-        } else {
-            printf("Error: hardware ins = %d wanted = %d\n", fHWNumInChans, fDevNumInChans);
-            return OPEN_ERR;
-        }
-    }
-    
-    outSize = sizeof(fHWNumOutChans);
-	err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputNumberChannels, &outSize, &fHWNumOutChans);
-    if (err != noErr) {
-        printf("Couldn't get hw output channels\n");
-        printError(err);
-        fHWNumOutChans = 0;
-    } else {
-        printf("Get hw output channels %d\n", fHWNumOutChans);
-    }
-    
-    if (fDevNumOutChans > fHWNumOutChans) {
-        printf("Error: hardware outs = %d wanted = %d\n", fHWNumOutChans, fDevNumOutChans);
-        return OPEN_ERR;
     }
     
     Float32 preferredPeriodDuration = float(bufferSize) / float(samplerate);
@@ -617,9 +616,8 @@ int TiPhoneCoreAudioRenderer::Close()
 int TiPhoneCoreAudioRenderer::Start()
 {
     AudioSessionSetActive(true);
-	OSStatus err = AudioOutputUnitStart(fAUHAL);
-    
-    if (err != noErr) {
+   
+    if (AudioOutputUnitStart(fAUHAL) != noErr) {
         printf("Error while opening device : device open error\n");
         return OPEN_ERR;
     } else {
@@ -630,9 +628,8 @@ int TiPhoneCoreAudioRenderer::Start()
 int TiPhoneCoreAudioRenderer::Stop()
 {
     AudioSessionSetActive(false);
-    OSStatus err = AudioOutputUnitStop(fAUHAL);
     
-    if (err != noErr) {
+    if (AudioOutputUnitStop(fAUHAL) != noErr) {
         printf("Error while closing device : device close error\n");
         return OPEN_ERR;
     } else {
