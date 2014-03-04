@@ -68,7 +68,7 @@ using namespace std;
 
 class TiPhoneCoreAudioRenderer
 {
-
+    
 private:
 
     AudioUnit fAUHAL;
@@ -319,8 +319,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     AudioSessionAddPropertyListener(kAudioSessionProperty_ServerDied, AudioSessionPropertyListener, this);
     
     UInt32 audioCategory;
-    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0))
-    {
+    if ((fDevNumInChans > 0) && (fDevNumOutChans > 0)) {
         audioCategory = kAudioSessionCategory_PlayAndRecord;
         printf("kAudioSessionCategory_PlayAndRecord\n");
     } else if (fDevNumInChans > 0) {
@@ -617,9 +616,8 @@ int TiPhoneCoreAudioRenderer::Close()
 int TiPhoneCoreAudioRenderer::Start()
 {
     AudioSessionSetActive(true);
-	OSStatus err = AudioOutputUnitStart(fAUHAL);
-    
-    if (err != noErr) {
+   
+    if (AudioOutputUnitStart(fAUHAL) != noErr) {
         printf("Error while opening device : device open error\n");
         return OPEN_ERR;
     } else {
@@ -630,9 +628,8 @@ int TiPhoneCoreAudioRenderer::Start()
 int TiPhoneCoreAudioRenderer::Stop()
 {
     AudioSessionSetActive(false);
-    OSStatus err = AudioOutputUnitStop(fAUHAL);
     
-    if (err != noErr) {
+    if (AudioOutputUnitStop(fAUHAL) != noErr) {
         printf("Error while closing device : device close error\n");
         return OPEN_ERR;
     } else {

@@ -101,14 +101,16 @@ public:
     
     virtual~ dsp_adapter()
     {
-        for (int i = 0; i < fDsp->getNumInputs(); i++) {
-            delete [] fAdaptedInputs[i];
+        for (int i = 0; i < fDsp->getNumInputs() - fHardwareInputs; i++) {
+            delete [] fAdaptedInputs[i + fHardwareInputs];
         }
         delete [] fAdaptedInputs;
-        for (int i = 0; i < fDsp->getNumOutputs(); i++) {
-            delete [] fAdaptedOutputs[i];
+        
+        for (int i = 0; i < fDsp->getNumOutputs() - fHardwareOutputs; i++) {
+            delete [] fAdaptedOutputs[i + fHardwareOutputs];
         }
         delete [] fAdaptedOutputs;
+        
         delete fDsp;
     }
     
