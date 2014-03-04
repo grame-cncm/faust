@@ -584,8 +584,8 @@ public class faustApp extends Activity {
     private float mAccelxDel; // acceleration apart from gravity
     private float mAccelyDel;
     private float mAccelzDel;
-    private float mAccelCurrent; // current acceleration including gravity
-    private float mAccelLast; // last acceleration including gravity
+    //private float mAccelCurrent; // current acceleration including gravity
+    //private float mAccelLast; // last acceleration including gravity
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent se) {
@@ -702,12 +702,7 @@ public class faustApp extends Activity {
 
         // Initialisation of the accelerometer elements
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
-        mAccelx = 0.00f;
-        mAccely = 0.00f;
-        mAccelz = 0.00f;
-        mAccelCurrent = SensorManager.GRAVITY_EARTH;
-        mAccelLast = SensorManager.GRAVITY_EARTH;
+        
         accel.focusOnSliderN = 0;
         accel.statu = new boolean [4];
         accel.popUp = new PopupWindow(this);
@@ -1175,7 +1170,13 @@ public class faustApp extends Activity {
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume()");
+                
+        mAccelx = 0.00f;
+        mAccely = 0.00f;
+        mAccelz = 0.00f;
+
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+        
         int oscSendPort;
         String oscIP;
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
