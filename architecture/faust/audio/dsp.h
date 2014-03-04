@@ -48,6 +48,8 @@
 #define FAUSTFLOAT float
 #endif
 
+#include <string.h>
+
 class UI;
 
 //----------------------------------------------------------------
