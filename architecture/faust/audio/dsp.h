@@ -48,8 +48,6 @@
 #define FAUSTFLOAT float
 #endif
 
-#include <string.h>
-
 class UI;
 
 //----------------------------------------------------------------
@@ -68,69 +66,6 @@ class dsp {
 	virtual void buildUserInterface(UI* ui_interface) 				= 0;
 	virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
-};
-
-class dsp_adapter : public dsp {
-    
-private:
-    
-    FAUSTFLOAT** fAdaptedInputs;
-    FAUSTFLOAT** fAdaptedOutputs;
-    int fHardwareInputs;
-    int fHardwareOutputs;
-    dsp* fDsp;
-    
-public:
-    
-    dsp_adapter(dsp* dsp, int hardware_inputs, int hardware_outputs, int buffer_size)
-    {
-        fDsp = dsp;
-        fHardwareInputs = hardware_inputs;
-        fHardwareOutputs = hardware_outputs;
-        
-        fAdaptedInputs = new FAUSTFLOAT*[dsp->getNumInputs()];
-        for (int i = 0; i < dsp->getNumInputs() - hardware_inputs; i++) {
-            fAdaptedInputs[i + hardware_inputs] = new FAUSTFLOAT[buffer_size];
-            memset(fAdaptedInputs[i + hardware_inputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
-        }
-        
-        fAdaptedOutputs = new FAUSTFLOAT*[dsp->getNumOutputs()];
-        for (int i = 0; i < dsp->getNumOutputs() - hardware_outputs; i++) {
-            fAdaptedOutputs[i + hardware_outputs] = new FAUSTFLOAT[buffer_size];
-            memset(fAdaptedOutputs[i + hardware_outputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
-        }
-    }
-    
-    virtual~ dsp_adapter()
-    {
-        for (int i = 0; i < fDsp->getNumInputs() - fHardwareInputs; i++) {
-            delete [] fAdaptedInputs[i + fHardwareInputs];
-        }
-        delete [] fAdaptedInputs;
-        
-        for (int i = 0; i < fDsp->getNumOutputs() - fHardwareOutputs; i++) {
-            delete [] fAdaptedOutputs[i + fHardwareOutputs];
-        }
-        delete [] fAdaptedOutputs;
-        
-        delete fDsp;
-    }
-    
-    int getNumInputs() 	{return fDsp->getNumInputs();}
-    int getNumOutputs() {return fDsp->getNumOutputs();}
-    void buildUserInterface(UI* ui_interface) {return fDsp->buildUserInterface(ui_interface);}
-    void init(int samplingRate) {return fDsp->init(samplingRate);}
-   
-    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-    {
-        for (int i = 0; i < fHardwareInputs; i++) {
-            fAdaptedInputs[i] = inputs[i];
-        }
-        for (int i = 0; i < fHardwareOutputs; i++) {
-            fAdaptedOutputs[i] = outputs[i];
-        }
-        fDsp->compute(len, fAdaptedInputs, fAdaptedOutputs);
-    }
 };
 
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
