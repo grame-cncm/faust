@@ -87,12 +87,13 @@ EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, cons
 {
     if (CheckParameters(argc, argv)) {
          
-        int argc1 = argc + 1;
+        int argc1 = argc + 2;
         const char* argv1[32];
         
         argv1[0] = "faust";
+        argv1[1] = filename.c_str();
         for (int i = 0; i < argc; i++) {
-            argv1[i+1] = argv[i];
+            argv1[i+2] = argv[i];
         }
         
         char error_msg_aux[512];
