@@ -19,6 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#include "compatibility.hh"
+
+#if LLVM_BUILD
+
 #include "llvm_code_container.hh"
 #include "exception.hh"
 #include "global.hh"
@@ -1003,6 +1007,8 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     generateComputeThreadExternal();
 }
 
+#endif // LLVM_BUILD
+
 /*
 // Transform the loop in a function + function call
 ForLoopInst* loop = fCurLoop->generateScalarLoop();
@@ -1104,3 +1110,5 @@ createStandardFunctionPasses(&manager, 3);
 manager.run(*fResult->fModule->getFunction("compute" + fKlassName));
 manager.run(*fResult->fModule->getFunction("init" + fKlassName));
 */
+
+

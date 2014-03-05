@@ -65,21 +65,9 @@
 #include "ppsig.hh"
 #include "garbageable.hh"
 #include "export.hh"
+#include "libfaust.h"
 
 #define FAUSTVERSION "2.0.a16"
-
-// Same as libfaust.h 
-typedef struct LLVMResult {
-    llvm::Module*       fModule;
-    llvm::LLVMContext*  fContext;
-} LLVMResult;
-
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
-EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
-EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
-
-Module* LoadModule(const std::string filename, LLVMContext* context);
-bool LinkModules(Module* dst, Module* src, char* error_message);
 
 using namespace std;
 
@@ -754,6 +742,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     startTiming("compilation");
     
     if (strcmp(gOutputLang, "llvm") == 0) {
+        
+    #if LLVM_BUILD
 
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
@@ -787,6 +777,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             // To trigger 'sig.dot' generation
             comp->prepare(signals);
         }
+    #else
+        throw faustexception("ERROR : -lang llvm not supported since LLVM backend is not built\n");
+    #endif
  
     } else {
     
@@ -1111,7 +1104,9 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     generateOutputFiles(comp_container.first, comp_container.second);
 }
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
+#if LLVM_BUILD
+
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
     gLLVMOut = false;
     gGlobal = NULL;
@@ -1128,7 +1123,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     
         // Compile module
         global::allocate();
-        compile_faust_internal(argc, argv, name, input, generate);
+        compile_faust_internal(argc, argv, name, input, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
             
@@ -1140,6 +1135,8 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     global::destroy();
     return res;
 }
+
+#endif
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {

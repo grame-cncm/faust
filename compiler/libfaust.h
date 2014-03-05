@@ -22,14 +22,16 @@
 #ifndef __LIB_FAUST__
 #define __LIB_FAUST__
 
-#if defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/IR/Module.h>
-#else
-#include <llvm/Module.h>
-#endif
-
 #include <string.h>
-#include <list>
+
+namespace llvm
+{
+    class LLVMContext;
+    class ExecutionEngine;
+    class Module;
+}
+
+using namespace llvm;
 
 typedef struct LLVMResult {
     llvm::Module*       fModule;
@@ -66,9 +68,13 @@ int compile_faust(int argc, const char* argv[], const char* name, const char* in
  * @return a LLVMResult with a LLVM module and LLVM context on success, 0 otherwise, with an error message in error_msg.
  */
 
-LLVMResult* compile_faust_llvm(int argc,  const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
+LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
 std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+
+llvm::Module* LoadModule(const std::string filename, llvm::LLVMContext* context);
+
+bool LinkModules(llvm::Module* dst, llvm::Module* src, char* error_message);
 
 #endif
 

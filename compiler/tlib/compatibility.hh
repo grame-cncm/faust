@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
  
+#ifndef __COMPATIBILITY__
+#define __COMPATIBILITY__
 
-#ifndef     __COMPATIBILITY__
-#define     __COMPATIBILITY__
-
+#define LLVM_BUILD (defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34))
 
 #ifdef _WIN32
 #include <time.h>

@@ -18,7 +18,11 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
+#include "compatibility.hh"
+
+#if LLVM_BUILD
+
 #include <stdio.h>
 #include <list>
 #include <iostream>
@@ -135,7 +139,7 @@ LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const 
         argv1[i+3] = argv[i];
     }
     
-    return compile_faust_llvm(argc1, argv1, input_name, input, error_msg, true);
+    return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
 }
 
 // Bitcode
@@ -961,4 +965,5 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
     delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }
 
+#endif // LLVM_BUILD
 

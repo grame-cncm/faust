@@ -30,23 +30,13 @@
 #include "faust/gui/CUI.h"
 #include "faust/audio/dsp.h"
 #include "export.hh"
+#include "libfaust.h"
 
 using namespace std;
-
-namespace llvm
-{
-    class LLVMContext;
-    class ExecutionEngine;
-    class Module;
-}
-
-using namespace llvm;
 
 class llvm_dsp_aux;
 
 struct Meta;
-
-struct LLVMResult;
 
 class llvm_dsp_factory {
 
