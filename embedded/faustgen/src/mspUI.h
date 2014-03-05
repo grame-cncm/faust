@@ -56,7 +56,7 @@ protected:
     
 public:
     
-    mspUIObject(const char* label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
+    mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
     virtual ~mspUIObject() {}
     
     virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0, 1.0, f);}
@@ -71,7 +71,7 @@ class mspCheckButton : public mspUIObject {
     
     public:
         
-        mspCheckButton(const char* label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
+        mspCheckButton(const string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
         virtual ~mspCheckButton() {}
         
         void toString(char* buffer)
@@ -85,7 +85,7 @@ class mspButton : public mspUIObject {
     
     public:
         
-        mspButton(const char* label, FAUSTFLOAT* zone):mspUIObject(label, zone) {}
+        mspButton(const string& label, FAUSTFLOAT* zone):mspUIObject(label, zone) {}
         virtual ~mspButton() {}
         
         void toString(char* buffer)
@@ -106,13 +106,15 @@ class mspSlider : public mspUIObject {
         
     public:
         
-        mspSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        mspSlider(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         :mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
         virtual ~mspSlider() {}
         
         void toString(char* buffer)
         {
-            snprintf(buffer, 256, "Slider(float): %s [init=%.1f:min=%.1f:max=%.1f:step=%.1f:cur=%.1f]", fLabel.c_str(), fInit, fMin, fMax, fStep, *fZone);
+            stringstream s; 
+            s << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
+            strcpy(buffer, s.str().c_str());
         }
         
         void setValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
@@ -126,6 +128,25 @@ class mspUI : public UI
         
         map<string, mspUIObject*> fUITable;
         map<const char*, const char*> fDeclareTable;
+    
+        string CreateLabel(const char* label)
+        {
+            map<const char*, const char*>::reverse_iterator it;
+            if (fDeclareTable.size() > 0) {
+                unsigned int i = 0;
+                string res = string(label);
+                char sep = '[';
+                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
+                    res = res + sep + (*it).first + ":" + (*it).second;
+                    sep = ',';
+                }
+                res += ']';
+                fDeclareTable.clear();
+                return res;
+            } else {
+                return string(label);
+            }
+        }
         
     public:
         
@@ -137,29 +158,13 @@ class mspUI : public UI
             clear();
         }
         
-        void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(label, zone);}
+        void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(CreateLabel(label), zone);}
         
-        void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
+        void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(CreateLabel(label), zone);}
         
         void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            map<const char*, const char*>::reverse_iterator it;
-            
-            if (fDeclareTable.size() > 0) {
-                unsigned int i = 0;
-                string res = string(label) + "[";
-                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
-                    res = res + (*it).first + ":" + (*it).second;
-                    if (i < fDeclareTable.size() - 1) {
-                        res += ",";
-                    }
-                }
-                res += "]";
-                fUITable[string(label)] = new mspSlider(res.c_str(), zone, init, min, max, step);
-                fDeclareTable.clear();
-            } else {
-                fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
-            }
+            fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
         }
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -174,17 +179,17 @@ class mspUI : public UI
         
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
+            fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
         }
         
         // To be implemented
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
     
-        void openTabBox(const char* label) {}
-        void openHorizontalBox(const char* label) {}
-        void openVerticalBox(const char* label) {}
-        void closeBox() {}
+        void openTabBox(const char* label) {fDeclareTable.clear();}
+        void openHorizontalBox(const char* label) {fDeclareTable.clear();}
+        void openVerticalBox(const char* label) {fDeclareTable.clear();}
+        void closeBox() {fDeclareTable.clear();}
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {

@@ -560,7 +560,11 @@ tlib/shlysis.o: tlib/shlysis.hh tlib/list.hh tlib/symbol.hh garbageable.hh tlib/
 tlib/shlysis.o: tlib/compatibility.hh
 tlib/symbol.o: tlib/symbol.hh garbageable.hh tlib/compatibility.hh
 tlib/tree.o: tlib/tree.hh tlib/symbol.hh garbageable.hh tlib/node.hh errors/exception.hh
-utils/files.o: utils/files.hh tlib/compatibility.hh
+utils/files.o: utils/files.hh tlib/compatibility.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh
+utils/files.o: tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+utils/files.o: signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
+utils/files.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
+utils/files.o: tlib/occurrences.hh errors/exception.hh
 utils/names.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh
 utils/names.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh utils/names.hh propagate/propagate.hh
 utils/names.o: boxes/boxes.hh tlib/property.hh documentator/doc_Text.hh generator/Text.hh global.hh

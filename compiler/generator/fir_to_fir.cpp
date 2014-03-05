@@ -26,19 +26,44 @@ using namespace std;
 
 static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
 {
-
-	printf("sort array aux \n");
-    if (dynamic_cast<DeclareVarInst*>(a)) {
-        DeclareVarInst* inst = dynamic_cast<DeclareVarInst*>(a);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+   
+    DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
+    DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
+       
+    /*
+    if (inst1) {
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst1->fType);
         return (array_typed) ? (array_typed->fSize > 0) : false;
-    } else if (dynamic_cast<DeclareVarInst*>(b)) {
-        DeclareVarInst* inst = dynamic_cast<DeclareVarInst*>(b);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+    } else if (inst2) {
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst2->fType);
         return (array_typed) ? (array_typed->fSize > 0) : false;
     } else {
         return false;
     }
+    */
+    
+    if (inst1) {
+        ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(inst1->fType);
+        if (array_typed1) {
+            if (inst2) {
+                ArrayTyped* array_typed2 = dynamic_cast<ArrayTyped*>(inst2->fType);
+                if (array_typed2) {
+                    return (array_typed1->fSize == array_typed2->fSize) 
+                            ? (long)array_typed1 > (long)array_typed1
+                            : array_typed1->fSize > array_typed2->fSize;
+                } 
+            }
+            return true;
+        } else {
+            return false;
+        }
+    } else if (inst2) {
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst2->fType);
+        return (array_typed) ? (array_typed->fSize > 0) : false;
+    } else {
+        return false;
+    }
+     
 }
 
 #ifdef _WIN32
