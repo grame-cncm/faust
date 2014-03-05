@@ -21,13 +21,19 @@
  
 #include <stdio.h>
 #include <list>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
 
-#include <llvm/Support/Threading.h>
-
 #if defined(LLVM_33) || defined(LLVM_34)
+#include <llvm/IR/Module.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/IR/DataLayout.h>
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -36,7 +42,43 @@
 #include <llvm/ADT/Triple.h>
 #include <llvm/Target/TargetLibraryInfo.h>
 #include <llvm/Support/TargetRegistry.h>
+#else
+#include <llvm/Module.h>
+#include <llvm/LLVMContext.h>
+#include <llvm/Support/IRReader.h>
 #endif
+
+#include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/PassManager.h>
+#include <llvm/Analysis/Verifier.h>
+
+#if defined(LLVM_32)
+#include <llvm/DataLayout.h>
+#else
+#include <llvm/Target/TargetData.h>
+#endif
+
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/PassNameParser.h>
+
+#include <llvm/Linker.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/ManagedStatic.h>
+#include <llvm/Assembly/PrintModulePass.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+
+#ifdef LLVM_29
+#include <llvm/Target/TargetSelect.h>
+#endif
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+#include <llvm/Support/TargetSelect.h>
+#endif
+
+#include <llvm/Support/Threading.h>
+
+using namespace llvm;
 
 int llvm_dsp_factory::gInstance = 0;
         
@@ -81,7 +123,7 @@ bool LinkModules(Module* dst, Module* src, char* error_message)
     }
 }
 
-LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* input_name, const char* input, char* error_msg)
+LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
 {
     int argc1 = argc + 3;
  	const char* argv1[32];
@@ -155,7 +197,7 @@ llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const s
     fResult->fContext = context;
 }
 
-llvm_dsp_factory::llvm_dsp_factory(int argc, const char *argv[], 
+llvm_dsp_factory::llvm_dsp_factory(int argc, const char* argv[], 
                                     const std::string& name,
                                     const std::string& input, 
                                     const std::string& target, 
@@ -598,7 +640,7 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, std::string&
 
 // Public API
 
-EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
+EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char* argv[], 
                                         const std::string& name, 
                                         const std::string& input, const std::string& target, 
                                         std::string& error_msg, int opt_level)
@@ -607,7 +649,7 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[],
 }
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
-                                                int argc, const char *argv[], 
+                                                int argc, const char* argv[], 
                                                 const std::string& target, 
                                                 std::string& error_msg, int opt_level)
 {
@@ -624,7 +666,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename,
 }
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
-                                                    int argc, const char *argv[], 
+                                                    int argc, const char* argv[], 
                                                     const std::string& target, 
                                                     std::string& error_msg, int opt_level)
 {
@@ -788,8 +830,8 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
 }
 
 EXPORT std::string expandDSPFromFile(const std::string& filename, 
-                                    int argc, const char *argv[], 
-                                     std::string& error_msg)
+                                    int argc, const char* argv[], 
+                                    std::string& error_msg)
 {
     int argc1 = argc + 4;
     const char* argv1[32];
@@ -810,7 +852,7 @@ EXPORT std::string expandDSPFromFile(const std::string& filename,
 
 EXPORT std::string expandDSPFromString(const std::string& name_app, 
                                     const std::string& dsp_content, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     std::string& error_msg)
 {
     int argc1 = argc + 3;
@@ -829,7 +871,7 @@ EXPORT std::string expandDSPFromString(const std::string& name_app,
     return res;
 }
 
-static bool CheckParameters(int argc, const char *argv[])
+static bool CheckParameters(int argc, const char* argv[])
 {
     for (int i = 0; i < argc; i++) {
         if ((strcmp(argv[i], "-tg") == 0
@@ -844,7 +886,7 @@ static bool CheckParameters(int argc, const char *argv[])
     return false;
 }
 
-EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg)
+EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg)
 {
     if (CheckParameters(argc, argv)) {
     
@@ -868,7 +910,7 @@ EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, cons
     }
 }
 
-EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg)
+EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg)
 {
     if (CheckParameters(argc, argv)) {
     
@@ -893,7 +935,7 @@ EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::s
 
 // Public C interface
 
-EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[], 
+EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char* argv[], 
                                         const char* name, const char* input, 
                                         const char* target, char* error_msg, int opt_level)
 {
@@ -903,7 +945,7 @@ EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char *argv[],
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], 
                         const char* target, 
                         char* error_msg, int opt_level)
 {
@@ -922,7 +964,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], 
                         const char* target, 
                         char* error_msg, int opt_level)
 {
@@ -1024,7 +1066,7 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 }
 
 EXPORT const char* expandCDSPFromFile(const char* filename, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     char* error_msg)
 {
     int argc1 = argc + 4;
@@ -1046,7 +1088,7 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
 
 EXPORT const char* expandCDSPFromString(const char* name_app, 
                                     const char* dsp_content, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     char* error_msg)
 {
     int argc1 = argc + 3;
@@ -1065,7 +1107,7 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
     return cstr;
 }
 
-EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg)
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
 {
     if (CheckParameters(argc, argv)) {
     
@@ -1087,7 +1129,7 @@ EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char
     }
 }
 
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg)
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
     if (CheckParameters(argc, argv)) {
     

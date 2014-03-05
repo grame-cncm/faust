@@ -24,9 +24,12 @@
 #include <assert.h>
 #include <limits.h>
 
-#ifndef WIN32
+#ifdef _WIN32
 #include <sys/time.h>
 #include "libgen.h"
+#include <unistd.h>
+#include <windows.h>
+#define PATH_MAX MAX_PATH
 #endif
 
 #include "global.hh"
@@ -56,10 +59,6 @@
 #include <fstream>
 #include <sstream>
 
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
 #include "sourcereader.hh"
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
@@ -78,11 +77,9 @@
 #include "garbageable.hh"
 #include "export.hh"
 
-#define FAUSTVERSION "2.0.a15"
+#define FAUSTVERSION "2.0.a16"
 
 #ifdef _WIN32
-#include <windows.h>
-#define PATH_MAX MAX_PATH
 
 static char *realpath(const char *path, char resolved_path[MAX_PATH])
 {
@@ -367,12 +364,6 @@ static bool process_cmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i+1 < argc)) {
             gGlobal->gVectorLoopVariant = atoi(argv[i+1]);
-            if (gGlobal->gVectorLoopVariant < 0 ||
-                gGlobal->gVectorLoopVariant > 1) {
-                stringstream error;
-                error << "ERROR : invalid loop variant: \"" << gGlobal->gVectorLoopVariant <<"\"" << endl;
-                throw faustexception(error.str());
-            }
             i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
@@ -462,7 +453,6 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
          
         } else if (isCmd(argv[i], "-I", "--import-dir")) {
-
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
             if (path) {
@@ -475,7 +465,6 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 2;
            
         } else if (isCmd(argv[i], "-O", "--output-dir")) {
-        
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
             if (path) {
@@ -505,22 +494,29 @@ static bool process_cmdline(int argc, const char* argv[])
 		}
 	}
 
-    // adjust related options
+    // Adjust related options
     if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
     
+    // Check options
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }  
     
+    if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
+        stringstream error;
+        error << "ERROR : invalid loop variant [-lv = " << gGlobal->gVectorLoopVariant << "] should be 0 or 1" << endl;
+        throw faustexception(error.str());
+    }
+    
     if (gGlobal->gVecSize < 4) {
         stringstream error;
-        error << "[-vs = "<< gGlobal->gVecSize << "] should be at least 4" << endl;
+        error << "ERROR : invalid vector size [-vs = "<< gGlobal->gVecSize << "] should be at least 4" << endl;
         throw faustexception(error.str());
     }
 
     if (gGlobal->gVecLoopSize > gGlobal->gVecSize) {
         stringstream error;
-        error << "[-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
+        error << "ERROR : invalid vector loop size [-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
     }
     
@@ -528,7 +524,7 @@ static bool process_cmdline(int argc, const char* argv[])
         throw faustexception("ERROR: " + parse_error.str() + '\n');
     }
 
-	return err == 0;
+	return (err == 0);
 }
 
 /****************************************************************
@@ -1006,7 +1002,6 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
 static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* input = NULL)
 {
-
     /****************************************************************
      1 - process command line
     *****************************************************************/

@@ -26,71 +26,27 @@
 #define FAUSTFLOAT float
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#if defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/IR/Module.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IRReader/IRReader.h>
-#else
-#include <llvm/Module.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Support/IRReader.h>
-#endif
-
-#include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/PassManager.h>
-#include <llvm/Analysis/Verifier.h>
-
-#if defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/IR/DataLayout.h>
-#elif LLVM_32
-#include <llvm/DataLayout.h>
-#else
-#include <llvm/Target/TargetData.h>
-#endif
-
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/Scalar.h>
-#include <llvm/Support/PassNameParser.h>
-
-#include <llvm/Linker.h>
-#include <llvm/Support/Host.h>
-#include <llvm/Support/ManagedStatic.h>
-#include <llvm/Assembly/PrintModulePass.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-
-#ifdef LLVM_29
-#include <llvm/Target/TargetSelect.h>
-#endif
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/Support/TargetSelect.h>
-#endif
-
 #include <string>
-#include "faust/gui/UI.h"
 #include "faust/gui/CUI.h"
-#include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
-#include "libfaust.h"
 #include "export.hh"
 
-#ifdef WIN32
-
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#endif
-
-#endif
-
 using namespace std;
+
+namespace llvm
+{
+    class LLVMContext;
+    class ExecutionEngine;
+    class Module;
+}
+
 using namespace llvm;
 
 class llvm_dsp_aux;
+
+struct Meta;
+
+struct LLVMResult;
 
 class llvm_dsp_factory {
 
@@ -116,7 +72,7 @@ class llvm_dsp_factory {
         void* LoadOptimize(const std::string& function);
         
         LLVMResult* CompileModule(int argc, 
-                                const char *argv[], 
+                                const char* argv[], 
                                 const char* input_name, 
                                 const char* input, 
                                 char* error_msg);
@@ -129,7 +85,7 @@ class llvm_dsp_factory {
                    
   public:
   
-        llvm_dsp_factory(int argc, const char *argv[], 
+        llvm_dsp_factory(int argc, const char* argv[], 
                         const std::string& name, 
                         const std::string& input, const std::string& target, 
                         std::string& error_msg, int opt_level = 3);
@@ -184,15 +140,15 @@ class llvm_dsp_aux : public dsp {
      
 };
 
-// Public C++ interface
+// Public C++ interface using LLVM
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
-                                                int argc, const char *argv[], 
+                                                int argc, const char* argv[], 
                                                 const std::string& target, 
                                                 std::string& error_msg, int opt_level = 3);
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
-                                                    int argc, const char *argv[], 
+                                                    int argc, const char* argv[], 
                                                     const std::string& target, 
                                                     std::string& error_msg, int opt_level = 3);
                         
@@ -239,25 +195,23 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
+// Public C++ interface without LLVM
+
 EXPORT std::string expandDSPFromFile(const std::string& filename, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     std::string& error_msg);
 
 EXPORT std::string expandDSPFromString(const std::string& name_app, 
                                     const std::string& dsp_content, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     std::string& error_msg);
 
-EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
+EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
-EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg);
+EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
 
 #ifdef WIN32
-
-//#ifdef __cplusplus
-//}
-//#endif
 
 #endif
 
@@ -265,15 +219,15 @@ EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::s
 extern "C" {
 #endif
 
-// Public C interface
+// Public C interface using LLVM
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
-                                                    int argc, const char *argv[], 
+                                                    int argc, const char* argv[], 
                                                     const char* target, 
                                                     char* error_msg, int opt_level);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, 
-                                                    int argc, const char *argv[], 
+                                                    int argc, const char* argv[], 
                                                     const char* target, 
                                                     char* error_msg, int opt_level);
 
@@ -310,19 +264,21 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
+    
+// Public C interface without LLVM
 
 EXPORT const char* expandCDSPFromFile(const char* filename, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     char* error_msg);
 
 EXPORT const char* expandCDSPFromString(const char* name_app, 
                                     const char* dsp_content, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     char* error_msg);
 
-EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg);
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg);
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
 #ifdef __cplusplus
 }

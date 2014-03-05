@@ -44,7 +44,7 @@
 #include "asinprim.hh"
 #include "binop.hh"
 #include "instructions.hh"
-#include "libfaust.h"
+
 
 // Parser
 extern FILE* yyin;
