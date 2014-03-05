@@ -54,7 +54,7 @@ typedef struct LLVMResult {
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
  
-int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 
 /**
  * Compile a Faust program and produces an LLVM module.
