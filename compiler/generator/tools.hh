@@ -22,11 +22,24 @@
 #ifndef GET_CACHE_LINE_SIZE_H_INCLUDED
 #define GET_CACHE_LINE_SIZE_H_INCLUDED
 
+#include <iostream>
+#include <stddef.h>
+
+using namespace std;
+
+template <typename T>
+void print_type(char const* name)
+{
+    cout << name
+    << " sizeof = " << sizeof (T)
+    << " alignof = " << __alignof__ (T)
+    << endl;
+}
+
 // Author: Nick Strupat
 // Date: October 29, 2010
 // Returns the cache line size (in bytes) of the processor, or 0 on failure
 
-#include <stddef.h>
 size_t cache_line_size();
 
 #endif

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
- Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,8 @@
 #if defined(__APPLE__)
 
 #include <sys/sysctl.h>
-size_t cache_line_size() {
+size_t cache_line_size() 
+{
     size_t line_size = 0;
     size_t sizeof_line_size = sizeof(line_size);
     sysctlbyname("hw.cachelinesize", &line_size, &sizeof_line_size, 0, 0);
@@ -37,7 +38,8 @@ size_t cache_line_size() {
 
 #include <stdlib.h>
 #include <windows.h>
-size_t cache_line_size() {
+size_t cache_line_size() 
+{
     size_t line_size = 0;
     DWORD buffer_size = 0;
     DWORD i = 0;
@@ -61,7 +63,8 @@ size_t cache_line_size() {
 #elif defined(linux)
 
 #include <stdio.h>
-size_t cache_line_size() {
+size_t cache_line_size() 
+{
     FILE * p = 0;
     p = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
     unsigned int i = 0;

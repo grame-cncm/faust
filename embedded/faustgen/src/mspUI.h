@@ -134,14 +134,13 @@ class mspUI : public UI
             map<const char*, const char*>::reverse_iterator it;
             if (fDeclareTable.size() > 0) {
                 unsigned int i = 0;
-                string res = string(label) + "[";
+                string res = string(label);
+                char sep = '[';
                 for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
-                    res = res + (*it).first + ":" + (*it).second;
-                    if (i < fDeclareTable.size() - 1) {
-                        res += ",";
-                    }
+                    res = res + sep + (*it).first + ":" + (*it).second;
+                    sep = ',';
                 }
-                res += "]";
+                res += ']';
                 fDeclareTable.clear();
                 return res;
             } else {
