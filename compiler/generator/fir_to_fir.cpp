@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "fir_to_fir.hh"
+#include <algorithm>
 
 using namespace std;
 
@@ -74,7 +75,12 @@ bool sortArrayDeclarations(const StatementInst*& a, const StatementInst*& b)
 */
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
 {
+//#ifndef _WIN32
     return sortArrayDeclarationsAux(a, b);
+//#else
+//	printf("return true\n");
+//	return true;
+//#endif
 }
 #else
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b)

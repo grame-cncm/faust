@@ -80,7 +80,10 @@
 
 	int mkdir(const char* path, unsigned int attribute)
 	{
-		return CreateDirectory(path,NULL);
+		if(CreateDirectory(path,NULL) == 0)
+			return -1;
+		else
+			return 0;
 	}
 
 	char* getcwd(char* str, unsigned int size)

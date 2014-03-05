@@ -33,6 +33,11 @@
 #include "Message.h"
 #include "MessageProcessor.h"
 
+#ifdef _WIN32
+#include <io.h>
+#define lseek _lseek
+#endif
+
 using namespace std;
 
 namespace httpdfaust
@@ -145,14 +150,21 @@ const char* HTTPDServer::getMIMEType (const string& page)
 int HTTPDServer::page (struct MHD_Connection *connection, const char * page)
 {
 	int ret = 0;
-	char * root =  getenv("FAUSTDocumentRoot");
-	string file = root ? root : ".";
+//	char * root =  getenv("FAUSTDocumentRoot");
+	string file = ".";
 	file += page;
 	const char* type = getMIMEType (file);
 
-	int fd = open (file.c_str(), O_RDONLY);
+	int fd;
+
+#ifdef _WIN32
+	int fhd;
+	fd = _sopen_s(&fhd, file.c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD);
+#else
+	fd = open (file.c_str(), O_RDONLY);
+#endif
 	if (fd != -1) {
-		int length = lseek(fd, 0, SEEK_END);
+		int length = lseek(fd, (long)0, SEEK_END);
 		lseek(fd, 0, SEEK_SET);
 		
 		struct MHD_Response *response = MHD_create_response_from_fd (length, fd);
