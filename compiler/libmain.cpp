@@ -23,14 +23,13 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-
-#ifdef _WIN32
-#include <sys/time.h>
-#include "libgen.h"
-#include <unistd.h>
-#include <windows.h>
-#define PATH_MAX MAX_PATH
-#endif
+#include <map>
+#include <string>
+#include <vector>
+#include <list>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "global.hh"
 #include "compatibility.hh"
@@ -49,16 +48,6 @@
 #include "description.hh"
 #include "floats.hh"
 #include "doc.hh"
-#include "global.hh"
-
-#include <map>
-#include <string>
-#include <vector>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
 #include "sourcereader.hh"
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
@@ -78,19 +67,6 @@
 #include "export.hh"
 
 #define FAUSTVERSION "2.0.a16"
-
-#ifdef _WIN32
-
-static char *realpath(const char *path, char resolved_path[MAX_PATH])
-{
-	if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
-		return resolved_path;
-	} else {
-		return "";
-    }
-}
-
-#endif
 
 // Same as libfaust.h 
 typedef struct LLVMResult {

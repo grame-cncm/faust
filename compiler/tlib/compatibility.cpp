@@ -23,7 +23,7 @@
 #include "math.h"
 
 #if defined(__MINGW32__) || defined (_WIN32)
-	// Simulate some Unix fonctions on Windows
+// Simulate some Unix fonctions on Windows
 
 #if !defined(INT) & !defined(FLOAT)
 #include <windows.h>
@@ -32,9 +32,9 @@
 #endif
 
 	#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-	  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+        #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 	#else
-	  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+        #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 	#endif
 
 	int gettimeofday(struct timeval *tv, struct timezone *tz)
@@ -43,34 +43,31 @@
 	  unsigned __int64 tmpres = 0;
 	  static int tzflag;
 
-	  if (NULL != tv)
-	  {
-		GetSystemTimeAsFileTime(&ft);
+	  if (NULL != tv) {
+        GetSystemTimeAsFileTime(&ft);
 
-		tmpres |= ft.dwHighDateTime;
-		tmpres <<= 32;
-		tmpres |= ft.dwLowDateTime;
+        tmpres |= ft.dwHighDateTime;
+        tmpres <<= 32;
+        tmpres |= ft.dwLowDateTime;
 
-		/*converting file time to unix epoch*/
-		tmpres -= DELTA_EPOCH_IN_MICROSECS; 
-		tmpres /= 10;  /*convert into microseconds*/
-		tv->tv_sec = (long)(tmpres / 1000000UL);
-		tv->tv_usec = (long)(tmpres % 1000000UL);
+        /*converting file time to unix epoch*/
+        tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+        tmpres /= 10;  /*convert into microseconds*/
+        tv->tv_sec = (long)(tmpres / 1000000UL);
+        tv->tv_usec = (long)(tmpres % 1000000UL);
 	  }
 
-	  if (NULL != tz)
-	  {
-		if (!tzflag)
-		{
-		  _tzset();
-		  tzflag++;
-		}
-		tz->tz_minuteswest = _timezone / 60;
-		tz->tz_dsttime = _daylight;
+	  if (NULL != tz) {
+          if (!tzflag) {
+              _tzset();
+              tzflag++;
+          }
+          tz->tz_minuteswest = _timezone / 60;
+          tz->tz_dsttime = _daylight;
 	  }
 	  return 0;
 	}
-	int		isatty(int file){ return 0; }
+	int	isatty(int file){ return 0; }
 
 #if defined(_MBCS) || __MINGW32__
 	bool chdir(const char* path)
@@ -80,10 +77,11 @@
 
 	int mkdir(const char* path, unsigned int attribute)
 	{
-		if(CreateDirectory(path,NULL) == 0)
+		if (CreateDirectory(path,NULL) == 0) {
 			return -1;
-		else
+		} else {
 			return 0;
+        }
 	}
 
 	char* getcwd(char* str, unsigned int size)
@@ -125,6 +123,15 @@
 		wcstombs(str,wstr,size);
 	}
 
+    char *realpath(const char *path, char resolved_path[MAX_PATH])
+    {
+        if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
+            return resolved_path;
+        } else {
+            return "";
+        }
+    }
+
 #endif
 
 #if !defined(__MINGW32__)
@@ -139,85 +146,83 @@
 		} parts;
 	} ieee_double_shape_type;
 
-
 #define EXTRACT_WORDS(ix0,ix1,d)				\
-	do {								\
-	ieee_double_shape_type ew_u;					\
-	ew_u.value = (d);						\
-	(ix0) = ew_u.parts.msw;					\
-	(ix1) = ew_u.parts.lsw;					\
+	do {                                        \
+        ieee_double_shape_type ew_u;			\
+        ew_u.value = (d);						\
+        (ix0) = ew_u.parts.msw;					\
+        (ix1) = ew_u.parts.lsw;					\
 	} while (0)
 
 	/* Get the more significant 32 bit int from a double.  */
 
 #define GET_HIGH_WORD(i,d)					\
-	do {								\
-	ieee_double_shape_type gh_u;					\
-	gh_u.value = (d);						\
-	(i) = gh_u.parts.msw;						\
+	do {                                    \
+        ieee_double_shape_type gh_u;		\
+        gh_u.value = (d);					\
+        (i) = gh_u.parts.msw;				\
 	} while (0)
 
 	/* Get the less significant 32 bit int from a double.  */
 
 #define GET_LOW_WORD(i,d)					\
-	do {								\
-	ieee_double_shape_type gl_u;					\
-	gl_u.value = (d);						\
-	(i) = gl_u.parts.lsw;						\
+	do {                                    \
+        ieee_double_shape_type gl_u;		\
+        gl_u.value = (d);					\
+        (i) = gl_u.parts.lsw;				\
 	} while (0)
 
 #define SET_HIGH_WORD(d,v)					\
-	do {								\
-	ieee_double_shape_type sh_u;					\
-	sh_u.value = (d);						\
-	sh_u.parts.msw = (v);						\
-	(d) = sh_u.value;						\
+	do {                                    \
+        ieee_double_shape_type sh_u;		\
+        sh_u.value = (d);                   \
+        sh_u.parts.msw = (v);				\
+        (d) = sh_u.value;					\
 	} while (0)
 
 #endif
 
 #if(_MSC_VER <= 1700)
- double remainder(double x, double p)
-        {
-                int hx,hp;
-                unsigned int sx,lx,lp;
-                double p_half;
+    double remainder(double x, double p)
+    {
+        int hx,hp;
+        unsigned int sx,lx,lp;
+        double p_half;
 
-                EXTRACT_WORDS(hx,lx,x);
-                EXTRACT_WORDS(hp,lp,p);
-                sx = hx&0x80000000;
-                hp &= 0x7fffffff;
-                hx &= 0x7fffffff;
+        EXTRACT_WORDS(hx,lx,x);
+        EXTRACT_WORDS(hp,lp,p);
+        sx = hx&0x80000000;
+        hp &= 0x7fffffff;
+        hx &= 0x7fffffff;
 
-                /* purge off exception values */
-                if((hp|lp)==0) return (x*p)/(x*p);         /* p = 0 */
-                if((hx>=0x7ff00000)||                        /* x not finite */
-                        ((hp>=0x7ff00000)&&                        /* p is NaN */
-                        (((hp-0x7ff00000)|lp)!=0)))
-                        return (x*p)/(x*p);
+        /* purge off exception values */
+        if((hp|lp)==0) return (x*p)/(x*p);         /* p = 0 */
+        if((hx>=0x7ff00000)||                      /* x not finite */
+            ((hp>=0x7ff00000)&&                    /* p is NaN */
+            (((hp-0x7ff00000)|lp)!=0)))
+            return (x*p)/(x*p);
 
-
-                static const double zero = 0.0;
-                if (hp<=0x7fdfffff) x = fmod(x,p+p);        /* now x < 2p */
-                if (((hx-hp)|(lx-lp))==0) return zero*x;
-                x  = fabs(x);
-                p  = fabs(p);
-                if (hp<0x00200000) {
-                        if(x+x>p) {
-                                x-=p;
-                                if(x+x>=p) x -= p;
-                        }
-                } else {
-                        p_half = 0.5*p;
-                        if(x>p_half) {
-                                x-=p;
-                                if(x>=p_half) x -= p;
-                        }
-                }
-                GET_HIGH_WORD(hx,x);
-                SET_HIGH_WORD(x,hx^sx);
-                return x;
+        static const double zero = 0.0;
+        if (hp<=0x7fdfffff) x = fmod(x,p+p);       /* now x < 2p */
+        if (((hx-hp)|(lx-lp))==0) return zero*x;
+        x  = fabs(x);
+        p  = fabs(p);
+        if (hp<0x00200000) {
+            if(x+x>p) {
+                x-=p;
+                if(x+x>=p) x -= p;
+            }
+        } else {
+            p_half = 0.5*p;
+            if(x>p_half) {
+                x-=p;
+                if(x>=p_half) x -= p;
+            }
         }
+        GET_HIGH_WORD(hx,x);
+        SET_HIGH_WORD(x,hx^sx);
+        return x;
+    }
 #endif
 
 #else // Linux

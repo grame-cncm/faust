@@ -28,6 +28,8 @@
 #include <time.h>
 #include <assert.h>
 
+#define PATH_MAX MAX_PATH
+
 //#define int64_t __int64
 #define YY_NO_UNISTD_H 1
 
@@ -50,6 +52,7 @@ char*	getcwd(char* str, unsigned int size);
 int		isatty(int file);
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
+char*   realpath(const char *path, char resolved_path[MAX_PATH]);
 
 #ifdef  NDEBUG
 #undef assert
