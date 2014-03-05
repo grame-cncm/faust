@@ -24,34 +24,12 @@
 #if LLVM_BUILD
 
 #include "llvm_code_container.hh"
+#include "llvm_instructions.hh"
 #include "exception.hh"
 #include "global.hh"
 #include "libfaust.h"
 
 using namespace std;
-
-#if defined(LLVM_29) || defined(LLVM_28)
-    #include <llvm/Support/StandardPasses.h>
-    #define VECTOR_OF_TYPES vector<const llvm::Type*>
-    #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
-    #define LLVM_TYPE const llvm::Type*
-    #define MAKE_VECTOR_OF_TYPES(vec) vec
-    #define MAKE_IXD(beg, end) beg, end
-    #define MAKE_ARGS(args) args
-    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end())
-    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
-#endif
-
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
-    #define VECTOR_OF_TYPES vector<llvm::Type*>
-    #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
-    #define LLVM_TYPE llvm::Type*
-    #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
-    #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
-    #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
-    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
-    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
-#endif
 
 list <string> LLVMInstVisitor::fMathLibTable;
 

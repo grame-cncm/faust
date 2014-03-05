@@ -41,7 +41,6 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
-
 #if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
@@ -78,27 +77,29 @@ using namespace std;
 #endif
 
 #if defined(LLVM_29) || defined(LLVM_28)
-#include <llvm/Target/TargetSelect.h>
-   #define VECTOR_OF_TYPES vector<const llvm::Type*>
-   #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
-   #define LLVM_TYPE const llvm::Type*
-   #define MAKE_VECTOR_OF_TYPES(vec) vec
-   #define MAKE_IXD(beg, end) beg, end
-   #define MAKE_ARGS(args) args
-   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end())
-   #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, name);
+    #include <llvm/Target/TargetSelect.h>
+    #define VECTOR_OF_TYPES vector<const llvm::Type*>
+    #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
+    #define LLVM_TYPE const llvm::Type*
+    #define MAKE_VECTOR_OF_TYPES(vec) vec
+    #define MAKE_IXD(beg, end) beg, end
+    #define MAKE_ARGS(args) args
+    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end())
+    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
+    #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, name);
 #endif
 
 #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/Support/TargetSelect.h>
-   #define VECTOR_OF_TYPES vector<llvm::Type*>
-   #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
-   #define LLVM_TYPE llvm::Type*
-   #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
-   #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
-   #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
-   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
-   #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
+    #include <llvm/Support/TargetSelect.h>
+    #define VECTOR_OF_TYPES vector<llvm::Type*>
+    #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
+    #define LLVM_TYPE llvm::Type*
+    #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
+    #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
+    #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
+    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
+    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
+    #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
 #endif
 
 #define VECTOR_ALIGN 0
@@ -575,7 +576,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         virtual ~LLVMTypeInstVisitor()
         {
-            // External object not covered by Garbageable, do delete it here
+            // External object not covered by Garbageable, so delete it here
             delete fBuilder;
         }
 
@@ -920,6 +921,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
             return str;
         }
+    
         static string removeQuote(string str) 
         {
             return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
