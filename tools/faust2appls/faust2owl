@@ -1,0 +1,18 @@
+#!/bin/bash
+
+FILENAME=$1
+CLASSNAME=`basename $FILENAME .dsp`
+PATCHNAME=$CLASSNAME"Patch"
+PATCHFILE=$PATCHNAME".hpp"
+
+#echo $FILENAME $CLASSNAME $PATCHNAME $PATCHFILE
+
+faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
+
+echo "1- Add $PATCHFILE file to the OwlWare/Libraries/OwlPatches directory"
+echo "2- Include $PATCHFILE into the OwlPatches/includes.h file"
+echo "3- Register $PATCHNAME in the OwlPatches/patches.cpp file"
+
+
+
+
