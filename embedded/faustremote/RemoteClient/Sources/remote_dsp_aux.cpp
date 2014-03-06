@@ -515,6 +515,11 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     }
 }
 
+void remote_dsp_aux::metadata(Meta* m){ 
+    
+    fFactory->metadataRemoteDSPFactory(m);
+}
+
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs(){ 
     

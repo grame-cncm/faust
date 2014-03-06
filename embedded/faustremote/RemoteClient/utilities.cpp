@@ -2,33 +2,28 @@
 
 #include "utilities.h"
 
-#include <QtGui>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets>
-#endif
-
 #include <unistd.h>
 #include <stdio.h>
 
 //Returns the content of a file passed in path
-string pathToContent(string path){
+string pathToContent(const string& path)
+{
+    ifstream file(path.c_str(), std::ifstream::binary);
     
-    QFile file(path.c_str());
-    string Content;
+    file.seekg (0, file.end);
+    int size = file.tellg();
+    file.seekg (0, file.beg);
     
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        //        printf("impossible to open content\n");
-        Content = "";
-        //        return Content;
-    }
-    while (!file.atEnd()) {
-        //        printf("Content read\n");
-        QByteArray line = file.readLine();
-        Content += line.data();
-    }
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
     
-    //    printf("CONTENT = %s\n", Content.c_str());
-    return Content;
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
 }
 
 //Verify if the word is a number
@@ -36,8 +31,8 @@ bool isStringInt(const char* word){
     
     bool returning = true;
     
-    for(size_t i=0; i<strlen(word); i++){
-        if(!isdigit(word[i])){
+    for (size_t i = 0; i < strlen(word); i++){
+        if (!isdigit(word[i])){
             returning = false;
             break;
         }

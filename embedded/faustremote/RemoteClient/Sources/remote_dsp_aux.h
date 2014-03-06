@@ -146,43 +146,46 @@ class remote_dsp_aux : public dsp{
     
 //    Command-line parsing fonction
         const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);  
-        
+    
     public:   
     
         remote_dsp_aux(remote_dsp_factory* factory);
         ~remote_dsp_aux();
     
-        virtual int     getNumInputs();
-        virtual int     getNumOutputs();
+        bool init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, int& error);
+    
+        void metadata(Meta* m);
+    
+        virtual int getNumInputs();
+        virtual int getNumOutputs();
 
-        virtual void    init(int samplingFreq);
+        virtual void init(int samplingFreq);
     
-        virtual void    buildUserInterface(UI* ui);
+        virtual void buildUserInterface(UI* ui);
     
-        virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-        bool            init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, int& error);
-    
-    
-        void        startAudio();
-        void        stopAudio();
+        virtual void startAudio();
+        virtual void stopAudio();
 };
     
 class EXPORT remote_dsp : public dsp{
     
 public: 
     
-    virtual int     getNumInputs();
-    virtual int     getNumOutputs();
+    void metadata(Meta* m);
     
-    virtual void    init(int samplingFreq);
+    virtual int getNumInputs();
+    virtual int getNumOutputs();
     
-    virtual void    buildUserInterface(UI* ui);
+    virtual void init(int samplingFreq);
     
-    virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    virtual void buildUserInterface(UI* ui);
     
-    void        startAudio();
-    void        stopAudio();
+    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+    virtual void startAudio();
+    virtual void stopAudio();
 };
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 

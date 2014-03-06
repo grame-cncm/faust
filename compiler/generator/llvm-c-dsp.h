@@ -233,6 +233,9 @@ bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, 
 /**
  * Instance class
 */
+    
+void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
+    
 int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 int getNumOutputsCDSPInstance(llvm_dsp* dsp);
