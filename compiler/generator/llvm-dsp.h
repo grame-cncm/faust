@@ -31,7 +31,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup llvmcpp C++ interface for compiling faust code
+ \addtogroup llvmcpp C++ interface for compiling Faust code
   @{
  */
 

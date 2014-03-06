@@ -36,7 +36,7 @@ extern "C"
 /* Opaque types */
 	
 /*!
- \addtogroup llvmc C interface for compiling faust code
+ \addtogroup llvmc C interface for compiling Faust code
  @{
 */
 
