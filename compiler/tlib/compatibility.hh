@@ -22,7 +22,8 @@
 #ifndef __COMPATIBILITY__
 #define __COMPATIBILITY__
 
-#define LLVM_BUILD (defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34))
+//#define LLVM_BUILD (defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34))
+#define LLVM_BUILD (LLVM_30 || LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34)
 
 #ifdef _WIN32
 #include <time.h>
@@ -69,6 +70,9 @@ char*   realpath(const char *path, char resolved_path[PATH_MAX]);
 #if (_MSC_VER<=1700)
 	double	remainder(double numerator, double denominator);
 #endif
+
+	/* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
+	double rint(double nr);
 	#define S_IRWXU 0
 #endif
 
@@ -87,16 +91,6 @@ char*   realpath(const char *path, char resolved_path[PATH_MAX]);
 #define FAUST_PATH_MAX 1024
 
 void getFaustPathname(char* str, unsigned int size);
-
-#if defined(WIN32) && ! defined(__MINGW32__)
-/* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
-inline double rint(double nr)
-{
-    double f = floor(nr);
-    double c = ceil(nr);
-    return (((c -nr) >= (nr - f)) ? f : c);
-}
-#endif
 
 #endif
 
