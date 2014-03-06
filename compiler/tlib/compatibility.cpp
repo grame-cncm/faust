@@ -123,15 +123,6 @@
 		wcstombs(str,wstr,size);
 	}
 
-    char *realpath(const char *path, char resolved_path[MAX_PATH])
-    {
-        if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
-            return resolved_path;
-        } else {
-            return "";
-        }
-    }
-
 #endif
 
 #if !defined(__MINGW32__)
@@ -179,6 +170,22 @@
         sh_u.parts.msw = (v);				\
         (d) = sh_u.value;					\
 	} while (0)
+
+	double rint(double nr){
+    double f = floor(nr);
+    double c = ceil(nr);
+    return (((c -nr) >= (nr - f)) ? f : c);
+	}
+
+	
+    char *realpath(const char *path, char resolved_path[MAX_PATH])
+    {
+        if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
+            return resolved_path;
+        } else {
+            return "";
+        }
+    }
 
 #endif
 
