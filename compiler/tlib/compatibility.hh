@@ -87,6 +87,16 @@ char*   realpath(const char *path, char resolved_path[MAX_PATH]);
 
 void getFaustPathname(char* str, unsigned int size);
 
+#if defined(WIN32) && ! defined(__MINGW32__)
+/* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
+inline double rint(double nr)
+{
+    double f = floor(nr);
+    double c = ceil(nr);
+    return (((c -nr) >= (nr - f)) ? f : c);
+}
+#endif
+
 #endif
 
 #endif

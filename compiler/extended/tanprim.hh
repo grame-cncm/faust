@@ -19,12 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-#include "xtended.hh"
-#include "Text.hh"
 #include <math.h>
 
+#include "xtended.hh"
+#include "Text.hh"
 #include "floats.hh"
-#include "code_container.hh"
 
 #ifndef  M_PI 
 #define M_PI 3.14159265358979323846

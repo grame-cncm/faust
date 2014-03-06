@@ -19,13 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
+#include <math.h>
+
 #include "xtended.hh"
 #include "compatibility.hh"
 #include "Text.hh"
-#include <math.h>
-
 #include "floats.hh"
-#include "code_container.hh"
 
 class RemainderPrim : public xtended
 {

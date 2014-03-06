@@ -22,29 +22,12 @@
 #ifndef __XTENDED__
 #define __XTENDED__
 
-// xtended
+#include <vector>
 #include "tlib.hh"
 #include "sigtype.hh"
 #include "sigvisitor.hh"
-#include <vector>
 #include "lateq.hh"
 #include "garbageable.hh"
-
-#if defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/IR/Value.h>
-#else
-#include <llvm/Value.h>
-#endif
-
-#if defined(LLVM_33) || defined(LLVM_34)
-#include <llvm/IR/IRBuilder.h>
-#elif LLVM_32
-#include <llvm/IRBuilder.h>
-#else
-#include <llvm/Support/IRBuilder.h>
-#endif
-
-typedef llvm::Value* LlvmValue;
 
 struct ValueInst;
 
@@ -78,11 +61,11 @@ class xtended : public virtual Garbageable {
 
     virtual ValueInst* 	generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type > const & types) = 0;
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
-	virtual int 	infereSigOrder (const vector<int>& args) = 0;
-	virtual ::Type 	infereSigType (const vector< ::Type>& args) = 0;
-	virtual Tree	computeSigOutput (const vector<Tree>& args) = 0;
-	virtual bool	needCache () = 0;
+	virtual string 	generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
+	virtual int 	infereSigOrder(const vector<int>& args) = 0;
+	virtual ::Type 	infereSigType(const vector< ::Type>& args) = 0;
+	virtual Tree	computeSigOutput(const vector<Tree>& args) = 0;
+	virtual bool	needCache() = 0;
 
     virtual bool    isSpecialInfix()    { return false; }   ///< generaly false, but true for binary op # such that #(x) == _#x
     
