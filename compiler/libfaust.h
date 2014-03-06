@@ -23,6 +23,7 @@
 #define __LIB_FAUST__
 
 #include <string.h>
+#include "export.hh"
 
 namespace llvm
 {
@@ -54,7 +55,7 @@ typedef struct LLVMResult {
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
  
-int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 
 /**
  * Compile a Faust program and produces an LLVM module.
@@ -68,13 +69,13 @@ int compile_faust(int argc, const char* argv[], const char* name, const char* in
  * @return a LLVMResult with a LLVM module and LLVM context on success, 0 otherwise, with an error message in error_msg.
  */
 
-LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
-std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
-llvm::Module* LoadModule(const std::string filename, llvm::LLVMContext* context);
+EXPORT llvm::Module* LoadModule(const std::string filename, llvm::LLVMContext* context);
 
-bool LinkModules(llvm::Module* dst, llvm::Module* src, char* error_message);
+EXPORT bool LinkModules(llvm::Module* dst, llvm::Module* src, char* error_message);
 
 #endif
 

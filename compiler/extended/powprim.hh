@@ -19,11 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
+#include <math.h>
+
 #include "xtended.hh"
 #include "Text.hh"
-#include <math.h>
 #include "floats.hh"
-#include "code_container.hh"
 
 class PowPrim : public xtended
 {
@@ -39,9 +39,7 @@ class PowPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == arity());
-        //return castInterval(floatCast(args[0]|args[1]), interval()); // temporary !!!
-        //return castInterval(args[0]|args[1], interval()); // temporary !!!
-        
+    
         interval i = args[0]->getInterval();
 		interval j = args[1]->getInterval();
 		return castInterval(args[0]|args[1], pow(i,j));
