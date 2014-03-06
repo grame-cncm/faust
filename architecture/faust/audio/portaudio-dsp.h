@@ -42,7 +42,7 @@
 #include <portaudio.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/audio/dsp-adapter.h"
 
 static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv);
 
