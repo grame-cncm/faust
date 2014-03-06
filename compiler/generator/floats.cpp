@@ -19,19 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-#include "floats.hh"
-#include "global.hh"
-
-#include <iostream>
-#include <sstream>
-
-#include <llvm/ADT/APFloat.h>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/StringExtras.h>
-
 #include <iostream>
 #include <sstream>
 #include <stdlib.h>
+
+#include "floats.hh"
+#include "global.hh"
 
 //-----------------------------------------------
 // float size coding :
