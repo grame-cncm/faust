@@ -3,6 +3,8 @@
 #include "faust/gui/ControlUI.h"
 #include "faust/llvm-dsp.h"
 
+#include <errno.h>
+
 // Standard Callback to store a server response in strinstream
 size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 {
@@ -810,22 +812,26 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     DNSServiceRef sd;
     
 //  Initialize DNSServiceREF && bind it to its callback
-    DNSServiceErrorType err = DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList);
     
-    if (err == kDNSServiceErr_NoError){
+    if (DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
         
 //      SELECT IS USED TO SET TIMEOUT  
 
         int fd = DNSServiceRefSockFD(sd);
-        int nfds = fd + 1;
-        struct timeval tv = { 0, 100000 };
+        int count = 10;
         
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(fd, &readfds);
-        
-        if (select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0 && FD_ISSET(fd, &readfds)) {
-            DNSServiceErrorType err = DNSServiceProcessResult(sd);
+        while (count-- > 0) {
+            
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(fd, &readfds);
+            struct timeval tv = { 0, 100000 };
+            
+            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
+                && FD_ISSET(fd, &readfds) 
+                && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
+                break;
+            }
         }
         
 //      Cleanup DNSService  
