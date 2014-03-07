@@ -37,7 +37,7 @@
 
 #include <dns_sd.h>
 
-#include "jack/net.h"
+#include <jack/net.h>
 #include <curl/curl.h>
 
 #include "JsonParser.h"

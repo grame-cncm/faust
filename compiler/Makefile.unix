@@ -1,57 +1,53 @@
 subprojects := . boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils ../libraries
 
-sources =  $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
+sources = $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
 
 objects = $(sources:.cpp=.o)
 os 	:= $(shell uname)
 
 VPATH = $(subprojects)
 
-system	?= $(shell uname -s)
+system ?= $(shell uname -s)
 
 ## On Darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
-ARCHFLAGS 	:=  -arch i386 -arch x86_64
-LIBFLAGS	:=
-CXX 		= clang++
-CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
-LIB_EXT     = dylib
-## --analyze   -Wall -pedantic
-#CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 
-LLVM_CONFIG = llvm-config
+    ARCHFLAGS 	:=  -arch i386 -arch x86_64
+    LIBFLAGS	:=
+    CXX 		= clang++
+    CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
+    LIB_EXT     = dylib
+    ## --analyze   -Wall -pedantic
+    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 
+    LLVM_CONFIG = llvm-config
 else 
-ARCHFLAGS 	:= 
-LIBFLAGS	:= --mode=link --tag=CXX
-LLVM_CONFIG = $(word 1,$(wildcard /usr/bin/llvm-config*))
-LIB_EXT     = so
+    ARCHFLAGS 	:= 
+    LIBFLAGS	:= --mode=link --tag=CXX
+    LLVM_CONFIG = $(word 1,$(wildcard /usr/bin/llvm-config*))
+    LIB_EXT     = so
 endif
 
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
-CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
-##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-
 ifeq ($(system), Darwin)
-LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++
+    LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++
 else
-LLVM_CLANG = clang++
+    LLVM_CLANG = clang++
 endif
 
 ifeq ($(LLVM_VERSION), 3.0)
-LLVM_VERSION = LLVM_30
+    LLVM_VERSION = LLVM_30
 endif
 
 ifeq ($(LLVM_VERSION), 3.1)
-LLVM_VERSION = LLVM_31
+    LLVM_VERSION = LLVM_31
 endif
 
 ifeq ($(LLVM_VERSION), 3.2)
-LLVM_VERSION = LLVM_32
+    LLVM_VERSION = LLVM_32
 endif
 
 ifeq ($(LLVM_VERSION), 3.3)
-LLVM_VERSION = LLVM_33
+    LLVM_VERSION = LLVM_33
 endif
 
 ifeq ($(LLVM_VERSION), 3.4)
@@ -66,17 +62,26 @@ CXXFLAGS += $(ARCHFLAGS)
 LLVMSHLIB = $(wildcard $(shell $(LLVM_CONFIG) --libdir)/libLLVM-$(shell $(LLVM_CONFIG) --version).$(LIB_EXT))
 
 ifeq ($(LLVMSHLIB),)
-LLVMLIBS = $(shell $(LLVM_CONFIG) --libs)
+    LLVMLIBS = $(shell $(LLVM_CONFIG) --libs)
 else
-LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
+    LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
 
 ifeq ($(system), Darwin)
-all : faust libfaust.a
-dynamic : faust libfaust.$(LIB_EXT)
+    all : faust libfaust.a
+    dynamic : faust libfaust.$(LIB_EXT)
 else
-all : faust libfaust.a
+    all : faust libfaust.a
 endif
+
+## On iOS, do not compile LLVM part
+ios: IPHONEOS_DEPLOYMENT_TARGET=5.0
+ios: CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
+ios: CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk
+ios: CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+ios: LLVM_VERSION =
+
+ios : libfaust.a
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
@@ -94,10 +99,10 @@ scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 
 ifeq ($(system), Darwin)
-libfaust.a : $(objects) libmain.o global.o
+    libfaust.a : $(objects) libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
 else	
-libfaust.a : $(objects) libmain.o global.o
+    libfaust.a : $(objects) libmain.o global.o
 	ar cq $@ $(objects) libmain.o global.o
 	ranlib $@
 endif
