@@ -65,11 +65,13 @@ class server_netjackaudio : public netjackaudio_midicontrol {
             }
         }
     
+        /*
         virtual int restart_cb()
         {
             printf("NetJack : restart_cb\n");
             return 0;
         }
+        */
 
 };
 
