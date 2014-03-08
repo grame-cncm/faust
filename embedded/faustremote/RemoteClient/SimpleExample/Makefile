@@ -24,9 +24,7 @@ LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs`  -L/usr/local
 
 first: all
 
-OBJECTS = utilities.o \
-			main.o \
-			moc_faustqt.o
+OBJECTS = utilities.o main.o moc_faustqt.o
 
 TARGET = ./RemoteClient
 
@@ -47,10 +45,10 @@ FORCE:
 moc_faustqt.o: moc_faustqt.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_faustqt.o moc_faustqt.cpp
 	
-utilities.o: ../utilities.cpp ../utilities.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../utilities.cpp
+utilities.o: ../../utilities.cpp ../../utilities.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../../utilities.cpp
 	
-main.o: main.cpp ../utilities.h
+main.o: main.cpp ../../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 moc_faustqt.cpp: /usr/local/include/faust/gui/faustqt.h

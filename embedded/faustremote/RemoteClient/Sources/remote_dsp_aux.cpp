@@ -448,7 +448,7 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
 
 void remote_dsp_aux::sendSlice(int buffer_size) {
     
-    if (jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
+    if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             fRunningFlag = (fErrorCallback(WRITE_ERROR, fErrorCallbackArg) == 0);
@@ -458,7 +458,7 @@ void remote_dsp_aux::sendSlice(int buffer_size) {
 
 void remote_dsp_aux::recvSlice(int buffer_size) {
     
-    if (jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+    if (fRunningFlag && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             fRunningFlag = (fErrorCallback(READ_ERROR, fErrorCallbackArg) == 0);

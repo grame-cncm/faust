@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include <iostream> 
+#include <fstream>
+
 //Returns the content of a file passed in path
 string pathToContent(const string& path)
 {
@@ -52,6 +55,13 @@ const char* loptions(char *argv[], const char *name, const char* def)
 	int	i;
 	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
 	return def;
+}
+
+bool isopt(char *argv[], const char *name)
+{
+	int	i;
+	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+	return false;
 }
 
 int lopt_Spe(int i, char *argv[], const char *name, char* path)
