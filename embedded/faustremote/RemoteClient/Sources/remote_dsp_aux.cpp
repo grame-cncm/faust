@@ -737,6 +737,11 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp){
     delete reinterpret_cast<remote_dsp_aux*>(dsp); 
 }
 
+EXPORT void remote_dsp::metadata(Meta* m)
+{
+    return reinterpret_cast<remote_dsp_aux*>(this)->metadata(m);
+}
+
 EXPORT int remote_dsp::getNumInputs()
 {
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumInputs();
