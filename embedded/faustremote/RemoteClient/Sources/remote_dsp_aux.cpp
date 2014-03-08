@@ -725,6 +725,9 @@ void remote_dsp_aux::startAudio(){
 
 //----------------------------------REMOTE DSP API-------------------------------------------
 
+EXPORT int remote_dsp_factory::numInputs(){return fNumInputs;}
+EXPORT int remote_dsp_factory::numOutputs(){return fNumOutputs;}
+
 //---------INSTANCES
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){

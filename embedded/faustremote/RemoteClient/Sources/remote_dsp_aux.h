@@ -70,7 +70,7 @@ class remote_dsp_aux;
 // Standard Callback to store a server response in strinstream
 static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp);
     
-class remote_dsp_factory{
+class EXPORT remote_dsp_factory{
     
 private:
     
@@ -98,8 +98,8 @@ public:
 //    ACCESSORS
     string              serverIP(){return fServerIP;}
     vector<itemInfo*>   itemList(){return fUiItems;}
-    int                 numInputs(){return fNumInputs;}
-    int                 numOutputs(){return fNumOutputs;}
+    int                 numInputs();
+    int                 numOutputs();
     string              key(){return fSHAKey;}
     
 };
