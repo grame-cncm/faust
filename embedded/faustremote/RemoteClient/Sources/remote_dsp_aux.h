@@ -145,7 +145,10 @@ class remote_dsp_aux : public dsp{
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
     
 //    Command-line parsing fonction
-        const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);  
+        const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);
+    
+        void sendSlice(int buffer_size);
+        void recvSlice(int buffer_size);
     
     public:   
     

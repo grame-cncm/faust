@@ -129,7 +129,7 @@ class remote_dsp : public dsp{
  * Prototype for DSP instance error callback.
  * @param error_code an error code (see "Possible error codes")
  * @param arg pointer to a client supplied structure given by createRemoteDSPInstance()
- * #return -1 error processed / 0 error not processed
+ * #return -1 to stop calling DSP 'compute', otherwise 0 to continue
  */
 typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 

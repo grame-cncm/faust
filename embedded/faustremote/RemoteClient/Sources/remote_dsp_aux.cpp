@@ -446,73 +446,58 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
     }
 }
 
+void remote_dsp_aux::sendSlice(int buffer_size) {
+    
+    if (jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
+        fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
+        if (fErrorCallback) {
+            fRunningFlag = (fErrorCallback(WRITE_ERROR, fErrorCallbackArg) == 0);
+        }
+    }
+}
+
+void remote_dsp_aux::recvSlice(int buffer_size) {
+    
+    if (jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+        fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
+        if (fErrorCallback) {
+            fRunningFlag = (fErrorCallback(READ_ERROR, fErrorCallbackArg) == 0);
+        }
+    }
+}
+
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
-//    printf("remote_dsp_aux::compute = %p\n", this);
-    
-    if(fRunningFlag){
+    if (fRunningFlag) {
+        
+        // If count > fBufferSize : the cycle is divided in numberOfCycles NetJack cycles, and a lastCycle one
         
         int numberOfCycles = count/fBufferSize;
         int lastCycle = count%fBufferSize;
-        int res;
         
-        // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
         int i = 0;
         
-        for (i=0; i<numberOfCycles; i++) {
+        for (i = 0; i < numberOfCycles; i++) {
             
-            int offset = i*fBufferSize;
-            setupBuffers(input, output, offset);
-            
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-            
-            if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
-                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
-                        fRunningFlag = false;
-                }
-            }
-            if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
-                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
-                    fRunningFlag = false;
-                }
-            }
-            
+            sendSlice(fBufferSize);
+            recvSlice(fBufferSize);
             ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
         
         if (lastCycle > 0) {
             
-            int offset = i*fBufferSize;
-            setupBuffers(input, output, offset);
-            
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-            
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
-            
-            if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
-                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
-                        fRunningFlag = false;
-                }
-            }
-            if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
-                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
-                        fRunningFlag = false;
-                }
-            }
-            
+            sendSlice(lastCycle);
+            recvSlice(lastCycle);
             ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
-    }
-    else{
+        
+    } else {
         fillBufferWithZerosOffset(getNumOutputs(), 0, count, output);
     }
 }
