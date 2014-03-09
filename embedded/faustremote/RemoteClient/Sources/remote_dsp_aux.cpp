@@ -546,6 +546,10 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     memset(fControlInputs[0], 0, sizeof(float)*8192);
     memset(fControlOutputs[0], 0, sizeof(float)*8192);
     
+    // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
+    ControlUI dummy_ui;
+    buildUserInterface(&dummy_ui);
+    
     bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
     
     const char* port = getValueFromKey(argc, argv, "--NJ_port", "19000");
