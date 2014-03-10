@@ -20,6 +20,7 @@
 #include <pthread.h>
 
 #include <map>
+#include <vector>
 
 #include <dns_sd.h>
 
@@ -90,11 +91,11 @@ struct connection_info_struct {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string              fNameApp;
     string              fFaustCode;
-    int                 fNumCompilOptions;
-    int                 fIndicator;
-    string*             fCompilationOptions;
+//    int                 fNumCompilOptions;
+//    int                 fIndicator;
+    vector<string>      fCompilationOptions;
     string              fOpt_level;
-    const char**        fCharCompilationOptions;
+//    const char**        fCharCompilationOptions;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
@@ -110,7 +111,6 @@ struct connection_info_struct {
     void init(){
         
         fFaustCode = "";
-        fNumCompilOptions = 0;
         fOpt_level = "";
         
         fIP = "";
@@ -139,13 +139,14 @@ struct slave_dsp_factory{
     
     bool                delete_Factory();
     slave_dsp_factory*  clone();
-    bool                init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey,  string& answer);
+    bool                init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& answer);
     string              getJson(const string& factoryKey);
     
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, int factoryIndex,  string& answer);
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& answer);
+
 void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
     
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
@@ -177,7 +178,6 @@ struct slave_dsp{
     
     
     bool start_audio();
-    
     void stop_audio();
     
     string  key(){return fInstanceKey;}
@@ -261,10 +261,10 @@ public :
     /* Reorganizes the compilation options
      * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
      */
-    void   reorganizeCompilationOptions(string* options, int& numOptions, char**);
-    void    addKeyValueIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultValue, int& iterator);
-    bool    addKeyIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultKey, int& position, int& iterator);
-    bool    parseKey(int numOptions, string* options, const string& key, int& position);
+    vector<string>   reorganizeCompilationOptions(const vector<string>& options);
+    void            addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
+    bool            addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey);
+    bool            parseKey(vector<string> options, const string& key, int& position);
     
 // Register Service as Available
     void        registration();

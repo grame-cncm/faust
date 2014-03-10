@@ -11,6 +11,72 @@ size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
     return (os->write(static_cast<char*>(buf), len)) ? len : 0;
 }
 
+//Returns true if no problem encountered
+//The response string stores the data received 
+//         (can be error or real data... depending on return value)
+//The errorCode stores the error encoded as INT
+static bool send_request(const string& ip, const string& finalRequest, string& response, int& errorCode){
+
+    CURL *curl = curl_easy_init();
+    
+    bool isInitSuccessfull = false;
+    
+    if (curl) {
+        
+        std::ostringstream oss;
+        
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
+        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        if(res != CURLE_OK)
+            errorCode = ERROR_CURL_CONNECTION;
+        else{
+            
+            long respcode; //response code of the http transaction
+            
+            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
+            
+            if(respcode == 200){
+                response = oss.str();
+                isInitSuccessfull = true;
+            }
+            else if(respcode == 400){
+                
+//                Is String Int ?
+                bool isStringInt = true;
+                   
+                const char* intermediateString = oss.str().c_str();
+                
+                for(size_t i=0; i<strlen(intermediateString); i++){
+                    if(!isdigit(intermediateString[i])){
+                        isStringInt = false;
+                        break;
+                    }
+                }
+                
+                if(isStringInt)
+                    errorCode = atoi(intermediateString);
+                else
+                    response = oss.str();
+            }
+        }
+        
+        curl_easy_cleanup(curl);
+    }
+    else
+        errorCode = ERROR_CURL_CONNECTION;
+    
+    return isInitSuccessfull;
+}
+
 //------------------FACTORY
 
 // Init remote dsp factory sends a POST request to a remote server
@@ -70,39 +136,17 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         
         printf("ip = %s\n", ip.c_str());
         
-        
-        
-// Connection Setups
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) (finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        
-        std::ostringstream oss;
-        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-//        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK) {
-            error =  curl_easy_strerror(res);
-        } else {        
-            
-            //Response code of the http transaction
-            long respcode;
-            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-            
-            if(respcode == 200){
-                decodeJson(oss.str());
-                isInitSuccessfull = true;
-            }
-            else if(respcode == 400)
-                error = oss.str();
+        string response("");
+        int errorCode = -1;
+        if(send_request(ip, finalRequest, response, errorCode)){
+            decodeJson(response);
+            isInitSuccessfull = true;
         }
+        else if(errorCode != -1){
+            error = "Curl Connection Failed";
+        }
+        else
+            error = response;
         
         curl_easy_cleanup(curl); //Standard CleanUp
     }
@@ -115,28 +159,17 @@ void remote_dsp_factory::stop(){
     
     CURL *curl = curl_easy_init();
     
-    if (curl) {
+    printf("fIndex = %s\n", fSHAKey.c_str());
+    printf("fIP = %s\n", fServerIP.c_str());
         
-        printf("fIndex = %s\n", fSHAKey.c_str());
-        printf("fIP = %s\n", fServerIP.c_str());
+    // The index of the factory to delete has to be sent
+    string finalRequest = string("factoryKey=") + fSHAKey;
+    string ip = fServerIP + string("/DeleteFactory");
         
-        // The index of the factory to delete has to be sent
-        string finalRequest = string("factoryKey=") + fSHAKey;
-        string ip = fServerIP + string("/DeleteFactory");
-        
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK)
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        
-        curl_easy_cleanup(curl);
+    string response("");
+    int errorCode;
+    if(!send_request(ip, finalRequest, response, errorCode)){
+        printf("curl_easy_perform() failed: %s\n", response.c_str());
     }
 }
 
@@ -588,132 +621,70 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     
     //printf("finalRequest = %s\n", finalRequest.c_str());
     
-//  Curl Connection setup
-    CURL *curl = curl_easy_init();
-    
-    bool isInitSuccessfull = false;
-    
-    if (curl) {
+    int isInitSuccessfull = -1;
         
-        string ip = fFactory->serverIP();
-        ip += "/CreateInstance";
+    string ip = fFactory->serverIP();
+    ip += "/CreateInstance";
         
-        std::ostringstream oss;
+    string response("");
+    int errorCode = -1;
+
+//              OPEN NET JACK CONNECTION
+    if(send_request(ip, finalRequest, response, errorCode)){
+        printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
         
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(samplingFreq), "test_master", 5, partial_cycle};
+        jack_slave_t result;
+        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
         
-        CURLcode res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK)
-            error = ERROR_CURL_CONNECTION;
-        else{
-            
-            long respcode; //response code of the http transaction
-            
-            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-            
-            if(respcode == 200){
-                
-                //              OPEN NET JACK CONNECTION
-                
-                printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
-                
-                jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(samplingFreq), "test_master", 5, partial_cycle};
-                jack_slave_t result;
-                fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
-                
-                if(fNetJack)
-                    isInitSuccessfull = true;
-                else
-                    error = ERROR_NETJACK_NOTSTARTED;
-            }
-            else if(respcode == 400)
-                error = atoi(oss.str().c_str());
-        }
-        
-        curl_easy_cleanup(curl);
+        if(fNetJack)
+            isInitSuccessfull = true;
+        else
+            error = ERROR_NETJACK_NOTSTARTED;
     }
     else
-        error = ERROR_CURL_CONNECTION;
+        error = errorCode;
     
     printf("remote_dsp_aux::init = %p || inputs = %i || outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
     
     return isInitSuccessfull;
 }                        
 
-//bool sendRequest(){
-//    
-//}
-
-
 void remote_dsp_aux::stopAudio(){
-//  Curl Connection setup
-    CURL *curl = curl_easy_init();
+
+    string finalRequest = "instanceKey=";
+    stringstream s;
+    s<<this;
     
-    if (curl) {
-        
-        string finalRequest = "instanceKey=";
-        stringstream s;
-        s<<this;
-        
-        finalRequest += s.str();
-        
-        printf("REQUEST = %s\n", finalRequest.c_str());
-        
-        string ip = fFactory->serverIP();
-        ip += "/StopAudio";
-        
-        std::ostringstream oss;
-        
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        curl_easy_cleanup(curl);
-    }
+    finalRequest += s.str();
+    
+    printf("REQUEST = %s\n", finalRequest.c_str());
+    
+    string ip = fFactory->serverIP();
+    ip += "/StopAudio";
+    
+    string response("");
+    int errorCode;
+    send_request(ip, finalRequest, response, errorCode);
 }
 
 void remote_dsp_aux::startAudio(){
-    //  Curl Connection setup
-    CURL *curl = curl_easy_init();
+
+    string finalRequest = "instanceKey=";
     
-    if (curl) {
-        
-        string finalRequest = "instanceKey=";
-        
-        stringstream s;
-        s<<this;
-        
-        finalRequest += s.str();
-        
-        printf("REQUEST = %s\n", finalRequest.c_str());
-        
-        string ip = fFactory->serverIP();
-        ip += "/StartAudio";
+    stringstream s;
+    s<<this;
     
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        curl_easy_cleanup(curl);
-    }
+    finalRequest += s.str();
+    
+    printf("REQUEST = %s\n", finalRequest.c_str());
+    
+    string ip = fFactory->serverIP();
+    ip += "/StartAudio";
+    
+    string response("");
+    int errorCode;
+    send_request(ip, finalRequest, response, errorCode);
 }
 
 //----------------------------------REMOTE DSP API-------------------------------------------

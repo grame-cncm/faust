@@ -70,6 +70,8 @@ class remote_dsp_aux;
 // Standard Callback to store a server response in strinstream
 static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp);
     
+static CURLcode send_request(CURL* curl, const string& ipadd, const string& request, string& response);
+    
 class remote_dsp_factory{
     
 private:

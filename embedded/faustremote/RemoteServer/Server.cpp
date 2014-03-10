@@ -40,11 +40,11 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, factoryKey, answer))
+    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, answer))
         return newFactory;
     else
         return NULL;
@@ -84,26 +84,21 @@ string slave_dsp_factory::getJson(const string& factoryKey){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string factoryKey, string& answer){
+bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& error){
     
     printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
 
     for(int i=0; i<argc; i++)
         printf("argv = %s\n", argv[i]);
     
-    string error_msg;
+    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", error, opt_level);
     
-    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", error_msg, opt_level);
+    printf("%s\n", error.c_str());
     
-    printf("%s\n", error_msg.c_str());
-    
-    if(fLLVMFactory){
-        answer = getJson(factoryKey);
+    if(fLLVMFactory)
         return true;
-    } else {
-        answer = error_msg;
+    else
         return false;
-    }
 }
 
 // "Smart" Desallocation of factory depending on its running instances
@@ -208,7 +203,8 @@ void Server::stop(){
         nameService = searchIP();
         nameService += ".RemoteProcessing";
         
-        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL );
+//        Is it really important to unregister or is it automaticall ?
+//        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL );
         DNSServiceRefDeallocate(*fRegistrationService);
         MHD_stop_daemon(fDaemon);
     }
@@ -223,6 +219,8 @@ void* Server::start_audioSlave(void *arg ){
     
     if(dspToStart->fServer->fLocker.Lock()){
         
+        bool success = false;
+        
         dspToStart->fAudio = new server_netjackaudio(atoi(dspToStart->fCV.c_str()), 
                                                       dspToStart->fIP, 
                                                       atoi(dspToStart->fPort.c_str()), 
@@ -235,11 +233,15 @@ void* Server::start_audioSlave(void *arg ){
             else{
                 printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fDSP->getNumInputs(), dspToStart->fDSP->getNumOutputs());
                 dspToStart->fServer->fRunningDsp.push_back(dspToStart);
+                success = true;
             }
         }
         else
             printf("Init slave audio failed\n");
         
+        if(!success)
+            deleteSlaveDSPInstance(dspToStart);
+            
         dspToStart->fServer->fLocker.Unlock();
     }
     return NULL;
@@ -347,7 +349,7 @@ int Server::answer_get(MHD_Connection* connection){
     
     return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
 }
-    
+
 // Response to all POST request
 // 3 requests are correct : 
 // - /GetJson --> Receive faust code / Compile Data / Send back jsonInterface
@@ -375,8 +377,9 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
         }
         else if(strcmp(url, "/CreateInstance") == 0){
             
-            if(createInstance(con_info))
-                return send_page(connection, "", 0, MHD_HTTP_OK, "text/html"); 
+            if(createInstance(con_info)){
+                return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
+            }
             else{
                 return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
@@ -449,24 +452,9 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         
         if(strcmp(key,"instanceKey") == 0)
             con_info->fInstanceKey = data;
-
-        if(strcmp(key,"number_options") == 0){
-            
-            printf("num_options = %s\n", data);
-            
-            con_info->fNumCompilOptions = atoi(data);
-            con_info->fCompilationOptions = new string[con_info->fNumCompilOptions];
-            con_info->fIndicator = 0;
-        }
-        if(strcmp(key,"options") == 0){
-            
-//            printf("con_info Indicator = %i || %i\n", con_info->fIndicator, con_info->fNumCompilOptions);
-            if(con_info->fNumCompilOptions != 0){
-                con_info->fCompilationOptions[con_info->fIndicator] = data;
-                printf("COMPILATION OPTIONS = %s\n", data);
-                con_info->fIndicator++;
-            }
-        }
+        
+        if(strcmp(key,"options") == 0)
+                con_info->fCompilationOptions.push_back(string(data));
         
         if(strcmp(key,"opt_level") == 0)
             con_info->fOpt_level = data;
@@ -491,12 +479,6 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
         
         if (NULL != con_info->fPostprocessor)
             MHD_destroy_post_processor(con_info->fPostprocessor);
-        if(con_info->fNumCompilOptions != 0){
-            for(int i =0; i<con_info->fNumCompilOptions; i++)
-                delete con_info->fCharCompilationOptions[i];
-            
-            delete[] con_info->fCharCompilationOptions;
-        }
     }
     
     delete con_info;
@@ -534,52 +516,43 @@ void Server::stopAudio(const string& shakey){
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-//    const char* compilationOptions[con_info->fNumCompilOptions];
-//    
-//    for(int i=0; i<con_info->fNumCompilOptions; i++)
-//        compilationOptions[i] = con_info->fCompilationOptions[i].c_str();
+//    Sort out compilation options
+    vector<string> newOptions = reorganizeCompilationOptions(con_info->fCompilationOptions);
     
-    int newNumber = con_info->fNumCompilOptions+5;
+    int numOptions = newOptions.size();
     
-    char** newoptions = new char*[newNumber];
+    const char* newoptions[numOptions];
     
-    reorganizeCompilationOptions(con_info->fCompilationOptions, con_info->fNumCompilOptions, newoptions);
+    for(int i=0; i<numOptions; i++){
+        newoptions[i] = newOptions[i].c_str();
+    }
     
-    con_info->fCharCompilationOptions = (const char**) newoptions;
-    
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, con_info->fNumCompilOptions, con_info->fCharCompilationOptions, con_info->fOpt_level);
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, numOptions, newoptions, con_info->fOpt_level);
     
     if(!structure.exitstatus){
         
         string factoryKey = structure.str;
         slave_dsp_factory* realFactory;
         
-        bool alreadyCompiled = false;
-        
+//        Recycle factory if it is already compiled
         realFactory = fAvailableFactories[factoryKey];
         
         printf("Server::compile_Data SHAKEY = %s\n", factoryKey.c_str());
         
-        if(realFactory != NULL)
-            alreadyCompiled = true;
-        
-        if(!alreadyCompiled){
+        if(realFactory == NULL){
             
-            realFactory = createSlaveDSPFactory(con_info->fNumCompilOptions, con_info->fCharCompilationOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), factoryKey, con_info->fAnswerstring);
+            realFactory = createSlaveDSPFactory(numOptions, newoptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), con_info->fAnswerstring);
             
-            if(realFactory){
-                
+            if(realFactory)
                 fAvailableFactories[factoryKey] = realFactory;
-                return true;
-            }
             else
                 return false;
         }  
-        else{
-            con_info->fAnswerstring = realFactory->getJson(factoryKey);
-            return true;
-        }
-    } 
+        
+//        Once the factory is compiled, the json is stored as answerstring
+        con_info->fAnswerstring = realFactory->getJson(factoryKey);
+        return true;
+    }
     else{
         con_info->fAnswerstring = "Impossible to generate SHA1 key";
         return false;
@@ -594,6 +567,8 @@ bool Server::createInstance(connection_info_struct* con_info){
     slave_dsp_factory* realFactory = fAvailableFactories[con_info->fSHAKey.c_str()];
     
     if(realFactory != NULL){
+        
+        printf("Instance\n");
         
         slave_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCV, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
         
@@ -709,9 +684,9 @@ string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, c
 }
 
 //Look for 'key' in 'options' and modify the parameter 'position' if found
-bool Server::parseKey(int numOptions, string* options, const string& key, int& position){
+bool Server::parseKey(vector<string> options, const string& key, int& position){
     
-    for(int i=0; i<numOptions; i++){
+    for(int i=0; i<options.size(); i++){
         
         if(key.compare(options[i]) == 0){
             position = i;
@@ -724,93 +699,77 @@ bool Server::parseKey(int numOptions, string* options, const string& key, int& p
 
 //Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
 //#return true if 'key' was added
-bool Server::addKeyIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultKey, int& position, int& iterator){
+bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey){
     
-    if(parseKey(numOptions, options, key, position)){
-        
-        newoptions[iterator] = new char[options[position].length()+1];
-        
-        strcpy(newoptions[iterator],options[position].c_str());
-        iterator++;
+    int position = 0;
+    
+    if(parseKey(options, key, position)){        
+        newoptions.push_back(options[position]);
         return true;
     }
-    else if(defaultKey.compare("") != 0){
-        newoptions[iterator] = new char[defaultKey.length()+1];
-        strcpy(newoptions[iterator],defaultKey.c_str());
-        iterator++;
-    }
+    else if(defaultKey.compare("") != 0)
+        newoptions.push_back(defaultKey);
 
     return false;
 }
 
 //Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-void Server::addKeyValueIfExisting(int numOptions, string* options, char** newoptions, const string& key, const string& defaultValue, int& iterator){
+void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue){
     
     int position = 0;
     
-    if(addKeyIfExisting(numOptions, options, newoptions, key, "", position, iterator)){
+    if(addKeyIfExisting(options, newoptions, key, "")){
         
-        if(position+1<numOptions && options[position+1].find("-") == string::npos){
-            
-            newoptions[iterator] = new char[options[position+1].length()+1];
-            
-            strcpy(newoptions[iterator],options[position+1].c_str());
-        }
-        else{
-            newoptions[iterator] = new char[defaultValue.length()+1];
-            strcpy(newoptions[iterator],defaultValue.c_str());
-        }
-        iterator++;
+        if(position+1<options.size() && options[position+1].find("-") == string::npos)
+            newoptions.push_back(options[position+1]);
+        
+        else
+            newoptions.push_back(defaultValue);
     }
 }
 
 /* Reorganizes the compilation options
  * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
  */
-void Server::reorganizeCompilationOptions(string* options, int& numOptions, char** newoptions){
-
-
-    int iterator = 0;
-    int position = 0;
+vector<string> Server::reorganizeCompilationOptions(const vector<string>& options){
     
     bool vectorize = false;
     
+    vector<string> newoptions;
+    
 //------STEP 1
     
-    addKeyIfExisting(numOptions, options, newoptions, "-double", "-single", position, iterator);
+    addKeyIfExisting(options, newoptions, "-double", "-single");
 
 //------STEP 2
-    if(addKeyIfExisting(numOptions, options, newoptions, "-sch", "", position, iterator))
+    if(addKeyIfExisting(options, newoptions, "-sch", ""))
         vectorize = true;
         
-    if(addKeyIfExisting(numOptions, options, newoptions, "-omp", "", position, iterator)){
+    if(addKeyIfExisting(options, newoptions, "-omp", "")){
         vectorize = true;
-        addKeyIfExisting(numOptions, options, newoptions, "-pl", "", position, iterator);
+        addKeyIfExisting(options, newoptions, "-pl", "");
     }
     
-    if(vectorize){
-        newoptions[iterator] = "-vec";
-        iterator++;
-    }
+    if(vectorize)
+        newoptions.push_back("-vec");
+    
 //------STEP3
-    if(vectorize || addKeyIfExisting(numOptions, options, newoptions, "-vec", "", position, iterator)){
+    if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "")){
 
-        addKeyIfExisting(numOptions, options, newoptions, "-dfs", "", position, iterator);
-        addKeyIfExisting(numOptions, options, newoptions, "-vls", "", position, iterator);
-        addKeyIfExisting(numOptions, options, newoptions, "-fun", "", position, iterator);
-        addKeyIfExisting(numOptions, options, newoptions, "-g", "", position, iterator);
-        addKeyValueIfExisting(numOptions, options, newoptions, "-vs", "32", iterator);
-        addKeyValueIfExisting(numOptions, options, newoptions, "-lv", "0", iterator);
+        addKeyIfExisting(options, newoptions, "-dfs", "");
+        addKeyIfExisting(options, newoptions, "-vls", "");
+        addKeyIfExisting(options, newoptions, "-fun", "");
+        addKeyIfExisting(options, newoptions, "-g", "");
+        addKeyValueIfExisting(options, newoptions, "-vs", "32");
+        addKeyValueIfExisting(options, newoptions, "-lv", "0");
     }
     else{
-        addKeyIfExisting(numOptions, options, newoptions, "-scal", "-scal", position, iterator);
+        addKeyIfExisting(options, newoptions, "-scal", "-scal");
     }
     
-    addKeyIfExisting(numOptions, options, newoptions, "-mcd", "", position, iterator);
+    addKeyIfExisting(options, newoptions, "-mcd", "");
     
-    numOptions = iterator;
-
-    delete[] options;
+    return newoptions;
 }
 
 
