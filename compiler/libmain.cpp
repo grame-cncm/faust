@@ -57,17 +57,19 @@
 #include "java_code_container.hh"
 #include "js_code_container.hh"
 #include "asmjs_code_container.hh"
+#if LLVM_BUILD
 #include "llvm_code_container.hh"
+#endif
 #include "fir_code_container.hh"
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
 #include "ppsig.hh"
 #include "garbageable.hh"
-#include "export.hh"
+#include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION "2.0.a16"
+#define FAUSTVERSION "2.0.a17"
 
 using namespace std;
 

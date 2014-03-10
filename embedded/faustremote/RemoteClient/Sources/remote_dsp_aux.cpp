@@ -3,6 +3,8 @@
 #include "faust/gui/ControlUI.h"
 #include "faust/llvm-dsp.h"
 
+#include <errno.h>
+
 // Standard Callback to store a server response in strinstream
 size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 {
@@ -477,75 +479,65 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
     }
 }
 
+void remote_dsp_aux::sendSlice(int buffer_size) {
+    
+    if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
+        fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
+        if (fErrorCallback) {
+            fRunningFlag = (fErrorCallback(WRITE_ERROR, fErrorCallbackArg) == 0);
+        }
+    }
+}
+
+void remote_dsp_aux::recvSlice(int buffer_size) {
+    
+    if (fRunningFlag && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+        fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
+        if (fErrorCallback) {
+            fRunningFlag = (fErrorCallback(READ_ERROR, fErrorCallbackArg) == 0);
+        }
+    }
+}
+
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
-//    printf("remote_dsp_aux::compute = %p\n", this);
-    
-    if(fRunningFlag){
+    if (fRunningFlag) {
+        
+        // If count > fBufferSize : the cycle is divided in numberOfCycles NetJack cycles, and a lastCycle one
         
         int numberOfCycles = count/fBufferSize;
         int lastCycle = count%fBufferSize;
-        int res;
         
-        // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
         int i = 0;
         
-        for (i=0; i<numberOfCycles; i++) {
+        for (i = 0; i < numberOfCycles; i++) {
             
-            int offset = i*fBufferSize;
-            setupBuffers(input, output, offset);
-            
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-            
-            if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
-                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
-                        fRunningFlag = false;
-                }
-            }
-            if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
-                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
-                    fRunningFlag = false;
-                }
-            }
-            
+            sendSlice(fBufferSize);
+            recvSlice(fBufferSize);
             ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
         
         if (lastCycle > 0) {
             
-            int offset = i*fBufferSize;
-            setupBuffers(input, output, offset);
-            
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-            
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
-            
-            if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
-                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
-                        fRunningFlag = false;
-                }
-            }
-            if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
-                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
-                        fRunningFlag = false;
-                }
-            }
-            
+            sendSlice(lastCycle);
+            recvSlice(lastCycle);
             ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
-    }
-    else{
+        
+    } else {
         fillBufferWithZerosOffset(getNumOutputs(), 0, count, output);
     }
+}
+
+void remote_dsp_aux::metadata(Meta* m){ 
+    
+    fFactory->metadataRemoteDSPFactory(m);
 }
 
 // Accessors to number of input/output of DSP
@@ -586,6 +578,10 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     
     memset(fControlInputs[0], 0, sizeof(float)*8192);
     memset(fControlOutputs[0], 0, sizeof(float)*8192);
+    
+    // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
+    ControlUI dummy_ui;
+    buildUserInterface(&dummy_ui);
     
     bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
     
@@ -689,6 +685,9 @@ void remote_dsp_aux::startAudio(){
 
 //----------------------------------REMOTE DSP API-------------------------------------------
 
+EXPORT int remote_dsp_factory::numInputs(){return fNumInputs;}
+EXPORT int remote_dsp_factory::numOutputs(){return fNumOutputs;}
+
 //---------INSTANCES
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
@@ -699,6 +698,11 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp){
     
     delete reinterpret_cast<remote_dsp_aux*>(dsp); 
+}
+
+EXPORT void remote_dsp::metadata(Meta* m)
+{
+    return reinterpret_cast<remote_dsp_aux*>(this)->metadata(m);
 }
 
 EXPORT int remote_dsp::getNumInputs()
@@ -776,22 +780,26 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     DNSServiceRef sd;
     
 //  Initialize DNSServiceREF && bind it to its callback
-    DNSServiceErrorType err = DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList);
     
-    if (err == kDNSServiceErr_NoError){
+    if (DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
         
 //      SELECT IS USED TO SET TIMEOUT  
 
         int fd = DNSServiceRefSockFD(sd);
-        int nfds = fd + 1;
-        struct timeval tv = { 0, 100000 };
+        int count = 10;
         
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(fd, &readfds);
-        
-        if (select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0 && FD_ISSET(fd, &readfds)) {
-            DNSServiceErrorType err = DNSServiceProcessResult(sd);
+        while (count-- > 0) {
+            
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(fd, &readfds);
+            struct timeval tv = { 0, 100000 };
+            
+            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
+                && FD_ISSET(fd, &readfds) 
+                && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
+                break;
+            }
         }
         
 //      Cleanup DNSService  

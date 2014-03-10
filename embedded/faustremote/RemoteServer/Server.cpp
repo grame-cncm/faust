@@ -204,7 +204,7 @@ void Server::stop(){
         nameService += ".RemoteProcessing";
         
 //        Is it really important to unregister or is it automaticall ?
-//        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL );
+        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL);
         DNSServiceRefDeallocate(*fRegistrationService);
         MHD_stop_daemon(fDaemon);
     }
@@ -636,7 +636,7 @@ void Server::registration(){
     nameService += "._";
     nameService += host_name;
     
-    if(DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL ) != kDNSServiceErr_NoError)
+    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError)
         printf("ERROR DURING REGISTRATION\n");
 }
 

@@ -66,10 +66,14 @@ class server_netjackaudio : public netjackaudio_midicontrol {
             }
         }
     
-//        virtual int restart_cb()
-//        {
-//            return -1;
-//        }
+        /*
+        virtual int restart_cb()
+        {
+            printf("NetJack : restart_cb\n");
+            return 0;
+        }
+        */
+
 };
 
 //Structure for SHA-1 responses
