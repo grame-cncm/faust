@@ -315,7 +315,7 @@ the first rule will always match and the second rule will never be called.
 Despite its textual syntax, \faust is conceptually a block-diagram language. \faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally \faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
 
 \begin{rail}
-expression : diagram | numerical | time | lexical | foreign | lambda;
+expression : diagram | insouts | numerical | time | lexical | foreign | lambda;
 \end{rail}
   
 \subsection{Diagram Expressions}
@@ -450,6 +450,29 @@ The inputs of the resulting block diagram are the remaining unconnected inputs o
 \label{figure:rec1}
 \end{figure}
 
+\subsubsection{Inputs and outputs of an expression}
+These two constructions can be used to know at compile time the number of inputs and outputs of any Faust expression. 
+
+\begin{rail}
+insouts: "inputs" '(' expression ')'
+       | "outputs" '(' expression ')';
+\end{rail}
+
+They are useful to define high order functions and build algorithmically complex block-diagrams. Here is an example to automatically reverse the order of the outputs of an expression.
+
+\begin{lstlisting}
+Xo(expr) = expr <: par(i,n,selector(n-i-1,n)) 
+		 with { n=outputs(expr); };
+\end{lstlisting}
+
+And the inputs of an expression :
+
+\begin{lstlisting}
+Xi(expr) = bus(n) <: par(i,n,selector(n-i-1,n)) : expr 
+		 with { n=inputs(expr); };
+\end{lstlisting}
+
+For example \lstinline'Xi(-)' will reverse the order of the two inputs of the substraction.
 
 
 
@@ -509,6 +532,10 @@ process  =	seq(i, 10,
 numiter : expression;
 \end{rail}
 The number of iterations must be a constant expression. 
+
+
+
+
 
 
 \subsection{Numerical Expressions}
@@ -984,6 +1011,17 @@ Please note that patterns are evaluated before the pattern matching operation. T
 \label{primitives}
 The primitive signal processing operations represent the built-in functionalities of \faust, that is the atomic operations on signals provided by the language. All these primitives denote \emph{signal processors}, functions transforming \emph{input signals} into \emph{output signals}.
 
+  \begin{rail}
+  primitive : number
+  			| waveform
+			| cprimitive
+			| mathprimitive
+			| delayandtables
+			| uielements
+			;
+  \end{rail}
+
+
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Numbers}
 %--------------------------------------------------------------------------------------------------------------
@@ -1011,6 +1049,29 @@ Like any other \faust expression, numbers are signal processors. For example the
 %\hline
 
 %\end{tabular}
+
+
+%--------------------------------------------------------------------------------------------------------------
+\subsection{Waveforms}
+%--------------------------------------------------------------------------------------------------------------
+
+A waveform is a fixed periodic signal defined by a list of samples. A waveform has two outputs. The first output is constant and indicates the size (number of samples) of the period. The second output is the periodic signal itself. 
+
+
+  \begin{rail}
+  waveform : "waveform" lbrace (number + ',') rbrace;
+  \end{rail}
+
+For example \lstinline'waveform {0,1,2,3}' produces two outputs, the constant signal 4 and the periodic signal \lstinline'0,1,2,3,0,1,2,3,0,1'\ldots. 
+
+Please note that \lstinline'waveform' works nicely with \lstinline'rdtable'. Its first output, known at compile time, gives the size of the table, while the second signal gives the content of the table. Here is an example:
+\begin{lstlisting}
+process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
+\end{lstlisting}
+
+
+\bigskip
+
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{C-equivalent primitives}

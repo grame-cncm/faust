@@ -47,6 +47,10 @@ Tree sigReal(double n);
 bool  isSigInt(Tree t, int* i);
 bool  isSigReal(Tree t, double* r);
 
+// waveforms
+
+Tree sigWaveform (const tvec& wf);
+bool isSigWaveform(Tree s);
 
 // Inputs and outputs
 Tree sigInput(int i);

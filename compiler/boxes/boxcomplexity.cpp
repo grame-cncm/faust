@@ -103,7 +103,9 @@ int computeBoxComplexity (Tree box)
 	// simple elements 
 		 if (xt) 						return 1;
 	else if (isBoxInt(box, &i))			return 1; 
-	else if (isBoxReal(box, &r))		return 1; 
+    else if (isBoxReal(box, &r))		return 1;
+
+    else if (isBoxWaveform(box))        return 1;
 
 	else if (isBoxCut(box))				return 0; 
 	else if (isBoxWire(box))			return 0; 

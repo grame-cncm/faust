@@ -394,8 +394,7 @@ class dsp {
 
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/ext/dynmanifest/dynmanifest.h>
-#include <lv2/lv2plug.in/ns/ext/event/event-helpers.h>
-#include <lv2/lv2plug.in/ns/ext/uri-map/uri-map.h>
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
 #ifndef URI_PREFIX
@@ -461,15 +460,12 @@ struct LV2SynthPlugin {
   unsigned n_samples;	// current block size
   float **outbuf;	// audio buffers for mixing down the voices
   float **inbuf;	// dummy input buffer
-  LV2_Event_Buffer* event_port;	// midi input
+  LV2_Atom_Sequence* event_port; // midi input
   float *poly;		// polyphony port
   std::map<uint8_t,int> ctrlmap; // MIDI controller map
-  // Needed host features (the uri-map extension is officially deprecated, but
-  // still needed for some if not most hosts at the time of this writing).
-  LV2_URI_Map_Feature* uri_map;
-  LV2_URID_Map* map;	// the new urid extension
+  // Needed host features.
+  LV2_URID_Map* map;	// the urid extension
   LV2_URID midi_event;	// midi event uri
-  LV2_Event_Feature* event_ref;
   // Octave tunings (offsets in semitones) per MIDI channel.
   float tuning[16][12];
   // Allocated voices per MIDI channel and note.
@@ -504,9 +500,8 @@ struct LV2SynthPlugin {
     rate = 44100;
     nvoices = NVOICES;
     n_in = n_out = 0;
-    uri_map = NULL; map = NULL;
+    map = NULL;
     midi_event = -1;
-    event_ref = NULL;
     event_port = NULL;
     poly = NULL;
     freq = gain = gate = -1;
@@ -795,24 +790,17 @@ instantiate(const LV2_Descriptor*     descriptor,
             const LV2_Feature* const* features)
 {
   LV2SynthPlugin* plugin = new LV2SynthPlugin;
-  // Scan host features for URID (or URI) map.
+  // Scan host features for URID map.
   for (int i = 0; features[i]; i++) {
     if (!strcmp(features[i]->URI, LV2_URID_URI "#map")) {
       plugin->map = (LV2_URID_Map*)features[i]->data;
       plugin->midi_event =
 	plugin->map->map(plugin->map->handle, MIDI_EVENT_URI);
-    } else if (!strcmp(features[i]->URI, LV2_URI_MAP_URI)) {
-      plugin->uri_map = (LV2_URI_Map_Feature*)features[i]->data;
-      plugin->midi_event =
-	plugin->uri_map->uri_to_id(plugin->uri_map->callback_data,
-				   LV2_EVENT_URI, MIDI_EVENT_URI);
-    } else if (!strcmp(features[i]->URI, LV2_EVENT_URI)) {
-      plugin->event_ref = (LV2_Event_Feature *)features[i]->data;
     }
   }
-  if (!plugin->map && !plugin->uri_map) {
+  if (!plugin->map) {
     fprintf
-      (stderr, "%s: host supports neither uri-map or urid:map, giving up\n",
+      (stderr, "%s: host doesn't support urid:map, giving up\n",
        PLUGIN_URI);
     delete plugin;
     return 0;
@@ -976,7 +964,7 @@ connect_port(LV2_Handle instance,
       if (i < m)
 	plugin->outputs[i] = (float*)data;
       else if (i == m)
-	plugin->event_port = (LV2_Event_Buffer*)data;
+	plugin->event_port = (LV2_Atom_Sequence*)data;
       else if (i == m+1)
 	plugin->poly = (float*)data;
       else
@@ -1051,17 +1039,9 @@ run(LV2_Handle instance, uint32_t n_samples)
   int nvoices = plugin->nvoices;
   // Process incoming MIDI events.
   if (plugin->event_port) {
-    LV2_Event_Iterator i;
-    for (lv2_event_begin(&i, plugin->event_port);
-	 lv2_event_is_valid(&i);
-	 lv2_event_increment(&i)) {
-      LV2_Event* ev = lv2_event_get(&i, NULL);
-      if (ev->type == 0) {
-	if (plugin->event_ref) {
-	  plugin->event_ref->lv2_event_unref
-	    (plugin->event_ref->callback_data, ev);
-	}
-      } else if (ev->type == plugin->midi_event) {
+    LV2_Atom_Event* i;
+    LV2_ATOM_SEQUENCE_FOREACH(plugin->event_port, ev) {
+      if (ev->body.type == plugin->midi_event) {
 	uint8_t *data = (uint8_t*)(ev+1);
 #if 0
 	// FIXME: Consider doing sample-accurate note onsets here. LV2 keeps
@@ -1071,11 +1051,11 @@ run(LV2_Handle instance, uint32_t n_samples)
 	// a control variable which can only change at block boundaries. In
 	// the future, the gate could be implemented as an audio signal to get
 	// sample-accurate note onsets.
-	uint32_t frames = ev->frames;
+	uint32_t frames = ev->body.frames;
 #endif
 #if DEBUG_MIDI
-	fprintf(stderr, "midi ev (%u bytes):", ev->size);
-	for (unsigned i = 0; i < ev->size; i++)
+	fprintf(stderr, "midi ev (%u bytes):", ev->body.size);
+	for (unsigned i = 0; i < ev->body.size; i++)
 	  fprintf(stderr, " 0x%0x", data[i]);
 	fprintf(stderr, "\n");
 #endif
@@ -1242,13 +1222,13 @@ run(LV2_Handle instance, uint32_t n_samples)
 	  break;
 	}
 	case 0xf0:
-	  if (data[0] == 0xf0 && data[ev->size-1] == 0xf7) {
+	  if (data[0] == 0xf0 && data[ev->body.size-1] == 0xf7) {
 	    // sysex
 	    if ((data[1] == 0x7e || data[1] == 0x7f) && data[3] == 8) {
 	      // MIDI tuning standard
 	      bool realtime = data[1] == 0x7f;
-	      if ((ev->size == 21 && data[4] == 8) ||
-		  (ev->size == 33 && data[4] == 9)) {
+	      if ((ev->body.size == 21 && data[4] == 8) ||
+		  (ev->body.size == 33 && data[4] == 9)) {
 		// MTS scale/octave tuning 1- or 2-byte form
 		bool onebyte = data[4] == 8;
 		unsigned chanmsk = (data[5]<<14) | (data[6]<<7) | data[7];
@@ -1312,7 +1292,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 	  break;
 	}
       } else {
-	fprintf(stderr, "%s: unknown event type %d\n", PLUGIN_URI, ev->type);
+	fprintf(stderr, "%s: unknown event type %d\n", PLUGIN_URI, ev->body.type);
       }
     }
   }
@@ -1573,7 +1553,7 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .\n\
 @prefix lv2:   <http://lv2plug.in/ns/lv2core#> .\n\
 @prefix epp:   <http://lv2plug.in/ns/ext/port-props#> .\n\
-@prefix ev:    <http://lv2plug.in/ns/ext/event#> .\n\
+@prefix atom:  <http://lv2plug.in/ns/ext/atom#> .\n\
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
 @prefix units: <http://lv2plug.in/ns/extensions/units#> .\n\
@@ -1719,8 +1699,9 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   // midi input
   fprintf(fp, "%s [\n\
 	a lv2:InputPort ;\n\
-	a ev:EventPort ;\n\
-	ev:supportsEvent <http://lv2plug.in/ns/ext/midi#MidiEvent> ;\n\
+	a atom:AtomPort ;\n\
+	atom:bufferType atom:Sequence ;\n\
+	atom:supports <http://lv2plug.in/ns/ext/midi#MidiEvent> ;\n\
 	lv2:index %d ;\n\
 	lv2:symbol \"midiin\" ;\n\
 	lv2:name \"midiin\"\n\

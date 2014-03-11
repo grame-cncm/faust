@@ -97,7 +97,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -a max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (

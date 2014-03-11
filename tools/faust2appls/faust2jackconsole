@@ -73,7 +73,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -ljack $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib -ljack $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 

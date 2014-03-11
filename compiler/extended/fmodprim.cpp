@@ -9,7 +9,7 @@ class FmodPrim : public xtended
 
  public:
  
- 	FmodPrim() : xtended("fmodf") {}
+   FmodPrim() : xtended("fmod") {}
 	
 	virtual unsigned int 	arity () { return 2; }
 	

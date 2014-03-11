@@ -14,7 +14,7 @@
 CXXFLAGS=$MYCXXFLAGS
 
 ARCHFILE="netjack-qt.cpp"
-ARCHLIB="-ljacknet"
+ARCHLIB="-L/usr/local/lib -ljacknet"
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -76,13 +76,23 @@ done
 
 
 
+
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SPEC="-spec macx-g++"
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+	if [ $SYS_VERSION -gt 12 ]
+	then
+	    SPEC="-spec macx-clang"
+	    CLANGOPT="CONFIG+=c++11"
+	else
+	    SPEC="-spec macx-g++"
+	    CLANGOPT=""
+	fi
     EXT=".app"
 fi
+
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
@@ -104,7 +114,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-       	$QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
+       	$QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
 	    $QMAKE $SPEC
         make
     ) > /dev/null
