@@ -103,17 +103,19 @@ class remote_dsp : public dsp{
     
     public: 
     
-        virtual int     getNumInputs();
-        virtual int     getNumOutputs();
+        void metadata(Meta* m);
+    
+        virtual int getNumInputs();
+        virtual int getNumOutputs();
 
-        virtual void    init(int samplingFreq);
+        virtual void init(int samplingFreq);
     
-        virtual void    buildUserInterface(UI* ui);
+        virtual void buildUserInterface(UI* ui);
     
-        virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
    
-        void            startAudio();
-        void            stopAudio();
+        virtual void startAudio();
+        virtual void stopAudio();
 };
 
 /*
@@ -127,7 +129,7 @@ class remote_dsp : public dsp{
  * Prototype for DSP instance error callback.
  * @param error_code an error code (see "Possible error codes")
  * @param arg pointer to a client supplied structure given by createRemoteDSPInstance()
- * #return -1 error processed / 0 error not processed
+ * #return -1 to stop calling DSP 'compute', otherwise 0 to continue
  */
 typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 

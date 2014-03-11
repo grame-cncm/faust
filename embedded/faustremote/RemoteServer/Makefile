@@ -15,11 +15,9 @@ objects = $(sources:.cpp=.o)
 
 ####### Files
 
-SOURCES       = Server.cpp \
-				main.cpp 
+SOURCES       = Server.cpp main.cpp ../utilities.cpp
 				
-OBJECTS       = Server.o \
-				main.o
+OBJECTS       = Server.o main.o utilities.o
 DESTDIR       = 
 TARGET        = ./RemoteServer
 
@@ -43,3 +41,5 @@ Server.o: Server.cpp Server.h TMutex.h
 main.o: main.cpp Server.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
+utilities.o: ../utilities.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../utilities.cpp

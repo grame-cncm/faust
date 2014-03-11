@@ -3,12 +3,80 @@
 #include "faust/gui/ControlUI.h"
 #include "faust/llvm-dsp.h"
 
+#include <errno.h>
+
 // Standard Callback to store a server response in strinstream
 size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 {
     std::ostream* os = static_cast<std::ostream*>(userp);
     std::streamsize len = size * nmemb;
     return (os->write(static_cast<char*>(buf), len)) ? len : 0;
+}
+
+//Returns true if no problem encountered
+//The response string stores the data received 
+//         (can be error or real data... depending on return value)
+//The errorCode stores the error encoded as INT
+static bool send_request(const string& ip, const string& finalRequest, string& response, int& errorCode){
+
+    CURL *curl = curl_easy_init();
+    
+    bool isInitSuccessfull = false;
+    
+    if (curl) {
+        
+        std::ostringstream oss;
+        
+        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
+        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        if(res != CURLE_OK)
+            errorCode = ERROR_CURL_CONNECTION;
+        else{
+            
+            long respcode; //response code of the http transaction
+            
+            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
+            
+            if(respcode == 200){
+                response = oss.str();
+                isInitSuccessfull = true;
+            }
+            else if(respcode == 400){
+                
+//                Is String Int ?
+                bool isStringInt = true;
+                   
+                const char* intermediateString = oss.str().c_str();
+                
+                for(size_t i=0; i<strlen(intermediateString); i++){
+                    if(!isdigit(intermediateString[i])){
+                        isStringInt = false;
+                        break;
+                    }
+                }
+                
+                if(isStringInt)
+                    errorCode = atoi(intermediateString);
+                else
+                    response = oss.str();
+            }
+        }
+        
+        curl_easy_cleanup(curl);
+    }
+    else
+        errorCode = ERROR_CURL_CONNECTION;
+    
+    return isInitSuccessfull;
 }
 
 //------------------FACTORY
@@ -70,39 +138,17 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         
         printf("ip = %s\n", ip.c_str());
         
-        
-        
-// Connection Setups
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) (finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        
-        std::ostringstream oss;
-        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-//        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK) {
-            error =  curl_easy_strerror(res);
-        } else {        
-            
-            //Response code of the http transaction
-            long respcode;
-            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-            
-            if(respcode == 200){
-                decodeJson(oss.str());
-                isInitSuccessfull = true;
-            }
-            else if(respcode == 400)
-                error = oss.str();
+        string response("");
+        int errorCode = -1;
+        if(send_request(ip, finalRequest, response, errorCode)){
+            decodeJson(response);
+            isInitSuccessfull = true;
         }
+        else if(errorCode != -1){
+            error = "Curl Connection Failed";
+        }
+        else
+            error = response;
         
         curl_easy_cleanup(curl); //Standard CleanUp
     }
@@ -115,28 +161,17 @@ void remote_dsp_factory::stop(){
     
     CURL *curl = curl_easy_init();
     
-    if (curl) {
+    printf("fIndex = %s\n", fSHAKey.c_str());
+    printf("fIP = %s\n", fServerIP.c_str());
         
-        printf("fIndex = %s\n", fSHAKey.c_str());
-        printf("fIP = %s\n", fServerIP.c_str());
+    // The index of the factory to delete has to be sent
+    string finalRequest = string("factoryKey=") + fSHAKey;
+    string ip = fServerIP + string("/DeleteFactory");
         
-        // The index of the factory to delete has to be sent
-        string finalRequest = string("factoryKey=") + fSHAKey;
-        string ip = fServerIP + string("/DeleteFactory");
-        
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK)
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        
-        curl_easy_cleanup(curl);
+    string response("");
+    int errorCode;
+    if(!send_request(ip, finalRequest, response, errorCode)){
+        printf("curl_easy_perform() failed: %s\n", response.c_str());
     }
 }
 
@@ -444,75 +479,65 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
     }
 }
 
+void remote_dsp_aux::sendSlice(int buffer_size) {
+    
+    if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
+        fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
+        if (fErrorCallback) {
+            fRunningFlag = (fErrorCallback(WRITE_ERROR, fErrorCallbackArg) == 0);
+        }
+    }
+}
+
+void remote_dsp_aux::recvSlice(int buffer_size) {
+    
+    if (fRunningFlag && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+        fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
+        if (fErrorCallback) {
+            fRunningFlag = (fErrorCallback(READ_ERROR, fErrorCallbackArg) == 0);
+        }
+    }
+}
+
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
     
-//    printf("remote_dsp_aux::compute = %p\n", this);
-    
-    if(fRunningFlag){
+    if (fRunningFlag) {
+        
+        // If count > fBufferSize : the cycle is divided in numberOfCycles NetJack cycles, and a lastCycle one
         
         int numberOfCycles = count/fBufferSize;
         int lastCycle = count%fBufferSize;
-        int res;
         
-        // If the count > fBufferSize : the cycle is divided in n number of netjack cycles
         int i = 0;
         
-        for (i=0; i<numberOfCycles; i++) {
+        for (i = 0; i < numberOfCycles; i++) {
             
-            int offset = i*fBufferSize;
-            setupBuffers(input, output, offset);
-            
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-            
-            if ((res = jack_net_master_send(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs)) < 0){
-                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
-                        fRunningFlag = false;
-                }
-            }
-            if ((res = jack_net_master_recv(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs)) < 0) {
-                fillBufferWithZerosOffset(getNumOutputs(), 0, fBufferSize, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
-                    fRunningFlag = false;
-                }
-            }
-            
+            sendSlice(fBufferSize);
+            recvSlice(fBufferSize);
             ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
         
         if (lastCycle > 0) {
             
-            int offset = i*fBufferSize;
-            setupBuffers(input, output, offset);
-            
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
-            
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
-            
-            if ((res = jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, lastCycle)) < 0){
-                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(WRITE_ERROR, fErrorCallbackArg)==-1)
-                        fRunningFlag = false;
-                }
-            }
-            if ((res = jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, lastCycle)) < 0) {
-                fillBufferWithZerosOffset(getNumOutputs(), 0, lastCycle, fAudioOutputs);
-                if (fErrorCallback) {
-                    if(fErrorCallback(READ_ERROR, fErrorCallbackArg) == -1)
-                        fRunningFlag = false;
-                }
-            }
-            
+            sendSlice(lastCycle);
+            recvSlice(lastCycle);
             ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
         }
-    }
-    else{
+        
+    } else {
         fillBufferWithZerosOffset(getNumOutputs(), 0, count, output);
     }
+}
+
+void remote_dsp_aux::metadata(Meta* m){ 
+    
+    fFactory->metadataRemoteDSPFactory(m);
 }
 
 // Accessors to number of input/output of DSP
@@ -554,6 +579,10 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     memset(fControlInputs[0], 0, sizeof(float)*8192);
     memset(fControlOutputs[0], 0, sizeof(float)*8192);
     
+    // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
+    ControlUI dummy_ui;
+    buildUserInterface(&dummy_ui);
+    
     bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
     
     const char* port = getValueFromKey(argc, argv, "--NJ_port", "19000");
@@ -588,135 +617,76 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
     
     //printf("finalRequest = %s\n", finalRequest.c_str());
     
-//  Curl Connection setup
-    CURL *curl = curl_easy_init();
-    
-    bool isInitSuccessfull = false;
-    
-    if (curl) {
+    int isInitSuccessfull = -1;
         
-        string ip = fFactory->serverIP();
-        ip += "/CreateInstance";
+    string ip = fFactory->serverIP();
+    ip += "/CreateInstance";
         
-        std::ostringstream oss;
+    string response("");
+    int errorCode = -1;
+
+//              OPEN NET JACK CONNECTION
+    if(send_request(ip, finalRequest, response, errorCode)){
+        printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
         
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(samplingFreq), "test_master", 5, partial_cycle};
+        jack_slave_t result;
+        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
         
-        CURLcode res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK)
-            error = ERROR_CURL_CONNECTION;
-        else{
-            
-            long respcode; //response code of the http transaction
-            
-            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-            
-            if(respcode == 200){
-                
-                //              OPEN NET JACK CONNECTION
-                
-                printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
-                
-                jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(samplingFreq), "test_master", 5, partial_cycle};
-                jack_slave_t result;
-                fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
-                
-                if(fNetJack)
-                    isInitSuccessfull = true;
-                else
-                    error = ERROR_NETJACK_NOTSTARTED;
-            }
-            else if(respcode == 400)
-                error = atoi(oss.str().c_str());
-        }
-        
-        curl_easy_cleanup(curl);
+        if(fNetJack)
+            isInitSuccessfull = true;
+        else
+            error = ERROR_NETJACK_NOTSTARTED;
     }
     else
-        error = ERROR_CURL_CONNECTION;
+        error = errorCode;
     
     printf("remote_dsp_aux::init = %p || inputs = %i || outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
     
     return isInitSuccessfull;
 }                        
 
-//bool sendRequest(){
-//    
-//}
-
-
 void remote_dsp_aux::stopAudio(){
-//  Curl Connection setup
-    CURL *curl = curl_easy_init();
+
+    string finalRequest = "instanceKey=";
+    stringstream s;
+    s<<this;
     
-    if (curl) {
-        
-        string finalRequest = "instanceKey=";
-        stringstream s;
-        s<<this;
-        
-        finalRequest += s.str();
-        
-        printf("REQUEST = %s\n", finalRequest.c_str());
-        
-        string ip = fFactory->serverIP();
-        ip += "/StopAudio";
-        
-        std::ostringstream oss;
-        
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        curl_easy_cleanup(curl);
-    }
+    finalRequest += s.str();
+    
+    printf("REQUEST = %s\n", finalRequest.c_str());
+    
+    string ip = fFactory->serverIP();
+    ip += "/StopAudio";
+    
+    string response("");
+    int errorCode;
+    send_request(ip, finalRequest, response, errorCode);
 }
 
 void remote_dsp_aux::startAudio(){
-    //  Curl Connection setup
-    CURL *curl = curl_easy_init();
+
+    string finalRequest = "instanceKey=";
     
-    if (curl) {
-        
-        string finalRequest = "instanceKey=";
-        
-        stringstream s;
-        s<<this;
-        
-        finalRequest += s.str();
-        
-        printf("REQUEST = %s\n", finalRequest.c_str());
-        
-        string ip = fFactory->serverIP();
-        ip += "/StartAudio";
+    stringstream s;
+    s<<this;
     
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        curl_easy_cleanup(curl);
-    }
+    finalRequest += s.str();
+    
+    printf("REQUEST = %s\n", finalRequest.c_str());
+    
+    string ip = fFactory->serverIP();
+    ip += "/StartAudio";
+    
+    string response("");
+    int errorCode;
+    send_request(ip, finalRequest, response, errorCode);
 }
 
 //----------------------------------REMOTE DSP API-------------------------------------------
+
+EXPORT int remote_dsp_factory::numInputs(){return fNumInputs;}
+EXPORT int remote_dsp_factory::numOutputs(){return fNumOutputs;}
 
 //---------INSTANCES
 
@@ -728,6 +698,11 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp){
     
     delete reinterpret_cast<remote_dsp_aux*>(dsp); 
+}
+
+EXPORT void remote_dsp::metadata(Meta* m)
+{
+    return reinterpret_cast<remote_dsp_aux*>(this)->metadata(m);
 }
 
 EXPORT int remote_dsp::getNumInputs()
@@ -805,22 +780,26 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     DNSServiceRef sd;
     
 //  Initialize DNSServiceREF && bind it to its callback
-    DNSServiceErrorType err = DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList);
     
-    if (err == kDNSServiceErr_NoError){
+    if (DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
         
 //      SELECT IS USED TO SET TIMEOUT  
 
         int fd = DNSServiceRefSockFD(sd);
-        int nfds = fd + 1;
-        struct timeval tv = { 0, 100000 };
+        int count = 10;
         
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(fd, &readfds);
-        
-        if (select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0 && FD_ISSET(fd, &readfds)) {
-            DNSServiceErrorType err = DNSServiceProcessResult(sd);
+        while (count-- > 0) {
+            
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(fd, &readfds);
+            struct timeval tv = { 0, 100000 };
+            
+            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
+                && FD_ISSET(fd, &readfds) 
+                && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
+                break;
+            }
         }
         
 //      Cleanup DNSService  

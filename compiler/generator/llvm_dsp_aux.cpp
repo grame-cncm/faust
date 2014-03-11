@@ -602,6 +602,18 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
+void llvm_dsp_aux::metadata(Meta* m)
+{
+    MetaGlue glue;
+    buildMetaGlue(&glue, m);
+    return fDSPFactory->fMetadata(&glue);
+}
+
+void llvm_dsp_aux::metadata(MetaGlue* m)
+{
+    return fDSPFactory->fMetadata(m);
+}
+
 int llvm_dsp_aux::getNumInputs()
 {
     return fDSPFactory->fGetNumInputs(fDSP);
@@ -810,6 +822,11 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp)
     delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }
 
+EXPORT void llvm_dsp::metadata(Meta* m)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->metadata(m);
+}
+
 EXPORT int llvm_dsp::getNumInputs()
 {
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumInputs();
@@ -930,6 +947,11 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
 {
     factory->metadataDSPFactory(glue);
+}
+
+EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
+{
+    reinterpret_cast<llvm_dsp_aux*>(dsp)->metadata(glue);
 }
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)

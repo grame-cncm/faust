@@ -21,6 +21,16 @@
 
 #include "binop.hh"
 #include "signals.hh"
+#include "compatibility.hh"
+
+bool falsePredicate(Node const & a)
+{
+    return false;
+}
+
+static bool noNtrl(const Node& n) { return falsePredicate(n); }
+
+#if LLVM_BUILD
 
 #if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Instructions.h>
@@ -30,13 +40,6 @@
 #endif
 
 using namespace llvm;
-
-bool falsePredicate(Node const & a)
-{
-    return false;
-}
-
-static bool noNtrl(const Node& n) { return falsePredicate(n); }
 
 BinOp* gBinOpTable[] = {
 
@@ -60,6 +63,33 @@ BinOp* gBinOpTable[] = {
 	new BinOp("|","or_vec","or_scal", "or", "or", Instruction::Or, Instruction::Or, &orNode, &isZero, &isZero, 7),
 	new BinOp("^","xor_vec","xor_scal", "xor", "xor", Instruction::Xor, Instruction::Xor, &xorNode, &noNtrl, &noNtrl, 8)
 };
+
+#else
+
+BinOp* gBinOpTable[] = {
+    
+	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", 0, 0, &addNode, &isZero, &isZero, 6),
+	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", 0, 0, &subNode, &noNtrl, &isZero, 7),
+	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", 0, 0, &mulNode, &isOne, &isOne, 8, isZero, isZero),
+	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", 0, 0, &divExtendedNode, &noNtrl, &isOne, 10),
+	new BinOp("%","mod_vec","mod_scal", "srem", "frem", 0, 0, &remNode, &noNtrl, &noNtrl, 9),
+    
+	new BinOp("<<","shift_left_vec","shift_left_scal", "","", 0, 0, &lshNode, &noNtrl, &isZero, 8),
+	new BinOp(">>","shift_right_vec","shift_right_scal","","", 0, 0, &rshNode, &noNtrl, &isZero, 8),
+    
+	new BinOp(">","gt_vec","gt_scal", "icmp sgt", "fcmp sgt", 0, 0, &gtNode, &noNtrl, &noNtrl, 5),
+	new BinOp("<","lt_vec","lt_scal", "icmp slt", "fcmp slt", 0, 0, &ltNode, &noNtrl, &noNtrl, 5),
+	new BinOp(">=","ge_vec","ge_scal", "icmp sge", "fcmp sge", 0, 0, &geNode, &noNtrl, &noNtrl, 5),
+	new BinOp("<=","le_vec","le_scal", "icmp sle", "fcmp sle", 0, 0, &leNode, &noNtrl, &noNtrl, 5),
+	new BinOp("==","eq_vec","eq_scal", "icmp eq", "fcmp eq", 0, 0, &eqNode, &noNtrl, &noNtrl, 5),
+	new BinOp("!=","neq_vec","neq_scal", "icmp ne", "fcmp ne", 0, 0, &neNode, &noNtrl, &noNtrl, 5),
+    
+	new BinOp("&","and_vec","and_scal", "and", "and", 0, 0, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
+	new BinOp("|","or_vec","or_scal", "or", "or", 0, 0, &orNode, &isZero, &isZero, 7),
+	new BinOp("^","xor_vec","xor_scal", "xor", "xor", 0, 0, &xorNode, &noNtrl, &noNtrl, 8)
+};
+
+#endif
 
 BinOp* gBinOpLateqTable[] = {
 

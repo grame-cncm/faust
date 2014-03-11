@@ -5,11 +5,13 @@
 
 using namespace std;
 
-string pathToContent(string path);
+string pathToContent(const string& path);
 
 bool isStringInt(const char* word);
 
 long lopt(char *argv[], const char *name, long def);
+
+bool isopt(char *argv[], const char *name);
 
 const char* loptions(char *argv[], const char *name, const char* def);
 

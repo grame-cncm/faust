@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-#include "../utilities.h"
+#include "../../utilities.h"
 #include "faust/remote-dsp.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/coreaudio-dsp.h"
