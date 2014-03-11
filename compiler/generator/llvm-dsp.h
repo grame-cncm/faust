@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@ struct llvm_dsp_factory;
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], 
+llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], 
                                         const std::string& target, 
                                         std::string& error_msg, int opt_level = 3);
 
@@ -66,7 +66,7 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], 
+llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], 
                                             const std::string& target, 
                                             std::string& error_msg, int opt_level = 3);
 
@@ -165,7 +165,7 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
 void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
 
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
  
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -175,11 +175,11 @@ void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
  * @return the expanded DSP as a string (possibly empty).
 */ 
 std::string expandDSPFromFile(const std::string& filename, 
-                            int argc, const char *argv[], 
+                            int argc, const char* argv[], 
                             std::string& error_msg);
                             
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
  
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
@@ -191,7 +191,7 @@ std::string expandDSPFromFile(const std::string& filename,
 */ 
 std::string expandDSPFromString(const std::string& name_app, 
                                 const std::string& dsp_content, 
-                                int argc, const char *argv[], 
+                                int argc, const char* argv[], 
                                 std::string& error_msg);
 
 /**
@@ -204,7 +204,7 @@ std::string expandDSPFromString(const std::string& name_app,
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
 */ 
-bool generateAuxFilesFromFile(const std::string& filename, int argc, const char *argv[], std::string& error_msg);
+bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
 /**
  * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
@@ -217,10 +217,10 @@ bool generateAuxFilesFromFile(const std::string& filename, int argc, const char 
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
 */ 
-bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], std::string& error_msg);
+bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
 /**
- * Instance class
+ * Instance class with related methods.
 */
 class llvm_dsp : public dsp {
                

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -58,7 +58,7 @@ struct llvm_dsp;
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
+llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], 
                                            const char* target, 
                                            char* error_msg, int opt_level);
 
@@ -77,7 +77,7 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
+llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], 
                                             const char* target, 
                                             char* error_msg, int opt_level);
 
@@ -176,7 +176,7 @@ void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_pat
 void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
 
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
  
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -186,11 +186,11 @@ void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
  * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
 */ 
 const char* expandCDSPFromFile(const char* filename, 
-                                int argc, const char *argv[], 
+                                int argc, const char* argv[], 
                                 char* error_msg);
 
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
  
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
@@ -202,7 +202,7 @@ const char* expandCDSPFromFile(const char* filename,
 */ 
 const char* expandCDSPFromString(const char* name_app, 
                                 const char* dsp_content, 
-                                int argc, const char *argv[], 
+                                int argc, const char* argv[], 
                                 char* error_msg);
 
 /**
@@ -215,7 +215,7 @@ const char* expandCDSPFromString(const char* name_app,
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
 */ 
-bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg);
+bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
 /**
  * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
@@ -228,10 +228,10 @@ bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
 */ 
-bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg);
+bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
 /**
- * Instance class
+ * Instance functions.
 */
     
 void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
