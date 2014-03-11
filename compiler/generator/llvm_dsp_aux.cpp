@@ -59,7 +59,9 @@
 #if defined(LLVM_32)
 #include <llvm/DataLayout.h>
 #else
+#ifndef _WIN32
 #include <llvm/Target/TargetData.h>
+#endif
 #endif
 
 #include <llvm/Target/TargetMachine.h>
