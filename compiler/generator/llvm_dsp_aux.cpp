@@ -87,6 +87,14 @@
 using namespace llvm;
 
 int llvm_dsp_factory::gInstance = 0;
+
+static string getParam(int argc, const char* argv[], const string& param, const string& def)
+{
+    for (int i = 0; i < argc; i++) {
+        if (string(argv[i]) == param) return argv[i+1];
+    }
+    return def;
+}
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
@@ -219,6 +227,7 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, const char* argv[],
     fTarget = target;
     Init();
     char error_msg_aux[512];
+    fClassName = getParam(argc, argv, "-cn", "mydsp");
     fResult = CompileModule(argc, argv, name.c_str(), input.c_str(), error_msg_aux);
     error_msg = error_msg_aux;
 }
@@ -406,14 +415,14 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     fJIT->DisableLazyCompilation(true);
     
     try {
-        fNew = (newDspFun)LoadOptimize("new_mydsp");
-        fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
-        fInit = (initFun)LoadOptimize("init_mydsp");
-        fCompute = (computeFun)LoadOptimize("compute_mydsp");
-        fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
+        fNew = (newDspFun)LoadOptimize("new_" + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_" + fClassName);
+        fInit = (initFun)LoadOptimize("init_" + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
         return false;
@@ -453,7 +462,6 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     //builder.setUseMCJIT(true);
     builder.setUseMCJIT(false);
     builder.setMCPU(llvm::sys::getHostCPUName());
- 
        
 #ifndef LLVM_30
     TargetMachine* tm = builder.selectTarget();
@@ -540,14 +548,14 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     }
     
     try {
-        fNew = (newDspFun)LoadOptimize("new_mydsp");
-        fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
-        fInit = (initFun)LoadOptimize("init_mydsp");
-        fCompute = (computeFun)LoadOptimize("compute_mydsp");
-        fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
+        fNew = (newDspFun)LoadOptimize("new_" + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_" + fClassName);
+        fInit = (initFun)LoadOptimize("init_" + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
         return false;
