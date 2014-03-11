@@ -45,10 +45,8 @@ struct llvm_dsp_factory;
 struct llvm_dsp;
 
 /**
- * Create a Faust DSP factory from a DSP source code. The source code is either given :
-    - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
-    - as a string (in which case the 'name' and 'input' parameter have to be used).
- * 
+ * Create a Faust DSP factory from a DSP source code.
+ *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
@@ -63,9 +61,7 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
                                            char* error_msg, int opt_level);
 
 /**
- * Create a Faust DSP factory from a DSP source code. The source code is either given :
-    - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
-    - as a string (in which case the 'name' and 'input' parameter have to be used).
+ * Create a Faust DSP factory from a DSP source code.
  * 
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string

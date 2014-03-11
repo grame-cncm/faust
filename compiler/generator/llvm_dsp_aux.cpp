@@ -52,10 +52,6 @@
 #include <llvm/Support/IRReader.h>
 #endif
 
-#include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/PassManager.h>
-#include <llvm/Analysis/Verifier.h>
-
 #if defined(LLVM_32)
 #include <llvm/DataLayout.h>
 #else
@@ -64,16 +60,19 @@
 #endif
 #endif
 
+#include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/PassManager.h>
+#include <llvm/Analysis/Verifier.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
-
 #include <llvm/Linker.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Support/Threading.h>
 
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
@@ -81,8 +80,6 @@
 #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/Support/TargetSelect.h>
 #endif
-
-#include <llvm/Support/Threading.h>
 
 using namespace llvm;
 
