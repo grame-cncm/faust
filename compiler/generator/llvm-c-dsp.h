@@ -89,7 +89,7 @@ void deleteCDSPFactory(llvm_dsp_factory* factory);
  * 
  * @param bit_code - the LLVM bitcode string
  * @param target - the LLVM machine target (using empty string will take current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
@@ -109,7 +109,7 @@ const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * 
  * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
 */
 llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level);
 
@@ -127,7 +127,7 @@ void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_co
  * 
  * @param ir_code - the LLVM IR (textual) string
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
@@ -147,7 +147,7 @@ const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
  * 
  * @param ir_code_path - the LLVM IR (textual) file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */

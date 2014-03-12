@@ -27,7 +27,7 @@ a. createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const c
 b. createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[],
 	 const string& ipServer, int portServer, string& error, int opt_level);
 
-c. createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize,string& error)
+c. createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error)
 
 d. Use instances as any "static" DSP 
 

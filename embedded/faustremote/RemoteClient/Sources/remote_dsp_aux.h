@@ -34,13 +34,11 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
+#include "JsonParser.h"
 
 #include <dns_sd.h>
-
 #include <jack/net.h>
 #include <curl/curl.h>
-
-#include "JsonParser.h"
 
 #define	EXPORT __attribute__ ((visibility("default")))
 

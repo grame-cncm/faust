@@ -137,8 +137,9 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize. 
  * - if '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
  * a number of frames below bufferSize, partial buffers will be sent and received.
- * - parameter --NJ_compression can be used to chose between JackOpusEncoder format (when --NJ_compression > 0), 'JackFloatEncoder or 'JackIntEncoder'. 
-  * An error callabck can be set to be notified in case of network transmision errors.
+ * - parameter '--NJ_compression' can be used to chose between JackOpusEncoder format 
+ * (when --NJ_compression > 0), 'JackFloatEncoder or 'JackIntEncoder'. 
+ * An error callabck can be set to be notified in case of network transmision errors.
  * 
  * @param factory - the Remote DSP factory
  * @param argc - the number of parameters in argv array

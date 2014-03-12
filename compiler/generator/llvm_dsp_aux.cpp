@@ -296,7 +296,6 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateModulePassManager(MPM);
 }
 
-
 bool llvm_dsp_factory::initJIT(std::string& error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
@@ -435,8 +434,6 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
         return false;
     }
     
-    fResult->fModule->addLibrary("m");
-    
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
@@ -490,7 +487,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
 #endif
-  
+    
     // Set up the optimizer pipeline. Start with registering info about how the
     // target lays out data structures.
     PassManager pm;
@@ -516,7 +513,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
         Builder.Inliner = createAlwaysInlinerPass();
     }
     
-    // We use '4' to activate de auto-vectorizer
+    // We use '4' to activate the auto-vectorizer
     if (fOptLevel > 3) {
     
     #if defined(LLVM_32) 
@@ -538,6 +535,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
         fResult->fModule->dump();
     }
     
+    // Now that we have all of the passes ready, run them.
     pm.run(*fResult->fModule);
     
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
@@ -707,7 +705,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     delete buffer;
     
     if (module) {
-        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
@@ -735,7 +732,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
-        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
