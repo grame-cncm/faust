@@ -748,28 +748,20 @@ static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_
     string serviceNameCpy(serviceName);
     
     int pos = serviceNameCpy.find("._");
+    string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+    pos = remainingString.find("._");
+    string serviceIP = remainingString.substr(0, pos);
+    string hostName = remainingString.substr(pos+2, string::npos);
     
-//   DIVIDED SERVICE NAME INTO NameOfService && IPaddress & hostName 
-    if(serviceNameCpy.substr(0, pos).compare("FaustCompiler") == 0){
+    if (flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing){
+     
+        int pos = serviceIP.find(":");
+        string ipAddr = serviceIP.substr(0, pos);
+        string port = serviceIP.substr(pos+1, string::npos);
+        (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
         
-        string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-        
-        pos = remainingString.find("._");
-        
-        string serviceIP = remainingString.substr(0, pos);
-        string hostName = remainingString.substr(pos+2, string::npos);
-        
-        if(flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing){
-         
-            int pos = serviceIP.find(":");
-            
-            string ipAddr = serviceIP.substr(0, pos);
-            string port = serviceIP.substr(pos+1, string::npos);
-            
-            (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
-        }
-        else
-            machineList->erase(hostName);
+    } else {
+        machineList->erase(hostName);
     }
 }
 
@@ -781,12 +773,13 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     
 //  Initialize DNSServiceREF && bind it to its callback
     
-    if (DNSServiceBrowse(&sd, 0, 0, "_http._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
+    if (DNSServiceBrowse(&sd, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
+      
         
 //      SELECT IS USED TO SET TIMEOUT  
 
         int fd = DNSServiceRefSockFD(sd);
-        int count = 10;
+        int count = 100;
         
         while (count-- > 0) {
             
@@ -795,7 +788,7 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
             FD_SET(fd, &readfds);
             struct timeval tv = { 0, 100000 };
             
-            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
+            if (select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0
                 && FD_ISSET(fd, &readfds) 
                 && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
                 break;
