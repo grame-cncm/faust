@@ -135,8 +135,10 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 
 /**
  * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize. 
- * If '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
+ * - if '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
  * a number of frames below bufferSize, partial buffers will be sent and received.
+ * - parameter '--NJ_compression' can be used to chose between JackOpusEncoder format 
+ * (when --NJ_compression > 0), 'JackFloatEncoder or 'JackIntEncoder'. 
  * An error callabck can be set to be notified in case of network transmision errors.
  * 
  * @param factory - the Remote DSP factory
@@ -144,8 +146,9 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  * @param argv - the array of parameters 
  *                  --NJ_ip ==> MULTICAST_DEFAULT_IP 
  *                  --NJ_port ==> MULTICAST_DEFAULT_PORT
- *                  --NJ_compression ==> default is -1
- *                  --NJ_latency ==> default is 2
+ *                  --NJ_compression ==> if val > 0, JackOpusEncoder format is used with val kBits, 
+ *                                      -1 means 'JackFloatEncoder', -2 means 'JackIntEncoder' (default is 'JackFloatEncoder')
+ *                  --NJ_latency ==> default is 2 cycles
  *                  --NJ_mtu ==> default is 1500
  *                  --NJ_partial ==> default is 'false'
  * @param samplingRate - NetJack slave sampling Rate
@@ -172,8 +175,8 @@ void deleteRemoteDSPInstance(remote_dsp* dsp);
     
 /**
  *  Scan the network to find the available machines for remote processing
- *  @param list to be filled with <nameMachine, IPmachine>
- *  @return true if no error was encountered
+ *  @param list to be filled with <nameMachine, <IPmachine, port>>
+ *  @return true if no error was encountered.
  */
 bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machineList);
 

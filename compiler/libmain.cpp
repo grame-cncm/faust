@@ -69,7 +69,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION "2.0.a17"
+#define FAUSTVERSION "2.0.a18"
 
 using namespace std;
 

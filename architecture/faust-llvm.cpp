@@ -402,8 +402,8 @@ int main(int argc, char *argv[])
     
     dsp* DSP = createDSPInstance(factory);
   
-	PrintUI* interface = new PrintUI();
-	DSP->buildUserInterface(interface);
+	PrintUI interface;
+	DSP->buildUserInterface(&interface);
 
 	audio_simulator audio(BUFFER_TO_RENDER);
 	audio.init(jackname, DSP);

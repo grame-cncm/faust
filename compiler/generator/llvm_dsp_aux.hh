@@ -49,6 +49,7 @@ class llvm_dsp_factory {
         
         int fOptLevel;
         string fTarget;
+        string fClassName;
     
         newDspFun fNew;
         deleteDspFun fDelete;

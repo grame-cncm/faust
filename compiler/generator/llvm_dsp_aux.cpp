@@ -52,10 +52,6 @@
 #include <llvm/Support/IRReader.h>
 #endif
 
-#include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/PassManager.h>
-#include <llvm/Analysis/Verifier.h>
-
 #if defined(LLVM_32)
 #include <llvm/DataLayout.h>
 #else
@@ -64,16 +60,19 @@
 #endif
 #endif
 
+#include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/PassManager.h>
+#include <llvm/Analysis/Verifier.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
-
 #include <llvm/Linker.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Support/Threading.h>
 
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
@@ -82,11 +81,17 @@
 #include <llvm/Support/TargetSelect.h>
 #endif
 
-#include <llvm/Support/Threading.h>
-
 using namespace llvm;
 
 int llvm_dsp_factory::gInstance = 0;
+
+static string getParam(int argc, const char* argv[], const string& param, const string& def)
+{
+    for (int i = 0; i < argc; i++) {
+        if (string(argv[i]) == param) return argv[i+1];
+    }
+    return def;
+}
         
 void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
@@ -219,6 +224,7 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, const char* argv[],
     fTarget = target;
     Init();
     char error_msg_aux[512];
+    fClassName = getParam(argc, argv, "-cn", "mydsp");
     fResult = CompileModule(argc, argv, name.c_str(), input.c_str(), error_msg_aux);
     error_msg = error_msg_aux;
 }
@@ -289,7 +295,6 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateFunctionPassManager(FPM);
     Builder.populateModulePassManager(MPM);
 }
-
 
 bool llvm_dsp_factory::initJIT(std::string& error_msg)
 {
@@ -406,14 +411,14 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     fJIT->DisableLazyCompilation(true);
     
     try {
-        fNew = (newDspFun)LoadOptimize("new_mydsp");
-        fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
-        fInit = (initFun)LoadOptimize("init_mydsp");
-        fCompute = (computeFun)LoadOptimize("compute_mydsp");
-        fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
+        fNew = (newDspFun)LoadOptimize("new_" + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_" + fClassName);
+        fInit = (initFun)LoadOptimize("init_" + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
         return false;
@@ -428,8 +433,6 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     if (!fResult || !fResult->fModule) {
         return false;
     }
-    
-    fResult->fModule->addLibrary("m");
     
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
@@ -453,7 +456,6 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     //builder.setUseMCJIT(true);
     builder.setUseMCJIT(false);
     builder.setMCPU(llvm::sys::getHostCPUName());
- 
        
 #ifndef LLVM_30
     TargetMachine* tm = builder.selectTarget();
@@ -485,7 +487,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
 #endif
-  
+    
     // Set up the optimizer pipeline. Start with registering info about how the
     // target lays out data structures.
     PassManager pm;
@@ -511,7 +513,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
         Builder.Inliner = createAlwaysInlinerPass();
     }
     
-    // We use '4' to activate de auto-vectorizer
+    // We use '4' to activate the auto-vectorizer
     if (fOptLevel > 3) {
     
     #if defined(LLVM_32) 
@@ -533,6 +535,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
         fResult->fModule->dump();
     }
     
+    // Now that we have all of the passes ready, run them.
     pm.run(*fResult->fModule);
     
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
@@ -540,14 +543,14 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     }
     
     try {
-        fNew = (newDspFun)LoadOptimize("new_mydsp");
-        fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
-        fInit = (initFun)LoadOptimize("init_mydsp");
-        fCompute = (computeFun)LoadOptimize("compute_mydsp");
-        fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
+        fNew = (newDspFun)LoadOptimize("new_" + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_" + fClassName);
+        fInit = (initFun)LoadOptimize("init_" + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
         return false;
@@ -702,7 +705,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, 
     delete buffer;
     
     if (module) {
-        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
@@ -730,7 +732,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_co
     Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
     
     if (module) {
-        std::string error_msg;
         return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());

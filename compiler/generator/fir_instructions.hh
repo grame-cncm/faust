@@ -22,7 +22,9 @@
 #ifndef _FIR_INSTRUCTIONS_H
 #define _FIR_INSTRUCTIONS_H
 
-using namespace std;
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include <string>
 #include <list>
@@ -34,9 +36,7 @@ using namespace std;
 #include "binop.hh"
 #include "Text.hh"
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
+using namespace std;
 
 class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 

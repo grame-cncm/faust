@@ -628,7 +628,7 @@ void Server::registration(){
     stringstream p;
     p<<fPort;
     
-    string nameService = "FaustCompiler._";
+    string nameService = "._";
     
     nameService += searchIP();
     nameService += ":";
@@ -636,8 +636,9 @@ void Server::registration(){
     nameService += "._";
     nameService += host_name;
     
-    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError)
+    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError)
         printf("ERROR DURING REGISTRATION\n");
+    
 }
 
 /*

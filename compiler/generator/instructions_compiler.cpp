@@ -29,7 +29,6 @@
 #include "instructions_compiler.hh"
 #include "sigprint.hh"
 #include "floats.hh"
-
 #include "ppsig.hh"
 #include "Text.hh"
 #include "sigtyperules.hh"
@@ -39,7 +38,6 @@
 #include "simplify.hh"
 #include "xtended.hh"
 #include "prim2.hh"
-
 #include "ensure.hh"
 #include "sigToGraph.hh"
 #include "exception.hh"

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -45,10 +45,8 @@ struct llvm_dsp_factory;
 struct llvm_dsp;
 
 /**
- * Create a Faust DSP factory from a DSP source code. The source code is either given :
-    - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
-    - as a string (in which case the 'name' and 'input' parameter have to be used).
- * 
+ * Create a Faust DSP factory from a DSP source code.
+ *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
@@ -58,14 +56,12 @@ struct llvm_dsp;
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char *argv[], 
+llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], 
                                            const char* target, 
                                            char* error_msg, int opt_level);
 
 /**
- * Create a Faust DSP factory from a DSP source code. The source code is either given :
-    - as a .dsp source filename (in which case the 'argc/argv' parameters have to be used)
-    - as a string (in which case the 'name' and 'input' parameter have to be used).
+ * Create a Faust DSP factory from a DSP source code.
  * 
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
@@ -77,7 +73,7 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], 
+llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], 
                                             const char* target, 
                                             char* error_msg, int opt_level);
 
@@ -93,7 +89,7 @@ void deleteCDSPFactory(llvm_dsp_factory* factory);
  * 
  * @param bit_code - the LLVM bitcode string
  * @param target - the LLVM machine target (using empty string will take current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
@@ -113,7 +109,7 @@ const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * 
  * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
 */
 llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level);
 
@@ -131,7 +127,7 @@ void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_co
  * 
  * @param ir_code - the LLVM IR (textual) string
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
@@ -151,7 +147,7 @@ const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
  * 
  * @param ir_code_path - the LLVM IR (textual) file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
 */
@@ -176,7 +172,7 @@ void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_pat
 void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
 
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
  
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -186,11 +182,11 @@ void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
  * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
 */ 
 const char* expandCDSPFromFile(const char* filename, 
-                                int argc, const char *argv[], 
+                                int argc, const char* argv[], 
                                 char* error_msg);
 
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string when all needed librairies have been included.
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
  
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
@@ -202,7 +198,7 @@ const char* expandCDSPFromFile(const char* filename,
 */ 
 const char* expandCDSPFromString(const char* name_app, 
                                 const char* dsp_content, 
-                                int argc, const char *argv[], 
+                                int argc, const char* argv[], 
                                 char* error_msg);
 
 /**
@@ -215,7 +211,7 @@ const char* expandCDSPFromString(const char* name_app,
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
 */ 
-bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[], char* error_msg);
+bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
 /**
  * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
@@ -228,10 +224,10 @@ bool generateCAuxFilesFromFile(const char* filename, int argc, const char *argv[
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
 */ 
-bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char *argv[], char* error_msg);
+bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
 /**
- * Instance class
+ * Instance functions.
 */
     
 void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
