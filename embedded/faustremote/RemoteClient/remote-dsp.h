@@ -151,8 +151,8 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  *                  --NJ_latency ==> default is 2 cycles
  *                  --NJ_mtu ==> default is 1500
  *                  --NJ_partial ==> default is 'false'
- * @param samplingRate - NetJack slave sampling Rate
- * @param bufferSize - NetJack slave buffer Size
+ * @param sampling_rate - NetJack slave sampling Rate
+ * @param buffer_size - NetJack slave buffer Size
  * @param error_callback - Error callback
  * @param error_callback_arg - Error callback argument
  * @param error - the error value to be filled
@@ -161,7 +161,7 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  */
 remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                     int argc, const char *argv[], 
-                                    int samplingRate, int bufferSize, 
+                                    int sampling_rate, int buffer_size, 
                                     RemoteDSPErrorCallback error_callback,
                                     void* error_callback_arg,
                                     int& error);
@@ -175,10 +175,10 @@ void deleteRemoteDSPInstance(remote_dsp* dsp);
     
 /**
  *  Scan the network to find the available machines for remote processing
- *  @param list to be filled with <nameMachine, <IPmachine, port>>
+ *  @param machine_list - list to be filled with <nameMachine, <IPmachine, port>>
  *  @return true if no error was encountered.
  */
-bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machineList);
+bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machine_list);
 
 #ifdef __cplusplus
 }

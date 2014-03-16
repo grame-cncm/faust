@@ -155,7 +155,7 @@ class remote_dsp_aux : public dsp{
         remote_dsp_aux(remote_dsp_factory* factory);
         ~remote_dsp_aux();
     
-        bool init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, int& error);
+        bool init(int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback errror_callback, void* errror_callback_arg, int& error);
     
         void metadata(Meta* m);
     
@@ -193,7 +193,7 @@ public:
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                         int argc, const char *argv[], 
-                                        int samplingRate, int bufferSize, 
+                                        int sampling_rate, int buffer_size, 
                                         RemoteDSPErrorCallback error_callback,
                                         void* errror_callback_arg,
                                         int& error);
