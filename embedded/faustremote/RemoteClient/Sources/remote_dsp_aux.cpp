@@ -779,7 +779,7 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 //      SELECT IS USED TO SET TIMEOUT  
 
         int fd = DNSServiceRefSockFD(sd);
-        int count = 100;
+        int count = 50;
         
         while (count-- > 0) {
             
