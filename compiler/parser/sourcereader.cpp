@@ -211,15 +211,15 @@ Tree SourceReader::parsefile(string fname)
     
     if (strstr(yyfilename, "://") != NULL) {
         // We are requested to parse an URL file
-        char* fileBuf = 0;
-        if (http_fetch(yyfilename, &fileBuf) == -1) {
+        char* buffer = 0;
+        if (http_fetch(yyfilename, &buffer) == -1) {
             stringstream error;
             error << "ERROR : unable to access URL '" << fname << "' : " << http_strerror() << endl;
             throw faustexception(error.str());
         }
-        yy_scan_string(fileBuf);
+        yy_scan_string(buffer);
         Tree res = parse(yyfilename);
-        free(fileBuf);
+        free(buffer);
         return res;
     } else {
         string fullpath;
