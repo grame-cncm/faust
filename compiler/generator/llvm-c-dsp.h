@@ -26,6 +26,7 @@
 #define FAUSTFLOAT float
 #endif
 
+#include <stdbool.h>
 #include "faust/gui/CUI.h"
 
 #ifdef __cplusplus
