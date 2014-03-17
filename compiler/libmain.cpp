@@ -1016,8 +1016,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     gPrintDocSwitch = false;
     gBalancedSwitch = 0;
     gArchFile = 0;
-
-    gTimeout = INT_MAX;           
     gPrintFileListSwitch = false;
     gOutputLang = 0;
   

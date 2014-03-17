@@ -62,7 +62,7 @@ class remote_dsp_factory{
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[], const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
+remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
     
 /**
  * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
@@ -78,7 +78,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, 
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char *argv[], const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
+remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory.
@@ -151,8 +151,8 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  *                  --NJ_latency ==> default is 2 cycles
  *                  --NJ_mtu ==> default is 1500
  *                  --NJ_partial ==> default is 'false'
- * @param sampling_rate - NetJack slave sampling Rate
- * @param buffer_size - NetJack slave buffer Size
+ * @param sampling_rate - NetJack slave sampling rate
+ * @param buffer_size - NetJack slave buffer size
  * @param error_callback - Error callback
  * @param error_callback_arg - Error callback argument
  * @param error - the error value to be filled
@@ -160,7 +160,7 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
 remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
-                                    int argc, const char *argv[], 
+                                    int argc, const char* argv[], 
                                     int sampling_rate, int buffer_size, 
                                     RemoteDSPErrorCallback error_callback,
                                     void* error_callback_arg,

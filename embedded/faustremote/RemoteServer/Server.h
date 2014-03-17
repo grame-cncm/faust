@@ -163,12 +163,11 @@ struct slave_dsp{
     string          fMTU;
     string          fLatency;
     
-    //netjackaudio_control*   fAudio;  //NETJACK SLAVE 
     server_netjackaudio*   fAudio;  //NETJACK SLAVE 
     
-    llvm_dsp*               fDSP;          //Real DSP Instance 
+    llvm_dsp*              fDSP;   //Real DSP Instance 
     
-    slave_dsp_factory*      fSlaveFactory;   //RelatedFactory
+    slave_dsp_factory*     fSlaveFactory;   //RelatedFactory
     
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
@@ -176,7 +175,6 @@ struct slave_dsp{
     
     slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
     ~slave_dsp();
-    
     
     bool start_audio();
     void stop_audio();
