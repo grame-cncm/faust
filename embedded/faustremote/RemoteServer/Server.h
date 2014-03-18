@@ -140,13 +140,13 @@ struct slave_dsp_factory{
     
     bool                delete_Factory();
     slave_dsp_factory*  clone();
-    bool                init(int argc, const char** argv, const string& name_app, const string& faust_content, int opt_level, string& answer);
+    bool                init(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer);
     string              getJson(const string& factoryKey);
     
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& name_app, const string& faust_content, int opt_level, string& answer);
+slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer);
 
 void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
     
@@ -245,7 +245,7 @@ public :
      * If the evaluation fails, the appropriate error message is set. More info
      * on the con_info structure is in Server.h.
      */
-    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv, const string& opt_value);
+    string_and_exitstatus   generate_sha1(const string& faustCode, const vector<string>& options, const string& opt_value);
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);

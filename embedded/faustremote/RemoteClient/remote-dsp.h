@@ -40,7 +40,7 @@ enum{
     ERROR_CURL_CONNECTION
 };
     
-class remote_dsp_factory{
+class remote_dsp_factory {
         
     public: 
     
@@ -99,7 +99,7 @@ void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 /**
  * Instance class
  */
-class remote_dsp : public dsp{
+class remote_dsp : public dsp {
     
     public: 
     

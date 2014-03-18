@@ -40,11 +40,11 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& name_app, const string& faust_content, int opt_level, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(argc, argv, name_app, faust_content, opt_level, answer))
+    if(newFactory->init(options, name_app, faust_content, opt_level, answer))
         return newFactory;
     else
         return NULL;
@@ -84,10 +84,17 @@ string slave_dsp_factory::getJson(const string& factoryKey){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, const string& name_app, const string& faust_content, int opt_level, string& error){
+bool slave_dsp_factory::init(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& error){
     
     printf("NAMEAPP = %s | faust_content = %s", name_app.c_str(), faust_content.c_str());
-
+    
+    int argc = options.size();
+    const char* argv[argc];
+    
+    for(int i=0; i<argc; i++){
+        argv[i] = options[i].c_str();
+    }
+   
     for(int i=0; i<argc; i++)
         printf("argv = %s\n", argv[i]);
     
@@ -454,7 +461,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
             con_info->fInstanceKey = data;
         
         if(strcmp(key,"options") == 0)
-                con_info->fCompilationOptions.push_back(string(data));
+            con_info->fCompilationOptions.push_back(string(data));
         
         if(strcmp(key,"opt_level") == 0)
             con_info->fOpt_level = data;
@@ -519,15 +526,8 @@ bool Server::compile_Data(connection_info_struct* con_info){
 //    Sort out compilation options
     vector<string> newOptions = reorganizeCompilationOptions(con_info->fCompilationOptions);
     
-    int numOptions = newOptions.size();
-    
-    const char* newoptions[numOptions];
-    
-    for(int i=0; i<numOptions; i++){
-        newoptions[i] = newOptions[i].c_str();
-    }
-    
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, numOptions, newoptions, con_info->fOpt_level);
+     
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, newOptions, con_info->fOpt_level);
     
     if(!structure.exitstatus){
         
@@ -541,7 +541,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
         
         if(realFactory == NULL){
             
-            realFactory = createSlaveDSPFactory(numOptions, newoptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), con_info->fAnswerstring);
+            realFactory = createSlaveDSPFactory(newOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), con_info->fAnswerstring);
             
             if(realFactory)
                 fAvailableFactories[factoryKey] = realFactory;
@@ -648,16 +648,16 @@ void Server::registration(){
  * on the con_info structure is in Server.h.
  */
 
-string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, const char** argv, const string& opt_value)
+string_and_exitstatus Server::generate_sha1(const string& faustCode, const vector<string>& options, const string& opt_value)
 {
     string source(faustCode);
-    
-    for(int i=0; i<argc; i++){
+  
+    for(int i = 0; i < options.size(); i++){
         source += " "; 
-        source += argv[i];
+        source += options[i];
     }
     
-    source+=opt_value;
+    source += opt_value;
     
     string hash = "";
     
@@ -720,7 +720,7 @@ void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>
     int position = 0;
     
     if(addKeyIfExisting(options, newoptions, key, "")){
-        
+       
         if(position+1<options.size() && options[position+1].find("-") == string::npos)
             newoptions.push_back(options[position+1]);
         
