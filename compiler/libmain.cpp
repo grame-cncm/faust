@@ -426,7 +426,7 @@ static bool process_cmdline(int argc, const char* argv[])
             }
             i += 2;
             
-        } else if (isCmd(argv[i], "-l", "--library")) {
+        } else if (isCmd(argv[i], "-l", "--library") && (i+1 < argc)) {
             gGlobal->gLibraryList.push_back(argv[i+1]);
             i += 2;
            
