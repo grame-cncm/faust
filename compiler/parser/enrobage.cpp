@@ -277,12 +277,21 @@ ifstream* open_arch_stream(const char* filename)
 
 const char* strip_start(const char* filename)
 {
-    const char* start = "file://";
+#ifdef _WIN32
+    const char* start = "file:///";
     if (strstr(filename, start) != NULL) {
         return &filename[strlen(start)];
     }  else {
         return filename;
     }
+#else
+	const char* start = "file://";
+    if (strstr(filename, start) != NULL) {
+        return &filename[strlen(start)];
+    }  else {
+        return filename;
+    }
+#endif
 }
 
 /**
