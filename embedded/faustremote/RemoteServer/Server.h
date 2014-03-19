@@ -260,9 +260,9 @@ public :
     /* Reorganizes the compilation options
      * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
      */
-    vector<string>  reorganizeCompilationOptions(const vector<string>& options);
-    void            addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
-    bool            addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
+    vector<string>  reorganizeCompilationOptions(vector<string>& options);
+    void            addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
+    bool            addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
     bool            parseKey(vector<string> options, const string& key, int& position);
     
 // Register Service as Available

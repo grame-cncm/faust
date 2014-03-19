@@ -700,10 +700,12 @@ bool Server::parseKey(vector<string> options, const string& key, int& position){
 
 //Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
 //#return true if 'key' was added
-bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position){
+bool Server::addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position){
       
     if(parseKey(options, key, position)){        
         newoptions.push_back(options[position]);
+        options.erase(options.begin()+position);
+        position--;
         return true;
     }
     else if(defaultKey.compare("") != 0)
@@ -713,13 +715,17 @@ bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& new
 }
 
 //Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue){
+void Server::addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue){
     
     int position = 0;
     
     if(addKeyIfExisting(options, newoptions, key, "", position)){
-        if(position+1<options.size() && options[position+1].find("-") == string::npos)
+
+        if(position+1<options.size() && options[position+1][0] != '-'){
             newoptions.push_back(options[position+1]);
+            options.erase(options.begin()+position+1);
+            position--;
+        }
         else
             newoptions.push_back(defaultValue);
     }
@@ -728,18 +734,18 @@ void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>
 /* Reorganizes the compilation options
  * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
  */
-vector<string> Server::reorganizeCompilationOptions(const vector<string>& options){
+vector<string> Server::reorganizeCompilationOptions(vector<string>& options){
     
     bool vectorize = false;
     int position = 0;
     
     vector<string> newoptions;
     
-//------STEP 1
+//------STEP 1 - Single or Double ?
     
     addKeyIfExisting(options, newoptions, "-double", "-single", position);
 
-//------STEP 2
+//------STEP 2 - Options Leading to -vec inclusion
     if(addKeyIfExisting(options, newoptions, "-sch", "", position))
         vectorize = true;
         
@@ -751,7 +757,7 @@ vector<string> Server::reorganizeCompilationOptions(const vector<string>& option
     if(vectorize)
         newoptions.push_back("-vec");
     
-//------STEP3
+//------STEP3 - Add options depending on -vec/-scal option
     if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)){
 
         addKeyIfExisting(options, newoptions, "-dfs", "", position);
@@ -763,9 +769,50 @@ vector<string> Server::reorganizeCompilationOptions(const vector<string>& option
     }
     else{
         addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
+        addKeyIfExisting(options, newoptions, "-inpl", "", position);
     }
     
     addKeyIfExisting(options, newoptions, "-mcd", "", position);
+    
+//------STEP4 - Add other types of Faust options
+    
+    addKeyIfExisting(options, newoptions, "-tg", "", position);
+    addKeyIfExisting(options, newoptions, "-sg", "", position);
+    addKeyIfExisting(options, newoptions, "-ps", "", position);    
+    addKeyIfExisting(options, newoptions, "-svg", "", position);    
+    
+    if(addKeyIfExisting(options, newoptions, "-mdoc", "", position)){
+        addKeyValueIfExisting(options, newoptions, "-mdlang", "");
+        addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
+    }
+    
+    addKeyIfExisting(options, newoptions, "-sd", "", position);
+    addKeyValueIfExisting(options, newoptions, "-f", "25");
+    addKeyValueIfExisting(options, newoptions, "-mns", "40"); 
+    addKeyIfExisting(options, newoptions, "-sn", "", position);
+    addKeyIfExisting(options, newoptions, "-xml", "", position);
+    addKeyIfExisting(options, newoptions, "-blur", "", position);    
+    addKeyIfExisting(options, newoptions, "-lb", "", position);
+    addKeyIfExisting(options, newoptions, "-mb", "", position);
+    addKeyIfExisting(options, newoptions, "-rb", "", position);    
+    addKeyIfExisting(options, newoptions, "-lt", "", position);    
+    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
+    addKeyValueIfExisting(options, newoptions, "-a", "");
+    addKeyIfExisting(options, newoptions, "-i", "", position);
+    addKeyValueIfExisting(options, newoptions, "-cn", "");    
+    addKeyValueIfExisting(options, newoptions, "-t", "120");
+    addKeyIfExisting(options, newoptions, "-time", "", position);
+    addKeyValueIfExisting(options, newoptions, "-o", "");
+    addKeyValueIfExisting(options, newoptions, "-lang", "cpp");
+    addKeyIfExisting(options, newoptions, "-flist", "", position);
+    addKeyValueIfExisting(options, newoptions, "-l", "");
+    addKeyValueIfExisting(options, newoptions, "-O", "");
+    
+//-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
+    while(options.size() != 0){
+        newoptions.push_back(options[0]);
+        options.erase(options.begin());
+    }
     
     return newoptions;
 }
