@@ -1026,11 +1026,11 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gHelpSwitch) { 
         printhelp(); 
-        throw faustexception("");
+        throw faustexception("Help printed and compilation aborted");
     }
     if (gVersionSwitch) { 
         printversion(); 
-        throw faustexception(""); 
+        throw faustexception("Version printed and compilation aborted"); 
     }
 
 #ifndef WIN32
