@@ -700,10 +700,8 @@ bool Server::parseKey(vector<string> options, const string& key, int& position){
 
 //Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
 //#return true if 'key' was added
-bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey){
-    
-    int position = 0;
-    
+bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position){
+      
     if(parseKey(options, key, position)){        
         newoptions.push_back(options[position]);
         return true;
@@ -719,11 +717,10 @@ void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>
     
     int position = 0;
     
-    if(addKeyIfExisting(options, newoptions, key, "")){
+    if(addKeyIfExisting(options, newoptions, key, "", position)){
         
         if(position+1<options.size() && options[position+1].find("-") == string::npos)
             newoptions.push_back(options[position+1]);
-        
         else
             newoptions.push_back(defaultValue);
     }
@@ -735,40 +732,41 @@ void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>
 vector<string> Server::reorganizeCompilationOptions(const vector<string>& options){
     
     bool vectorize = false;
+    int position = 0;
     
     vector<string> newoptions;
     
 //------STEP 1
     
-    addKeyIfExisting(options, newoptions, "-double", "-single");
+    addKeyIfExisting(options, newoptions, "-double", "-single", position);
 
 //------STEP 2
-    if(addKeyIfExisting(options, newoptions, "-sch", ""))
+    if(addKeyIfExisting(options, newoptions, "-sch", "", position))
         vectorize = true;
         
-    if(addKeyIfExisting(options, newoptions, "-omp", "")){
+    if(addKeyIfExisting(options, newoptions, "-omp", "", position)){
         vectorize = true;
-        addKeyIfExisting(options, newoptions, "-pl", "");
+        addKeyIfExisting(options, newoptions, "-pl", "", position);
     }
     
     if(vectorize)
         newoptions.push_back("-vec");
     
 //------STEP3
-    if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "")){
+    if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)){
 
-        addKeyIfExisting(options, newoptions, "-dfs", "");
-        addKeyIfExisting(options, newoptions, "-vls", "");
-        addKeyIfExisting(options, newoptions, "-fun", "");
-        addKeyIfExisting(options, newoptions, "-g", "");
+        addKeyIfExisting(options, newoptions, "-dfs", "", position);
+        addKeyIfExisting(options, newoptions, "-vls", "", position);
+        addKeyIfExisting(options, newoptions, "-fun", "", position);
+        addKeyIfExisting(options, newoptions, "-g", "", position);
         addKeyValueIfExisting(options, newoptions, "-vs", "32");
         addKeyValueIfExisting(options, newoptions, "-lv", "0");
     }
     else{
-        addKeyIfExisting(options, newoptions, "-scal", "-scal");
+        addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
     }
     
-    addKeyIfExisting(options, newoptions, "-mcd", "");
+    addKeyIfExisting(options, newoptions, "-mcd", "", position);
     
     return newoptions;
 }

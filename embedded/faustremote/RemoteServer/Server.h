@@ -264,7 +264,7 @@ public :
      */
     vector<string>  reorganizeCompilationOptions(const vector<string>& options);
     void            addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
-    bool            addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey);
+    bool            addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
     bool            parseKey(vector<string> options, const string& key, int& position);
     
 // Register Service as Available
