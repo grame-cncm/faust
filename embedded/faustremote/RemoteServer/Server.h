@@ -38,7 +38,7 @@ using namespace std;
 
 class server_netjackaudio : public netjackaudio_midicontrol {  
 
-    int     fNumberRestartAttempts;
+    int fNumberRestartAttempts;
 
     public:
     
@@ -95,11 +95,8 @@ struct connection_info_struct {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string              fNameApp;
     string              fFaustCode;
-//    int                 fNumCompilOptions;
-//    int                 fIndicator;
     vector<string>      fCompilationOptions;
     string              fOpt_level;
-//    const char**        fCharCompilationOptions;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
@@ -143,13 +140,13 @@ struct slave_dsp_factory{
     
     bool                delete_Factory();
     slave_dsp_factory*  clone();
-    bool                init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& answer);
+    bool                init(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer);
     string              getJson(const string& factoryKey);
     
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& answer);
+slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer);
 
 void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
     
@@ -166,12 +163,11 @@ struct slave_dsp{
     string          fMTU;
     string          fLatency;
     
-    //netjackaudio_control*   fAudio;  //NETJACK SLAVE 
     server_netjackaudio*   fAudio;  //NETJACK SLAVE 
     
-    llvm_dsp*               fDSP;          //Real DSP Instance 
+    llvm_dsp*              fDSP;   //Real DSP Instance 
     
-    slave_dsp_factory*      fSlaveFactory;   //RelatedFactory
+    slave_dsp_factory*     fSlaveFactory;   //RelatedFactory
     
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
@@ -179,7 +175,6 @@ struct slave_dsp{
     
     slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
     ~slave_dsp();
-    
     
     bool start_audio();
     void stop_audio();
@@ -250,7 +245,7 @@ public :
      * If the evaluation fails, the appropriate error message is set. More info
      * on the con_info structure is in Server.h.
      */
-    string_and_exitstatus   generate_sha1(const string& faustCode, int argc, const char ** argv, const string& opt_value);
+    string_and_exitstatus   generate_sha1(const string& faustCode, const vector<string>& options, const string& opt_value);
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
@@ -265,9 +260,9 @@ public :
     /* Reorganizes the compilation options
      * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
      */
-    vector<string>   reorganizeCompilationOptions(const vector<string>& options);
-    void            addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
-    bool            addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey);
+    vector<string>  reorganizeCompilationOptions(vector<string>& options);
+    void            addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
+    bool            addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
     bool            parseKey(vector<string> options, const string& key, int& position);
     
 // Register Service as Available

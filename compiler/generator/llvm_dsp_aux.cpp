@@ -52,9 +52,13 @@
 #include <llvm/Support/IRReader.h>
 #endif
 
+/* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
+ * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
+ * 3.3.
+ */
 #if defined(LLVM_32)
 #include <llvm/DataLayout.h>
-#else
+#elif !defined(LLVM_33) && !defined(LLVM_34)
 #ifndef _WIN32
 #include <llvm/Target/TargetData.h>
 #endif

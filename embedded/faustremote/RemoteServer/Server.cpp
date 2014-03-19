@@ -40,11 +40,11 @@ struct myMeta : public Meta
 //------------SLAVE DSP FACTORY-------------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& answer){
+slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer){
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(argc, argv, nameApp, faustContent, opt_level, answer))
+    if(newFactory->init(options, name_app, faust_content, opt_level, answer))
         return newFactory;
     else
         return NULL;
@@ -84,14 +84,21 @@ string slave_dsp_factory::getJson(const string& factoryKey){
 
 // Creation of real LLVM DSP FACTORY 
 // & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(int argc, const char** argv, const string& nameApp, const string& faustContent, int opt_level, string& error){
+bool slave_dsp_factory::init(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& error){
     
-    printf("NAMEAPP = %s | faustContent = %s", nameApp.c_str(), faustContent.c_str());
-
+    printf("NAMEAPP = %s | faust_content = %s", name_app.c_str(), faust_content.c_str());
+    
+    int argc = options.size();
+    const char* argv[argc];
+    
+    for(int i=0; i<argc; i++){
+        argv[i] = options[i].c_str();
+    }
+   
     for(int i=0; i<argc; i++)
         printf("argv = %s\n", argv[i]);
     
-    fLLVMFactory = createDSPFactoryFromString(nameApp, faustContent, argc, argv, "", error, opt_level);
+    fLLVMFactory = createDSPFactoryFromString(name_app, faust_content, argc, argv, "", error, opt_level);
     
     printf("%s\n", error.c_str());
     
@@ -454,7 +461,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
             con_info->fInstanceKey = data;
         
         if(strcmp(key,"options") == 0)
-                con_info->fCompilationOptions.push_back(string(data));
+            con_info->fCompilationOptions.push_back(string(data));
         
         if(strcmp(key,"opt_level") == 0)
             con_info->fOpt_level = data;
@@ -519,15 +526,8 @@ bool Server::compile_Data(connection_info_struct* con_info){
 //    Sort out compilation options
     vector<string> newOptions = reorganizeCompilationOptions(con_info->fCompilationOptions);
     
-    int numOptions = newOptions.size();
-    
-    const char* newoptions[numOptions];
-    
-    for(int i=0; i<numOptions; i++){
-        newoptions[i] = newOptions[i].c_str();
-    }
-    
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, numOptions, newoptions, con_info->fOpt_level);
+     
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, newOptions, con_info->fOpt_level);
     
     if(!structure.exitstatus){
         
@@ -541,7 +541,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
         
         if(realFactory == NULL){
             
-            realFactory = createSlaveDSPFactory(numOptions, newoptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), con_info->fAnswerstring);
+            realFactory = createSlaveDSPFactory(newOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), con_info->fAnswerstring);
             
             if(realFactory)
                 fAvailableFactories[factoryKey] = realFactory;
@@ -648,16 +648,16 @@ void Server::registration(){
  * on the con_info structure is in Server.h.
  */
 
-string_and_exitstatus Server::generate_sha1(const string& faustCode, int argc, const char** argv, const string& opt_value)
+string_and_exitstatus Server::generate_sha1(const string& faustCode, const vector<string>& options, const string& opt_value)
 {
     string source(faustCode);
-    
-    for(int i=0; i<argc; i++){
+  
+    for(int i = 0; i < options.size(); i++){
         source += " "; 
-        source += argv[i];
+        source += options[i];
     }
     
-    source+=opt_value;
+    source += opt_value;
     
     string hash = "";
     
@@ -700,12 +700,12 @@ bool Server::parseKey(vector<string> options, const string& key, int& position){
 
 //Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
 //#return true if 'key' was added
-bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey){
-    
-    int position = 0;
-    
+bool Server::addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position){
+      
     if(parseKey(options, key, position)){        
         newoptions.push_back(options[position]);
+        options.erase(options.begin()+position);
+        position--;
         return true;
     }
     else if(defaultKey.compare("") != 0)
@@ -715,15 +715,17 @@ bool Server::addKeyIfExisting(const vector<string>& options, vector<string>& new
 }
 
 //Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue){
+void Server::addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue){
     
     int position = 0;
     
-    if(addKeyIfExisting(options, newoptions, key, "")){
-        
-        if(position+1<options.size() && options[position+1].find("-") == string::npos)
+    if(addKeyIfExisting(options, newoptions, key, "", position)){
+
+        if(position+1<options.size() && options[position+1][0] != '-'){
             newoptions.push_back(options[position+1]);
-        
+            options.erase(options.begin()+position+1);
+            position--;
+        }
         else
             newoptions.push_back(defaultValue);
     }
@@ -732,43 +734,85 @@ void Server::addKeyValueIfExisting(const vector<string>& options, vector<string>
 /* Reorganizes the compilation options
  * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
  */
-vector<string> Server::reorganizeCompilationOptions(const vector<string>& options){
+vector<string> Server::reorganizeCompilationOptions(vector<string>& options){
     
     bool vectorize = false;
+    int position = 0;
     
     vector<string> newoptions;
     
-//------STEP 1
+//------STEP 1 - Single or Double ?
     
-    addKeyIfExisting(options, newoptions, "-double", "-single");
+    addKeyIfExisting(options, newoptions, "-double", "-single", position);
 
-//------STEP 2
-    if(addKeyIfExisting(options, newoptions, "-sch", ""))
+//------STEP 2 - Options Leading to -vec inclusion
+    if(addKeyIfExisting(options, newoptions, "-sch", "", position))
         vectorize = true;
         
-    if(addKeyIfExisting(options, newoptions, "-omp", "")){
+    if(addKeyIfExisting(options, newoptions, "-omp", "", position)){
         vectorize = true;
-        addKeyIfExisting(options, newoptions, "-pl", "");
+        addKeyIfExisting(options, newoptions, "-pl", "", position);
     }
     
     if(vectorize)
         newoptions.push_back("-vec");
     
-//------STEP3
-    if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "")){
+//------STEP3 - Add options depending on -vec/-scal option
+    if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)){
 
-        addKeyIfExisting(options, newoptions, "-dfs", "");
-        addKeyIfExisting(options, newoptions, "-vls", "");
-        addKeyIfExisting(options, newoptions, "-fun", "");
-        addKeyIfExisting(options, newoptions, "-g", "");
+        addKeyIfExisting(options, newoptions, "-dfs", "", position);
+        addKeyIfExisting(options, newoptions, "-vls", "", position);
+        addKeyIfExisting(options, newoptions, "-fun", "", position);
+        addKeyIfExisting(options, newoptions, "-g", "", position);
         addKeyValueIfExisting(options, newoptions, "-vs", "32");
         addKeyValueIfExisting(options, newoptions, "-lv", "0");
     }
     else{
-        addKeyIfExisting(options, newoptions, "-scal", "-scal");
+        addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
+        addKeyIfExisting(options, newoptions, "-inpl", "", position);
     }
     
-    addKeyIfExisting(options, newoptions, "-mcd", "");
+    addKeyIfExisting(options, newoptions, "-mcd", "", position);
+    
+//------STEP4 - Add other types of Faust options
+    
+    addKeyIfExisting(options, newoptions, "-tg", "", position);
+    addKeyIfExisting(options, newoptions, "-sg", "", position);
+    addKeyIfExisting(options, newoptions, "-ps", "", position);    
+    addKeyIfExisting(options, newoptions, "-svg", "", position);    
+    
+    if(addKeyIfExisting(options, newoptions, "-mdoc", "", position)){
+        addKeyValueIfExisting(options, newoptions, "-mdlang", "");
+        addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
+    }
+    
+    addKeyIfExisting(options, newoptions, "-sd", "", position);
+    addKeyValueIfExisting(options, newoptions, "-f", "25");
+    addKeyValueIfExisting(options, newoptions, "-mns", "40"); 
+    addKeyIfExisting(options, newoptions, "-sn", "", position);
+    addKeyIfExisting(options, newoptions, "-xml", "", position);
+    addKeyIfExisting(options, newoptions, "-blur", "", position);    
+    addKeyIfExisting(options, newoptions, "-lb", "", position);
+    addKeyIfExisting(options, newoptions, "-mb", "", position);
+    addKeyIfExisting(options, newoptions, "-rb", "", position);    
+    addKeyIfExisting(options, newoptions, "-lt", "", position);    
+    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
+    addKeyValueIfExisting(options, newoptions, "-a", "");
+    addKeyIfExisting(options, newoptions, "-i", "", position);
+    addKeyValueIfExisting(options, newoptions, "-cn", "");    
+    addKeyValueIfExisting(options, newoptions, "-t", "120");
+    addKeyIfExisting(options, newoptions, "-time", "", position);
+    addKeyValueIfExisting(options, newoptions, "-o", "");
+    addKeyValueIfExisting(options, newoptions, "-lang", "cpp");
+    addKeyIfExisting(options, newoptions, "-flist", "", position);
+    addKeyValueIfExisting(options, newoptions, "-l", "");
+    addKeyValueIfExisting(options, newoptions, "-O", "");
+    
+//-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
+    while(options.size() != 0){
+        newoptions.push_back(options[0]);
+        options.erase(options.begin());
+    }
     
     return newoptions;
 }

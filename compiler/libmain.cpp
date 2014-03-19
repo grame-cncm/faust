@@ -426,7 +426,7 @@ static bool process_cmdline(int argc, const char* argv[])
             }
             i += 2;
             
-        } else if (isCmd(argv[i], "-l", "--library")) {
+        } else if (isCmd(argv[i], "-l", "--library") && (i+1 < argc)) {
             gGlobal->gLibraryList.push_back(argv[i+1]);
             i += 2;
            
@@ -1016,8 +1016,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     gPrintDocSwitch = false;
     gBalancedSwitch = 0;
     gArchFile = 0;
-
-    gTimeout = INT_MAX;           
     gPrintFileListSwitch = false;
     gOutputLang = 0;
   
@@ -1028,11 +1026,11 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gHelpSwitch) { 
         printhelp(); 
-        throw faustexception("");
+        throw faustexception("Help printed and compilation aborted");
     }
     if (gVersionSwitch) { 
         printversion(); 
-        throw faustexception(""); 
+        throw faustexception("Version printed and compilation aborted"); 
     }
 
 #ifndef WIN32

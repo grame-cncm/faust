@@ -296,16 +296,14 @@ const char* strip_start(const char* filename)
 
 /**
  * Check if an URL exists.
- * @return true if the URL exist, throw on exception otherxise 
+ * @return true if the URL exist, throw on exception otherwise 
  */
 		
 bool check_url(const char* filename)
 {
-    char* fileBuf = 0;
-     
     // Tries to open as a http URL
-    if (strstr(filename, "://") > 0) {
-        if (http_fetch(filename, &fileBuf) != -1) {
+    if (strstr(filename, "://") != NULL) {
+        if (http_fetch(filename, NULL) != -1) {
             return true;
         } else {
             stringstream error;

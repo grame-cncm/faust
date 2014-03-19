@@ -20,6 +20,7 @@
  ************************************************************************/
  
 #include <stdio.h>
+#include <stdlib.h>
 #include <list>
 #include <iostream>
 #include <fstream>

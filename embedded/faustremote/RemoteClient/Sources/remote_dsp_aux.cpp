@@ -205,13 +205,13 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) {
 
 // Create Remote DSP Instance from factory
 remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
-                                                            int samplingRate, int bufferSize, 
+                                                            int sampling_rate, int buffer_size, 
                                                             RemoteDSPErrorCallback error_callback, void* error_callback_arg, 
                                                             int& error){
  
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     
-    if(dsp->init(argc, argv, samplingRate, bufferSize, error_callback, error_callback_arg, error)){
+    if(dsp->init(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error)){
         return dsp; 
     } else {
         delete dsp;
@@ -552,13 +552,13 @@ int remote_dsp_aux::getNumOutputs(){
 }
 
 // Useless fonction in our case but required for a DSP interface
-void remote_dsp_aux::init(int /*samplingFreq*/){}
+void remote_dsp_aux::init(int /*sampling_rate*/){}
 
 // Init remote dsp instance sends a POST request to a remote server
 // The URL extension used is /CreateInstance
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
-bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
+bool remote_dsp_aux::init(int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
     
     fBufferSize = buffer_size;
     
@@ -627,9 +627,9 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int samplingFreq, int bu
 
 //              OPEN NET JACK CONNECTION
     if(send_request(ip, finalRequest, response, errorCode)){
-        printf("BS & SR = %i | %i\n", buffer_size, samplingFreq);
+        printf("BS & SR = %i | %i\n", buffer_size, sampling_rate);
         
-        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(samplingFreq), "test_master", 5, partial_cycle};
+        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "test_master", 5, partial_cycle};
         jack_slave_t result;
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
         
@@ -690,9 +690,9 @@ EXPORT int remote_dsp_factory::numOutputs(){return fNumOutputs;}
 
 //---------INSTANCES
 
-EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
     
-    return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, samplingRate, bufferSize, error_callback, error_callback_arg, error));
+    return reinterpret_cast<remote_dsp*>(factory->createRemoteDSPInstance(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error));
 }
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp){
@@ -715,9 +715,9 @@ EXPORT int remote_dsp::getNumOutputs()
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
 }
 
-EXPORT void remote_dsp::init(int samplingFreq)
+EXPORT void remote_dsp::init(int sampling_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->init(samplingFreq);
+    reinterpret_cast<remote_dsp_aux*>(this)->init(sampling_rate);
 }
 
 EXPORT void remote_dsp::buildUserInterface(UI* interface)
@@ -779,7 +779,7 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 //      SELECT IS USED TO SET TIMEOUT  
 
         int fd = DNSServiceRefSockFD(sd);
-        int count = 100;
+        int count = 50;
         
         while (count-- > 0) {
             
@@ -788,7 +788,7 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
             FD_SET(fd, &readfds);
             struct timeval tv = { 0, 100000 };
             
-            if (select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0
+            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
                 && FD_ISSET(fd, &readfds) 
                 && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
                 break;
