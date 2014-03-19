@@ -418,7 +418,8 @@ int main(int argc, char *argv[])
 /*
 Compilation :
 
-g++ faust-llvm.cpp /usr/local/lib/faust/libfaust.a `llvm-config --ldflags --libs all` -o faust-llvm
+g++ faust-llvm.cpp /usr/local/lib/faust/libfaust.a `llvm-config --ldflags --libs all` -o faust-llvm-static
+g++ faust-llvm.cpp -lfaust -L /usr/local/lib/faust `llvm-config --ldflags --libs all` -o faust-llvm-shared
 
 Usage (possibly with explicit parameters given to the compiler)
 

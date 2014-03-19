@@ -22,25 +22,14 @@
 #include "export.hh"
 #include "exception.hh"
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
     gGlobal = NULL;
    
     try {
         global::allocate();
         
-        // Add time-out argument
-        int argc1 = argc + 2;
-        const char* argv1[32];
-		assert(argc1 < 32);
-        int i;
-        for (i = 0; i < argc; i++) {
-            argv1[i] = argv[i];
-        }
-        argv1[i++] = "-t";
-        argv1[i++] = "120";
-
-        compile_faust_internal(argc1, argv1, 0, 0, true);
+        compile_faust_internal(argc, argv, 0, 0, true);
     } catch (faustexception& e) {
         e.PrintMessage();
     }

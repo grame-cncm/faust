@@ -26,6 +26,7 @@
 #define FAUSTFLOAT float
 #endif
 
+#include <stdbool.h>
 #include "faust/gui/CUI.h"
 
 #ifdef __cplusplus
@@ -40,9 +41,9 @@ extern "C"
  @{
 */
 
-struct llvm_dsp_factory;
+typedef struct {} llvm_dsp_factory;
 
-struct llvm_dsp;
+typedef struct {} llvm_dsp;
 
 /**
  * Create a Faust DSP factory from a DSP source code.
