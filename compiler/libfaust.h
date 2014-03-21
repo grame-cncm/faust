@@ -73,9 +73,13 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
-EXPORT llvm::Module* LoadModule(const std::string filename, llvm::LLVMContext* context);
+EXPORT llvm::Module* load_single_module(const std::string filename, llvm::LLVMContext* context);
 
-EXPORT bool LinkModules(llvm::Module* dst, llvm::Module* src, char* error_message);
+EXPORT bool link_modules(llvm::Module* dst, llvm::Module* src, char* error_message);
+
+EXPORT std::string generate_sha1(const std::string& dsp_content);
+
+EXPORT std::string path_to_content(const std::string& path);
 
 #endif
 

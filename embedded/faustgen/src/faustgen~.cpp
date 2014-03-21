@@ -169,7 +169,7 @@ void faustgen_factory::free_dsp_factory()
             (*it)->free_dsp();
         }
      
-        deleteDSPFactory(fDSPfactory);
+        //deleteDSPFactory(fDSPfactory);
         fDSPfactory = 0;
         unlock();
     } else {
@@ -180,6 +180,7 @@ void faustgen_factory::free_dsp_factory()
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     string decoded_bitcode = base64_decode(*fBitCode, fBitCodeSize);
+    post("decoded_bitcode %d\n", decoded_bitcode.size());
     return readDSPFactoryFromBitcode(decoded_bitcode, getTarget());
     /*
     // Alternate model using LLVM IR
@@ -238,10 +239,14 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
         post("Factory already allocated, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
         goto end;
     }
+    
+    post("create_dsp_aux fBitCodeSize %d\n", fBitCodeSize);
    
     // Tries to create from bitcode
     if (fBitCodeSize > 0) {
         fDSPfactory = create_factory_from_bitcode();
+        post("create_dsp_aux fBitCodeSize %x\n", fDSPfactory);
+        
         if (fDSPfactory) {
             metadataDSPFactory(fDSPfactory, &meta);
             dsp = createDSPInstance(fDSPfactory);
@@ -371,6 +376,10 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // If OK read bitcode
+    
+    post (" read bitcode fBitCodeSize %d\n", fBitCodeSize);
+    
+    
     fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);             // We need to use a size larger by one for the null terminator
     const char* bitcode;
     err = dictionary_getstring(d, gensym("bitcode"), &bitcode);     // The retrieved pointer references the string in the dictionary, it is not a copy.
@@ -378,6 +387,8 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     if (err != MAX_ERR_NONE) {
         fBitCodeSize = 0;
     }
+    
+    post (" read bitcode fBitCodeSize OK %d\n", fBitCodeSize);
 
 read_sourcecode:    
 
@@ -479,7 +490,7 @@ void faustgen_factory::display_svg()
         
         // Force recompilation to produce it
         llvm_dsp_factory* factory = create_factory_from_sourcecode(0);
-        deleteDSPFactory(factory);
+        //deleteDSPFactory(factory);
      
         // Open the SVG diagram file inside a web browser
         open_svg();

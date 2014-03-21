@@ -46,9 +46,9 @@ static bool CheckParameters(int argc, const char* argv[])
     return false;
 }
 
-EXPORT std::string expandDSPFromFile(const std::string& filename, 
-                                    int argc, const char* argv[], 
-                                    std::string& error_msg)
+EXPORT string expandDSPFromFile(const string& filename, 
+                                int argc, const char* argv[], 
+                                string& error_msg)
 {
     int argc1 = argc + 2;
     const char* argv1[32];
@@ -65,10 +65,10 @@ EXPORT std::string expandDSPFromFile(const std::string& filename,
     return res;
 }
 
-EXPORT std::string expandDSPFromString(const std::string& name_app, 
-                                    const std::string& dsp_content, 
-                                    int argc, const char* argv[], 
-                                    std::string& error_msg)
+EXPORT string expandDSPFromString(const string& name_app, 
+                                const string& dsp_content, 
+                                int argc, const char* argv[], 
+                                string& error_msg)
 {
     int argc1 = argc + 1;
     const char* argv1[32];
@@ -84,7 +84,7 @@ EXPORT std::string expandDSPFromString(const std::string& name_app,
     return res;
 }
 
-EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg)
+EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
 {
     if (CheckParameters(argc, argv)) {
          
@@ -106,7 +106,7 @@ EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, cons
     }
 }
 
-EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg)
+EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
     if (CheckParameters(argc, argv)) {
        
@@ -147,9 +147,9 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
 }
 
 EXPORT const char* expandCDSPFromString(const char* name_app, 
-                                    const char* dsp_content, 
-                                    int argc, const char* argv[], 
-                                    char* error_msg)
+                                        const char* dsp_content, 
+                                        int argc, const char* argv[], 
+                                        char* error_msg)
 {
     int argc1 = argc + 1;
     const char* argv1[32];

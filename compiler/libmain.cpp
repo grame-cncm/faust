@@ -107,14 +107,14 @@ static void call_fun(compile_fun fun)
 static Module* load_module(const string& module_name, llvm::LLVMContext* context)
 {
     // Try as a complete path
-    if (Module* module = LoadModule(module_name, context)) {
+    if (Module* module = load_single_module(module_name, context)) {
         return module;
     } else {
     // Otherwise use import directories
         list<string>::iterator it;
         for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
             string file_name = *it + '/' + module_name;
-            if (Module* module = LoadModule(file_name, context)) {
+            if (Module* module = load_single_module(file_name, context)) {
                 return module;
             }
         }
@@ -135,12 +135,159 @@ static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* e
             return 0;
         }
         
-        if (!LinkModules(dst, src, error)) {
+        if (!link_modules(dst, src, error)) {
             return 0;
         }
     }
         
     return dst;
+}
+
+//Look for 'key' in 'options' and modify the parameter 'position' if found
+static bool parseKey(vector<string> options, const string& key, int& position)
+{
+    for (int i = 0; i < options.size(); i++){
+        if (key == options[i]){
+            position = i;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+//Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
+//#return true if 'key' was added
+static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position)
+{
+    if (parseKey(options, key, position)) {        
+        newoptions.push_back(options[position]);
+        options.erase(options.begin()+position);
+        position--;
+        return true;
+    } else if (defaultKey != "") {
+        newoptions.push_back(defaultKey);
+    }
+    
+    return false;
+}
+
+//Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
+static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue)
+{
+    int position = 0;
+    
+    if (addKeyIfExisting(options, newoptions, key, "", position)) {
+        if (position+1 < options.size() && options[position+1][0] != '-') {
+            newoptions.push_back(options[position+1]);
+            options.erase(options.begin()+position+1);
+            position--;
+        } else {
+            newoptions.push_back(defaultValue);
+        }
+    }
+}
+
+/* Reorganizes the compilation options
+ * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
+ */
+static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
+{
+    bool vectorize = false;
+    int position = 0;
+    
+    vector<string> newoptions;
+    
+    //------STEP 1 - Single or Double ?
+    addKeyIfExisting(options, newoptions, "-double", "-single", position);
+    
+    //------STEP 2 - Options Leading to -vec inclusion
+    if (addKeyIfExisting(options, newoptions, "-sch", "", position)) {
+        vectorize = true;
+    }
+    
+    if (addKeyIfExisting(options, newoptions, "-omp", "", position)){
+        vectorize = true;
+        addKeyIfExisting(options, newoptions, "-pl", "", position);
+    }
+    
+    if (vectorize) {
+        newoptions.push_back("-vec");
+    }
+    
+    //------STEP3 - Add options depending on -vec/-scal option
+    if (vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)) {
+        addKeyIfExisting(options, newoptions, "-dfs", "", position);
+        addKeyIfExisting(options, newoptions, "-vls", "", position);
+        addKeyIfExisting(options, newoptions, "-fun", "", position);
+        addKeyIfExisting(options, newoptions, "-g", "", position);
+        addKeyValueIfExisting(options, newoptions, "-vs", "32");
+        addKeyValueIfExisting(options, newoptions, "-lv", "0");
+    } else {
+        addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
+        addKeyIfExisting(options, newoptions, "-inpl", "", position);
+    }
+    
+    addKeyIfExisting(options, newoptions, "-mcd", "", position);
+    
+    //------STEP4 - Add other types of Faust options
+    addKeyIfExisting(options, newoptions, "-tg", "", position);
+    addKeyIfExisting(options, newoptions, "-sg", "", position);
+    addKeyIfExisting(options, newoptions, "-ps", "", position);    
+    addKeyIfExisting(options, newoptions, "-svg", "", position);    
+    
+    if (addKeyIfExisting(options, newoptions, "-mdoc", "", position)) {
+        addKeyValueIfExisting(options, newoptions, "-mdlang", "");
+        addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
+    }
+    
+    addKeyIfExisting(options, newoptions, "-sd", "", position);
+    addKeyValueIfExisting(options, newoptions, "-f", "25");
+    addKeyValueIfExisting(options, newoptions, "-mns", "40"); 
+    addKeyIfExisting(options, newoptions, "-sn", "", position);
+    addKeyIfExisting(options, newoptions, "-xml", "", position);
+    addKeyIfExisting(options, newoptions, "-blur", "", position);    
+    addKeyIfExisting(options, newoptions, "-lb", "", position);
+    addKeyIfExisting(options, newoptions, "-mb", "", position);
+    addKeyIfExisting(options, newoptions, "-rb", "", position);    
+    addKeyIfExisting(options, newoptions, "-lt", "", position);    
+    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
+    addKeyValueIfExisting(options, newoptions, "-a", "");
+    addKeyIfExisting(options, newoptions, "-i", "", position);
+    addKeyValueIfExisting(options, newoptions, "-cn", "");    
+    addKeyValueIfExisting(options, newoptions, "-t", "120");
+    addKeyIfExisting(options, newoptions, "-time", "", position);
+    addKeyValueIfExisting(options, newoptions, "-o", "");
+    addKeyValueIfExisting(options, newoptions, "-lang", "cpp");
+    addKeyIfExisting(options, newoptions, "-flist", "", position);
+    addKeyValueIfExisting(options, newoptions, "-l", "");
+    addKeyValueIfExisting(options, newoptions, "-O", "");
+    
+    //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
+    while (options.size() != 0){
+        if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
+        options.erase(options.begin());
+    }
+    
+    return newoptions;
+}
+
+string reorganizeCompilationOptions(int argc, const char* argv[])
+{
+    vector<string> res1;
+    for (int i = 0; i < argc; i++) {
+        res1.push_back(argv[i]);
+    }
+    
+    vector<string> res2 = reorganizeCompilationOptionsAux(res1);
+    
+    string res3;
+    for (int i = 0; i < res2.size(); i++) {
+        res3 += " ";
+        res3 += res2[i];
+    }
+    
+    return res3;
 }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
@@ -1001,7 +1148,8 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
         throw faustexception(gErrorMessage);
     }
     stringstream out;
-    out << "process = " << boxpp(gProcessTree) << ";" << endl;
+    out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
+    out << "process = " << boxpp(gProcessTree) << ';' << endl;
     return out.str();
 }
 
@@ -1064,8 +1212,9 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     int numOutputs = gNumOutputs;
     
     if (gExportDSP) {
-        ofstream xout(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
-        xout << "process = " << boxpp(process) << ";" << endl;
+        ofstream out(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
+        out << "process = " << boxpp(process) << ';' << endl;
         return;
     }
 

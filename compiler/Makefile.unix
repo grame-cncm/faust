@@ -54,7 +54,8 @@ ifeq ($(LLVM_VERSION), 3.4)
 LLVM_VERSION = LLVM_34
 endif
 
-CXXFLAGS += -O3 -Wall -Wuninitialized 
+#CXXFLAGS += -O3 -Wall -Wuninitialized 
+CXXFLAGS += -g -Wall -Wuninitialized 
 CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
@@ -93,7 +94,7 @@ main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
 faust : $(objects) main.o libmain.o global.o scheduler.ll
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -o faust
 
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
@@ -108,7 +109,7 @@ else
 endif
 
 libfaust.$(LIB_EXT) : $(objects) libmain.o global.o
-	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o -lstdc++ `$(LLVM_CONFIG) --ldflags` -lLLVM-`$(LLVM_CONFIG) --version`  -macosx_version_min 10.6 -install_name /usr/local/lib/faust/libfaust.$(LIB_EXT) -o libfaust.$(LIB_EXT)
+	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o  -lcrypto -lstdc++ `$(LLVM_CONFIG) --ldflags` -lLLVM-`$(LLVM_CONFIG) --version`  -macosx_version_min 10.6 -install_name /usr/local/lib/faust/libfaust.$(LIB_EXT) -o libfaust.$(LIB_EXT)
 
 
 .PHONY: clean depend ctags parser
@@ -330,7 +331,7 @@ generator/description.o: tlib/smartpointer.hh generator/uitree.hh tlib/compatibi
 generator/description.o: errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/property.hh
 generator/description.o: signals/sigtype.hh signals/interval.hh generator/instructions.hh evaluate/loopDetector.hh
 generator/description.o: tlib/occurrences.hh
-generator/dsp_aux.o: generator/dsp_aux.hh export.hh
+generator/dsp_aux.o: generator/dsp_aux.hh export.hh libfaust.h
 generator/fir_code_container.o: generator/fir_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/fir_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh
 generator/fir_code_container.o: tlib/tree.hh generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -496,7 +497,7 @@ propagate/propagate.o: signals/sigvisitor.hh documentator/lateq.hh propagate/lab
 propagate/propagate.o: errors/exception.hh global.hh parser/sourcereader.hh evaluate/loopDetector.hh
 propagate/propagate.o: tlib/occurrences.hh
 signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh signals/signals.hh tlib/tlib.hh
-signals/binop.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+signals/binop.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/compatibility.hh
 signals/ppsig.o: generator/Text.hh signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 signals/ppsig.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh
 signals/ppsig.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh tlib/property.hh
@@ -609,9 +610,8 @@ libmain.o: generator/omp_code_container.hh generator/wss_code_container.hh gener
 libmain.o: generator/cpp_instructions.hh generator/opencl_instructions.hh generator/cpp_gpu_code_container.hh
 libmain.o: generator/java_code_container.hh generator/java_instructions.hh generator/js_code_container.hh
 libmain.o: generator/js_instructions.hh generator/asmjs_code_container.hh generator/asmjs_instructions.hh
-libmain.o: generator/llvm_code_container.hh generator/llvm_instructions.hh errors/exception.hh
 libmain.o: generator/fir_code_container.hh generator/fir_instructions.hh draw/schema/schema.h draw/device/device.h
-libmain.o: draw/drawschema.hh errors/timing.hh signals/ppsig.hh export.hh libfaust.h
+libmain.o: draw/drawschema.hh errors/timing.hh signals/ppsig.hh errors/exception.hh libfaust.h export.hh
 global.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 global.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
 global.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh

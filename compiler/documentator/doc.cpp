@@ -827,7 +827,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
  */
 vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlices)
 {
-	string	s;
+	string s;
 	ifstream src;
 	src.open(faustfile.c_str(), ifstream::in);
 	string tmp = "";
@@ -856,7 +856,7 @@ vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlice
 		}
 	} else {
         stringstream error;
-        error << "ERROR : can't open faust source file " << faustfile << endl;
+        error << "ERROR : can't open Faust source file " << faustfile << endl;
         throw faustexception(error.str());
 	}
 	return codeSlices;
@@ -884,7 +884,7 @@ static void printdocCodeSlices(const string& code, ostream& docout)
  */
 static bool doesFileBeginWithCode(const string& faustfile)
 {
-	string	s;
+	string s;
 	ifstream src;
 	src.open(faustfile.c_str(), ifstream::in);
 	
@@ -898,7 +898,7 @@ static bool doesFileBeginWithCode(const string& faustfile)
 		}
 	} else {
         stringstream error;
-        error << "ERROR : can't open faust source file " << faustfile << endl;
+        error << "ERROR : can't open Faust source file " << faustfile << endl;
         throw faustexception(error.str());
 	}
 }	

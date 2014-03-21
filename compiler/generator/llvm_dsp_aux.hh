@@ -27,10 +27,14 @@
 #endif
 
 #include <string>
+#include <map>
+#include <list>
+#include <utility>
 #include "faust/gui/CUI.h"
 #include "faust/audio/dsp.h"
 #include "export.hh"
 #include "libfaust.h"
+#include "smartpointer.h"
 
 using namespace std;
 
@@ -38,7 +42,15 @@ class llvm_dsp_aux;
 
 struct Meta;
 
-class llvm_dsp_factory {
+class llvm_dsp_factory;
+
+typedef class SMARTP<llvm_dsp_factory>	Sllvm_dsp_factory;
+
+#define FactoryTableItem   pair< string, list<llvm_dsp_aux*> >
+#define FactoryTableType   map< Sllvm_dsp_factory, FactoryTableItem >
+#define FactoryTableIt     FactoryTableType::iterator
+
+class llvm_dsp_factory : public smartable {
 
     friend class llvm_dsp_aux;
 
@@ -102,7 +114,9 @@ class llvm_dsp_factory {
         void metadataDSPFactory(Meta* meta);
         
         void metadataDSPFactory(MetaGlue* glue);
-     
+    
+        static FactoryTableType gFactoryTable;
+       
 };
 
 class llvm_dsp_aux : public dsp {
@@ -131,6 +145,9 @@ class llvm_dsp_aux : public dsp {
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+    
+        llvm_dsp_factory* getFactory() { return fDSPFactory; }
      
 };
 
@@ -147,6 +164,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
                                                     std::string& error_msg, int opt_level = 3);
                         
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
+
+EXPORT void deleteAllDSPFactories();
 
 // Bitcode <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
@@ -208,6 +227,8 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                     char* error_msg, int opt_level);
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
+    
+EXPORT void deleteAllCDSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 

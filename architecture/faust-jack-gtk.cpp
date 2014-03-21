@@ -60,7 +60,8 @@ int main(int argc, char *argv[])
 	char  	rcfilename[256];
 	char* 	home = getenv("HOME");
     
-    llvm_dsp_factory* factory3;
+    llvm_dsp_factory* factory3 = 0;
+    llvm_dsp_factory* factory4 = 0;
 
     if (argc < 2) {
         printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
@@ -169,7 +170,8 @@ int main(int argc, char *argv[])
         */
         
         std::string error_msg3;
-        factory3 = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error_msg3, 3);
+        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
+        factory4 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         if (factory3) {
             DSP = createDSPInstance(factory3);
             assert(DSP);
@@ -244,7 +246,11 @@ int main(int argc, char *argv[])
     delete(interface);
     delete(finterface);
     deleteDSPInstance(DSP);
-    deleteDSPFactory(factory3);
+    
+    //deleteDSPFactory(factory3);
+    //deleteDSPFactory(factory4);
+     
+    deleteAllDSPFactories();
   	return 0;
 }
 

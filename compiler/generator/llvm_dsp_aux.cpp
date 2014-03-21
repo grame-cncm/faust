@@ -28,10 +28,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <libgen.h>
+#include <openssl/sha.h>
 
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
+#include "dsp_aux.hh"
 
 #if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Module.h>
@@ -88,6 +91,7 @@
 using namespace llvm;
 
 int llvm_dsp_factory::gInstance = 0;
+FactoryTableType llvm_dsp_factory::gFactoryTable;
 
 static string getParam(int argc, const char* argv[], const string& param, const string& def)
 {
@@ -97,7 +101,7 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     return def;
 }
         
-void* llvm_dsp_factory::LoadOptimize(const std::string& function)
+void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
     if (fun_ptr) {
@@ -107,7 +111,7 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-Module* LoadModule(const std::string filename, LLVMContext* context)
+EXPORT Module* load_single_module(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
     Module* module = ParseIRFile(filename, err, *context);
@@ -124,7 +128,7 @@ Module* LoadModule(const std::string filename, LLVMContext* context)
     }
 }
 
-bool LinkModules(Module* dst, Module* src, char* error_message)
+EXPORT bool link_modules(Module* dst, Module* src, char* error_message)
 {
     string err;
     
@@ -154,18 +158,18 @@ LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const 
 }
 
 // Bitcode
-std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
+string llvm_dsp_factory::writeDSPFactoryToBitcode()
 {
-    std::string res;
+    string res;
     raw_string_ostream out(res);
     WriteBitcodeToFile(fResult->fModule, out);
     out.flush();
     return res;
 }
 
-void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const std::string& bit_code_path)
+void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
-    std::string err;
+    string err;
     
 #if defined(LLVM_34)
     raw_fd_ostream out(bit_code_path.c_str(), err, sys::fs::F_Binary);
@@ -179,7 +183,7 @@ void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const std::string& bit_code_
 // IR
 string llvm_dsp_factory::writeDSPFactoryToIR()
 {
-    std::string res;
+    string res;
     raw_string_ostream out(res);
     PassManager PM;
     PM.add(createPrintModulePass(&out));
@@ -188,9 +192,9 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
     return res;
 }
 
-void llvm_dsp_factory::writeDSPFactoryToIRFile(const std::string& ir_code_path)
+void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 {
-    std::string err;
+    string err;
 #if defined(LLVM_34)
     raw_fd_ostream out(ir_code_path.c_str(), err, sys::fs::F_Binary);
 #else
@@ -202,21 +206,22 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const std::string& ir_code_path)
     out.flush();
 }
 
-llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const std::string& target, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const string& target, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = target;
     Init();
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
+    fClassName = "mydsp";
     fResult->fModule = module;
     fResult->fContext = context;
 }
 
 llvm_dsp_factory::llvm_dsp_factory(int argc, const char* argv[], 
-                                    const std::string& name,
-                                    const std::string& input, 
-                                    const std::string& target, 
-                                    std::string& error_msg, int opt_level)
+                                    const string& name,
+                                    const string& input, 
+                                    const string& target, 
+                                    string& error_msg, int opt_level)
 {
     if (llvm_dsp_factory::gInstance++ == 0) {
         if (!llvm_start_multithreaded()) {
@@ -300,7 +305,7 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateModulePassManager(MPM);
 }
 
-bool llvm_dsp_factory::initJIT(std::string& error_msg)
+bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -330,7 +335,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     initializeInstrumentation(Registry);
     initializeTarget(Registry);
     
-    std::string err;
+    string err;
       
     if (fTarget != "") {
         fResult->fModule->setTargetTriple(fTarget);
@@ -371,7 +376,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
     pm.add(tli);
     
-    const std::string &ModuleDataLayout = fResult->fModule->getDataLayout();
+    const string &ModuleDataLayout = fResult->fModule->getDataLayout();
     DataLayout* td = new DataLayout(ModuleDataLayout);
     pm.add(td);
   
@@ -431,7 +436,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
 
 #else
 
-bool llvm_dsp_factory::initJIT(std::string& error_msg)
+bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -452,7 +457,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     #endif
     }
 
-    std::string err;
+    string err;
     EngineBuilder builder(fResult->fModule);
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
@@ -466,7 +471,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
 #endif
     //tm->Options.PrintMachineCode = 1;
     /*
-    SmallVector<std::string, 4> attrs;
+    SmallVector<string, 4> attrs;
     attrs.push_back("sse");
     attrs.push_back("sse2");
     attrs.push_back("sse3");
@@ -478,6 +483,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
 #else
     fJIT = builder.create(tm);
 #endif
+    
     if (!fJIT) {
         return false;
     }
@@ -545,7 +551,7 @@ bool llvm_dsp_factory::initJIT(std::string& error_msg)
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
         fResult->fModule->dump();
     }
-    
+     
     try {
         fNew = (newDspFun)LoadOptimize("new_" + fClassName);
         fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
@@ -653,7 +659,7 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
 
-static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, std::string& error_msg)
+static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, string& error_msg)
 {   
     if (factory->initJIT(error_msg)) {
         return factory;
@@ -663,147 +669,247 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, std::string&
     }
 }
 
+EXPORT string path_to_content(const string& path)
+{
+    ifstream file(path.c_str(), ifstream::binary);
+    
+    file.seekg (0, file.end);
+    int size = file.tellg();
+    file.seekg (0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
+}
+
+EXPORT string generate_sha1(const string& dsp_content)
+{
+    // compute SHA1 key
+    unsigned char obuf[20];
+    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
+    
+	// convert SHA1 key into hexadecimal string
+    string sha1key;
+    for (int i = 0; i < 20; i++) {
+    	const char* H = "0123456789ABCDEF";
+    	char c1 = H[(obuf[i] >> 4)];
+    	char c2 = H[(obuf[i] & 15)];
+        sha1key += c1;
+        sha1key += c2;
+    }
+    
+    return sha1key;
+}
+
+static bool getFactory(const string& sha_key, FactoryTableIt& res)
+{
+    FactoryTableIt it;
+    
+    for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
+        FactoryTableItem val = (*it).second;
+        if (val.first == sha_key) {
+            res = it;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 // Public C++ API
 
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char* argv[], 
-                                        const std::string& name, 
-                                        const std::string& input, const std::string& target, 
-                                        std::string& error_msg, int opt_level)
+                                        const string& name, 
+                                        const string& input, const string& target, 
+                                        string& error_msg, int opt_level)
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg, opt_level), error_msg);
 }
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, 
                                                 int argc, const char* argv[], 
-                                                const std::string& target, 
-                                                std::string& error_msg, int opt_level)
+                                                const string& target, 
+                                                string& error_msg, int opt_level)
 {
-    int argc1 = argc + 1;
- 	const char* argv1[32];
-	  
-    // Add 'filename" as first argument and copy others ones
-    argv1[0] = filename.c_str();
-	for (int i = 0; i < argc; i++) {
-        argv1[i+1] = argv[i];
-    }
+    string base = basename((char*)filename.c_str());
+    int pos = base.find(".dsp");
     
-    return CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, "", "", target, error_msg, opt_level), error_msg);
+    if (pos != string::npos) {
+        return createDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, target, error_msg, opt_level);
+    } else {
+        error_msg = "File Extension is not the one expected (.dsp expected)\n";
+        return NULL;
+    } 
 }
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, 
                                                     int argc, const char* argv[], 
-                                                    const std::string& target, 
-                                                    std::string& error_msg, int opt_level)
+                                                    const string& target, 
+                                                    string& error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg);
+    string expanded_dsp;
+    
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg)) == "") {
+        return NULL; 
+    } else {
+     
+        FactoryTableIt it;
+        string sha_key = generate_sha1(expanded_dsp);
+        llvm_dsp_factory* factory = 0;
+       
+        if (getFactory(sha_key, it)) {
+            Sllvm_dsp_factory sfactory = (*it).first;
+            sfactory->addReference();
+            return sfactory;
+        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name_app, expanded_dsp, target, error_msg, opt_level), error_msg)) != 0) {
+            llvm_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<llvm_dsp_aux*>());
+            return factory;
+        } else {
+            return 0;
+        }
+    }
 }
 
+EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) 
+{   
+    FactoryTableIt it;
+    if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
+            // Last use, remove from the global table
+            llvm_dsp_factory::gFactoryTable.erase(factory);
+        } else {
+            sfactory->removeReference();
+        }
+    }
+}
+
+EXPORT void deleteAllDSPFactories()
+{
+    FactoryTableIt it;
+    for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
+        // Force deletion of factory...
+        delete (*it).first;
+    }
+}
     
 // Bitcode <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
+
+static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
-    string error_msg;
-    MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(bit_code));
-    LLVMContext* context = new LLVMContext();
-    Module* module = ParseBitcodeFile(buffer, *context, &error_msg);
-    delete buffer;
+    string sha_key = generate_sha1(buffer->getBuffer().str());
+    FactoryTableIt it;
     
-    if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
     } else {
-        printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
-        delete context;
-        return 0;
+        string error_msg;
+        LLVMContext* context = new LLVMContext();
+        Module* module = ParseBitcodeFile(buffer, *context, &error_msg);
+        llvm_dsp_factory* factory = 0;
+        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg)) != 0)) {
+            llvm_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<llvm_dsp_aux*>());
+            return factory;
+        } else {
+            printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
+            return 0;
+        }
     }
 }
 
-EXPORT std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
+EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, int opt_level)
+{
+    return readDSPFactoryFromBitcodeAux(MemoryBuffer::getMemBuffer(StringRef(bit_code)), target, opt_level);
+}
+
+EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToBitcode();
 }
 
 // Bitcode <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level)
+EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, int opt_level)
 {
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
         return 0;
-    }
-  
-    std::string error_msg;
-    LLVMContext* context = new LLVMContext();
-    Module* module = ParseBitcodeFile(buffer.get(), *context, &error_msg);
-    
-    if (module) {
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
     } else {
-        printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
-        delete context;
-        return 0;
+        return readDSPFactoryFromBitcodeAux(buffer.get(), target, opt_level);
     }
 }
 
-EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path)
+EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
 {
     factory->writeDSPFactoryToBitcodeFile(bit_code_path);
 }
 
 // IR <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level)
+
+static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
-    SMDiagnostic err;
-    char* tmp_local = setlocale(LC_ALL, NULL);
-    setlocale(LC_ALL, "C");
-    MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(ir_code));
-    LLVMContext* context = new LLVMContext();
-    Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
-    setlocale(LC_ALL, tmp_local);
+    string sha_key = generate_sha1(buffer->getBuffer().str());
+    FactoryTableIt it;
     
-    if (module) {
-        std::string error_msg;
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
-        err.print("readDSPFactoryFromIR failed :", errs());
-    #else
-        err.Print("readDSPFactoryFromIR failed :", errs());
-    #endif
-        delete context;
-        return 0;
+        char* tmp_local = setlocale(LC_ALL, NULL);
+        setlocale(LC_ALL, "C");
+        LLVMContext* context = new LLVMContext();
+        SMDiagnostic err;
+        Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
+        setlocale(LC_ALL, tmp_local);
+        llvm_dsp_factory* factory = 0;
+        string error_msg;
+        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg)) != 0)) {
+            llvm_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<llvm_dsp_aux*>());
+            return factory;
+        } else {
+        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+            err.print("readDSPFactoryFromIRAux failed :", errs());
+        #else
+            err.Print("readDSPFactoryFromIRAux failed :", errs());
+        #endif
+            return 0;
+        }
     }
 }
 
-EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
+EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, int opt_level)
+{
+    return readDSPFactoryFromIRAux(MemoryBuffer::getMemBuffer(StringRef(ir_code)), target, opt_level);
+}
+
+EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToIR();
 }
 
 // IR <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level)
+EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, int opt_level)
 {
-    SMDiagnostic err;
-    char* tmp_local = setlocale(LC_ALL, NULL);
-    setlocale(LC_ALL, "C");
-    LLVMContext* context = new LLVMContext();
-    Module* module = ParseIRFile(ir_code_path, err, *context);
-    setlocale(LC_ALL, tmp_local);
-    
-    if (module) {
-        std::string error_msg;
-        return CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg);
-    } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
-        err.print("readDSPFactoryFromIR failed :", errs());
-    #else
-        err.Print("readDSPFactoryFromIR failed :", errs());
-    #endif
-        delete context;
+    OwningPtr<MemoryBuffer> buffer;
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
+        printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
         return 0;
+    } else {
+        return readDSPFactoryFromIRAux(buffer.get(), target, opt_level);
     }
 }
 
-EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path)
+EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
 {
     factory->writeDSPFactoryToIRFile(ir_code_path);
 }
@@ -816,15 +922,28 @@ EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
 // Instance
 
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
-{
-    return reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
+{  
+    FactoryTableIt it;
+    if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
+        llvm_dsp_aux* instance = factory->createDSPInstance();
+        (*it).second.second.push_back(instance);
+        return reinterpret_cast<llvm_dsp*>(instance);
+    } else {
+        return 0;
+    }
 }
-
-EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) { delete factory; }
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
 {
-    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+    FactoryTableIt it;
+    llvm_dsp_aux* dsp_aux = reinterpret_cast<llvm_dsp_aux*>(dsp);
+    llvm_dsp_factory* factory = dsp_aux->getFactory();
+    
+    it = llvm_dsp_factory::gFactoryTable.find(factory);
+    assert(it != llvm_dsp_factory::gFactoryTable.end());
+    (*it).second.second.remove(dsp_aux);
+     
+    delete dsp_aux; 
 }
 
 EXPORT void llvm_dsp::metadata(Meta* m)
@@ -860,47 +979,45 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char* argv[], 
-                                        const char* name, const char* input, 
-                                        const char* target, char* error_msg, int opt_level)
+                                           const char* name, const char* input, 
+                                           const char* target, char* error_msg, int opt_level)
 {
-    std::string error_msg_aux;
+    string error_msg_aux;
     llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg_aux, opt_level), error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], 
-                        const char* target, 
-                        char* error_msg, int opt_level)
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
+                                                   int argc, const char* argv[], 
+                                                   const char* target, 
+                                                   char* error_msg, int opt_level)
 {
-    int argc1 = argc + 1;
- 	const char* argv1[32];
-  
-    // Add 'filename" as first argument and copy others ones
-    argv1[0] = filename;
-	for (int i = 0; i < argc; i++) {
-        argv1[i+1] = argv[i];
-    }
-    
-    std::string error_msg_aux;
-    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc1, argv1, "", "", target, error_msg_aux, opt_level), error_msg_aux);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 256);
-    return factory;
+    return factory;                                
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], 
-                        const char* target, 
-                        char* error_msg, int opt_level)
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, 
+                                                     int argc, const char* argv[], 
+                                                     const char* target, 
+                                                     char* error_msg, int opt_level)
 {
-    std::string error_msg_aux;
-    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name_app, dsp_content, target, error_msg_aux, opt_level), error_msg_aux);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
 {
-    delete factory;
+    deleteDSPFactory(factory);
+}
+
+EXPORT void deleteAllCDSPFactories()
+{
+    deleteAllDSPFactories();
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level)
