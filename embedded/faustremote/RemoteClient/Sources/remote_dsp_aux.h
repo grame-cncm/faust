@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <list>
 #include <assert.h>
 
 #include <sstream>
@@ -35,6 +36,7 @@
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
 #include "JsonParser.h"
+#include "../../../compiler/generator/smartpointer.h"
 
 #include <dns_sd.h>
 #include <jack/net.h>
@@ -70,11 +72,19 @@ static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp);
     
 static CURLcode send_request(CURL* curl, const string& ipadd, const string& request, string& response);
     
-class remote_dsp_factory{
+class remote_dsp_factory;
+    
+typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
+    
+#define FactoryTableItem   pair< string, list<remote_dsp_aux*> >
+#define FactoryTableType   map< Sremote_dsp_factory, FactoryTableItem >
+#define FactoryTableIt     FactoryTableType::iterator
+    
+class remote_dsp_factory : public smartable {
     
 private:
     
-    string      fSHAKey;             //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
+    string      fSHAKey;            //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
     
     int         fNumInputs;
     int         fNumOutputs;        //Num of In/Output of compiled DSP factory
@@ -102,6 +112,7 @@ public:
     int                 numOutputs();
     string              key(){return fSHAKey;}
     
+    static FactoryTableType gFactoryTable;
 };
     
 //---------------------- Public C++ interface
@@ -111,10 +122,12 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ip_server, int port_server, string& error, int opt_level);
     
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
+    
+EXPORT void deleteAllRemoteDSPFactories();    
  
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
         
-class remote_dsp_aux : public dsp{
+class remote_dsp_aux : public dsp {
 
     private:
     
@@ -145,7 +158,7 @@ class remote_dsp_aux : public dsp{
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
     
 //    Command-line parsing fonction
-        const char*  getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);
+        const char* getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);
     
         void sendSlice(int buffer_size);
         void recvSlice(int buffer_size);
@@ -170,9 +183,11 @@ class remote_dsp_aux : public dsp{
     
         virtual void startAudio();
         virtual void stopAudio();
+    
+        remote_dsp_factory* getFactory() { return fFactory; }
 };
     
-class EXPORT remote_dsp : public dsp{
+class EXPORT remote_dsp : public dsp {
     
 public: 
     

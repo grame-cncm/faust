@@ -69,7 +69,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION "2.0.a18"
+#define FAUSTVERSION "2.0.a19"
 
 using namespace std;
 
@@ -264,7 +264,7 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     addKeyValueIfExisting(options, newoptions, "-O", "");
     
     //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
-    while (options.size() != 0){
+    while (options.size() != 0) {
         if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
         options.erase(options.begin());
     }
@@ -272,7 +272,7 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     return newoptions;
 }
 
-string reorganizeCompilationOptions(int argc, const char* argv[])
+static string reorganizeCompilationOptions(int argc, const char* argv[])
 {
     vector<string> res1;
     for (int i = 0; i < argc; i++) {

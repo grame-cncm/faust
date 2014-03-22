@@ -755,9 +755,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                     string& error_msg, int opt_level)
 {
     string expanded_dsp;
-    
     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg)) == "") {
-        return NULL; 
+        return 0; 
     } else {
      
         FactoryTableIt it;
@@ -783,7 +782,7 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
     if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
         Sllvm_dsp_factory sfactory = (*it).first;
         if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
-            // Last use, remove from the global table
+            // Last use, remove from the global table, pointer will be deleted
             llvm_dsp_factory::gFactoryTable.erase(factory);
         } else {
             sfactory->removeReference();
