@@ -48,6 +48,7 @@ static bool CheckParameters(int argc, const char* argv[])
 
 EXPORT string expandDSPFromFile(const string& filename, 
                                 int argc, const char* argv[], 
+                                string& sha_key,
                                 string& error_msg)
 {
     int argc1 = argc + 2;
@@ -60,15 +61,18 @@ EXPORT string expandDSPFromFile(const string& filename,
     }
     
     char error_msg_aux[512];
-    string res = expand_dsp(argc1, argv1, "", "", error_msg_aux);
+    char sha_key_aux[32];
+    string res = expand_dsp(argc1, argv1, "", "", sha_key_aux, error_msg_aux);
     error_msg = error_msg_aux;
+    sha_key = sha_key_aux;
     return res;
 }
 
 EXPORT string expandDSPFromString(const string& name_app, 
-                                const string& dsp_content, 
-                                int argc, const char* argv[], 
-                                string& error_msg)
+                                  const string& dsp_content, 
+                                  int argc, const char* argv[], 
+                                  string& sha_key,
+                                  string& error_msg)
 {
     int argc1 = argc + 1;
     const char* argv1[32];
@@ -79,8 +83,10 @@ EXPORT string expandDSPFromString(const string& name_app,
     }
     
     char error_msg_aux[512];
-    string res = expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+    char sha_key_aux[32];
+    string res = expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key_aux, error_msg_aux);
     error_msg = error_msg_aux;
+    sha_key = sha_key_aux;
     return res;
 }
 
@@ -129,6 +135,7 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 
 EXPORT const char* expandCDSPFromFile(const char* filename, 
                                     int argc, const char* argv[], 
+                                    char* sha_key,
                                     char* error_msg)
 {
     int argc1 = argc + 2;
@@ -140,7 +147,7 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
         argv1[i+2] = argv[i];
     }
     
-    string str = expand_dsp(argc1, argv1, "", "", error_msg);
+    string str = expand_dsp(argc1, argv1, "", "", sha_key, error_msg);
     char* cstr = (char*)malloc(str.length() + 1);
     strcpy(cstr, str.c_str());
     return cstr;
@@ -149,6 +156,7 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
 EXPORT const char* expandCDSPFromString(const char* name_app, 
                                         const char* dsp_content, 
                                         int argc, const char* argv[], 
+                                        char* sha_key,
                                         char* error_msg)
 {
     int argc1 = argc + 1;
@@ -159,7 +167,7 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
         argv1[i+1] = argv[i];
     }
     
-    string str = expand_dsp(argc1, argv1, name_app, dsp_content, error_msg);
+    string str = expand_dsp(argc1, argv1, name_app, dsp_content, sha_key, error_msg);
     char* cstr = (char*)malloc(str.length() + 1);
     strcpy(cstr, str.c_str());
     return cstr;

@@ -29,7 +29,7 @@
 #include <fstream>
 #include <sstream>
 #include <libgen.h>
-#include <openssl/sha.h>
+
 
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
@@ -206,8 +206,9 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
     out.flush();
 }
 
-llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const string& target, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
+    fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = target;
     Init();
@@ -217,7 +218,7 @@ llvm_dsp_factory::llvm_dsp_factory(Module* module, LLVMContext* context, const s
     fResult->fContext = context;
 }
 
-llvm_dsp_factory::llvm_dsp_factory(int argc, const char* argv[], 
+llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                                     const string& name,
                                     const string& input, 
                                     const string& target, 
@@ -229,6 +230,7 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, const char* argv[],
         }
     }
 
+    fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = target;
     Init();
@@ -689,32 +691,12 @@ EXPORT string path_to_content(const string& path)
     return result;
 }
 
-EXPORT string generate_sha1(const string& dsp_content)
-{
-    // compute SHA1 key
-    unsigned char obuf[20];
-    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
-    
-	// convert SHA1 key into hexadecimal string
-    string sha1key;
-    for (int i = 0; i < 20; i++) {
-    	const char* H = "0123456789ABCDEF";
-    	char c1 = H[(obuf[i] >> 4)];
-    	char c2 = H[(obuf[i] & 15)];
-        sha1key += c1;
-        sha1key += c2;
-    }
-    
-    return sha1key;
-}
-
 static bool getFactory(const string& sha_key, FactoryTableIt& res)
 {
     FactoryTableIt it;
     
     for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
-        FactoryTableItem val = (*it).second;
-        if (val.first == sha_key) {
+        if ((*it).first->getSHAKey() == sha_key) {
             res = it;
             return true;
         }
@@ -730,7 +712,7 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char* argv[],
                                         const string& input, const string& target, 
                                         string& error_msg, int opt_level)
 {
-    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg, opt_level), error_msg);
+    return CheckDSPFactory(new llvm_dsp_factory("", argc, argv, name, input, target, error_msg, opt_level), error_msg);
 }
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, 
@@ -755,25 +737,42 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                     string& error_msg, int opt_level)
 {
     string expanded_dsp;
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg)) == "") {
+    string sha_key;
+    
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
         return 0; 
     } else {
-     
         FactoryTableIt it;
-        string sha_key = generate_sha1(expanded_dsp);
         llvm_dsp_factory* factory = 0;
-       
         if (getFactory(sha_key, it)) {
             Sllvm_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name_app, expanded_dsp, target, error_msg, opt_level), error_msg)) != 0) {
-            llvm_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<llvm_dsp_aux*>());
+        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, expanded_dsp, target, error_msg, opt_level), error_msg)) != 0) {
+            llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
             return 0;
         }
     }
+}
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromSHAKey(const string& sha_key)
+{
+    FactoryTableIt it;
+    return (getFactory(sha_key, it)) ? (*it).first : NULL;
+}
+
+EXPORT vector<string> getAllDSPFactories()
+{
+    FactoryTableIt it;
+    vector<string> sha_key_list;
+    
+    for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
+        sha_key_list.push_back((*it).first->getSHAKey());
+    }
+    
+    return sha_key_list;
 }
 
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) 
@@ -799,6 +798,7 @@ EXPORT void deleteAllDSPFactories()
     }
 }
     
+
 // Bitcode <==> string
 
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, const string& target, int opt_level)
@@ -815,8 +815,8 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, cons
         LLVMContext* context = new LLVMContext();
         Module* module = ParseBitcodeFile(buffer, *context, &error_msg);
         llvm_dsp_factory* factory = 0;
-        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg)) != 0)) {
-            llvm_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<llvm_dsp_aux*>());
+        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
+            llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
             printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
@@ -872,8 +872,8 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const str
         setlocale(LC_ALL, tmp_local);
         llvm_dsp_factory* factory = 0;
         string error_msg;
-        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(module, context, target, opt_level), error_msg)) != 0)) {
-            llvm_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<llvm_dsp_aux*>());
+        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
+            llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
         #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
@@ -925,7 +925,7 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
     FactoryTableIt it;
     if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
         llvm_dsp_aux* instance = factory->createDSPInstance();
-        (*it).second.second.push_back(instance);
+        (*it).second.push_back(instance);
         return reinterpret_cast<llvm_dsp*>(instance);
     } else {
         return 0;
@@ -940,7 +940,7 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp)
     
     it = llvm_dsp_factory::gFactoryTable.find(factory);
     assert(it != llvm_dsp_factory::gFactoryTable.end());
-    (*it).second.second.remove(dsp_aux);
+    (*it).second.remove(dsp_aux);
      
     delete dsp_aux; 
 }
@@ -977,12 +977,17 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
 
 // Public C interface
 
+EXPORT llvm_dsp_factory* createCDSPFactoryFromSHAKey(const char* sha_key)
+{
+    return createDSPFactoryFromSHAKey(sha_key);
+}
+
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char* argv[], 
                                            const char* name, const char* input, 
                                            const char* target, char* error_msg, int opt_level)
 {
     string error_msg_aux;
-    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(argc, argv, name, input, target, error_msg_aux, opt_level), error_msg_aux);
+    llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory("", argc, argv, name, input, target, error_msg_aux, opt_level), error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
 }
@@ -1007,6 +1012,24 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 256);
     return factory;
+}
+
+EXPORT const char** getAllCDSPFactories()
+{
+    vector<string> sha_key_list1 = getAllDSPFactories();
+    const char** sha_key_list2 = (const char**)malloc(sizeof(char*) * (sha_key_list1.size() + 1));
+    
+    int i;
+    for (i = 0; i < sha_key_list1.size(); i++) {
+        string sha_key1 = sha_key_list1[i];
+        char* sha_key2 = (char*)malloc(sizeof(char) * (sha_key1.length() + 1));
+        strcpy(sha_key2, sha_key1.c_str());
+        sha_key_list2[i] = sha_key2;
+    }
+    
+    // Last element is NULL
+    sha_key_list2[i] = NULL;
+    return sha_key_list2;
 }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)

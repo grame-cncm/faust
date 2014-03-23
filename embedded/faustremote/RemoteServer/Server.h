@@ -96,7 +96,7 @@ struct connection_info_struct {
     string              fNameApp;
     string              fFaustCode;
     vector<string>      fCompilationOptions;
-    string              fOpt_level;
+    string              fOptLevel;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
@@ -112,7 +112,7 @@ struct connection_info_struct {
     void init(){
         
         fFaustCode = "";
-        fOpt_level = "";
+        fOptLevel = "";
         
         fIP = "";
         fPort = "";
@@ -163,7 +163,7 @@ struct slave_dsp{
     string          fMTU;
     string          fLatency;
     
-    server_netjackaudio*   fAudio;  //NETJACK SLAVE 
+    server_netjackaudio*   fAudio; //NETJACK SLAVE 
     
     llvm_dsp*              fDSP;   //Real DSP Instance 
     

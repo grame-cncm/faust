@@ -71,7 +71,7 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
 
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
-EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* sha_key, char* error_msg);
 
 EXPORT llvm::Module* load_single_module(const std::string filename, llvm::LLVMContext* context);
 

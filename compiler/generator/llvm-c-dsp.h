@@ -44,6 +44,15 @@ extern "C"
 typedef struct {} llvm_dsp_factory;
 
 typedef struct {} llvm_dsp;
+    
+/**
+ * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source).
+ *
+ * @param filename - the SHA key for an already created factory, kept in the factory cache
+ *
+ * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
+ */
+llvm_dsp_factory* createCDSPFactoryFromSHAKey( char* sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -60,8 +69,8 @@ typedef struct {} llvm_dsp;
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
 llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], 
-                                           const char* target, 
-                                           char* error_msg, int opt_level);
+                                            const char* target, 
+                                            char* error_msg, int opt_level);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -79,8 +88,8 @@ llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, cons
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
 llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], 
-                                            const char* target, 
-                                            char* error_msg, int opt_level);
+                                              const char* target, 
+                                              char* error_msg, int opt_level);
 
 /**
  * Destroy a Faust DSP factory, that is decrements it's reference counter, possible really deleting the pointer.  
@@ -197,13 +206,15 @@ void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
+ * @param sha_key - the SHA key to be filled
  * @param error_msg - the error string to be filled
  *
  * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
 */ 
 const char* expandCDSPFromFile(const char* filename, 
-                                int argc, const char* argv[], 
-                                char* error_msg);
+                               int argc, const char* argv[], 
+                               char* sha_key,
+                               char* error_msg);
 
 /**
  * From a DSP source string, creates a 'self-contained' DSP source string where all needed librairies have been included.
@@ -213,6 +224,7 @@ const char* expandCDSPFromFile(const char* filename,
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
+ * @param sha_key - the SHA key to be filled
  * @param error_msg - the error string to be filled
  *
  * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
@@ -220,6 +232,7 @@ const char* expandCDSPFromFile(const char* filename,
 const char* expandCDSPFromString(const char* name_app, 
                                 const char* dsp_content, 
                                 int argc, const char* argv[], 
+                                char* sha_key,
                                 char* error_msg);
 
 /**

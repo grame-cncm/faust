@@ -38,6 +38,15 @@
 struct llvm_dsp_factory;
 
 /**
+ * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source).
+ *
+ * @param filename - the SHA key for an already created factory, kept in the factory cache
+ *
+ * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
+*/
+llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
+
+/**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
  * allocated factories so that the compilation of same DSP code (that is same source code and 
  * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer.
@@ -51,9 +60,10 @@ struct llvm_dsp_factory;
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], 
-                                        const std::string& target, 
-                                        std::string& error_msg, int opt_level = 3);
+llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
+                                           int argc, const char* argv[], 
+                                           const std::string& target, 
+                                           std::string& error_msg, int opt_level = 3);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -70,9 +80,10 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
 */ 
-llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], 
-                                            const std::string& target, 
-                                            std::string& error_msg, int opt_level = 3);
+llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+                                             int argc, const char* argv[], 
+                                             const std::string& target, 
+                                             std::string& error_msg, int opt_level = 3);
 
 /**
  * Destroy a Faust DSP factory, that is decrements it's reference counter, possible really deleting the pointer.  
@@ -189,13 +200,15 @@ void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
+ * @param sha_key - the SHA key to be filled
  * @param error_msg - the error string to be filled
  *
  * @return the expanded DSP as a string (possibly empty).
 */ 
 std::string expandDSPFromFile(const std::string& filename, 
-                            int argc, const char* argv[], 
-                            std::string& error_msg);
+                              int argc, const char* argv[],
+                              std::string& sha_key,
+                              std::string& error_msg);
                             
 /**
  * From a DSP source string, creates a 'self-contained' DSP source string where all needed librairies have been included.
@@ -205,6 +218,7 @@ std::string expandDSPFromFile(const std::string& filename,
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
+ * @param sha_key - the SHA key to be filled
  * @param error_msg - the error string to be filled
  *
  * @return the expanded DSP as a string (possibly empty).
@@ -212,6 +226,7 @@ std::string expandDSPFromFile(const std::string& filename,
 std::string expandDSPFromString(const std::string& name_app, 
                                 const std::string& dsp_content, 
                                 int argc, const char* argv[], 
+                                std::string& sha_key,
                                 std::string& error_msg);
 
 /**

@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <openssl/sha.h>
 
 #include "global.hh"
 #include "compatibility.hh"
@@ -70,6 +71,7 @@
 #include "libfaust.h"
 
 #define FAUSTVERSION "2.0.a19"
+#define EXPANDED_KEY "// Expanded_DSP_3141592653"
 
 using namespace std;
 
@@ -228,9 +230,11 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
         addKeyIfExisting(options, newoptions, "-inpl", "", position);
     }
     
-    addKeyIfExisting(options, newoptions, "-mcd", "", position);
+    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
+    addKeyValueIfExisting(options, newoptions, "-cn", "");
     
     //------STEP4 - Add other types of Faust options
+    /*
     addKeyIfExisting(options, newoptions, "-tg", "", position);
     addKeyIfExisting(options, newoptions, "-sg", "", position);
     addKeyIfExisting(options, newoptions, "-ps", "", position);    
@@ -251,7 +255,6 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     addKeyIfExisting(options, newoptions, "-mb", "", position);
     addKeyIfExisting(options, newoptions, "-rb", "", position);    
     addKeyIfExisting(options, newoptions, "-lt", "", position);    
-    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
     addKeyValueIfExisting(options, newoptions, "-a", "");
     addKeyIfExisting(options, newoptions, "-i", "", position);
     addKeyValueIfExisting(options, newoptions, "-cn", "");    
@@ -268,6 +271,7 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
         if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
         options.erase(options.begin());
     }
+    */
     
     return newoptions;
 }
@@ -288,6 +292,25 @@ static string reorganizeCompilationOptions(int argc, const char* argv[])
     }
     
     return res3;
+}
+
+EXPORT string generate_sha1(const string& dsp_content)
+{
+    // compute SHA1 key
+    unsigned char obuf[20];
+    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
+    
+	// convert SHA1 key into hexadecimal string
+    string sha1key;
+    for (int i = 0; i < 20; i++) {
+    	const char* H = "0123456789ABCDEF";
+    	char c1 = H[(obuf[i] >> 4)];
+    	char c2 = H[(obuf[i] & 15)];
+        sha1key += c1;
+        sha1key += c2;
+    }
+    
+    return sha1key;
 }
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
@@ -1118,7 +1141,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* input = NULL)
+static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* input)
 {
     /****************************************************************
      1 - process command line
@@ -1148,6 +1171,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
         throw faustexception(gErrorMessage);
     }
     stringstream out;
+    out << EXPANDED_KEY << endl;
     out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
     out << "process = " << boxpp(gProcessTree) << ';' << endl;
     return out.str();
@@ -1213,6 +1237,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gExportDSP) {
         ofstream out(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        out << EXPANDED_KEY << endl;
         out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
         out << "process = " << boxpp(process) << ';' << endl;
         return;
@@ -1314,8 +1339,23 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
     return res;
 }
 
-EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+static bool start_with(const char* string, const char* key)
 {
+    for (int i = 0; i < strlen(key); i++) {
+        if (string[i] != key[i]) return false;
+    }
+    return true;
+}
+
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* sha_key, char* error_msg)
+{
+    // If input is already expanded, return it directly
+    if (start_with(input, EXPANDED_KEY)) {
+        strcpy(sha_key, generate_sha1(input).c_str());
+        return input;
+    }
+        
+    string res;
     gGlobal = NULL;
     
     gProcessTree = 0;
@@ -1324,11 +1364,10 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     gNumOutputs = 0;
     gErrorMessage = "";
     
-    string res;
-    
     try {
         global::allocate();       
         res = expand_dsp_internal(argc, argv, name, input);
+        strcpy(sha_key, generate_sha1(res).c_str());
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);

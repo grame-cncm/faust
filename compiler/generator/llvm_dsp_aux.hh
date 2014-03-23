@@ -28,7 +28,7 @@
 
 #include <string>
 #include <map>
-#include <list>
+#include <vector>
 #include <utility>
 #include "faust/gui/CUI.h"
 #include "faust/audio/dsp.h"
@@ -46,8 +46,7 @@ class llvm_dsp_factory;
 
 typedef class SMARTP<llvm_dsp_factory>	Sllvm_dsp_factory;
 
-#define FactoryTableItem   pair< string, list<llvm_dsp_aux*> >
-#define FactoryTableType   map< Sllvm_dsp_factory, FactoryTableItem >
+#define FactoryTableType   map< Sllvm_dsp_factory, list<llvm_dsp_aux*> >
 #define FactoryTableIt     FactoryTableType::iterator
 
 class llvm_dsp_factory : public smartable {
@@ -58,6 +57,8 @@ class llvm_dsp_factory : public smartable {
 
         ExecutionEngine* fJIT;
         LLVMResult* fResult;
+    
+        string fSHAKey;
         
         int fOptLevel;
         string fTarget;
@@ -88,12 +89,12 @@ class llvm_dsp_factory : public smartable {
                    
   public:
   
-        llvm_dsp_factory(int argc, const char* argv[], 
+        llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                         const std::string& name, 
                         const std::string& input, const std::string& target, 
                         std::string& error_msg, int opt_level = 3);
               
-        llvm_dsp_factory(Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
+        llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
       
         virtual ~llvm_dsp_factory();
       
@@ -114,6 +115,8 @@ class llvm_dsp_factory : public smartable {
         void metadataDSPFactory(Meta* meta);
         
         void metadataDSPFactory(MetaGlue* glue);
+    
+        std::string getSHAKey() { return fSHAKey; }
     
         static FactoryTableType gFactoryTable;
        
@@ -153,17 +156,21 @@ class llvm_dsp_aux : public dsp {
 
 // Public C++ interface using LLVM
 
+EXPORT llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
+
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
-                                                int argc, const char* argv[], 
-                                                const std::string& target, 
-                                                std::string& error_msg, int opt_level = 3);
+                                                  int argc, const char* argv[], 
+                                                  const std::string& target, 
+                                                  std::string& error_msg, int opt_level = 3);
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                                     int argc, const char* argv[], 
                                                     const std::string& target, 
                                                     std::string& error_msg, int opt_level = 3);
-                        
+
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
+
+EXPORT std::vector<std::string> getAllDSPFactories();
 
 EXPORT void deleteAllDSPFactories();
 
@@ -215,6 +222,8 @@ extern "C" {
 #endif
 
 // Public C interface using LLVM
+    
+EXPORT llvm_dsp_factory* createCDSPFactoryFromSHAKey(const char* sha_key);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
                                                     int argc, const char* argv[], 
@@ -225,10 +234,12 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                     int argc, const char* argv[], 
                                                     const char* target, 
                                                     char* error_msg, int opt_level);
-
+    
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
     
 EXPORT void deleteAllCDSPFactories();
+    
+EXPORT const char** getAllCDSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 

@@ -88,7 +88,7 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /GetJson
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
-bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error, int opt_level){
+bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, string& error, int opt_level){
 
     bool isInitSuccessfull = false;
     
@@ -97,7 +97,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
     if (curl) {
 
         string finalRequest = "name=";
-        finalRequest += nameApp;
+        finalRequest += name_app;
         
 // Adding Compilation Options to request data
         
@@ -124,15 +124,14 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ipServ
         finalRequest += "&data=";
         
         // Transforming faustCode to URL format
-        finalRequest += curl_easy_escape(curl , dspContent.c_str() , dspContent.size());
-        
+        finalRequest += curl_easy_escape(curl , dsp_content.c_str() , dsp_content.size());
         
         fServerIP = "http://";
-        fServerIP += ipServer;
+        fServerIP += ip_server;
         fServerIP += ":";
         
         stringstream s;
-        s<<portServer;
+        s<<port_server;
         
         fServerIP += s.str();
         
@@ -261,13 +260,12 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
     
     std::string expanded_dsp;
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, error_msg)) == "") {
+    string sha_key;
+    
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
         return 0; 
     } else {
-        
         FactoryTableIt it;
-        string sha_key = generate_sha1(expanded_dsp);
-        
         if (getFactory(sha_key, it)) {
             Sremote_dsp_factory sfactory = (*it).first;
             sfactory->addReference();

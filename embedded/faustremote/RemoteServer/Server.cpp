@@ -44,10 +44,11 @@ slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const st
     
     slave_dsp_factory* newFactory = new slave_dsp_factory;
     
-    if(newFactory->init(options, name_app, faust_content, opt_level, answer))
+    if (newFactory->init(options, name_app, faust_content, opt_level, answer)) {
         return newFactory;
-    else
+    } else {
         return NULL;
+    }
 }
 
 void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
@@ -62,7 +63,7 @@ string slave_dsp_factory::getJson(const string& factoryKey){
     metadataDSPFactory(fLLVMFactory, &metadata);
     fNameApp = metadata.name;
         
-        //This instance is used only to build json interface, then it's deleted
+    //This instance is used only to build json interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(fLLVMFactory);
         
     httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
@@ -102,10 +103,7 @@ bool slave_dsp_factory::init(const vector<string>& options, const string& name_a
     
     printf("%s\n", error.c_str());
     
-    if(fLLVMFactory)
-        return true;
-    else
-        return false;
+    return (fLLVMFactory != 0);
 }
 
 // "Smart" Desallocation of factory depending on its running instances
@@ -116,9 +114,9 @@ bool slave_dsp_factory::delete_Factory(){
     if(fNumInstances == 0){
         deleteDSPFactory(fLLVMFactory);
         return true;
-    }
-    else
+    } else {
         return false;
+    }
 }
 
 // Everytime a factory is used, it is cloned, to ensure the right count of its instances
@@ -196,9 +194,9 @@ bool Server::start(int port){
         fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
         registration();
         return true;
-    }
-    else
+    } else {
         return false;
+    }
 }
 
 void Server::stop(){
@@ -210,7 +208,7 @@ void Server::stop(){
         nameService = searchIP();
         nameService += ".RemoteProcessing";
         
-//        Is it really important to unregister or is it automaticall ?
+//      Is it really important to unregister or is it automatic ?
         DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL);
         DNSServiceRefDeallocate(*fRegistrationService);
         MHD_stop_daemon(fDaemon);
@@ -283,9 +281,9 @@ void Server::stop_NotActive_DSP(){
             slave_dsp* toDelete = *it;
             it = fRunningDsp.erase(it);
             deleteSlaveDSPInstance(toDelete);
-        }
-        else
+        } else {
             it++;
+        }
     }
 }
 
@@ -312,10 +310,9 @@ connection_info_struct* Server::allocate_connection_struct(MHD_Connection *conne
         
         con_info->fConnectiontype = POST;
         con_info->fAnswercode = MHD_HTTP_OK;
-    }
-    
-    else
+    } else {
         con_info->fConnectiontype = GET;
+    }
 
     return con_info;
 }
@@ -335,20 +332,21 @@ int Server::answer_to_connection	(void *cls, MHD_Connection *connection, const c
         if(con_struct){
             *con_cls = (void*) con_struct;
             return MHD_YES;
-        }
-        else
+        } else {
             return MHD_NO;
+        }
     }
     
 // Once connection struct is allocated, the request is treated
-    if (0 == strcmp(method, "GET"))
+    if (0 == strcmp(method, "GET")) {
         return server->answer_get(connection);
     
-    else if (0 == strcmp(method, "POST"))
+    } else if (0 == strcmp(method, "POST")) {
         return server->answer_post(connection, url, upload_data, upload_data_size, con_cls);
     
-    else
+    } else {
         return server->send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
+    }
 }
     
 // For now GET is not a request supported for now
@@ -372,39 +370,38 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
         *upload_data_size = 0;
         
         return MHD_YES;
-    } 
-    else{
+    } else {
         
         if(strcmp(url, "/GetJson") == 0){
             
-            if(compile_Data(con_info))
+            if (compile_Data(con_info)) {
                 return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
-            else
+            } else {
                 return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
         }
         else if(strcmp(url, "/CreateInstance") == 0){
             
-            if(createInstance(con_info)){
+            if (createInstance(con_info)) {
                 return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
-            }
-            else{
+            } else {
                 return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
             
         }
         else if(strcmp(url, "/DeleteFactory") == 0){
                     
-            slave_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey.c_str()];
+            slave_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey];
             
-            if(toDelete){
+            if (toDelete) {
                 
-                fAvailableFactories.erase(con_info->fSHAKey.c_str());
+                fAvailableFactories.erase(con_info->fSHAKey);
                 deleteSlaveDSPFactory(toDelete);
                 
                 return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
-            }
-            else
+            } else {
                 return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
+            }
         }
         else if(strcmp(url, "/StartAudio") == 0){
             
@@ -418,7 +415,6 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
         }
         else{
             return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
-    
         }
     }
 }
@@ -464,13 +460,12 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
             con_info->fCompilationOptions.push_back(string(data));
         
         if(strcmp(key,"opt_level") == 0)
-            con_info->fOpt_level = data;
+            con_info->fOptLevel = data;
     }
     
     con_info->fAnswercode = MHD_HTTP_OK;
     
     return MHD_YES;
-    
 }
 
 // Callback when connection is ended
@@ -484,8 +479,9 @@ void Server::request_completed(void *cls, MHD_Connection *connection, void **con
     
     if (con_info->fConnectiontype == POST) {
         
-        if (NULL != con_info->fPostprocessor)
+        if (NULL != con_info->fPostprocessor) {
             MHD_destroy_post_processor(con_info->fPostprocessor);
+        }
     }
     
     delete con_info;
@@ -500,8 +496,9 @@ bool Server::startAudio(const string& shakey){
     for(it = fRunningDsp.begin(); it != fRunningDsp.end(); it++){
         
         if(shakey.compare((*it)->key())==0){
-            if((*it)->start_audio())
+            if((*it)->start_audio()) {
                 return true;
+            }
         }
     }
 
@@ -523,25 +520,24 @@ void Server::stopAudio(const string& shakey){
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-//    Sort out compilation options
+//  Sort out compilation options
     vector<string> newOptions = reorganizeCompilationOptions(con_info->fCompilationOptions);
-    
      
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, newOptions, con_info->fOpt_level);
+    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, newOptions, con_info->fOptLevel);
     
     if(!structure.exitstatus){
         
         string factoryKey = structure.str;
         slave_dsp_factory* realFactory;
         
-//        Recycle factory if it is already compiled
+//      Recycle factory if it is already compiled
         realFactory = fAvailableFactories[factoryKey];
         
         printf("Server::compile_Data SHAKEY = %s\n", factoryKey.c_str());
         
         if(realFactory == NULL){
             
-            realFactory = createSlaveDSPFactory(newOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOpt_level.c_str()), con_info->fAnswerstring);
+            realFactory = createSlaveDSPFactory(newOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOptLevel.c_str()), con_info->fAnswerstring);
             
             if(realFactory)
                 fAvailableFactories[factoryKey] = realFactory;
@@ -549,7 +545,7 @@ bool Server::compile_Data(connection_info_struct* con_info){
                 return false;
         }  
         
-//        Once the factory is compiled, the json is stored as answerstring
+//      Once the factory is compiled, the json is stored as answerstring
         con_info->fAnswerstring = realFactory->getJson(factoryKey);
         return true;
     }
@@ -564,7 +560,7 @@ bool Server::createInstance(connection_info_struct* con_info){
     
 //    printf("CREATEINSTANCE WITH INDEX= %s\n", con_info->factoryIndex.c_str());
     
-    slave_dsp_factory* realFactory = fAvailableFactories[con_info->fSHAKey.c_str()];
+    slave_dsp_factory* realFactory = fAvailableFactories[con_info->fSHAKey];
     
     if(realFactory != NULL){
         
@@ -577,16 +573,14 @@ bool Server::createInstance(connection_info_struct* con_info){
         if(dsp && !pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp)){
             dsp->setKey(con_info->fInstanceKey);
             return true;
-        }
-        else{
+        } else {
             stringstream s;
             s<<ERROR_INSTANCE_NOTCREATED;
             
             con_info->fAnswerstring = s.str();
             return false;
         }
-    }
-    else{
+    } else {
         
         stringstream s;
         s<<ERROR_FACTORY_NOTFOUND;
@@ -636,9 +630,9 @@ void Server::registration(){
     nameService += "._";
     nameService += host_name;
     
-    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError)
+    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError) {
         printf("ERROR DURING REGISTRATION\n");
-    
+    }
 }
 
 /*

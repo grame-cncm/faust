@@ -98,9 +98,9 @@ private:
     
 public: 
 
-    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int samplingRate, int bufferSize, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error);
+    remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error);
 
-    bool        init(int argc, const char *argv[], const string& ipServer, int portServer, const string& nameApp, string dspContent, string& error_msg, int opt_level);
+    bool        init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, string& error_msg, int opt_level);
     void        stop();
     
     void        metadataRemoteDSPFactory(Meta* m);  
@@ -215,7 +215,7 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
     
-EXPORT bool getRemoteMachinesAvailable(map<string, pair<string,int> >* machineList);
+EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
 
 static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
 
