@@ -1,21 +1,21 @@
 /************************************************************************
  ************************************************************************
-    FAUST Architecture File
-	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
-
+ FAUST Architecture File
+ Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -32,18 +32,21 @@
 
 /*!
  \addtogroup llvmcpp C++ interface for compiling Faust code.
-  @{
+ @{
  */
+
+/* Opaque type */
 
 struct llvm_dsp_factory;
 
 /**
- * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source).
+ * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
+ * if already allocated in the factories cache.
  *
- * @param filename - the SHA key for an already created factory, kept in the factory cache
+ * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
-*/
+ */
 llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
@@ -59,7 +62,7 @@ llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
-*/ 
+ */ 
 llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
                                            int argc, const char* argv[], 
                                            const std::string& target, 
@@ -79,7 +82,7 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename,
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
-*/ 
+ */ 
 llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                              int argc, const char* argv[], 
                                              const std::string& target, 
@@ -89,7 +92,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
  * Destroy a Faust DSP factory, that is decrements it's reference counter, possible really deleting the pointer.  
  * 
  * @param factory - the DSP factory to be deleted.
-*/                                 
+ */                                 
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
@@ -97,7 +100,7 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
  * 
  */                                 
 void deleteAllDSPFactories();
-          
+
 /**
  * Create a Faust DSP factory from a LLVM bitcode string. Note that the library keeps an internal cache of all 
  * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode string) will return 
@@ -108,7 +111,7 @@ void deleteAllDSPFactories();
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
-*/
+ */
 llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
 
 /**
@@ -117,7 +120,7 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const s
  * @param factory - Faust DSP factory
  *
  * @return the LLVM bitcode as a string.
-*/
+ */
 std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 /**
@@ -128,7 +131,7 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
-*/
+ */
 llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 0);
 
 /**
@@ -137,7 +140,7 @@ llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path
  * @param factory - the Faust DSP factory
  * @param bit_code_path - the LLVM bitcode file pathname
  *
-*/
+ */
 void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
 
 /**
@@ -150,7 +153,7 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
-*/
+ */
 llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
 
 /**
@@ -159,7 +162,7 @@ llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::st
  * @param factory - the Faust DSP factory
  *
  * @return the LLVM IR (textual) as a string.
-*/
+ */
 std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 /**
@@ -172,7 +175,7 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
-*/
+ */
 llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
 
 /**
@@ -181,7 +184,7 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
  * @param factory - the Faust DSP factory
  * @param ir_code_path - the LLVM bitcode file pathname.
  *
-*/
+ */
 void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
 /**
@@ -190,7 +193,7 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * @param factory - the Faust DSP factory
  * @param meta - the meta object to be used.
  *
-*/
+ */
 void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
 
 /**
@@ -204,12 +207,12 @@ void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
  * @param error_msg - the error string to be filled
  *
  * @return the expanded DSP as a string (possibly empty).
-*/ 
+ */ 
 std::string expandDSPFromFile(const std::string& filename, 
                               int argc, const char* argv[],
                               std::string& sha_key,
                               std::string& error_msg);
-                            
+
 /**
  * From a DSP source string, creates a 'self-contained' DSP source string where all needed librairies have been included.
  * All compilations options are 'normalized' and included as a comment in the expanded string.
@@ -222,7 +225,7 @@ std::string expandDSPFromFile(const std::string& filename,
  * @param error_msg - the error string to be filled
  *
  * @return the expanded DSP as a string (possibly empty).
-*/ 
+ */ 
 std::string expandDSPFromString(const std::string& name_app, 
                                 const std::string& dsp_content, 
                                 int argc, const char* argv[], 
@@ -238,7 +241,7 @@ std::string expandDSPFromString(const std::string& name_app,
  * @param error_msg - the error string to be filled
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
-*/ 
+ */ 
 bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
 /**
@@ -251,26 +254,26 @@ bool generateAuxFilesFromFile(const std::string& filename, int argc, const char*
  * @param error_msg - the error string to be filled
  *
  * @return true if compilation succedeed, false and an error_msg in case of failure.
-*/ 
+ */ 
 bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
 /**
  * Instance class with related methods.
-*/
+ */
 class llvm_dsp : public dsp {
-               
-    public:
     
-        void metadata(Meta* m);
-      
-        virtual int getNumInputs();
-        virtual int getNumOutputs();
-
-        virtual void init(int samplingFreq);
-
-        virtual void buildUserInterface(UI* inter);
- 
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+public:
+    
+    void metadata(Meta* m);
+    
+    virtual int getNumInputs();
+    virtual int getNumOutputs();
+    
+    virtual void init(int samplingFreq);
+    
+    virtual void buildUserInterface(UI* inter);
+    
+    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
 /**
@@ -279,14 +282,14 @@ class llvm_dsp : public dsp {
  * @param factory - the Faust DSP factory
  * 
  * @return the Faust DSP instance on success, otherwise a null pointer.
-*/
+ */
 llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 /**
  * Destroy a Faust DSP instance.
  * 
  * @param dsp - the DSP instance to be deleted.
-*/ 
+ */ 
 void deleteDSPInstance(llvm_dsp* dsp);
 
 /*!
