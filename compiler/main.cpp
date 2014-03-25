@@ -660,7 +660,7 @@ int main (int argc, char* argv[])
 	endTiming("evaluation");
     
     if (gExportDSP) {
-        ofstream xout(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        ofstream xout(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
         xout << "process = " << boxpp(process) << ";" << endl;
         return 0;
     }
