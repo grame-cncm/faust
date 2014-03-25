@@ -1390,49 +1390,57 @@ class QTGUI : public QObject, public GUI
 
 #ifdef HTTPCTRL
 #ifdef QRCODECTRL
-   
+    
     //
     // Returns the IP address of the machine (to be qrcoded)
     //
     QString extractIPnum(int portnum)
     {
-        QString     result;        
-        char        host_name[32];
+        QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
         
-        gethostname(host_name, sizeof(host_name));
-        struct hostent* host = gethostbyname(host_name);
+        QList<QHostAddress>::iterator it;
         
-        if ((host != 0) && (host->h_addr_list[0] != 0)) {
-            struct in_addr addr;
-            memcpy(&addr, host->h_addr_list[0], sizeof(struct in_addr));   
-            result = QString(inet_ntoa(addr));
-        } else {
-        	result = "localhost";
+        QString localhost("localhost"); 
+        
+        for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
+            if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost)
+                return it->toString();
+            else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
+                localhost = it->toString();
         }
-        std::stringstream ss; ss << portnum;
-        return result + ":" + ss.str().c_str();;
+        
+        return localhost;
     }
-
-
-
-
-
+    
     //
     // Used in HTTPD mode, display the QRCode of the URL of the application
     //
     void displayQRCode(int portnum)
     {
-        const int padding = 5;
     	QString url = extractIPnum(portnum);
-        QRcode* qrc = QRcode_encodeString(url.toStdString().c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
-
-        qDebug() << "url to encode = " << url;
-        qDebug() << "QRcode width  = " << qrc->width;
-
-		QRgb colors[2];
-		colors[0] = qRgb(255, 255, 255); 	// 0 is white
-		colors[1] = qRgb(0, 0, 0); 			// 1 is black
-
+        displayQRCode(url, NULL);
+    }
+    
+    void displayQRCode(const QString& url, QMainWindow* parent = NULL){
+        
+        if(parent == NULL)
+            parent = new QMainWindow;
+        
+        QWidget* centralWidget = new QWidget;
+        parent->setCentralWidget(centralWidget);
+        //    QTextEdit* httpdText = new QTextEdit(centralWidget);
+        QTextBrowser* myBro = new QTextBrowser(centralWidget);
+        
+        //Construction of the flashcode
+        const int padding = 5;
+        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+        
+        //   qDebug() << "QRcode width = " << qrc->width;
+        
+        QRgb colors[2];
+        colors[0] = qRgb(255, 255, 255); 	// 0 is white
+        colors[1] = qRgb(0, 0, 0); 			// 1 is black
+        
         // build the QRCode image
         QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
         // clear the image
@@ -1447,13 +1455,49 @@ class QTGUI : public QObject, public GUI
                 image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
             }
         }
-
-        QImage big = image.scaledToWidth(qrc->width*5);
-        QLabel* myLabel = new QLabel();
-        myLabel->setPixmap(QPixmap::fromImage(big));
-        myLabel->setWindowTitle(url);
-        myLabel->show();
-
+        
+        QImage big = image.scaledToWidth(qrc->width*8);
+        QLabel* myLabel = new QLabel(centralWidget);
+        
+        fQrCode = QPixmap::fromImage(big);
+        
+        myLabel->setPixmap(fQrCode);
+        
+        //----Written Address
+        
+        QString sheet = QString::fromLatin1("a{ text-decoration: underline; color: white; font: Menlo; font-size: 14px }");
+        //    myBro->document()->setDefaultStyleSheet(sheet);
+        //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
+        
+        QString text("<br>Connect You To");
+        text += "<br><a href = http://" + url + ">"+ url+"</a>";
+        text += "<br>Or Flash the code below";
+        
+        myBro->setOpenExternalLinks(true);
+        myBro->setHtml(text);
+        myBro->setAlignment(Qt::AlignCenter);
+        myBro->setFixedWidth(qrc->width*8);
+        //    myBro->setFixedHeight(myBro->minimumHeight());
+        
+        QGridLayout *mainLayout = new QGridLayout;
+        mainLayout->addWidget(myBro, 0, 1);
+        mainLayout->addWidget(myLabel, 1, 1);
+        centralWidget->setLayout(mainLayout);
+        //    centralWidget->show();
+        //    centralWidget->adjustSize();
+    }
+    
+    bool toPNG(const QString& filename, QString& error){
+        
+        QFile file(filename);
+        if(file.open(QIODevice::WriteOnly)){
+            fQrCode.save(&file, "PNG");
+            return true;
+        }
+        else{
+            error = "Impossible to write file.";
+            return false;
+        }
     }
 #endif
 #endif
