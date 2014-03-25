@@ -37,7 +37,21 @@
 
 /* Opaque type */
 
-struct llvm_dsp_factory;
+class llvm_dsp_factory {
+    
+    public:
+    
+        /**
+         * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
+         * the DSP 'filename' given in createDSPFactoryFromFile 
+         * or the DSP 'name_app' given in createDSPFactoryFromString.
+         *
+         * @param factory - the DSP factory.
+         *
+         * @return the name as a string.
+         */
+        std::string getName();
+};
 
 /**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
@@ -47,7 +61,7 @@ struct llvm_dsp_factory;
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
+llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -100,6 +114,13 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
  * 
  */                                 
 void deleteAllDSPFactories();
+
+/**
+ * Return Faust DSP factories as a vector of their SHA keys.
+ * 
+ * @return the Faust DSP factories.
+ */                                 
+vector<string> getAllDSPFactories()
 
 /**
  * Create a Faust DSP factory from a LLVM bitcode string. Note that the library keeps an internal cache of all 
@@ -256,6 +277,7 @@ bool generateAuxFilesFromFile(const std::string& filename, int argc, const char*
  * @return true if compilation succedeed, false and an error_msg in case of failure.
  */ 
 bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
+
 
 /**
  * Instance class with related methods.

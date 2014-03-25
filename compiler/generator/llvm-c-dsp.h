@@ -53,7 +53,7 @@ extern "C"
      *
      * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
      */
-    llvm_dsp_factory* createCDSPFactoryFromSHAKey( char* sha_key);
+    llvm_dsp_factory* getCDSPFactoryFromSHAKey(char* sha_key);
     
     /**
      * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -104,6 +104,13 @@ extern "C"
      * 
      */                                 
     void deleteAllCDSPFactories();
+    
+    /**
+     * Return Faust DSP factories as an array of their SHA keys.
+     * 
+     * @return the Faust DSP factories (the array and it's contain have to be deallocated by the caller)
+     */    
+    const char** getAllCDSPFactories();
     
     /**
      * Create a Faust DSP factory from a LLVM bitcode string. Note that the library keeps an internal cache of all 

@@ -57,12 +57,12 @@ class llvm_dsp_factory : public smartable {
 
         ExecutionEngine* fJIT;
         LLVMResult* fResult;
-    
-        string fSHAKey;
-        
+     
         int fOptLevel;
         string fTarget;
         string fClassName;
+        string fSHAKey;
+        string fExtName;
     
         newDspFun fNew;
         deleteDspFun fDelete;
@@ -118,6 +118,8 @@ class llvm_dsp_factory : public smartable {
     
         std::string getSHAKey() { return fSHAKey; }
     
+        std::string getName();
+    
         static FactoryTableType gFactoryTable;
        
 };
@@ -148,7 +150,6 @@ class llvm_dsp_aux : public dsp {
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-    
     
         llvm_dsp_factory* getFactory() { return fDSPFactory; }
      
@@ -212,8 +213,6 @@ class EXPORT llvm_dsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
 };
-
-EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 

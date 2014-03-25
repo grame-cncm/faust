@@ -211,16 +211,18 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = target;
+    fClassName = "mydsp";
+    fExtName = "ModuleDSP";
+    
     Init();
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
-    fClassName = "mydsp";
     fResult->fModule = module;
     fResult->fContext = context;
 }
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
-                                    const string& name,
-                                    const string& input, 
+                                    const string& name_app,
+                                    const string& dsp_content, 
                                     const string& target, 
                                     string& error_msg, int opt_level)
 {
@@ -230,13 +232,17 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         }
     }
 
+    // Keep given name
+    fExtName = name_app;
+    
     fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = target;
+    
     Init();
     char error_msg_aux[512];
     fClassName = getParam(argc, argv, "-cn", "mydsp");
-    fResult = CompileModule(argc, argv, name.c_str(), input.c_str(), error_msg_aux);
+    fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
     error_msg = error_msg_aux;
 }
 
@@ -600,6 +606,24 @@ void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
 {
     fMetadata(glue);
 }
+
+string llvm_dsp_factory::getName()
+{
+    struct MyMeta : public Meta
+    {
+        string name;
+        
+        virtual void declare(const char* key, const char* value){
+            if (strcmp(key, "name") == 0) {
+                name = value;
+            }
+        }
+    };
+    
+    MyMeta metadata;
+    metadataDSPFactory (&metadata);
+    return (metadata.name != "") ? metadata.name: fExtName;
+ }
   
 // Instance 
 
