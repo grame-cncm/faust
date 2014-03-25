@@ -1236,7 +1236,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     int numOutputs = gNumOutputs;
     
     if (gExportDSP) {
-        ofstream out(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
         out << EXPANDED_KEY << endl;
         out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
         out << "process = " << boxpp(process) << ';' << endl;

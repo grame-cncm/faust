@@ -46,8 +46,8 @@ int main(int argc, char *argv[])
     if (argc < 2) {
         printf("sound2faust <sound> -o <file>\n");
         printf("Generates : 'sound_n = waveform {....}' interleaved waveform\n");
-        printf("Generates : 'sound_0 = waveform {....} .... sound_X = waveform {....}' mono waveforms\n");
-        printf("Generates : 'sound = (sound_0,...sound_n):((!,_),...(!,_))' processor\n");
+        printf("Generates : 'sound_0 = waveform {....} .... sound_x = waveform {....}' mono waveforms\n");
+        printf("Generates : 'sound = (sound_0,...sound_x):((!,_),...(!,_))' processor\n");
         exit(1);
     }
     
