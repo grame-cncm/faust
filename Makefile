@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 version := 2.0.a12
 
 system	?= $(shell uname -s)
@@ -8,9 +7,6 @@ LIB_EXT = dylib
 else
 LIB_EXT = so
 endif
-=======
-version := 0.9.66
->>>>>>> master
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
