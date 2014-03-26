@@ -70,8 +70,8 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION "2.0.a19"
-#define EXPANDED_KEY "// Expanded_DSP_3141592653"
+#define FAUSTVERSION        "2.0.a20"
+#define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;
 
@@ -286,12 +286,13 @@ static string reorganizeCompilationOptions(int argc, const char* argv[])
     vector<string> res2 = reorganizeCompilationOptionsAux(res1);
     
     string res3;
+    string sep;
     for (int i = 0; i < res2.size(); i++) {
-        res3 += " ";
-        res3 += res2[i];
+        res3 = res3 + sep + res2[i];
+        sep = " ";
     }
     
-    return res3;
+    return "\"" + res3 + "\"";
 }
 
 EXPORT string generate_sha1(const string& dsp_content)
@@ -1171,8 +1172,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
         throw faustexception(gErrorMessage);
     }
     stringstream out;
-    out << EXPANDED_KEY << endl;
-    out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
+    out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
     out << "process = " << boxpp(gProcessTree) << ';' << endl;
     return out.str();
 }
@@ -1237,8 +1237,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gExportDSP) {
         ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
-        out << EXPANDED_KEY << endl;
-        out << "// Compilation options :" << reorganizeCompilationOptions(argc, argv) << endl;
+        out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
         out << "process = " << boxpp(process) << ';' << endl;
         return;
     }
@@ -1350,7 +1349,7 @@ static bool start_with(const char* string, const char* key)
 EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* sha_key, char* error_msg)
 {
     // If input is already expanded, return it directly
-    if (start_with(input, EXPANDED_KEY)) {
+    if (start_with(input, COMPILATION_OPTIONS)) {
         strcpy(sha_key, generate_sha1(input).c_str());
         return input;
     }
