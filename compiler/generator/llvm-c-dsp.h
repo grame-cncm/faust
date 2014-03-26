@@ -106,9 +106,9 @@ extern "C"
     void deleteAllCDSPFactories();
     
     /**
-     * Return Faust DSP factories as an array of their SHA keys.
+     * Return Faust DSP factories of the library cache as an array of their SHA keys.
      * 
-     * @return the Faust DSP factories (the array and it's contain have to be deallocated by the caller)
+     * @return the Faust DSP factories (the array and it's contain has to be deallocated by the caller)
      */    
     const char** getAllCDSPFactories();
     

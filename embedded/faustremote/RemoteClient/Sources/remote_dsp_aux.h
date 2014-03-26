@@ -116,6 +116,8 @@ public:
 };
     
 //---------------------- Public C++ interface
+
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key);  
     
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level);
     
@@ -216,6 +218,8 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
     
 EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
+    
+EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
 
 static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
 

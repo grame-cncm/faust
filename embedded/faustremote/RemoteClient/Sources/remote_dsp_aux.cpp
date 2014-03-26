@@ -241,6 +241,22 @@ static bool getFactory(const string& sha_key, FactoryTableIt& res)
 
 // Expernal API
 
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key)
+{
+    FactoryTableIt it;
+    
+    /// If availble in the local cache, get it
+    if (getFactory(sha_key, it)) {
+        Sremote_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    } else {
+        
+        // TODO : call server side to get remote factory, create local proxy factory, put it in the cache
+        return NULL;
+    }
+}
+
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[],  const string& ip_server, int port_server, string& error_msg, int opt_level){
     
     string base = basename((char*)filename.c_str());
@@ -833,3 +849,9 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     }
 }
 
+EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
+{
+    // TODO
+    
+    return false;
+}

@@ -43,10 +43,7 @@ class llvm_dsp_factory {
     
         /**
          * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
-         * the DSP 'filename' given in createDSPFactoryFromFile 
-         * or the DSP 'name_app' given in createDSPFactoryFromString.
-         *
-         * @param factory - the DSP factory.
+         * the DSP 'filename' given in createDSPFactoryFromFile or the DSP 'name_app' given in createDSPFactoryFromString.
          *
          * @return the name as a string.
          */
@@ -110,17 +107,17 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
- * Destroy all Faust DSP factory kept in the libray cache. Beware : all kept factory pointer (in local variables of so...) thus become invalid.
+ * Destroy all Faust DSP factory kept in the library cache. Beware : all kept factory pointer (in local variables of so...) thus become invalid.
  * 
  */                                 
 void deleteAllDSPFactories();
 
 /**
- * Return Faust DSP factories as a vector of their SHA keys.
+ * Return Faust DSP factories of the library cache as a vector of their SHA keys.
  * 
  * @return the Faust DSP factories.
  */                                 
-vector<string> getAllDSPFactories()
+std::vector<std::string> getAllDSPFactories();
 
 /**
  * Create a Faust DSP factory from a LLVM bitcode string. Note that the library keeps an internal cache of all 
