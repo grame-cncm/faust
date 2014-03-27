@@ -27,6 +27,7 @@
 #include "xtended.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "Text.hh"
 
 const char * prim0name(CTree *(*ptr) ())
 {
@@ -160,7 +161,7 @@ ostream& boxpp::print (ostream& fout) const
     // primitive elements
     if (xt) 						fout << xt->name();
     else if (isBoxInt(box, &i))			fout << i;
-    else if (isBoxReal(box, &r))		fout << r;
+    else if (isBoxReal(box, &r))		fout << T(r);
     else if (isBoxCut(box))				fout << '!';
     else if (isBoxWire(box))			fout << '_';
     else if (isBoxIdent(box, &str))		fout << str;
