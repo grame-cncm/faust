@@ -1,5 +1,7 @@
 // If other than 'faust2sc --prefix Faust' is used, sed this as well:
-#define SC_FAUST_PREFIX "Faust"
+#if !defined(SC_FAUST_PREFIX)
+# define SC_FAUST_PREFIX "Faust"
+#endif
 
 //-------------------------------------------------------------------
 // FAUST architecture file for SuperCollider.
@@ -279,7 +281,7 @@ static std::string normalizeClassName(const std::string& name)
 
   unsigned int i=0;
   bool upnext=true;
-  while (c=name[i++]) {
+  while ((c=name[i++])) {
     if (upnext) { c = toupper(c); upnext=false; }
     if ( (c == '_') || (c == '-') || isspace(c)) { upnext=true; continue; }
     s += c;

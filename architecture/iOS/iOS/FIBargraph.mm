@@ -320,7 +320,7 @@
         float               aMax = 0.f;
         UIColor*            color;
         float               normedValue = (self.value - self.minLimit) / (self.maxLimit - self.minLimit);
-        
+                
         if (normedValue < 0.) normedValue = 0.f;
         else if (normedValue > 1.) normedValue = 1.f;
         
@@ -330,7 +330,8 @@
         color = [UIColor colorWithRed:rMin * (1. - normedValue) + rMax * normedValue
                                 green:gMin * (1. - normedValue) + gMax * normedValue
                                  blue:bMin * (1. - normedValue) + bMax * normedValue
-                                alpha:aMin * (1. - normedValue) + aMax * normedValue];
+                                alpha:1./*aMin * (1. - normedValue) + aMax * normedValue*/];
+        
         
         ctx = UIGraphicsGetCurrentContext();
         CGContextClearRect(ctx, self.bounds);

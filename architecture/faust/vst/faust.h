@@ -6,10 +6,8 @@
 #include <vector>
 
 #include "audioeffectx.h"
-#include "../audio/dsp.h"
+//#include "../audio/dsp.h"
 
-// Increasing MAX_POLYPHONY can increase processing time a lot
-// which can as well distort the sound making it sound like noise
 const int MAX_POLYPHONY = 10;
 
 const int INITIAL_TEMP_OUTPUT_SIZE = 1024;
@@ -51,7 +49,7 @@ public:
   virtual bool getVendorString (char *text);
   virtual bool getProductString (char *text);
   virtual VstInt32 getVendorVersion ();
-  virtual VstInt32 canDo (char *text);
+  virtual VstInt32 canDo (const char *text);
 
   virtual VstInt32 getNumMidiInputChannels ();
   virtual VstInt32 getNumMidiOutputChannels ();

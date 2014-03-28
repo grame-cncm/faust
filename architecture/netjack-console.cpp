@@ -43,6 +43,7 @@
 #include "faust/misc.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/console.h"
+#include "faust/gui/GUI.h"
 #include "faust/audio/netjack-dsp.h"
 
 #ifdef OSCCTRL
@@ -72,7 +73,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp DSP;
-std::list<GUI*> GUI::fGuiList;
+std::list<GUI*>     GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -86,6 +87,7 @@ int main(int argc, char *argv[])
     int	celt = lopt(argv, "--celt", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
+    int mtu = lopt(argv, "--m", DEFAULT_MTU);
     int latency = lopt(argv, "--l", 2);
 
     snprintf(appname, 255, "%s", basename(argv[0]));
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
     DSP.buildUserInterface(httpdinterface);
 #endif
 
-    netjackaudio audio(celt, master_ip, master_port, latency);
+    netjackaudio audio(celt, master_ip, master_port, mtu, latency);
     if (!audio.init(appname, &DSP)) {
         return 0;
     }
@@ -126,6 +128,17 @@ int main(int argc, char *argv[])
 
     audio.stop();
     finterface->saveState(rcfilename);
+    
+    // desallocation
+    delete interface;
+    delete finterface;
+#ifdef HTTPCTRL
+	 delete httpdinterface;
+#endif
+#ifdef OSCCTRL
+	 delete oscinterface;
+#endif
+
     return 0;
 }
 

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+FILENAME=$1
+CLASSNAME=`basename $FILENAME .dsp`
+PATCHNAME=$CLASSNAME"Patch"
+PATCHFILE=$PATCHNAME".hpp"
+
+#echo $FILENAME $CLASSNAME $PATCHNAME $PATCHFILE
+
+faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
+echo ""         
+echo "           Instructions to add $PATCHFILE to your owl pedal"
+echo ""         
+echo ""
+echo "Copy file [[ $PATCHFILE ]] to OwlWare/Libraries/OwlPatches directory"
+echo ""
+echo "Add line [[ #include \"$PATCHFILE\" ]] to OwlWare/Libraries/OwlPatches/includes.h file"
+echo ""
+echo "Add line [[ REGISTER_PATCH($PATCHNAME, \"$PATCHNAME\", 2, 2); ]] to OwlWare/Libraries/OwlPatches/patches.cpp file"
+echo ""
+echo "Rebuild the firmware using the command make in OwlWare directory"
+echo ""
+echo "Upload the resulting firmware OwlWare/build/OwlWare.bin to the pedal using the OwlNest software."
+echo ""
+
+
+
+

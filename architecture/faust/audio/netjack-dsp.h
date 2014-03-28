@@ -39,77 +39,94 @@
 
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
-#include <string>
+#include "faust/gui/ControlUI.h"
 #include <jack/net.h>
+#include <string>
+#include <assert.h>
 
 class netjackaudio : public audio
 {
-protected:
+
+    protected:
+    
         dsp* fDsp;
         jack_net_slave_t* fNet;
-        int fCelt;
+        int fNetFormat;
         std::string fMasterIP;
         int fMasterPort;
+        int fMTU;
         int fLatency;
+        jack_master_t fResult;
 
     #ifdef RESTART_CB_API
         static int net_restart(void* arg) 
         {
             printf("Network failure, restart...\n");
-            return 0;
+            return static_cast<netjackaudio*>(arg)->restart_cb();
         }
     #else 
         static void net_shutdown(void* arg) 
         {
-            printf("Network failure, restart...\n");
+            printf("Network failure, shutdown...\n");
+            static_cast<netjackaudio*>(arg)->shutdown_cb();
         }
     #endif
-        
+    
         static int net_sample_rate(jack_nframes_t nframes, void* arg) 
         {
-            netjackaudio* obj = (netjackaudio*)arg;
-            printf("New sample rate = %ld\n", nframes);
-            obj->fDsp->init(nframes);
-            return 0;
+            return static_cast<netjackaudio*>(arg)->set_sample_rate(nframes);
         }
-
+        
+        static int net_buffer_size(jack_nframes_t nframes, void* arg) 
+        {
+            return static_cast<netjackaudio*>(arg)->set_buffer_size(nframes);
+        }
+        
+        static void net_error(int error_code, void* arg)
+        {
+            return static_cast<netjackaudio*>(arg)->error_cb(error_code);
+        }
+        
         static int net_process(jack_nframes_t buffer_size,
                                int,
-                               float** audio_input_buffer,
+                               float** audio_inputs,
                                int,
-                               void**,
+                               void** midi_inputs,
                                int,
-                               float** audio_output_buffer,
+                               float** audio_outputs,
                                int,
-                               void**,
-                               void* arg) {
-            AVOIDDENORMALS;
-            netjackaudio* obj = (netjackaudio*)arg;
-            obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
+                               void** midi_outputs,
+                               void* arg) 
+        {
+            static_cast<netjackaudio*>(arg)->process(buffer_size, audio_inputs, audio_outputs, midi_inputs, midi_outputs);
             return 0;
         }
 
-    public:
-
-        netjackaudio(int celt, const std::string master_ip, int master_port, int latency = 2)
-            : fDsp(0), fNet(0), fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port), fLatency(latency)
-        {}
-
-        bool init(const char* name, dsp* DSP) {
-            fDsp = DSP;
+        bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
+        {
+            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
+                set_dsp(DSP);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    
+        bool init_aux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
+        {
             jack_slave_t request = {
-                DSP->getNumInputs(),
-                DSP->getNumOutputs(),
-                0, 0,
-                DEFAULT_MTU,
-                -1,
-                (fCelt > 0) ? JackCeltEncoder : JackFloatEncoder,
-                (fCelt > 0) ? fCelt : 0,
+                audio_inputs,
+                audio_outputs,
+                midi_inputs, 
+                midi_outputs,
+                fMTU,
+                2,
+                (fNetFormat > 0) ? JackOpusEncoder : ((fNetFormat == -1) ? JackFloatEncoder : JackIntEncoder),
+                (fNetFormat > 0) ? fNetFormat : 0,
                 fLatency
             };
-
-            jack_master_t result;
-            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &result)) == 0) {
+      
+            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &fResult)) == 0) {
                 printf("jack remote server not running ?\n");
                 return false;
             }
@@ -121,12 +138,70 @@ protected:
             jack_set_net_slave_shutdown_callback(fNet, net_shutdown, this);
         #endif
             jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
+            
+            jack_set_net_slave_buffer_size_callback(fNet, net_buffer_size, this);
+            
+            jack_set_net_slave_error_callback(fNet, net_error, this);
 
-            fDsp->init(result.sample_rate);
             return true;
         }
+    
+        void set_dsp(dsp* DSP) 
+        {
+            fDsp = DSP;
+            fDsp->init(fResult.sample_rate);
+        }
+        
+        // Possibly to be redefined by subclasses
+        
+        virtual int restart_cb()
+        {
+            return 0;
+        }
+       
+        virtual void shutdown_cb()
+        {}
+        
+        virtual void error_cb(int error_code)
+        {}
+       
+        virtual int set_sample_rate(jack_nframes_t nframes)
+        {
+            return 0;
+        }
+        
+        virtual int set_buffer_size(jack_nframes_t nframes)
+        {
+            return 0;
+        }
 
-        bool start() {
+        virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs)
+        {
+             AVOIDDENORMALS;
+             fDsp->compute(count, audio_inputs, audio_outputs);
+        }
+
+    public:
+
+        netjackaudio(int net_format, const std::string& master_ip, int master_port, int mtu, int latency = 2)
+            : fDsp(0), fNet(0), fNetFormat(net_format), fMasterIP(master_ip), fMasterPort(master_port), fMTU(mtu), fLatency(latency)
+        {}
+        
+        virtual ~netjackaudio() 
+        {
+            if (fNet) {
+                stop();
+                jack_net_slave_close(fNet);
+            }
+        }
+
+        virtual bool init(const char* name, dsp* DSP) 
+        {
+            return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
+        }
+
+        virtual bool start() 
+        {
             if (jack_net_slave_activate(fNet)) {
                 printf("cannot activate net");
                 return false;
@@ -134,12 +209,132 @@ protected:
             return true;
         }
 
-        void stop() {
+        virtual void stop() 
+        {
             jack_net_slave_deactivate(fNet);
-            jack_net_slave_close(fNet);
         }
+        
+        virtual int get_buffer_size() { return fResult.buffer_size; }
+        virtual int get_sample_rate() { return fResult.sample_rate; }
 
 };
+
+/*
+A special NetJack client that uses one more audio input/output to transmit control values.
+*/
+
+class netjackaudio_control : public netjackaudio, public ControlUI {  
+        
+    protected:
+        
+        virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs)
+        {
+            AVOIDDENORMALS;
+            
+            float* inputs_tmp[fDsp->getNumInputs()];
+            float* outputs_tmp[fDsp->getNumOutputs()];
+            
+            for(int i = 0; i < fDsp->getNumInputs();i++) {
+                inputs_tmp[i] = audio_inputs[i+1];
+            }
+            
+            for(int i = 0; i < fDsp->getNumOutputs();i++) {
+                outputs_tmp[i] = audio_outputs[i+1];
+            }
+            
+            // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
+            decode_control(audio_inputs[0], fResult.buffer_size);
+            
+            // "count" may be less than buffer_size
+            fDsp->compute(count, inputs_tmp, outputs_tmp);
+            
+            // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
+            encode_control(audio_outputs[0], fResult.buffer_size);
+        }
+        
+    public:
+        
+        netjackaudio_control(int net_format, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio(net_format, master_ip, master_port, mtu, latency)
+        {}
+        
+        virtual ~netjackaudio_control() 
+        {}
+        
+        bool is_connexion_active()
+        {
+            return jack_net_slave_is_active(fNet);
+        }
+    
+        virtual bool init(const char* name, dsp* DSP) 
+        {
+            DSP->buildUserInterface(this);
+            return init_aux(name, DSP, DSP->getNumInputs() + 1, DSP->getNumOutputs() + 1, 0, 0); // One more audio port for control
+        }
+    
+        virtual int restart_cb()
+        {
+            return -1;
+        }
+    
+};
+
+class netjackaudio_midicontrol : public netjackaudio, public ControlUI {  
+        
+    protected:
+        
+        virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs)
+        {
+            AVOIDDENORMALS;
+            
+            float* inputs_tmp[fDsp->getNumInputs()];
+            float* outputs_tmp[fDsp->getNumOutputs()];
+            
+            for(int i = 0; i < fDsp->getNumInputs();i++) {
+                inputs_tmp[i] = audio_inputs[i];
+            }
+            
+            for(int i = 0; i < fDsp->getNumOutputs();i++) {
+                outputs_tmp[i] = audio_outputs[i];
+            }
+            
+            // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
+            decode_midi_control(midi_inputs[0], fResult.buffer_size);
+            
+            // "count" may be less than buffer_size
+            fDsp->compute(count, inputs_tmp, outputs_tmp);
+            
+            // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
+            encode_midi_control(midi_outputs[0], fResult.buffer_size);
+        }
+        
+    public:
+        
+        netjackaudio_midicontrol(int net_format, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio(net_format, master_ip, master_port, mtu, latency)
+        {}
+        
+        virtual ~netjackaudio_midicontrol() 
+        {}
+        
+        bool is_connexion_active()
+        {
+            return jack_net_slave_is_active(fNet);
+        }
+    
+        virtual bool init(const char* name, dsp* DSP) 
+        {
+            DSP->buildUserInterface(this);
+            return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 1, 1); // One MIDI channel for control in both direction
+        }
+    
+        virtual int restart_cb()
+        {
+            return -1;
+        }
+    
+};
+
 
 #endif
 

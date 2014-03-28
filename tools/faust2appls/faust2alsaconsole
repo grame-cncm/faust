@@ -10,6 +10,10 @@ OSCDEFS=""
 
 . faustpath
 
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
@@ -61,7 +65,7 @@ for p in $@; do
 	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -81,7 +85,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 

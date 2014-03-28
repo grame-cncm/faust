@@ -56,7 +56,7 @@ for p in $@; do
 	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -87,11 +87,11 @@ for f in $FILES; do
 	module=`basename $f .dsp`
 	
 	# compile faust to c++
-	faust -a ladspa.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a ladspa.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
-		${CXX=g++} $CXXFLAGS $PROCARCH $SPEC -Dmydsp=$module -I/usr/local/lib/faust "$f.cpp" -o $dst
+		${CXX=g++} $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $SPEC -Dmydsp=$module -I/usr/local/lib/faust "$f.cpp" -o $dst
 	) > /dev/null
 	rm "$f.cpp"
 

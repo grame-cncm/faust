@@ -21,6 +21,7 @@
  
 #include "enrobage.hh"
 #include <vector>
+#include <list>
 #include <set>
 #include <string>
 #include <ctype.h>
@@ -31,12 +32,13 @@
 #include <errno.h>
 #include <climits>
 
-extern string gFaustSuperSuperDirectory;
-extern string gFaustSuperDirectory;
-extern string gFaustDirectory;
-extern string gMasterDirectory;
-extern string gClassName;
-extern bool	  gInlineArchSwitch;
+extern string       gFaustSuperSuperDirectory;
+extern string       gFaustSuperDirectory;
+extern string       gFaustDirectory;
+extern string       gMasterDirectory;
+extern string       gClassName;
+extern bool         gInlineArchSwitch;
+extern list<string> gImportDirList;                 // path to search for imports, components and libraries
 
 //----------------------------------------------------------------
 
@@ -207,6 +209,11 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
     streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
+#define TRY_OPEN(filename)                      \
+    ifstream* f = new ifstream();               \
+    f->open(filename, ifstream::in);            \
+    if (f->is_open()) return f; else delete f;  \
+
 /**
  * Try to open an architecture file searching in various directories
  */
@@ -216,76 +223,54 @@ ifstream* open_arch_stream(const char* filename)
     char*	old = getcwd (buffer, FAUST_PATH_MAX);
 	int		err;
 
-    {
-	    ifstream* f = new ifstream();
-	    f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
-    }
+    TRY_OPEN(filename);
+    
     char *envpath = getenv("FAUST_LIB_PATH");
     if (envpath!=NULL) {
 		if (chdir(envpath)==0) {
-			ifstream* f = new ifstream();
-			f->open(filename, ifstream::in);
-			if (f->is_open()) return f; else delete f;
+			TRY_OPEN(filename);
 		}
     }
 	err = chdir(old);
 	if ( (chdir(gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
 		//cout << "enrobage.cpp : 'architecture' directory found in gFaustDirectory" << endl;
-        ifstream* f = new ifstream();
-		f->open(filename, ifstream::in);
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
     err = chdir(old);
     if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
         //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
-        ifstream* f = new ifstream();
-        f->open(filename, ifstream::in);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
     err = chdir(old);
 	if ((chdir(gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
         //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
-        ifstream* f = new ifstream();
-		f->open(filename, ifstream::in);
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
 #ifdef INSTALL_PREFIX
 	err = chdir(old);
 	if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
-        ifstream* f = new ifstream();
-		f->open(filename); 
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
     err = chdir(old);
     if (chdir(INSTALL_PREFIX "/include")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
 #endif
 	err = chdir(old);
 	if (chdir("/usr/local/lib/faust")==0) {
-        ifstream* f = new ifstream();
-		f->open(filename); 
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
     err = chdir(old);
     if (chdir("/usr/lib/faust")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
     err = chdir(old);
     if (chdir("/usr/local/include")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
     err = chdir(old);
     if (chdir("/usr/include")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
 
 	return 0;
@@ -464,10 +449,26 @@ FILE* fopensearch(const char* filename, string& fullpath)
     FILE* f;
     char* envpath;
 
+
+    // search in current directory
+
     if ((f = fopen(filename, "r"))) { 
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
+
+    // search file in user supplied directory path
+
+    for (list< string >::iterator i = gImportDirList.begin(); i != gImportDirList.end(); i++) {
+        if ((f = fopenat(fullpath, *i, filename))) {
+            //std::cerr << "found file : " << fullpath << std::endl;
+            return f;
+        }
+    }
+
+
+    // search in default directories
+
     if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
     	return f;
     }

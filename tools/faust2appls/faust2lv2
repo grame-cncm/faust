@@ -13,6 +13,7 @@ CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-
 # We recognize the following special options here:
 # -nometa: ignore metadata (author information etc.) from the Faust source
 # -nomidicc: plugin doesn't process MIDI control data
+# -dyn-manifest: use dynamic manifests (requires LV2 host support)
 # -uri-prefix URI: URI prefix of plugin (arg must be a valid URI)
 
 for ((i=1;i<$#+1;i++)); do
@@ -41,7 +42,7 @@ for ((i=1;i<$#+1;i++)); do
 	PROCARCH="-m64 -fPIC"
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
-    elif [[ -e "$p" ]]; then
+    elif [[ -f "$p" ]]; then
 	FILES="$FILES $p"
     else
 	OPTIONS="$OPTIONS $p"
@@ -73,8 +74,8 @@ CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST
 # Create the temp directory and the bundle directory inside it.
 mkdir -p $tmpdir/$lv2name
 # Compile the Faust module.
-faust -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
-$CXX -shared $CXXFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
+faust -i -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
+$CXX -shared $CXXFLAGS $PROCARCH $CPPFLAGS  $FAUSTTOOLSFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
 # Generate the manifest.
 if [ -n "$dyn_manifest" ]; then
 # Use a dynamic manifest.
@@ -149,7 +150,7 @@ sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so
 EOF
 # This compiles the plugin to an executable which is run to generate the
 # plugin-specific part of the manifest.
-$CXX $CXXFLAGS $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname"
+$CXX $CXXFLAGS $CPPFLAGS  $FAUSTTOOLSFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname"
 "$tmpdir/$clsname" > "$tmpdir/$lv2name/$clsname.ttl"
 rm -f "$tmpdir/$clsname"
 fi

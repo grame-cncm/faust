@@ -1,4 +1,4 @@
-subprojects := include src src/lib src/msg src/nodes src/osc src/threads
+subprojects := . src src/lib src/msg src/nodes src/osc src/threads ../..
 sources = $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) 
 objects = $(sources:.cpp=.o)
 
@@ -34,48 +34,52 @@ clean :
 
 # DO NOT DELETE
 
-src/OSCControler.o: include/OSCControler.h src/nodes/FaustFactory.h src/nodes/MessageDriven.h
-src/OSCControler.o: src/msg/MessageProcessor.h src/lib/smartpointer.h src/nodes/FaustNode.h src/msg/Message.h
-src/OSCControler.o: src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h
-src/OSCControler.o: ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h
-src/OSCControler.o: ../oscpack/ip/IpEndpointName.h src/nodes/RootNode.h src/osc/OSCAddress.h src/osc/OSCSetup.h
-src/OSCControler.o: src/lib/OSCFError.h include/OSCIO.h
+src/OSCControler.o: faust/OSCControler.h faust/osc/FaustFactory.h faust/osc/FaustNode.h faust/osc/MessageDriven.h
+src/OSCControler.o: faust/osc/MessageProcessor.h faust/osc/smartpointer.h faust/osc/Message.h ../../faust/gui/GUI.h
+src/OSCControler.o: ../../faust/gui/UI.h faust/OSCIO.h src/osc/OSCSetup.h src/osc/OSCStream.h
+src/OSCControler.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h
+src/OSCControler.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
+src/OSCControler.o: src/lib/OSCFError.h src/nodes/RootNode.h
 src/lib/OSCFError.o: src/lib/OSCFError.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h
 src/lib/OSCFError.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h
-src/lib/OSCFError.o: ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h src/msg/Message.h
-src/lib/OSCFError.o: src/lib/smartpointer.h
+src/lib/OSCFError.o: ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h faust/osc/Message.h
+src/lib/OSCFError.o: faust/osc/smartpointer.h
 src/lib/OSCRegexp.o: src/lib/OSCRegexp.h src/lib/deelx.h
-src/msg/Message.o: src/msg/Message.h src/lib/smartpointer.h src/lib/OSCFError.h src/osc/OSCStream.h
+src/msg/Message.o: faust/osc/Message.h faust/osc/smartpointer.h src/lib/OSCFError.h src/osc/OSCStream.h
 src/msg/Message.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h
 src/msg/Message.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
-src/nodes/FaustFactory.o: src/nodes/FaustFactory.h src/nodes/MessageDriven.h src/msg/MessageProcessor.h
-src/nodes/FaustFactory.o: src/lib/smartpointer.h src/nodes/FaustNode.h src/msg/Message.h src/osc/OSCStream.h
-src/nodes/FaustFactory.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h
-src/nodes/FaustFactory.o: ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h
-src/nodes/FaustFactory.o: ../oscpack/ip/IpEndpointName.h src/nodes/RootNode.h src/osc/OSCAddress.h
-src/nodes/MessageDriven.o: src/msg/Message.h src/lib/smartpointer.h src/nodes/MessageDriven.h
-src/nodes/MessageDriven.o: src/msg/MessageProcessor.h src/osc/OSCAddress.h src/lib/OSCFError.h src/osc/OSCStream.h
+src/nodes/FaustFactory.o: faust/osc/FaustFactory.h faust/osc/FaustNode.h faust/osc/MessageDriven.h
+src/nodes/FaustFactory.o: faust/osc/MessageProcessor.h faust/osc/smartpointer.h faust/osc/Message.h
+src/nodes/FaustFactory.o: ../../faust/gui/GUI.h ../../faust/gui/UI.h src/nodes/RootNode.h src/osc/OSCAddress.h
+src/nodes/FaustNode.o: faust/osc/FaustNode.h faust/osc/MessageDriven.h faust/osc/MessageProcessor.h
+src/nodes/FaustNode.o: faust/osc/smartpointer.h faust/osc/Message.h ../../faust/gui/GUI.h ../../faust/gui/UI.h
+src/nodes/FaustNode.o: src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h
+src/nodes/FaustNode.o: ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h
+src/nodes/FaustNode.o: ../oscpack/ip/IpEndpointName.h faust/OSCControler.h faust/osc/FaustFactory.h
+src/nodes/MessageDriven.o: faust/osc/Message.h faust/osc/smartpointer.h faust/osc/MessageDriven.h
+src/nodes/MessageDriven.o: faust/osc/MessageProcessor.h src/osc/OSCAddress.h src/lib/OSCFError.h src/osc/OSCStream.h
 src/nodes/MessageDriven.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h
 src/nodes/MessageDriven.o: ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h
 src/nodes/MessageDriven.o: ../oscpack/ip/IpEndpointName.h src/lib/OSCRegexp.h src/lib/deelx.h
-src/nodes/RootNode.o: src/nodes/RootNode.h src/nodes/MessageDriven.h src/msg/MessageProcessor.h src/lib/smartpointer.h
-src/nodes/RootNode.o: src/msg/Message.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h
-src/nodes/RootNode.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h
-src/nodes/RootNode.o: ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h include/OSCControler.h
-src/nodes/RootNode.o: include/OSCIO.h ../oscpack/ip/NetworkingUtils.h
+src/nodes/RootNode.o: faust/OSCControler.h faust/osc/FaustFactory.h faust/osc/FaustNode.h faust/osc/MessageDriven.h
+src/nodes/RootNode.o: faust/osc/MessageProcessor.h faust/osc/smartpointer.h faust/osc/Message.h ../../faust/gui/GUI.h
+src/nodes/RootNode.o: ../../faust/gui/UI.h faust/OSCIO.h src/nodes/RootNode.h src/osc/OSCStream.h
+src/nodes/RootNode.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h
+src/nodes/RootNode.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
+src/nodes/RootNode.o: ../oscpack/ip/NetworkingUtils.h
 src/osc/OSCAddress.o: src/osc/OSCAddress.h
-src/osc/OSCIO.o: include/OSCIO.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h
+src/osc/OSCIO.o: faust/OSCIO.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h
 src/osc/OSCIO.o: ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h
 src/osc/OSCIO.o: ../oscpack/ip/IpEndpointName.h
-src/osc/OSCListener.o: src/osc/OSCListener.h src/lib/smartpointer.h src/msg/MessageProcessor.h
+src/osc/OSCListener.o: faust/osc/Message.h faust/osc/smartpointer.h src/osc/OSCListener.h faust/osc/MessageProcessor.h
 src/osc/OSCListener.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
 src/osc/OSCListener.o: ../oscpack/osc/OscPacketListener.h ../oscpack/osc/OscReceivedElements.h
 src/osc/OSCListener.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/PacketListener.h
-src/osc/OSCListener.o: src/msg/Message.h ../oscpack/osc/OscReceivedElements.h ../oscpack/ip/IpEndpointName.h
+src/osc/OSCListener.o: ../oscpack/osc/OscReceivedElements.h ../oscpack/ip/IpEndpointName.h
 src/osc/OSCSetup.o: src/osc/OSCSetup.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h
 src/osc/OSCSetup.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h
 src/osc/OSCSetup.o: ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h src/threads/TThreads.h
-src/osc/OSCSetup.o: src/osc/OSCListener.h src/lib/smartpointer.h src/msg/MessageProcessor.h
+src/osc/OSCSetup.o: src/osc/OSCListener.h faust/osc/smartpointer.h faust/osc/MessageProcessor.h
 src/osc/OSCSetup.o: ../oscpack/osc/OscPacketListener.h ../oscpack/osc/OscReceivedElements.h
 src/osc/OSCSetup.o: ../oscpack/ip/PacketListener.h
 src/osc/OSCStream.o: src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h

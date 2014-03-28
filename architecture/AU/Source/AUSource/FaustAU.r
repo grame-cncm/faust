@@ -1,6 +1,6 @@
 /*
  File: FaustAU.r
- Abstract:  kFaustAUVersion
+ Abstract:  FaustAU.r
  Version: 1.01
  
  Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
@@ -48,9 +48,6 @@
 
 #include "FaustAUVersion.h"
 
-// Note that resource IDs must be spaced 2 apart for the 'STR ' name and description
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Faust~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #define UseExtendedThingResource 1
 
 #include <CoreServices/CoreServices.r>
@@ -58,24 +55,32 @@
 // Note that resource IDs must be spaced 2 apart for the 'STR ' name and description
 #define kAudioUnitResID_FaustAU				1000
 
-// this is a define used to indicate that a component has no static data that would mean
-// that no more than one instance could be open at a time - never been true for AUs
-#ifndef cmpThreadSafeOnMac
-#define cmpThreadSafeOnMac	0x10000000
-#endif
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FaustAU ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #define RES_ID			kAudioUnitResID_FaustAU
-#define COMP_TYPE		kAudioUnitType_Effect
+
+//#define COMP_TYPE   kAudioUnitType_Effect
+//#define COMP_TYPE		kAudioUnitType_MusicDevice
+
+#define COMP_TYPE		_COMPTYPE_
+
 #define COMP_SUBTYPE	FaustAU_COMP_SUBTYPE
 #define COMP_MANUF		FaustAU_COMP_MANF
 
 #define VERSION			kFaustAUVersion
 #define NAME			"_NAME_"
 #define DESCRIPTION		"_DESC_"
-#define ENTRY_POINT		"FaustEntry"
+#define ENTRY_POINT		"FaustAUEntry"
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+// this is a define used to indicate that a component has no static data that would mean
+// that no more than one instance could be open at a time - never been true for AUs
+#ifndef cmpThreadSafeOnMac
+#define cmpThreadSafeOnMac	0x10000000
+#endif
 
 resource 'STR ' (RES_ID, purgeable) {
 	NAME
@@ -135,6 +140,7 @@ resource 'thng' (RES_ID, NAME) {
 	}
 };
 
+
 #undef RES_ID
 #undef COMP_TYPE
 #undef COMP_SUBTYPE
@@ -144,5 +150,4 @@ resource 'thng' (RES_ID, NAME) {
 #undef DESCRIPTION
 #undef ENTRY_POINT
 #undef NeedLeadingComma
-
 

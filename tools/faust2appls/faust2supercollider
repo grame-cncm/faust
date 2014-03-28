@@ -104,10 +104,9 @@ for p in $@; do
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
-	    echo "*** Faust source-file '$p' not found"
 	    OPTIONS="$OPTIONS $p"
 	fi
 done
@@ -157,13 +156,13 @@ for p in $FILES; do
     # compile the .dsp file to c++ and xml
     faust -xml "$SRCDIR/$f" -o /dev/null;
     mv "$SRCDIR/$f.xml" $TMP/
-    faust -a supercollider.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+    faust -i -a supercollider.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         cd "$TMP"
         faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
-        ${CXX=g++}  -O3 $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        ${CXX=g++}  -O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
     )> $OUTDEV
 
     ## move the produced files from tmp to source dir

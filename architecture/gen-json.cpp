@@ -23,6 +23,8 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
+using namespace std;
+
 /******************************************************************************
 *******************************************************************************
 
@@ -56,5 +58,5 @@ int main(int argc, char *argv[])
     mydsp::metadata(&json);
 	json.numInput (DSP.getNumInputs());
 	json.numOutput (DSP.getNumOutputs());
-    printf("%s\n", json.json());
+    printf("%s\n", json.json().c_str());
 }

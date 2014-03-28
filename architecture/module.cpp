@@ -24,9 +24,6 @@
 #include <errno.h>
 #include <time.h>
 
-#include <map>
-#include <list>
-
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
 #include "faust/audio/dsp.h"

@@ -30,7 +30,7 @@ for p in $@; do
 	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"
@@ -42,8 +42,8 @@ done
 # compile the *.dsp files
 #
 for f in $FILES; do
-    faust -a netjack-console.cpp $OPTIONS $f -o $f.cpp
-    g++  $f.cpp -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
+    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp
+    g++  $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
     rm $f.cpp
 
     # collect binary file name for FaustGIDE

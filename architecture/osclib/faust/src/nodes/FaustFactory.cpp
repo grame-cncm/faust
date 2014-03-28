@@ -24,10 +24,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "FaustFactory.h"
-#include "FaustNode.h"
+#include "faust/osc/FaustFactory.h"
+#include "faust/osc/FaustNode.h"
+#include "faust/osc/MessageDriven.h"
+
 #include "RootNode.h"
-#include "MessageDriven.h"
 #include "OSCAddress.h"
 
 using namespace std;
@@ -35,24 +36,8 @@ using namespace std;
 namespace oscfaust
 {
 
-
-/**
- * Follows fullpath as much as possible. Return the deepest node reached and
- * the remaining path.  We have path(node)++remainingpath = fullpath
- */
-SMessageDriven FaustFactory::followPath(SMessageDriven node, const string& fullpath, string& remainingpath)
-{
-	if (fullpath.size()>0) {
-		string label = OSCAddress::addressFirst (fullpath);
-		for (int i = 0; i < node->size(); i++) {
-			if (node->subnode(i)->name() == label) {
-				return followPath(node->subnode(i), OSCAddress::addressTail(fullpath), remainingpath);
-			}
-		}
-	}
-	remainingpath = fullpath;
-	return node;
-}
+FaustFactory::FaustFactory(GUI* ui, OSCIO * io) : fIO(io), fGUI(ui) {}
+FaustFactory::~FaustFactory() {}
 
 
 /**
@@ -84,6 +69,22 @@ void FaustFactory::opengroup (const char* label)
 
 	}
 }
+
+
+//--------------------------------------------------------------------------
+SRootNode FaustFactory::root() const	{ return fRoot; }
+
+//--------------------------------------------------------------------------
+// add an alias to the root node
+//--------------------------------------------------------------------------
+void FaustFactory::addAlias (const char* alias, const char* address, float imin, float imax, float omin, float omax)
+{
+	if (fRoot) fRoot->addAlias (alias, address, imin, imax, omin, omax);
+}
+
+//--------------------------------------------------------------------------
+std::string FaustFactory::addressFirst (const std::string& address) const	{ return OSCAddress::addressFirst(address); }
+std::string FaustFactory::addressTail  (const std::string& address) const	{ return OSCAddress::addressTail(address); }
 
 //--------------------------------------------------------------------------
 void FaustFactory::closegroup ()

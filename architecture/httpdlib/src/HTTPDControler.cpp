@@ -2,7 +2,7 @@
 
   Faust Project
 
-  Copyright (C) 2012 Grame
+  Copyright (C) 2012-2014 Grame
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-  Grame Research Laboratory, 9 rue du Garet, 69001 Lyon - France
+  Grame Research Laboratory, 11 cours de Verdun Gensoul, 69002 Lyon - France
   research@grame.fr
 
 */
@@ -41,8 +41,8 @@ using namespace std;
 namespace httpdfaust
 {
 
-#define kVersion	 0.71f
-#define kVersionStr	"0.71"
+#define kVersion	 0.72f
+#define kVersionStr	"0.72"
 
 static const char* kPortOpt	= "-port";
 
@@ -193,7 +193,7 @@ void HTTPDControler::run ()
 			fHtml->root().print(strhtml, strjson.str());
 			if (rootnode) rootnode->setHtml (strhtml.str());
 			// and outputs a message
-			cout << "Faust httpd server version " << version() <<  " is running on UDP ports " << fTCPPort << endl;
+			cout << "Faust httpd server version " << version() <<  " is running on TCP port " << fTCPPort << endl;
 		}
 	}
 }
@@ -204,4 +204,21 @@ void HTTPDControler::quit ()
 	fHttpd->stop();
 }
 
+//------------------------------Accessor to json Interface
+std::string HTTPDControler::get_jsonInterface(){        
+    stringstream strjson;
+    fJson->root().print(strjson);
+
+    return strjson.str();
+}
+    
+void HTTPDControler::set_Inputs(int numInputs){
+    fJson->root().setInputs(numInputs);
+        
+}
+    
+void HTTPDControler::set_Outputs(int numOutputs){
+    fJson->root().setOutputs(numOutputs);
+}
+    
 }

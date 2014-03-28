@@ -49,7 +49,7 @@ class jsonfactory
 	std::stack<Sjsonnode>	fNodes;		///< maintains the current hierarchy level
 	jsonroot				fRoot;		///< keep track of the root node
 
-	void addnode (Sjsonnode node, const char * label);
+	void addnode(Sjsonnode node, const char * label);
 
 	public:
 				typedef std::map<std::string, std::string>	TMetas;
@@ -69,8 +69,8 @@ class jsonfactory
 				addnode (jsoncontrol<C>::create (label, type, m), label);
 			}
 
-		void opengroup (const char* type, const char* label);
-		void closegroup ();
+		void opengroup(const char* type, const char* label);
+		void closegroup();
 
 		jsonroot&	root()			{ return fRoot; }
 };

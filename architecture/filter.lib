@@ -32,7 +32,8 @@ integrator = + ~ _ ;
 //----------------------- tau2pole ---------------------------
 // tau2pole(tau) returns a real pole giving exponential decay with
 // tau = time-constant in seconds
-//
+// Note that t60 (time to decay 60 dB) is ~6.91 time constants.
+
 tau2pole(tau) = exp(-1.0/(tau*SR));
 
 //---------------------- smooth(s) --------------------------
@@ -1019,8 +1020,7 @@ with { // octave script output:
 // REFERENCES
 // - http://en.wikipedia.org/wiki/Equalization
 // - filterbank (below, here in filter.lib)
-// - http://www.harmony-central.com/Computer/Programming/Audio-EQ-Cookbook.txt
-//   http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+// - http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
 //   Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
 // - https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
 // - https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html
@@ -1035,20 +1035,38 @@ with { // octave script output:
 // where
 //   N = filter order 1, 3, 5, ... (odd only).
 //  L0 = desired level (dB) between dc and fx (boost L0>0 or cut L0<0)
-//  fx = desired transition frequency (Hz) from boost|cut to unity gain
+//  fx = -3dB frequency of lowpass band (L0>0) or upper band (L0<0)
+//       (see "SHELF SHAPE" below).
 //
 // The gain at SR/2 is constrained to be 1.
 // The generalization to arbitrary odd orders is based on the well known
 // fact that odd-order Butterworth band-splits are allpass-complementary
 // (see filterbank documentation below for references).
 //
+// SHELF SHAPE 
+//  The magnitude frequency response is approximately piecewise-linear
+//  on a log-log plot ("BODE PLOT").  The Bode "stick diagram" approximation
+//  L(lf) is easy to state in dB versus dB-frequency lf = dB(f):
+// L0 > 0:
+//  L(lf) = L0, f between 0 and fx = 1st corner frequency;
+//  L(lf) = L0 - N * (lf - lfx), f between fx and f2 = 2nd corner frequency;
+//  L(lf) = 0, lf > lf2.
+//    lf2 = lfx + L0/N = dB-frequency at which level gets back to 0 dB.
+//    See lowshelf_other_freq() below.
+// L0 < 0:
+//  L(lf) = L0, f between 0 and f1 = 1st corner frequency;
+//  L(lf) = - N * (lfx - lf), f between f1 and lfx = 2nd corner frequency;
+//  L(lf) = 0, lf > lfx.
+//    lf1 = lfx + L0/N = dB-frequency at which level goes up from L0.
+//    See lowshelf_other_freq() below.
+
 lowshelf(N,L0,fx) = filterbank(N,(fx)) : _, *(db2linear(L0)) :> _;
-// Special cases providing backward compatibility and optimization:
+// Special cases and optimization:
 low_shelf  = lowshelf(3); // default = 3rd order Butterworth
 low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(1,fx,x); // optimized
 low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // optimized
-low_shelf3 = lowshelf(3); // backward compatibility for one release
-low_shelf5 = lowshelf(5); // backward compatibility for one release
+
+lowshelf_other_freq(N, L0, fx) = db2linear(linear2db(fx) + L0/N); // convenience
 
 //------------------------------ high_shelf ------------------------------------
 // First-order "high shelf" filter (gain boost|cut above some frequency)
@@ -1058,17 +1076,20 @@ low_shelf5 = lowshelf(5); // backward compatibility for one release
 // where
 //    N = filter order 1, 3, 5, ... (odd only).
 //  Lpi = desired level (dB) between fx and SR/2 (boost Lpi>0 or cut Lpi<0)
-//   fx = desired transition frequency in Hz
+//   fx = -3dB frequency of highpass band (L0>0) or lower band (L0<0)
+//        (Use highshelf_other_freq() below to find the other one.)
 //
 // The gain at dc is constrained to be 1.
-//
+// See lowshelf documentation above regarding SHELF SHAPE.
+
 highshelf(N,Lpi,fx) = filterbank(N,(fx)) : *(db2linear(Lpi)), _ :> _;
-// Special cases providing backward compatibility and optimization:
+// Special cases and optimization:
 high_shelf = highshelf(3); // default = 3rd order Butterworth
 high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x); // optimized
 high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); //optimized
-high_shelf3 = highshelf(3); // backward compatibility for one release
-high_shelf5 = highshelf(5); // backward compatibility for one release
+
+// shelf transitions between frequency fx and this one:
+highshelf_other_freq(N, Lpi, fx) = db2linear(linear2db(fx) - Lpi/N);
 
 //-------------------------------- peak_eq -----------------------------------
 // Second order "peaking equalizer" section 

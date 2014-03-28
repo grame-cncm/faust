@@ -61,7 +61,7 @@ for p in $@; do
 	 HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"
@@ -72,7 +72,7 @@ done
 # compile the *.dsp files
 #
 for f in $FILES; do
-    faust -a netjack-console.cpp $OPTIONS $f -o $f.cpp
+    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp
     $CXX $CXXFLAGS $OMP "$f.cpp" $LD_LIBRARY_PATHS $INCLUDES_DIR $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}" 
     rm $f.cpp
 

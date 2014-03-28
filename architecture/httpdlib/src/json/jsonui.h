@@ -37,7 +37,7 @@ template <typename C> class jsonui
 	std::map<std::string, std::string>	fMeta;	// the current meta declarations
 
 	public:
-				 jsonui(const char *name, const char* address, int port) : fFactory(0) { fFactory = new jsonfactory(name, address, port); }
+				 jsonui(const char *name, const char* address, int port) { fFactory = new jsonfactory(name, address, port); }
 		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
@@ -47,18 +47,18 @@ template <typename C> class jsonui
 		virtual void closeBox()										{ fFactory->closegroup(); }
 
 		// -- active widgets
-		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); }
-		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbox", label, fMeta); }
+		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); fMeta.clear();}
+		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbox", label, fMeta); fMeta.clear();}
 		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "vslider", label, init, min, max, step, fMeta); }
+							{ fFactory->addnode<C>( "vslider", label, init, min, max, step, fMeta); fMeta.clear();}
 		virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "hslider", label, init, min, max, step, fMeta); }
+							{ fFactory->addnode<C>( "hslider", label, init, min, max, step, fMeta); fMeta.clear();}
 		virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); }
+							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); fMeta.clear();}
 
 		// -- passive widgets
-		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, fMeta); }
-		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)	{ fFactory->addnode<C>( "vbargraph", label, fMeta); }
+		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, min, max, fMeta); fMeta.clear();}
+		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)	{ fFactory->addnode<C>( "vbargraph", label, min, max, fMeta); fMeta.clear();}
 
 		// -- metadata declarations
 		virtual void declare(C* , const char* key, const char* val)		{ fMeta[key] = val; }
@@ -73,7 +73,7 @@ template <typename C> class jsonui
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		const char*	json ()									{ return fFactory->root().json(); }
+		std::string json ()							{ return fFactory->root().json(); }
 };
 
 } //end namespace

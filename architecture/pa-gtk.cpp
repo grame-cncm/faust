@@ -141,6 +141,17 @@ int main(int argc, char *argv[])
 
 	audio.stop();
 	finterface->saveState(rcfilename);
+    
+   // desallocation
+    delete interface;
+    delete finterface;
+#ifdef HTTPCTRL
+	 delete httpdinterface;
+#endif
+#ifdef OSCCTRL
+	 delete oscinterface;
+#endif
+
   	return 0;
 }
 

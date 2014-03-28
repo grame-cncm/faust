@@ -18,7 +18,6 @@ install:
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2au $(dest)
-	install faust2ausynth $(dest)
 	install faust2caqt $(dest)
 	install faust2csound $(dest)
 	install faust2ladspa $(dest)
@@ -33,6 +32,7 @@ install:
 	install faust2mathdoc $(dest)
 	install faust2mathviewer $(dest)
 	install faust2msp $(dest)
+	install faust2w32msp $(dest)
 	install faust2max6 $(dest)
 	install faust2octave $(dest)
 	install faust2paqt $(dest)
@@ -57,6 +57,8 @@ install:
 	install faust2alsaconsole $(dest)
 	install faust2rpialsaconsole $(dest)
 	install faust2rpinetjackconsole $(dest)
+	install faust2android $(dest)
+	install faust2owl $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -79,6 +81,7 @@ uninstall:
 	rm -f $(dest)/faust2mathdoc
 	rm -f $(dest)/faust2mathviewer
 	rm -f $(dest)/faust2msp
+	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2max6
 	rm -f $(dest)/faust2octave
 	rm -f $(dest)/faust2paqt
@@ -103,4 +106,6 @@ uninstall:
 	rm -f $(dest)/faust2alsaconsole
 	rm -f $(dest)/faust2rpialsaconsole
 	rm -f $(dest)/faust2rpinetjackconsole
+	rm -f $(dest)/faust2android
+	rm -f $(dest)/faust2owl
 

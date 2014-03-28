@@ -32,15 +32,21 @@
 #include <vector>
 #include <stack>
 
+#include <QtGlobal>
 #include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
+#include <QApplication>
+
 #include "faust/gui/GUI.h"
 
 #ifdef QRCODECTRL
 #include <sstream>
-#include <QHostAddress>
-#include <QTcpSocket>
 #include <qrencode.h>
-#include <QRegExp>
+#include <netdb.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #endif
 
 #define STYLESHEET "QPushButton {background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #B0B0B0, stop: 1 #404040); border: 2px solid grey; border-radius: 6px; margin-top: 1ex; } QPushButton:hover { border: 2px solid orange; } QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, stop: 1 #B0B0B0); } QGroupBox, QMainWindow { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); border: 2px solid gray; border-radius: 5px; margin-top: 3ex; font-size:10pt; font-weight:bold; color: white; } QGroupBox::title, QMainWindow::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 5px; } QSlider::groove:vertical { background: red; position: absolute; left: 13px; right: 13px; } QSlider::handle:vertical { height: 40px; width: 30px; background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: 0 -5px; /* expand outside the groove */ border-radius: 5px; } QSlider::add-page:vertical { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange); } QSlider::sub-page:vertical { background: grey; }  QSlider::groove:horizontal { background: red; position: absolute; top: 14px; bottom: 14px; }  QSlider::handle:horizontal { width: 40px; background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: -5px 0; border-radius: 5px; } QSlider::sub-page:horizontal { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange); } QSlider::add-page:horizontal { background: grey; }QTabWidget::pane {border-top: 2px solid orange; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); } QTabWidget::tab-bar { left: 5px; }  QTabBar::tab { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #909090, stop: 0.4 #888888, stop: 0.5 #808080, stop: 1.0 #909090); border: 2px solid #808080; border-bottom-color: orange; border-top-left-radius: 4px; border-top-right-radius: 4px; min-width: 8ex; padding: 2px; }  QTabBar::tab:selected, QTabBar::tab:hover { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #D0D0D0, stop: 0.4 #A0A0A0, stop: 0.5 #808080, stop: 1.0 #A0A0A0); } QTabBar::tab:selected { border-color: orange; border-bottom-color: #A0A0A0; } QTabBar::tab:!selected { margin-top: 2px; }"
@@ -525,7 +531,7 @@ class linBargraph : public AbstractDisplay
                 painter->fillRect(0,(1-v)*h,w, v*h, fBrush);
             } else {
                 // draw horizontal rectangle
-                painter->fillRect(0, 0, h, v*w, fBrush);
+                painter->fillRect(0, 0, v*w, h, fBrush);
             }
 
         }
@@ -1143,7 +1149,6 @@ class QTGUI : public QObject, public GUI
     Q_OBJECT
     
 	QTimer*                 fTimer;
-	QStyle*                 fStyle;
     std::string				gGroupTooltip;
     std::stack<QWidget* > 	fGroupStack;
     
@@ -1218,8 +1223,6 @@ class QTGUI : public QObject, public GUI
 
 	void insert(const char* label, QWidget* widget)
 	{
-		if (fStyle) 
-            widget->setStyle(fStyle);
         
 		if (!fGroupStack.empty()) {
 			QWidget* mother = fGroupStack.top();
@@ -1357,9 +1360,7 @@ class QTGUI : public QObject, public GUI
         else{
             group = new QTabWidget();
         }
-        
-		if (fStyle) 
-            group->setStyle(fStyle);
+
 		insert(label, group);
 		fGroupStack.push(group);
 	}
@@ -1368,21 +1369,18 @@ class QTGUI : public QObject, public GUI
   
 	void update()		{
         //std::cout << '.' << std::endl;
-		updateAllZones();
+//		updateAllZones();
+		updateAllGuis();
 	}
 
   public:
 
-//	QTGUI(int& argc, char* argv[], QStyle* style = 0) : fTimer(0), fStyle(style){
-//        //fGroupStack.push(new QMainWindow());
-//    }
-    QTGUI(QStyle* style = 0) : fTimer(0), fStyle(style){
+    QTGUI() : fTimer(0){
         fMainWindow = new QMainWindow();
     }
-    QTGUI(QMainWindow* win, const char* label, QStyle* style = 0){
+    QTGUI(QMainWindow* win, const char* label){
     
         fTimer = 0;
-        fStyle = style;
         
         fMainWindow = win;
         fMainWindow->setWindowTitle(label);
@@ -1392,43 +1390,57 @@ class QTGUI : public QObject, public GUI
 
 #ifdef HTTPCTRL
 #ifdef QRCODECTRL
-   
-   	//
-	// Extract the IP number of the machine http
- 	//
-
+    
+    //
+    // Returns the IP address of the machine (to be qrcoded)
+    //
     QString extractIPnum(int portnum)
-	{
-        QString     result;
-        QTcpSocket  sock;
+    {
+        QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
         
-        sock.connectToHost("8.8.8.8", 53); // google DNS, or somethingelse reliable
-        if (sock.waitForConnected()) {
-            QHostAddress IP = sock.localAddress();
-            result = IP.toString(); 
-        } else {
-            result = "localhost";
+        QList<QHostAddress>::iterator it;
+        
+        QString localhost("localhost"); 
+        
+        for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
+            if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost)
+                return it->toString();
+            else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
+                localhost = it->toString();
         }
-        std::stringstream ss; ss << portnum;
-        return result + ":" + ss.str().c_str();;
+        
+        return localhost;
     }
-
+    
     //
     // Used in HTTPD mode, display the QRCode of the URL of the application
     //
     void displayQRCode(int portnum)
     {
-        const int padding = 5;
     	QString url = extractIPnum(portnum);
-        QRcode* qrc = QRcode_encodeString(url.toStdString().c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
-
-        qDebug() << "url to encode = " << url;
-        qDebug() << "QRcode width  = " << qrc->width;
-
-		QRgb colors[2];
-		colors[0] = qRgb(255, 255, 255); 	// 0 is white
-		colors[1] = qRgb(0, 0, 0); 			// 1 is black
-
+        displayQRCode(url, NULL);
+    }
+    
+    void displayQRCode(const QString& url, QMainWindow* parent = NULL){
+        
+        if(parent == NULL)
+            parent = new QMainWindow;
+        
+        QWidget* centralWidget = new QWidget;
+        parent->setCentralWidget(centralWidget);
+        //    QTextEdit* httpdText = new QTextEdit(centralWidget);
+        QTextBrowser* myBro = new QTextBrowser(centralWidget);
+        
+        //Construction of the flashcode
+        const int padding = 5;
+        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+        
+        //   qDebug() << "QRcode width = " << qrc->width;
+        
+        QRgb colors[2];
+        colors[0] = qRgb(255, 255, 255); 	// 0 is white
+        colors[1] = qRgb(0, 0, 0); 			// 1 is black
+        
         // build the QRCode image
         QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
         // clear the image
@@ -1443,13 +1455,49 @@ class QTGUI : public QObject, public GUI
                 image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
             }
         }
-
-        QImage big = image.scaledToWidth(qrc->width*5);
-        QLabel* myLabel = new QLabel();
-        myLabel->setPixmap(QPixmap::fromImage(big));
-        myLabel->setWindowTitle(url);
-        myLabel->show();
-
+        
+        QImage big = image.scaledToWidth(qrc->width*8);
+        QLabel* myLabel = new QLabel(centralWidget);
+        
+        fQrCode = QPixmap::fromImage(big);
+        
+        myLabel->setPixmap(fQrCode);
+        
+        //----Written Address
+        
+        QString sheet = QString::fromLatin1("a{ text-decoration: underline; color: white; font: Menlo; font-size: 14px }");
+        //    myBro->document()->setDefaultStyleSheet(sheet);
+        //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
+        
+        QString text("<br>Connect You To");
+        text += "<br><a href = http://" + url + ">"+ url+"</a>";
+        text += "<br>Or Flash the code below";
+        
+        myBro->setOpenExternalLinks(true);
+        myBro->setHtml(text);
+        myBro->setAlignment(Qt::AlignCenter);
+        myBro->setFixedWidth(qrc->width*8);
+        //    myBro->setFixedHeight(myBro->minimumHeight());
+        
+        QGridLayout *mainLayout = new QGridLayout;
+        mainLayout->addWidget(myBro, 0, 1);
+        mainLayout->addWidget(myLabel, 1, 1);
+        centralWidget->setLayout(mainLayout);
+        //    centralWidget->show();
+        //    centralWidget->adjustSize();
+    }
+    
+    bool toPNG(const QString& filename, QString& error){
+        
+        QFile file(filename);
+        if(file.open(QIODevice::WriteOnly)){
+            fQrCode.save(&file, "PNG");
+            return true;
+        }
+        else{
+            error = "Impossible to write file.";
+            return false;
+        }
     }
 #endif
 #endif

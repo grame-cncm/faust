@@ -26,6 +26,7 @@
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
+#include <string>
 
 namespace httpdfaust
 {
@@ -61,19 +62,19 @@ class jsonfaustui : public UI, public Meta
 		void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max);
 
 		// -- metadata declarations
-		void declare(FAUSTFLOAT* , const char* , const char* );
+		void declare(FAUSTFLOAT*, const char*, const char*);
 
 		//--------------------------------------------
 		// additionnal methods (not part of UI)
 		//--------------------------------------------
-		void numInput( int n );			// should be called with the inputs number
-		void numOutput( int n );		// should be called with the outputs number
-		void declare(const char* , const char* ); // global metadata declaration
+		void numInput(int n);			// should be called with the inputs number
+		void numOutput(int n);		// should be called with the outputs number
+		void declare(const char* , const char*); // global metadata declaration
 
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		const char*	json ();
+		std::string	json();
 };
 
 } //end namespace

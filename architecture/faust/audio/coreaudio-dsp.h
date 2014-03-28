@@ -92,11 +92,11 @@ static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
     printf("  Sample Rate:%f\n", inDesc->mSampleRate);
     printf("  Format ID:%.*s\n", (int)sizeof(inDesc->mFormatID), (char*)&inDesc->mFormatID);
     printf("  Format Flags:%lX\n", inDesc->mFormatFlags);
-    printf("  Bytes per Packet:%ld\n", inDesc->mBytesPerPacket);
-    printf("  Frames per Packet:%ld\n", inDesc->mFramesPerPacket);
-    printf("  Bytes per Frame:%ld\n", inDesc->mBytesPerFrame);
-    printf("  Channels per Frame:%ld\n", inDesc->mChannelsPerFrame);
-    printf("  Bits per Channel:%ld\n", inDesc->mBitsPerChannel);
+    printf("  Bytes per Packet:%ld\n", (long)inDesc->mBytesPerPacket);
+    printf("  Frames per Packet:%ld\n", (long)inDesc->mFramesPerPacket);
+    printf("  Bytes per Frame:%ld\n", (long)inDesc->mBytesPerFrame);
+    printf("  Channels per Frame:%ld\n", (long)inDesc->mChannelsPerFrame);
+    printf("  Bits per Channel:%ld\n", (long)inDesc->mBitsPerChannel);
     printf("- - - - - - - - - - - - - - - - - - - -\n");
 }
 
@@ -158,7 +158,7 @@ static void printError(OSStatus err)
             printf("error code : kAudioDevicePermissionsError\n");
             break;
         default:
-            printf("error code : unknown\n");
+            printf("error code : err = %d\n", err);
             break;
     }
 }
@@ -176,7 +176,6 @@ static Float64 GetNominalSampleRate(AudioDeviceID inDevice)
         return sampleRate;
     }
 }
-
 
 static CFStringRef GetDeviceName(AudioDeviceID id)
 {
@@ -204,7 +203,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         AudioUnit fAUHAL;
         bool fState;
    
-    OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& samplerate, AudioDeviceID* device){
+    OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& samplerate, AudioDeviceID* device)
+    {
         
         UInt32 theSize = sizeof(UInt32);
         AudioDeviceID inDefault;
@@ -260,7 +260,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return noErr;
     }
 
-    OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int& samplerate){
+    OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int& samplerate)
+    {
         OSStatus err = noErr;
         AudioObjectID sub_device[32];
         UInt32 outSize = sizeof(sub_device);
@@ -296,7 +297,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return CreateAggregateDeviceAux(captureDeviceIDArray, playbackDeviceIDArray, samplerate);
     }
     
-    OSStatus CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int& samplerate){
+    OSStatus CreateAggregateDeviceAux(std::vector<AudioDeviceID> captureDeviceID, std::vector<AudioDeviceID> playbackDeviceID, int& samplerate)
+    {
         OSStatus osErr = noErr;
         UInt32 outSize;
         Boolean outWritable;
@@ -439,39 +441,39 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         
         /*
          if (fClockDriftCompensate) {
-         if (need_clock_drift_compensation) {
-         jack_info("Clock drift compensation activated...");
-         subDevicesArrayClock = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-         
-         for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
-         CFStringRef UID = GetDeviceName(captureDeviceID[i]);
-         if (UID) {
-         CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
-         //CFRelease(UID);
-         CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
-         }
-         }
-         
-         for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
-         CFStringRef UID = GetDeviceName(playbackDeviceID[i]);
-         if (UID) {
-         CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
-         CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
-         //CFRelease(UID);
-         CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
-         }
-         }
-         
-         // add sub-device clock array for the aggregate device to the dictionary
-         CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceSubDeviceListKey), subDevicesArrayClock);
-         } else {
-         jack_info("Clock drift compensation was asked but is not needed (devices use the same clock domain)");
-         }
-         }
-         */
+             if (need_clock_drift_compensation) {
+                 jack_info("Clock drift compensation activated...");
+                 subDevicesArrayClock = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+                 
+                 for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
+                     CFStringRef UID = GetDeviceName(captureDeviceID[i]);
+                     if (UID) {
+                     CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
+                     //CFRelease(UID);
+                     CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
+                 }
+             }
+             
+             for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
+                 CFStringRef UID = GetDeviceName(playbackDeviceID[i]);
+                 if (UID) {
+                     CFMutableDictionaryRef subdeviceAggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceUIDKey), UID);
+                     CFDictionaryAddValue(subdeviceAggDeviceDict, CFSTR(kAudioSubDeviceDriftCompensationKey), AggregateDeviceNumberRef);
+                     //CFRelease(UID);
+                     CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
+                 }
+             }
+                 
+                 // add sub-device clock array for the aggregate device to the dictionary
+                 CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceSubDeviceListKey), subDevicesArrayClock);
+                 } else {
+                 jack_info("Clock drift compensation was asked but is not needed (devices use the same clock domain)");
+             }
+        }
+        */
         
         //-------------------------------------------------
         // Create a CFMutableArray for our sub-device list
@@ -639,8 +641,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         DestroyAggregateDevice();
         return -1;
     }
-    
-    OSStatus DestroyAggregateDevice(){   
+
+    OSStatus DestroyAggregateDevice()
+    {   
         // If an aggregate device has really been created...
         if (fAggregateDeviceID != -1 && fClients == 0)   {
             
@@ -672,12 +675,116 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return noErr;
     }
 
-    OSStatus GetDeviceNameFromID(AudioDeviceID id, char* name){
+    OSStatus GetDeviceNameFromID(AudioDeviceID id, char* name)
+    {
         UInt32 size = 256;
         return AudioDeviceGetProperty(id, 0, false, kAudioDevicePropertyDeviceName, &size, name);
     }
+    
+    int SetupBufferSize(int buffer_size)
+    {
+        // Setting buffer size
+        OSStatus err = noErr;
+        UInt32 tmp_buffer_size = buffer_size;
+        UInt32 outSize = sizeof(UInt32);
 
-    int SetupSampleRateAux(AudioDeviceID inDevice, int& samplerate){
+        err = AudioDeviceGetProperty(fDeviceID, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
+        if (err != noErr) {
+            printf("Cannot get buffer size %ld\n", buffer_size);
+            printError(err);
+            return -1;
+        } else {
+            printf("SetupBufferSize : current buffer size = %ld\n", tmp_buffer_size);
+        }
+
+        // If needed, set new buffer size
+        if (buffer_size != tmp_buffer_size) {
+            tmp_buffer_size = buffer_size;
+
+            // To get BS change notification
+            err = AudioDeviceAddPropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback, this);
+            if (err != noErr) {
+                printf("Error calling AudioDeviceAddPropertyListener with kAudioDevicePropertyBufferFrameSize\n");
+                printError(err);
+                return -1;
+            }
+
+            // Waiting for BS change notification
+            int count = 0;
+            fState = false;
+
+            err = AudioDeviceSetProperty(fDeviceID, NULL, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, outSize, &tmp_buffer_size);
+            if (err != noErr) {
+                printf("SetupBufferSize : cannot set buffer size = %ld\n", tmp_buffer_size);
+                printError(err);
+                goto error;
+            }
+
+            while (!fState && count++ < WAIT_COUNTER) {
+                usleep(100000);
+                //printf("SetupBufferSize : wait count = %d\n", count);
+            }
+
+            if (count >= WAIT_COUNTER) {
+                printf("Did not get buffer size notification...\n");
+                goto error;
+            }
+
+            // Check new buffer size
+            outSize = sizeof(UInt32);
+            err = AudioDeviceGetProperty(fDeviceID, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
+            if (err != noErr) {
+                printf("Cannot get current buffer size\n");
+                printError(err);
+            } else {
+                //printf("SetupBufferSize : checked buffer size = %ld\n", tmp_buffer_size);
+            }
+
+            // Remove BS change notification
+            AudioDeviceRemovePropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback);
+        }
+
+        return 0;
+
+    error:
+
+        // Remove BS change notification
+        AudioDeviceRemovePropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback);
+        return -1;
+    }
+    
+    static OSStatus BSNotificationCallback(AudioDeviceID inDevice,
+                                                     UInt32 inChannel,
+                                                     Boolean isInput,
+                                                     AudioDevicePropertyID inPropertyID,
+                                                     void* inClientData)
+    {
+        TCoreAudioRenderer* driver = (TCoreAudioRenderer*)inClientData;
+
+        switch (inPropertyID) {
+
+            case kAudioDevicePropertyBufferFrameSize: {
+                printf("BSNotificationCallback kAudioDevicePropertyBufferFrameSize\n");
+                // Check new buffer size
+                UInt32 tmp_buffer_size;
+                UInt32 outSize = sizeof(UInt32);
+                OSStatus err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
+                if (err != noErr) {
+                    printf("Cannot get current buffer size\n");
+                    printError(err);
+                } else {
+                    printf("BSNotificationCallback : checked buffer size = %d\n", tmp_buffer_size);
+                }
+                driver->fState = true;
+                break;
+            }
+        }
+
+        return noErr;
+    }
+
+    int SetupSampleRateAux(AudioDeviceID inDevice, int& samplerate)
+    {
         OSStatus err = noErr;
         UInt32 outSize = sizeof(Float64);
         Float64 sampleRate = GetNominalSampleRate(inDevice);
@@ -722,51 +829,58 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         
         samplerate = int(sampleRate);
         return 0;
+    }   
+
+    static OSStatus Render(void *inRefCon,
+                       AudioUnitRenderActionFlags *ioActionFlags,
+                       const AudioTimeStamp *inTimeStamp,
+                       UInt32 inBusNumber,
+                       UInt32 inNumberFrames,
+                       AudioBufferList *ioData)
+    {
+        return static_cast<TCoreAudioRendererPtr>(inRefCon)->Render(ioActionFlags, inTimeStamp, inNumberFrames, ioData);
     }
 
-        static OSStatus Render(void *inRefCon,
-                               AudioUnitRenderActionFlags *ioActionFlags,
-                               const AudioTimeStamp *inTimeStamp,
-                               UInt32 inBusNumber,
-                               UInt32 inNumberFrames,
-                               AudioBufferList *ioData){
-            return static_cast<TCoreAudioRendererPtr>(inRefCon)->Render(ioActionFlags, inTimeStamp, inNumberFrames, ioData);
-        }
-
-        static OSStatus SRNotificationCallback(AudioDeviceID inDevice,
-                                            UInt32 inChannel,
-                                            Boolean	isInput,
-                                            AudioDevicePropertyID inPropertyID,
-                                               void* inClientData){
-            TCoreAudioRenderer* driver = (TCoreAudioRenderer*)inClientData;
-            
-            switch (inPropertyID) {
-                    
-                case kAudioDevicePropertyNominalSampleRate: {
-                    //printf("JackCoreAudioDriver::SRNotificationCallback kAudioDevicePropertyNominalSampleRate\n");
-                    driver->fState = true;
-                    // Check new sample rate
-                    Float64 sampleRate;
-                    UInt32 outSize = sizeof(Float64);
-                    OSStatus err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
-                    if (err != noErr) {
-                        printf("Cannot get current sample rate\n");
-                        printError(err);
-                    } else {
-                        //printf("SRNotificationCallback : checked sample rate = %f\n", sampleRate);
-                    }
-                    break;
+    static OSStatus SRNotificationCallback(AudioDeviceID inDevice,
+                                        UInt32 inChannel,
+                                        Boolean	isInput,
+                                        AudioDevicePropertyID inPropertyID,
+                                           void* inClientData)
+    {
+        TCoreAudioRenderer* driver = (TCoreAudioRenderer*)inClientData;
+        
+        switch (inPropertyID) {
+                
+            case kAudioDevicePropertyNominalSampleRate: {
+                //printf("SRNotificationCallback kAudioDevicePropertyNominalSampleRate\n");
+                driver->fState = true;
+                // Check new sample rate
+                Float64 sampleRate;
+                UInt32 outSize = sizeof(Float64);
+                OSStatus err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
+                if (err != noErr) {
+                    printf("Cannot get current sample rate\n");
+                    printError(err);
+                } else {
+                    //printf("SRNotificationCallback : checked sample rate = %f\n", sampleRate);
                 }
+                break;
             }
-            
-            return noErr;
         }
+        
+        return noErr;
+    }
 
-        virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
-                                const AudioTimeStamp *inTimeStamp,
-                                UInt32 inNumberFrames,
-                                AudioBufferList *ioData){
-            AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
+    virtual OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
+                        const AudioTimeStamp *inTimeStamp,
+                        UInt32 inNumberFrames,
+                        AudioBufferList *ioData)
+    {
+        OSStatus err = noErr;
+        if (fDevNumInChans > 0) {
+            err = AudioUnitRender(fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, fInputData);
+        }
+        if (err == noErr) {
             for (int i = 0; i < fDevNumInChans; i++) {
                 fInChannel[i] = (float*)fInputData->mBuffers[i].mData;
             }
@@ -774,8 +888,12 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
             }
             fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
-            return 0;
+        } else {
+            printf("AudioUnitRender error... %x\n", fInputData);
+            printError(err);
         }
+        return err;
+    }
     
     public:
 
@@ -786,14 +904,15 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
     virtual ~TCoreAudioRenderer()
         {}
 
-    int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& samplerate){
-        OSStatus err = noErr;
-        ComponentResult err1;
+    int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& samplerate)
+    {
+        OSStatus err;
         UInt32 outSize;
         UInt32 enableIO;
         Boolean isWritable;
         AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
-        int in_nChannels, out_nChannels;
+        int in_nChannels = 0;
+        int out_nChannels = 0;
         
         fDSP = dsp;
         fDevNumInChans = inChan;
@@ -826,116 +945,126 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             printf("Cannot open default device\n");
             return OPEN_ERR;
         }
-        
+         
         // Setting buffer size
-        outSize = sizeof(UInt32);
-        err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyBufferFrameSize, outSize, &bufferSize);
-        if (err != noErr) {
-            printf("Cannot set buffer size %ld\n", bufferSize);
-            err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
+        if (SetupBufferSize(bufferSize) < 0) {
             return OPEN_ERR;
         }
         
         // AUHAL
+    
+    #ifdef MAC_OS_X_VERSION_10_5
         ComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
         Component HALOutput = FindNextComponent(NULL, &cd);
-        
-        err1 = OpenAComponent(HALOutput, &fAUHAL);
-        if (err1 != noErr) {
+        err = OpenAComponent(HALOutput, &fAUHAL);
+        if (err != noErr) {
             printf("Error calling OpenAComponent\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
+    #else 
+        AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
+        AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
+        err = AudioComponentInstanceNew(HALOutput, &fAUHAL);
+        if (err != noErr) {
+            printf("Error calling AudioComponentInstanceNew\n");
+            printError(err);
+            goto error;
+        }
+    #endif
         
-        err1 = AudioUnitInitialize(fAUHAL);
-        if (err1 != noErr) {
+        err = AudioUnitInitialize(fAUHAL);
+        if (err != noErr) {
             printf("Cannot initialize AUHAL unit\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
         
-        enableIO = 1;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
-        if (err1 != noErr) {
-            printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output\n");
-            printError(err1);
-            goto error;
+        if (inChan > 0) {
+            enableIO = 1;
+            printf("OpenAUHAL : setup AUHAL input on\n");
+        } else {
+            enableIO = 0;
+            printf("OpenAUHAL : setup AUHAL input off\n");
         }
         
-        enableIO = 1;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
-        if (err1 != noErr) {
+        err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
+        if (err != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
+            
+        if (outChan > 0) {
+            enableIO = 1;
+            printf("OpenAUHAL : setup AUHAL output on\n");
+        } else {
+            enableIO = 0;
+            printf("OpenAUHAL : setup AUHAL output off\n");
+        }
         
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &fDeviceID, sizeof(AudioDeviceID));
-        if (err1 != noErr) {
+        err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
+        if (err != noErr) {
+            printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO,kAudioUnitScope_Output\n");
+            printError(err);
+            goto error;
+        }
+    
+        err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &fDeviceID, sizeof(AudioDeviceID));
+        if (err != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_CurrentDevice\n");
-            printError(err1);
+            printError(err);
             goto error;
         }
         
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
-        if (err1 != noErr) {
-            printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
-            printError(err1);
-            goto error;
+        if (inChan > 0) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
+            if (err != noErr) {
+                printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
+                printError(err);
+                goto error;
+            }
         }
         
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, (UInt32*)&bufferSize, sizeof(UInt32));
-        if (err1 != noErr) {
-            printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
-            printError(err1);
-            goto error;
+        if (outChan > 0) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, (UInt32*)&bufferSize, sizeof(UInt32));
+            if (err != noErr) {
+                printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
+                printError(err);
+                goto error;
+            }
         }
         
-        err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
-        if (err1 != noErr) {
+        err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
+        if (err != noErr) {
             //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
-            //printError(err1);
+            //printError(err);
+        } else {
+            in_nChannels = (err == noErr) ? outSize / sizeof(SInt32) : 0;
+            //printf("in_nChannels = %ld\n", in_nChannels);
         }
-        
-        in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-        //printf("in_nChannels = %ld\n", in_nChannels);
-        
-        err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
-        if (err1 != noErr) {
+                
+        err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
+        if (err != noErr) {
             //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
-            //printError(err1);
+            //printError(err);
+        } else {
+            out_nChannels = (err == noErr) ? outSize / sizeof(SInt32) : 0;
+            //printf("out_nChannels = %ld\n", out_nChannels);
         }
-        
-        out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-        //printf("out_nChannels = %ld\n", out_nChannels);
         
         /*
          Just ignore this case : seems to work without any further change...
          
          if (outChan > out_nChannels) {
-         printf("This device hasn't required output channels\n");
-         goto error;
+            printf("This device hasn't required output channels\n");
+            goto error;
          }
          if (inChan > in_nChannels) {
-         printf("This device hasn't required input channels\n");
-         goto error;
+            printf("This device hasn't required input channels\n");
+            goto error;
          }
          */
-        
-        if (outChan < out_nChannels) {
-            SInt32 chanArr[out_nChannels];
-            for (int i = 0;	i < out_nChannels; i++) {
-                chanArr[i] = -1;
-            }
-            for (int i = 0; i < outChan; i++) {
-                chanArr[i] = i;
-            }
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * out_nChannels);
-            if (err1 != noErr) {
-                printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 0\n");
-                printError(err1);
-            }
-        }
         
         if (inChan < in_nChannels) {
             SInt32 chanArr[in_nChannels];
@@ -946,18 +1075,33 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 chanArr[i] = i;
             }
             AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * in_nChannels);
-            if (err1 != noErr) {
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 1\n");
-                printError(err1);
+                printError(err);
+            }
+        }
+        
+        if (outChan < out_nChannels) {
+            SInt32 chanArr[out_nChannels];
+            for (int i = 0;	i < out_nChannels; i++) {
+                chanArr[i] = -1;
+            }
+            for (int i = 0; i < outChan; i++) {
+                chanArr[i] = i;
+            }
+            err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * out_nChannels);
+            if (err != noErr) {
+                printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 0\n");
+                printError(err);
             }
         }
         
         if (inChan > 0) {
             outSize = sizeof(AudioStreamBasicDescription);
-            err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
-            if (err1 != noErr) {
+            err = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
+            if (err != noErr) {
                 printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
             //PrintStreamDesc(&srcFormat);
             
@@ -972,19 +1116,19 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             //PrintStreamDesc(&srcFormat);
             
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
         }
         
         if (outChan > 0) {
             outSize = sizeof(AudioStreamBasicDescription);
-            err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
-            if (err1 != noErr) {
+            err = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
+            if (err != noErr) {
                 printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
             //PrintStreamDesc(&dstFormat);
             
@@ -999,10 +1143,10 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             //PrintStreamDesc(&dstFormat);
             
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-                printError(err1);
+                printError(err);
             }
         }
         
@@ -1010,36 +1154,36 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             AURenderCallbackStruct output;
             output.inputProc = Render;
             output.inputProcRefCon = this;
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &output, sizeof(output));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &output, sizeof(output));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 1\n");
-                printError(err1);
+                printError(err);
                 goto error;
             }
         } else {
             AURenderCallbackStruct output;
             output.inputProc = Render;
             output.inputProcRefCon = this;
-            err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
-            if (err1 != noErr) {
+            err = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
+            if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 0\n");
-                printError(err1);
+                printError(err);
                 goto error;
             }
         }
         
-        fInputData = (AudioBufferList*)malloc(sizeof(UInt32) + inChan * sizeof(AudioBuffer));
-        if (fInputData == 0) {
-            printf("Cannot allocate memory for input buffers\n");
-            goto error;
-        }
-        fInputData->mNumberBuffers = inChan;
-        
-        // Prepare buffers
-        for (int i = 0; i < inChan; i++) {
-            fInputData->mBuffers[i].mNumberChannels = 1;
-            fInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
-            fInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
+        if (inChan > 0) {
+            fInputData = (AudioBufferList*)malloc(sizeof(UInt32) + inChan * sizeof(AudioBuffer));
+            assert(fInputData);
+            fInputData->mNumberBuffers = inChan;
+            
+            // Prepare buffers
+            for (int i = 0; i < inChan; i++) {
+                fInputData->mBuffers[i].mNumberChannels = 1;
+                fInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
+                assert(fInputData->mBuffers[i].mData),
+                fInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
+            }
         }
         
         return NO_ERR;
@@ -1050,7 +1194,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return OPEN_ERR;
     }
     
-    int Close(){
+    int Close()
+    {
         fClients--;
         
         if (!fAUHAL) {
@@ -1073,7 +1218,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         return NO_ERR;
     }
 
-    int Start(){
+    int Start()
+    {
         if (!fAUHAL) {
             return OPEN_ERR;
         }
@@ -1088,7 +1234,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         }
     }
     
-    int Stop(){
+    int Stop()
+    {
         if (!fAUHAL) {
             return OPEN_ERR;
         }
@@ -1105,8 +1252,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1120,9 +1265,10 @@ class coreaudio : public audio {
 	int fSampleRate, fFramesPerBuf;
 
  public:
+  
     coreaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
     coreaudio(int fpb) : fSampleRate(-1), fFramesPerBuf(fpb) {}
-	virtual ~coreaudio() {}
+	virtual ~coreaudio() { fAudioDevice.Close(); }
 
 	virtual bool init(const char* /*name*/, dsp* DSP) 
     {
@@ -1147,8 +1293,10 @@ class coreaudio : public audio {
 	virtual void stop() 
     {
 		fAudioDevice.Stop();
-		fAudioDevice.Close();
 	}
+    
+    virtual int get_buffer_size() { return fFramesPerBuf; }
+    virtual int get_sample_rate() { return fSampleRate; }
 
 };
 

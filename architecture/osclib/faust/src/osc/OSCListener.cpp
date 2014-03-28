@@ -25,8 +25,9 @@
 
 #include <iostream>
 
+#include "faust/osc/Message.h"
+
 #include "OSCListener.h"
-#include "Message.h"
 
 #include "osc/OscReceivedElements.h"
 #include "ip/IpEndpointName.h"

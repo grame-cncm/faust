@@ -108,6 +108,9 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 	if (p) 						{ *inum = p->arity(); *onum = 1; }
 	else if (isBoxInt(t)) 		{ *inum = 0; *onum = 1; } 
 	else if (isBoxReal(t)) 		{ *inum = 0; *onum = 1; } 
+	
+	else if (isBoxWaveform(t)) 	{ *inum = 0; *onum = 2; } 
+
 	else if (isBoxWire(t)) 		{ *inum = 1; *onum = 1; }
 	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 
 

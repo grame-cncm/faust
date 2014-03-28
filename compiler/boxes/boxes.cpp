@@ -82,6 +82,20 @@ bool isBoxInt(Tree t, int* i)		{ return isInt(t->node(), i);	}
 bool isBoxReal(Tree t, double* r)	{ return isDouble(t->node(), r); }
 
 
+
+/*****************************************************************************
+							 Waveform
+*****************************************************************************/
+
+Sym BOXWAVEFORM = symbol ("BoxWaveform");
+
+Tree boxWaveform (const tvec& br)
+{
+    return tree(BOXWAVEFORM, br);
+}
+
+bool isBoxWaveform (Tree s) 				{ return isTree(s, BOXWAVEFORM); }
+
 /*****************************************************************************
 							   	Wire and Cut
 *****************************************************************************/
@@ -496,6 +510,7 @@ static Tree preparePattern(Tree box)
         else if (isBoxAbstr(box,arg,body))	return box;
         else if (isBoxInt(box))             return box;
         else if (isBoxReal(box, &r))		return box;
+        else if (isBoxWaveform(box)) 		return box;
         else if (isBoxCut(box))				return box;
         else if (isBoxWire(box))			return box;
         else if (isBoxPrim0(box, &p0))		return box;
@@ -528,7 +543,7 @@ static Tree preparePattern(Tree box)
         else if (isBoxISum(box, t1, t2, t3)) 	return boxISum ( t1, t2, preparePattern(t3) );
         else if (isBoxIProd(box, t1, t2, t3)) 	return boxIProd( t1, t2, preparePattern(t3) );
 
-        // static informatio
+        // static information
         else if (isBoxInputs(box, t1))          return boxInputs ( preparePattern(t1) );
         else if (isBoxOutputs(box, t1))         return boxOutputs( preparePattern(t1) );
 

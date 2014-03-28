@@ -197,7 +197,6 @@ class AudioInterface : public AudioParam
 
 	bool		duplexMode()			{ return fDuplexMode; }
 
-
 	AudioInterface(const AudioParam& ap = AudioParam()) : AudioParam(ap)
 	{
 
@@ -212,7 +211,7 @@ class AudioInterface : public AudioParam
 	 */
 	void open()
 	{
-		int 	err;
+		int err;
 
 		// try to open output device, quit if fail to open output device
 		err = snd_pcm_open( &fOutputDevice, fCardName, SND_PCM_STREAM_PLAYBACK, 0 ); check_error(err)
@@ -223,7 +222,7 @@ class AudioInterface : public AudioParam
 
 		fCardOutputs = fSoftOutputs;
 		snd_pcm_hw_params_set_channels_near(fOutputDevice, fOutputParams, &fCardOutputs);
-		err = snd_pcm_hw_params (fOutputDevice, fOutputParams );	check_error (err);
+		err = snd_pcm_hw_params (fOutputDevice, fOutputParams );	check_error(err);
 
 		// allocate alsa output buffers
 		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
@@ -232,8 +231,7 @@ class AudioInterface : public AudioParam
 			for (unsigned int i = 0; i < fCardOutputs; i++) {
 				fOutputCardChannels[i] = calloc(noninterleavedBufferSize(fOutputParams), 1);
 			}
-
-		}
+        }
 
 		// check for duplex mode (if we need and have an input device)
 		if (fSoftInputs == 0) {
@@ -251,7 +249,6 @@ class AudioInterface : public AudioParam
 			}
 		}
 
-
 		if (fDuplexMode) {
 
 			// we have and need an input device
@@ -260,7 +257,7 @@ class AudioInterface : public AudioParam
 			setAudioParams(fInputDevice, fInputParams);
 			fCardInputs 	= fSoftInputs;
 			snd_pcm_hw_params_set_channels_near(fInputDevice, fInputParams, &fCardInputs);
-			err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error (err);
+			err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error(err);
 
 			// allocation of alsa buffers
 			if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
@@ -270,8 +267,7 @@ class AudioInterface : public AudioParam
 					fInputCardChannels[i] = calloc(noninterleavedBufferSize(fInputParams), 1);
 				}
 			}
-
-		}
+        }
 
 		printf("inputs : %u, outputs : %u\n", fCardInputs, fCardOutputs);
 
@@ -311,7 +307,6 @@ class AudioInterface : public AudioParam
 			check_error_msg(err, "unable to set access mode neither to non-interleaved or to interleaved");
 		}
 		snd_pcm_hw_params_get_access(params, &fSampleAccess);
-
 
 		// search for 32-bits or 16-bits format
 		err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
@@ -360,15 +355,15 @@ class AudioInterface : public AudioParam
         if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
 
 			int count = snd_pcm_readi(fInputDevice, fInputCardBuffer, fBuffering);
-			if (count<0) {
+			if (count < 0) {
 				 //display_error_msg(count, "reading samples");
-				 int err = snd_pcm_prepare(fInputDevice);
+				 snd_pcm_prepare(fInputDevice);
 				 //check_error_msg(err, "preparing input stream");
 			}
 
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-				short* 	buffer16b = (short*) fInputCardBuffer;
+				short* buffer16b = (short*)fInputCardBuffer;
 				for (unsigned int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
 						fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
@@ -377,7 +372,7 @@ class AudioInterface : public AudioParam
 
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
 
-				int32* 	buffer32b = (int32*) fInputCardBuffer;
+				int32* buffer32b = (int32*)fInputCardBuffer;
 				for (unsigned int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
 						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(INT_MAX));
@@ -392,16 +387,16 @@ class AudioInterface : public AudioParam
 		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
 
 			int count = snd_pcm_readn(fInputDevice, fInputCardChannels, fBuffering);
-			if (count<0) {
+			if (count < 0) {
 				 //display_error_msg(count, "reading samples");
-				 int err = snd_pcm_prepare(fInputDevice);
+				 snd_pcm_prepare(fInputDevice);
 				 //check_error_msg(err, "preparing input stream");
 			}
 
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
 				for (unsigned int c = 0; c < fCardInputs; c++) {
-					short* 	chan16b = (short*) fInputCardChannels[c];
+					short* chan16b = (short*)fInputCardChannels[c];
 					for (unsigned int s = 0; s < fBuffering; s++) {
 						fInputSoftChannels[c][s] = float(chan16b[s])*(1.0/float(SHRT_MAX));
 					}
@@ -410,13 +405,12 @@ class AudioInterface : public AudioParam
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
 
 				for (unsigned int c = 0; c < fCardInputs; c++) {
-					int32* 	chan32b = (int32*) fInputCardChannels[c];
+					int32* chan32b = (int32*)fInputCardChannels[c];
 					for (unsigned int s = 0; s < fBuffering; s++) {
 						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(INT_MAX));
 					}
 				}
 			} else {
-
 				printf("unrecognized input sample format : %u\n", fSampleFormat);
 				exit(1);
 			}
@@ -438,7 +432,7 @@ class AudioInterface : public AudioParam
 
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-				short* buffer16b = (short*) fOutputCardBuffer;
+				short* buffer16b = (short*)fOutputCardBuffer;
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
@@ -448,7 +442,7 @@ class AudioInterface : public AudioParam
 
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32)  {
 
-				int32* buffer32b = (int32*) fOutputCardBuffer;
+				int32* buffer32b = (int32*)fOutputCardBuffer;
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
@@ -464,7 +458,7 @@ class AudioInterface : public AudioParam
 			int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering);
 			if (count<0) {
 				//display_error_msg(count, "w3");
-				int err = snd_pcm_prepare(fOutputDevice);
+				snd_pcm_prepare(fOutputDevice);
 				//check_error_msg(err, "preparing output stream");
 				goto recovery;
 			}
@@ -501,7 +495,7 @@ class AudioInterface : public AudioParam
 			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering);
 			if (count<0) {
 				//display_error_msg(count, "w3");
-				int err = snd_pcm_prepare(fOutputDevice);
+				snd_pcm_prepare(fOutputDevice);
 				//check_error_msg(err, "preparing output stream");
 				goto recovery;
 			}
@@ -647,7 +641,7 @@ static const char* getDefaultEnv(const char* name, const char* defval)
 
 *******************************************************************************
 *******************************************************************************/
-void* __run(void* ptr);
+static void* __run(void* ptr);
 
 class alsaaudio : public audio
 {
@@ -671,7 +665,6 @@ class alsaaudio : public audio
 	virtual ~alsaaudio() { stop(); delete fAudio; }
 
 	virtual bool init(const char */*name*/, dsp* DSP) {
-		AVOIDDENORMALS;
 		fAudio->open();
 	    DSP->init(fAudio->frequency());
  		return true;
@@ -679,41 +672,42 @@ class alsaaudio : public audio
 
 	virtual bool start() {
 		fRunning = true;
-		if (pthread_create( &fAudioThread, 0, __run, this))
+		if (pthread_create(&fAudioThread, 0, __run, this)) {
 			fRunning = false;
+        }
 		return fRunning;
 	}
 
 	virtual void stop() {
 		if (fRunning) {
 			fRunning = false;
-			pthread_join (fAudioThread, 0);
+			pthread_join(fAudioThread, 0);
 		}
 	}
+    
+    virtual int get_buffer_size() { return fAudio->buffering(); }
+    virtual int get_sample_rate() { return fAudio->frequency(); }
 
 	virtual void run() {
 		bool rt = setRealtimePriority();
 		printf(rt ? "RT : ":"NRT: "); fAudio->shortinfo();
+        AVOIDDENORMALS;
 		if (fAudio->duplexMode()) {
-
+            fAudio->write();
 			fAudio->write();
-			fAudio->write();
-			while(fRunning) {
+			while (fRunning) {
 				fAudio->read();
 				fDSP->compute(fAudio->buffering(), fAudio->inputSoftChannels(), fAudio->outputSoftChannels());
 				fAudio->write();
 			}
-
-		} else {
-
-			fAudio->write();
-			while(fRunning) {
+        } else {
+            fAudio->write();
+			while (fRunning) {
 				fDSP->compute(fAudio->buffering(), fAudio->inputSoftChannels(), fAudio->outputSoftChannels());
 				fAudio->write();
 			}
 		}
 	}
-
 };
 
 void* __run (void* ptr)

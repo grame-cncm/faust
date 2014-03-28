@@ -21,11 +21,11 @@
 
 */
 
-#include <iostream>
 #include <sstream>
 
-#include "Message.h"
-#include "MessageDriven.h"
+#include "faust/osc/Message.h"
+#include "faust/osc/MessageDriven.h"
+
 #include "OSCAddress.h"
 #include "OSCFError.h"
 #include "OSCRegexp.h"
@@ -45,38 +45,6 @@ void MessageDriven::processMessage( const Message* msg )
 	OSCRegexp r (OSCAddress::addressFirst(addr).c_str());
 	// and call propose with this regexp and with the dest osc address tail
 	propose (msg, &r, OSCAddress::addressTail (addr));
-	
-	if (addr != "/*") {
-		// search for alias root (fixme : could be stored in a field)
-		MessageDriven * aliasroot = 0;
-		for (int i=0; i<size(); i++) {
-			if (subnode(i)->name() == "alias") {
-				aliasroot = subnode(i);
-			}
-		}
-	
-		// if we have aliases in the tree
-		// we need to check if the message if for an alias address
-		if (aliasroot != 0) {
-			OSCRegexp r2 ("alias");
-			
-			if (msg->size() == 1) {
-				aliasroot->propose (msg, &r2, addr);
-			} else if (msg->size() > 1) {
-				// we simulated several messages
-				for (int i=0; i< msg->size(); i++) {
-					ostringstream 	as; as << addr << '/' << i;
-					string 			a(as.str());
-					Message 		m(a);
-					float			v;
-					
-					msg->param(i, v);
-					m.add(v);
-					aliasroot->propose (&m, &r2, a);
-				}
-			}
-		}
-	}
 }
 
 //--------------------------------------------------------------------------
@@ -101,10 +69,14 @@ void MessageDriven::get (unsigned long ipdest) const
 //--------------------------------------------------------------------------
 bool MessageDriven::accept( const Message* msg )
 {
-	string val;
+	string val, what;
+	int n = msg->size();
 	// the basic accept method only checks for the 'get' message
-	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kGetMsg)) {
-		get (msg->src());
+	if ((n >= 1) && (msg->param(0, val)) && (val == kGetMsg)) {
+		if ( n == 1 )
+			get (msg->src());
+		else if (( n == 2 ) && msg->param(1, what))
+			get (msg->src(), what);
 		return true;
 	}
 	return false;

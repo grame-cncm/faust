@@ -9,7 +9,7 @@
 #define __httpdUI__
 
 #include "faust/gui/HTTPDControler.h"
-#include "faust/gui/GUI.h"
+#include "faust/gui/UI.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -77,9 +77,18 @@ class httpdUI : public UI
 
 	void run()						{ fCtrl->run(); }
 	int getTCPPort()                { return fCtrl->getTCPPort(); }
+    
+    void set_Inputs(int numInputs){
+        fCtrl->set_Inputs(numInputs);
+        
+    }
+    
+    void set_Outputs(int numOutputs){
+        fCtrl->set_Outputs(numOutputs);
+    }
+    std::string get_jsonInterface(){ return fCtrl->get_jsonInterface();}
 
 };
-
 					
 const char* httpdUI::tr(const char* label) const
 {

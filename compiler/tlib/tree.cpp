@@ -307,14 +307,14 @@ bool isTree (const Tree& t, const Node& n)
 	return (t->node() == n);
 }
 
-bool isTree (const Tree& t, const Node& n, Tree& a) 
-{ 
-	if ((t->node() == n) && (t->arity() == 1)) { 
-		a=t->branch(0); 
-		return true; 
-	} else {
-		return false;
-	}
+bool isTree (const Tree& t, const Node& n, Tree& a)
+{
+    if ((t->node() == n) && (t->arity() == 1)) {
+        a=t->branch(0);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b)

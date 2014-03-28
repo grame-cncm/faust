@@ -135,38 +135,16 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 	} else {
 		/*	On parcours les autres arbres en privatisant les branches
 		*/
-		int n = exp->arity();
 
-		switch (n) {
+        tvec br;
+        int n = exp->arity();
+        for (int i = 0; i < n; i++) {
+            br.push_back( privatisation(k,exp->branch(i)) );
+        }
 
-			case 1 :
-				return tree(
-						exp->node(),
-						privatisation(k, exp->branch(0)) );
-			case 2 :
-				return tree(
-						exp->node(),
-						privatisation(k, exp->branch(0)),
-						privatisation(k, exp->branch(1)) );
-			case 3 :
-				return tree (
-						exp->node(),
-						privatisation(k, exp->branch(0)),
-						privatisation(k, exp->branch(1)),
-						privatisation(k, exp->branch(2)) );
-			case 4 :
-				return tree (
-						exp->node(),
-						privatisation(k, exp->branch(0)),
-						privatisation(k, exp->branch(1)),
-						privatisation(k, exp->branch(2)),
-						privatisation(k, exp->branch(3)) );
-		}
-		printf("erreur 2 dans computePrivatisation\n");
-		exit(1);
-	}
-	printf("situation anormale dans computePrivatisation\n");
-	return exp;
+        return tree(exp->node(), br);
+
+    }
 }
 
 static Tree labelize(const Tree& newid, const Tree& exp)

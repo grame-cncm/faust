@@ -340,7 +340,7 @@ TF2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
 
 /*************************** Break Point Functions ***************************
 
-bpf is an environment (a group of related definitions) tha can be used to 
+bpf is an environment (a group of related definitions) that can be used to 
 create break-point functions. It contains three functions : 
   - start(x,y) to start a break-point function
   - end(x,y) to end a break-point function
@@ -404,4 +404,51 @@ automat(bps, size, init, input) = rwtable(size+1, init, windex, input, rindex)
 	};
 
 
+//----------------------------------bsmooth------------------------------
+// bsmooth : (block smooth) linear interpolation during a block of samples
+//
+// USAGE: hslider(...) : bsmooth
+//-----------------------------------------------------------------------
+
+bsmooth(c) = +(i) ~ _
+	with { 
+		i = (c-c@n)/n;
+		n = min(4096, max(1, fvariable(int count, <math.h>)));
+	};
+
+
+//--------------------------------chebychev-------------------------------
+// chebychev(n) : chebychev transformation of order n
+// USAGE: _ : chebychev(3) : _
+//
+//
+// Semantics:
+//	T[0](x) = 1,
+//	T[1](x) = x,
+//	T[n](x) = 2x*T[n-1](x) - T[n-2](x)
+//
+//	see : http://en.wikipedia.org/wiki/Chebyshev_polynomial
+//-------------------------------------------------------------------------
+
+chebychev(0) = !:1;
+chebychev(1) = _;
+chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
+
+
+
+//--------------------------------chebychevpoly-------------------------------
+//	chebychevpoly((c0,c1,...,cn)) : linear combination of the first Chebyshev polynomials
+// 	USAGE: _ : chebychevpoly((0.1,0.8,0.1)) : _
+//
+//
+// Semantics:
+// 	chebychevpoly((c0,c1,...,cn)) = Sum of chebychev(i)*ci
+//  see : http://www.csounds.com/manual/html/chebyshevpoly.html
+//-------------------------------------------------------------------------
+
+chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
+	with {
+		L(n,(c,cs)) = chebychev(n)*c, L(n+1,cs);
+		L(n,c)      = chebychev(n)*c;
+	};
 

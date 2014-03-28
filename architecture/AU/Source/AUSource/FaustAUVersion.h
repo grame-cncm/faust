@@ -1,6 +1,6 @@
 /*
      File: FaustAUVersion.h
- Abstract:  FaustAUVersion.h
+ Abstract: FaustAUVersion.h
   Version: 1.01 
   
  Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple 
@@ -44,8 +44,8 @@
  Copyright (C) 2012 Apple Inc. All Rights Reserved. 
   
 */
-#ifndef __FaustAU_h__
-#define __FaustAU_h__
+#ifndef __FaustAUVersion_h__
+#define __FaustAUVersion_h__
 
 
 #ifdef DEBUG
@@ -55,7 +55,8 @@
 #endif
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-#define FaustAU_COMP_SUBTYPE		'_STYP_'
+#define FaustAU_TYPE            kAudioUnitType_Effect
+#define FaustAU_COMP_SUBTYPE	'_STYP_'
 #define FaustAU_COMP_MANF		'_MANF_'
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
