@@ -128,7 +128,6 @@ void OSCControler::run ()
 		// informs the root node of the udp ports numbers (required to handle the 'hello' message
 		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		// starts the network services
-        
 		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
 
 		// and outputs a message on the osc output port
@@ -147,12 +146,7 @@ void OSCControler::run ()
 }
 
 //--------------------------------------------------------------------------
-const char*	OSCControler::getRootName()	{ return fFactory->root()->getName(); }
-
-//--------------------------------------------------------------------------
-void OSCControler::quit ()
-{
-	fOsc->stop();
-}
+const char*	OSCControler::getRootName()		{ return fFactory->root()->getName(); }
+void		OSCControler::quit ()			{ fOsc->stop(); }
 
 } // namespace
