@@ -59,14 +59,14 @@ int main(int argc, char *argv[])
         dst = new ofstream(output);
     }
     
-    float buffer[BUFFER_SIZE * snd_info.channels];
+    double buffer[BUFFER_SIZE * snd_info.channels];
      
     // Generates one interleaved waveform
     *dst << RemoveEnding(base_name) << "_n = waveform";
     int nbf;
     char sep = '{';
     do {
-        nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
+        nbf = sf_readf_double(soundfile, buffer, BUFFER_SIZE);
         for (int i = 0; i < nbf * snd_info.channels; i++) {
             *dst << sep << buffer[i];
             sep = ',';
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         int nbf;
         sep = '{';
         do {
-            nbf = sf_readf_float(soundfile, buffer, BUFFER_SIZE);
+            nbf = sf_readf_double(soundfile, buffer, BUFFER_SIZE);
             for (int i = 0; i < nbf * snd_info.channels; i++) {
                 if (i % snd_info.channels == chan) {
                     *dst << sep << buffer[i];
