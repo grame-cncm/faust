@@ -31,6 +31,8 @@
 
 class GUI;
 
+typedef void (*ErrorCallback)(void*);  
+
 namespace oscfaust
 {
 
@@ -61,6 +63,7 @@ class OSCControler
 		enum { kUDPBasePort = 5510};
 
 				 OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io=0);
+                OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL);
 		virtual ~OSCControler ();
 	
 		//--------------------------------------------------------------------------
