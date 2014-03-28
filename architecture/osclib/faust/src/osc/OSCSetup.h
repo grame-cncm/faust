@@ -30,6 +30,9 @@
 
 #include "OSCStream.h"
 
+
+typedef void (*ErrorCallback)(void*);  
+
 namespace oscfaust
 {
 
@@ -42,8 +45,11 @@ class MessageProcessor;
 class OSCSetup
 {
 	OscThread*	fOSCThread;		// a thread that is listening to the osc in socket
+    ErrorCallback fErrCallback;
+    void*       fArg;
+    
 	public:
-		 		 OSCSetup() : fOSCThread(0) {} 
+                OSCSetup(ErrorCallback errCallback = NULL, void* arg = NULL) : fOSCThread(0), fErrCallback(errCallback), fArg(arg) {}
 		virtual ~OSCSetup();
 
 		bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address);

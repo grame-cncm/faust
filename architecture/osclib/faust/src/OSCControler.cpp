@@ -82,6 +82,18 @@ OSCControler::OSCControler (int argc, char *argv[], OSCIO* io)
 	fFactory = new FaustFactory(io);
 	fOsc = new OSCSetup();
 }
+    
+OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg)	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io)
+{
+    fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
+    fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);
+    fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
+    fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
+    gXmit = getXmitOption (argc, argv, kXmitOpt, false);
+    
+    fFactory = new FaustFactory(ui, io);
+    fOsc	= new OSCSetup(errCallback, arg);
+}
 
 OSCControler::~OSCControler ()
 { 
@@ -135,6 +147,7 @@ void OSCControler::run ()
 		// informs the root node of the udp ports numbers (required to handle the 'hello' message
 		if (rootnode) rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		// starts the network services
+        
 		fOsc->start (root, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
 
 		// and outputs a message on the osc output port
@@ -156,6 +169,7 @@ void OSCControler::run ()
 }
 
 //--------------------------------------------------------------------------
+<<<<<<< HEAD
 const char*	OSCControler::getRootName()	{ return fFactory->root()->getName(); }
 
 //--------------------------------------------------------------------------
@@ -164,4 +178,9 @@ void OSCControler::quit ()
 	fOsc->stop();
 }
 
+=======
+const char*	OSCControler::getRootName()		{ return fFactory->root()->getName(); }
+void		OSCControler::quit ()			{ fOsc->stop(); }
+   
+>>>>>>> 1100a32... OSC changes - Error callback
 }

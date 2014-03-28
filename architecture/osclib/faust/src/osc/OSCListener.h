@@ -32,6 +32,8 @@
 #include "ip/UdpSocket.h"
 #include "osc/OscPacketListener.h"
 
+typedef void (*ErrorCallback)(void*);  
+
 namespace oscfaust
 {
 
