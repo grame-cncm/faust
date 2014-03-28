@@ -87,7 +87,7 @@ static bool getXmitOption (int argc, char *argv[], const std::string& option, bo
 
 
 //--------------------------------------------------------------------------
-OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io)
+OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg)
 	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io)
 {
 	fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
@@ -97,21 +97,9 @@ OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io)
 	gXmit = getXmitOption (argc, argv, kXmitOpt, false);
 
 	fFactory = new FaustFactory(ui, io);
-	fOsc	= new OSCSetup();
+	fOsc	= new OSCSetup(errCallback, arg);
 }
     
-OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg)	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io)
-{
-    fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
-    fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);
-    fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
-    fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
-    gXmit = getXmitOption (argc, argv, kXmitOpt, false);
-    
-    fFactory = new FaustFactory(ui, io);
-    fOsc	= new OSCSetup(errCallback, arg);
-}
-
 OSCControler::~OSCControler ()
 { 
 	quit(); 
@@ -141,7 +129,7 @@ void OSCControler::run ()
 		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		// starts the network services
         
-		fOsc->start (root, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
+		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
 
 		// and outputs a message on the osc output port
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
@@ -166,6 +154,5 @@ void OSCControler::quit ()
 {
 	fOsc->stop();
 }
-const char*	OSCControler::getRootName()		{ return fFactory->root()->getName(); }
-void		OSCControler::quit ()			{ fOsc->stop(); }
-}
+
+} // namespace
