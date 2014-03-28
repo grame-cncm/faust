@@ -51,6 +51,7 @@ This solution is implemented in the proposed OSC UI;
 ///using namespace std;
 
 //class oscfaust::OSCIO;
+
 class OSCUI : public GUI 
 {
      
@@ -69,13 +70,13 @@ class OSCUI : public GUI
 	}
 	
  public:
-		
-	OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0) : GUI() 
+
+    OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL) : GUI() 
     { 
-		fCtrl = new oscfaust::OSCControler(argc, argv, this, io); 
-//		fCtrl->opengroup(applicationname);
+		fCtrl = new oscfaust::OSCControler(argc, argv, this, io, errCallback, arg); 
+        //		fCtrl->opengroup(applicationname);
 	}
-	
+    
 	virtual ~OSCUI() { delete fCtrl; }
     
     // -- widget's layouts
@@ -110,8 +111,11 @@ class OSCUI : public GUI
 
 	virtual void show() {}
 
-	void run()											{ fCtrl->run(); }
+	void run(){
+            fCtrl->run(); 
+    }
 	const char* getRootName()							{ return fCtrl->getRootName(); }
+    int getUDPPort()                { return fCtrl->getUDPPort(); }
 };
 
 const char* OSCUI::tr(const char* label) const
