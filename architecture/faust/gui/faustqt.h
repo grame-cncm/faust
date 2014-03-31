@@ -1472,7 +1472,7 @@ class QTGUI : public QObject, public GUI
         //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
         
         QString text("<br>Connect You To");
-        text += "<br><a href = http://" + url + ">"+ url+"</a>";
+        text += "<br><a href = " + url + ">"+ url+ "</a>";
         text += "<br>Or Flash the code below";
         
         myBro->setOpenExternalLinks(true);
