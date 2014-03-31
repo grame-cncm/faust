@@ -27,6 +27,7 @@
 #include "signals.hh"
 #include "prim2.hh"
 #include "xtended.hh"
+#include "Text.hh"
 
 extern int gFloatSize;
 
@@ -162,7 +163,7 @@ ostream& boxpp::print (ostream& fout) const
     // primitive elements
     if (xt) 						fout << xt->name();
     else if (isBoxInt(box, &i))			fout << i;
-    else if (isBoxReal(box, &r))		fout << r;
+    else if (isBoxReal(box, &r))		fout << T(r);
     else if (isBoxCut(box))				fout << '!';
     else if (isBoxWire(box))			fout << '_';
     else if (isBoxIdent(box, &str))		fout << str;

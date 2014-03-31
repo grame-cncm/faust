@@ -31,6 +31,8 @@
 
 class GUI;
 
+typedef void (*ErrorCallback)(void*);  
+
 namespace oscfaust
 {
 
@@ -59,9 +61,10 @@ class OSCControler
 			5507-5552  Unassigned
 		*/
 		enum { kUDPBasePort = 5510};
+            
+        OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL);
 
-				 OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io=0);
-		virtual ~OSCControler ();
+        virtual ~OSCControler ();
 	
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory

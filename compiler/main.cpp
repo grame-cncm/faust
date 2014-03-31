@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.65"
+#define FAUSTVERSION "0.9.66"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -660,7 +660,7 @@ int main (int argc, char* argv[])
 	endTiming("evaluation");
     
     if (gExportDSP) {
-        ofstream xout(subst("$0-exp.dsp", makeDrawPathNoExt()).c_str());
+        ofstream xout(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
         xout << "process = " << boxpp(process) << ";" << endl;
         return 0;
     }
