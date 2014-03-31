@@ -39,15 +39,15 @@
 #endif
 #include <QApplication>
 
+#include <QtNetwork>
+
 #include "faust/gui/GUI.h"
 
-#ifdef QRCODECTRL
 #include <sstream>
 #include <qrencode.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#endif
 
 #define STYLESHEET "QPushButton {background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #B0B0B0, stop: 1 #404040); border: 2px solid grey; border-radius: 6px; margin-top: 1ex; } QPushButton:hover { border: 2px solid orange; } QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, stop: 1 #B0B0B0); } QGroupBox, QMainWindow { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); border: 2px solid gray; border-radius: 5px; margin-top: 3ex; font-size:10pt; font-weight:bold; color: white; } QGroupBox::title, QMainWindow::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 5px; } QSlider::groove:vertical { background: red; position: absolute; left: 13px; right: 13px; } QSlider::handle:vertical { height: 40px; width: 30px; background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: 0 -5px; /* expand outside the groove */ border-radius: 5px; } QSlider::add-page:vertical { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange); } QSlider::sub-page:vertical { background: grey; }  QSlider::groove:horizontal { background: red; position: absolute; top: 14px; bottom: 14px; }  QSlider::handle:horizontal { width: 40px; background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: -5px 0; border-radius: 5px; } QSlider::sub-page:horizontal { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange); } QSlider::add-page:horizontal { background: grey; }QTabWidget::pane {border-top: 2px solid orange; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); } QTabWidget::tab-bar { left: 5px; }  QTabBar::tab { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #909090, stop: 0.4 #888888, stop: 0.5 #808080, stop: 1.0 #909090); border: 2px solid #808080; border-bottom-color: orange; border-top-left-radius: 4px; border-top-right-radius: 4px; min-width: 8ex; padding: 2px; }  QTabBar::tab:selected, QTabBar::tab:hover { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #D0D0D0, stop: 0.4 #A0A0A0, stop: 0.5 #808080, stop: 1.0 #A0A0A0); } QTabBar::tab:selected { border-color: orange; border-bottom-color: #A0A0A0; } QTabBar::tab:!selected { margin-top: 2px; }"
 
@@ -1153,6 +1153,8 @@ class QTGUI : public QObject, public GUI
     std::stack<QWidget* > 	fGroupStack;
     
     QMainWindow*            fMainWindow;
+    
+    QPixmap                 fQrCode;
 
     std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
     std::map<FAUSTFLOAT*, std::string>     fTooltip;       // map widget zone with tooltip strings
@@ -1411,7 +1413,7 @@ class QTGUI : public QObject, public GUI
         
         return localhost;
     }
-    
+
     //
     // Used in HTTPD mode, display the QRCode of the URL of the application
     //
@@ -1420,7 +1422,7 @@ class QTGUI : public QObject, public GUI
     	QString url = extractIPnum(portnum);
         displayQRCode(url, NULL);
     }
-    
+
     void displayQRCode(const QString& url, QMainWindow* parent = NULL){
         
         if(parent == NULL)
@@ -1470,7 +1472,7 @@ class QTGUI : public QObject, public GUI
         //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
         
         QString text("<br>Connect You To");
-        text += "<br><a href = http://" + url + ">"+ url+"</a>";
+        text += "<br><a href = " + url + ">"+ url+ "</a>";
         text += "<br>Or Flash the code below";
         
         myBro->setOpenExternalLinks(true);
@@ -1501,7 +1503,7 @@ class QTGUI : public QObject, public GUI
     }
 #endif
 #endif
-
+    
 	virtual void run()
 	{
 		if (fTimer == 0) {
