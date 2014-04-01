@@ -81,5 +81,7 @@ EXPORT std::string generate_sha1(const std::string& dsp_content);
 
 EXPORT std::string path_to_content(const std::string& path);
 
+EXPORT std::string reorganize_compilation_options(int argc, const char* argv[]);
+
 #endif
 

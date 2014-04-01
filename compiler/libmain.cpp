@@ -276,7 +276,7 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     return newoptions;
 }
 
-static string reorganizeCompilationOptions(int argc, const char* argv[])
+EXPORT string reorganize_compilation_options(int argc, const char* argv[])
 {
     vector<string> res1;
     for (int i = 0; i < argc; i++) {
@@ -1172,7 +1172,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
         throw faustexception(gErrorMessage);
     }
     stringstream out;
-    out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
+    out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
     out << "process = " << boxpp(gProcessTree) << ';' << endl;
     return out.str();
 }
@@ -1237,7 +1237,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gExportDSP) {
         ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
-        out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
+        out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
         out << "process = " << boxpp(process) << ';' << endl;
         return;
     }

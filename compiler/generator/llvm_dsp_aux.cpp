@@ -782,7 +782,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     }
     */
     
-    string sha_key = generate_sha1(dsp_content);
+    string sha_key = generate_sha1(reorganize_compilation_options(argc, argv) + dsp_content);
     FactoryTableIt it;
     llvm_dsp_factory* factory = 0;
     
