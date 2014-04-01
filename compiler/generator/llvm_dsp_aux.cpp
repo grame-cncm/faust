@@ -622,7 +622,7 @@ string llvm_dsp_factory::getName()
     
     MyMeta metadata;
     metadataDSPFactory (&metadata);
-    return (metadata.name != "") ? metadata.name: fExtName;
+    return (fExtName != "") ? fExtName : metadata.name;
  }
   
 // Instance 
@@ -772,7 +772,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             Sllvm_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, expanded_dsp, target, error_msg, opt_level), error_msg)) != 0) {
+        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {

@@ -48,6 +48,13 @@ class llvm_dsp_factory {
          * @return the name as a string.
          */
         std::string getName();
+    
+        /**
+         * Get the SHA Key of the DSP factory.
+         *
+         * @return the SHA key as a string.
+         */
+        std::string getSHAKey();
 };
 
 /**
