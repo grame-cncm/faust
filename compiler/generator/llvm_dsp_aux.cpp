@@ -760,6 +760,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                     const string& target, 
                                                     string& error_msg, int opt_level)
 {
+    /*
     string expanded_dsp;
     string sha_key;
     
@@ -778,6 +779,22 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         } else {
             return 0;
         }
+    }
+    */
+    
+    string sha_key = generate_sha1(dsp_content);
+    FactoryTableIt it;
+    llvm_dsp_factory* factory = 0;
+    
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
+        llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
+        return factory;
+    } else {
+        return 0;
     }
 }
 
