@@ -2,7 +2,7 @@
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
 #include "faust/llvm-dsp.h"
-#include "../../../compiler/libfaust.h"
+#include "../../../../compiler/libfaust.h"
 
 #include <errno.h>
 #include <libgen.h>
@@ -88,9 +88,11 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /GetJson
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
-bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, string& error, int opt_level){
+bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, const string& sha_key, string& error, int opt_level){
 
     bool isInitSuccessfull = false;
+    
+    fSHAKey = sha_key;
     
     CURL *curl = curl_easy_init();
     
@@ -119,8 +121,11 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
         ol<<opt_level;
         finalRequest +=ol.str(); 
         
+        finalRequest += "&shaKey=";
+        finalRequest += fSHAKey;
+        
         printf("finalRequest = %s\n", finalRequest.c_str());
-    
+        
         finalRequest += "&data=";
         
         // Transforming faustCode to URL format
@@ -161,20 +166,20 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
 // Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop(){
     
-    CURL *curl = curl_easy_init();
-    
-    printf("fIndex = %s\n", fSHAKey.c_str());
-    printf("fIP = %s\n", fServerIP.c_str());
-        
-    // The index of the factory to delete has to be sent
-    string finalRequest = string("factoryKey=") + fSHAKey;
-    string ip = fServerIP + string("/DeleteFactory");
-        
-    string response("");
-    int errorCode;
-    if(!send_request(ip, finalRequest, response, errorCode)){
-        printf("curl_easy_perform() failed: %s\n", response.c_str());
-    }
+//    CURL *curl = curl_easy_init();
+//    
+//    printf("fIndex = %s\n", fSHAKey.c_str());
+//    printf("fIP = %s\n", fServerIP.c_str());
+//        
+//    // The index of the factory to delete has to be sent
+//    string finalRequest = string("factoryKey=") + fSHAKey;
+//    string ip = fServerIP + string("/DeleteFactory");
+//        
+//    string response("");
+//    int errorCode;
+//    if(!send_request(ip, finalRequest, response, errorCode)){
+//        printf("curl_easy_perform() failed: %s\n", response.c_str());
+//    }
 }
 
 // Decoding JSON from a string to
@@ -191,9 +196,6 @@ void remote_dsp_factory::decodeJson(const string& json){
     
     fNumOutputs = atoi(fMetadatas["outputs"].c_str());
     fMetadatas.erase("outputs");
-    
-    fSHAKey = fMetadatas["factoryKey"];
-    fMetadatas.erase("factoryKey");
 }
 
 // Declaring meta datas
@@ -263,6 +265,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     int pos = base.find(".dsp");
       
     if (pos != string::npos) {
+        printf("File extension found\n");
         return createRemoteDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, ip_server, port_server, error_msg, opt_level);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)\n";
@@ -270,15 +273,48 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     }
 }
 
+vector<string> filtrate_option(vector<string> options, string optionToFilter){
+    
+    vector<string> newoptions;
+    
+    for(int i=0; i<options.size(); i++){
+        if(options[i].compare(optionToFilter) != 0)
+            newoptions.push_back(options[i]);
+    }
+    return newoptions;
+}
+
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
 {
     // Use for it's possible 'side effects', that is generating SVG, XML... files
     generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
     
+//  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
+    
+    vector<string> newoptions;
+    
+    for(int i=0; i<argc; i++)
+        newoptions.push_back(argv[i]);
+    
+    newoptions = filtrate_option(newoptions, "-tg");
+    newoptions = filtrate_option(newoptions, "-sg");
+    newoptions = filtrate_option(newoptions, "-ps");
+    newoptions = filtrate_option(newoptions, "-svg");
+    newoptions = filtrate_option(newoptions, "-mdoc");
+    newoptions = filtrate_option(newoptions, "-xml");
+    
+    int numParams = newoptions.size();
+    const char* params[numParams];
+    
+    for(int i=0; i<numParams; i++)
+        params[i] = newoptions[i].c_str();
+    
+//    EXPAND DSP
+    
     std::string expanded_dsp;
     string sha_key;
     
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, numParams, params, sha_key, error_msg)) == "") {
         return 0; 
     } else {
         FactoryTableIt it;
@@ -288,7 +324,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
             return sfactory;
         } else  {
             remote_dsp_factory* factory = new remote_dsp_factory();
-            if (factory->init(argc, argv, ip_server, port_server, name_app, expanded_dsp, error_msg, opt_level)) {
+            if (factory->init(numParams, params, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
                 remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
                 return factory;
             } else {
@@ -352,8 +388,6 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
 }
         
 remote_dsp_aux::~remote_dsp_aux(){
-
-    printf("remote_dsp_aux::~remote_dsp_aux = %p\n", this);
     
     if (fNetJack){
     
@@ -512,6 +546,8 @@ void remote_dsp_aux::sendSlice(int buffer_size)
     if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
+            
+            printf("Is sent OK ?\n");
             fRunningFlag = (fErrorCallback(WRITE_ERROR, fErrorCallbackArg) == 0);
         }
     }
@@ -580,6 +616,7 @@ int remote_dsp_aux::getNumOutputs()
 }
 
 // Useless fonction in our case but required for a DSP interface
+//Interesting to implement one day ! 
 void remote_dsp_aux::init(int /*sampling_rate*/){}
 
 // Init remote dsp instance sends a POST request to a remote server
@@ -643,9 +680,9 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int sampling_rate, int b
     
     finalRequest += s.str();
     
-    //printf("finalRequest = %s\n", finalRequest.c_str());
+    printf("finalRequest = %s\n", finalRequest.c_str());
     
-    int isInitSuccessfull = -1;
+    bool isInitSuccessfull = false;
         
     string ip = fFactory->serverIP();
     ip += "/CreateInstance";
@@ -849,9 +886,80 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     }
 }
 
+
+// ---------------------------------------------------------------------
+//                          Elementary parsers
+// ---------------------------------------------------------------------
+
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
     // TODO
     
-    return false;
+    printf("remoteDSP::getRemoteFactoriesAvailable\n");
+    
+    bool isSuccessfull = false;
+    
+    CURL *curl = curl_easy_init();
+    
+    if (curl) {
+        
+        string ip = "http://";
+        ip += ip_server;
+        ip += ":";
+        
+        stringstream s;
+        s<<port_server;
+        
+        ip += s.str();
+        
+        string finalIP = ip;
+        finalIP += "/GetAvailableFactories";
+        
+        printf("ip = %s\n", finalIP.c_str());
+            
+        std::ostringstream oss;
+            
+        curl_easy_setopt(curl, CURLOPT_URL, finalIP.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
+        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
+        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+            
+        CURLcode res = curl_easy_perform(curl);
+            
+        if(res == CURLE_OK){
+            
+            long respcode; //response code of the http transaction
+            
+            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
+            
+            if(respcode == 200){
+                printf("FACTORIES = %s\n",oss.str().c_str());
+                
+                string response = oss.str();
+                
+//                PARSE RESPONSE TO EXTRACT KEY/VALUE
+//                TO DO !! 
+                int pos = response.find("key");
+                
+                
+                
+                printf("SIZE VECTOR = %i\n", factories_list->size());
+                
+                isSuccessfull = true;
+            }
+        }
+
+        curl_easy_cleanup(curl);
+    }
+    
+    return isSuccessfull;
 }
+
+
+
+
+
+
+
+
