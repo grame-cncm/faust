@@ -76,12 +76,6 @@ class server_netjackaudio : public netjackaudio_midicontrol {
 
 };
 
-//Structure for SHA-1 responses
-struct string_and_exitstatus {
-    string str;
-    int exitstatus;
-};
-
 // Structured handled by libmicrohttp related to a connection
 struct connection_info_struct {
     
@@ -95,8 +89,11 @@ struct connection_info_struct {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string              fNameApp;
     string              fFaustCode;
+    string              fFactoryKey;
     vector<string>      fCompilationOptions;
     string              fOptLevel;
+    
+    llvm_dsp_factory*   fLLVMFactory;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
@@ -112,6 +109,7 @@ struct connection_info_struct {
     void init(){
         
         fFaustCode = "";
+        fFactoryKey = "";
         fOptLevel = "";
         
         fIP = "";
@@ -128,28 +126,6 @@ struct connection_info_struct {
 
 string searchIP();
 
-// Structure wrapping llvm_dsp_factory
-// Instances of this factory are counted so that desallocation is ensured 
-// when no more instances are running
-struct slave_dsp_factory{
-    
-    string              fNameApp;
-    llvm_dsp_factory*   fLLVMFactory;
-    
-    int                 fNumInstances;
-    
-    bool                delete_Factory();
-    slave_dsp_factory*  clone();
-    bool                init(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer);
-    string              getJson(const string& factoryKey);
-    
-};
-    
-// Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer);
-
-void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr);
-    
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 //
 struct slave_dsp{
@@ -167,13 +143,13 @@ struct slave_dsp{
     
     llvm_dsp*              fDSP;   //Real DSP Instance 
     
-    slave_dsp_factory*     fSlaveFactory;   //RelatedFactory
+//    llvm_dsp_factory*     fSlaveFactory;   //RelatedFactory
     
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
     Server*         fServer;
     
-    slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
+    slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
     ~slave_dsp();
     
     bool start_audio();
@@ -184,7 +160,7 @@ struct slave_dsp{
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp* createSlaveDSPInstance(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
+slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
 void deleteSlaveDSPInstance(slave_dsp* smartPtr);
     
 class Server{
@@ -200,7 +176,7 @@ public :
         
 // Factories that can be instanciated. 
 // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
-    map<string, slave_dsp_factory*>         fAvailableFactories;
+    map<string, pair<string, llvm_dsp_factory*> >         fAvailableFactories;
         
 // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
     list<slave_dsp*>          fRunningDsp;
@@ -229,7 +205,7 @@ public :
         
         
 // Reaction to a GET request
-    int             answer_get(MHD_Connection* connection);
+    int             answer_get(MHD_Connection* connection, const char* url);
         
 // Reaction to a POST request
     int             answer_post(MHD_Connection *connection, const char *url, const char *upload_data, size_t *upload_data_size, void **con_cls);
@@ -238,14 +214,7 @@ public :
     static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
         
     static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
-    
-    /*
-     * Generates an SHA-1 key for Faust file and returns 0 for success
-     * or 1 for failure along with the key in the string_and_exitstatus structure.
-     * If the evaluation fails, the appropriate error message is set. More info
-     * on the con_info structure is in Server.h.
-     */
-    string_and_exitstatus   generate_sha1(const string& faustCode, const vector<string>& options, const string& opt_value);
+
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
@@ -256,14 +225,6 @@ public :
     bool        startAudio(const string& shakey);
     
     void        stopAudio(const string& shakey);
-    
-    /* Reorganizes the compilation options
-     * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
-     */
-    vector<string>  reorganizeCompilationOptions(vector<string>& options);
-    void            addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue);
-    bool            addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position);
-    bool            parseKey(vector<string> options, const string& key, int& position);
     
 // Register Service as Available
     void        registration();

@@ -39,38 +39,20 @@ struct myMeta : public Meta
 
 //------------SLAVE DSP FACTORY-------------------------------
 
-// Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp_factory* createSlaveDSPFactory(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& answer){
-    
-    slave_dsp_factory* newFactory = new slave_dsp_factory;
-    
-    if (newFactory->init(options, name_app, faust_content, opt_level, answer)) {
-        return newFactory;
-    } else {
-        return NULL;
-    }
-}
-
-void deleteSlaveDSPFactory(slave_dsp_factory* smartPtr){
-    
-    if(smartPtr->delete_Factory())
-        delete smartPtr;
-}
-
-string slave_dsp_factory::getJson(const string& factoryKey){
+string getJson(connection_info_struct* con_info){
     
     myMeta metadata;
-    metadataDSPFactory(fLLVMFactory, &metadata);
-    fNameApp = metadata.name;
+    metadataDSPFactory(con_info->fLLVMFactory, &metadata);
+    con_info->fNameApp = metadata.name;
         
     //This instance is used only to build json interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(fLLVMFactory);
+    llvm_dsp* dsp = createDSPInstance(con_info->fLLVMFactory);
         
-    httpdfaust::jsonfaustui json(fNameApp.c_str(), "", 0);
+    httpdfaust::jsonfaustui json(con_info->fNameApp.c_str(), "", 0);
     dsp->buildUserInterface(&json);
     json.numInput(dsp->getNumInputs());
     json.numOutput(dsp->getNumOutputs());
-    json.declare("factoryKey", factoryKey.c_str());
+//    json.declare("factoryKey", factoryKey.c_str());
     
     printf("JSON = %s\n", json.json().c_str());
         
@@ -78,59 +60,16 @@ string slave_dsp_factory::getJson(const string& factoryKey){
         
     deleteDSPInstance(dsp);
     
-    fNumInstances = 1;
+//    con_info->fNumInstances = 1;
     
     return answer;
-}
-
-// Creation of real LLVM DSP FACTORY 
-// & Creation of intermediate DSP Instance to get json interface
-bool slave_dsp_factory::init(const vector<string>& options, const string& name_app, const string& faust_content, int opt_level, string& error){
-    
-    printf("NAMEAPP = %s | faust_content = %s", name_app.c_str(), faust_content.c_str());
-    
-    int argc = options.size();
-    const char* argv[argc];
-    
-    for(int i=0; i<argc; i++){
-        argv[i] = options[i].c_str();
-    }
-   
-    for(int i=0; i<argc; i++)
-        printf("argv = %s\n", argv[i]);
-    
-    fLLVMFactory = createDSPFactoryFromString(name_app, faust_content, argc, argv, "", error, opt_level);
-    
-    printf("%s\n", error.c_str());
-    
-    return (fLLVMFactory != 0);
-}
-
-// "Smart" Desallocation of factory depending on its running instances
-bool slave_dsp_factory::delete_Factory(){
-    
-    fNumInstances--;
-    
-    if(fNumInstances == 0){
-        deleteDSPFactory(fLLVMFactory);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// Everytime a factory is used, it is cloned, to ensure the right count of its instances
-slave_dsp_factory* slave_dsp_factory::clone(){
-    
-    fNumInstances++;
-    return this;
 }
 
 
 //--------------SLAVE DSP INSTANCE-----------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp* createSlaveDSPInstance(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server){
+slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server){
     
     return new slave_dsp(smartFactory, compression, ip, port, mtu, latency, server);
 }
@@ -141,12 +80,12 @@ void deleteSlaveDSPInstance(slave_dsp* smartPtr){
 }
 
 // Allocation of real LLVM DSP INSTANCE
-slave_dsp::slave_dsp(slave_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : fCV(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server){
+slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server) : fCV(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server){
     
     fAudio = NULL;
 
-    fSlaveFactory = smartFactory->clone();
-    fDSP = createDSPInstance(fSlaveFactory->fLLVMFactory);
+//    fSlaveFactory = smartFactory->clone();
+    fDSP = createDSPInstance(smartFactory);
 }
 
 
@@ -165,7 +104,6 @@ slave_dsp::~slave_dsp(){
     
     delete fAudio;
     deleteDSPInstance(fDSP);
-    deleteSlaveDSPFactory(fSlaveFactory);
 }
 
 //----------------SERVER----------------------------------------
@@ -232,7 +170,11 @@ void* Server::start_audioSlave(void *arg ){
                                                       DEFAULT_MTU, 
                                                       atoi(dspToStart->fLatency.c_str()));
         
-        if (dspToStart->fAudio->init(dspToStart->fSlaveFactory->fNameApp.c_str(), dspToStart->fDSP)) {
+//        ATTENTION fNAMEAPP!!!!!!!!!!!!!!!!!
+        
+        string fNameApp = "NotDefinedYet";
+        
+        if (dspToStart->fAudio->init(fNameApp.c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start())
                 printf("Start slave audio failed\n");
             else{
@@ -339,7 +281,7 @@ int Server::answer_to_connection	(void *cls, MHD_Connection *connection, const c
     
 // Once connection struct is allocated, the request is treated
     if (0 == strcmp(method, "GET")) {
-        return server->answer_get(connection);
+        return server->answer_get(connection, url);
     
     } else if (0 == strcmp(method, "POST")) {
         return server->answer_post(connection, url, upload_data, upload_data_size, con_cls);
@@ -350,10 +292,25 @@ int Server::answer_to_connection	(void *cls, MHD_Connection *connection, const c
 }
     
 // For now GET is not a request supported for now
-int Server::answer_get(MHD_Connection* connection){
+int Server::answer_get(MHD_Connection* connection, const char *url){
     
-    return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
+    printf("IS IT A GET REQUEST\n");
+    
+    if(strcmp(url, "/GetAvailableFactories") == 0){
+
+        string answerstring("");
+        
+        for(map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++){
+            answerstring += "key ";
+            answerstring += it->first;
+            answerstring += " name ";
+            answerstring += it->second.first + " ";
+        }
+        
+        return send_page(connection, answerstring.c_str(), answerstring.size(), MHD_HTTP_OK, "text/plain");
+    }
 }
+
 
 // Response to all POST request
 // 3 requests are correct : 
@@ -389,20 +346,20 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
             }
             
         }
-        else if(strcmp(url, "/DeleteFactory") == 0){
-                    
-            slave_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey];
-            
-            if (toDelete) {
-                
-                fAvailableFactories.erase(con_info->fSHAKey);
-                deleteSlaveDSPFactory(toDelete);
-                
-                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
-            } else {
-                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
-            }
-        }
+//        else if(strcmp(url, "/DeleteFactory") == 0){
+//                    
+//            llvm_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey];
+//            
+//            if (toDelete) {
+//                
+//                fAvailableFactories.erase(con_info->fSHAKey);
+//                deleteSlaveDSPFactory(toDelete);
+//                
+//                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
+//            } else {
+//                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
+//            }
+//        }
         else if(strcmp(url, "/StartAudio") == 0){
             
             startAudio(con_info->fSHAKey);
@@ -419,6 +376,16 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
     }
 }
 
+string nameWithoutSpaces(const string& name){
+    
+    string newname(name);
+    
+    while(newname.find(' ') != string::npos)
+        newname.replace(newname.find(' '), 1, "_");
+    
+    return newname;
+}
+
 // Callback processing the received data.
 // The datas are stocked in connection_info_struct
 int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *key, const char */*filename*/, const char */*content_type*/, const char */*transfer_encoding*/, const char *data, uint64_t /*off*/, size_t size){
@@ -429,9 +396,11 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
     
     if (size > 0) {
         
-        if(strcmp(key,"name") == 0)
-            con_info->fNameApp+=data;
-        
+        if(strcmp(key,"name") == 0){
+            con_info->fNameApp+=nameWithoutSpaces(data);
+            if(con_info->fNameApp.compare("") == 0)
+                con_info->fNameApp = "RemoteServer_DefaultName";
+        }
         if(strcmp(key,"data") == 0)
             con_info->fFaustCode+=data;        
             
@@ -450,11 +419,14 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, const char *
         if(strcmp(key,"NJ_mtu") == 0) 
             con_info->fMTU = data;
         
-        if(strcmp(key,"factoryKey") == 0)
+        if(strcmp(key,"shaKey") == 0)
             con_info->fSHAKey = data;
         
         if(strcmp(key,"instanceKey") == 0)
             con_info->fInstanceKey = data;
+        
+        if(strcmp(key,"factoryKey") == 0)
+            con_info->fFactoryKey = data;
         
         if(strcmp(key,"options") == 0)
             con_info->fCompilationOptions.push_back(string(data));
@@ -521,32 +493,24 @@ void Server::stopAudio(const string& shakey){
 bool Server::compile_Data(connection_info_struct* con_info){
     
 //  Sort out compilation options
-    vector<string> newOptions = reorganizeCompilationOptions(con_info->fCompilationOptions);
-     
-    string_and_exitstatus structure = generate_sha1(con_info->fFaustCode, newOptions, con_info->fOptLevel);
     
-    if(!structure.exitstatus){
-        
-        string factoryKey = structure.str;
-        slave_dsp_factory* realFactory;
-        
-//      Recycle factory if it is already compiled
-        realFactory = fAvailableFactories[factoryKey];
-        
-        printf("Server::compile_Data SHAKEY = %s\n", factoryKey.c_str());
-        
-        if(realFactory == NULL){
-            
-            realFactory = createSlaveDSPFactory(newOptions, con_info->fNameApp, con_info->fFaustCode, atoi(con_info->fOptLevel.c_str()), con_info->fAnswerstring);
-            
-            if(realFactory)
-                fAvailableFactories[factoryKey] = realFactory;
-            else
-                return false;
-        }  
+    int argc = con_info->fCompilationOptions.size();
+    const char* argv[argc];
+    
+    for(int i=0; i<argc; i++){
+        argv[i] = (con_info->fCompilationOptions[i]).c_str();
+    }
+    
+    string error("");
+    
+    con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
+    
+    if(con_info->fLLVMFactory){
+        fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
         
 //      Once the factory is compiled, the json is stored as answerstring
-        con_info->fAnswerstring = realFactory->getJson(factoryKey);
+        con_info->fAnswerstring = getJson(con_info);
+        
         return true;
     }
     else{
@@ -558,9 +522,9 @@ bool Server::compile_Data(connection_info_struct* con_info){
 // Create DSP Instance
 bool Server::createInstance(connection_info_struct* con_info){
     
-//    printf("CREATEINSTANCE WITH INDEX= %s\n", con_info->factoryIndex.c_str());
+    printf("CREATEINSTANCE WITH INDEX= %s\n", con_info->fFactoryKey.c_str());
     
-    slave_dsp_factory* realFactory = fAvailableFactories[con_info->fSHAKey];
+    llvm_dsp_factory* realFactory = fAvailableFactories[con_info->fFactoryKey].second;
     
     if(realFactory != NULL){
         
@@ -633,182 +597,6 @@ void Server::registration(){
     if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError) {
         printf("ERROR DURING REGISTRATION\n");
     }
-}
-
-/*
- * Generates an SHA-1 key for Faust file or archive and returns 0 for success
- * or 1 for failure along with the key in the string_and_exitstatus structure.
- * If the evaluation fails, the appropriate error message is set. More info
- * on the con_info structure is in Server.h.
- */
-
-string_and_exitstatus Server::generate_sha1(const string& faustCode, const vector<string>& options, const string& opt_value)
-{
-    string source(faustCode);
-  
-    for(int i = 0; i < options.size(); i++){
-        source += " "; 
-        source += options[i];
-    }
-    
-    source += opt_value;
-    
-    string hash = "";
-    
-    unsigned char obuf[20];
-    
-    SHA1((const unsigned char *)(source.c_str()), source.length(), obuf);
-    char buffer[20];
-    stringstream ss;
-    
-    for (int i=0; i < 20; i++) {
-        sprintf(buffer, "%02x", obuf[i]);
-        ss << buffer;
-    }
-    
-    hash = ss.str();
-    
-    string_and_exitstatus res;
-    res.exitstatus = hash.length() == 40 ? 0 : 1;
-    
-    printf("EXIT STATUS = %i\n", res.exitstatus);
-    
-    res.str = hash;
-    
-    return res;
-}
-
-//Look for 'key' in 'options' and modify the parameter 'position' if found
-bool Server::parseKey(vector<string> options, const string& key, int& position){
-    
-    for(int i=0; i<options.size(); i++){
-        
-        if(key.compare(options[i]) == 0){
-            position = i;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-//Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
-//#return true if 'key' was added
-bool Server::addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position){
-      
-    if(parseKey(options, key, position)){        
-        newoptions.push_back(options[position]);
-        options.erase(options.begin()+position);
-        position--;
-        return true;
-    }
-    else if(defaultKey.compare("") != 0)
-        newoptions.push_back(defaultKey);
-
-    return false;
-}
-
-//Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-void Server::addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue){
-    
-    int position = 0;
-    
-    if(addKeyIfExisting(options, newoptions, key, "", position)){
-
-        if(position+1<options.size() && options[position+1][0] != '-'){
-            newoptions.push_back(options[position+1]);
-            options.erase(options.begin()+position+1);
-            position--;
-        }
-        else
-            newoptions.push_back(defaultValue);
-    }
-}
-
-/* Reorganizes the compilation options
- * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
- */
-vector<string> Server::reorganizeCompilationOptions(vector<string>& options){
-    
-    bool vectorize = false;
-    int position = 0;
-    
-    vector<string> newoptions;
-    
-//------STEP 1 - Single or Double ?
-    
-    addKeyIfExisting(options, newoptions, "-double", "-single", position);
-
-//------STEP 2 - Options Leading to -vec inclusion
-    if(addKeyIfExisting(options, newoptions, "-sch", "", position))
-        vectorize = true;
-        
-    if(addKeyIfExisting(options, newoptions, "-omp", "", position)){
-        vectorize = true;
-        addKeyIfExisting(options, newoptions, "-pl", "", position);
-    }
-    
-    if(vectorize)
-        newoptions.push_back("-vec");
-    
-//------STEP3 - Add options depending on -vec/-scal option
-    if(vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)){
-
-        addKeyIfExisting(options, newoptions, "-dfs", "", position);
-        addKeyIfExisting(options, newoptions, "-vls", "", position);
-        addKeyIfExisting(options, newoptions, "-fun", "", position);
-        addKeyIfExisting(options, newoptions, "-g", "", position);
-        addKeyValueIfExisting(options, newoptions, "-vs", "32");
-        addKeyValueIfExisting(options, newoptions, "-lv", "0");
-    }
-    else{
-        addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
-        addKeyIfExisting(options, newoptions, "-inpl", "", position);
-    }
-    
-    addKeyIfExisting(options, newoptions, "-mcd", "", position);
-    
-//------STEP4 - Add other types of Faust options
-    
-    addKeyIfExisting(options, newoptions, "-tg", "", position);
-    addKeyIfExisting(options, newoptions, "-sg", "", position);
-    addKeyIfExisting(options, newoptions, "-ps", "", position);    
-    addKeyIfExisting(options, newoptions, "-svg", "", position);    
-    
-    if(addKeyIfExisting(options, newoptions, "-mdoc", "", position)){
-        addKeyValueIfExisting(options, newoptions, "-mdlang", "");
-        addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
-    }
-    
-    addKeyIfExisting(options, newoptions, "-sd", "", position);
-    addKeyValueIfExisting(options, newoptions, "-f", "25");
-    addKeyValueIfExisting(options, newoptions, "-mns", "40"); 
-    addKeyIfExisting(options, newoptions, "-sn", "", position);
-    addKeyIfExisting(options, newoptions, "-xml", "", position);
-    addKeyIfExisting(options, newoptions, "-blur", "", position);    
-    addKeyIfExisting(options, newoptions, "-lb", "", position);
-    addKeyIfExisting(options, newoptions, "-mb", "", position);
-    addKeyIfExisting(options, newoptions, "-rb", "", position);    
-    addKeyIfExisting(options, newoptions, "-lt", "", position);    
-    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
-    addKeyValueIfExisting(options, newoptions, "-a", "");
-    addKeyIfExisting(options, newoptions, "-i", "", position);
-    addKeyValueIfExisting(options, newoptions, "-cn", "");    
-    addKeyValueIfExisting(options, newoptions, "-t", "120");
-    addKeyIfExisting(options, newoptions, "-time", "", position);
-    addKeyValueIfExisting(options, newoptions, "-o", "");
-    addKeyValueIfExisting(options, newoptions, "-lang", "cpp");
-    addKeyIfExisting(options, newoptions, "-flist", "", position);
-    addKeyValueIfExisting(options, newoptions, "-l", "");
-    addKeyValueIfExisting(options, newoptions, "-O", "");
-    
-//-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
-    while(options.size() != 0){
-        newoptions.push_back(options[0]);
-        options.erase(options.begin());
-    }
-    
-    return newoptions;
 }
 
 
