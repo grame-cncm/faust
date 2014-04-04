@@ -10,7 +10,7 @@ cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 ### check what type of applications to build (MacOSX Darwin or Linux)
 ifeq ($(system), Darwin)
 appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=.app))
-SPEC	:= -spec macx-g++
+SPEC	:= -spec macx-clang
 else
 appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=))
 SPEC	:= 
@@ -30,8 +30,8 @@ all : $(appls)
 ### Darwin 
 $(DEST)%.app : %.dsp
 	install -d $(TMP)
-	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); qmake -project "QT += widgets printsupport" "$(DEFS)" "INCLUDEPATH+=/usr/local/include/faust/" "INCLUDEPATH+=/usr/local/include/faust/osclib" "LIBS+=$(LIB)" "HEADERS+=/usr/local/include/faust/gui/faustqt.h" 
+	faust -i -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
+	cd $(TMP); qmake -project "QT+=widgets printsupport network"  "$(DEFS)" "CONFIG+=warn_off" "CONFIG+=c++11" "INCLUDEPATH+=/usr/local/include/" "HEADERS+=/usr/local/include/faust/gui/faustqt.h" "LIBS+=$(LIB)" "QMAKE_CXXFLAGS= -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -Wno-unused-parameter"
 	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
 	rm -rf $@

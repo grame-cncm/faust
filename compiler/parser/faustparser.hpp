@@ -1,21 +1,24 @@
-/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison interface for Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
-   
-   This program is free software: you can redistribute it and/or modify
+/* Skeleton interface for Bison's Yacc-like parsers in C
+
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -26,19 +29,9 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
-
-#ifndef YY_YY_PARSER_FAUSTPARSER_HPP_INCLUDED
-# define YY_YY_PARSER_FAUSTPARSER_HPP_INCLUDED
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-#if YYDEBUG
-extern int yydebug;
-#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -175,42 +168,154 @@ extern int yydebug;
      LSTQ = 384
    };
 #endif
+/* Tokens.  */
+#define WITH 258
+#define MIX 259
+#define SPLIT 260
+#define SEQ 261
+#define PAR 262
+#define REC 263
+#define NE 264
+#define GE 265
+#define GT 266
+#define EQ 267
+#define LE 268
+#define LT 269
+#define OR 270
+#define SUB 271
+#define ADD 272
+#define RSH 273
+#define LSH 274
+#define XOR 275
+#define AND 276
+#define MOD 277
+#define DIV 278
+#define MUL 279
+#define POWOP 280
+#define FDELAY 281
+#define DELAY1 282
+#define DOT 283
+#define APPL 284
+#define HASH 285
+#define MEM 286
+#define PREFIX 287
+#define INTCAST 288
+#define FLOATCAST 289
+#define FFUNCTION 290
+#define FCONSTANT 291
+#define FVARIABLE 292
+#define BUTTON 293
+#define CHECKBOX 294
+#define VSLIDER 295
+#define HSLIDER 296
+#define NENTRY 297
+#define VGROUP 298
+#define HGROUP 299
+#define TGROUP 300
+#define HBARGRAPH 301
+#define VBARGRAPH 302
+#define ATTACH 303
+#define ACOS 304
+#define ASIN 305
+#define ATAN 306
+#define ATAN2 307
+#define COS 308
+#define SIN 309
+#define TAN 310
+#define EXP 311
+#define LOG 312
+#define LOG10 313
+#define POWFUN 314
+#define SQRT 315
+#define ABS 316
+#define MIN 317
+#define MAX 318
+#define FMOD 319
+#define REMAINDER 320
+#define FLOOR 321
+#define CEIL 322
+#define RINT 323
+#define RDTBL 324
+#define RWTBL 325
+#define SELECT2 326
+#define SELECT3 327
+#define INT 328
+#define FLOAT 329
+#define LAMBDA 330
+#define WIRE 331
+#define CUT 332
+#define ENDDEF 333
+#define VIRG 334
+#define LPAR 335
+#define RPAR 336
+#define LBRAQ 337
+#define RBRAQ 338
+#define LCROC 339
+#define RCROC 340
+#define DEF 341
+#define IMPORT 342
+#define COMPONENT 343
+#define LIBRARY 344
+#define ENVIRONMENT 345
+#define WAVEFORM 346
+#define IPAR 347
+#define ISEQ 348
+#define ISUM 349
+#define IPROD 350
+#define INPUTS 351
+#define OUTPUTS 352
+#define STRING 353
+#define FSTRING 354
+#define IDENT 355
+#define EXTRA 356
+#define DECLARE 357
+#define CASE 358
+#define ARROW 359
+#define VECTORIZE 360
+#define SERIALIZE 361
+#define RATE 362
+#define UPSAMPLE 363
+#define DOWNSAMPLE 364
+#define BDOC 365
+#define EDOC 366
+#define BEQN 367
+#define EEQN 368
+#define BDGM 369
+#define EDGM 370
+#define BLST 371
+#define ELST 372
+#define BMETADATA 373
+#define EMETADATA 374
+#define DOCCHAR 375
+#define NOTICE 376
+#define LISTING 377
+#define LSTTRUE 378
+#define LSTFALSE 379
+#define LSTDEPENDENCIES 380
+#define LSTMDOCTAGS 381
+#define LSTDISTRIBUTED 382
+#define LSTEQ 383
+#define LSTQ 384
+
+
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-{
-/* Line 2053 of yacc.c  */
 #line 78 "parser/faustparser.y"
-
+{
 	CTree* 	exp;
 	char* str;
 	string* cppstr;
 	bool b;
-
-
-/* Line 2053 of yacc.c  */
-#line 194 "parser/faustparser.hpp"
-} YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+}
+/* Line 1529 of yacc.c.  */
+#line 314 "parser/faustparser.hpp"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yylval;
 
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
-
-#endif /* !YY_YY_PARSER_FAUSTPARSER_HPP_INCLUDED  */

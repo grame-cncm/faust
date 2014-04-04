@@ -1,7 +1,8 @@
 #ifndef __VST_UI_H__
 #define __VST_UI_H__
 
-#include "audioeffectx.h" 
+#include <audioeffectx.h>
+#include <faust/gui/ui.h>
 
 #ifndef DEBUG
 #define DEBUG
@@ -13,44 +14,7 @@
 #define TRACE(x)
 #endif
 
-class UI
-{
-private:
-  bool	fStopped;
-
-public:
-			
-  UI() : fStopped(false) {}
-  virtual ~UI() {}
-		
-  virtual void addButton(const char* label, float* zone) = 0;
-  virtual void addToggleButton(const char* label, float* zone) = 0;
-  virtual void addCheckButton(const char* label, float* zone) = 0;
-  virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	
-  virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-  virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
-  virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-  virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-		
-  virtual void openFrameBox(const char* label) = 0;
-  virtual void openTabBox(const char* label) = 0;
-  virtual void openHorizontalBox(const char* label) = 0;
-  virtual void openVerticalBox(const char* label) = 0;
-  virtual void closeBox() = 0;
-		
-  virtual void run() {};
-		
-  void stop()		{ fStopped = true; }
-  bool stopped()	{ return fStopped; }
-
-  virtual void declare(float* zone, const char* key, const char* value) = 0;
-}; // end of UI class
-
 //////////////////////////// VST UI ////////////////////////
-
 
 class vstUIObject { /* superclass of all VST UI widgets */
 protected:
@@ -211,6 +175,8 @@ public:
 class vstUI : public UI
 {
 private:
+  bool fStopped;
+
   vector<vstUIObject*> fUITable;
 	map<const float*, Meta*> m_controlMetadataMap;
 	
@@ -229,7 +195,7 @@ public:
 
   // Constructor
   vstUI()
-		: freqIndex(-1), gainIndex(-1), gateIndex(-1)
+		: fStopped(false), freqIndex(-1), gainIndex(-1), gateIndex(-1)
 	{ }
 
   // Destructor
@@ -247,7 +213,10 @@ public:
 		}
   } // end of destructor
 
-  virtual void declare(float* zone, const char* key, const char* value) {
+  void stop()      { fStopped = true; }
+  bool stopped() { return fStopped; }
+
+  virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value) {
 		map<const float*, Meta*>::iterator iter = m_controlMetadataMap.find(zone);
 		if (iter == m_controlMetadataMap.end()) {
 			// if Meta for zone doesn't exist, create it now
@@ -262,7 +231,7 @@ public:
 		}
 		
 		iter->second->declare(key, value);	
-	} // end of declare
+    } // end of declare
 
 	/*
 		Return metadata for control (such as style, unit, etc...).

@@ -59,8 +59,7 @@
 #include "names.hh"
 #include "description.hh"
 #include "property.hh"
-
-
+#include "files.hh"
 
 #if 0
 #define linkcolor "#b3d1dc"
@@ -132,7 +131,6 @@ static bool				sFoldingFlag;		// true with complex block-diagrams
 static stack<Tree>		gPendingExp;		// Expressions that need to be drawn
 static set<Tree>		gDrawnExp;			// Expressions drawn or scheduled so far
 static const char* 		gDevSuffix;			// .svg or .ps used to choose output device
-static char 			gCurrentDir[512];	// room to save current directory name
 static string			gSchemaFileName;	// name of schema file beeing generated
 static map<Tree,string>	gBackLink;			// link to enclosing file for sub schema
 
@@ -148,8 +146,7 @@ static schema* 	generateInputSlotSchema(Tree a);
 static schema* 	generateBargraphSchema(Tree t);
 static schema* 	generateUserInterfaceSchema(Tree t);
 static char* 	legalFileName(Tree t, int n, char* dst);
-static int 		cholddir ();
-static int 		mkchdir(const char* dirname);
+
 static schema*  addSchemaInputs(int ins, schema* x);
 static schema*  addSchemaOutputs(int outs, schema* x);
 
@@ -265,42 +262,6 @@ static void writeSchemaFile(Tree bd)
 }
 
 
-
-/**
- * Create a new directory in the current one to store the diagrams.
- * The current directory is saved to be later restaured.
- */
-static int mkchdir(const char* dirname)
-{
-	//cerr << "mkchdir of " << dirname << endl;
-	if (getcwd(gCurrentDir, 512) != 0) {
-		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			if (chdir(dirname) == 0) {
-				return 0;
-			}
-		}
-	}
-	perror("mkchdir");
-	exit(errno);
-	//return errno;
-}
-
-
-/**
- *Switch back to the previously stored current directory
- */
-static int cholddir ()
-{
-	if (chdir(gCurrentDir) == 0) {
-		return 0;
-	} else {
-		perror("cholddir");
-		exit(errno);
-	}
-}
-
-
 /**
  * Transform the definition name property of tree <t> into a
  * legal file name.  The resulting file name is stored in
@@ -324,7 +285,6 @@ static char* legalFileName(Tree t, int n, char* dst)
 	}
 	return dst;
 }
-
 
 
 //------------------------ generating the schema -------------------------
@@ -455,12 +415,12 @@ static schema* generateInsideSchema(Tree t)
     else if (isInverter(t))         { return makeInverterSchema(invcolor); }
 
 	else if (isBoxInt(t, &i))		{ stringstream 	s; s << i; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
-    else if (isBoxReal(t, &r)) 		{ stringstream 	s; s << r; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
-    else if (isBoxWaveform(t))      { return makeBlockSchema(0, 2, "waveform", normalcolor, ""); }
+	else if (isBoxReal(t, &r)) 		{ stringstream 	s; s << r; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
+	else if (isBoxWaveform(t))      { return makeBlockSchema(0, 2, "waveform{...}", normalcolor, ""); }
     else if (isBoxWire(t)) 			{ return makeCableSchema(); }
-    else if (isBoxCut(t)) 			{ return makeCutSchema();  }
+	else if (isBoxCut(t)) 			{ return makeCutSchema();  }
 
-    else if (isBoxPrim0(t, &p0)) 	{ return makeBlockSchema(0, 1, prim0name(p0), normalcolor, ""); }
+	else if (isBoxPrim0(t, &p0)) 	{ return makeBlockSchema(0, 1, prim0name(p0), normalcolor, ""); }
 	else if (isBoxPrim1(t, &p1)) 	{ return makeBlockSchema(1, 1, prim1name(p1), normalcolor, ""); }
 	else if (isBoxPrim2(t, &p2)) 	{ return makeBlockSchema(2, 1, prim2name(p2), normalcolor, ""); }
 	else if (isBoxPrim3(t, &p3)) 	{ return makeBlockSchema(3, 1, prim3name(p3), normalcolor, ""); }
