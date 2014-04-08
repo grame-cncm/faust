@@ -298,6 +298,8 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
 void InstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
+    
+    startTiming("InstructionsCompiler::compileMultiSignal");
 
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
@@ -343,6 +345,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
+    
+    endTiming("InstructionsCompiler::compileMultiSignal");
 }
 
 /*****************************************************************************

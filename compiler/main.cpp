@@ -28,7 +28,6 @@ int main(int argc, const char* argv[])
    
     try {
         global::allocate();
-        
         compile_faust_internal(argc, argv, 0, 0, true);
     } catch (faustexception& e) {
         e.PrintMessage();

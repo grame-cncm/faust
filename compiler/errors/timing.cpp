@@ -30,6 +30,11 @@
 
 using namespace std;
 
+bool    gTimingSwitch;
+int		gTimingIndex;
+double 	gStartTime[1024];
+double 	gEndTime[1024];
+
 #ifndef _WIN32
 double mysecond()
 {
@@ -54,18 +59,18 @@ static void tab (int n, ostream& fout)
 
 void startTiming (const char* msg)
 {
-    if (gGlobal->gTimingSwitch) {
-        assert(gGlobal->gIndex < 1023);
-        tab(gGlobal->gIndex, cerr); cerr << "start " << msg << endl;
-        gGlobal->gStartTime[gGlobal->gIndex++] = mysecond();
+    if (gTimingSwitch) {
+        assert(gTimingIndex < 1023);
+        tab(gTimingIndex, cerr); cerr << "start " << msg << endl;
+        gStartTime[gTimingIndex++] = mysecond();
     }
 }
 
 void endTiming (const char* msg)
 {
-    if (gGlobal->gTimingSwitch) {
-        assert(gGlobal->gIndex > 0);
-        gGlobal->gEndTime[--gGlobal->gIndex] = mysecond();
-        tab(gGlobal->gIndex, cerr); cerr << "end " << msg << " (duration : " << gGlobal->gEndTime[gGlobal->gIndex] - gGlobal->gStartTime[gGlobal->gIndex] << ")" << endl;
+    if (gTimingSwitch) {
+        assert(gTimingIndex > 0);
+        gEndTime[--gTimingIndex] = mysecond();
+        tab(gTimingIndex, cerr); cerr << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")" << endl;
     }
 }

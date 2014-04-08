@@ -75,6 +75,8 @@
 
 using namespace std;
 
+extern bool gTimingSwitch;
+
 // Globals to transfer results in thread based evaluation
 static Tree gProcessTree = 0;
 static Tree gLsignalsTree = 0;
@@ -541,7 +543,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 2;
             
         } else if (isCmd(argv[i], "-time", "--compilation-time")) {
-            gGlobal->gTimingSwitch = true;
+            gTimingSwitch = true;
             i += 1;
 
         // double float options
