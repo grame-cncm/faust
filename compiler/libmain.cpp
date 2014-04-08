@@ -1352,7 +1352,10 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
 {
     // If input is already expanded, return it directly
     if (start_with(input, COMPILATION_OPTIONS)) {
-        strcpy(sha_key, generate_sha1(input).c_str());
+
+		string key = generate_sha1(input);
+
+        strncpy(sha_key, key.c_str(), key.size());
         return input;
     }
         
@@ -1368,7 +1371,10 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     try {
         global::allocate();       
         res = expand_dsp_internal(argc, argv, name, input);
-        strcpy(sha_key, generate_sha1(res).c_str());
+
+		string key = generate_sha1(res);
+
+        strncpy(sha_key, key.c_str(), key.size());
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
