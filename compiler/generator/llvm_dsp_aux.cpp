@@ -28,8 +28,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#ifndef _WIN32
 #include <libgen.h>
-
+#endif
 
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
@@ -744,8 +745,20 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
                                                 const string& target, 
                                                 string& error_msg, int opt_level)
 {
-    string base = basename((char*)filename.c_str());
-    int pos = base.find(".dsp");
+	string base;
+	
+#ifndef _WIN32
+	base = basename((char*)filename.c_str());
+#else
+	char drive[_MAX_DRIVE];
+	char dir[_MAX_DIR];
+	char fname[_MAX_FNAME];
+	char ext[_MAX_EXT];
+
+	_splitpath(filename.c_str(), drive, dir, fname, ext);
+	base = fname;
+#endif
+    int pos = filename.find(".dsp");
     
     if (pos != string::npos) {
         return createDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, target, error_msg, opt_level);
