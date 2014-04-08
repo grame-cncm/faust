@@ -59,11 +59,13 @@ EXPORT string expandDSPFromFile(const string& filename,
     for (int i = 0; i < argc; i++) {
         argv1[i+2] = argv[i];
     }
+        
+	char error_msg_aux[512];
+    char sha_key_aux[64];
     
-    char error_msg_aux[512];
-    char sha_key_aux[32];
-    string res = expand_dsp(argc1, argv1, "", "", sha_key_aux, error_msg_aux);
-    error_msg = error_msg_aux;
+	string res = expand_dsp(argc1, argv1, "", "", sha_key_aux, error_msg_aux);
+
+	error_msg = error_msg_aux;
     sha_key = sha_key_aux;
     return res;
 }
@@ -83,8 +85,11 @@ EXPORT string expandDSPFromString(const string& name_app,
     }
     
     char error_msg_aux[512];
-    char sha_key_aux[32];
-    string res = expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key_aux, error_msg_aux);
+    char sha_key_aux[64];
+	const char* name = name_app.c_str();
+	const char* content = dsp_content.c_str();
+    string res = expand_dsp(argc1, argv1, name, content, sha_key_aux, error_msg_aux);
+
     error_msg = error_msg_aux;
     sha_key = sha_key_aux;
     return res;

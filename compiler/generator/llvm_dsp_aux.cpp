@@ -28,13 +28,15 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#ifndef _WIN32
 #include <libgen.h>
-
+#endif
 
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
 #include "dsp_aux.hh"
+#include "timing.hh"
 
 #if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Module.h>
@@ -315,6 +317,8 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
 
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
+    startTiming("llvm_dsp_factory::initJIT");
+    
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
         return false;
@@ -420,6 +424,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     
     fJIT = builder.create(tm);
     if (!fJIT) {
+        endTiming("llvm_dsp_factory::initJIT");
         return false;
     }
     
@@ -436,8 +441,10 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fInit = (initFun)LoadOptimize("init_" + fClassName);
         fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
         fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
+        endTiming("llvm_dsp_factory::initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
+        endTiming("llvm_dsp_factory::initJIT");
         return false;
     }
 }
@@ -446,6 +453,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
+    startTiming("llvm_dsp_factory::initJIT");
+    
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
         return false;
@@ -493,6 +502,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 #endif
     
     if (!fJIT) {
+        endTiming("llvm_dsp_factory::initJIT");
         return false;
     }
     
@@ -569,8 +579,10 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fInit = (initFun)LoadOptimize("init_" + fClassName);
         fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
         fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
+        endTiming("llvm_dsp_factory::initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
+        endTiming("llvm_dsp_factory::initJIT");
         return false;
     }
 }
@@ -744,8 +756,9 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
                                                 const string& target, 
                                                 string& error_msg, int opt_level)
 {
-    string base = basename((char*)filename.c_str());
-    int pos = base.find(".dsp");
+	string base = basename((char*)filename.c_str());
+
+    int pos = filename.find(".dsp");
     
     if (pos != string::npos) {
         return createDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, target, error_msg, opt_level);

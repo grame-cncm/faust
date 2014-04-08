@@ -55,6 +55,7 @@ int		isatty(int file);
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
 char*   realpath(const char *path, char resolved_path[PATH_MAX]);
+char*	basename(const char* fullpath);
 
 #ifdef  NDEBUG
 #undef assert

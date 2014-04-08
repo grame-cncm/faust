@@ -70,6 +70,7 @@
 	int	isatty(int file){ return 0; }
 
 #if defined(_MBCS) || __MINGW32__
+#include <iostream>
 	bool chdir(const char* path)
 	{
 		return !SetCurrentDirectory(path);
@@ -78,7 +79,11 @@
 	int mkdir(const char* path, unsigned int attribute)
 	{
 		if (CreateDirectory(path,NULL) == 0) {
-			return -1;
+// mkdir has to be successfull in case the path already exists
+			if(GetLastError() == ERROR_ALREADY_EXISTS)
+				return 0;
+			else
+				return -1;
 		} else {
 			return 0;
         }
@@ -186,6 +191,17 @@
             return "";
         }
     }
+
+	char* basename(const char* fullpath){
+		
+		char drive[_MAX_DRIVE];
+		char dir[_MAX_DIR];
+		char fname[_MAX_FNAME];
+		char ext[_MAX_EXT];
+
+		_splitpath(fullpath, drive, dir, fname, ext);
+		return fname;
+	}
 
 #endif
 

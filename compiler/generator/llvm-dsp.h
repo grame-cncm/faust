@@ -27,6 +27,7 @@
 #endif
 
 #include <string>
+#include <vector>
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 
