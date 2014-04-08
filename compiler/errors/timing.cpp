@@ -20,6 +20,8 @@
  ************************************************************************/
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cassert>
 #ifndef _WIN32
 #include <sys/time.h>
@@ -28,49 +30,63 @@
 #include "timing.hh"
 #include "global.hh"
 
-using namespace std;
-
-bool    gTimingSwitch;
-int		gTimingIndex;
-double 	gStartTime[1024];
-double 	gEndTime[1024];
+bool gTimingSwitch;
+static int gTimingIndex;
+static double gStartTime[1024];
+static double gEndTime[1024];
+static ostream* gTimingLog = NULL;
 
 #ifndef _WIN32
 double mysecond()
 {
     struct timeval tp;
     struct timezone tzp;
-    int i;
-
-    i = gettimeofday(&tp,&tzp);
+    gettimeofday(&tp,&tzp);
     return ((double) tp.tv_sec + (double) tp.tv_usec * 1.e-6);
 }
 #else
 double mysecond() { return 0; }
 #endif
 
-/*
-static void tab (int n, ostream& fout)
+void startTiming(const char* msg)
 {
-    fout << '\n';
-    while (n--)     fout << '\t'; 
-}
-*/
-
-void startTiming (const char* msg)
-{
+    if (!gTimingLog) {
+        gTimingLog = (getenv("FAUST_TIMING")) ? new ofstream("FAUST_TIMING_LOG", ios::app) : NULL;
+        if (gTimingLog) {
+            *gTimingLog << endl;
+        }
+    }
+    
     if (gTimingSwitch) {
         assert(gTimingIndex < 1023);
-        tab(gTimingIndex, cerr); cerr << "start " << msg << endl;
+        if (gTimingLog) {
+            /*
+            tab(gTimingIndex, *gTimingLog);
+            *gTimingLog << "start " << msg << endl;
+            */
+        } else {
+            tab(gTimingIndex, cerr);
+            cerr << "start " << msg << endl;
+        }
         gStartTime[gTimingIndex++] = mysecond();
     }
 }
 
-void endTiming (const char* msg)
+void endTiming(const char* msg)
 {
     if (gTimingSwitch) {
         assert(gTimingIndex > 0);
         gEndTime[--gTimingIndex] = mysecond();
-        tab(gTimingIndex, cerr); cerr << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")" << endl;
+        if (gTimingLog) {
+            /*
+            tab(gTimingIndex, *gTimingLog);
+            *gTimingLog << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")" << endl;
+            */
+            *gTimingLog << msg << "\t" << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << endl;
+            gTimingLog->flush();
+        } else {
+            tab(gTimingIndex, cerr);
+            cerr << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")" << endl;
+        }
     }
 }

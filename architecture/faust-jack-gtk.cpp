@@ -204,6 +204,8 @@ int main(int argc, char *argv[])
         */
         
     }
+    
+    
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
@@ -231,6 +233,8 @@ int main(int argc, char *argv[])
     }
 	finterface->recallState(rcfilename);
 	audio.start();
+    
+    //return -1;
 
 #ifdef HTTPCTRL
 	httpdinterface->run();
