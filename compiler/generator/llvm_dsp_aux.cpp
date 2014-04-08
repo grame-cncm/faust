@@ -756,19 +756,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
                                                 const string& target, 
                                                 string& error_msg, int opt_level)
 {
-	string base;
-	
-#ifndef _WIN32
-	base = basename((char*)filename.c_str());
-#else
-	char drive[_MAX_DRIVE];
-	char dir[_MAX_DIR];
-	char fname[_MAX_FNAME];
-	char ext[_MAX_EXT];
+	string base = basename((char*)filename.c_str());
 
-	_splitpath(filename.c_str(), drive, dir, fname, ext);
-	base = fname;
-#endif
     int pos = filename.find(".dsp");
     
     if (pos != string::npos) {

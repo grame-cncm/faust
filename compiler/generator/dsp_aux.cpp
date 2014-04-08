@@ -61,12 +61,12 @@ EXPORT string expandDSPFromFile(const string& filename,
     }
         
 	char error_msg_aux[512];
-    char sha_key_aux[32];
+    char sha_key_aux[512];
     
 	string res = expand_dsp(argc1, argv1, "", "", sha_key_aux, error_msg_aux);
 
-	//error_msg = error_msg_aux;
-    //sha_key = sha_key_aux;
+	error_msg = error_msg_aux;
+    sha_key = sha_key_aux;
     return res;
 }
 
