@@ -153,7 +153,7 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 
 Tree InstructionsCompiler::prepare(Tree LS)
 {
-    startTiming("InstructionsCompiler::prepare");
+    startTiming("prepare");
 
     startTiming("deBruijn2Sym");
 	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
@@ -177,7 +177,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
     //annotationStatistics();
-    endTiming("InstructionsCompiler::prepare");
+    endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
@@ -188,14 +188,14 @@ Tree InstructionsCompiler::prepare(Tree LS)
 
 Tree InstructionsCompiler::prepare2(Tree L0)
 {
-    startTiming("InstructionsCompiler::prepare2");
+    startTiming("prepare2");
 
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
 	typeAnnotation(L0);				// Annotate L0 with type information
 	sharingAnalysis(L0);			// annotate L0 with sharing count
  	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
 
-    endTiming("InstructionsCompiler::prepare2");
+    endTiming("prepare2");
   	return L0;
 }
 
@@ -299,7 +299,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
     
-    startTiming("InstructionsCompiler::compileMultiSignal");
+    startTiming("compileMultiSignal");
 
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
@@ -346,7 +346,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
     
-    endTiming("InstructionsCompiler::compileMultiSignal");
+    endTiming("compileMultiSignal");
 }
 
 /*****************************************************************************

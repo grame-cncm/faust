@@ -317,7 +317,7 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
 
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
-    startTiming("llvm_dsp_factory::initJIT");
+    startTiming("initJIT");
     
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -424,7 +424,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     
     fJIT = builder.create(tm);
     if (!fJIT) {
-        endTiming("llvm_dsp_factory::initJIT");
+        endTiming("initJIT");
         return false;
     }
     
@@ -441,10 +441,10 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fInit = (initFun)LoadOptimize("init_" + fClassName);
         fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
         fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
-        endTiming("llvm_dsp_factory::initJIT");
+        endTiming("initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
-        endTiming("llvm_dsp_factory::initJIT");
+        endTiming("initJIT");
         return false;
     }
 }
@@ -453,7 +453,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
-    startTiming("llvm_dsp_factory::initJIT");
+    startTiming("initJIT");
     
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
@@ -502,7 +502,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 #endif
     
     if (!fJIT) {
-        endTiming("llvm_dsp_factory::initJIT");
+        endTiming("initJIT");
         return false;
     }
     
@@ -579,10 +579,10 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fInit = (initFun)LoadOptimize("init_" + fClassName);
         fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
         fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
-        endTiming("llvm_dsp_factory::initJIT");
+        endTiming("initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
-        endTiming("llvm_dsp_factory::initJIT");
+        endTiming("initJIT");
         return false;
     }
 }
