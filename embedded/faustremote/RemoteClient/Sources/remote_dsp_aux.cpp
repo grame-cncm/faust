@@ -247,7 +247,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_
 {
     FactoryTableIt it;
     
-    /// If availble in the local cache, get it
+    /// If available in the local cache, get it
     if (getFactory(sha_key, it)) {
         Sremote_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
