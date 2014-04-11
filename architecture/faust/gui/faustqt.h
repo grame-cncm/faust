@@ -44,7 +44,9 @@
 #include "faust/gui/GUI.h"
 
 #include <sstream>
+#if defined(HTTPCTRL) && defined(QRCODECTRL) 
 #include <qrencode.h>
+#endif
 #include <netdb.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -1390,8 +1392,7 @@ class QTGUI : public QObject, public GUI
 
 	virtual ~QTGUI() {}
 
-#ifdef HTTPCTRL
-#ifdef QRCODECTRL
+#if defined(HTTPCTRL) && defined(QRCODECTRL)
     
     //
     // Returns the IP address of the machine (to be qrcoded)
@@ -1501,7 +1502,6 @@ class QTGUI : public QObject, public GUI
             return false;
         }
     }
-#endif
 #endif
     
 	virtual void run()
