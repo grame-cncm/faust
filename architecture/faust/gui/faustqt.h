@@ -39,12 +39,11 @@
 #endif
 #include <QApplication>
 
-#include <QtNetwork>
-
 #include "faust/gui/GUI.h"
 
 #include <sstream>
 #if defined(HTTPCTRL) && defined(QRCODECTRL) 
+#include <QtNetwork>
 #include <qrencode.h>
 #endif
 #include <netdb.h>
