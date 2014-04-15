@@ -166,10 +166,10 @@ void* Server::start_audioSlave(void *arg ){
         bool success = false;
         
         dspToStart->fAudio = new server_netjackaudio(atoi(dspToStart->fCV.c_str()), 
-                                                      dspToStart->fIP, 
-                                                      atoi(dspToStart->fPort.c_str()), 
-                                                      DEFAULT_MTU, 
-                                                      atoi(dspToStart->fLatency.c_str()));
+                                                    dspToStart->fIP, 
+                                                    atoi(dspToStart->fPort.c_str()), 
+                                                    atoi(dspToStart->fMTU.c_str()), 
+                                                    atoi(dspToStart->fLatency.c_str()));
         
 //        ATTENTION fNAMEAPP!!!!!!!!!!!!!!!!!
         

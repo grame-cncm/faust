@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
                     
             jackaudio* audio = new jackaudio;
             
-//          coreaudio* audio = new coreaudio(srate, fpb);
+            //coreaudio* audio = new coreaudio(srate, fpb);
                     
             DSP->buildUserInterface(interface);   
                     
