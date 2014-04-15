@@ -891,24 +891,6 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 //                          Elementary parsers
 // ---------------------------------------------------------------------
 
-// Parse a quoted string "..." and store the result in s, reports an error if it fails
-bool parseWord(const char*& p, string& s)
-{
-    string str;
-    
-    if(*p ==' ')
-        *p++;
-    
-    while ((*p != 0) && (*p != ' '))
-        str += *p++;
-
-    if (*p == 0 || *p ==' ') {
-        s = str;
-        return true;
-    }
-    
-    return false;
-}
 
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {

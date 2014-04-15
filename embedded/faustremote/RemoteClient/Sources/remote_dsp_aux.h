@@ -219,6 +219,25 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
     
 EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
     
+// Parse a string and store the result in s
+bool parseWord(const char*& p, string& s){
+    
+    string str;
+
+    if(*p ==' ')
+        *p++;
+    
+    while ((*p != 0) && (*p != ' '))
+        str += *p++;
+    
+    if (*p == 0 || *p ==' ') {
+        s = str;
+        return true;
+    }
+    
+    return false;
+}
+    
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
 
 static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
