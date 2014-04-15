@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     
+    
     string ipServer = loptions(argv, "--ipserver", "localhost");
     int portServer = lopt(argv, "--portserver", 7777);
     
@@ -55,7 +56,14 @@ int main(int argc, char* argv[])
     string filePath = loptions(argv, "--file", "");
             
     string errorFactory("");
-            
+    
+    vector<pair<string, string> > factories_list;
+    getRemoteFactoriesAvailable(ipServer, portServer, &factories_list);
+    
+    printf("Factories List : \n");
+    for(int i=0; i<factories_list.size(); i++)
+        printf("%s : %s\n", factories_list[i].second.c_str(), factories_list[i].first.c_str());
+    
     const char* arguments[32];
     int nbArgument = 0;
           

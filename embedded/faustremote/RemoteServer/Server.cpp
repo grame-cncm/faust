@@ -302,10 +302,10 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
         string answerstring("");
         
         for(map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++){
-            answerstring += "key ";
-            answerstring += it->first;
-            answerstring += " name ";
-            answerstring += it->second.first + " ";
+//            answerstring += "key ";
+            answerstring += " " + it->first;
+//            answerstring += " name ";
+            answerstring += " " + it->second.first;
         }
         
         return send_page(connection, answerstring.c_str(), answerstring.size(), MHD_HTTP_OK, "text/plain");

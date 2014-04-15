@@ -891,6 +891,25 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 //                          Elementary parsers
 // ---------------------------------------------------------------------
 
+// Parse a quoted string "..." and store the result in s, reports an error if it fails
+bool parseWord(const char*& p, string& s)
+{
+    string str;
+    
+    if(*p ==' ')
+        *p++;
+    
+    while ((*p != 0) && (*p != ' '))
+        str += *p++;
+
+    if (*p == 0 || *p ==' ') {
+        s = str;
+        return true;
+    }
+    
+    return false;
+}
+
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
     // TODO
@@ -914,8 +933,6 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
         
         string finalIP = ip;
         finalIP += "/GetAvailableFactories";
-        
-        printf("ip = %s\n", finalIP.c_str());
             
         std::ostringstream oss;
             
@@ -934,17 +951,23 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
             if(respcode == 200){
-                printf("FACTORIES = %s\n",oss.str().c_str());
                 
                 string response = oss.str();
                 
 //                PARSE RESPONSE TO EXTRACT KEY/VALUE
-//                TO DO !! 
-                int pos = response.find("key");
                 
+                const char* p = response.c_str();
                 
-                
-                printf("SIZE VECTOR = %i\n", factories_list->size());
+                while(*p != 0){
+                    
+                    string key, name;
+                    
+                    if(parseWord(p, key)){
+                        if(*p != 0 && parseWord(p, name)){
+                            factories_list->push_back(make_pair(key, name));
+                        }
+                    }
+                }
                 
                 isSuccessfull = true;
             }
