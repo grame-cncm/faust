@@ -1,7 +1,7 @@
 
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
-#include "faust/llvm-dsp.h"
+#include "faust/llvm-c-dsp.h"
 #include "../../../../compiler/libfaust.h"
 
 #include <errno.h>
@@ -311,7 +311,8 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
 {
     // Use for it's possible 'side effects', that is generating SVG, XML... files
-    generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
+    char error_msg_aux[256];
+    generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
     
 //  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
     
@@ -333,12 +334,13 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 //    EXPAND DSP
     
     std::string expanded_dsp;
-    string sha_key;
+    char sha_key_aux[256];
     
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
+    if ((expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux)) == "") {
         return 0; 
     } else {
         FactoryTableIt it;
+        string sha_key = sha_key_aux;
         if (getFactory(sha_key, it)) {
             Sremote_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
@@ -967,7 +969,7 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
                     
                     if(parseWord(p, key)){
                         if(*p != 0 && parseWord(p, name)){
-                            factories_list->push_back(make_pair(key, name));
+                            factories_list->push_back(make_pair(name, key));
                         }
                     }
                 }

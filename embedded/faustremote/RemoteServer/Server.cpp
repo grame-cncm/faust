@@ -101,6 +101,7 @@ void slave_dsp::stop_audio(){
 // Desallocation of slave dsp resources
 slave_dsp::~slave_dsp(){
 
+    delete fAudio;
     deleteDSPInstance(fDSP);
 }
 
@@ -217,9 +218,7 @@ void Server::stop_NotActive_DSP(){
             slave_dsp* toDelete = *it;
             it = fRunningDsp.erase(it); 
             
-            (*it)->fAudio->stop();
-            delete (*it)->fAudio;
-            
+            toDelete->fAudio->stop();
             deleteSlaveDSPInstance(toDelete);
         } else {
             it++;
@@ -295,6 +294,8 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
     printf("IS IT A GET REQUEST\n");
     
     if(strcmp(url, "/GetAvailableFactories") == 0){
+        
+        printf("GetAvailableFactories %d\n", fAvailableFactories.size());
 
         string answerstring("");
         
