@@ -308,49 +308,34 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     }
 }
 
-vector<string> filtrate_option(int argc, const char* argv[]){
-    
-    vector<string> newoptions;
-    
-    for(int i=0; i<argc; i++){
-        if(strcmp(argv[i],"-tg") != 0 && 
-           strcmp(argv[i],"-sg") != 0 &&
-           strcmp(argv[i],"-svg") != 0 &&
-           strcmp(argv[i],"-ps") != 0 &&
-           strcmp(argv[i],"-mdoc") != 0 &&
-           strcmp(argv[i],"-xml") != 0
-           )
-            newoptions.push_back(argv[i]);
-    }
-    return newoptions;
-}
-
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
 {
     // Use for it's possible 'side effects', that is generating SVG, XML... files
     generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
     
 //  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
     
-    vector<string> newoptions;
+    int argc1 = 0;
+    const char* argv1[argc];
     
-    for(int i=0; i<argc; i++)
-        newoptions.push_back(argv[i]);
-    
-    newoptions = filtrate_option(argc, argv);
-    
-    int numParams = newoptions.size();
-    const char* params[numParams];
-    
-    for(int i=0; i<numParams; i++)
-        params[i] = newoptions[i].c_str();
-    
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i],"-tg") != 0 && 
+           strcmp(argv[i],"-sg") != 0 &&
+           strcmp(argv[i],"-svg") != 0 &&
+           strcmp(argv[i],"-ps") != 0 &&
+           strcmp(argv[i],"-mdoc") != 0 &&
+           strcmp(argv[i],"-xml") != 0)
+        {
+            argv1[argc1++] = argv[i];
+        }
+    }
+     
 //    EXPAND DSP
     
     std::string expanded_dsp;
     string sha_key;
     
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, numParams, params, sha_key, error_msg)) == "") {
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
         return 0; 
     } else {
         FactoryTableIt it;
@@ -360,7 +345,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
             return sfactory;
         } else  {
             remote_dsp_factory* factory = new remote_dsp_factory();
-            if (factory->init(numParams, params, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
+            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
                 remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
                 return factory;
             } else {
