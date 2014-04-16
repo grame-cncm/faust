@@ -287,8 +287,10 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         }
-        else if(errorCode != -1)
+        else if(errorCode != -1){
+            delete factory;
             return NULL;
+        }
     }
 }
 
@@ -306,13 +308,19 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     }
 }
 
-vector<string> filtrate_option(vector<string> options, string optionToFilter){
+vector<string> filtrate_option(int argc, const char* argv[]){
     
     vector<string> newoptions;
     
-    for(int i=0; i<options.size(); i++){
-        if(options[i].compare(optionToFilter) != 0)
-            newoptions.push_back(options[i]);
+    for(int i=0; i<argc; i++){
+        if(strcmp(argv[i],"-tg") != 0 && 
+           strcmp(argv[i],"-sg") != 0 &&
+           strcmp(argv[i],"-svg") != 0 &&
+           strcmp(argv[i],"-ps") != 0 &&
+           strcmp(argv[i],"-mdoc") != 0 &&
+           strcmp(argv[i],"-xml") != 0
+           )
+            newoptions.push_back(argv[i]);
     }
     return newoptions;
 }
@@ -329,12 +337,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     for(int i=0; i<argc; i++)
         newoptions.push_back(argv[i]);
     
-    newoptions = filtrate_option(newoptions, "-tg");
-    newoptions = filtrate_option(newoptions, "-sg");
-    newoptions = filtrate_option(newoptions, "-ps");
-    newoptions = filtrate_option(newoptions, "-svg");
-    newoptions = filtrate_option(newoptions, "-mdoc");
-    newoptions = filtrate_option(newoptions, "-xml");
+    newoptions = filtrate_option(argc, argv);
     
     int numParams = newoptions.size();
     const char* params[numParams];
