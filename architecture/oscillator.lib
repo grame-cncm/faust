@@ -199,7 +199,7 @@ imptrainN(N,freq) = impulse + 0.5*diffn(sawN(N,freq));
 imptrain = imptrainN(2); // default based on saw2
 
 triangleN(N,freq) = squareN(N,freq) : fl.pole(p) : *(gain) with {
-  gain = sqrt(1.0-p);
+  gain = 4.0*freq/ml.SR; // for aproximate unit peak amplitude
   p = 0.999;
 };
 triangle = triangleN(2); // default based on saw2

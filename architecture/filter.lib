@@ -419,7 +419,7 @@ with {
   tgr(i) = take(M+1-i,tg);
   tghr(n) = tgr(n)/pi(n);
   pi(0) = 1;
-  s(n) = take(M-n+1,sv);
+  s(n) = take(M-n+1,sv); // reflection coefficient = sin(theta) 
   c(n) = sqrt(max(0,1-s(n)*s(n))); // compiler crashes on sqrt(-)
   pi(n) = pi(n-1)*c(n);
 };
