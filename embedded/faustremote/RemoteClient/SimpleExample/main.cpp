@@ -95,8 +95,10 @@ int main(int argc, char* argv[])
               
     string content = pathToContent(filePath);
     
-    remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
-            
+//    remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
+    
+    remote_dsp_factory* factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].first);
+    
     if(factory != NULL){
                 
         remote_dsp* DSP;

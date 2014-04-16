@@ -243,7 +243,7 @@ static bool getFactory(const string& sha_key, FactoryTableIt& res)
 
 // Expernal API
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key)
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key)
 {
     FactoryTableIt it;
     
@@ -253,9 +253,42 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_
         sfactory->addReference();
         return sfactory;
     } else {
+        // Call server side to get remote factory, create local proxy factory, put it in the cache
         
-        // TODO : call server side to get remote factory, create local proxy factory, put it in the cache
-        return NULL;
+        remote_dsp_factory* factory = new remote_dsp_factory();
+        
+        string finalRequest = "shaKey=";
+        finalRequest += sha_key;
+            
+        factory->setKey(sha_key);
+        
+        printf("finalRequest = %s\n", finalRequest.c_str());
+            
+        string serverIP = "http://";
+        serverIP += ip_server;
+        serverIP += ":";
+        
+        stringstream s;
+        s<<port_server;
+        
+        serverIP += s.str();
+        
+        factory->setIP(serverIP);
+        
+        serverIP += "/GetJsonFromKey";
+        
+        printf("ip = %s\n", serverIP.c_str());
+        
+        string response("");
+        int errorCode = -1;
+        
+        if(send_request(serverIP, finalRequest, response, errorCode)){
+            factory->decodeJson(response);
+            remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
+            return factory;
+        }
+        else if(errorCode != -1)
+            return NULL;
     }
 }
 

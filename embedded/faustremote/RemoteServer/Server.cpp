@@ -338,6 +338,15 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
                 return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
         }
+        else if(strcmp(url, "/GetJsonFromKey") == 0){
+            
+            if (getJsonFromKey(con_info)) {
+                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
+            } else {
+                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        }
+        
         else if(strcmp(url, "/CreateInstance") == 0){
             
             if (createInstance(con_info)) {
@@ -487,6 +496,23 @@ void Server::stopAudio(const string& shakey){
         if(shakey.compare((*it)->key())==0){
             (*it)->stop_audio();
         }
+    }
+}
+
+bool Server::getJsonFromKey(connection_info_struct* con_info){
+    
+    string SHA_Key = con_info->fSHAKey;
+    
+    con_info->fNameApp = fAvailableFactories[SHA_Key].first;
+    con_info->fLLVMFactory = fAvailableFactories[SHA_Key].second;
+    
+    if(con_info->fLLVMFactory){
+        con_info->fAnswerstring = getJson(con_info);
+        return true;
+    }
+    else{
+        con_info->fAnswerstring = "Factory Not Found!";
+        return false;
     }
 }
 

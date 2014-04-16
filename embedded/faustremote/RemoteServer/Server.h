@@ -176,6 +176,7 @@ public :
         
 // Factories that can be instanciated. 
 // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
+//    SHAKey, pair<NameApp, Factory>
     map<string, pair<string, llvm_dsp_factory*> >         fAvailableFactories;
         
 // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
@@ -218,6 +219,8 @@ public :
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
+// Reaction to a /GetJsonFromKey --> GetJson form available factory
+    bool        getJsonFromKey(connection_info_struct* con_info);
         
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
     bool        createInstance(connection_info_struct* con_info);

@@ -94,10 +94,10 @@ private:
     map<string,string>  fMetadatas; //Metadatas extracted from json
     vector<itemInfo*>   fUiItems;   //Items extracted from json
     
+public: 
+    
     void        decodeJson(const string& json);
     
-public: 
-
     remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error);
 
     bool        init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, const string& sha_key, string& error_msg, int opt_level);
@@ -107,17 +107,20 @@ public:
     
 //    ACCESSORS
     string              serverIP(){return fServerIP;}
+    void                setIP(const string& ip){fServerIP = ip;}
     vector<itemInfo*>   itemList(){return fUiItems;}
     int                 numInputs();
     int                 numOutputs();
+    
     string              key(){return fSHAKey;}
+    void                setKey(const string& sha_key){fSHAKey = sha_key;}
     
     static FactoryTableType gFactoryTable;
 };
     
 //---------------------- Public C++ interface
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key);  
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key);  
     
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level);
     

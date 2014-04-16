@@ -36,7 +36,7 @@ extern "C"
     
     enum {
         ERROR_FACTORY_NOTFOUND,
-        ERROR_INSTANCE_NOTCREATED,
+        ERROR_INSTANCE_NOTCREATE-D,
         ERROR_NETJACK_NOTSTARTED,
         ERROR_CURL_CONNECTION
     };
@@ -57,7 +57,7 @@ extern "C"
      *
      * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
      */
-    remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key);    
+    remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key);    
     
     /**
      * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
