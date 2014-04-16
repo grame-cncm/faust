@@ -132,6 +132,8 @@ struct slave_dsp{
     
     string          fInstanceKey;
     
+    string          fName;
+    
     //    NETJACK PARAMETERS
     string          fIP;
     string          fPort;
@@ -157,6 +159,8 @@ struct slave_dsp{
     
     string  key(){return fInstanceKey;}
     void    setKey(const string& key){fInstanceKey = key;}
+    string name(){return fName;}
+    void    setName(string name){fName = name;}
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation

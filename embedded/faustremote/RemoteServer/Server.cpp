@@ -100,10 +100,7 @@ void slave_dsp::stop_audio(){
 
 // Desallocation of slave dsp resources
 slave_dsp::~slave_dsp(){
-    
-    fAudio->stop();
-    
-    delete fAudio;
+
     deleteDSPInstance(fDSP);
 }
 
@@ -171,11 +168,7 @@ void* Server::start_audioSlave(void *arg ){
                                                     atoi(dspToStart->fMTU.c_str()), 
                                                     atoi(dspToStart->fLatency.c_str()));
         
-//        ATTENTION fNAMEAPP!!!!!!!!!!!!!!!!!
-        
-        string fNameApp = "NotDefinedYet";
-        
-        if (dspToStart->fAudio->init(fNameApp.c_str(), dspToStart->fDSP)) {
+        if (dspToStart->fAudio->init(dspToStart->name().c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start())
                 printf("Start slave audio failed\n");
             else{
@@ -222,7 +215,11 @@ void Server::stop_NotActive_DSP(){
     {
         if(!(*it)->fAudio->is_connexion_active()){
             slave_dsp* toDelete = *it;
-            it = fRunningDsp.erase(it);
+            it = fRunningDsp.erase(it); 
+            
+            (*it)->fAudio->stop();
+            delete (*it)->fAudio;
+            
             deleteSlaveDSPInstance(toDelete);
         } else {
             it++;
@@ -302,9 +299,8 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
         string answerstring("");
         
         for(map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++){
-//            answerstring += "key ";
+            
             answerstring += " " + it->first;
-//            answerstring += " name ";
             answerstring += " " + it->second.first;
         }
         
@@ -519,31 +515,32 @@ bool Server::getJsonFromKey(connection_info_struct* con_info){
 // Create DSP Factory 
 bool Server::compile_Data(connection_info_struct* con_info){
     
-//  Sort out compilation options
-    
-    int argc = con_info->fCompilationOptions.size();
-    const char* argv[argc];
-    
-    for(int i=0; i<argc; i++){
-        argv[i] = (con_info->fCompilationOptions[i]).c_str();
-    }
-    
-    string error("");
-    
-    con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
-    
-    if(con_info->fLLVMFactory){
-        fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+    if(con_info->fSHAKey != ""){
         
-//      Once the factory is compiled, the json is stored as answerstring
-        con_info->fAnswerstring = getJson(con_info);
+        //  Sort out compilation options
         
-        return true;
+        int argc = con_info->fCompilationOptions.size();
+        const char* argv[argc];
+        
+        for(int i=0; i<argc; i++){
+            argv[i] = (con_info->fCompilationOptions[i]).c_str();
+        }
+        
+        string error("");
+        
+        con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
+        
+        if(con_info->fLLVMFactory){
+            fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+            
+            //      Once the factory is compiled, the json is stored as answerstring
+            con_info->fAnswerstring = getJson(con_info);
+            
+            return true;
+        }
     }
-    else{
-        con_info->fAnswerstring = "Impossible to generate SHA1 key";
-        return false;
-    }
+    con_info->fAnswerstring = "Impossible to generate SHA1 key";
+    return false;
 }
 
 // Create DSP Instance
@@ -558,6 +555,9 @@ bool Server::createInstance(connection_info_struct* con_info){
         printf("Instance\n");
         
         slave_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCV, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
+        
+        if(dsp)
+            dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
         
         pthread_t myNewThread;
         
