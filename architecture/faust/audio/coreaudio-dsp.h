@@ -686,19 +686,31 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         // Setting buffer size
         OSStatus err = noErr;
         UInt32 tmp_buffer_size = buffer_size;
-        UInt32 outSize = sizeof(UInt32);
-
+        UInt32 outSize; 
+        AudioValueRange buffer_size_range;
+        
+        outSize = sizeof(AudioValueRange);
+        err = AudioDeviceGetProperty(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSizeRange, &outSize, &buffer_size_range);
+        if (err != noErr) {
+            printf("Cannot get buffer size range %ld\n", buffer_size);
+            printError(err);
+            return -1;
+        } else {
+            printf("SetupBufferSize : buffer size range min = %ld max = %ld\n", (int)buffer_size_range.mMinimum, (int)buffer_size_range.mMaximum);
+        }
+        
+        outSize = sizeof(UInt32);
         err = AudioDeviceGetProperty(fDeviceID, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyBufferFrameSize, &outSize, &tmp_buffer_size);
         if (err != noErr) {
             printf("Cannot get buffer size %ld\n", buffer_size);
             printError(err);
             return -1;
         } else {
-            printf("SetupBufferSize : current buffer size = %ld\n", tmp_buffer_size);
+            printf("SetupBufferSize : get buffer size %ld \n", buffer_size);
         }
 
         // If needed, set new buffer size
-        if (buffer_size != tmp_buffer_size) {
+        if (buffer_size != tmp_buffer_size && buffer_size >= (int)buffer_size_range.mMinimum && buffer_size <= (int)buffer_size_range.mMaximum) {
             tmp_buffer_size = buffer_size;
 
             // To get BS change notification
@@ -742,6 +754,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
             // Remove BS change notification
             AudioDeviceRemovePropertyListener(fDeviceID, 0, true, kAudioDevicePropertyBufferFrameSize, BSNotificationCallback);
+        } else {
+            printf("Keep buffer size = %ld\n", tmp_buffer_size);
         }
 
         return 0;
@@ -760,7 +774,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                                                      void* inClientData)
     {
         TCoreAudioRenderer* driver = (TCoreAudioRenderer*)inClientData;
-
+    
         switch (inPropertyID) {
 
             case kAudioDevicePropertyBufferFrameSize: {
