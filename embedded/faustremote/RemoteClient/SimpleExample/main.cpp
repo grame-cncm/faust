@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     
     printf("Factories List : \n");
     for(int i=0; i<factories_list.size(); i++)
-        printf("%s : %s\n", factories_list[i].second.c_str(), factories_list[i].first.c_str());
+        printf("%s : %s\n", factories_list[i].first.c_str(), factories_list[i].second.c_str());
     
     const char* arguments[32];
     int nbArgument = 0;
@@ -97,7 +97,10 @@ int main(int argc, char* argv[])
     
 //    remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
     
-    remote_dsp_factory* factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].first);
+    remote_dsp_factory* factory = 0;
+    
+    if (factories_list.size() > 0)
+        factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].second.c_str());
     
     if(factory != NULL){
                 

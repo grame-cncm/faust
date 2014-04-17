@@ -1,4 +1,6 @@
 
+
+#include <sstream>
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
 #include "faust/llvm-c-dsp.h"
@@ -9,8 +11,8 @@
 
 FactoryTableType remote_dsp_factory::gFactoryTable;
 
-// Standard Callback to store a server response in strinstream
-size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
+// Standard Callback to store a server response in stringstream
+static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 {
     std::ostream* os = static_cast<std::ostream*>(userp);
     std::streamsize len = size * nmemb;
@@ -42,9 +44,9 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
         
         CURLcode res = curl_easy_perform(curl);
         
-        if(res != CURLE_OK)
+        if (res != CURLE_OK) {
             errorCode = ERROR_CURL_CONNECTION;
-        else{
+        } else{
             
             long respcode; //response code of the http transaction
             
@@ -154,8 +156,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
         else if(errorCode != -1){
             error = "Curl Connection Failed";
         }
-        else
+        else {
             error = response;
+        }
         
         curl_easy_cleanup(curl); //Standard CleanUp
     }
@@ -500,7 +503,6 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         }
 //      Meta Data declaration for group opening or closing
         else {
-            
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
         }
@@ -939,7 +941,7 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
         string finalIP = ip;
         finalIP += "/GetAvailableFactories";
             
-        std::ostringstream oss;
+        ostringstream oss;
             
         curl_easy_setopt(curl, CURLOPT_URL, finalIP.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
@@ -951,29 +953,25 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             
         if(res == CURLE_OK){
             
+             printf("remoteDSP::getRemoteFactoriesAvailable 1\n");    
+            
             long respcode; //response code of the http transaction
             
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
             if(respcode == 200){
-                
+ 
+                // PARSE RESPONSE TO EXTRACT KEY/VALUE
+
                 string response = oss.str();
+                stringstream os(response);   
+                string name, key;   
                 
-//                PARSE RESPONSE TO EXTRACT KEY/VALUE
-                
-                const char* p = response.c_str();
-                
-                while(*p != 0){
-                    
-                    string key, name;
-                    
-                    if(parseWord(p, key)){
-                        if(*p != 0 && parseWord(p, name)){
-                            factories_list->push_back(make_pair(name, key));
-                        }
-                    }
+                while (os >> key) {                
+                    os >> name;
+                    factories_list->push_back(make_pair(name, key));
                 }
-                
+                    
                 isSuccessfull = true;
             }
         }
