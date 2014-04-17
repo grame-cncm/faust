@@ -936,8 +936,13 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             renderer->Start();
             return 0;
         }
+    
+        int OpenDefault(dsp* DSP, int inChan, int outChan, int bufferSize, int& samplerate){
+            OpenDefault(inChan, outChan, bufferSize, samplerate);
+            set_dsp(DSP);
+        }
 
-        int OpenDefault(dsp* dsp, int inChan, int outChan, int bufferSize, int& samplerate)
+        int OpenDefault(int inChan, int outChan, int bufferSize, int& samplerate)
         {
             OSStatus err;
             UInt32 outSize;
@@ -947,7 +952,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             int in_nChannels = 0;
             int out_nChannels = 0;
             
-            fDSP = dsp;
             fDevNumInChans = inChan;
             fDevNumOutChans = outChan;
             
@@ -1312,6 +1316,11 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 return NO_ERR;
             }
         }
+    
+        void set_dsp(dsp* DSP)
+        {
+            fDSP = DSP;
+        }
 
 };
 
@@ -1339,6 +1348,7 @@ class coreaudio : public audio {
 			printf("Cannot open CoreAudio device\n");
 			return false;
 		}
+        fAudioDevice.set_dsp(DSP);
         // If -1 was given, fSampleRate will be changed by OpenDefault
         DSP->init(fSampleRate);
         return true;
