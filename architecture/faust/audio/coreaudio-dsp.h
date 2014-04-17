@@ -44,7 +44,6 @@
 
 #include <AudioToolbox/AudioConverter.h>
 #include <CoreAudio/CoreAudio.h>
-#include <CoreAudio/AudioHardwareDeprecated.h>
 #include <AudioUnit/AudioUnit.h>
 #include <CoreServices/CoreServices.h>
 
