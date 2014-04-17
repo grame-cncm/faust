@@ -50,8 +50,6 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
-////using namespace std;
-
 /******************************************************************************
 *******************************************************************************
 
@@ -926,15 +924,15 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         int GetBufferSize() {return fBufferSize;}
         int GetSampleRate() {return fSampleRate;}
         
-        static OSStatus property_listener_proc(AudioObjectID objectID, UInt32 numberAddresses,
+        static OSStatus PropertyListenerProc(AudioObjectID objectID, UInt32 numberAddresses,
                                                const AudioObjectPropertyAddress inAddresses[],
                                                void *clientData) 
         {
             TCoreAudioRenderer* renderer = (TCoreAudioRenderer*)clientData;
             renderer->Stop();
             renderer->Close();
-            int sampleRate = 44100;
-            renderer->OpenDefault(renderer->fDSP, renderer->fDevNumInChans, renderer->fDevNumOutChans, 512, sampleRate);
+            int sampleRate = renderer->fSampleRate;
+            renderer->OpenDefault(renderer->fDSP, renderer->fDevNumInChans, renderer->fDevNumOutChans, renderer->fBufferSize, sampleRate);
             renderer->Start();
             return 0;
         }
@@ -981,7 +979,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             property_address.mElement = kAudioObjectPropertyElementMaster;
             
             property_address.mSelector = kAudioHardwarePropertyDefaultInputDevice;
-            if (AudioObjectAddPropertyListener(kAudioObjectSystemObject, &property_address, property_listener_proc, this)) {
+            if (AudioObjectAddPropertyListener(kAudioObjectSystemObject, &property_address, PropertyListenerProc, this)) {
                 printf("AudioObjectAddPropertyListener() failed\n");
                 return OPEN_ERR;
             } else {
@@ -989,7 +987,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             }
             
             property_address.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-            if (AudioObjectAddPropertyListener(kAudioObjectSystemObject, &property_address, property_listener_proc, this)) {
+            if (AudioObjectAddPropertyListener(kAudioObjectSystemObject, &property_address, PropertyListenerProc, this)) {
                 printf("AudioObjectAddPropertyListener() failed\n");
                 return OPEN_ERR;
             } else {
@@ -1256,10 +1254,10 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             property_address.mElement = kAudioObjectPropertyElementMaster;
             
             property_address.mSelector = kAudioHardwarePropertyDefaultInputDevice;
-            AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &property_address, property_listener_proc, this);
+            AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &property_address, PropertyListenerProc, this);
             
             property_address.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-            AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &property_address, property_listener_proc, this);
+            AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &property_address, PropertyListenerProc, this);
              
             fClients--;
             
