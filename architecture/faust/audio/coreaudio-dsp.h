@@ -915,7 +915,12 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
     public:
 
         TCoreAudioRenderer()
-            :fDevNumInChans(0),fDevNumOutChans(0),fInChannel(0),fOutChannel(0),fDSP(0),fInputData(0),fDeviceID(0),fAUHAL(0),fState(false)
+            :fDevNumInChans(0),fDevNumOutChans(0),
+            fInChannel(0),fOutChannel(0),
+            fBufferSize(0),fSampleRate(0), 
+            fDSP(0),fInputData(0),
+            fDeviceID(0),fAUHAL(0),
+            fState(false)
         {}
 
         virtual ~TCoreAudioRenderer()
@@ -937,11 +942,23 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             return 0;
         }
     
-        int OpenDefault(dsp* DSP, int inChan, int outChan, int bufferSize, int& samplerate){
+        int OpenDefault(dsp* DSP, int inChan, int outChan, int bufferSize, int& samplerate)
+        {
+            fDevNumInChans = 0;
+            fDevNumOutChans = 0;
+            fInChannel = 0;
+            fOutChannel = 0;
+            fBufferSize = 0;
+            fSampleRate = 0;
+            fDSP = 0;
+            fInputData = 0;
+            fDeviceID = 0; 
+            fAUHAL = 0;
+            fState = false;
             OpenDefault(inChan, outChan, bufferSize, samplerate);
             set_dsp(DSP);
         }
-
+    
         int OpenDefault(int inChan, int outChan, int bufferSize, int& samplerate)
         {
             OSStatus err;
@@ -1272,7 +1289,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             for (int i = 0; i < fDevNumInChans; i++) {
                 free(fInputData->mBuffers[i].mData);
             }
-            free(fInputData);
+            if (fInputData) {
+                free(fInputData);
+            }
             AudioUnitUninitialize(fAUHAL);
             // It seems that CloseComponent can not be called when an aggregated devcie has been created....
             if (fAggregateDeviceID == -1) {
