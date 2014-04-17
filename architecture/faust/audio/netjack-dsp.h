@@ -211,7 +211,9 @@ class netjackaudio : public audio
 
         virtual void stop() 
         {
-            jack_net_slave_deactivate(fNet);
+            if (fNet) {
+                jack_net_slave_deactivate(fNet);
+            }
         }
         
         virtual int get_buffer_size() { return fResult.buffer_size; }
