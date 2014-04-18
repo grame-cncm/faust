@@ -950,15 +950,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             int bufferSize = (renderer->fBufferSize > 0) ? renderer->fBufferSize : 512; // Use default if needed
             renderer->OpenDefault(renderer->fDSP, renderer->fDevNumInChans, renderer->fDevNumOutChans, bufferSize, sampleRate);
             renderer->Start();
-            printf("RestartProc numberAddresses %d\n", numberAddresses);
-            printf("kAudioHardwarePropertyDefaultInputDevice %d\n", kAudioHardwarePropertyDefaultInputDevice);
-            printf("kAudioHardwarePropertyDefaultOuputDevice %d\n", kAudioHardwarePropertyDefaultOutputDevice);
-            
-            for (int i= 0; i < numberAddresses; i++) {
-                printf("mSelector %d\n", inAddresses[i].mSelector);
-                printf("mScope %d\n", inAddresses[i].mScope);
-                printf("mElement %d\n", inAddresses[i].mElement);
-            }
             return 0;
         }
     
