@@ -15,18 +15,15 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <list>
-
-#include <microhttpd.h>
-#include <pthread.h>
-
 #include <map>
 #include <vector>
 
+#include <microhttpd.h>
 #include <dns_sd.h>
 
 #include "faust/audio/netjack-dsp.h"
 #include "faust/llvm-dsp.h"
-#include "TMutex.h"
+#include "../TMutex.h"
 
 #define POSTBUFFERSIZE 512
 #define GET 0

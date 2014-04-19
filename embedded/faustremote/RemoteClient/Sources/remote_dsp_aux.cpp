@@ -285,12 +285,13 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         string response("");
         int errorCode = -1;
         
-        if(send_request(serverIP, finalRequest, response, errorCode)){
+        if (send_request(serverIP, finalRequest, response, errorCode)){
             factory->decodeJson(response);
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         }
-        else if(errorCode != -1){
+        //else if(errorCode != -1){ ??
+        else {
             delete factory;
             return NULL;
         }
@@ -849,73 +850,84 @@ EXPORT void remote_dsp::stopAudio()
 //------ DISCOVERY OF AVAILABLE MACHINES
 
 //--- Callback whenever a server in the regtype/replyDomain is found
-static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context ){
+
+static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context )
+{
+    remote_DNS* dsn = (remote_DNS*)context;
     
-    map<string, pair<string,int> >* machineList = (map<string, pair< string, int> >*)context;
-    
-    string serviceNameCpy(serviceName);
-    
-    int pos = serviceNameCpy.find("._");
-    string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-    pos = remainingString.find("._");
-    string serviceIP = remainingString.substr(0, pos);
-    string hostName = remainingString.substr(pos+2, string::npos);
-    
-    if (flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing){
-     
-        int pos = serviceIP.find(":");
-        string ipAddr = serviceIP.substr(0, pos);
-        string port = serviceIP.substr(pos+1, string::npos);
-        (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+    if (dsn->fLocker.Lock()) {
         
-    } else {
-        machineList->erase(hostName);
+        string serviceNameCpy(serviceName);
+        int pos = serviceNameCpy.find("._");
+        string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+        pos = remainingString.find("._");
+        string serviceIP = remainingString.substr(0, pos);
+        string hostName = remainingString.substr(pos+2, string::npos);
+        
+        if (flags == kDNSServiceFlagsAdd || flags == kDNSServiceFlagsMoreComing) {
+            int pos = serviceIP.find(":");
+            string ipAddr = serviceIP.substr(0, pos);
+            string port = serviceIP.substr(pos+1, string::npos);
+            dsn->fMachineList[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+        } else {
+            dsn->fMachineList.erase(hostName);
+        }
+        
+        dsn->fLocker.Unlock();
     }
 }
 
 //--- Research of available remote machines
 
-EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList){
-    
-    DNSServiceRef sd;
-    
-//  Initialize DNSServiceREF && bind it to its callback
-    
-    if (DNSServiceBrowse(&sd, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
-        
-//      SELECT IS USED TO SET TIMEOUT  
+static remote_DNS* gDNS = NULL;
 
-        int fd = DNSServiceRefSockFD(sd);
-        int count = 50;
-        
-        while (count-- > 0) {
-            
-            fd_set readfds;
-            FD_ZERO(&readfds);
-            FD_SET(fd, &readfds);
-            struct timeval tv = { 0, 100000 };
-            
-            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
-                && FD_ISSET(fd, &readfds) 
-                && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
-                break;
-            }
-        }
-        
-//      Cleanup DNSService  
+__attribute__((constructor)) static void initialize_libfaustremote() 
+{
+    gDNS = new remote_DNS();
+}
 
-        DNSServiceRefDeallocate(sd);
-        return true;
-    } else {
-        return false;
+__attribute__((destructor)) static void destroy_libfaustremote()
+{
+    delete gDNS;
+}
+
+void* remote_DNS::scanFaustRemote(void* arg)
+{
+    remote_DNS* dsn = (remote_DNS*)arg;
+    while (true) {
+        DNSServiceProcessResult(dsn->fDNSDevice);
     }
 }
 
+remote_DNS::remote_DNS()
+{
+    DNSServiceErrorType err1; 
+    int err2;
+    
+    if ((err1 = DNSServiceBrowse(&fDNSDevice, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, this)) != kDNSServiceErr_NoError) {
+        printf("remote_DNS : DNSServiceBrowse fails err = %d\n", (int)err1);
+    } else if ((err2 = pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this)) != 0) {
+        printf("remote_DNS : pthread_create fails err = %d\n", (int)err2);
+    }
+}
+                                
+remote_DNS::~remote_DNS()
+{
+    DNSServiceRefDeallocate(fDNSDevice);
+}
 
-// ---------------------------------------------------------------------
-//                          Elementary parsers
-// ---------------------------------------------------------------------
+// Public API
 
+EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList)
+{
+    if (gDNS && gDNS->fLocker.Lock()) {
+        *machineList = gDNS->fMachineList;
+        gDNS->fLocker.Unlock();
+        return true;
+    } else {
+       return false; 
+    }
+}
 
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
@@ -953,7 +965,7 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             
         if(res == CURLE_OK){
             
-             printf("remoteDSP::getRemoteFactoriesAvailable 1\n");    
+            printf("remoteDSP::getRemoteFactoriesAvailable 1\n");    
             
             long respcode; //response code of the http transaction
             
@@ -962,7 +974,7 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             if(respcode == 200){
  
                 // PARSE RESPONSE TO EXTRACT KEY/VALUE
-
+                
                 string response = oss.str();
                 stringstream os(response);   
                 string name, key;   

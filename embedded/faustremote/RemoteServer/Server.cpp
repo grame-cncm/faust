@@ -562,7 +562,7 @@ bool Server::createInstance(connection_info_struct* con_info){
         
         pthread_t myNewThread;
         
-        if(dsp && !pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp)){
+        if(dsp && !pthread_create(&myNewThread, NULL, Server::start_audioSlave, dsp)){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {
