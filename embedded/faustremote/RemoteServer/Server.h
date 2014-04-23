@@ -22,7 +22,9 @@
 #include <map>
 #include <vector>
 
+#ifdef __APPLE__
 #include <dns_sd.h>
+#endif
 
 #include "faust/audio/netjack-dsp.h"
 #include "faust/llvm-dsp.h"
@@ -166,6 +168,7 @@ void deleteSlaveDSPInstance(slave_dsp* smartPtr);
 class Server{
         
     string          fError;
+	string 			fNameRegisterService;
         
 public :
         
@@ -183,8 +186,10 @@ public :
         
     struct          MHD_Daemon* fDaemon; //Running http daemon
         
+#ifdef __APPLE
     DNSServiceRef*  fRegistrationService;
-    int             fPort; //Port on which server started
+#endif    
+	int             fPort; //Port on which server started
     
 //  Start server on specified port 
     bool            start(int port = 7777);

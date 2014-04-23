@@ -19,6 +19,10 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
+
+#include "linux_server/client-publish-service.h"
+
+
 enum{
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED
@@ -130,7 +134,7 @@ bool Server::start(int port){
                                request_completed, NULL, MHD_OPTION_END);
 
     if(fDaemon){
-        fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
+        //fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
         registration();
         return true;
     } else {
@@ -141,15 +145,16 @@ bool Server::start(int port){
 void Server::stop(){
    
     if (fDaemon) {
-        
-        string nameService;
-        
-        nameService = searchIP();
-        nameService += ".RemoteProcessing";
+ 
+ #ifdef __APPLE__
         
 //      Is it really important to unregister or is it automatic ?
         DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL);
         DNSServiceRefDeallocate(*fRegistrationService);
+#else
+		stopRegisterService(fNameRegisterService.c_str());
+#endif
+        
         MHD_stop_daemon(fDaemon);
     }
     
@@ -559,21 +564,49 @@ bool Server::createInstance(connection_info_struct* con_info){
 
 string searchIP(){
     
-    char host_name[256];
-    gethostname(host_name, sizeof(host_name));
+    //char host_name[256];
+    //gethostname(host_name, sizeof(host_name));
     
-    struct hostent* host = gethostbyname(host_name);
+    //struct hostent* host = gethostbyname(host_name);
     
-    if(host){
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = PF_UNSPEC;
+    hints.ai_flags = AI_ADDRCONFIG;
+    
+    struct addrinfo* result = 0;
+    int res = getaddrinfo("orlarey-Dell-XPS420", NULL, &hints, &result);
+    
+    if(res == EAI_BADFLAGS){
+		hints.ai_flags = 0;
+		res = getaddrinfo("orlarey-Dell-XPS420", NULL, &hints, &result);
+	}
+    struct addrinfo* resultat = result;
+    while(resultat!= NULL){
+	
+		struct sockaddr_in* addr = (struct sockaddr_in*)resultat->ai_addr;
+		printf("HOST ADDR = %s\n", inet_ntoa(addr->sin_addr));
+		resultat = resultat->ai_next;
+	}
+	
+	freeaddrinfo(result);
+    
+    /*if(host){
         
         for(int i=0; host->h_addr_list[i] != 0; i++){
+			
             struct in_addr addr;
             memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            return string(inet_ntoa(addr));
+            
+            printf("ADDRESS FOUND = %s\n", inet_ntoa(addr));
+            
+            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)   
+            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)   
+				return string(inet_ntoa(addr));
         }
-    }
+    }*/
     
-    return "";
+    return "127.0.0.1";
 }
 
 // Register server as available
@@ -587,17 +620,23 @@ void Server::registration(){
     stringstream p;
     p<<fPort;
     
-    string nameService = "._";
+    fNameRegisterService = "._";
     
-    nameService += searchIP();
-    nameService += ":";
-    nameService += p.str();
-    nameService += "._";
-    nameService += host_name;
+    fNameRegisterService += searchIP();
+    fNameRegisterService += ":";
+    fNameRegisterService += p.str();
+    fNameRegisterService += "._";
+    fNameRegisterService += host_name;
     
-    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, nameService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError) {
+#ifdef __APPLE__
+    
+    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, fNameRegisterService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError) {
         printf("ERROR DURING REGISTRATION\n");
     }
+#else
+	launchRegisterService(fNameRegisterService.c_str());
+#endif
+
 }
 
 
