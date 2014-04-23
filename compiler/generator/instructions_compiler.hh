@@ -136,6 +136,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
         virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
         virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
+        virtual ValueInst* forceCacheCode(Tree sig, ValueInst* inst);
 
         // Code generation
         virtual ValueInst* generateCode(Tree sig);

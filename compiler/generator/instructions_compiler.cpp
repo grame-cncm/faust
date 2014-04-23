@@ -489,6 +489,33 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 	}
 }
 
+// like generateCacheCode but we force caching like if sharing was always > 1
+ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
+{
+   ValueInst* code;
+	Occurences* o = fOccMarkup.retrieve(sig);
+    
+	// check reentrance
+    if (getCompiledExpression(sig, code)) {
+        return code;
+    }
+    
+    string vname;
+    Typed::VarType ctype;
+    
+	// check for expression occuring in delays
+	if (o->getMaxDelay()>0) {
+        
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
+        return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
+        
+	} else  {
+        
+        return generateVariableStore(sig, exp);
+        
+	}
+}
+
 ValueInst* InstructionsCompiler::CS(Tree sig)
 {
     ValueInst* code;
@@ -680,7 +707,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations
-        return generateVariableStore(sig, res);
+        return forceCacheCode(sig, res);
     } else {
         return generateCacheCode(sig, res);
     }
