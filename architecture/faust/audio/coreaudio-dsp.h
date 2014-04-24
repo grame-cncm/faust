@@ -420,8 +420,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             CFMutableDictionaryRef aggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             
-            CFStringRef AggregateDeviceNameRef = CFSTR("JackDuplex");
-            CFStringRef AggregateDeviceUIDRef = CFSTR("com.grame.JackDuplex");
+            CFStringRef AggregateDeviceNameRef = CFSTR("CoreAudio");
+            CFStringRef AggregateDeviceUIDRef = CFSTR("com.grame.CoreAudio");
             
             // add the name of the device to the dictionary
             CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceNameKey), AggregateDeviceNameRef);
