@@ -16,7 +16,7 @@ DESTDIR       =
 TARGET        = ./RemoteServer
 ####### Files
 
-SOURCES       = Server.cpp main.cpp ../utilities.cpp linux_server/client-publish-service.c linux_server/avahi-client/client.c linux_server/avahi-common/alternative.c linux_server/avahi-common/simple-watch.c linux_server/avahi-common/malloc.c linux_server/avahi-common/error.c linux_server/avahi-common/timeval.c linux_server/avahi-common/cdecl.c linux_server/avahi-common/address.c linux_server/avahi-common/strlst.c linux_server/avahi-common/defs.c linux_server/avahi-common/watch.c linux_server/avahi-common/gccmacro.c linux_server/avahi-common/domain.c linux_server/avahi-common/utf8.c linux_server/avahi-common/i18n.c linux_server/avahi-common/dbus.c linux_server/avahi-common/dbus-watch-glue.c linux_server/avahi-client/browser.c linux_server/avahi-client/xdg-open.c linux_server/avahi-client/resolver.c linux_server/avahi-client/entrygroup.c
+SOURCES       = Server.cpp main.cpp ../utilities.cpp linux_server/client-publish-service.c linux_server/avahi-client/client.c ../dns_avahi/avahi-common/alternative.c ../dns_avahi/avahi-common/simple-watch.c ../dns_avahi/avahi-common/malloc.c ../dns_avahi/avahi-common/error.c ../dns_avahi/avahi-common/timeval.c ../dns_avahi/avahi-common/cdecl.c ../dns_avahi/avahi-common/address.c ../dns_avahi/avahi-common/strlst.c ../dns_avahi/avahi-common/defs.c ../dns_avahi/avahi-common/watch.c ../dns_avahi/avahi-common/gccmacro.c ../dns_avahi/avahi-common/domain.c ../dns_avahi/avahi-common/utf8.c ../dns_avahi/avahi-common/i18n.c ../dns_avahi/avahi-common/dbus.c ../dns_avahi/avahi-common/dbus-watch-glue.c ../dns_avahi/avahi-client/browser.c ../dns_avahi/avahi-client/xdg-open.c ../dns_avahi/avahi-client/resolver.c ../dns_avahi/avahi-client/entrygroup.c
 				 
 OBJECTS       = Server.o main.o utilities.o client-publish-service.o client.o alternative.o simple-watch.o malloc.o error.o timeval.o address.o strlst.o domain.o utf8.o i18n.o dbus.o dbus-watch-glue.o browser.o xdg-config.o resolver.o entrygroup.o
 
@@ -46,57 +46,57 @@ utilities.o: ../utilities.h
 
 ####### Compile
 
-client-publish-service.o: linux_server/client-publish-service.c linux_server/client-publish-service.h linux_server/avahi-client/client.h linux_server/avahi-client/publish.h linux_server/avahi-common/alternative.h linux_server/avahi-common/simple-watch.h linux_server/avahi-common/malloc.h linux_server/avahi-common/error.h linux_server/avahi-common/timeval.h
+client-publish-service.o: linux_server/client-publish-service.c linux_server/client-publish-service.h ../dns_avahi/avahi-client/client.h ../dns_avahi/avahi-client/publish.h ../dns_avahi/avahi-common/alternative.h ../dns_avahi/avahi-common/simple-watch.h ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/error.h ../dns_avahi/avahi-common/timeval.h
 	$(CC) -c $(CXXFLAGS) $(INCPATH) -o client-publish-service.o linux_server/client-publish-service.c
 
-client.o: linux_server/avahi-client/client.c linux_server/avahi-client/client.h linux_server/avahi-common/cdecl.h linux_server/avahi-common/address.h linux_server/avahi-common/strlst.h linux_server/avahi-common/defs.h linux_server/avahi-common/watch.h linux_server/avahi-common/gccmacro.h linux_server/avahi-common/dbus.h linux_server/avahi-common/llist.h linux_server/avahi-common/error.h linux_server/avahi-common/malloc.h linux_server/avahi-common/dbus-watch-glue.h linux_server/avahi-common/i18n.h linux_server/avahi-client/internal.h linux_server/avahi-client/browser.c
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o client.o linux_server/avahi-client/client.c
+client.o: ../dns_avahi/avahi-client/client.c ../dns_avahi/avahi-client/client.h ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/address.h ../dns_avahi/avahi-common/strlst.h ../dns_avahi/avahi-common/defs.h ../dns_avahi/avahi-common/watch.h ../dns_avahi/avahi-common/gccmacro.h ../dns_avahi/avahi-common/dbus.h ../dns_avahi/avahi-common/llist.h ../dns_avahi/avahi-common/error.h ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/dbus-watch-glue.h ../dns_avahi/avahi-common/i18n.h ../dns_avahi/avahi-client/internal.h ../dns_avahi/avahi-client/browser.c
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o client.o ../dns_avahi/avahi-client/client.c
 
-alternative.o: linux_server/avahi-common/alternative.h linux_server/avahi-common/alternative.c linux_server/avahi-common/cdecl.h linux_server/avahi-common/malloc.h linux_server/avahi-common/domain.h linux_server/avahi-common/utf8.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o alternative.o linux_server/avahi-common/alternative.c
+alternative.o: ../dns_avahi/avahi-common/alternative.h ../dns_avahi/avahi-common/alternative.c ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/domain.h ../dns_avahi/avahi-common/utf8.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o alternative.o ../dns_avahi/avahi-common/alternative.c
 
-simple-watch.o: linux_server/avahi-common/simple-watch.h linux_server/avahi-common/simple-watch.c linux_server/avahi-common/cdecl.h linux_server/avahi-common/watch.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o simple-watch.o linux_server/avahi-common/simple-watch.c
+simple-watch.o: ../dns_avahi/avahi-common/simple-watch.h ../dns_avahi/avahi-common/simple-watch.c ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/watch.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o simple-watch.o ../dns_avahi/avahi-common/simple-watch.c
 
-malloc.o: linux_server/avahi-common/malloc.h linux_server/avahi-common/cdecl.h linux_server/avahi-common/gccmacro.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o malloc.o linux_server/avahi-common/malloc.c
+malloc.o: ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/gccmacro.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o malloc.o ../dns_avahi/avahi-common/malloc.c
 
-error.o: linux_server/avahi-common/error.h linux_server/avahi-common/error.c linux_server/avahi-common/cdecl.h linux_server/avahi-common/i18n.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o error.o linux_server/avahi-common/error.c
+error.o: ../dns_avahi/avahi-common/error.h ../dns_avahi/avahi-common/error.c ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/i18n.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o error.o ../dns_avahi/avahi-common/error.c
 
-timeval.o: linux_server/avahi-common/timeval.h linux_server/avahi-common/timeval.c linux_server/avahi-common/cdecl.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o timeval.o linux_server/avahi-common/timeval.c
+timeval.o: ../dns_avahi/avahi-common/timeval.h ../dns_avahi/avahi-common/timeval.c ../dns_avahi/avahi-common/cdecl.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o timeval.o ../dns_avahi/avahi-common/timeval.c
 
-address.o: linux_server/avahi-common/address.h linux_server/avahi-common/address.c linux_server/avahi-common/cdecl.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o address.o linux_server/avahi-common/address.c
+address.o: ../dns_avahi/avahi-common/address.h ../dns_avahi/avahi-common/address.c ../dns_avahi/avahi-common/cdecl.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o address.o ../dns_avahi/avahi-common/address.c
 
-strlst.o: linux_server/avahi-common/strlst.h linux_server/avahi-common/strlst.c linux_server/avahi-common/cdecl.h linux_server/avahi-common/gccmacro.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o strlst.o linux_server/avahi-common/strlst.c
+strlst.o: ../dns_avahi/avahi-common/strlst.h ../dns_avahi/avahi-common/strlst.c ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/gccmacro.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o strlst.o ../dns_avahi/avahi-common/strlst.c
 
-domain.o: linux_server/avahi-common/domain.h linux_server/avahi-common/domain.c linux_server/avahi-common/malloc.h linux_server/avahi-common/error.h linux_server/avahi-common/address.h linux_server/avahi-common/utf8.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o domain.o linux_server/avahi-common/domain.c
+domain.o: ../dns_avahi/avahi-common/domain.h ../dns_avahi/avahi-common/domain.c ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/error.h ../dns_avahi/avahi-common/address.h ../dns_avahi/avahi-common/utf8.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o domain.o ../dns_avahi/avahi-common/domain.c
 
-utf8.o: linux_server/avahi-common/utf8.h linux_server/avahi-common/utf8.c linux_server/avahi-common/cdecl.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o utf8.o linux_server/avahi-common/utf8.c
+utf8.o: ../dns_avahi/avahi-common/utf8.h ../dns_avahi/avahi-common/utf8.c ../dns_avahi/avahi-common/cdecl.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o utf8.o ../dns_avahi/avahi-common/utf8.c
 
-i18n.o: linux_server/avahi-common/i18n.h linux_server/avahi-common/i18n.c
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o i18n.o linux_server/avahi-common/i18n.c 
+i18n.o: ../dns_avahi/avahi-common/i18n.h ../dns_avahi/avahi-common/i18n.c
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o i18n.o ../dns_avahi/avahi-common/i18n.c 
 
-dbus.o: linux_server/avahi-common/dbus.c linux_server/avahi-common/dbus.c linux_server/avahi-common/cdecl.h linux_server/avahi-common/error.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o dbus.o linux_server/avahi-common/dbus.c
+dbus.o: ../dns_avahi/avahi-common/dbus.c ../dns_avahi/avahi-common/dbus.c ../dns_avahi/avahi-common/cdecl.h ../dns_avahi/avahi-common/error.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o dbus.o ../dns_avahi/avahi-common/dbus.c
 
-dbus-watch-glue.o: linux_server/avahi-common/dbus-watch-glue.c linux_server/avahi-common/dbus-watch-glue.c linux_server/avahi-common/malloc.h linux_server/avahi-common/timeval.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o dbus-watch-glue.o linux_server/avahi-common/dbus-watch-glue.c 
+dbus-watch-glue.o: ../dns_avahi/avahi-common/dbus-watch-glue.c ../dns_avahi/avahi-common/dbus-watch-glue.c ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/timeval.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o dbus-watch-glue.o ../dns_avahi/avahi-common/dbus-watch-glue.c 
 
-browser.o: linux_server/avahi-client/browser.c linux_server/avahi-common/dbus.h linux_server/avahi-common/llist.h linux_server/avahi-common/error.h linux_server/avahi-common/malloc.h linux_server/avahi-common/domain.h linux_server/avahi-client/client.h linux_server/avahi-client/internal.h linux_server/avahi-client/xdg-config.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o browser.o linux_server/avahi-client/browser.c 
+browser.o: ../dns_avahi/avahi-client/browser.c ../dns_avahi/avahi-common/dbus.h ../dns_avahi/avahi-common/llist.h ../dns_avahi/avahi-common/error.h ../dns_avahi/avahi-common/malloc.h ../dns_avahi/avahi-common/domain.h ../dns_avahi/avahi-client/client.h ../dns_avahi/avahi-client/internal.h ../dns_avahi/avahi-client/xdg-config.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o browser.o ../dns_avahi/avahi-client/browser.c 
 
-xdg-config.o: linux_server/avahi-client/xdg-config.c linux_server/avahi-client/xdg-config.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o xdg-config.o linux_server/avahi-client/xdg-config.c
+xdg-config.o: ../dns_avahi/avahi-client/xdg-config.c ../dns_avahi/avahi-client/xdg-config.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o xdg-config.o ../dns_avahi/avahi-client/xdg-config.c
 
-resolver.o: linux_server/avahi-client/resolver.c linux_server/avahi-client/lookup.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o resolver.o linux_server/avahi-client/resolver.c
+resolver.o: ../dns_avahi/avahi-client/resolver.c ../dns_avahi/avahi-client/lookup.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o resolver.o ../dns_avahi/avahi-client/resolver.c
 
-entrygroup.o: linux_server/avahi-client/entrygroup.c linux_server/avahi-client/lookup.h
-	$(CC) -c $(CXXFLAGS) $(INCPATH) -o entrygroup.o linux_server/avahi-client/entrygroup.c
+entrygroup.o: ../dns_avahi/avahi-client/entrygroup.c ../dns_avahi/avahi-client/lookup.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o entrygroup.o ../dns_avahi/avahi-client/entrygroup.c
 

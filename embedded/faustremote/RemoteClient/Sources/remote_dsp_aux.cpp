@@ -944,6 +944,20 @@ void browse_callback(
 	printf("Browse callback success\n");
 }
 
+void client_callback(AvahiClient *c, AvahiClientState state, void * userdata) {
+
+	remote_DNS * dsn = (remote_DNS*)userdata;
+	printf("CLIENT FAILURE\n");
+    assert(c);
+
+    /* Called whenever the client or server state changes */
+
+    if (state == AVAHI_CLIENT_FAILURE) {
+        fprintf(stderr, "Server connection failure: %s\n", avahi_strerror(avahi_client_errno(c)));
+        avahi_simple_poll_quit(dsn->fPoll);
+    }
+}
+
 #endif
 //--- Research of available remote machines
 
@@ -994,7 +1008,7 @@ remote_DNS::remote_DNS()
         return;
 
     /* Allocate a new client */
-    fClient = avahi_client_new(avahi_simple_poll_get(fPoll), (AvahiClientFlags)0, NULL, NULL, &error);
+    fClient = avahi_client_new(avahi_simple_poll_get(fPoll), (AvahiClientFlags)0, client_callback, this, &error);
 
     /* Check wether creating the client object succeeded */
     if (!fClient)

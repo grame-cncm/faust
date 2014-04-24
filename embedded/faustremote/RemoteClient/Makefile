@@ -6,3 +6,6 @@ all:
 clean:
 	make -f Makefile_$(os) clean
 
+install:
+	make -f Makefile_$(os) install
+
