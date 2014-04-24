@@ -83,4 +83,56 @@ int lopt_Spe(int i, char *argv[], const char *name, char* path)
     return 0;
 }
 
+//------------------------REGISTRATION TO DISCOVERY SYSTEM
+#include <stdio.h>      
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h> 
+#include <string.h> 
+#include <arpa/inet.h>
+#include <netdb.h>
+
+string searchIP()
+{
+    
+#ifdef __linux__
+	struct ifaddrs * ifAddrStruct=NULL;
+    struct ifaddrs * ifa=NULL;
+    void * tmpAddrPtr=NULL;
+    
+    getifaddrs(&ifAddrStruct);
+    
+    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa ->ifa_addr->sa_family==AF_INET) { // check it is IP4
+            // is a valid IP4 Address
+            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+            printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+			
+			if(strcmp(addressBuffer, "127.0.0.1") != 0)
+				return string(addressBuffer);
+		}  
+    }
+    if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
+#else
+    char host_name[256];
+    gethostname(host_name, sizeof(host_name));
+    
+    struct hostent* host = gethostbyname(host_name);
+    
+    if(host){
+        
+        for(int i=0; host->h_addr_list[i] != 0; i++){
+			
+            struct in_addr addr;
+            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
+            
+            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)
+				return string(inet_ntoa(addr));
+        }
+    }
+#endif
+    return "127.0.0.1";
+}
 

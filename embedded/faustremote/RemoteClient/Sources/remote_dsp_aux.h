@@ -41,7 +41,7 @@
 #include "JsonParser.h"
 #include "../../../../compiler/generator/smartpointer.h"
 
-#ifdef __APPLE
+#ifdef __APPLE__
 #include <dns_sd.h>
 #else
 

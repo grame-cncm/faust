@@ -5,6 +5,8 @@
 
 using namespace std;
 
+std::string searchIP();
+
 string pathToContent(const string& path);
 
 bool isInt(const char* word);
