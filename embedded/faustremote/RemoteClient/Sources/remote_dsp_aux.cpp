@@ -683,7 +683,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int sampling_rate, int b
     
 // Parse NetJack Parameters
     string finalRequest = "NJ_ip=";
-    finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", DEFAULT_MULTICAST_IP));
+    finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str()));
 
     finalRequest += "&NJ_port=";
     finalRequest += string(port);

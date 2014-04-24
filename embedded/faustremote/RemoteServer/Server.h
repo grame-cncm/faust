@@ -189,7 +189,7 @@ public :
         
     struct          MHD_Daemon* fDaemon; //Running http daemon
         
-#ifdef __APPLE
+#ifdef __APPLE__
     DNSServiceRef*  fRegistrationService;
 #endif    
 	int             fPort; //Port on which server started
@@ -237,7 +237,7 @@ public :
     void        stopAudio(const string& shakey);
     
 // Register Service as Available
-    void        registration();
+    bool        registration();
 };
     
 #endif

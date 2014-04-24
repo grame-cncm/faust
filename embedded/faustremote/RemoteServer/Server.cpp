@@ -19,8 +19,9 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
-
+#ifdef __linux__
 #include "linux_server/client-publish-service.h"
+#endif
 
 
 enum{
@@ -132,9 +133,8 @@ bool Server::start(int port){
                                request_completed, NULL, MHD_OPTION_END);
 
     if(fDaemon){
-        //fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
-        registration();
-        return true;
+        fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
+        return registration();
     } else {
         return false;
     }
@@ -144,10 +144,10 @@ void Server::stop(){
    
     if (fDaemon) {
  
- #ifdef __APPLE__
+#ifdef __APPLE__
         
 //      Is it really important to unregister or is it automatic ?
-        DNSServiceRegister(fRegistrationService, 0, 0, nameService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL);
+        DNSServiceRegister(fRegistrationService, 0, 0, fNameRegisterService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL);
         DNSServiceRefDeallocate(*fRegistrationService);
 #else
 		stopRegisterService(fNameRegisterService.c_str());
@@ -587,58 +587,8 @@ bool Server::createInstance(connection_info_struct* con_info){
     }    
 }
 
-//------------------------REGISTRATION TO DISCOVERY SYSTEM
-#include <stdio.h>      
-#include <sys/types.h>
-#include <ifaddrs.h>
-#include <netinet/in.h> 
-#include <string.h> 
-#include <arpa/inet.h>
-string searchIP(){
-    
-#ifdef __linux__
-	struct ifaddrs * ifAddrStruct=NULL;
-    struct ifaddrs * ifa=NULL;
-    void * tmpAddrPtr=NULL;
-
-    getifaddrs(&ifAddrStruct);
-
-    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa ->ifa_addr->sa_family==AF_INET) { // check it is IP4
-            // is a valid IP4 Address
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            char addressBuffer[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
-			
-			if(strcmp(addressBuffer, "127.0.0.1") != 0)
-				return string(addressBuffer);
-		}  
-    }
-    if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
-#else
-    char host_name[256];
-    gethostname(host_name, sizeof(host_name));
-    
-    struct hostent* host = gethostbyname(host_name);
-    
-    if(host){
-        
-        for(int i=0; host->h_addr_list[i] != 0; i++){
-			
-            struct in_addr addr;
-            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            
-            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)
-				return string(inet_ntoa(addr));
-        }
-    }
-#endif
-    return "127.0.0.1";
-}
-
 // Register server as available
-void Server::registration(){
+bool Server::registration(){
     
     printf("SERVICE REGISTRATION\n");
     
@@ -657,12 +607,14 @@ void Server::registration(){
     fNameRegisterService += host_name;
     
 #ifdef __APPLE__
-    
     if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, fNameRegisterService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError) {
         printf("ERROR DURING REGISTRATION\n");
+        return false;
+    } else {
+        return true;
     }
 #else
-	launchRegisterService(fNameRegisterService.c_str());
+	return launchRegisterService(fNameRegisterService.c_str());
 #endif
 
 }
