@@ -28,14 +28,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "avahi-client/client.h"
-#include "avahi-client/publish.h"
+#include "../../dns_avahi/avahi-client/client.h"
+#include "../../dns_avahiavahi-client/publish.h"
 
-#include "avahi-common/alternative.h"
-#include "avahi-common/simple-watch.h"
-#include "avahi-common/malloc.h"
-#include "avahi-common/error.h"
-#include "avahi-common/timeval.h"
+#include "../../dns_avahiavahi-common/alternative.h"
+#include "../../dns_avahiavahi-common/simple-watch.h"
+#include "../../dns_avahiavahi-common/malloc.h"
+#include "../../dns_avahiavahi-common/error.h"
+#include "../../dns_avahiavahi-common/timeval.h"
 
 #include <stdio.h>
 #include <stdlib.h>
