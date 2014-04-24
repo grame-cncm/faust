@@ -22,7 +22,7 @@
 
 /** \file defs.h Some common definitions */
 
-#include <avahi-common/cdecl.h>
+#include "cdecl.h"
 
 /** \mainpage
  *

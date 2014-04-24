@@ -22,7 +22,7 @@
 
 /** \file error.h Error codes and auxiliary functions */
 
-#include <avahi-common/cdecl.h>
+#include "cdecl.h"
 
 AVAHI_C_DECL_BEGIN
 

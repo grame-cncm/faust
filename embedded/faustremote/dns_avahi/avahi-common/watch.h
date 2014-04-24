@@ -25,7 +25,7 @@
 #include <sys/poll.h>
 #include <sys/time.h>
 
-#include <avahi-common/cdecl.h>
+#include "cdecl.h"
 
 AVAHI_C_DECL_BEGIN
 

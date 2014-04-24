@@ -22,7 +22,7 @@
 
 /** \file gccmacro.h Defines some macros for GCC extensions */
 
-#include <avahi-common/cdecl.h>
+#include "cdecl.h"
 
 AVAHI_C_DECL_BEGIN
 

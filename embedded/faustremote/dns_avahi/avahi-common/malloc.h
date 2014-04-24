@@ -27,8 +27,8 @@
 #include <limits.h>
 #include <assert.h>
 
-#include <avahi-common/cdecl.h>
-#include <avahi-common/gccmacro.h>
+#include "cdecl.h"
+#include "gccmacro.h"
 
 AVAHI_C_DECL_BEGIN
 

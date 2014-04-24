@@ -3,7 +3,7 @@ SOURCES       = Sources/remote_dsp_aux.cpp Sources/JsonParser.cpp ../dns_avahi/a
 				 
 OBJECTS       = remote_dsp_aux.o JsonParser.o client.o simple-watch.o malloc.o error.o timeval.o address.o strlst.o domain.o utf8.o i18n.o dbus.o dbus-watch-glue.o browser.o xdg-config.o resolver.o entrygroup.o utilities.o
 
-INCPATH = -I. -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include   -DDBUS_VERSION_MAJOR=1 -DDBUS_VERSION_MINOR=4 -DDBUS_VERSION_MICRO=18 -DDBUS_API_SUBJECT_TO_CHANGE
+INCPATH = -I. -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I../dns_avahi -I../dns_avahi/avahi-client -I../dns_avahi/avahi-common -I.. -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include   -DDBUS_VERSION_MAJOR=1 -DDBUS_VERSION_MINOR=4 -DDBUS_VERSION_MICRO=18 -DDBUS_API_SUBJECT_TO_CHANGE
 
 os 	:= $(shell uname)
 system	?= $(shell uname -s)

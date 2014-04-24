@@ -22,7 +22,7 @@
 
 /** \file dbus.h Some definitions for the D-Bus interface */
 
-#include <avahi-common/cdecl.h>
+#include "cdecl.h"
 #include <dbus/dbus.h>
 
 AVAHI_C_DECL_BEGIN

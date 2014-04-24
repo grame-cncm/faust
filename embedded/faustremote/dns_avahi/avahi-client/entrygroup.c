@@ -28,10 +28,10 @@
 #include <dbus/dbus.h>
 
 #include "client.h"
-#include "../avahi-common/dbus.h"
-#include "../avahi-common/llist.h"
-#include "../avahi-common/error.h"
-#include "../avahi-common/malloc.h"
+#include "dbus.h"
+#include "llist.h"
+#include "error.h"
+#include "malloc.h"
 
 #include "internal.h"
 

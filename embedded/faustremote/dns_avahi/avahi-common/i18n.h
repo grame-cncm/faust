@@ -20,7 +20,7 @@
   USA.
 ***/
 
-#include "../config.h"
+#include "config.h"
 
 #if !defined(GETTEXT_PACKAGE)
 #error "Something is very wrong here, config.h needs to be included first"

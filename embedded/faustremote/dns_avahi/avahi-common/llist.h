@@ -24,7 +24,7 @@
 
 #include <assert.h>
 
-#include <avahi-common/cdecl.h>
+#include "cdecl.h"
 
 AVAHI_C_DECL_BEGIN
 
