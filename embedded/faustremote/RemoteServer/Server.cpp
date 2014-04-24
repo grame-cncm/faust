@@ -133,7 +133,10 @@ bool Server::start(int port){
                                request_completed, NULL, MHD_OPTION_END);
 
     if(fDaemon){
+		
+#ifdef __APPLE__
         fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
+#endif
         return registration();
     } else {
         return false;
