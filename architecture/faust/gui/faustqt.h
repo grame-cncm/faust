@@ -1396,7 +1396,7 @@ class QTGUI : public QObject, public GUI
     //
     // Returns the IP address of the machine (to be qrcoded)
     //
-    QString extractIPnum(int portnum)
+    QString extractIPnum()
     {
         QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
         
@@ -1419,7 +1419,10 @@ class QTGUI : public QObject, public GUI
     //
     void displayQRCode(int portnum)
     {
-    	QString url = extractIPnum(portnum);
+        QString url("http://");
+        url += extractIPnum();
+        url += ":";
+        url += QString::number(portnum);
         displayQRCode(url, NULL);
     }
 
@@ -1485,8 +1488,9 @@ class QTGUI : public QObject, public GUI
         mainLayout->addWidget(myBro, 0, 1);
         mainLayout->addWidget(myLabel, 1, 1);
         centralWidget->setLayout(mainLayout);
-        //    centralWidget->show();
-        //    centralWidget->adjustSize();
+            centralWidget->show();
+            centralWidget->adjustSize();
+            parent->show();
     }
     
     bool toPNG(const QString& filename, QString& error){

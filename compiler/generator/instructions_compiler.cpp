@@ -492,8 +492,8 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 // like generateCacheCode but we force caching like if sharing was always > 1
 ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
 {
-   ValueInst* code;
-	Occurences* o = fOccMarkup.retrieve(sig);
+    ValueInst* code;
+    Occurences* o = fOccMarkup.retrieve(sig);
     
 	// check reentrance
     if (getCompiledExpression(sig, code)) {

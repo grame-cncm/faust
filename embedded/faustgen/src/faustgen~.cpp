@@ -372,8 +372,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     
     // If OK read bitcode
     
-    post (" read bitcode fBitCodeSize %d\n", fBitCodeSize);
-    
+    //post("read bitcode fBitCodeSize %d\n", fBitCodeSize);
     
     fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);             // We need to use a size larger by one for the null terminator
     const char* bitcode;
@@ -383,7 +382,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
         fBitCodeSize = 0;
     }
     
-    post (" read bitcode fBitCodeSize OK %d\n", fBitCodeSize);
+    //post("read bitcode fBitCodeSize OK %d\n", fBitCodeSize);
 
 read_sourcecode:    
 
@@ -461,6 +460,7 @@ void faustgen_factory::open_svg()
 #else
 	sprintf(command, "open -a Safari \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
+    //post("open_svg %s", command);
 	system(command);
 }
 
