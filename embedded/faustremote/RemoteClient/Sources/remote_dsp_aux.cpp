@@ -1,7 +1,9 @@
 
+
+#include <sstream>
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
-#include "faust/llvm-dsp.h"
+#include "faust/llvm-c-dsp.h"
 #include "../../../../compiler/libfaust.h"
 
 #include <errno.h>
@@ -9,8 +11,8 @@
 
 FactoryTableType remote_dsp_factory::gFactoryTable;
 
-// Standard Callback to store a server response in strinstream
-size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
+// Standard Callback to store a server response in stringstream
+static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 {
     std::ostream* os = static_cast<std::ostream*>(userp);
     std::streamsize len = size * nmemb;
@@ -42,9 +44,9 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
         
         CURLcode res = curl_easy_perform(curl);
         
-        if(res != CURLE_OK)
+        if (res != CURLE_OK) {
             errorCode = ERROR_CURL_CONNECTION;
-        else{
+        } else{
             
             long respcode; //response code of the http transaction
             
@@ -154,8 +156,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
         else if(errorCode != -1){
             error = "Curl Connection Failed";
         }
-        else
+        else {
             error = response;
+        }
         
         curl_easy_cleanup(curl); //Standard CleanUp
     }
@@ -243,7 +246,7 @@ static bool getFactory(const string& sha_key, FactoryTableIt& res)
 
 // Expernal API
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key)
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key)
 {
     FactoryTableIt it;
     
@@ -253,9 +256,45 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_
         sfactory->addReference();
         return sfactory;
     } else {
+        // Call server side to get remote factory, create local proxy factory, put it in the cache
         
-        // TODO : call server side to get remote factory, create local proxy factory, put it in the cache
-        return NULL;
+        remote_dsp_factory* factory = new remote_dsp_factory();
+        
+        string finalRequest = "shaKey=";
+        finalRequest += sha_key;
+            
+        factory->setKey(sha_key);
+        
+        printf("finalRequest = %s\n", finalRequest.c_str());
+            
+        string serverIP = "http://";
+        serverIP += ip_server;
+        serverIP += ":";
+        
+        stringstream s;
+        s<<port_server;
+        
+        serverIP += s.str();
+        
+        factory->setIP(serverIP);
+        
+        serverIP += "/GetJsonFromKey";
+        
+        printf("ip = %s\n", serverIP.c_str());
+        
+        string response("");
+        int errorCode = -1;
+        
+        if (send_request(serverIP, finalRequest, response, errorCode)){
+            factory->decodeJson(response);
+            remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
+            return factory;
+        }
+        //else if(errorCode != -1){ ??
+        else {
+            delete factory;
+            return NULL;
+        }
     }
 }
 
@@ -273,58 +312,46 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     }
 }
 
-vector<string> filtrate_option(vector<string> options, string optionToFilter){
-    
-    vector<string> newoptions;
-    
-    for(int i=0; i<options.size(); i++){
-        if(options[i].compare(optionToFilter) != 0)
-            newoptions.push_back(options[i]);
-    }
-    return newoptions;
-}
-
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char *argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
 {
     // Use for it's possible 'side effects', that is generating SVG, XML... files
-    generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg);
+    char error_msg_aux[256];
+    generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
     
 //  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
     
-    vector<string> newoptions;
+    int argc1 = 0;
+    const char* argv1[argc];
     
-    for(int i=0; i<argc; i++)
-        newoptions.push_back(argv[i]);
-    
-    newoptions = filtrate_option(newoptions, "-tg");
-    newoptions = filtrate_option(newoptions, "-sg");
-    newoptions = filtrate_option(newoptions, "-ps");
-    newoptions = filtrate_option(newoptions, "-svg");
-    newoptions = filtrate_option(newoptions, "-mdoc");
-    newoptions = filtrate_option(newoptions, "-xml");
-    
-    int numParams = newoptions.size();
-    const char* params[numParams];
-    
-    for(int i=0; i<numParams; i++)
-        params[i] = newoptions[i].c_str();
-    
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i],"-tg") != 0 && 
+           strcmp(argv[i],"-sg") != 0 &&
+           strcmp(argv[i],"-svg") != 0 &&
+           strcmp(argv[i],"-ps") != 0 &&
+           strcmp(argv[i],"-mdoc") != 0 &&
+           strcmp(argv[i],"-xml") != 0)
+        {
+            argv1[argc1++] = argv[i];
+        }
+    }
+     
 //    EXPAND DSP
     
     std::string expanded_dsp;
-    string sha_key;
+    char sha_key_aux[256];
     
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, numParams, params, sha_key, error_msg)) == "") {
+    if ((expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux)) == "") {
         return 0; 
     } else {
         FactoryTableIt it;
+        string sha_key = sha_key_aux;
         if (getFactory(sha_key, it)) {
             Sremote_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
         } else  {
             remote_dsp_factory* factory = new remote_dsp_factory();
-            if (factory->init(numParams, params, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
+            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
                 remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
                 return factory;
             } else {
@@ -477,7 +504,6 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         }
 //      Meta Data declaration for group opening or closing
         else {
-            
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
         }
@@ -824,73 +850,90 @@ EXPORT void remote_dsp::stopAudio()
 //------ DISCOVERY OF AVAILABLE MACHINES
 
 //--- Callback whenever a server in the regtype/replyDomain is found
-static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context ){
+#ifdef __APPLE__
+static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context )
+{
+    remote_DNS* dsn = (remote_DNS*)context;
     
-    map<string, pair<string,int> >* machineList = (map<string, pair< string, int> >*)context;
-    
-    string serviceNameCpy(serviceName);
-    
-    int pos = serviceNameCpy.find("._");
-    string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-    pos = remainingString.find("._");
-    string serviceIP = remainingString.substr(0, pos);
-    string hostName = remainingString.substr(pos+2, string::npos);
-    
-    if (flags == kDNSServiceFlagsAdd || kDNSServiceFlagsMoreComing){
-     
-        int pos = serviceIP.find(":");
-        string ipAddr = serviceIP.substr(0, pos);
-        string port = serviceIP.substr(pos+1, string::npos);
-        (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+    if (dsn->fLocker.Lock()) {
         
-    } else {
-        machineList->erase(hostName);
-    }
-}
-
-//--- Research of available remote machines
-
-EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList){
-    
-    DNSServiceRef sd;
-    
-//  Initialize DNSServiceREF && bind it to its callback
-    
-    if (DNSServiceBrowse(&sd, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, machineList) == kDNSServiceErr_NoError) {
+        string serviceNameCpy(serviceName);
+        int pos = serviceNameCpy.find("._");
+        string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+        pos = remainingString.find("._");
+        string serviceIP = remainingString.substr(0, pos);
+        string hostName = remainingString.substr(pos+2, string::npos);
         
-//      SELECT IS USED TO SET TIMEOUT  
-
-        int fd = DNSServiceRefSockFD(sd);
-        int count = 50;
-        
-        while (count-- > 0) {
-            
-            fd_set readfds;
-            FD_ZERO(&readfds);
-            FD_SET(fd, &readfds);
-            struct timeval tv = { 0, 100000 };
-            
-            if ((select(fd + 1, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv) > 0)
-                && FD_ISSET(fd, &readfds) 
-                && (DNSServiceProcessResult(sd) == kDNSServiceErr_NoError)) {
-                break;
-            }
+        if (flags == kDNSServiceFlagsAdd || flags == kDNSServiceFlagsMoreComing) {
+            int pos = serviceIP.find(":");
+            string ipAddr = serviceIP.substr(0, pos);
+            string port = serviceIP.substr(pos+1, string::npos);
+            dsn->fMachineList[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+        } else {
+            dsn->fMachineList.erase(hostName);
         }
         
-//      Cleanup DNSService  
-
-        DNSServiceRefDeallocate(sd);
-        return true;
-    } else {
-        return false;
+        dsn->fLocker.Unlock();
     }
 }
+#endif
+//--- Research of available remote machines
 
+static remote_DNS* gDNS = NULL;
 
-// ---------------------------------------------------------------------
-//                          Elementary parsers
-// ---------------------------------------------------------------------
+__attribute__((constructor)) static void initialize_libfaustremote() 
+{
+    gDNS = new remote_DNS();
+}
 
+__attribute__((destructor)) static void destroy_libfaustremote()
+{
+    delete gDNS;
+}
+
+void* remote_DNS::scanFaustRemote(void* arg)
+{
+#ifdef __APPLE__
+    remote_DNS* dsn = (remote_DNS*)arg;
+    while (true) {
+        DNSServiceProcessResult(dsn->fDNSDevice);
+    }
+#endif
+}
+
+remote_DNS::remote_DNS()
+{
+#ifdef __APPLE__
+    DNSServiceErrorType err1; 
+    int err2;
+    
+    if ((err1 = DNSServiceBrowse(&fDNSDevice, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, this)) != kDNSServiceErr_NoError) {
+        printf("remote_DNS : DNSServiceBrowse fails err = %d\n", (int)err1);
+    } else if ((err2 = pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this)) != 0) {
+        printf("remote_DNS : pthread_create fails err = %d\n", (int)err2);
+    }
+#endif
+}
+                                
+remote_DNS::~remote_DNS()
+{
+#ifdef __APPLE__
+    DNSServiceRefDeallocate(fDNSDevice);
+#endif
+}
+
+// Public API
+
+EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList)
+{
+    if (gDNS && gDNS->fLocker.Lock()) {
+        *machineList = gDNS->fMachineList;
+        gDNS->fLocker.Unlock();
+        return true;
+    } else {
+       return false; 
+    }
+}
 
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
@@ -916,7 +959,7 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
         string finalIP = ip;
         finalIP += "/GetAvailableFactories";
             
-        std::ostringstream oss;
+        ostringstream oss;
             
         curl_easy_setopt(curl, CURLOPT_URL, finalIP.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &store_Response);
@@ -928,29 +971,25 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             
         if(res == CURLE_OK){
             
+            printf("remoteDSP::getRemoteFactoriesAvailable 1\n");    
+            
             long respcode; //response code of the http transaction
             
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
             if(respcode == 200){
+ 
+                // PARSE RESPONSE TO EXTRACT KEY/VALUE
                 
                 string response = oss.str();
+                stringstream os(response);   
+                string name, key;   
                 
-//                PARSE RESPONSE TO EXTRACT KEY/VALUE
-                
-                const char* p = response.c_str();
-                
-                while(*p != 0){
-                    
-                    string key, name;
-                    
-                    if(parseWord(p, key)){
-                        if(*p != 0 && parseWord(p, name)){
-                            factories_list->push_back(make_pair(key, name));
-                        }
-                    }
+                while (os >> key) {                
+                    os >> name;
+                    factories_list->push_back(make_pair(name, key));
                 }
-                
+                    
                 isSuccessfull = true;
             }
         }

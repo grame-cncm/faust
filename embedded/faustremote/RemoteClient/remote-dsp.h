@@ -53,11 +53,13 @@ extern "C"
      * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
      * if already allocated in the factories cache.
      *
+     * @param ip_server - IP of remote machine
+     * @param port_server - Port on which the Remote Server started
      * @param sha_key - the SHA key for an already created factory, kept in the factory cache
      *
      * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
      */
-    remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key);    
+    remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key);    
     
     /**
      * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
@@ -65,8 +67,8 @@ extern "C"
      * @param filename - DSP filename
      * @param argc - the number of parameters in argv array
      * @param argv - the array of compilation parameters (-vec/-sch/...)
-     * @param ip_server - IP of remote machine that will compile your DSP 
-     * @param port_server - Port on which the remote Server started
+     * @param ip_server - IP of remote machine
+     * @param port_server - Port on which the Remote Server started
      * @param error - the error string to be filled
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
      *
@@ -81,8 +83,8 @@ extern "C"
      * @param dsp_content - the Faust program as a string
      * @param argc - the number of parameters in argv array
      * @param argv - the array of compilation parameters (-vec/-sch/...)
-     * @param ip_server - IP of remote machine that will compile your DSP 
-     * @param port_server - Port on which the remote Server started
+     * @param ip_server - IP of remote machine
+     * @param port_server - Port on which the Remote Server started
      * @param error - the error string to be filled
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
      *
@@ -184,16 +186,20 @@ extern "C"
     void deleteRemoteDSPInstance(remote_dsp* dsp);
     
     /**
-     *  Scan the network to find the available machines for Remote Processing
-     *  @param machine_list - map to be filled with <name_machine, <ip_machine, port_machine>>
-     *  @return true if no error was encountered.
+     * Scan the network to find the available machines for Remote Processing
+     * @param machine_list - map to be filled with <name_machine, <ip_machine, port_machine>>
+     *
+     * @return true if no error was encountered.
      */
     bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machine_list);
     
     /**
-     *  For a machine on the network that does Remote Processing, get the list of all currently running DSP factories.
-     *  @param factories_list - vector to be filled with <name_factory, shakey_factory>
-     *  @return true if no error was encountered.
+     * For a machine on the network that does Remote Processing, get the list of all currently running DSP factories.
+     * @param ip_server - IP of remote machine
+     * @param port_server - Port on which the Remote Server started
+     * @param factories_list - vector to be filled with <name_factory, shakey_factory>
+     *
+     * @return true if no error was encountered.
      */    
     bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
     

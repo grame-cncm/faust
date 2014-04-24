@@ -104,9 +104,7 @@ void slave_dsp::stop_audio(){
 
 // Desallocation of slave dsp resources
 slave_dsp::~slave_dsp(){
-    
-    fAudio->stop();
-    
+
     delete fAudio;
     deleteDSPInstance(fDSP);
 }
@@ -176,11 +174,7 @@ void* Server::start_audioSlave(void *arg ){
                                                     atoi(dspToStart->fMTU.c_str()), 
                                                     atoi(dspToStart->fLatency.c_str()));
         
-//        ATTENTION fNAMEAPP!!!!!!!!!!!!!!!!!
-        
-        string fNameApp = "NotDefinedYet";
-        
-        if (dspToStart->fAudio->init(fNameApp.c_str(), dspToStart->fDSP)) {
+        if (dspToStart->fAudio->init(dspToStart->name().c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start())
                 printf("Start slave audio failed\n");
             else{
@@ -227,7 +221,9 @@ void Server::stop_NotActive_DSP(){
     {
         if(!(*it)->fAudio->is_connexion_active()){
             slave_dsp* toDelete = *it;
-            it = fRunningDsp.erase(it);
+            it = fRunningDsp.erase(it); 
+            
+            toDelete->fAudio->stop();
             deleteSlaveDSPInstance(toDelete);
         } else {
             it++;
@@ -303,13 +299,14 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
     printf("IS IT A GET REQUEST\n");
     
     if(strcmp(url, "/GetAvailableFactories") == 0){
+        
+        printf("GetAvailableFactories %d\n", fAvailableFactories.size());
 
         string answerstring("");
         
         for(map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++){
-//            answerstring += "key ";
+            
             answerstring += " " + it->first;
-//            answerstring += " name ";
             answerstring += " " + it->second.first;
         }
         
@@ -343,6 +340,15 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
                 return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
         }
+        else if(strcmp(url, "/GetJsonFromKey") == 0){
+            
+            if (getJsonFromKey(con_info)) {
+                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
+            } else {
+                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        }
+        
         else if(strcmp(url, "/CreateInstance") == 0){
             
             if (createInstance(con_info)) {
@@ -495,34 +501,52 @@ void Server::stopAudio(const string& shakey){
     }
 }
 
-// Create DSP Factory 
-bool Server::compile_Data(connection_info_struct* con_info){
+bool Server::getJsonFromKey(connection_info_struct* con_info){
     
-//  Sort out compilation options
+    string SHA_Key = con_info->fSHAKey;
     
-    int argc = con_info->fCompilationOptions.size();
-    const char* argv[argc];
-    
-    for(int i=0; i<argc; i++){
-        argv[i] = (con_info->fCompilationOptions[i]).c_str();
-    }
-    
-    string error("");
-    
-    con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
+    con_info->fNameApp = fAvailableFactories[SHA_Key].first;
+    con_info->fLLVMFactory = fAvailableFactories[SHA_Key].second;
     
     if(con_info->fLLVMFactory){
-        fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
-        
-//      Once the factory is compiled, the json is stored as answerstring
         con_info->fAnswerstring = getJson(con_info);
-        
         return true;
     }
     else{
-        con_info->fAnswerstring = "Impossible to generate SHA1 key";
+        con_info->fAnswerstring = "Factory Not Found!";
         return false;
     }
+}
+
+// Create DSP Factory 
+bool Server::compile_Data(connection_info_struct* con_info){
+    
+    if(con_info->fSHAKey != ""){
+        
+        //  Sort out compilation options
+        
+        int argc = con_info->fCompilationOptions.size();
+        const char* argv[argc];
+        
+        for(int i=0; i<argc; i++){
+            argv[i] = (con_info->fCompilationOptions[i]).c_str();
+        }
+        
+        string error("");
+        
+        con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
+        
+        if(con_info->fLLVMFactory){
+            fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+            
+            //      Once the factory is compiled, the json is stored as answerstring
+            con_info->fAnswerstring = getJson(con_info);
+            
+            return true;
+        }
+    }
+    con_info->fAnswerstring = "Impossible to generate SHA1 key";
+    return false;
 }
 
 // Create DSP Instance
@@ -538,9 +562,12 @@ bool Server::createInstance(connection_info_struct* con_info){
         
         slave_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCV, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
         
+        if(dsp)
+            dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
+        
         pthread_t myNewThread;
         
-        if(dsp && !pthread_create(&myNewThread, NULL, &Server::start_audioSlave, dsp)){
+        if(dsp && !pthread_create(&myNewThread, NULL, Server::start_audioSlave, dsp)){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {
@@ -561,51 +588,52 @@ bool Server::createInstance(connection_info_struct* con_info){
 }
 
 //------------------------REGISTRATION TO DISCOVERY SYSTEM
-
+#include <stdio.h>      
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h> 
+#include <string.h> 
+#include <arpa/inet.h>
 string searchIP(){
     
-    //char host_name[256];
-    //gethostname(host_name, sizeof(host_name));
+#ifdef __linux__
+	struct ifaddrs * ifAddrStruct=NULL;
+    struct ifaddrs * ifa=NULL;
+    void * tmpAddrPtr=NULL;
+
+    getifaddrs(&ifAddrStruct);
+
+    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa ->ifa_addr->sa_family==AF_INET) { // check it is IP4
+            // is a valid IP4 Address
+            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+            printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+			
+			if(strcmp(addressBuffer, "127.0.0.1") != 0)
+				return string(addressBuffer);
+		}  
+    }
+    if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
+#else
+    char host_name[256];
+    gethostname(host_name, sizeof(host_name));
     
-    //struct hostent* host = gethostbyname(host_name);
+    struct hostent* host = gethostbyname(host_name);
     
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = PF_UNSPEC;
-    hints.ai_flags = AI_ADDRCONFIG;
-    
-    struct addrinfo* result = 0;
-    int res = getaddrinfo("orlarey-Dell-XPS420", NULL, &hints, &result);
-    
-    if(res == EAI_BADFLAGS){
-		hints.ai_flags = 0;
-		res = getaddrinfo("orlarey-Dell-XPS420", NULL, &hints, &result);
-	}
-    struct addrinfo* resultat = result;
-    while(resultat!= NULL){
-	
-		struct sockaddr_in* addr = (struct sockaddr_in*)resultat->ai_addr;
-		printf("HOST ADDR = %s\n", inet_ntoa(addr->sin_addr));
-		resultat = resultat->ai_next;
-	}
-	
-	freeaddrinfo(result);
-    
-    /*if(host){
+    if(host){
         
         for(int i=0; host->h_addr_list[i] != 0; i++){
 			
             struct in_addr addr;
             memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
             
-            printf("ADDRESS FOUND = %s\n", inet_ntoa(addr));
-            
-            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)   
-            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)   
+            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)
 				return string(inet_ntoa(addr));
         }
-    }*/
-    
+    }
+#endif
     return "127.0.0.1";
 }
 

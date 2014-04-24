@@ -15,12 +15,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <list>
-
-#include <microhttpd.h>
-#include <pthread.h>
-
 #include <map>
 #include <vector>
+
+#include <microhttpd.h>
 
 #ifdef __APPLE__
 #include <dns_sd.h>
@@ -28,7 +26,7 @@
 
 #include "faust/audio/netjack-dsp.h"
 #include "faust/llvm-dsp.h"
-#include "TMutex.h"
+#include "../TMutex.h"
 
 #define POSTBUFFERSIZE 512
 #define GET 0
@@ -134,6 +132,8 @@ struct slave_dsp{
     
     string          fInstanceKey;
     
+    string          fName;
+    
     //    NETJACK PARAMETERS
     string          fIP;
     string          fPort;
@@ -159,6 +159,8 @@ struct slave_dsp{
     
     string  key(){return fInstanceKey;}
     void    setKey(const string& key){fInstanceKey = key;}
+    string name(){return fName;}
+    void    setName(string name){fName = name;}
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
@@ -179,6 +181,7 @@ public :
         
 // Factories that can be instanciated. 
 // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
+//    SHAKey, pair<NameApp, Factory>
     map<string, pair<string, llvm_dsp_factory*> >         fAvailableFactories;
         
 // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
@@ -223,6 +226,8 @@ public :
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
+// Reaction to a /GetJsonFromKey --> GetJson form available factory
+    bool        getJsonFromKey(connection_info_struct* con_info);
         
 // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
     bool        createInstance(connection_info_struct* con_info);

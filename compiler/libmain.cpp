@@ -1369,8 +1369,7 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     try {
         global::allocate();       
         res = expand_dsp_internal(argc, argv, name, input);
-        string key = generate_sha1(res);
-        strncpy(sha_key, key.c_str(), key.size());
+        strcpy(sha_key, generate_sha1(res).c_str());
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
