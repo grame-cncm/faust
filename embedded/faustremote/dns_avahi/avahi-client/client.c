@@ -25,13 +25,13 @@
 
 #include <dbus/dbus.h>
 
-#include "../avahi-common/dbus.h"
-#include "../avahi-common/llist.h"
-#include "../avahi-common/error.h"
-#include "../avahi-common/dbus.h"
-#include "../avahi-common/malloc.h"
-#include "../avahi-common/dbus-watch-glue.h"
-#include "../avahi-common/i18n.h"
+#include "dbus.h"
+#include "llist.h"
+#include "error.h"
+#include "dbus.h"
+#include "malloc.h"
+#include "dbus-watch-glue.h"
+#include "i18n.h"
 
 #include "client.h"
 #include "internal.h"

@@ -1,6 +1,3 @@
-#ifndef foodbuswatchgluehfoo
-#define foodbuswatchgluehfoo
-
 /***
   This file is part of avahi.
 
@@ -18,16 +15,22 @@
   License along with avahi; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
-***/
+ ***/
 
-#include <dbus/dbus.h>
+#include "i18n.h"
 
-#include "watch.h"
+#define AVAHI_LOCALEDIR "/home/orlarey/Develop/faust/embedded/faustremote/RemoteServer/linux_server"
 
-AVAHI_C_DECL_BEGIN
+void avahi_init_i18n(void) {
 
-int avahi_dbus_connection_glue(DBusConnection *c, const AvahiPoll *poll_api);
+    /* Not really thread safe, but this doesn't matter much since
+     * bindtextdomain is supposed to be idempotent anyway. */
 
-AVAHI_C_DECL_END
+    static int done = 0;
 
-#endif
+    if (!done) {
+        bindtextdomain(GETTEXT_PACKAGE, AVAHI_LOCALEDIR);
+        bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+        done = 1;
+    }
+}

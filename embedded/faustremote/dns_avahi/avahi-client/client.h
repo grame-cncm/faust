@@ -22,12 +22,12 @@
 
 #include <inttypes.h>
 
-#include "../avahi-common/cdecl.h"
-#include "../avahi-common/address.h"
-#include "../avahi-common/strlst.h"
-#include "../avahi-common/defs.h"
-#include "../avahi-common/watch.h"
-#include "../avahi-common/gccmacro.h"
+#include "cdecl.h"
+#include "address.h"
+#include "strlst.h"
+#include "defs.h"
+#include "watch.h"
+#include "gccmacro.h"
 
 /** \file client.h Definitions and functions for the client API over D-Bus */
 

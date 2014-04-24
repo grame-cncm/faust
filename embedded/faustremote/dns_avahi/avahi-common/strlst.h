@@ -26,8 +26,8 @@
 #include <inttypes.h>
 #include <stdarg.h>
 
-#include <avahi-common/cdecl.h>
-#include <avahi-common/gccmacro.h>
+#include "cdecl.h"
+#include "gccmacro.h"
 
 AVAHI_C_DECL_BEGIN
 

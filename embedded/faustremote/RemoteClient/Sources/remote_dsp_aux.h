@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "../../TMutex.h"
+#include "TMutex.h"
 
 #include <sstream>
 #include <iostream>
@@ -46,7 +46,7 @@
 #else
 
 #ifdef HAVE_CONFIG_H
-#include "../../dns_avahi/config.h"
+#include "config.h"
 #endif
 
 #include <stdio.h>
@@ -54,12 +54,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "../../dns_avahi/avahi-client/client.h"
-#include "../../dns_avahi/avahi-client/lookup.h"
+#include "client.h"
+#include "lookup.h"
 
-#include "../../dns_avahi/avahi-common/simple-watch.h"
-#include "../../dns_avahi/avahi-common/malloc.h"
-#include "../../dns_avahi/avahi-common/error.h"
+#include "simple-watch.h"
+#include "malloc.h"
+#include "error.h"
 #endif
 #include <jack/net.h>
 #include <curl/curl.h>

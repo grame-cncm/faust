@@ -23,8 +23,8 @@
 /** \file simple-watch.h Simple poll() based main loop implementation */
 
 #include <sys/poll.h>
-#include <avahi-common/cdecl.h>
-#include <avahi-common/watch.h>
+#include "cdecl.h"
+#include "watch.h"
 
 AVAHI_C_DECL_BEGIN
 

@@ -20,7 +20,7 @@
 #define HAVE_CONFIG_H
 
 #ifdef HAVE_CONFIG_H
-#include "../../dns_avahi/config.h"
+#include "config.h"
 #endif
 
 #include <time.h>
@@ -28,14 +28,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "../../dns_avahi/avahi-client/client.h"
-#include "../../dns_avahi/avahi-client/publish.h"
+#include "client.h"
+#include "publish.h"
 
-#include "../../dns_avahi/avahi-common/alternative.h"
-#include "../../dns_avahi/avahi-common/simple-watch.h"
-#include "../../dns_avahi/avahi-common/malloc.h"
-#include "../../dns_avahi/avahi-common/error.h"
-#include "../../dns_avahi/avahi-common/timeval.h"
+#include "alternative.h"
+#include "simple-watch.h"
+#include "malloc.h"
+#include "error.h"
+#include "timeval.h"
 
 #include <stdio.h>
 #include <stdlib.h>
