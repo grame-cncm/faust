@@ -11,7 +11,7 @@ PREFIX ?= /usr/local
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= -arch i386 -arch x86_64 -Wglobal-constructors  
+	CXXFLAGS	= -I../ -arch i386 -arch x86_64 -Wglobal-constructors  
 	LIB_EXT        = dylib
 else 
 	ARCHFLAGS 	:= 
