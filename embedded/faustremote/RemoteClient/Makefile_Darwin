@@ -1,5 +1,6 @@
 
-sources =  $(wildcard Sources/*.cpp)
+sources = $(wildcard Sources/*.cpp)
+sources += ../utilities.cpp
 
 objects = $(sources:.cpp=.o)
 

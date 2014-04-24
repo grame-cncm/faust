@@ -95,44 +95,50 @@ int lopt_Spe(int i, char *argv[], const char *name, char* path)
 string searchIP()
 {
     
-#ifdef __linux__
-	struct ifaddrs * ifAddrStruct=NULL;
-    struct ifaddrs * ifa=NULL;
-    void * tmpAddrPtr=NULL;
+    // Works also on OSX...
+    
+//#ifdef __linux__
+	struct ifaddrs * ifAddrStruct = NULL;
+    struct ifaddrs * ifa = NULL;
+    void * tmpAddrPtr = NULL;
+    string res = "127.0.0.1";
     
     getifaddrs(&ifAddrStruct);
     
     for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa ->ifa_addr->sa_family==AF_INET) { // check it is IP4
+        if (ifa ->ifa_addr->sa_family == AF_INET) { // check it is IP4
             // is a valid IP4 Address
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+            tmpAddrPtr = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             char addressBuffer[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
             printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
-			
-			if(strcmp(addressBuffer, "127.0.0.1") != 0)
-				return string(addressBuffer);
+			if (strcmp(addressBuffer, "127.0.0.1") != 0) {
+				res = addressBuffer;
+                break;
+            }
 		}  
     }
-    if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
+    if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
+    return res;
+/*
 #else
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
-    
     struct hostent* host = gethostbyname(host_name);
+    string res = "127.0.0.1";
     
-    if(host){
-        
-        for(int i=0; host->h_addr_list[i] != 0; i++){
-			
+    if (host){
+        for (int i=0; host->h_addr_list[i] != 0; i++){
             struct in_addr addr;
             memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            
-            if(strcmp(inet_ntoa(addr), "127.0.0.1") != 0)
-				return string(inet_ntoa(addr));
+            if (strcmp(inet_ntoa(addr), "127.0.0.1") != 0) {
+				res = inet_ntoa(addr);
+                break;
+            }
         }
     }
+    return res;
 #endif
-    return "127.0.0.1";
+ */
 }
 
