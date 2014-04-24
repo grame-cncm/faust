@@ -684,6 +684,7 @@
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
+					"-lcrypto",
 					"-lfaust",
 					"-lLLVMAsmParser",
 					"-lLLVMInstrumentation",
@@ -829,6 +830,7 @@
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
+					"-lcrypto",
 					"-ljacknet",
 					"-lfaust",
 					"-lLLVMAsmParser",
