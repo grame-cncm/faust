@@ -29,13 +29,13 @@
 #include <assert.h>
 
 #include "../../dns_avahi/avahi-client/client.h"
-#include "../../dns_avahiavahi-client/publish.h"
+#include "../../dns_avahi/avahi-client/publish.h"
 
-#include "../../dns_avahiavahi-common/alternative.h"
-#include "../../dns_avahiavahi-common/simple-watch.h"
-#include "../../dns_avahiavahi-common/malloc.h"
-#include "../../dns_avahiavahi-common/error.h"
-#include "../../dns_avahiavahi-common/timeval.h"
+#include "../../dns_avahi/avahi-common/alternative.h"
+#include "../../dns_avahi/avahi-common/simple-watch.h"
+#include "../../dns_avahi/avahi-common/malloc.h"
+#include "../../dns_avahi/avahi-common/error.h"
+#include "../../dns_avahi/avahi-common/timeval.h"
 
 #include <stdio.h>
 #include <stdlib.h>
