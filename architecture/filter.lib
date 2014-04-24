@@ -257,6 +257,23 @@ conv(kv) = fir(kv);
 // tfN = N'th-order direct-form digital filter
 tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
 tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
+// tf2 is a variant of tf22 below with duplicated mems
+
+//=============== Direct-Form second-order biquad sections ================
+// REFERENCE: https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html
+
+//---------------------- tf21, tf21t, tf22, tf22t ------------------------
+tf21(b0,b1,b2,a1,a2) = // tf2, direct-form 1:
+    _ <:(mem<:((mem:*(b2)),*(b1))),*(b0) :>_
+    : ((_,_,_:>_) ~(_<:*(-a1),(mem:*(-a2))));
+tf22(b0,b1,b2,a1,a2) = // tf2, direct-form 2:
+    _ : (((_,_,_:>_)~*(-a1)<:mem,*(b0))~*(-a2))
+      : (_<:mem,*(b1)),_ : *(b2),_,_ :> _;
+tf22t(b0,b1,b2,a1,a2) = // tf2, direct-form 2 transposed:
+    _ : (_,_,(_ <: *(b2)',*(b1)',*(b0))
+      : _,+',_,_ :> _)~*(-a1)~*(-a2) : _;
+tf21t(b0,b1,b2,a1,a2) = // tf2, direct-form 1 transposed:
+    tf22t(1,0,0,a1,a2) : tf22t(b0,b1,b2,0,0); // or write it out if you want
 
 //===================== Ladder/Lattice Digital Filters ======================
 // Ladder and lattice digital filters generally have superior numerical
