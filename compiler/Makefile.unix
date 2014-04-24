@@ -55,9 +55,9 @@ LLVM_VERSION = LLVM_34
 endif
 
 ifeq ($(system), Darwin)
-	CXXFLAGS += -O1
-else
 	CXXFLAGS += -O3
+else
+	CXXFLAGS += -O1
 endif
 
 CXXFLAGS +=  -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 

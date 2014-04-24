@@ -1,0 +1,98 @@
+
+SOURCES       = Sources/remote_dsp_aux.cpp Sources/JsonParser.cpp Sources/linux_client/avahi-client/client.c Sources/linux_client/avahi-common/simple-watch.c Sources/linux_client/avahi-common/malloc.c Sources/linux_client/avahi-common/error.c Sources/linux_client/avahi-common/timeval.c Sources/linux_client/avahi-common/cdecl.c Sources/linux_client/avahi-common/address.c Sources/linux_client/avahi-common/strlst.c Sources/linux_client/avahi-common/defs.c Sources/linux_client/avahi-common/watch.c Sources/linux_client/avahi-common/gccmacro.c Sources/linux_client/avahi-common/domain.c Sources/linux_client/avahi-common/utf8.c Sources/linux_client/avahi-common/i18n.c Sources/linux_client/avahi-common/dbus.c Sources/linux_client/avahi-common/dbus-watch-glue.c Sources/linux_client/avahi-client/browser.c Sources/linux_client/avahi-client/xdg-open.c Sources/linux_client/avahi-client/resolver.c Sources/linux_server/avahi-client/entrygroup.c ../utilities.cpp
+				 
+OBJECTS       = remote_dsp_aux.o JsonParser.o client.o simple-watch.o malloc.o error.o timeval.o address.o strlst.o domain.o utf8.o i18n.o dbus.o dbus-watch-glue.o browser.o xdg-config.o resolver.o entrygroup.o utilities.o
+
+INCPATH = -I. -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include   -DDBUS_VERSION_MAJOR=1 -DDBUS_VERSION_MINOR=4 -DDBUS_VERSION_MICRO=18 -DDBUS_API_SUBJECT_TO_CHANGE
+
+os 	:= $(shell uname)
+system	?= $(shell uname -s)
+
+PREFIX ?= /usr/local
+
+
+CXX 		= g++
+CXXFLAGS	= 
+CC 			= gcc
+
+ARCHFLAGS 	:= 
+LIB_EXT        = so
+
+
+first: all
+
+####### Build rules
+
+all: $(OBJECTS) libfaustremote.so
+
+
+libfaustremote.so : $(OBJECTS)
+		ar -q libfaustremote.so $(OBJECTS)
+
+install:
+	install libfaustremote.so  /usr/local/lib/faust/ 
+	cp remote-dsp.h  /usr/local/include/faust/
+
+clean :
+	rm -f $(OBJECTS) libfaustremote.so
+
+remote_dsp_aux.o: Sources/JsonParser.h Sources/remote_dsp_aux.h Sources/linux_client/avahi-client/client.h Sources/linux_client/avahi-client/lookup.h Sources/linux_client/avahi-common/simple-watch.h Sources/linux_client/avahi-common/malloc.h Sources/linux_client/avahi-common/error.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o remote_dsp_aux.o Sources/remote_dsp_aux.cpp
+
+JsonParser.o: Sources/JsonParser.h 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o JsonParser.o Sources/JsonParser.cpp
+
+utilities.o: ../utilities.h ../utilities.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../utilities.cpp
+
+client.o: Sources/linux_client/avahi-client/client.c Sources/linux_client/avahi-client/client.h Sources/linux_client/avahi-common/cdecl.h Sources/linux_client/avahi-common/address.h Sources/linux_client/avahi-common/strlst.h Sources/linux_client/avahi-common/defs.h Sources/linux_client/avahi-common/watch.h Sources/linux_client/avahi-common/gccmacro.h Sources/linux_client/avahi-common/dbus.h Sources/linux_client/avahi-common/llist.h Sources/linux_client/avahi-common/error.h Sources/linux_client/avahi-common/malloc.h Sources/linux_client/avahi-common/dbus-watch-glue.h Sources/linux_client/avahi-common/i18n.h Sources/linux_client/avahi-client/internal.h Sources/linux_client/avahi-client/browser.c
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o client.o Sources/linux_client/avahi-client/client.c
+
+simple-watch.o: Sources/linux_client/avahi-common/simple-watch.h Sources/linux_client/avahi-common/simple-watch.c Sources/linux_client/avahi-common/cdecl.h Sources/linux_client/avahi-common/watch.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o simple-watch.o Sources/linux_client/avahi-common/simple-watch.c
+
+malloc.o: Sources/linux_client/avahi-common/malloc.h Sources/linux_client/avahi-common/cdecl.h Sources/linux_client/avahi-common/gccmacro.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o malloc.o Sources/linux_client/avahi-common/malloc.c
+
+error.o: Sources/linux_client/avahi-common/error.h Sources/linux_client/avahi-common/error.c Sources/linux_client/avahi-common/cdecl.h Sources/linux_client/avahi-common/i18n.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o error.o Sources/linux_client/avahi-common/error.c
+
+timeval.o: Sources/linux_client/avahi-common/timeval.h Sources/linux_client/avahi-common/timeval.c Sources/linux_client/avahi-common/cdecl.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o timeval.o Sources/linux_client/avahi-common/timeval.c
+
+address.o: Sources/linux_client/avahi-common/address.h Sources/linux_client/avahi-common/address.c Sources/linux_client/avahi-common/cdecl.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o address.o Sources/linux_client/avahi-common/address.c
+
+strlst.o: Sources/linux_client/avahi-common/strlst.h Sources/linux_client/avahi-common/strlst.c Sources/linux_client/avahi-common/cdecl.h Sources/linux_client/avahi-common/gccmacro.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o strlst.o Sources/linux_client/avahi-common/strlst.c
+
+domain.o: Sources/linux_client/avahi-common/domain.h Sources/linux_client/avahi-common/domain.c Sources/linux_client/avahi-common/malloc.h Sources/linux_client/avahi-common/error.h Sources/linux_client/avahi-common/address.h Sources/linux_client/avahi-common/utf8.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o domain.o Sources/linux_client/avahi-common/domain.c
+
+utf8.o: Sources/linux_client/avahi-common/utf8.h Sources/linux_client/avahi-common/utf8.c Sources/linux_client/avahi-common/cdecl.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o utf8.o Sources/linux_client/avahi-common/utf8.c
+
+i18n.o: Sources/linux_client/avahi-common/i18n.h Sources/linux_client/avahi-common/i18n.c
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o i18n.o Sources/linux_client/avahi-common/i18n.c 
+
+dbus.o: Sources/linux_client/avahi-common/dbus.c Sources/linux_client/avahi-common/dbus.c Sources/linux_client/avahi-common/cdecl.h Sources/linux_client/avahi-common/error.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o dbus.o Sources/linux_client/avahi-common/dbus.c
+
+dbus-watch-glue.o: Sources/linux_client/avahi-common/dbus-watch-glue.c Sources/linux_client/avahi-common/dbus-watch-glue.c Sources/linux_client/avahi-common/malloc.h Sources/linux_client/avahi-common/timeval.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o dbus-watch-glue.o Sources/linux_client/avahi-common/dbus-watch-glue.c 
+
+browser.o: Sources/linux_client/avahi-client/browser.c Sources/linux_client/avahi-common/dbus.h Sources/linux_client/avahi-common/llist.h Sources/linux_client/avahi-common/error.h Sources/linux_client/avahi-common/malloc.h Sources/linux_client/avahi-common/domain.h Sources/linux_client/avahi-client/client.h Sources/linux_client/avahi-client/internal.h Sources/linux_client/avahi-client/xdg-config.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o browser.o Sources/linux_client/avahi-client/browser.c 
+
+xdg-config.o: Sources/linux_client/avahi-client/xdg-config.c Sources/linux_client/avahi-client/xdg-config.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o xdg-config.o Sources/linux_client/avahi-client/xdg-config.c
+
+resolver.o: Sources/linux_client/avahi-client/resolver.c Sources/linux_client/avahi-client/lookup.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o resolver.o Sources/linux_client/avahi-client/resolver.c
+
+entrygroup.o: Sources/linux_client/avahi-client/entrygroup.c Sources/linux_client/avahi-client/lookup.h
+	$(CC) -c $(CXXFLAGS) $(INCPATH) -o entrygroup.o Sources/linux_client/avahi-client/entrygroup.c
+
+
+
+

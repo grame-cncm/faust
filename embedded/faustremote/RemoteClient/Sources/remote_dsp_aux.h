@@ -41,7 +41,26 @@
 #include "JsonParser.h"
 #include "../../../../compiler/generator/smartpointer.h"
 
+#ifdef __APPLE
 #include <dns_sd.h>
+#else
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "Sources/linux_client/avahi-client/client.h"
+#include "Sources/linux_client/avahi-client/lookup.h"
+
+#include "Sources/linux_client/avahi-common/simple-watch.h"
+#include "Sources/linux_client/avahi-common/malloc.h"
+#include "Sources/linux_client/avahi-common/error.h"
+#endif
 #include <jack/net.h>
 #include <curl/curl.h>
 
@@ -66,6 +85,10 @@ extern "C"
         pthread_t fThread;
 #ifdef __APPLE__
         DNSServiceRef fDNSDevice;
+#else
+		AvahiSimplePoll *fPoll;
+    	AvahiClient * fClient;
+    	AvahiServiceBrowser *fBrowser;
 #endif        
 		map<string, pair<string, int> > fMachineList;
         TMutex fLocker;
@@ -243,6 +266,8 @@ extern "C"
     
 #ifdef __APPLE__
     static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
+#else
+	static void browseCallback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
 #endif
     
 #ifdef __cplusplus

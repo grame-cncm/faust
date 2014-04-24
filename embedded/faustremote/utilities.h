@@ -7,7 +7,7 @@ using namespace std;
 
 string pathToContent(const string& path);
 
-bool isStringInt(const char* word);
+bool isInt(const char* word);
 
 long lopt(char *argv[], const char *name, long def);
 

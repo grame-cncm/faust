@@ -6,6 +6,7 @@
 #include "faust/llvm-c-dsp.h"
 #include "../../../../compiler/libfaust.h"
 
+#include "../../utilities.h"
 #include <errno.h>
 #include <libgen.h>
 
@@ -59,18 +60,18 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
             else if(respcode == 400){
                 
 //                Is String Int ?
-                bool isStringInt = true;
+                bool isInt = true;
                    
                 const char* intermediateString = oss.str().c_str();
                 
                 for(size_t i=0; i<strlen(intermediateString); i++){
                     if(!isdigit(intermediateString[i])){
-                        isStringInt = false;
+                        isInt = false;
                         break;
                     }
                 }
                 
-                if(isStringInt)
+                if(isInt)
                     errorCode = atoi(intermediateString);
                 else
                     response = oss.str();
@@ -305,7 +306,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
       
     if (pos != string::npos) {
         printf("File extension found\n");
-        return createRemoteDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, ip_server, port_server, error_msg, opt_level);
+        return createRemoteDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, ip_server, port_server, error_msg, opt_level);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)\n";
         return NULL;
@@ -876,6 +877,73 @@ static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_
         dsn->fLocker.Unlock();
     }
 }
+#else
+void browse_callback(
+    AvahiServiceBrowser *b,
+    AvahiIfIndex interface,
+    AvahiProtocol protocol,
+    AvahiBrowserEvent event,
+    const char *name,
+    const char *type,
+    const char *domain,
+    AVAHI_GCC_UNUSED AvahiLookupResultFlags flags,
+    void* userdata) {
+
+    remote_DNS * dsn = (remote_DNS*)userdata;
+    assert(b);
+
+	if(name != NULL){
+
+	string serviceNameCpy(name);
+    int pos = serviceNameCpy.find("._");
+    string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+    pos = remainingString.find("._");
+    string serviceIP = remainingString.substr(0, pos);
+    string hostName = remainingString.substr(pos+2, string::npos);
+
+	printf("HOST NAME = %s\n", hostName.c_str());
+
+    /* Called whenever a new services becomes available on the LAN or is removed from the LAN */
+
+    switch (event) {
+        case AVAHI_BROWSER_FAILURE:
+
+            fprintf(stderr, "(Browser) %s\n", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
+            avahi_simple_poll_quit(dsn->fPoll);
+            return;
+
+        case AVAHI_BROWSER_NEW:
+            fprintf(stderr, "(Browser) NEW: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
+			    
+			if (dsn->fLocker.Lock()) {
+            
+        	    int pos = serviceIP.find(":");
+        	    string ipAddr = serviceIP.substr(0, pos);
+        	    string port = serviceIP.substr(pos+1, string::npos);
+			
+				printf("ipAddr = %s || port = %i\n", ipAddr.c_str(), atoi(port.c_str()));
+
+        	    dsn->fMachineList[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+
+    		    dsn->fLocker.Unlock();   
+			}
+
+            break;
+
+        case AVAHI_BROWSER_REMOVE:
+            fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
+			dsn->fMachineList.erase(hostName);
+            break;
+
+        case AVAHI_BROWSER_ALL_FOR_NOW:
+        case AVAHI_BROWSER_CACHE_EXHAUSTED:
+            fprintf(stderr, "(Browser) %s\n", event == AVAHI_BROWSER_CACHE_EXHAUSTED ? "CACHE_EXHAUSTED" : "ALL_FOR_NOW");
+            break;
+    }
+	}
+	printf("Browse callback success\n");
+}
+
 #endif
 //--- Research of available remote machines
 
@@ -893,32 +961,73 @@ __attribute__((destructor)) static void destroy_libfaustremote()
 
 void* remote_DNS::scanFaustRemote(void* arg)
 {
-#ifdef __APPLE__
+
     remote_DNS* dsn = (remote_DNS*)arg;
+
+#ifdef __APPLE__
     while (true) {
         DNSServiceProcessResult(dsn->fDNSDevice);
     }
+#else
+    avahi_simple_poll_loop(dsn->fPoll);
 #endif
 }
 
 remote_DNS::remote_DNS()
 {
+    int err2;
+
 #ifdef __APPLE__
     DNSServiceErrorType err1; 
-    int err2;
     
-    if ((err1 = DNSServiceBrowse(&fDNSDevice, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, this)) != kDNSServiceErr_NoError) {
+    if ((err1 = DNSServiceBrowse(&fDNSDevice, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, this)) != kDNSServiceErr_NoError)
         printf("remote_DNS : DNSServiceBrowse fails err = %d\n", (int)err1);
-    } else if ((err2 = pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this)) != 0) {
+#else
+
+    fClient = NULL;
+    fPoll = NULL;
+    int error;
+    int ret = 1;
+
+    /* Allocate main loop object */
+    if (!(fPoll = avahi_simple_poll_new()))
+        return;
+
+    /* Allocate a new client */
+    fClient = avahi_client_new(avahi_simple_poll_get(fPoll), (AvahiClientFlags)0, NULL, NULL, &error);
+
+    /* Check wether creating the client object succeeded */
+    if (!fClient)
+        return;
+
+    /* Create the service browser */
+    if (!(fBrowser = avahi_service_browser_new(fClient, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_faustcompiler._tcp", NULL, (AvahiLookupFlags)0, browse_callback, this)))
+        return ;
+#endif
+
+	if ((err2 = pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this)) != 0) {
         printf("remote_DNS : pthread_create fails err = %d\n", (int)err2);
     }
-#endif
 }
                                 
 remote_DNS::~remote_DNS()
 {
+	printf("Destructor\n");
+
 #ifdef __APPLE__
     DNSServiceRefDeallocate(fDNSDevice);
+#else
+	pthread_cancel(fThread);
+
+    /* Cleanup things */
+    if (fBrowser)
+        avahi_service_browser_free(fBrowser);
+
+    if (fClient)
+        avahi_client_free(fClient);
+
+    if (fPoll)
+        avahi_simple_poll_free(fPoll);
 #endif
 }
 
@@ -937,8 +1046,6 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
-    // TODO
-    
     printf("remoteDSP::getRemoteFactoriesAvailable\n");
     
     bool isSuccessfull = false;

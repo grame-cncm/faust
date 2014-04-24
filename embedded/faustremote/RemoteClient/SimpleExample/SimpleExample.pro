@@ -21,19 +21,19 @@ QT+=gui
 
 LLVMLIBS = $$system(llvm-config --libs)
 LLVMDIR = $$system(llvm-config --ldflags)
-LIBS+= $$LLVMDIR
-LIBS+= $$LLVMLIBS
 
 LIBS += -L/usr/local/lib
 LIBS += -L/usr/lib 
 LIBS += -L/usr/local/lib/faust 
-LIBS += -lfaust
 LIBS += -lfaustremote
+LIBS += -lfaust
 LIBS += -L/usr/lib/x86_64-linux-gnu
 LIBS += -lcurl
 LIBS += -ljack
 LIBS += -ljacknet
 LIBS += -lcrypto
+LIBS+= $$LLVMDIR
+LIBS+= $$LLVMLIBS
 LIBS += -ldl
 LIBS += -ldbus-1
 LIBS += -lpthread

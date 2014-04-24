@@ -32,7 +32,7 @@ string pathToContent(const string& path)
 }
 
 //Verify if the word is a number
-bool isStringInt(const char* word){
+bool isInt(const char* word){
     
     bool returning = true;
     
