@@ -196,6 +196,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
         int fBufferSize;
         int fSampleRate;
+    
+        bool fIsInJackDevice;
+        bool fIsOutJackDevice;
         
         dsp* fDSP;
 
@@ -921,6 +924,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             }
             return err;
         }
+    
+        
         
     public:
 
@@ -930,7 +935,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             fBufferSize(0),fSampleRate(0), 
             fDSP(0),fInputData(0),
             fDeviceID(0),fAUHAL(0),
-            fState(false)
+            fState(false), 
+            fIsInJackDevice(false),
+            fIsOutJackDevice(false)
         {}
 
         virtual ~TCoreAudioRenderer()
@@ -943,13 +950,42 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                                    const AudioObjectPropertyAddress inAddresses[],
                                    void *clientData) 
         {
+            /*
             TCoreAudioRenderer* renderer = (TCoreAudioRenderer*)clientData;
-            renderer->Stop();
-            renderer->Close();
-            int sampleRate = -1; // Use the current sample rate
-            int bufferSize = (renderer->fBufferSize > 0) ? renderer->fBufferSize : 512; // Use default if needed
-            renderer->OpenDefault(renderer->fDSP, renderer->fDevNumInChans, renderer->fDevNumOutChans, bufferSize, sampleRate);
-            renderer->Start();
+            AudioDeviceID defaultDevice;
+            UInt32 theSize = sizeof(UInt32);
+            OSStatus res;
+            char device_name[256];
+            
+            // Test if new device is "JackRouter"
+            if (inAddresses[0].mSelector == kAudioHardwarePropertyDefaultInputDevice) {
+                
+                if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultInputDevice,
+                                                    &theSize, &defaultDevice)) == noErr) {
+                    renderer->GetDeviceNameFromID(defaultDevice, device_name);
+                    renderer->fIsInJackDevice = strcmp(device_name, "JackRouter") == 0;
+                }
+                
+            } else  if (inAddresses[0].mSelector == kAudioHardwarePropertyDefaultOutputDevice) {
+                
+                if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
+                                                    &theSize, &defaultDevice)) == noErr) {
+                    renderer->GetDeviceNameFromID(defaultDevice, device_name);
+                    renderer->fIsOutJackDevice = strcmp(device_name, "JackRouter") == 0;
+                }
+                
+            }
+            
+            // Switch only of input and output are "JackRouter"
+            if (renderer->fIsInJackDevice && renderer->fIsOutJackDevice || !renderer->fIsInJackDevice && !renderer->fIsOutJackDevice) {
+                renderer->Stop();
+                renderer->Close();
+                int sampleRate = -1; // Use the current sample rate
+                int bufferSize = (renderer->fBufferSize > 0) ? renderer->fBufferSize : 512; // Use default if needed
+                renderer->OpenDefault(renderer->fDSP, renderer->fDevNumInChans, renderer->fDevNumOutChans, bufferSize, sampleRate);
+                renderer->Start();
+            }
+            */
             return 0;
         }
     
