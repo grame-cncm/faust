@@ -265,7 +265,7 @@ connection_info_struct* Server::allocate_connection_struct(MHD_Connection *conne
 }
 
 //---- Callback for any type of connection to the server
-int Server::answer_to_connection	(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls){
+int Server::answer_to_connection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls){
    
     Server *server = (Server*)cls;
     
@@ -314,6 +314,8 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
         }
         
         return send_page(connection, answerstring.c_str(), answerstring.size(), MHD_HTTP_OK, "text/plain");
+    } else {
+        return MHD_NO;
     }
 }
 
