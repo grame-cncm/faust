@@ -9,9 +9,9 @@ import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 // The following utilities (or equivalents) could go in music.lib:
 
 //----------------------- midikey2hz,pianokey2hz ------------------------
-midikey2hz(x) = 440.0*pow(2.0, (x-69.0)/12); // MIDI key 69 = A440
-pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
-hz2pianokey(x) = 12*log2(f/440.0) + 49.0;
+midikey2hz(mk)  = 440.0*pow(2.0, (mk-69.0)/12); // MIDI key 69 = A440
+pianokey2hz(pk) = 440.0*pow(2.0, (pk-49.0)/12); // piano key 49 = A440
+hz2pianokey(f)  = 12*log2(f/440.0) + 49.0;
 log2(x) = log(x)/log(2.0);
 
 //---------------- cross2, bypass1, bypass2, select2stereo --------------
