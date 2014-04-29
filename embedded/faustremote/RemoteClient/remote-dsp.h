@@ -141,12 +141,13 @@ extern "C"
      * Prototype for DSP instance error callback.
      * @param error_code an error code (see "Possible error codes")
      * @param arg pointer to a client supplied structure given by createRemoteDSPInstance()
-     * #return -1 to stop calling DSP 'compute', otherwise 0 to continue
+     *
+     * @return -1 to stop calling DSP 'compute', otherwise 0 to continue.
      */
     typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
     
     /**
-     * Create a remote DSP instance. A NetJack connexion is initialized with a certain samplingRate and bufferSize. 
+     * Create a remote DSP instance. A NetJack connexion is initialized with a specified sampling rate and buffer size. 
      * - if '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
      * a number of frames below bufferSize, partial buffers will be sent and received.
      * - parameter '--NJ_compression' can be used to chose between JackOpusEncoder format 
@@ -194,7 +195,7 @@ extern "C"
     bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machine_list);
     
     /**
-     * For a machine on the network that does Remote Processing, get the list of all currently running DSP factories.
+     * For a machine on the network that does Remote Processing, get the list of all currently available DSP factories.
      * @param ip_server - IP of remote machine
      * @param port_server - Port on which the Remote Server started
      * @param factories_list - vector to be filled with <name_factory, shakey_factory>
