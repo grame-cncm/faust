@@ -147,9 +147,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4BC4BF9017A7E98100161338 /* LLVM 3.3 : faustgen~ */ = {
+		4BC4BF9017A7E98100161338 /* LLVM 3.4 : faustgen~ */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4BC4BFA217A7E98100161338 /* Build configuration list for PBXNativeTarget "LLVM 3.3 : faustgen~" */;
+			buildConfigurationList = 4BC4BFA217A7E98100161338 /* Build configuration list for PBXNativeTarget "LLVM 3.4 : faustgen~" */;
 			buildPhases = (
 				4BC4BF9117A7E98100161338 /* Resources */,
 				4BC4BF9A17A7E98100161338 /* Sources */,
@@ -160,7 +160,7 @@
 			);
 			dependencies = (
 			);
-			name = "LLVM 3.3 : faustgen~";
+			name = "LLVM 3.4 : faustgen~";
 			productName = iterator;
 			productReference = 4BC4BFA517A7E98100161338 /* faustgen~.mxo */;
 			productType = "com.apple.product-type.bundle";
@@ -204,7 +204,7 @@
 			targets = (
 				3694742E0FD5C8DC00A5E9FD /* All */,
 				5B3AA399158B65190050941C /* LLVM 3.1 : faustgen~ */,
-				4BC4BF9017A7E98100161338 /* LLVM 3.3 : faustgen~ */,
+				4BC4BF9017A7E98100161338 /* LLVM 3.4 : faustgen~ */,
 			);
 		};
 /* End PBXProject section */
@@ -324,17 +324,15 @@
 		4BC4BFA317A7E98100161338 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = NO;
 				EXECUTABLE_EXTENSION = "";
 				EXECUTABLE_SUFFIX = "";
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.1/c74support/max-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.1/c74support/msp-includes\"",
 					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/msp-includes/x64\"",
+					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
 				);
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = YES;
@@ -348,8 +346,8 @@
 					/usr/local/include/,
 					/opt/local/include,
 					/Developer/Headers/FlatCarbon,
-					"\"/Applications/Max6.1/MaxSDK-6.1.1/c74support/max-includes\"",
-					"\"/Applications/Max6.1/MaxSDK-6.1.1/c74support/msp-includes\"",
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "/../../../../../../../../../Applications/Max6.1/Cycling '74/msp-externals";
@@ -360,9 +358,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = (
-					"-DLLVM_33",
+					"-DLLVM_34",
 					"-fexceptions",
-					"-I/opt/local/libexec/llvm-3.3/include",
+					"-I/opt/local/libexec/llvm-3.4/include",
 					"-D_DEBUG",
 					"-D_GNU_SOURCE",
 					"-D__STDC_CONSTANT_MACROS",
@@ -371,6 +369,9 @@
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
+					/opt/local/lib/libcrypto.a,
+					"-Wl,-U,_object_method_imp",
+					"-Wl,-U,_object_new_imp",
 					"-lfaust",
 					"-lLLVMInstrumentation",
 					"-lLLVMArchive",
@@ -471,7 +472,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.90b;
+				PRODUCT_VERSION = 0.93b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -481,7 +482,7 @@
 		4BC4BFA417A7E98100161338 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = YES;
@@ -489,10 +490,8 @@
 				EXECUTABLE_EXTENSION = "";
 				EXECUTABLE_SUFFIX = "";
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.1/c74support/max-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.1/c74support/msp-includes\"",
 					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
-					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/msp-includes/x64\"",
+					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
 				);
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = YES;
@@ -509,8 +508,8 @@
 					/usr/local/include/,
 					/opt/local/include,
 					/Developer/Headers/FlatCarbon,
-					"\"/Applications/Max6.1/MaxSDK-6.1.1/c74support/max-includes\"",
-					"\"/Applications/Max6.1/MaxSDK-6.1.1/c74support/msp-includes\"",
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
 				);
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_OTHER_PREPROCESSOR_FLAGS = "";
@@ -522,9 +521,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = (
-					"-DLLVM_33",
+					"-DLLVM_34",
 					"-fexceptions",
-					"-I/opt/local/libexec/llvm-3.3/include",
+					"-I/opt/local/libexec/llvm-3.4/include",
 					"-D_DEBUG",
 					"-D_GNU_SOURCE",
 					"-D__STDC_CONSTANT_MACROS",
@@ -533,6 +532,9 @@
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
+					"-Wl,-U,_object_new_imp",
+					"-Wl,-U,_object_method_imp",
+					/opt/local/lib/libcrypto.a,
 					"-lfaust",
 					"-lLLVMInstrumentation",
 					"-lLLVMArchive",
@@ -633,7 +635,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.90b;
+				PRODUCT_VERSION = 0.93b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -778,7 +780,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.90b;
+				PRODUCT_VERSION = 0.93b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -926,7 +928,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.90b;
+				PRODUCT_VERSION = 0.93b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -954,7 +956,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
 		};
-		4BC4BFA217A7E98100161338 /* Build configuration list for PBXNativeTarget "LLVM 3.3 : faustgen~" */ = {
+		4BC4BFA217A7E98100161338 /* Build configuration list for PBXNativeTarget "LLVM 3.4 : faustgen~" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4BC4BFA317A7E98100161338 /* Development */,
