@@ -276,9 +276,9 @@ class faustgen : public MspCpp5<faustgen> {
          
         // Called upon sending the object a message inside the max patcher
         // Allows to set a value to the Faust module's parameter 
-        void anything(long inlet, t_symbol*s, long ac, t_atom*av);
+        void anything(long inlet, t_symbol* s, long ac, t_atom* av);
          
-        void compileoptions(long inlet, t_symbol*s, long argc, t_atom* argv);
+        void compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv);
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
@@ -290,16 +290,16 @@ class faustgen : public MspCpp5<faustgen> {
         // This function saves the necessary data inside the json file (faust sourcecode)
         void appendtodictionary(t_dictionary* d);
         
-        void getfromdictionary(t_dictionary *d);
+        void getfromdictionary(t_dictionary* d);
      
         // Called when the user double-clicks on the faustgen object inside the Max patcher
         void dblclick(long inlet);
         
         // Called when closing the text editor, calls for the creation of a new Faust module with the updated sourcecode
-        void edclose(long inlet, char **text, long size);
+        void edclose(long inlet, char** text, long size);
           
         // Process the signal data with the Faust module
-        void perform(int vs, t_sample ** inputs, long numins, t_sample ** outputs, long numouts);
+        void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
           
 };
 
