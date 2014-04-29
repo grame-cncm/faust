@@ -31,4 +31,4 @@ libfaustcsound.dylib : faustcsound.cpp
 
 ## FOR LINUX
 libfaustcsound.so : faustcsound.cpp
- 	g++ -O3 -shared -o libfaustcsound.so faustcsound.cpp -DFAUSTFLOAT=double -DUSE_DOUBLE -I$(CSOUNDHEADERS)  -L/usr/local/lib/faust -lfaust `llvm-config --ldflags --libs all`
+ 	g++ -O3 -shared -o libfaustcsound.so faustcsound.cpp -DFAUSTFLOAT=double -DUSE_DOUBLE -I$(CSOUNDHEADERS)  -L/usr/local/lib/faust -lfaust -lcrypto `llvm-config --ldflags --libs all`
