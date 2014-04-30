@@ -975,16 +975,19 @@ __attribute__((destructor)) static void destroy_libfaustremote()
 
 void* remote_DNS::scanFaustRemote(void* arg)
 {
-
     remote_DNS* dsn = (remote_DNS*)arg;
 
 #ifdef __APPLE__
     while (true) {
+        // Add and explicit cancellation point
+        pthread_testcancel();
         DNSServiceProcessResult(dsn->fDNSDevice);
     }
 #else
     avahi_simple_poll_loop(dsn->fPoll);
 #endif
+    
+    pthread_exit(NULL);
 }
 
 remote_DNS::remote_DNS()
@@ -1027,11 +1030,10 @@ remote_DNS::remote_DNS()
 remote_DNS::~remote_DNS()
 {
 	printf("Destructor\n");
-
+ 
 #ifdef __APPLE__
     DNSServiceRefDeallocate(fDNSDevice);
 #else
-	pthread_cancel(fThread);
 
     /* Cleanup things */
     if (fBrowser)
@@ -1043,6 +1045,9 @@ remote_DNS::~remote_DNS()
     if (fPoll)
         avahi_simple_poll_free(fPoll);
 #endif
+    
+    pthread_cancel(fThread);
+    pthread_join(fThread, NULL);
 }
 
 // Public API
