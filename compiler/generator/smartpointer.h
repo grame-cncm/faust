@@ -50,7 +50,7 @@ class smartable {
 		//! destructor checks for non-zero refCount
         virtual ~smartable()    
         { 
-            printf(" ~smartable() \n"); 
+            //printf(" ~smartable() \n"); 
             //assert (refCount == 0);
         }
 		smartable& operator=(const smartable&) { return *this; }

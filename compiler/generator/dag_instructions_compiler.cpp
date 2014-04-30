@@ -117,6 +117,11 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 	fContainer->processFIR();
 }
 
+/**
+ * Compile a signal
+ * @param sig the signal expression to compile.
+ * @return the code translation of sig as ValueInst*
+ */
 ValueInst* DAGInstructionsCompiler::CS(Tree sig)
 {
     ValueInst* code;
@@ -212,7 +217,7 @@ ValueInst* DAGInstructionsCompiler::generateCodeNonRec(Tree sig)
 /**
  * Compile a signal
  * @param sig the signal expression to compile.
- * @return the C code translation of sig as a string
+ * @return the code translation of sig as ValueInst*
  */
 ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
 {

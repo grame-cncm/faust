@@ -299,7 +299,7 @@ class FaustLLVMOptimizer {
         FAUSTFLOAT* nextVect()
         {
             IDX = (1 + IDX) % NV;
-            return &fBuffer[IDX*VSIZE];
+            return &fBuffer[IDX * VSIZE];
         }
         
         double bench()
@@ -343,9 +343,11 @@ class FaustLLVMOptimizer {
     
         void init()
         {
+            //cout << "COUNT " << COUNT << endl;
+            
             // Scalar mode
             vector <string> t0;
-            //fOptionsTable.push_back(t0);
+            fOptionsTable.push_back(t0);
             
             fMeasure = 0;
             
@@ -357,7 +359,7 @@ class FaustLLVMOptimizer {
             t1.push_back("-vs");
             t1.push_back(num.str());
             fOptionsTable.push_back(t1);
-            */
+            
             
             stringstream num;
             num << 512;
@@ -368,8 +370,9 @@ class FaustLLVMOptimizer {
             t1.push_back("-vs");
             t1.push_back(num.str());
             fOptionsTable.push_back(t1);
+            */
             
-            /*
+            
             // vec -lv 0
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -382,7 +385,7 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            
+            /*
             // vec -lv 1
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -395,9 +398,7 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            */
             
-            /*
             // vec -lv 0 -dfs
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -425,7 +426,19 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            */
+             */
+            
+            // sch
+            for (int size = 16; size <= VSIZE; size *= 2) {
+                stringstream num;
+                num << size;
+                vector <string> t1;
+                t1.push_back("-sch");
+                t1.push_back("-vs");
+                t1.push_back(num.str());
+                fOptionsTable.push_back(t1);
+            } 
+            
         }
     
         FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int count, int size)
@@ -493,12 +506,23 @@ class FaustLLVMOptimizer {
     
         
         const char* getError() { return fError.c_str(); }
+    
+        void printItem(const vector <string>& item)
+        {
+            for (int i = 0; i < item.size(); i++) {
+                cout << " " << item[i];
+            }
+            cout << std::endl;
+        }
         
         bool computeOne(int index, double& res)
         {
             vector <string> item = fOptionsTable[index];
             
-            int opt_level = 4;
+            printItem(item);
+            
+            //int opt_level = 4;
+            int opt_level = 3;
     
             if (fInput == "") { 
             

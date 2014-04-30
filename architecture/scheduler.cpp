@@ -917,7 +917,6 @@ class TaskGraph
             } 
         }
         
-        
         INLINE ~TaskGraph()
         {
             delete[] fTaskList;

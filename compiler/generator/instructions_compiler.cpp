@@ -199,6 +199,10 @@ Tree InstructionsCompiler::prepare2(Tree L0)
   	return L0;
 }
 
+/*****************************************************************************
+ CACHE CODE
+ *****************************************************************************/
+
 void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname)
 {
     if (t->nature() == kInt) {
@@ -366,6 +370,15 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
 }
+
+/*****************************************************************************
+ generateCode : dispatch according to signal
+ *****************************************************************************/
+/**
+ * Main code generator dispatch.
+ * @param sig the signal expression to compile.
+ * @return the C code translation of sig
+ */
 
 ValueInst* InstructionsCompiler::generateCode(Tree sig)
 {
@@ -602,6 +615,10 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
     }
 }
 
+/*****************************************************************************
+ PREFIX, DELAY A PREFIX VALUE
+ *****************************************************************************/
+
 ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
  	string vperm = getFreshID("M");
@@ -623,6 +640,10 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 }
 
 ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg) { return InstBuilder::genNullInst(); }  // Result not used
+
+/*****************************************************************************
+ BINARY OPERATION
+ *****************************************************************************/
 
 ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
@@ -663,6 +684,10 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, 
     return generateCacheCode(sig, res);
 }
 
+/*****************************************************************************
+ Primitive Operations
+ *****************************************************************************/
+
 ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     fContainer->addIncludeFile(ffincfile(ff));
@@ -696,6 +721,10 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
 }
 
+/*****************************************************************************
+ INPUTS - OUTPUTS
+ *****************************************************************************/
+
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 {
     // 09/12/11 : HACK
@@ -712,6 +741,14 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
         return generateCacheCode(sig, res);
     }
 }
+
+/*****************************************************************************
+ TABLES
+ *****************************************************************************/
+
+/*----------------------------------------------------------------------------
+ sigTable : table declaration
+ ----------------------------------------------------------------------------*/
 
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
@@ -840,6 +877,10 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     return InstBuilder::genLoadStaticStructVar(vname);
 }
 
+/*----------------------------------------------------------------------------
+ sigWRTable : table assignement
+ ----------------------------------------------------------------------------*/
+
 ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     ValueInst* tblname = CS(tbl);
@@ -860,6 +901,10 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     // Return table access
     return InstBuilder::genLoadStructVar(load_value->fAddress->getName());
 }
+
+/*----------------------------------------------------------------------------
+ sigRDTable : table access
+ ----------------------------------------------------------------------------*/
 
 ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 {
@@ -1020,6 +1065,13 @@ ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tr
     return InstBuilder::genNullInst();
 }
 
+/*****************************************************************************
+ RECURSIONS
+ *****************************************************************************/
+
+/**
+ * Generate code for a projection of a group of mutually recursive definitions
+ */
 ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
 {
     string vname;
@@ -1036,6 +1088,9 @@ ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
     return res;
 }
 
+/**
+ * Generate code for a group of mutually recursive definitions
+ */
 ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int index)
 {
     int N = len(le);
@@ -1077,6 +1132,10 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
     return res;
 }
 
+/*****************************************************************************
+ CASTING
+ *****************************************************************************/
+
 ValueInst* InstructionsCompiler::generateIntCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, InstBuilder::genCastNumIntInst(CS(x)));
@@ -1086,6 +1145,10 @@ ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(CS(x)));
 }
+
+/*****************************************************************************
+ user interface elements
+ *****************************************************************************/
 
 ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const string& name)
 {
@@ -1234,6 +1297,10 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     }
 }
 
+/*****************************************************************************
+ FOREIGN VARIABLES
+ *****************************************************************************/
+
 ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string& file, const string& name)
 {
     fContainer->addIncludeFile(file);
@@ -1335,8 +1402,11 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         }
 
     } else {
+        
+        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
 
+        // we need a iota index
         ensureIotaCode();
 
         // Generates table init
@@ -1350,6 +1420,14 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
     return exp;
 }
 
+/*****************************************************************************
+ IOTA(n)
+ *****************************************************************************/
+
+/**
+ * Generate code for a unique IOTA variable increased at each sample
+ * and used to index ring buffers.
+ */
 void InstructionsCompiler::ensureIotaCode()
 {
     if (!fLoadedIota) {
