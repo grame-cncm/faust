@@ -4,10 +4,6 @@
 #include <audioeffectx.h>
 #include <faust/gui/ui.h>
 
-#ifndef DEBUG
-#define DEBUG
-#endif
-
 #ifdef DEBUG
 #define TRACE(x) x
 #else
