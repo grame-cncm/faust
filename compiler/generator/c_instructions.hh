@@ -170,6 +170,9 @@ class CInstVisitor : public TextInstVisitor {
         
         virtual void visit(ForLoopInst* inst)
         {
+            // Don't generate empty loops...
+            if (inst->fCode->size() == 0) return;
+            
             DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
             StoreVarInst* c99_init_inst = NULL;
 

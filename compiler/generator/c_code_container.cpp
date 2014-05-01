@@ -267,6 +267,7 @@ void CCodeContainer::produceClass()
 
     // Compute
     generateCompute(n);
+    tab(n, *fOut);
 
     // Generate user interface macros if needed
 	if (gGlobal->gUIMacroSwitch) {

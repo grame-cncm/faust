@@ -1092,6 +1092,8 @@ struct BlockInst : public StatementInst
             fCode.push_back(*it);
         }
     }
+    
+    int size() { return fCode.size(); }
 
     bool hasReturn();
 

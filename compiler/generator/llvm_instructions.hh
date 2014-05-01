@@ -1991,6 +1991,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual void visit(ForLoopInst* inst)
         {
+            // Don't generate empty loops...
+            if (inst->fCode->size() == 0) return;
+            
             string loop_counter_name;
             Function* function = fBuilder->GetInsertBlock()->getParent();
             assert(function);
