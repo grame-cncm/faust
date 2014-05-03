@@ -397,6 +397,7 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
+///<<<<<<< HEAD
     int p = fRates->periodicity(sig);
     if (p == 1) {
         if (gInPlace) {
@@ -405,6 +406,11 @@ string ScalarCompiler::generateInput (Tree sig, const string& idx)
     	} else {
         	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
 		}
+// =======
+//     if (gInPlace) {
+//         // inputs must be cached for in-place transformations
+//         return forceCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+// >>>>>>> master
     } else {
         if (gInPlace) {
         	// inputs must be cached for in-place transformations
@@ -565,6 +571,30 @@ string wrapPeriodicity(int p, const string& code)
     } else {
         return subst("if ((i%$0)==0) { $1; }", T(p), code);
     }
+}
+
+// like generateCacheCode but we force caching like if sharing was always > 1
+string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
+{
+	string 		vname, ctype, code;
+	Occurences* o = fOccMarkup.retrieveOccurences(sig);
+
+	// check reentrance
+    if (getCompiledExpression(sig, code)) {
+        return code;
+    }
+
+	// check for expression occuring in delays
+	if (o->getMaxDelay()>0) {
+
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
+        return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
+
+	} else  {
+
+        return generateVariableStore(sig, exp);
+
+	}
 }
 
 

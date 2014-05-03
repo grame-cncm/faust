@@ -57,14 +57,17 @@ void OSCListener::run()
 		try {
 			if (fPort) {
 				delete fSocket;
-				fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
+                fSocket = NULL;
+            	fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
 				fPort = 0;
 			}
-			fSocket->Run();
+        
+            if(fSocket != NULL)
+                fSocket->Run();
 		}
-		catch (osc::Exception e) {
-			cerr << "osc error: " << e.what() << endl;
-		}
+		catch (...) {
+            throw;
+        }
 	}
 }
 
