@@ -22,6 +22,7 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
+#include "faust/gui/JSONUI.h"
 
 using namespace std;
 
@@ -53,10 +54,18 @@ mydsp DSP;
 
 int main(int argc, char *argv[])
 {
+    /*
     httpdfaust::jsonfaustui json("", "", 0);
     DSP.buildUserInterface(&json);
     mydsp::metadata(&json);
-	json.numInput (DSP.getNumInputs());
-	json.numOutput (DSP.getNumOutputs());
-    printf("%s\n", json.json().c_str());
+    json.numInput(DSP.getNumInputs());
+    json.numOutput(DSP.getNumOutputs());
+    cout << json.json();
+    */
+    
+    JSONUI json(DSP.getNumInputs(), DSP.getNumOutputs());
+    // Add metadata before UI is andatory for proper JSONUI functionning
+    mydsp::metadata(&json);
+    DSP.buildUserInterface(&json);
+    cout << json.JSON();
 }
