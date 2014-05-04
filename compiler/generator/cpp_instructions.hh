@@ -132,10 +132,6 @@ class CPPInstVisitor : public TextInstVisitor {
             }
 
             // Prototype arguments
-            if (inst->fType->fAttribute & FunTyped::kLocal) {
-                *fOut << " ";
-            }
-
             if (inst->fType->fAttribute & FunTyped::kVirtual) {
                 *fOut << "virtual ";
             }

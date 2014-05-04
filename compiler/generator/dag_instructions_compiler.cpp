@@ -257,7 +257,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 {
     ::Type t = getCertifiedSigType(sig);
 
-    if (getCertifiedSigType(sig)->variability() == kSamp) {
+    if (t->variability() == kSamp) {
         string vname;
         Typed::VarType ctype;
         getTypedNames(t, "Vector", ctype, vname);
