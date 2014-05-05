@@ -183,12 +183,12 @@ class JSONUI : public UI, public Meta
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            addGenericBargraph(label, "vbargraph", min, max);
+            addGenericBargraph(label, "hbargraph", min, max);
         }
     
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addGenericBargraph(label, "hbargraph", min, max);
+            addGenericBargraph(label, "vbargraph", min, max);
         }
 
         // -- metadata declarations

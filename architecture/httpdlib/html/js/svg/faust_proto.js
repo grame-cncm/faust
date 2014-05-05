@@ -1227,7 +1227,7 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   faust_svg.make();
 }
 
-_f4u$t.make_audio_ui_asm = function(dsp, svg) {
+_f4u$t.make_audio_ui_asm = function(svg, dsp) {
     var json = eval ("(" + dsp.json() + ")");
     var faust_svg = new _f4u$t.SVG(
        svg,
