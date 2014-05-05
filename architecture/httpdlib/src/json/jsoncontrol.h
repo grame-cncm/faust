@@ -57,7 +57,7 @@ template <typename C> class jsoncontrol : public jsonnode
 
 		virtual void	print(std::ostream& out, jsonendl& eol) const
 		{
-			bool button = (fType == "button");
+			bool button = (fType == "button") || (fType == "checkbox");
 			bool bargraph = (fType == "vbargraph") || (fType == "hbargraph");
 
 			out << eol << "{"; eol++;
@@ -82,8 +82,9 @@ template <typename C> class jsoncontrol : public jsonnode
 			}
 			out << "," << eol << "\"min\": \"" << fMin << "\",";
 			out << eol << "\"max\": \"" << fMax << "\"";
-			if (!bargraph)
+			if (!bargraph) {
 				out << "," << eol << "\"step\": \"" << fStep << "\"";
+            }
 			out << --eol << "}";
 		}
 	
