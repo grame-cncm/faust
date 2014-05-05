@@ -133,7 +133,7 @@ class JSONUI : public UI, public Meta
     
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            addGenericButton(label, "checkbutton");
+            addGenericButton(label, "checkbox");
         }
     
         virtual void addGenericEntry(const char* label, const char* name, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
