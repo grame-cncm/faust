@@ -1209,7 +1209,6 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   );
   
   // Keep audio params in a table 
-  
   _f4u$t.controls = new Array();
   for (var i = 0; i < dsp.numberOfAudioParams(); i++) {
     var ctrl = dsp.getAudioParam(i);
@@ -1219,13 +1218,6 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   _f4u$t.fausthandler = function(dest, value) {
     _f4u$t.controls[dest].value = value; 
   }
-  
-  /*  
-  // Change value of the given audio param
-  _f4u$t.fausthandler = function(dest, value) {
-    dsp.setAudioParamValue(dest, value); 
-  }
-  */
     
   _f4u$t.update = function() {}
   _f4u$t.main_loop = function() {}
@@ -1233,5 +1225,32 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   faust_svg.defs();
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
+}
+
+_f4u$t.make_audio_ui_asm = function(dsp, svg) {
+    var json = eval ("(" + dsp.json() + ")");
+    var faust_svg = new _f4u$t.SVG(
+       svg,
+       // kludge to prevent scroll bars...
+       $(window).width() - 15,
+       // kludge to prevent scroll bars...
+       $(window).height() - 17,
+       {
+       constrain : false,
+       title : json["ui"][0].label,
+       lm : _f4u$t.json_to_ui(json)
+       }
+    );
+    
+    _f4u$t.fausthandler = function(dest, value) {
+       dsp.update(dest, value);
+    }
+     
+    _f4u$t.update = function() {}
+    _f4u$t.main_loop = function() {}
+    
+    faust_svg.defs();
+    faust_svg.lm.mom = faust_svg;
+    faust_svg.make();
 }
 
