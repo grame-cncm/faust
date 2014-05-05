@@ -49,7 +49,7 @@ for f in $FILES; do
     cat $FAUSTLIB/webaudio/webaudio-asm-header.js > $name.js
     cat $name-temp.js >> $name.js
     sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/webaudio-asm-wrapper.js >> $name.js
-    sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/webaudio-asm.html >> $name.html
+    sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/webaudio-asm.html > $name.html
     rm $name-temp.js
     rm $name.cpp
 done
