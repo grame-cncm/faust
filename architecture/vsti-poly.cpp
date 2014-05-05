@@ -122,7 +122,7 @@
 #include <map>
 #include <list>
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define TRACE(x) x
@@ -222,6 +222,8 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 ///////////////////////////////////////////////////////////////////
 // Constants
 ///////////////////////////////////////////////////////////////////
+
+#define MAX_NOUTS (64)
 
 //----------------------------------------------------------------------------
 // Faust class prototype
@@ -653,6 +655,7 @@ inline float midiToFreq(int note) {
 void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, 
 																	VstInt32 sampleFrames)
 {
+	float* outptr[MAX_NOUTS] = {NULL,};
 	int i;
 	int nouts = m_dsp->getNumOutputs();
 
@@ -696,13 +699,14 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 						m_playingVoices.pop_front();
 						m_playingVoices.push_back(front);
 					}
-					float** outptr = (float **)malloc(nouts * sizeof(float*));
+					//float** outptr = (float **)malloc(nouts * sizeof(float*));
+					memset(outptr, 0, sizeof(outptr));
 					// Before the note starts
 					for (i = 0; i < nouts; i++) {
 						outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
 					}
 					compute(inputs, outptr, currentDelta - previousDelta);
-					free(outptr);
+					//free(outptr);
 					// Note start
 					float freq = midiToFreq(currentNote);
 					m_voices[currentVoice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
@@ -725,13 +729,14 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 							}
 						}
 					}
-					float** outptr = (float **)malloc(nouts * sizeof(float*));
+					//float** outptr = (float **)malloc(nouts * sizeof(float*));
+					memset(outptr, 0, sizeof(outptr));
 					// Before the note ends
 					for (i = 0; i < nouts; i++) {
 						outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
 					}
 					compute(inputs, outptr, currentDelta - previousDelta);
-					free(outptr);
+					//free(outptr);
 					// Note end
 					if (voiceFound) {
 						m_voices[currentVoice]->setGate(0);
@@ -740,7 +745,8 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				previousDelta = currentDelta;
 			}
 		}
-		float** outptr = (float **)malloc(nouts * sizeof(float*));
+		//float** outptr = (float **)malloc(nouts * sizeof(float*));
+		memset(outptr, 0, sizeof(outptr));
 		// Compute the left over time
 		int count = sampleFrames - currentDelta;
 		// Left over time in chunk
@@ -748,7 +754,7 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 			outptr[i] = outputs[i] + currentDelta; // leaving caller's pointers alone
 		}
 		compute(inputs, outptr, count);
-		free(outptr);
+		//free(outptr);
 	}
 	else {
 		compute(inputs, outputs, sampleFrames);

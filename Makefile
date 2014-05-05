@@ -122,6 +122,7 @@ install :
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available
 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
 	cp architecture/osclib/*.a $(prefix)/lib/faust/
+	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
 	# install additional includes files for binary libraries  (osc, http,...)
