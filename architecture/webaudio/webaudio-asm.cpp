@@ -5,6 +5,7 @@
 #include <emscripten.h>
 #include <vector>
 #include <string>
+#include <math.h>
 
 #include "faust/gui/JSONUI.h"
 #include "faust/audio/dsp.h"
