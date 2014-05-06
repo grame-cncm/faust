@@ -27,10 +27,13 @@ class JSONUI : public UI, public Meta
         std::stringstream fUI;
         std::stringstream fMeta;
         std::vector<std::string> fControlsLevel;
+        std::string fName;
     
         bool fCloseUIPar;
         bool fCloseMetaPar;
         int fTab;
+    
+        int fInputs, fOutputs;
     
         std::string buildPath(const std::string& label) 
         {
@@ -46,21 +49,15 @@ class JSONUI : public UI, public Meta
         void tab(int n, std::ostream& fout)
         {
             fout << '\n';
-            while (n--) fout << '\t';
+            while (n-- > 0) {
+                fout << '\t';
+            }
         }
       
      public:
 
-        JSONUI(int inputs, int outputs):fTab(0)
+        JSONUI(int inputs, int outputs):fTab(1)
         {
-            fJSON << "{";
-            fTab += 1;
-            tab(fTab, fJSON); fJSON << "\"name\": \"\",";
-            tab(fTab, fJSON); fJSON << "\"address\": \"\",";
-            tab(fTab, fJSON); fJSON << "\"port\": \"0\",";
-            if (inputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << inputs << "\","; }
-            if (outputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << outputs << "\","; }
-            
             // Start Meta generation
             tab(fTab, fMeta); fMeta << "\"meta\": [";
             fCloseMetaPar = false;
@@ -69,6 +66,10 @@ class JSONUI : public UI, public Meta
             tab(fTab, fUI); fUI << "\"ui\": [";
             fCloseUIPar = false;
             fTab += 1;
+            
+            fName = "";
+            fInputs = inputs;
+            fOutputs = outputs;
         }
 
         virtual ~JSONUI() {}
@@ -202,13 +203,21 @@ class JSONUI : public UI, public Meta
         virtual void declare(const char* key, const char* value)
         {
             if (fCloseMetaPar) fMeta << ",";
+            if (strcmp(key, "name") == 0) fName = value;
             tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ":" << "\"" << value << "\" }";
             fCloseMetaPar = true;
         }
     
         std::string JSON()
         {
-            fTab -= 1;
+            fTab = 0;
+            fJSON << "{";
+            fTab += 1;
+            tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            tab(fTab, fJSON); fJSON << "\"address\": \"\",";
+            tab(fTab, fJSON); fJSON << "\"port\": \"0\",";
+            if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
+            if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
             tab(fTab, fMeta); fMeta << "],";
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
