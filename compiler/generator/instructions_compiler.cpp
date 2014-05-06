@@ -1164,12 +1164,12 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
 {
-    return generateButtonAux(sig, path, "fbutton");
+    return generateButtonAux(sig, path, "fButton");
 }
 
 ValueInst* InstructionsCompiler::generateCheckbox(Tree sig, Tree path)
 {
-    return generateButtonAux(sig, path, "fcheckbox");
+    return generateButtonAux(sig, path, "fCheckbox");
 }
 
 ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name)
@@ -1186,16 +1186,16 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
-    return generateSliderAux(sig, path, cur, min, max, step, "fvslider");
+    return generateSliderAux(sig, path, cur, min, max, step, "fVslider");
 }
 ValueInst* InstructionsCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
-    return generateSliderAux(sig, path, cur, min, max, step, "fhslider");
+    return generateSliderAux(sig, path, cur, min, max, step, "fHslider");
 }
 
 ValueInst* InstructionsCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
-    return generateSliderAux(sig, path, cur, min, max, step, "fentry");
+    return generateSliderAux(sig, path, cur, min, max, step, "fEntry");
 }
 
 ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name)
@@ -1228,12 +1228,12 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
 {
-    return generateBargraphAux(sig, path, min, max, exp, "fvbargraph");
+    return generateBargraphAux(sig, path, min, max, exp, "fVbargraph");
 }
 
 ValueInst* InstructionsCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
 {
-    return generateBargraphAux(sig, path, min, max, exp, "fhbargraph");
+    return generateBargraphAux(sig, path, min, max, exp, "fHbargraph");
 }
 
 ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)

@@ -372,6 +372,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
             // One output only
             if ((*p)->getForwardLoopDependencies().size() == 1) {
 
+                case_block->pushBackInst(InstBuilder::genLabelInst("/* One output only */"));
                 lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin();
                 if ((*p1)->getBackwardLoopDependencies().size () == 1) {
                     case_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst((*p1)->getIndex())));
@@ -387,6 +388,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
             } else {
 
                 CodeLoop* keep = NULL;
+                
                 // Find one output with only one backward dependencies
                 for (lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin(); p1 != (*p)->getForwardLoopDependencies().end(); p1++) {
                     if ((*p1)->getBackwardLoopDependencies().size () == 1) {
