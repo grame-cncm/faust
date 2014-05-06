@@ -23,11 +23,11 @@ var DSP_getNumParams = Module.cwrap('DSP_getNumParams', 'number', 'number');
 var DSP_getIndexedParam = Module.cwrap('DSP_getIndexedParam', 'number', ['number', 'number', 'number']);
 var DSP_getJSON = Module.cwrap('DSP_getJSON', 'number', ['number']);
 
-faust.DSP = function (context, buffer_size) {
+faust.DSP = function (context, vectorsize) {
     var that = {};
     
     faust.context = context;
-    that.vectorsize = buffer_size;
+    that.vectorsize = vectorsize;
     
     that.model = {
         playing: false
@@ -52,7 +52,6 @@ faust.DSP = function (context, buffer_size) {
         for (i = 0; i < that.numIn; i++) {
             var input = e.inputBuffer.getChannelData(i);
             var dspInput = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.vectorsize * that.ptrsize) >> 2);
-            
             for (j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
             }
@@ -63,7 +62,6 @@ faust.DSP = function (context, buffer_size) {
         for (i = 0; i < that.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
             var dspOutput = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.vectorsize * that.ptrsize) >> 2);
-            
             for (j = 0; j < output.length; j++) {
                 output[j] = dspOutput[j];
             }
@@ -145,7 +143,6 @@ faust.DSP = function (context, buffer_size) {
     that.init = function () {
         var i;
         that.ptrsize = 4; //assuming pointer in emscripten are 32bits
-        //that.vectorsize = 2048;
         that.samplesize = 4;
         
         // Get input / output counts
@@ -179,7 +176,6 @@ faust.DSP = function (context, buffer_size) {
     };
     
     that.init();
-    
     return that;
 };
 
