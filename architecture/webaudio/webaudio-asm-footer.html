@@ -1,0 +1,21 @@
+
+    <body>
+        <div id = "faustsvg">
+        <script>
+        
+        var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+        var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+        var buffer_size = 1024;
+        
+        $('#faustsvg').svg({onLoad: function (svg) {
+         
+            var DSP = faust.DSP(context, buffer_size);
+            DSP.start();
+            console.log(DSP.json());
+            _f4u$t.make_audio_ui_asm(svg, DSP);
+            
+          }});
+       
+        </script>
+    </body>
+</html>
