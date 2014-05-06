@@ -11,13 +11,15 @@ faust2webaudio is distributed under the terms the MIT or GPL2 Licenses.
 Choose the license that best suits your project. The text of the MIT and GPL
 licenses are at the root directory.
 
+Additional code : GRAME 2014
+ 
 */
 
 /*global webkitAudioContext, Module, HEAPF32, HEAP32, Pointer_stringify, ALLOC_STACK, intArrayFromString, allocate*/
 
 var faust = faust || {};
 
-// Shim AudioConext on webkit
+// Shim AudioContext on webkit
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
 (function () {
