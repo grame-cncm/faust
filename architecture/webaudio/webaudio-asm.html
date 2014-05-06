@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-      <title>FAUST DSP</title>
-      <!-- I am so Meta -->
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="description" content="FAUST DSP">
-      <meta name="author" content="Myles Borins, GRAME">
-      <!-- OpenGraph Meta -->
-      <meta property="og:title" content="FAUST DSP"/>
-      <!-- <meta property="og:url" content=""/> -->
-      <meta property="og:site_name" content="FAUST DSP"/>
-      <!-- <meta property="og:image" content="Some Image"/> -->
+        <title>FAUST DSP</title>
+        <!-- I am so Meta -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="FAUST DSP">
+        <meta name="author" content="Myles Borins, GRAME">
+        <!-- OpenGraph Meta -->
+        <meta property="og:title" content="FAUST DSP"/>
+        <!-- <meta property="og:url" content=""/> -->
+        <meta property="og:site_name" content="FAUST DSP"/>
+        <!-- <meta property="og:image" content="Some Image"/> -->
         <script  src="file://localhost/usr/local/lib/faust/js/svg/jquery-1.7.1.min.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/jquerysvg/jquery.svg.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_proto.js"></script>
@@ -23,24 +23,26 @@
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_server_communication.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/faust_webaudio_tools.js"></script> 
         <link rel="stylesheet" type="text/css" href="file://localhost/usr/local/lib/faust/js/svg/faust_css.css"></link>
-
     </head>
 
     <body>
-    <div id="faustsvg">
-    <script src="DSP.js"></script>
-    <script>
-    
-     $('#faustsvg').svg({onLoad: function (svg) {
-     
-        var DSP = faust.DSP();
-        DSP.play();
-        console.log(DSP.json());
-        _f4u$t.make_audio_ui_asm(svg, DSP);
+        <div id = "faustsvg">
+        <script src = "DSP.js"></script>
+        <script>
         
-      }});
-   
-    </script>
+        var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+        var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+        var buffer_size = 1024;
+        
+        $('#faustsvg').svg({onLoad: function (svg) {
+         
+            var DSP = faust.DSP(context, buffer_size);
+            DSP.start();
+            console.log(DSP.json());
+            _f4u$t.make_audio_ui_asm(svg, DSP);
+            
+          }});
+       
+        </script>
     </body>
-
 </html>
