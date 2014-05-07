@@ -1193,6 +1193,9 @@ _f4u$t.main = function(svg, raw_json) {
   }
 }
 
+/**
+  To be called when used with the C++/LLVM libfaust based FaustNode.
+**/
 _f4u$t.make_audio_ui = function(dsp, svg) {
   var json = eval ("(" + dsp.json() + ")");
   var faust_svg = new _f4u$t.SVG(
@@ -1227,6 +1230,9 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   faust_svg.make();
 }
 
+/**
+ To be called when used with the emcc based asm.js FaustNode.
+ **/
 _f4u$t.make_audio_ui_asm = function(svg, dsp) {
     var json = eval ("(" + dsp.json() + ")");
     var faust_svg = new _f4u$t.SVG(
@@ -1242,6 +1248,7 @@ _f4u$t.make_audio_ui_asm = function(svg, dsp) {
        }
     );
     
+    // Set values in the asm.js part...
     _f4u$t.fausthandler = function(dest, value) {
        dsp.update(dest, value);
     }
