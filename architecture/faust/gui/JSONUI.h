@@ -44,7 +44,7 @@ class JSONUI : public PathUI, public Meta
             }
         }
     
-        void addMeta(int tab_val)
+        void addMeta(int tab_val, bool quote = true)
         {
             if (fMetaAux.size() > 0) {
                 tab(tab_val, fUI); fUI << "\"meta\": [";
@@ -54,7 +54,7 @@ class JSONUI : public PathUI, public Meta
                     tab(tab_val + 1, fUI); fUI << "{ " << "\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\"}";
                     sep = ",";
                 }
-                tab(tab_val, fUI); fUI << "],";
+                tab(tab_val, fUI); fUI << ((quote) ? "],": "]");
                 fMetaAux.clear();
             }
         }
@@ -128,7 +128,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
-            addMeta(fTab + 1);
+            addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = true;
         }
@@ -185,7 +185,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
-            tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
+            tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\"";
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = true;
         }
