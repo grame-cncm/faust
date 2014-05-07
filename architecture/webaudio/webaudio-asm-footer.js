@@ -33,21 +33,23 @@ faust.DSP = function (context, vectorsize) {
     
     // Bind to C++ Member Functions
     
-    that.getNumInputs = function () {
+    that.getNumInputs = function () 
+    {
         return DSP_getNumInputs(that.ptr);
     };
     
-    that.getNumOutputs = function () {
+    that.getNumOutputs = function () 
+    {
         return DSP_getNumOutputs(that.ptr);
     };
     
-    that.compute = function (e) {
-        var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
-        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+    that.compute = function (e) 
+    {
         var i, j;
+        
         for (i = 0; i < that.numIn; i++) {
             var input = e.inputBuffer.getChannelData(i);
-            var dspInput = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.vectorsize * that.ptrsize) >> 2);
+            var dspInput = that.dspInChannnels[i];
             for (j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
             }
@@ -57,7 +59,7 @@ faust.DSP = function (context, vectorsize) {
         
         for (i = 0; i < that.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
-            var dspOutput = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.vectorsize * that.ptrsize) >> 2);
+            var dspOutput = that.dspOutChannnels[i];
             for (j = 0; j < output.length; j++) {
                 output[j] = dspOutput[j];
             }
@@ -65,13 +67,15 @@ faust.DSP = function (context, vectorsize) {
         return that;
     };
     
-    that.destroy = function () {
+    that.destroy = function ()
+    {
         DSP_destructor(that.ptr);
         return that;
     };
     
     // Connect to another node
-    that.connect = function (node) {
+    that.connect = function (node) 
+    {
         if (node.scriptProcessor) {
             that.scriptProcessor.connect(node.scriptProcessor);
         } else {
@@ -82,29 +86,33 @@ faust.DSP = function (context, vectorsize) {
     
     // Bind to Web Audio
     
-    that.start = function () {
+    that.start = function () 
+    {
         that.scriptProcessor.connect(faust.context.destination);
         return that;
     };
     
-    that.stop = function () {
+    that.stop = function () 
+    {
         that.scriptProcessor.disconnect(faust.context.destination);
         return that;
     };
     
-    that.update = function (path, val) {
+    that.update = function (path, val) 
+    {
         var pathPtr = allocate(intArrayFromString(path), 'i8', ALLOC_STACK)
-        console.log(path,val);
         DSP_setValue(that.ptr, pathPtr, val);
     };
     
-    that.json = function() {
+    that.json = function()
+    {
         var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
         DSP_getJSON(that.ptr, jsonPtr);
         return Pointer_stringify(jsonPtr);
     }
      
-    that.init = function () {
+    that.init = function ()
+    {
         var i;
         that.ptrsize = 4; //assuming pointer in emscripten are 32bits
         that.samplesize = 4;
@@ -132,9 +140,23 @@ faust.DSP = function (context, vectorsize) {
         
         // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
         for (i = 0; i < that.numOut; i++) { 
-            // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+            // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
             HEAP32[(that.outs >> 2) + i] = Module._malloc(that.vectorsize * that.samplesize);
         }
+    
+        // Prepare Ins/out buffer tables
+        that.dspInChannnels = [];
+        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+        for (i = 0; i < that.numIn; i++) {
+            that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.vectorsize * that.ptrsize) >> 2);
+        }
+       
+        that.dspOutChannnels = [];
+        var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
+        for (i = 0; i < that.numOut; i++) {
+            that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.vectorsize * that.ptrsize) >> 2);
+        }
+        
         return that;
     };
     
