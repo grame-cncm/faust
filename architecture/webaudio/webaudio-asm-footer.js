@@ -31,8 +31,7 @@ faust.DSP = function (context, vectorsize, handler) {
     that.handler = handler;
     
     // bargraph
-    that.bargraph_timer = 10;
-    that.bargraph_count = 0;
+    that.bargraph_timer = 5;
     that.bargraph_table = [];
     
     that.ptr = DSP_constructor(faust.context.sampleRate);
@@ -51,11 +50,12 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.update_bargraph = function () 
     {
-        if (that.bargraph_count > 0 && that.bargraph_timer-- == 0) {
+        if (that.handler && that.bargraph_table.length > 0 && that.bargraph_timer-- == 0) {
             that.bargraph_timer = 5;
-            for (i = 0; i < that.bargraph_count; i++) {
+            var i;
+            for (i = 0; i < that.bargraph_table.length; i++) {
                 var pathPtr = allocate(intArrayFromString(that.bargraph_table[i]), 'i8', ALLOC_STACK);
-                handler(that.bargraph_table[i], DSP_getValue(that.ptr, pathPtr));
+                that.handler(that.bargraph_table[i], DSP_getValue(that.ptr, pathPtr));
             }
         }
     };
@@ -115,8 +115,7 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.update = function (path, val) 
     {
-        var pathPtr = allocate(intArrayFromString(path), 'i8', ALLOC_STACK)
-        DSP_setValue(that.ptr, pathPtr, val);
+        DSP_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
     };
     
     that.json = function ()
@@ -125,7 +124,43 @@ faust.DSP = function (context, vectorsize, handler) {
         DSP_getJSON(that.ptr, jsonPtr);
         return Pointer_stringify(jsonPtr);
     }
-     
+    
+    // JSON parsing
+    that.parse_ui = function(ui) 
+    {
+        var i;
+        for (i = 0; i < ui.length; i++) {
+            that.parse_group(ui[i]);
+        }
+    }
+    
+    that.parse_group = function(group) 
+    {
+        if (group.items) {
+            that.parse_items(group.items);
+        } else {
+            console.log(group);
+        }
+    }
+    
+    that.parse_items = function(items) 
+    {
+        var i;
+        for (i = 0; i < items.length; i++) {
+            that.parse_item(items[i]);
+        }
+    }
+    
+    that.parse_item = function(item) 
+    {
+        if (item.type == "vgroup" || item.type == "hgroup" || item.type == "tgroup") {
+            that.parse_items(item.items);
+        } else if (item.type == "hbargraph" || item.type == "vbargraph") {
+            // Keep bargraph adresses
+            that.bargraph_table.push(item.address);
+        }
+    }
+      
     that.init = function ()
     {
         var i;
@@ -173,12 +208,8 @@ faust.DSP = function (context, vectorsize, handler) {
         }
                                 
         // bargraph
-        
-        console.log("bargraph");
-        /*
-        that.bargraph_count = 1;
-        that.bargraph_table[0] = "/vumeter/";
-        */
+        that.parse_ui(JSON.parse(that.json()).ui);
+  
     };
     
     that.init();
