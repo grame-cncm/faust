@@ -659,6 +659,12 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 	int i;
 	int nouts = m_dsp->getNumOutputs();
 
+	if (nouts > MAX_NOUTS) {
+		TRACE( fprintf(stderr, "VSTi: nouts > MAX_NOUTS. Number of outputs (%d) exceeds limit. "
+									 "Truncated to maximum.\n", nouts) );
+		nouts = MAX_NOUTS;
+	}
+
 	// we're synthesizing . . .
 	if (m_currentNotes.size() > 0) {
 		int previousDelta = 0;
@@ -699,14 +705,13 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 						m_playingVoices.pop_front();
 						m_playingVoices.push_back(front);
 					}
-					//float** outptr = (float **)malloc(nouts * sizeof(float*));
 					memset(outptr, 0, sizeof(outptr));
 					// Before the note starts
+					assert(nouts <= MAX_NOUTS);
 					for (i = 0; i < nouts; i++) {
 						outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
 					}
 					compute(inputs, outptr, currentDelta - previousDelta);
-					//free(outptr);
 					// Note start
 					float freq = midiToFreq(currentNote);
 					m_voices[currentVoice]->setFreq(freq); // Hz - requires Faust control-signal "freq"
@@ -729,14 +734,12 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 							}
 						}
 					}
-					//float** outptr = (float **)malloc(nouts * sizeof(float*));
 					memset(outptr, 0, sizeof(outptr));
 					// Before the note ends
 					for (i = 0; i < nouts; i++) {
 						outptr[i] = outputs[i] + previousDelta; // leaving caller's pointers alone
 					}
 					compute(inputs, outptr, currentDelta - previousDelta);
-					//free(outptr);
 					// Note end
 					if (voiceFound) {
 						m_voices[currentVoice]->setGate(0);
@@ -745,7 +748,6 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 				previousDelta = currentDelta;
 			}
 		}
-		//float** outptr = (float **)malloc(nouts * sizeof(float*));
 		memset(outptr, 0, sizeof(outptr));
 		// Compute the left over time
 		int count = sampleFrames - currentDelta;
@@ -754,7 +756,6 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 			outptr[i] = outputs[i] + currentDelta; // leaving caller's pointers alone
 		}
 		compute(inputs, outptr, count);
-		//free(outptr);
 	}
 	else {
 		compute(inputs, outputs, sampleFrames);
