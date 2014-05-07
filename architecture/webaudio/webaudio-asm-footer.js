@@ -50,7 +50,7 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.update_bargraph = function () 
     {
-        if (that.handler && that.bargraph_table.length > 0 && that.bargraph_timer-- == 0) {
+        if (that.bargraph_table.length > 0 && that.handler && that.bargraph_timer-- == 0) {
             that.bargraph_timer = 5;
             var i;
             for (i = 0; i < that.bargraph_table.length; i++) {
@@ -64,6 +64,7 @@ faust.DSP = function (context, vectorsize, handler) {
     {
         var i, j;
         
+        // Read inputs
         for (i = 0; i < that.numIn; i++) {
             var input = e.inputBuffer.getChannelData(i);
             var dspInput = that.dspInChannnels[i];
@@ -72,11 +73,13 @@ faust.DSP = function (context, vectorsize, handler) {
             }
         }
         
+        // Compute
         DSP_compute(that.ptr, that.vectorsize, that.ins, that.outs);
        
-        // update bargraph
+        // Update bargraph
         that.update_bargraph();
         
+        // Write outputs
         for (i = 0; i < that.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
             var dspOutput = that.dspOutChannnels[i];
@@ -102,7 +105,6 @@ faust.DSP = function (context, vectorsize, handler) {
     };
     
     // Bind to Web Audio
-    
     that.start = function () 
     {
         that.scriptProcessor.connect(faust.context.destination);

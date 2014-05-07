@@ -127,7 +127,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = true;
