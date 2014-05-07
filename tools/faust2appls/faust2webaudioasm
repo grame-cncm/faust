@@ -48,7 +48,7 @@ for f in $FILES; do
     faust -a $FAUSTLIB/webaudio/webaudio-asm.cpp -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
     # compile the C++ code to JS
-    emcc -O2 $name.cpp  --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/webaudio-asm-footer.js -o $name-temp.js \
+    emcc -O2 $name.cpp -s TOTAL_STACK=10485760 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/webaudio-asm-footer.js -o $name-temp.js \
         -s EXPORTED_FUNCTIONS="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute', '_"$name"_getNumInputs', '_"$name"_getNumOutputs', '_"$name"_getNumParams', '_"$name"_getIndexedParam', '_"$name"_getJSON']"
     
     # compose the self-contained HTML page
