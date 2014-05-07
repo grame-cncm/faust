@@ -9,6 +9,7 @@
 #include "faust/gui/Meta.h"
 
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -26,6 +27,7 @@ class JSONUI : public UI, public Meta
         std::stringstream fJSON;
         std::stringstream fUI;
         std::stringstream fMeta;
+        std::vector<std::pair <std::string, std::string> > fMetaAux;
         std::vector<std::string> fControlsLevel;
         std::string fName;
     
@@ -43,6 +45,7 @@ class JSONUI : public UI, public Meta
                 res += "/";
             }
             res += label;
+            replace(res.begin(), res.end(), ' ', '_');
             return res;
         }
         
@@ -51,6 +54,21 @@ class JSONUI : public UI, public Meta
             fout << '\n';
             while (n-- > 0) {
                 fout << '\t';
+            }
+        }
+    
+        void addMeta(int tab_val)
+        {
+            if (fMetaAux.size() > 0) {
+                tab(tab_val, fUI); fUI << "\"meta\": [";
+                std::string sep = "";
+                for (int i = 0; i < fMetaAux.size(); i++) {
+                    fUI << sep;
+                    tab(tab_val + 1, fUI); fUI << "{ " << "\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\"}";
+                    sep = ",";
+                }
+                tab(tab_val, fUI); fUI << "],";
+                fMetaAux.clear();
             }
         }
       
@@ -123,6 +141,7 @@ class JSONUI : public UI, public Meta
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            addMeta(fTab + 1);
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = true;
         }
@@ -136,7 +155,7 @@ class JSONUI : public UI, public Meta
         {
             addGenericButton(label, "checkbox");
         }
-    
+
         virtual void addGenericEntry(const char* label, const char* name, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             if (fCloseUIPar) fUI << ",";
@@ -144,6 +163,7 @@ class JSONUI : public UI, public Meta
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
             tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
@@ -176,6 +196,7 @@ class JSONUI : public UI, public Meta
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
             tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
             tab(fTab, fUI); fUI << "}";
@@ -196,7 +217,7 @@ class JSONUI : public UI, public Meta
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            //std::cout << "declare key : " << key << " val : " << val << std::endl;
+            fMetaAux.push_back(std::make_pair(key, val));
         }
     
         // Meta interface

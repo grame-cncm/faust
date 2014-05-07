@@ -104,7 +104,7 @@ faust.DSP = function (context, vectorsize) {
         DSP_setValue(that.ptr, pathPtr, val);
     };
     
-    that.json = function()
+    that.json = function ()
     {
         var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
         DSP_getJSON(that.ptr, jsonPtr);
