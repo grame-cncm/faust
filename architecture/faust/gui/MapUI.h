@@ -1,11 +1,11 @@
-#ifndef FAUST_PUI_H
-#define FAUST_PUI_H
+#ifndef FAUST_MapUI_H
+#define FAUST_MapUI_H
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/UI.h"
+#include "faust/gui/PathUI.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -15,25 +15,13 @@
  * This class creates a map of complete path and zones for each UI item.
  ******************************************************************************/
 
-class MapUI : public UI
+class MapUI : public PathUI
 {
     
     protected:
         
-        std::vector<std::string> fControlsLevel;
         std::map<std::string, FAUSTFLOAT*> fZoneMap;
-        
-        std::string buildPath(const std::string& label) 
-        {
-            std::string res = "/";
-            for (size_t i = 0; i < fControlsLevel.size(); i++) {
-                res += fControlsLevel[i];
-                res += "/";
-            }
-            res += label;
-            return res;
-        }
-        
+           
     public:
         
         MapUI() {};

@@ -5,7 +5,7 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/UI.h"
+#include "faust/gui/PathUI.h"
 #include "faust/gui/Meta.h"
 
 #include <vector>
@@ -19,7 +19,7 @@
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
-class JSONUI : public UI, public Meta
+class JSONUI : public PathUI, public Meta
 {
 
     protected:
@@ -28,7 +28,6 @@ class JSONUI : public UI, public Meta
         std::stringstream fUI;
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
-        std::vector<std::string> fControlsLevel;
         std::string fName;
     
         bool fCloseUIPar;
@@ -36,19 +35,7 @@ class JSONUI : public UI, public Meta
         int fTab;
     
         int fInputs, fOutputs;
-    
-        std::string buildPath(const std::string& label) 
-        {
-            std::string res = "/";
-            for (size_t i = 0; i < fControlsLevel.size(); i++) {
-                res += fControlsLevel[i];
-                res += "/";
-            }
-            res += label;
-            replace(res.begin(), res.end(), ' ', '_');
-            return res;
-        }
-        
+         
         void tab(int n, std::ostream& fout)
         {
             fout << '\n';

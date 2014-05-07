@@ -49,6 +49,17 @@ faust.DSP = function (context, vectorsize, handler) {
         return DSP_getNumOutputs(that.ptr);
     };
     
+    that.update_bargraph = function () 
+    {
+        if (that.bargraph_count > 0 && that.bargraph_timer-- == 0) {
+            that.bargraph_timer = 5;
+            for (i = 0; i < that.bargraph_count; i++) {
+                var pathPtr = allocate(intArrayFromString(that.bargraph_table[i]), 'i8', ALLOC_STACK);
+                handler(that.bargraph_table[i], DSP_getValue(that.ptr, pathPtr));
+            }
+        }
+    };
+    
     that.compute = function (e) 
     {
         var i, j;
@@ -63,14 +74,8 @@ faust.DSP = function (context, vectorsize, handler) {
         
         DSP_compute(that.ptr, that.vectorsize, that.ins, that.outs);
        
-        // bargraph
-        if (that.bargraph_count > 0 && that.bargraph_timer-- == 0) {
-            that.bargraph_timer = 5;
-            for (i = 0; i < that.bargraph_count; i++) {
-                var pathPtr = allocate(intArrayFromString(that.bargraph_table[i]), 'i8', ALLOC_STACK);
-                handler(that.bargraph_table[i], DSP_getValue(that.ptr, pathPtr));
-            }
-        }
+        // update bargraph
+        that.update_bargraph();
         
         for (i = 0; i < that.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
@@ -79,13 +84,11 @@ faust.DSP = function (context, vectorsize, handler) {
                 output[j] = dspOutput[j];
             }
         }
-        return that;
     };
     
     that.destroy = function ()
     {
         DSP_destructor(that.ptr);
-        return that;
     };
     
     // Connect to another node
@@ -96,7 +99,6 @@ faust.DSP = function (context, vectorsize, handler) {
         } else {
             that.scriptProcessor.connect(node);
         }
-        return that;
     };
     
     // Bind to Web Audio
@@ -104,13 +106,11 @@ faust.DSP = function (context, vectorsize, handler) {
     that.start = function () 
     {
         that.scriptProcessor.connect(faust.context.destination);
-        return that;
     };
     
     that.stop = function () 
     {
         that.scriptProcessor.disconnect(faust.context.destination);
-        return that;
     };
     
     that.update = function (path, val) 
@@ -179,7 +179,6 @@ faust.DSP = function (context, vectorsize, handler) {
         that.bargraph_count = 1;
         that.bargraph_table[0] = "/vumeter/";
         */
-        return that;
     };
     
     that.init();
