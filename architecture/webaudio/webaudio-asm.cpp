@@ -20,15 +20,17 @@
 
 #include <emscripten.h>
 #include <vector>
+#include <map>
 #include <string>
 #include <math.h>
 
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
 // "mydsp" part will be replaced by the actual '-cn' parameter
 
-// Usage : faust -i -uim -a faust-wrapper1.cpp -cn karplus karplus.dsp -o karplus.cpp
+// Usage : faust -i -uim -a webaudio/webaudio-asm.cpp -cn karplus karplus.dsp -o karplus.cpp
 
 inline int max(unsigned int a, unsigned int b) { return (a>b) ? a : b; }
 inline int max(int a, int b)	{ return (a>b) ? a : b; }
@@ -77,95 +79,8 @@ inline double min(double a, float b) 	{ return (a<b) ? a : b; }
 
 extern "C" {
     
-    typedef std::vector<std::pair<std::string, FAUSTFLOAT*> > UImap;
-    
-    class JSUI : public UI
-    {
-        
-    protected:
-        
-        std::vector<std::string> fControlsLevel;
-        
-        std::string buildPath(const std::string& label) 
-        {
-            std::string res = "/";
-            for (size_t i = 0; i < fControlsLevel.size(); i++) {
-                res += fControlsLevel[i];
-                res += "/";
-            }
-            res += label;
-            return res;
-        }
-
-     public:
-        
-        JSUI() {};
-        ~JSUI() {};
-        
-        UImap fUIMap;
-        
-        // -- widget's layouts
-        void openTabBox(const char* label)
-        {
-            fControlsLevel.push_back(label);
-        };
-        void openHorizontalBox(const char* label)
-        {
-            fControlsLevel.push_back(label);
-        };
-        void openVerticalBox(const char* label)
-        {
-            fControlsLevel.push_back(label);
-        };
-        void closeBox()
-        {
-            fControlsLevel.pop_back();
-        };
-
-        // -- active widgets
-        void insertMap(std::string label, FAUSTFLOAT* zone)
-        {
-            fUIMap.push_back(std::pair<std::string, FAUSTFLOAT*>(label, zone));
-        }
-
-        void addButton(const char* label, FAUSTFLOAT* zone)
-        {
-            insertMap(buildPath(label), zone);
-        };
-        void addCheckButton(const char* label, FAUSTFLOAT* zone)
-        {
-            insertMap(buildPath(label), zone);
-        };
-        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
-        {
-            insertMap(buildPath(label), zone);
-        };
-        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
-        {
-            insertMap(buildPath(label), zone);
-        };
-        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
-        {
-            insertMap(buildPath(label), zone);
-        };
-
-        // -- passive widgets
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
-        {
-            insertMap(buildPath(label), zone);
-        };
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
-        {
-            insertMap(buildPath(label), zone);
-        };
-
-    	// -- metadata declarations
-        void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-        {};
-    };
-    
     // Just inherit from both classes...
-    struct mydsp_wrap : public mydsp, public JSUI
+    struct mydsp_wrap : public mydsp, public MapUI
     {
         std::string fJSON;
     };
@@ -194,17 +109,6 @@ extern "C" {
         delete n;
     }
 
-    int mydsp_getNumParams(mydsp_wrap* n)
-    {
-        return n->fUIMap.size();
-    }
-    
-    FAUSTFLOAT* mydsp_getIndexedParam(mydsp_wrap* n, int item, char* key)
-    {
-        strcpy(key, n->fUIMap[item].first.c_str());
-        return n->fUIMap[item].second;
-    }
-    
     void mydsp_compute(mydsp_wrap* n, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
         n->compute(count, inputs, outputs);
@@ -223,6 +127,16 @@ extern "C" {
     void mydsp_getJSON(mydsp_wrap* n, char* json)
     {
         strcpy(json, n->fJSON.c_str());
+    }
+    
+    void mydsp_setValue(mydsp_wrap* n, const char* path, float value)
+    {
+        n->setValue(path, value);
+    }
+    
+    float mydsp_getValue(mydsp_wrap* n, const char* path)
+    {
+        return n->getValue(path);
     }
     
 }
