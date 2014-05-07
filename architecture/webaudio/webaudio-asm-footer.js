@@ -19,15 +19,21 @@ var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', ['number'], ['number', 'number', 'number', 'number']);
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', 'number');
 var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', 'number');
-var DSP_getJSON = Module.cwrap('DSP_getJSON', 'number', ['number']);
+var DSP_getJSON = Module.cwrap('DSP_getJSON', null, ['number','number']);
 var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
 var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
 
-faust.DSP = function (context, vectorsize) {
+faust.DSP = function (context, vectorsize, handler) {
     var that = {};
     
     faust.context = context;
     that.vectorsize = vectorsize;
+    that.handler = handler;
+    
+    // bargraph
+    that.bargraph_timer = 10;
+    that.bargraph_count = 0;
+    that.bargraph_table = [];
     
     that.ptr = DSP_constructor(faust.context.sampleRate);
     
@@ -56,6 +62,15 @@ faust.DSP = function (context, vectorsize) {
         }
         
         DSP_compute(that.ptr, that.vectorsize, that.ins, that.outs);
+       
+        // bargraph
+        if (that.bargraph_count > 0 && that.bargraph_timer-- == 0) {
+            that.bargraph_timer = 5;
+            for (i = 0; i < that.bargraph_count; i++) {
+                var pathPtr = allocate(intArrayFromString(that.bargraph_table[i]), 'i8', ALLOC_STACK);
+                handler(that.bargraph_table[i], DSP_getValue(that.ptr, pathPtr));
+            }
+        }
         
         for (i = 0; i < that.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
@@ -156,7 +171,14 @@ faust.DSP = function (context, vectorsize) {
         for (i = 0; i < that.numOut; i++) {
             that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.vectorsize * that.ptrsize) >> 2);
         }
+                                
+        // bargraph
         
+        console.log("bargraph");
+        /*
+        that.bargraph_count = 1;
+        that.bargraph_table[0] = "/vumeter/";
+        */
         return that;
     };
     

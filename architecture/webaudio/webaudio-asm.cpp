@@ -134,7 +134,7 @@ extern "C" {
         n->setValue(path, value);
     }
     
-    float mydsp_getValue(mydsp_wrap* n, const std::string& path)
+    float mydsp_getValue(mydsp_wrap* n, const char* path)
     {
         return n->getValue(path);
     }

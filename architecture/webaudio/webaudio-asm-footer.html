@@ -31,7 +31,7 @@
         
         $('#faustsvg').svg({onLoad: function (svg) {
          
-            DSP = faust.DSP(audio_context, buffer_size);
+            DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
             if (DSP.getNumInputs() > 0) {
                 activateAudioInput();
             }

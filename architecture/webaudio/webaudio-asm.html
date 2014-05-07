@@ -37,7 +37,7 @@
         
         $('#faustsvg').svg({onLoad: function (svg) {
          
-            var DSP = faust.DSP(context, buffer_size);
+            var DSP = faust.DSP(context, buffer_size, f4u$t.update_incremental_object_value);
             DSP.start();
             console.log(DSP.json());
             _f4u$t.make_audio_ui_asm(svg, DSP);
