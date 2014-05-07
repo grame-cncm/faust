@@ -1,0 +1,46 @@
+
+    <body>
+        <div id = "faustsvg">
+        <script>
+        
+        var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+        var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+        var buffer_size = 1024;
+        var DSP;
+        
+        function activateAudioInput()
+        {
+            if (!navigator.getUserMedia) {
+                navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            }
+           
+            navigator.getUserMedia({audio:true}, getDevice, function(e) {
+                    alert('Error getting audio input');
+                    console.log(e);
+            });
+        }
+        
+        function getDevice(device) 
+        {
+            // Create an AudioNode from the stream.
+            var input = audio_context.createMediaStreamSource(device);
+            
+            // Connect it to the destination.
+            input.connect(DSP.scriptProcessor);
+        }
+        
+        $('#faustsvg').svg({onLoad: function (svg) {
+         
+            DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
+            if (DSP.getNumInputs() > 0) {
+                activateAudioInput();
+            }
+            DSP.start();
+            console.log(DSP.json());
+            _f4u$t.make_audio_ui_asm(svg, DSP);
+            
+        }});
+  
+        </script>
+    </body>
+</html>

@@ -5,10 +5,11 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/UI.h"
+#include "faust/gui/PathUI.h"
 #include "faust/gui/Meta.h"
 
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -18,7 +19,7 @@
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
-class JSONUI : public UI, public Meta
+class JSONUI : public PathUI, public Meta
 {
 
     protected:
@@ -26,84 +27,86 @@ class JSONUI : public UI, public Meta
         std::stringstream fJSON;
         std::stringstream fUI;
         std::stringstream fMeta;
-        std::vector<std::string> fControlsLevel;
-        bool fClosePar;
+        std::vector<std::pair <std::string, std::string> > fMetaAux;
+        std::string fName;
+    
+        bool fCloseUIPar;
+        bool fCloseMetaPar;
         int fTab;
     
-        std::string buildPath(const std::string& label) 
-        {
-            std::string res = "/";
-            for (size_t i = 0; i < fControlsLevel.size(); i++) {
-                res += fControlsLevel[i];
-                res += "/";
-            }
-            res += label;
-            return res;
-        }
-        
+        int fInputs, fOutputs;
+         
         void tab(int n, std::ostream& fout)
         {
             fout << '\n';
-            while (n--) fout << '\t';
+            while (n-- > 0) {
+                fout << '\t';
+            }
+        }
+    
+        void addMeta(int tab_val, bool quote = true)
+        {
+            if (fMetaAux.size() > 0) {
+                tab(tab_val, fUI); fUI << "\"meta\": [";
+                std::string sep = "";
+                for (int i = 0; i < fMetaAux.size(); i++) {
+                    fUI << sep;
+                    tab(tab_val + 1, fUI); fUI << "{ " << "\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\"}";
+                    sep = ",";
+                }
+                tab(tab_val, fUI); fUI << ((quote) ? "],": "]");
+                fMetaAux.clear();
+            }
         }
       
      public:
 
-        JSONUI(int inputs, int outputs):fTab(0)
+        JSONUI(int inputs, int outputs):fTab(1)
         {
-            fJSON << "{";
-            fTab += 1;
-            tab(fTab, fJSON); fJSON << "\"name\": \"\",";
-            tab(fTab, fJSON); fJSON << "\"address\": \"\",";
-            tab(fTab, fJSON); fJSON << "\"port\": \"0\",";
-            if (inputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << inputs << "\","; }
-            if (outputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << outputs << "\","; }
             // Start Meta generation
             tab(fTab, fMeta); fMeta << "\"meta\": [";
+            fCloseMetaPar = false;
+            
             // Start UI generation
             tab(fTab, fUI); fUI << "\"ui\": [";
-            fClosePar = false;
+            fCloseUIPar = false;
             fTab += 1;
+            
+            fName = "";
+            fInputs = inputs;
+            fOutputs = outputs;
         }
 
         virtual ~JSONUI() {}
 
         // -- widget's layouts
+    
+        virtual void openGenericGroup(const char* label, const char* name)
+        {
+            fControlsLevel.push_back(label);
+            if (fCloseUIPar) fUI << ",";
+            tab(fTab, fUI); fUI << "{";
+            fTab += 1;
+            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"label\":" << "\"" << label << "\",";
+            tab(fTab, fUI); fUI << "\"items\": [";
+            fCloseUIPar = false;
+            fTab += 1;
+        }
 
         virtual void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
-            tab(fTab, fUI); fUI << "{";
-            fTab += 1;
-                tab(fTab, fUI); fUI << "\"type\": \"tgroup\"," << std::endl;
-                tab(fTab, fUI); fUI << "\"label\":" << "\"" << label << "\",";
-                tab(fTab, fUI); fUI << "\"items\": [" << std::endl;
-            fClosePar = false;
-            fTab += 1;
+            openGenericGroup(label, "tgroup");
         }
     
         virtual void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
-            tab(fTab, fUI); fUI << "{";
-            fTab += 1;
-                tab(fTab, fUI); fUI << "\"type\": \"hgroup\",";
-                tab(fTab, fUI); fUI << "\"label\":" << "\"" << label << "\",";
-                tab(fTab, fUI); fUI << "\"items\": [";
-            fClosePar = false;
-            fTab += 1;
+            openGenericGroup(label, "hgroup");
         }
     
         virtual void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
-            tab(fTab, fUI); fUI << "{";
-            fTab += 1;
-                tab(fTab, fUI); fUI << "\"type\": \"vgroup\",";
-                tab(fTab, fUI); fUI << "\"label\":" << "\"" << label << "\",";
-                tab(fTab, fUI); fUI << "\"items\": [";
-            fClosePar = false;
-            fTab += 1;
+            openGenericGroup(label, "vgroup");
         }
     
         virtual void closeBox()
@@ -112,21 +115,22 @@ class JSONUI : public UI, public Meta
             fTab -= 1;
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
-            tab(fTab, fUI); fUI << "}" << std::endl;
-            fClosePar = true;
+            tab(fTab, fUI); fUI << "}";
+            fCloseUIPar = true;
         }
     
         // -- active widgets
     
         virtual void addGenericButton(const char* label, const char* name)
         {
-            if (fClosePar) fUI << ",";
-                tab(fTab, fUI); fUI << "{" << std::endl;
-                tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-                tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-                tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            if (fCloseUIPar) fUI << ",";
+            tab(fTab, fUI); fUI << "{";
+            tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
-            fClosePar = true;
+            fCloseUIPar = true;
         }
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
@@ -136,22 +140,23 @@ class JSONUI : public UI, public Meta
     
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-           addGenericButton(label, "checkbutton");
+            addGenericButton(label, "checkbox");
         }
-    
+
         virtual void addGenericEntry(const char* label, const char* name, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            if (fClosePar) fUI << ",";
-                tab(fTab, fUI); fUI << "{" << std::endl;
-                tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-                tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-                tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
-                tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
-                tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
-                tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
-                tab(fTab + 1, fUI); fUI << "\"step\": \"" << step << "\"";
+            if (fCloseUIPar) fUI << ",";
+            tab(fTab, fUI); fUI << "{";
+            tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            addMeta(fTab + 1);
+            tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
+            tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
+            tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
+            tab(fTab + 1, fUI); fUI << "\"step\": \"" << step << "\"";
             tab(fTab, fUI); fUI << "}";
-            fClosePar = true;
+            fCloseUIPar = true;
         }
     
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -173,45 +178,54 @@ class JSONUI : public UI, public Meta
     
         virtual void addGenericBargraph(const char* label, const char* name, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            if (fClosePar) fUI << ",";
-                tab(fTab, fUI); fUI << "{" << std::endl;
-                tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-                tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-                tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
-                tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
-                tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
-                tab(fTab, fUI); fUI << "}";
-            fClosePar = true;
+            if (fCloseUIPar) fUI << ",";
+            tab(fTab, fUI); fUI << "{";
+            tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            addMeta(fTab + 1);
+            tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
+            tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\"";
+            tab(fTab, fUI); fUI << "}";
+            fCloseUIPar = true;
         }
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            addGenericBargraph(label, "vbargraph", min, max);
+            addGenericBargraph(label, "hbargraph", min, max);
         }
     
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addGenericBargraph(label, "hbargraph", min, max);
+            addGenericBargraph(label, "vbargraph", min, max);
         }
 
         // -- metadata declarations
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            //std::cout << "declare key : " << key << " val : " << val << std::endl;
+            fMetaAux.push_back(std::make_pair(key, val));
         }
     
         // Meta interface
         virtual void declare(const char* key, const char* value)
         {
-            if (fClosePar) fMeta << ",";
+            if (fCloseMetaPar) fMeta << ",";
+            if (strcmp(key, "name") == 0) fName = value;
             tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ":" << "\"" << value << "\" }";
-            fClosePar = true;
+            fCloseMetaPar = true;
         }
     
         std::string JSON()
         {
-            fTab -= 1;
+            fTab = 0;
+            fJSON << "{";
+            fTab += 1;
+            tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            tab(fTab, fJSON); fJSON << "\"address\": \"\",";
+            tab(fTab, fJSON); fJSON << "\"port\": \"0\",";
+            if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
+            if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
             tab(fTab, fMeta); fMeta << "],";
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;

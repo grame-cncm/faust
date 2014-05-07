@@ -88,6 +88,9 @@ install :
 	# install additional binary libraries (osc, http,...)
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
 	cp architecture/osclib/*.a $(prefix)/lib/faust/
+	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
+	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
+	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
 	# install additional includes files for binary libraries  (osc, http,...)
@@ -98,6 +101,8 @@ install :
 	make -C tools/faust2appls install
 	# install sound2faust converter
 	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
+	# install webaudio
+	cp -r architecture/webaudio $(prefix)/lib/faust/
 
 
 uninstall :
