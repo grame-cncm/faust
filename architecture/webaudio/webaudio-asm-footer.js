@@ -19,19 +19,15 @@ var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', ['number'], ['number', 'number', 'number', 'number']);
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', 'number');
 var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', 'number');
-var DSP_getNumParams = Module.cwrap('DSP_getNumParams', 'number', 'number');
-var DSP_getIndexedParam = Module.cwrap('DSP_getIndexedParam', 'number', ['number', 'number', 'number']);
 var DSP_getJSON = Module.cwrap('DSP_getJSON', 'number', ['number']);
+var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
+var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
 
 faust.DSP = function (context, vectorsize) {
     var that = {};
     
     faust.context = context;
     that.vectorsize = vectorsize;
-    
-    that.model = {
-        playing: false
-    };
     
     that.ptr = DSP_constructor(faust.context.sampleRate);
     
@@ -88,46 +84,18 @@ faust.DSP = function (context, vectorsize) {
     
     that.start = function () {
         that.scriptProcessor.connect(faust.context.destination);
-        that.model.playing = true;
         return that;
     };
     
     that.stop = function () {
         that.scriptProcessor.disconnect(faust.context.destination);
-        that.model.playing = false;
         return that;
     };
     
-    that.toggle = function() {
-        if (that.model.playing) {
-            that.stop()
-        } else {
-            that.start();
-        }
-        return that;
-    }
-    
-    that.setupModel = function () {
-        var i;
-        var numParams = DSP_getNumParams(that.ptr);
-        for (i = 0; i < numParams; i++) {
-            //TODO keyptr is allocated on stack, but is it properly freed?
-            var keyPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
-            var valPtr = DSP_getIndexedParam(that.ptr, i, keyPtr);
-            var key = Pointer_stringify(keyPtr);
-            console.log(key);
-            that.model[key] = {
-                value: HEAPF32[valPtr >> 2],
-                pointer: valPtr
-            };
-        }
-        return that;
-    };
-    
-    that.update = function (key, val) {
-        that.model[key].value = val;
-        HEAPF32[that.model[key].pointer >> 2] = val;
-        return that;
+    that.update = function (path, val) {
+        var pathPtr = allocate(intArrayFromString(path), 'i8', ALLOC_STACK)
+        console.log(path,val);
+        DSP_setValue(that.ptr, pathPtr, val);
     };
     
     that.json = function() {
@@ -135,11 +103,7 @@ faust.DSP = function (context, vectorsize) {
         DSP_getJSON(that.ptr, jsonPtr);
         return Pointer_stringify(jsonPtr);
     }
-    
-    that.getNumParams = function() {
-        return DSP_getNumParams(that.ptr);
-    }
-    
+     
     that.init = function () {
         var i;
         that.ptrsize = 4; //assuming pointer in emscripten are 32bits
@@ -171,7 +135,6 @@ faust.DSP = function (context, vectorsize) {
             // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
             HEAP32[(that.outs >> 2) + i] = Module._malloc(that.vectorsize * that.samplesize);
         }
-        that.setupModel();
         return that;
     };
     
