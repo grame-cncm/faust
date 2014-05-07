@@ -30,8 +30,8 @@ class JSONUI : public PathUI, public Meta
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         std::string fName;
     
-        bool fCloseUIPar;
-        bool fCloseMetaPar;
+        char fCloseUIPar;
+        char fCloseMetaPar;
         int fTab;
     
         int fInputs, fOutputs;
@@ -65,11 +65,11 @@ class JSONUI : public PathUI, public Meta
         {
             // Start Meta generation
             tab(fTab, fMeta); fMeta << "\"meta\": [";
-            fCloseMetaPar = false;
+            fCloseMetaPar = ' ';
             
             // Start UI generation
             tab(fTab, fUI); fUI << "\"ui\": [";
-            fCloseUIPar = false;
+            fCloseUIPar = ' ';
             fTab += 1;
             
             fName = "";
@@ -84,13 +84,13 @@ class JSONUI : public PathUI, public Meta
         virtual void openGenericGroup(const char* label, const char* name)
         {
             fControlsLevel.push_back(label);
-            if (fCloseUIPar) fUI << ",";
+            fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\":" << "\"" << label << "\",";
             tab(fTab, fUI); fUI << "\"items\": [";
-            fCloseUIPar = false;
+            fCloseUIPar = ' ';
             fTab += 1;
         }
 
@@ -116,21 +116,21 @@ class JSONUI : public PathUI, public Meta
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
             tab(fTab, fUI); fUI << "}";
-            fCloseUIPar = true;
+            fCloseUIPar = ',';
         }
     
         // -- active widgets
     
         virtual void addGenericButton(const char* label, const char* name)
         {
-            if (fCloseUIPar) fUI << ",";
+            fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
-            fCloseUIPar = true;
+            fCloseUIPar = ',';
         }
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
@@ -145,7 +145,7 @@ class JSONUI : public PathUI, public Meta
 
         virtual void addGenericEntry(const char* label, const char* name, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            if (fCloseUIPar) fUI << ",";
+            fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
@@ -156,7 +156,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
             tab(fTab + 1, fUI); fUI << "\"step\": \"" << step << "\"";
             tab(fTab, fUI); fUI << "}";
-            fCloseUIPar = true;
+            fCloseUIPar = ',';
         }
     
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -178,7 +178,7 @@ class JSONUI : public PathUI, public Meta
     
         virtual void addGenericBargraph(const char* label, const char* name, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            if (fCloseUIPar) fUI << ",";
+            fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
@@ -187,7 +187,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
             tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\"";
             tab(fTab, fUI); fUI << "}";
-            fCloseUIPar = true;
+            fCloseUIPar = ',';
         }
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
@@ -210,10 +210,10 @@ class JSONUI : public PathUI, public Meta
         // Meta interface
         virtual void declare(const char* key, const char* value)
         {
-            if (fCloseMetaPar) fMeta << ",";
+            fMeta << fCloseMetaPar;
             if (strcmp(key, "name") == 0) fName = value;
             tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ":" << "\"" << value << "\" }";
-            fCloseMetaPar = true;
+            fCloseMetaPar = ',';
         }
     
         std::string JSON()
