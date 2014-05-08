@@ -6,7 +6,7 @@
 #endif
 
 #include "faust/gui/PathUI.h"
-#include "faust/gui/Meta.h"
+#include "faust/gui/meta.h"
 
 #include <vector>
 #include <map>
