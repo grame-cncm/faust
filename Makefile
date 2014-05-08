@@ -139,6 +139,9 @@ install :
 	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/faust/) || echo remote not compiled
 	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
 	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/
+	# install webaudio
+	cp -r architecture/webaudio $(prefix)/lib/faust/
+	
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/
