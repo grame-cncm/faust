@@ -140,8 +140,6 @@ faust.DSP = function (context, vectorsize, handler) {
     {
         if (group.items) {
             that.parse_items(group.items);
-        } else {
-            console.log(group);
         }
     }
     
@@ -211,7 +209,6 @@ faust.DSP = function (context, vectorsize, handler) {
                                 
         // bargraph
         that.parse_ui(JSON.parse(that.json()).ui);
-  
     };
     
     that.init();
