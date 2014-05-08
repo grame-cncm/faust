@@ -6,6 +6,7 @@
         var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
         var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
         var buffer_size = 1024;
+        var audio_input;
         var DSP;
         
         function activateAudioInput()
@@ -23,10 +24,10 @@
         function getDevice(device) 
         {
             // Create an AudioNode from the stream.
-            var input = audio_context.createMediaStreamSource(device);
+            audio_input = audio_context.createMediaStreamSource(device);
             
             // Connect it to the destination.
-            input.connect(DSP.scriptProcessor);
+            audio_input.connect(DSP.scriptProcessor);
         }
         
         $('#faustsvg').svg({onLoad: function (svg) {
