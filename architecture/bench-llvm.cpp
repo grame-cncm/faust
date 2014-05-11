@@ -372,7 +372,7 @@ class FaustLLVMOptimizer {
             fOptionsTable.push_back(t1);
             */
             
-            
+            /*
             // vec -lv 0
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -385,7 +385,9 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            /*
+            */
+            
+            
             // vec -lv 1
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -399,6 +401,7 @@ class FaustLLVMOptimizer {
                 fOptionsTable.push_back(t1);
             } 
             
+            /*
             // vec -lv 0 -dfs
             for (int size = 16; size <= VSIZE; size *= 2) {
                 stringstream num;
@@ -522,7 +525,7 @@ class FaustLLVMOptimizer {
             printItem(item);
             
             //int opt_level = 4;
-            int opt_level = 3;
+            int opt_level = 5;
     
             if (fInput == "") { 
             

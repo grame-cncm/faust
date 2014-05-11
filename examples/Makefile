@@ -38,6 +38,11 @@ LLVM_VERSION  = LLVM_33
 CLANG = /opt/local/libexec/llvm-3.3/bin/clang++
 endif
 
+ifeq ($(LLVM_VERSION), 3.4)
+LLVM_VERSION  = LLVM_34
+CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
+endif
+
 ifeq ($(OSC),1)
  OSCCTRL := -DOSCCTRL -I$(FAUSTINC)/gui/
  QTDEFS  := OSCCTRL
