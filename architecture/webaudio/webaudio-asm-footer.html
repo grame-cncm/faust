@@ -7,7 +7,60 @@
         var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
         var buffer_size = 1024;
         var audio_input;
+        var midi_input;
         var DSP;
+        
+        // MIDI input handling
+        
+        function midiMessageReceived(ev) 
+        {
+            var cmd = ev.data[0] >> 4;
+            var channel = ev.data[0] & 0xf;
+            var noteNumber = ev.data[1];
+            var velocity = ev.data[2];
+            
+            console.log(ev);
+
+            if (channel === 9) {
+                return;
+            } else if (cmd === 8 || ((cmd === 9) && (velocity === 0))) { // with MIDI, note on with velocity zero is the same as note off
+                // note off
+                //noteOff( noteNumber );
+                console.log("NoteOff %d %d %d\n", channel, noteNumber, velocity);
+            } else if (cmd === 9) {
+                // note on
+                //noteOn(noteNumber, velocity/127.0);
+                console.log("NoteOn %d %d %d\n", channel, noteNumber, velocity);
+            } else if (cmd === 11) {
+                //controller( noteNumber, velocity/127.0);
+                console.log("controller %d %d\n", channel, velocity);
+            } else if (cmd === 14) {
+                // pitch wheel
+                //pitchWheel(((velocity * 128.0 + noteNumber)-8192)/8192.0);
+            }  
+        }
+        
+        function onerrorcallback(error) 
+        {
+             console.log(error);
+        }
+        
+        function onsuccesscallback(access) 
+        {
+            access.inputs().forEach(function(input)
+            {
+                midi_input = input;
+                midi_input.onmidimessage = midiMessageReceived;
+                console.log(input.name);
+            });
+        }
+         
+        function activateMIDIInput()
+        {
+            navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+        }
+     
+        // Audio input handling
         
         function activateAudioInput()
         {
@@ -30,11 +83,14 @@
             audio_input.connect(DSP.scriptProcessor);
         }
         
+        // General
+        
         $('#faustsvg').svg({onLoad: function (svg) {
          
             DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
             if (DSP.getNumInputs() > 0) {
-                activateAudioInput();
+                //activateAudioInput();
+                activateMIDIInput();
             }
             DSP.start();
             console.log(DSP.json());
