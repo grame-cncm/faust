@@ -7,7 +7,7 @@
         var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
         var buffer_size = 1024;
         var audio_input;
-        var midi_input;
+        var midi_input = [];
         var DSP;
         
         // MIDI input handling
@@ -49,8 +49,8 @@
         {
             access.inputs().forEach(function(input)
             {
-                midi_input = input;
-                midi_input.onmidimessage = midiMessageReceived;
+                midi_input.push(input);
+                input.onmidimessage = midiMessageReceived;
                 console.log(input.name);
             });
         }
