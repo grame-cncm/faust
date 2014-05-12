@@ -50,7 +50,7 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.update_bargraph = function () 
     {
-        if (that.bargraph_table.length > 0 && that.handler && that.bargraph_timer-- == 0) {
+        if (that.bargraph_table.length > 0 && that.handler && that.bargraph_timer-- === 0) {
             that.bargraph_timer = 5;
             var i;
             for (i = 0; i < that.bargraph_table.length; i++) {
@@ -153,9 +153,9 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.parse_item = function(item) 
     {
-        if (item.type == "vgroup" || item.type == "hgroup" || item.type == "tgroup") {
+        if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
             that.parse_items(item.items);
-        } else if (item.type == "hbargraph" || item.type == "vbargraph") {
+        } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
             that.bargraph_table.push(item.address);
         }
