@@ -41,26 +41,8 @@
 #include "JsonParser.h"
 #include "../../../../compiler/generator/smartpointer.h"
 
-#ifdef __APPLE__
-#include <dns_sd.h>
-#else
+#include "lo/lo.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <time.h>
-
-#include "client.h"
-#include "lookup.h"
-
-#include "simple-watch.h"
-#include "malloc.h"
-#include "error.h"
-#endif
 #include <jack/net.h>
 #include <curl/curl.h>
 
@@ -80,17 +62,35 @@ extern "C"
         ERROR_CURL_CONNECTION
     };
     
+    struct member {
+        int pid;
+        string hostname;
+        lo_timetag timetag;
+        
+        member(){
+            pid = 0;
+            hostname = "";
+            timetag.sec = 0;
+            timetag.frac = 0;
+        }
+    };
+    
     struct remote_DNS {
         
-        pthread_t fThread;
-#ifdef __APPLE__
-        DNSServiceRef fDNSDevice;
-#else
-		AvahiSimplePoll *fPoll;
-    	AvahiClient * fClient;
-    	AvahiServiceBrowser *fBrowser;
-#endif        
-		map<string, pair<string, int> > fMachineList;
+        static void memberCleanup(map<string, member> *checkMems);
+        
+        static void    cleanupMachineList(std::map<string, member> clients_list);
+        
+        static void errorHandler(int num, const char *m, const char *path);
+        
+        static int pingHandler(const char *path, const char *types, lo_arg ** argv,
+                        int argc, void *data, void *user_data);
+        
+        pthread_t           fThread;
+        lo_server_thread    fLoThread;
+        
+        std::map<string, member>        fClients;
+        
         TMutex fLocker;
         
         remote_DNS();
@@ -263,13 +263,6 @@ extern "C"
     EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
     
     EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
-    
-#ifdef __APPLE__
-    static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context );
-#else
-	static void browseCallback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
-	static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata);
-#endif
     
 #ifdef __cplusplus
 }

@@ -170,12 +170,13 @@ void deleteSlaveDSPInstance(slave_dsp* smartPtr);
 class Server{
         
     string          fError;
-	string 			fNameRegisterService;
         
 public :
         
     Server();
     ~Server();
+    
+    pthread_t       fThread;
         
     TMutex          fLocker;
         
@@ -188,11 +189,6 @@ public :
     list<slave_dsp*>          fRunningDsp;
         
     struct          MHD_Daemon* fDaemon; //Running http daemon
-        
-#ifdef __APPLE__
-    DNSServiceRef*  fRegistrationService;
-#endif    
-	int             fPort; //Port on which server started
     
 //  Start server on specified port 
     bool            start(int port = 7777);
@@ -237,7 +233,7 @@ public :
     void        stopAudio(const string& shakey);
     
 // Register Service as Available
-    bool        registration();
+    static void*        registration(void* arg);
 };
     
 #endif
