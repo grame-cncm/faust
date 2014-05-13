@@ -14,11 +14,11 @@
  Additional code : GRAME 2014
 */
 
-var DSP_constructor = Module.cwrap('DSP_constructor', 'number', 'number');
+var DSP_constructor = Module.cwrap('DSP_constructor', 'number', ['number']);
 var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
-var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', 'number');
-var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', 'number');
+var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
+var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', ['number']);
 var DSP_getJSON = Module.cwrap('DSP_getJSON', null, ['number','number']);
 var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
 var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
@@ -217,18 +217,18 @@ faust.DSP = function (context, vectorsize, handler) {
 
 // Poly
 
-var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', 'number');
+var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number']);
 var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
-var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', 'number');
-var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', 'number');
+var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
+var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['number']);
 var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', null, ['number','number']);
 var DSP_poly_setValue = Module.cwrap('DSP_poly_setValue', null, ['number', 'number', 'number']);
 var DSP_poly_getValue = Module.cwrap('DSP_poly_getValue', 'number', ['number', 'number']);
 var DSP_poly_noteOn = Module.cwrap('DSP_poly_noteOn', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_noteOff = Module.cwrap('DSP_poly_noteOff', null, ['number', 'number', 'number']);
 
-faust.DSP_poly = function (context, vectorsize, handler) {
+faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
     var that = {};
     
     faust.context = context;
@@ -239,7 +239,7 @@ faust.DSP_poly = function (context, vectorsize, handler) {
     that.bargraph_timer = 5;
     that.bargraph_table = [];
     
-    that.ptr = DSP_poly_constructor(faust.context.sampleRate);
+    that.ptr = DSP_poly_constructor(faust.context.sampleRate, max_polyphony);
     
     // Bind to C++ Member Functions
     
