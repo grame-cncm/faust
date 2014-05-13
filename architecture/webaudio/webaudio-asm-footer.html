@@ -6,6 +6,7 @@
         var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
         var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
         var buffer_size = 1024;
+        var max_polyphony = 16;
         var audio_input;
         var midi_input = [];
         var DSP = null;
@@ -57,7 +58,7 @@
             } else if (cmd === 11) {
                 //controller(channel, noteNumber, velocity);
             } else if (cmd === 14) {
-               //pitchWheel(((velocity * 128.0 + noteNumber)-8192)/8192.0);
+                //pitchWheel(((velocity * 128.0 + noteNumber)-8192)/8192.0);
             }  
         }
         
@@ -77,7 +78,11 @@
          
         function activateMIDIInput()
         {
-            navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+            if (typeof (navigator.requestMIDIAccess) !== "undefined") {
+                navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+            } else {
+                alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+            }
         }
      
         // Audio input handling
@@ -105,13 +110,11 @@
         
         // General
         
-        
         $('#faustsvg').svg({onLoad: function (svg) {
          
             DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
             if (DSP.getNumInputs() > 0) {
-                //activateAudioInput();
-                activateMIDIInput();
+                activateAudioInput();
             }
             DSP.start();
             console.log(DSP.json());
@@ -123,8 +126,8 @@
         // Polyphonic instrument
         $('#faustsvg').svg({onLoad: function (svg) {
          
-            DSP_poly = faust.DSP_poly(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
             activateMIDIInput();
+            DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_incremental_object_value);
             DSP_poly.start();
             console.log(DSP_poly.json());
             _f4u$t.make_audio_ui_asm(svg, DSP_poly);

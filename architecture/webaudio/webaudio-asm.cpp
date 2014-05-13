@@ -79,7 +79,6 @@ inline double min(double a, float b) 	{ return (a<b) ? a : b; }
 
 extern "C" {
     
-    #define MAX_VOICES 16
     #define MAX_BUFFER_SIZE 1024
     
     inline float midiToFreq(int note) 
@@ -90,17 +89,26 @@ extern "C" {
     struct mydsp_voice : public MapUI {
         mydsp fVoice;
         int fNote;
+        
+        mydsp_voice(int samplingFreq)
+        {
+            fVoice.init(samplingFreq);
+            fNote = -1;
+            fVoice.buildUserInterface(this);
+        }
     };
     
     struct mydsp_poly_wrap
     {
         std::string fJSON;
         
-        mydsp_voice fVoiceTable[MAX_VOICES];
+        mydsp_voice** fVoiceTable;
         
         std::string fGateLabel;
         std::string fGainLabel;
         std::string fFreqLabel;
+        
+        int fMaxPolyphony;
         
         FAUSTFLOAT** fNoteOutputs;
         int fNumOutputs;
@@ -125,46 +133,47 @@ extern "C" {
         
         inline int getFreeVoice()
         {
-            for (int i = 0; i < MAX_VOICES; i++) {
-                if (fVoiceTable[i].fNote == -1) return i;
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                if (fVoiceTable[i]->fNote == -1) return i;
             }
             return -1;
         }
         
         inline int getPlayingVoice(int note)
         {
-            for (int i = 0; i < MAX_VOICES; i++) {
-                if (fVoiceTable[i].fNote == note) return i;
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                if (fVoiceTable[i]->fNote == note) return i;
             }
             return -1;
         }
         
-        mydsp_poly_wrap(int samplingFreq)
+        mydsp_poly_wrap(int samplingFreq, int max_polyphony)
         {
+            fMaxPolyphony = max_polyphony;
+            fVoiceTable = new mydsp_voice*[max_polyphony];
+            
             // Init it with samplingFreq supplied...
-            for (int i = 0; i < MAX_VOICES; i++) {
-                fVoiceTable[i].fVoice.init(samplingFreq);
-                fVoiceTable[i].fNote = -1;
-                fVoiceTable[i].fVoice.buildUserInterface(&fVoiceTable[i]);
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i] = new mydsp_voice(samplingFreq);
             }
             
             // Init audio output buffers
-            fNumOutputs = fVoiceTable[0].fVoice.getNumOutputs();
+            fNumOutputs = fVoiceTable[0]->fVoice.getNumOutputs();
             fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
             for (int i = 0; i < fNumOutputs; i++) {
                 fNoteOutputs[i] = new FAUSTFLOAT[MAX_BUFFER_SIZE];
             }
             
             // Creates JSON
-            JSONUI builder(fVoiceTable[0].fVoice.getNumInputs(), fVoiceTable[0].fVoice.getNumOutputs());
+            JSONUI builder(fVoiceTable[0]->fVoice.getNumInputs(), fVoiceTable[0]->fVoice.getNumOutputs());
             mydsp::metadata(&builder);
-            fVoiceTable[0].fVoice.buildUserInterface(&builder);
+            fVoiceTable[0]->fVoice.buildUserInterface(&builder);
             fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
             std::map<std::string, FAUSTFLOAT*>::iterator it;
             
-            for (it = fVoiceTable[0].getMap().begin(); it != fVoiceTable[0].getMap().end(); it++) {
+            for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
                 std::string label = (*it).first;
                 if (label.find("gate") != std::string::npos) {
                     fGateLabel = label;
@@ -181,8 +190,12 @@ extern "C" {
             for (int i = 0; i < fNumOutputs; i++) {
                 delete[] fNoteOutputs[i];
             }
-            
             delete[] fNoteOutputs;
+            
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                delete fVoiceTable[i];
+            }
+            delete [] fVoiceTable;
         }
         
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
@@ -191,30 +204,30 @@ extern "C" {
             clearMix(count, outputs);
               
             // Then mix all voices
-            for (int i = 0; i < MAX_VOICES; i++) {
-                fVoiceTable[i].fVoice.compute(count, inputs, fNoteOutputs);
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
                 mixVoice(count, fNoteOutputs, outputs);
             }
         }
         
         int getNumInputs()
         {
-            return fVoiceTable[0].fVoice.getNumInputs();
+            return fVoiceTable[0]->fVoice.getNumInputs();
         }
         
         int getNumOutputs()
         {
-            return fVoiceTable[0].fVoice.getNumOutputs();
+            return fVoiceTable[0]->fVoice.getNumOutputs();
         }
         
         void noteOn(int pitch, int velocity)
         {
             int voice = getFreeVoice();
             if (voice >= 0) {
-                fVoiceTable[voice].setValue(fFreqLabel, midiToFreq(pitch));
-                fVoiceTable[voice].setValue(fGainLabel, float(velocity)/127.f);
-                fVoiceTable[voice].setValue(fGateLabel, 1.0f);
-                fVoiceTable[voice].fNote = pitch;
+                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+                fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
+                fVoiceTable[voice]->fNote = pitch;
             } else {
                 printf("No more free voice...\n");
             }
@@ -224,8 +237,8 @@ extern "C" {
         {
             int voice = getPlayingVoice(pitch);
             if (voice >= 0) {
-                fVoiceTable[voice].setValue(fGateLabel, 0.0f);
-                fVoiceTable[voice].fNote = -1;
+                fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
+                fVoiceTable[voice]->fNote = -1;
             } else {
                 printf("Playing voice not found...\n");
             }
@@ -238,22 +251,22 @@ extern "C" {
         
         void setValue(const char* path, float value)
         {
-            for (int i = 0; i < MAX_VOICES; i++) {
-                fVoiceTable[i].setValue(path, value);
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->setValue(path, value);
             }
         }
         
         float getValue(const char* path)
         {
-            return fVoiceTable[0].getValue(path);
+            return fVoiceTable[0]->getValue(path);
         }
         
     };
         
     // C like API
-    mydsp_poly_wrap* mydsp_poly_constructor(int samplingFreq) 
+    mydsp_poly_wrap* mydsp_poly_constructor(int samplingFreq, int max_polyphony) 
     {
-         return new mydsp_poly_wrap(samplingFreq);
+         return new mydsp_poly_wrap(samplingFreq, max_polyphony);
     }
     
     void mydsp_poly_destructor(mydsp_poly_wrap* n) 
