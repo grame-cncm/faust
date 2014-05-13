@@ -78,7 +78,11 @@
          
         function activateMIDIInput()
         {
-            navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+            if (typeof (navigator.requestMIDIAccess) !== "undefined") {
+                navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+            } else {
+                alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+            }
         }
      
         // Audio input handling
