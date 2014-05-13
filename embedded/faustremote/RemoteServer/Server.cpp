@@ -19,11 +19,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 
-#ifdef __linux__
-#include "linux_server/client-publish-service.h"
-#endif
-
-
 enum{
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED

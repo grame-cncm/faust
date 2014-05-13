@@ -869,13 +869,31 @@ void* remote_DNS::scanFaustRemote(void* arg)
     while (true) {
         // Add and explicit cancellation point
         pthread_testcancel();
+        
+//#ifdef WIN32
+//        Sleep(1);
+//#else
+//        usleep(1000000);
+//#endif
+        
         if(dns->fLocker.Lock()){
-#ifdef WIN32
-            Sleep(1);
-#else
-            usleep(1000000);
-#endif
-            dns->memberCleanup(&dns->fClients);
+            
+            map<string, member>::iterator iter = dns->fClients.begin();
+            lo_timetag now;
+            lo_timetag_now(&now);
+            while(iter != dns->fClients.end())
+            {
+                member iterMem = iter->second;
+                if ((now.sec - iterMem.timetag.sec) > 3)
+                {
+                    cerr << "DISCONNECTED ~ PID: " << iterMem.pid << " || HOSTNAME: " << iterMem.hostname << endl;
+                    dns->fClients.erase(iter->first);
+                    iter = dns->fClients.begin();
+                }
+                else
+                    iter++;
+            }
+            
             dns->fLocker.Unlock();
         }
     }
@@ -916,22 +934,6 @@ remote_DNS::~remote_DNS()
     lo_server_thread_free(fLoThread);
 }
 
-void remote_DNS::memberCleanup(map<string, member> *checkMems)
-{
-    map<string, member>::iterator iter;
-    lo_timetag now;
-    lo_timetag_now(&now);
-    for (iter = checkMems->begin(); iter != checkMems->end(); iter++)
-    {
-        member iterMem = iter->second;
-        if ((now.sec - iterMem.timetag.sec) > 3)
-        {
-            cerr << "DISCONNECTED ~ PID: " << iterMem.pid << " || HOSTNAME: " << iterMem.hostname << endl;
-            checkMems->erase(iter->first);
-        }
-    }
-}
-
 void remote_DNS::errorHandler(int num, const char *msg, const char *path)
 {
     printf("liblo server error %d in path %s: %s\n", num, path, msg);
@@ -955,8 +957,10 @@ int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
     if (dns->fLocker.Lock())
     {
         if(dns->fClients[key].timetag.sec == 0)
-            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname);
+            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
             
+        printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
+        
         dns->fClients[key] = messageSender;
         gDNS->fLocker.Unlock();
     }

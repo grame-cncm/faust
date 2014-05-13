@@ -77,8 +77,6 @@ extern "C"
     
     struct remote_DNS {
         
-        static void memberCleanup(map<string, member> *checkMems);
-        
         static void    cleanupMachineList(std::map<string, member> clients_list);
         
         static void errorHandler(int num, const char *m, const char *path);
