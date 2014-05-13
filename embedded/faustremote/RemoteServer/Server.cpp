@@ -122,7 +122,7 @@ Server::~Server(){}
 //---- START/STOP SERVER
 bool Server::start(int port){
     
-    fPort = port;
+//    fPort = port;
     
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
@@ -133,11 +133,13 @@ bool Server::start(int port){
                                request_completed, NULL, MHD_OPTION_END);
 
     if(fDaemon){
-		
-#ifdef __APPLE__
-        fRegistrationService = new DNSServiceRef; //Structure allocate to register as available web service
-#endif
-        return registration();
+        
+        if (pthread_create(&fThread, NULL, Server::registration, &port) != 0) {
+            printf("RemoteServer::pthread_create failed\n");
+            return false;
+        }
+        
+        return true;
     } else {
         return false;
     }
@@ -147,14 +149,10 @@ void Server::stop(){
    
     if (fDaemon) {
  
-#ifdef __APPLE__
+//        Faire un truc pour arrêter la boucle
         
-//      Is it really important to unregister or is it automatic ?
-        DNSServiceRegister(fRegistrationService, 0, 0, fNameRegisterService.c_str(), "_http._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL);
-        DNSServiceRefDeallocate(*fRegistrationService);
-#else
-		stopRegisterService(fNameRegisterService.c_str());
-#endif
+        pthread_cancel(fThread);
+        pthread_join(fThread, NULL);
         
         MHD_stop_daemon(fDaemon);
     }
@@ -592,36 +590,44 @@ bool Server::createInstance(connection_info_struct* con_info){
     }    
 }
 
+#include "lo/lo.h"
+
 // Register server as available
-bool Server::registration(){
+void* Server::registration(void* arg){
     
     printf("SERVICE REGISTRATION\n");
     
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
     
+    int port = *((int*) arg);
+    
     stringstream p;
-    p<<fPort;
+    p<<port;
     
-    fNameRegisterService = "._";
+    string nameRegisterService = "._";
     
-    fNameRegisterService += searchIP();
-    fNameRegisterService += ":";
-    fNameRegisterService += p.str();
-    fNameRegisterService += "._";
-    fNameRegisterService += host_name;
-    
-#ifdef __APPLE__
-    if (DNSServiceRegister(fRegistrationService, kDNSServiceFlagsAdd, 0, fNameRegisterService.c_str(), "_faustcompiler._tcp", "local", NULL, 7779, 0, NULL, NULL, NULL) != kDNSServiceErr_NoError) {
-        printf("ERROR DURING REGISTRATION\n");
-        return false;
-    } else {
-        return true;
-    }
-#else
-	return launchRegisterService(fNameRegisterService.c_str());
-#endif
+    nameRegisterService += searchIP();
+    nameRegisterService += ":";
+    nameRegisterService += "7777";
+    nameRegisterService += "._";
+    nameRegisterService += host_name;
 
+    lo_address t = lo_address_new("224.0.0.1", "7770");
+    
+    while (true) {
+#ifdef WIN32
+        Sleep(1);
+#else
+        usleep(1000000);
+#endif
+        pthread_testcancel();
+        
+        int pid = getpid();
+        lo_send(t, "/faustcompiler", "is", pid, nameRegisterService.c_str());
+    }
+    
+    pthread_exit(NULL);
 }
 
 

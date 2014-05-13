@@ -213,10 +213,11 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) {
 }   
 
 // Create Remote DSP Instance from factory
-remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
-                                                            int sampling_rate, int buffer_size, 
-                                                            RemoteDSPErrorCallback error_callback, void* error_callback_arg, 
-                                                            int& error){
+remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(
+        int argc, const char *argv[], 
+        int sampling_rate, int buffer_size, 
+        RemoteDSPErrorCallback error_callback, void* error_callback_arg, 
+        int& error){
  
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     
@@ -849,118 +850,6 @@ EXPORT void remote_dsp::stopAudio()
 }
 
 //------ DISCOVERY OF AVAILABLE MACHINES
-
-//--- Callback whenever a server in the regtype/replyDomain is found
-#ifdef __APPLE__
-static void browsingCallback(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *serviceName, const char *regtype, const char *replyDomain, void *context )
-{
-    remote_DNS* dsn = (remote_DNS*)context;
-    
-    if (dsn->fLocker.Lock()) {
-        
-        string serviceNameCpy(serviceName);
-        int pos = serviceNameCpy.find("._");
-        string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-        pos = remainingString.find("._");
-        string serviceIP = remainingString.substr(0, pos);
-        string hostName = remainingString.substr(pos+2, string::npos);
-        
-        if (flags == kDNSServiceFlagsAdd || flags == kDNSServiceFlagsMoreComing) {
-            int pos = serviceIP.find(":");
-            string ipAddr = serviceIP.substr(0, pos);
-            string port = serviceIP.substr(pos+1, string::npos);
-            dsn->fMachineList[hostName] = make_pair(ipAddr, atoi(port.c_str()));
-        } else {
-            dsn->fMachineList.erase(hostName);
-        }
-        
-        dsn->fLocker.Unlock();
-    }
-}
-#else
-void browse_callback(
-    AvahiServiceBrowser *b,
-    AvahiIfIndex interface,
-    AvahiProtocol protocol,
-    AvahiBrowserEvent event,
-    const char *name,
-    const char *type,
-    const char *domain,
-    AVAHI_GCC_UNUSED AvahiLookupResultFlags flags,
-    void* userdata) {
-
-    remote_DNS * dsn = (remote_DNS*)userdata;
-    assert(b);
-
-	if(name != NULL){
-
-	string serviceNameCpy(name);
-    int pos = serviceNameCpy.find("._");
-    string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-    pos = remainingString.find("._");
-    string serviceIP = remainingString.substr(0, pos);
-    string hostName = remainingString.substr(pos+2, string::npos);
-
-	printf("HOST NAME = %s\n", hostName.c_str());
-
-    /* Called whenever a new services becomes available on the LAN or is removed from the LAN */
-
-    switch (event) {
-        case AVAHI_BROWSER_FAILURE:
-
-            fprintf(stderr, "(Browser) %s\n", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
-            avahi_simple_poll_quit(dsn->fPoll);
-            return;
-
-        case AVAHI_BROWSER_NEW:
-            fprintf(stderr, "(Browser) NEW: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
-			    
-			if (dsn->fLocker.Lock()) {
-            
-        	    int pos = serviceIP.find(":");
-        	    string ipAddr = serviceIP.substr(0, pos);
-        	    string port = serviceIP.substr(pos+1, string::npos);
-			
-				printf("ipAddr = %s || port = %i\n", ipAddr.c_str(), atoi(port.c_str()));
-
-        	    dsn->fMachineList[hostName] = make_pair(ipAddr, atoi(port.c_str()));
-
-    		    dsn->fLocker.Unlock();   
-			}
-
-            break;
-
-        case AVAHI_BROWSER_REMOVE:
-            fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
-			dsn->fMachineList.erase(hostName);
-            break;
-
-        case AVAHI_BROWSER_ALL_FOR_NOW:
-        case AVAHI_BROWSER_CACHE_EXHAUSTED:
-            fprintf(stderr, "(Browser) %s\n", event == AVAHI_BROWSER_CACHE_EXHAUSTED ? "CACHE_EXHAUSTED" : "ALL_FOR_NOW");
-            break;
-    }
-	}
-	printf("Browse callback success\n");
-}
-
-void client_callback(AvahiClient *c, AvahiClientState state, void * userdata) {
-
-	remote_DNS * dsn = (remote_DNS*)userdata;
-	printf("CLIENT FAILURE\n");
-    assert(c);
-
-    /* Called whenever the client or server state changes */
-
-    if (state == AVAHI_CLIENT_FAILURE) {
-        fprintf(stderr, "Server connection failure: %s\n", avahi_strerror(avahi_client_errno(c)));
-        avahi_simple_poll_quit(dsn->fPoll);
-    }
-}
-
-#endif
-//--- Research of available remote machines
-
 static remote_DNS* gDNS = NULL;
 
 __attribute__((constructor)) static void initialize_libfaustremote() 
@@ -975,79 +864,104 @@ __attribute__((destructor)) static void destroy_libfaustremote()
 
 void* remote_DNS::scanFaustRemote(void* arg)
 {
-    remote_DNS* dsn = (remote_DNS*)arg;
+    remote_DNS* dns = (remote_DNS*)arg;
 
-#ifdef __APPLE__
     while (true) {
         // Add and explicit cancellation point
         pthread_testcancel();
-        DNSServiceProcessResult(dsn->fDNSDevice);
-    }
+        if(dns->fLocker.Lock()){
+#ifdef WIN32
+            Sleep(1);
 #else
-    avahi_simple_poll_loop(dsn->fPoll);
+            usleep(1000000);
 #endif
+            dns->memberCleanup(&dns->fClients);
+            dns->fLocker.Unlock();
+        }
+    }
     
     pthread_exit(NULL);
 }
 
 remote_DNS::remote_DNS()
 {
-    int err2;
-
-#ifdef __APPLE__
-    DNSServiceErrorType err1; 
+  
+    /* make address for multicast ip
+     * pick a port number for you by passing NULL as the last argument */
     
-    if ((err1 = DNSServiceBrowse(&fDNSDevice, 0, 0, "_faustcompiler._tcp", NULL, &browsingCallback, this)) != kDNSServiceErr_NoError)
-        printf("remote_DNS : DNSServiceBrowse fails err = %d\n", (int)err1);
-#else
-
-    fClient = NULL;
-    fPoll = NULL;
-    int error;
-    int ret = 1;
-
-    /* Allocate main loop object */
-    if (!(fPoll = avahi_simple_poll_new()))
-        return;
-
-    /* Allocate a new client */
-    fClient = avahi_client_new(avahi_simple_poll_get(fPoll), (AvahiClientFlags)0, client_callback, this, &error);
-
-    /* Check wether creating the client object succeeded */
-    if (!fClient)
-        return;
-
-    /* Create the service browser */
-    if (!(fBrowser = avahi_service_browser_new(fClient, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_faustcompiler._tcp", NULL, (AvahiLookupFlags)0, browse_callback, this)))
-        return ;
-#endif
-
-	if ((err2 = pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this)) != 0) {
-        printf("remote_DNS : pthread_create fails err = %d\n", (int)err2);
+    //    lo_address t = lo_address_new("224.0.0.1", "7770");
+    // lo_server multi = lo_server_new_multicast("drone", "7771", error);
+    /* start a new server on port 7770 */
+    fLoThread = lo_server_thread_new_multicast("224.0.0.1", "7770", remote_DNS::errorHandler);
+    
+    /* add method that will match the path /foo/bar, with two numbers, coerced
+     * to float and int */
+    lo_server_thread_add_method(fLoThread, "/faustcompiler", "is", remote_DNS::pingHandler, this);
+    
+//    /* add method that will match the path /quit with no args */
+//    lo_server_thread_add_method(fLoThread, "/quit", "", remote_DNS::quitHandler, this);
+    
+    lo_server_thread_start(fLoThread);
+    
+	if (pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this) != 0) {
+        printf("remote_DNS : pthread_create fails\n");
     }
 }
                                 
 remote_DNS::~remote_DNS()
 {
-	printf("Destructor\n");
- 
-#ifdef __APPLE__
-    DNSServiceRefDeallocate(fDNSDevice);
-#else
-
-    /* Cleanup things */
-    if (fBrowser)
-        avahi_service_browser_free(fBrowser);
-
-    if (fClient)
-        avahi_client_free(fClient);
-
-    if (fPoll)
-        avahi_simple_poll_free(fPoll);
-#endif
-    
     pthread_cancel(fThread);
     pthread_join(fThread, NULL);
+    
+    lo_server_thread_free(fLoThread);
+}
+
+void remote_DNS::memberCleanup(map<string, member> *checkMems)
+{
+    map<string, member>::iterator iter;
+    lo_timetag now;
+    lo_timetag_now(&now);
+    for (iter = checkMems->begin(); iter != checkMems->end(); iter++)
+    {
+        member iterMem = iter->second;
+        if ((now.sec - iterMem.timetag.sec) > 3)
+        {
+            cerr << "DISCONNECTED ~ PID: " << iterMem.pid << " || HOSTNAME: " << iterMem.hostname << endl;
+            checkMems->erase(iter->first);
+        }
+    }
+}
+
+void remote_DNS::errorHandler(int num, const char *msg, const char *path)
+{
+    printf("liblo server error %d in path %s: %s\n", num, path, msg);
+}
+
+/* catch any incoming messages and display them. returning 1 means that the
+ * message has not been fully handled and the server should try other methods */
+int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
+                 int argc, void *data, void *user_data)
+{
+    remote_DNS* dns = (remote_DNS*)user_data;
+    
+    member messageSender;
+    messageSender.pid = argv[0]->i;
+    messageSender.hostname = (char *)argv[1];
+    lo_timetag_now(&messageSender.timetag);
+    ostringstream convert;
+    convert << messageSender.pid;
+    string key = messageSender.hostname + ":" + convert.str();
+    
+    if (dns->fLocker.Lock())
+    {
+        if(dns->fClients[key].timetag.sec == 0)
+            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname);
+            
+        dns->fClients[key] = messageSender;
+        gDNS->fLocker.Unlock();
+    }
+        
+    return 0;
 }
 
 // Public API
@@ -1055,7 +969,28 @@ remote_DNS::~remote_DNS()
 EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList)
 {
     if (gDNS && gDNS->fLocker.Lock()) {
-        *machineList = gDNS->fMachineList;
+        
+        
+        for(map<string, member>::iterator it=gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
+            
+//        Decompose HostName to have Name, Ip and Port of service
+            string serviceNameCpy(it->second.hostname);
+            
+            int pos = serviceNameCpy.find("._");
+            string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+            pos = remainingString.find("._");
+            string serviceIP = remainingString.substr(0, pos);
+        
+            string hostName = remainingString.substr(pos+2, string::npos);
+            
+            int pos2 = serviceIP.find(":");
+            string ipAddr = serviceIP.substr(0, pos2);
+            string port = serviceIP.substr(pos2+1, string::npos);
+            
+            (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+                    
+        }
+        
         gDNS->fLocker.Unlock();
         return true;
     } else {
