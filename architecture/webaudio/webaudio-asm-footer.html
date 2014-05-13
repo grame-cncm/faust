@@ -7,7 +7,80 @@
         var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
         var buffer_size = 1024;
         var audio_input;
-        var DSP;
+        var midi_input = [];
+        var DSP = null;
+        var DSP_poly = null;
+        
+        // MIDI input handling
+        
+        function noteOn(channel, noteNumber, velocity)
+        {
+            if (DSP_poly) {
+                //console.log("noteOn : %d %d %d", channel, noteNumber, velocity);
+                DSP_poly.noteOn(channel, noteNumber, velocity);
+            }
+        }
+        
+        function noteOff(channel, noteNumber)
+        {
+            if (DSP_poly) {
+                //console.log("noteOff : %d %d", channel, noteNumber);
+                DSP_poly.noteOff(channel, noteNumber);
+            }
+        }
+        
+        function pitchWheel(channel, pitchWheel)
+        {
+            console.log("pitchWheel : %d %d", channel, pitchWheel);
+        }
+        
+        function controller(channel, ctrl, value)
+        {
+            console.log("control : %d %d %d", channel, ctrl, value);
+        }
+        
+        function midiMessageReceived(ev) 
+        {
+            var cmd = ev.data[0] >> 4;
+            var channel = ev.data[0] & 0xf;
+            var noteNumber = ev.data[1];
+            var velocity = ev.data[2];
+            
+            //console.log(ev);
+
+            if (channel === 9) {
+                return;
+            } else if (cmd === 8 || ((cmd === 9) && (velocity === 0))) { 
+                noteOff(channel, noteNumber);
+            } else if (cmd === 9) {
+                noteOn(channel, noteNumber, velocity);
+            } else if (cmd === 11) {
+                //controller(channel, noteNumber, velocity);
+            } else if (cmd === 14) {
+               //pitchWheel(((velocity * 128.0 + noteNumber)-8192)/8192.0);
+            }  
+        }
+        
+        function onerrorcallback(error) 
+        {
+             console.log(error);
+        }
+        
+        function onsuccesscallback(access) 
+        {
+            access.inputs().forEach(function(input) {
+                midi_input.push(input);
+                input.onmidimessage = midiMessageReceived;
+                console.log(input.name);
+            });
+        }
+         
+        function activateMIDIInput()
+        {
+            navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+        }
+     
+        // Audio input handling
         
         function activateAudioInput()
         {
@@ -30,17 +103,34 @@
             audio_input.connect(DSP.scriptProcessor);
         }
         
+        // General
+        
+        
         $('#faustsvg').svg({onLoad: function (svg) {
          
             DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
             if (DSP.getNumInputs() > 0) {
-                activateAudioInput();
+                //activateAudioInput();
+                activateMIDIInput();
             }
             DSP.start();
             console.log(DSP.json());
             _f4u$t.make_audio_ui_asm(svg, DSP);
             
         }});
+        
+        /*
+        // Polyphonic instrument
+        $('#faustsvg').svg({onLoad: function (svg) {
+         
+            DSP_poly = faust.DSP_poly(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
+            activateMIDIInput();
+            DSP_poly.start();
+            console.log(DSP_poly.json());
+            _f4u$t.make_audio_ui_asm(svg, DSP_poly);
+            
+        }});
+        */
   
         </script>
     </body>
