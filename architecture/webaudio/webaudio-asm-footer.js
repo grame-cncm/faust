@@ -23,6 +23,8 @@ var DSP_getJSON = Module.cwrap('DSP_getJSON', null, ['number','number']);
 var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
 var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
 
+// Standard Faust DSP
+
 faust.DSP = function (context, vectorsize, handler) {
     var that = {};
     
@@ -215,7 +217,7 @@ faust.DSP = function (context, vectorsize, handler) {
     return that;
 };
 
-// Poly
+// Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with noteOn, noteOff events.
 
 var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number']);
 var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
