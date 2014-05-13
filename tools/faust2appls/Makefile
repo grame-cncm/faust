@@ -60,6 +60,7 @@ install:
 	install faust2android $(dest)
 	install faust2owl $(dest)
 	install faust2webaudioasm $(dest)
+	install faust2asm $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -110,4 +111,6 @@ uninstall:
 	rm -f $(dest)/faust2android
 	rm -f $(dest)/faust2owl
 	rm -f $(dest)/faust2webaudioasm
+	rm -f $(dest)/faust2asm
+
 

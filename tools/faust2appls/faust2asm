@@ -48,21 +48,11 @@ for f in $FILES; do
     faust -a $FAUSTLIB/webaudio/webaudio-asm.cpp -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
     # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/webaudio-asm-footer.js -o $name-temp.js \
-        -s EXPORTED_FUNCTIONS="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute', '_"$name"_getNumInputs', '_"$name"_getNumOutputs', '_"$name"_setValue', '_"$name"_getValue', '_"$name"_getJSON', '_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute', '_"$name"_poly_getNumInputs', '_"$name"_poly_getNumOutputs', '_"$name"_poly_setValue', '_"$name"_poly_getValue', '_"$name"_poly_getJSON', '_"$name"_poly_noteOn', '_"$name"_poly_noteOff']"
+    emcc -O2 $name.cpp -s TOTAL_STACK=10485760 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/webaudio-asm-footer.js -o $name-temp.js \
+        -s EXPORTED_FUNCTIONS="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute', '_"$name"_getNumInputs', '_"$name"_getNumOutputs', '_"$name"_setValue', '_"$name"_getValue', '_"$name"_getJSON']"
     
-    # compose the self-contained HTML page
-    echo "<html>" > $name.html
-    echo "<head>" >> $name.html
-    echo "<meta charset=\"UTF-8\">" >> $name.html
-    echo "<style type=\"text/css\">" >> $name.html
-    cat $FAUSTLIB/js/stylesheet.js >> $name.html
-    echo "</style>" >> $name.html
-    echo "<script type=\"text/javascript\">" >> $name.html
-    sed -e "s/DSP/"$name"/g" $name-temp.js >> $name.html
-    echo "</script>" >> $name.html 
-    echo "</head>" >> $name.html
-    sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/webaudio-asm-footer.html >> $name.html
+    # compose the asm.js code
+    sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
     
     rm $name-temp.js
     rm $name.cpp
