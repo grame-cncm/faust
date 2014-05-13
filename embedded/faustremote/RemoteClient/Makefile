@@ -8,10 +8,11 @@ os 	:= $(shell uname)
 system	?= $(shell uname -s)
 
 PREFIX ?= /usr/local
+INCPATH       = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= -I../ -arch i386 -arch x86_64 -Wglobal-constructors  
+	CXXFLAGS	= -I../ -arch i386 -arch x86_64
 	LIB_EXT        = dylib
 else 
 	ARCHFLAGS 	:= 
@@ -36,6 +37,6 @@ install:
 clean :
 	rm -f $(objects) libfaustremote.a
 
-remote_dsp_aux.o: JsonParser.h
+remote_dsp_aux.o: JsonParser.h ../TMutex.h
 
 
