@@ -34,10 +34,6 @@ for p in $@; do
      HTML_FOOTER=webaudio-asm-poly-footer.html
      CPP_WRAPPER=webaudio-asm-poly.cpp
      JS_WRAPPER=webaudio-asm-poly-footer.js
-    elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
-    elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -53,7 +49,7 @@ done
 for f in $FILES; do
     name=${f%.dsp}
     
-    # compile the C++ code
+    # compile the Faust DSP to C++ code
     faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
     if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
@@ -63,9 +59,7 @@ for f in $FILES; do
 	fi
      
     # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 \ 
-        --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js 
-        --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
         -s EXPORTED_FUNCTIONS=$EXPORTED
           
     # compose the self-contained HTML page
