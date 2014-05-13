@@ -96,6 +96,8 @@ class MapUI : public PathUI
         {
             return *fZoneMap[path];
         }
+    
+    std::map<std::string, FAUSTFLOAT*>& getMap() {return fZoneMap; }
 };
 
 #endif
