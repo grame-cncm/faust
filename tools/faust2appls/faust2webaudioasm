@@ -54,6 +54,7 @@ for f in $FILES; do
     # compose the self-contained HTML page
     echo "<html>" > $name.html
     echo "<head>" >> $name.html
+    echo "<meta charset=\"UTF-8\">" >> $name.html
     echo "<style type=\"text/css\">" >> $name.html
     cat $FAUSTLIB/js/stylesheet.js >> $name.html
     echo "</style>" >> $name.html
