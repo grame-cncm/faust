@@ -14,18 +14,20 @@
  Additional code : GRAME 2014
 */
 
-var DSP_constructor = Module.cwrap('DSP_constructor', 'number', ['number']);
-var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
-var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
-var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
-var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', ['number']);
-var DSP_getJSON = Module.cwrap('DSP_getJSON', null, ['number','number']);
-var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
-var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
+// Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with noteOn, noteOff events.
 
-// Standard Faust DSP
+var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number']);
+var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
+var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
+var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
+var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['number']);
+var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', null, ['number','number']);
+var DSP_poly_setValue = Module.cwrap('DSP_poly_setValue', null, ['number', 'number', 'number']);
+var DSP_poly_getValue = Module.cwrap('DSP_poly_getValue', 'number', ['number', 'number']);
+var DSP_poly_noteOn = Module.cwrap('DSP_poly_noteOn', null, ['number', 'number', 'number', 'number']);
+var DSP_poly_noteOff = Module.cwrap('DSP_poly_noteOff', null, ['number', 'number', 'number']);
 
-faust.DSP = function (context, vectorsize, handler) {
+faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
     var that = {};
     
     faust.context = context;
@@ -36,19 +38,29 @@ faust.DSP = function (context, vectorsize, handler) {
     that.bargraph_timer = 5;
     that.bargraph_table = [];
     
-    that.ptr = DSP_constructor(faust.context.sampleRate);
+    that.ptr = DSP_poly_constructor(faust.context.sampleRate, max_polyphony);
     
     // Bind to C++ Member Functions
     
     that.getNumInputs = function () 
     {
-        return DSP_getNumInputs(that.ptr);
+        return DSP_poly_getNumInputs(that.ptr);
     };
     
     that.getNumOutputs = function () 
     {
-        return DSP_getNumOutputs(that.ptr);
+        return DSP_poly_getNumOutputs(that.ptr);
     };
+    
+    that.noteOn = function (channel, pitch, velocity)
+    {
+        DSP_poly_noteOn(that.ptr, channel, pitch, velocity);
+    }
+    
+    that.noteOff = function (channel, pitch)
+    {
+        DSP_poly_noteOff(that.ptr, channel, pitch);
+    }
     
     that.update_bargraph = function () 
     {
@@ -57,7 +69,7 @@ faust.DSP = function (context, vectorsize, handler) {
             var i;
             for (i = 0; i < that.bargraph_table.length; i++) {
                 var pathPtr = allocate(intArrayFromString(that.bargraph_table[i]), 'i8', ALLOC_STACK);
-                that.handler(that.bargraph_table[i], DSP_getValue(that.ptr, pathPtr));
+                that.handler(that.bargraph_table[i], DSP_poly_getValue(that.ptr, pathPtr));
             }
         }
     };
@@ -76,8 +88,8 @@ faust.DSP = function (context, vectorsize, handler) {
         }
         
         // Compute
-        DSP_compute(that.ptr, that.vectorsize, that.ins, that.outs);
-       
+        DSP_poly_compute(that.ptr, that.vectorsize, that.ins, that.outs);
+        
         // Update bargraph
         that.update_bargraph();
         
@@ -93,7 +105,7 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.destroy = function ()
     {
-        DSP_destructor(that.ptr);
+        DSP_poly_destructor(that.ptr);
     };
     
     // Connect to another node
@@ -119,13 +131,13 @@ faust.DSP = function (context, vectorsize, handler) {
     
     that.update = function (path, val) 
     {
-        DSP_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
+        DSP_poly_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
     };
     
     that.json = function ()
     {
         var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
-        DSP_getJSON(that.ptr, jsonPtr);
+        DSP_poly_getJSON(that.ptr, jsonPtr);
         return Pointer_stringify(jsonPtr);
     }
     
@@ -162,7 +174,7 @@ faust.DSP = function (context, vectorsize, handler) {
             that.bargraph_table.push(item.address);
         }
     }
-      
+    
     that.init = function ()
     {
         var i;
@@ -195,20 +207,20 @@ faust.DSP = function (context, vectorsize, handler) {
             // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
             HEAP32[(that.outs >> 2) + i] = Module._malloc(that.vectorsize * that.samplesize);
         }
-    
+        
         // Prepare Ins/out buffer tables
         that.dspInChannnels = [];
         var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
         for (i = 0; i < that.numIn; i++) {
             that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.vectorsize * that.ptrsize) >> 2);
         }
-       
+        
         that.dspOutChannnels = [];
         var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
         for (i = 0; i < that.numOut; i++) {
             that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.vectorsize * that.ptrsize) >> 2);
         }
-                                
+        
         // bargraph
         that.parse_ui(JSON.parse(that.json()).ui);
     };
