@@ -79,29 +79,258 @@ inline double min(double a, float b) 	{ return (a<b) ? a : b; }
 
 extern "C" {
     
+    #define MAX_VOICES 16
+    #define MAX_BUFFER_SIZE 1024
+    
+    inline float midiToFreq(int note) 
+    {
+          return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
+    }
+    
+    struct mydsp_voice : public MapUI {
+        mydsp fVoice;
+        int fNote;
+    };
+    
+    struct mydsp_poly_wrap
+    {
+        std::string fJSON;
+        
+        mydsp_voice fVoiceTable[MAX_VOICES];
+        
+        std::string fGateLabel;
+        std::string fGainLabel;
+        std::string fFreqLabel;
+        
+        FAUSTFLOAT** fNoteOutputs;
+        int fNumOutputs;
+        
+        inline void mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
+        {
+            for (int i = 0; i < fNumOutputs; i++) {
+                float* mixChannel = mixBuffer[i];
+                float* outChannel = outputBuffer[i];
+                for (int j = 0; j < count; j++) {
+                    mixChannel[j] += outChannel[j];
+                }
+            }
+        }
+        
+        inline void clearMix(int count, FAUSTFLOAT** mixBuffer) 
+        {
+            for (int i = 0; i < fNumOutputs; i++) {
+                memset(mixBuffer[i], 0, count * sizeof(FAUSTFLOAT));
+            }
+        }
+        
+        inline int getFreeVoice()
+        {
+            for (int i = 0; i < MAX_VOICES; i++) {
+                if (fVoiceTable[i].fNote == -1) return i;
+            }
+            return -1;
+        }
+        
+        inline int getPlayingVoice(int note)
+        {
+            for (int i = 0; i < MAX_VOICES; i++) {
+                if (fVoiceTable[i].fNote == note) return i;
+            }
+            return -1;
+        }
+        
+        mydsp_poly_wrap(int samplingFreq)
+        {
+            // Init it with samplingFreq supplied...
+            for (int i = 0; i < MAX_VOICES; i++) {
+                fVoiceTable[i].fVoice.init(samplingFreq);
+                fVoiceTable[i].fNote = -1;
+                fVoiceTable[i].fVoice.buildUserInterface(&fVoiceTable[i]);
+            }
+            
+            // Init audio output buffers
+            fNumOutputs = fVoiceTable[0].fVoice.getNumOutputs();
+            fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
+            for (int i = 0; i < fNumOutputs; i++) {
+                fNoteOutputs[i] = new FAUSTFLOAT[MAX_BUFFER_SIZE];
+            }
+            
+            // Creates JSON
+            JSONUI builder(fVoiceTable[0].fVoice.getNumInputs(), fVoiceTable[0].fVoice.getNumOutputs());
+            mydsp::metadata(&builder);
+            fVoiceTable[0].fVoice.buildUserInterface(&builder);
+            fJSON = builder.JSON();
+            
+            // Keep gain, freq and gate labels
+            std::map<std::string, FAUSTFLOAT*>::iterator it;
+            
+            for (it = fVoiceTable[0].getMap().begin(); it != fVoiceTable[0].getMap().end(); it++) {
+                std::string label = (*it).first;
+                if (label.find("gate") != std::string::npos) {
+                    fGateLabel = label;
+                } else if (label.find("freq") != std::string::npos) {
+                    fFreqLabel = label;
+                } else if (label.find("gain") != std::string::npos) {
+                    fGainLabel = label;
+                }
+            }
+        }
+        
+        virtual ~mydsp_poly_wrap()
+        {
+            for (int i = 0; i < fNumOutputs; i++) {
+                delete[] fNoteOutputs[i];
+            }
+            
+            delete[] fNoteOutputs;
+        }
+        
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        {
+            // First clear the outputs
+            clearMix(count, outputs);
+              
+            // Then mix all voices
+            for (int i = 0; i < MAX_VOICES; i++) {
+                fVoiceTable[i].fVoice.compute(count, inputs, fNoteOutputs);
+                mixVoice(count, fNoteOutputs, outputs);
+            }
+        }
+        
+        int getNumInputs()
+        {
+            return fVoiceTable[0].fVoice.getNumInputs();
+        }
+        
+        int getNumOutputs()
+        {
+            return fVoiceTable[0].fVoice.getNumOutputs();
+        }
+        
+        void noteOn(int pitch, int velocity)
+        {
+            int voice = getFreeVoice();
+            if (voice >= 0) {
+                fVoiceTable[voice].setValue(fFreqLabel, midiToFreq(pitch));
+                fVoiceTable[voice].setValue(fGainLabel, float(velocity)/127.f);
+                fVoiceTable[voice].setValue(fGateLabel, 1.0f);
+                fVoiceTable[voice].fNote = pitch;
+            } else {
+                printf("No more free voice...\n");
+            }
+        }
+        
+        void noteOff(int pitch)
+        {
+            int voice = getPlayingVoice(pitch);
+            if (voice >= 0) {
+                fVoiceTable[voice].setValue(fGateLabel, 0.0f);
+                fVoiceTable[voice].fNote = -1;
+            } else {
+                printf("Playing voice not found...\n");
+            }
+        }
+        
+        void getJSON(char* json)
+        {
+            strcpy(json, fJSON.c_str());
+        }
+        
+        void setValue(const char* path, float value)
+        {
+            for (int i = 0; i < MAX_VOICES; i++) {
+                fVoiceTable[i].setValue(path, value);
+            }
+        }
+        
+        float getValue(const char* path)
+        {
+            return fVoiceTable[0].getValue(path);
+        }
+        
+    };
+        
+    // C like API
+    mydsp_poly_wrap* mydsp_poly_constructor(int samplingFreq) 
+    {
+         return new mydsp_poly_wrap(samplingFreq);
+    }
+    
+    void mydsp_poly_destructor(mydsp_poly_wrap* n) 
+    {
+        delete n;
+    }
+    
+    void mydsp_poly_getJSON(mydsp_poly_wrap* n, char* json)
+    {
+        n->getJSON(json);
+    }
+    
+    void mydsp_poly_compute(mydsp_poly_wrap* n, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+    {
+        n->compute(count, inputs, outputs);
+    }
+    
+    int mydsp_poly_getNumInputs(mydsp_poly_wrap* n)
+    {
+        return n->getNumInputs();
+    }
+    
+    int mydsp_poly_getNumOutputs(mydsp_poly_wrap* n)
+    {
+        return n->getNumOutputs();
+    }
+    
+    void mydsp_poly_noteOn(mydsp_poly_wrap* n, int channel, int pitch, int velocity)
+    {
+        n->noteOn(pitch, velocity);
+    }
+    
+    void mydsp_poly_noteOff(mydsp_poly_wrap* n, int channel, int pitch)
+    {
+        n->noteOff(pitch);
+    }
+    
+    void mydsp_poly_setValue(mydsp_poly_wrap* n, const char* path, float value)
+    {
+        n->setValue(path, value);
+    }
+    
+    float mydsp_poly_getValue(mydsp_poly_wrap* n, const char* path)
+    {
+        return n->getValue(path);
+    }
+    
+    
     // Just inherit from both classes...
     struct mydsp_wrap : public mydsp, public MapUI
     {
         std::string fJSON;
+        
+        mydsp_wrap(int samplingFreq) 
+        {
+            // Init it with samplingFreq supplied...
+            init(samplingFreq);
+            buildUserInterface(this);
+            
+            // Creates JSON
+            JSONUI builder(getNumInputs(), getNumOutputs());
+            mydsp::metadata(&builder);
+            buildUserInterface(&builder);
+            fJSON = builder.JSON();
+        }
+        
+        void getJSON(char* json)
+        {
+            strcpy(json, fJSON.c_str());
+        }
     };
     
-    //constructor
+    
+    // C like API
     mydsp_wrap* mydsp_constructor(int samplingFreq) 
     {
-        // Make a new dsp object
-        mydsp_wrap* n = new mydsp_wrap();
-        
-        // Init it with samplingFreq supplied...
-        n->init(samplingFreq);
-        n->buildUserInterface(n);
-        
-        // Creates JSON
-        JSONUI builder(n->getNumInputs(), n->getNumOutputs());
-        mydsp::metadata(&builder);
-        n->buildUserInterface(&builder);
-        n->fJSON = builder.JSON();
-        
-        return n;
+        return new mydsp_wrap(samplingFreq);
     }
     
     void mydsp_destructor(mydsp_wrap* n) 
@@ -126,7 +355,7 @@ extern "C" {
     
     void mydsp_getJSON(mydsp_wrap* n, char* json)
     {
-        strcpy(json, n->fJSON.c_str());
+        n->getJSON(json);
     }
     
     void mydsp_setValue(mydsp_wrap* n, const char* path, float value)
