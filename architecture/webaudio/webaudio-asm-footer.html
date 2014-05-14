@@ -5,9 +5,16 @@
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var buffer_size = 1024;
-var audio_input;
+var audio_input = null;
 var DSP = null;
+var SVG = null;
+
+function changeBufferSize(buffer_size)
+{
+    var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
+    console.log(new_buffer_size);
+    startNewDSP(SVG, new_buffer_size);
+}
  
 // Audio input handling
 
@@ -32,10 +39,17 @@ function getDevice(device)
     audio_input.connect(DSP.scriptProcessor);
 }
 
-// General
-
-$('#faustsvg').svg({onLoad: function (svg) {
- 
+function startDSPAux(svg, buffer_size) 
+{
+    SVG = svg;
+    console.log("startDSP %d", buffer_size);
+    if (DSP) {
+        if (audio_input) {
+            audio_input.disconnect(DSP.scriptProcessor);
+        }
+        DSP.stop();
+        DSP.destroy();
+    }
     DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
@@ -43,8 +57,37 @@ $('#faustsvg').svg({onLoad: function (svg) {
     DSP.start();
     console.log(DSP.json());
     _f4u$t.make_audio_ui_asm(svg, DSP);
-    
-}});
+}
+
+function startDSP(svg) 
+{
+    startDSPAux(svg, 1024);
+}
+
+function startNewDSP(svg, buffer_size) 
+{
+    startDSPAux(svg, buffer_size);
+}
+
+// General
+
+$('#faustsvg').svg({onLoad: startDSP});
 
 </script>
+
+<P>
+<center>
+<form method="POST" name="menu" >
+  <select name="selectedBuffer" 
+    onChange="changeBufferSize(this.form.selectedBuffer)">
+    <option value = 256> 256 </option>
+    <option value = 512> 512 </option>
+    <option selected value = 1024> 1024 </option>
+    <option value = 2048> 2048 </option>
+    <option value = 4096> 4096 </option>
+    <option value = 8192> 8192 </option>
+    <option value = 16384> 16384 </option>
+  </select>
+</form>
+</center>
 

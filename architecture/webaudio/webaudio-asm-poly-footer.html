@@ -5,11 +5,18 @@
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var buffer_size = 1024;
 var max_polyphony = 16;
-var audio_input;
+var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
+var SVG = null;
+
+function changeBufferSize(buffer_size)
+{
+    var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
+    console.log(new_buffer_size);
+    startNewDSP(SVG, new_buffer_size);
+}
 
 // MIDI input handling
 
@@ -104,18 +111,54 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP.scriptProcessor);
+    audio_input.connect(DSP_poly.scriptProcessor);
 }
 
-// Polyphonic instrument
-$('#faustsvg').svg({onLoad: function (svg) {
- 
+function startDSPAux(svg, buffer_size) 
+{
+    SVG = svg;
     activateMIDIInput();
+    if (DSP_poly) {
+        if (audio_input) {
+            audio_input.disconnect(DSP_poly.scriptProcessor);
+        }
+        DSP_poly.stop();
+        DSP_poly.destroy();
+    }
     DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_incremental_object_value);
     DSP_poly.start();
     console.log(DSP_poly.json());
     _f4u$t.make_audio_ui_asm(svg, DSP_poly);
-    
-}});
+}
+
+function startDSP(svg) 
+{
+    startDSPAux(svg, 1024);
+}
+
+function startNewDSP(svg, buffer_size) 
+{
+    startDSPAux(svg, buffer_size);
+}
+
+// Polyphonic instrument
+
+$('#faustsvg').svg({onLoad: startDSP});
 
 </script>
+
+<P>
+<center>
+<form method="POST" name="menu" >
+  <select name="selectedBuffer" 
+    onChange="changeBufferSize(this.form.selectedBuffer)">
+    <option value = 256 > 256 </option>
+    <option value = 512> 512 </option>
+    <option selected value = 1024> 1024 </option>
+    <option value = 2048> 2048 </option>
+    <option value = 4096> 4096 </option>
+    <option value = 8192> 8192 </option>
+    <option value = 16384> 16384 </option>
+  </select>
+</form>
+</center>
