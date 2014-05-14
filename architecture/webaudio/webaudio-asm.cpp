@@ -84,10 +84,10 @@ extern "C" {
     {
         std::string fJSON;
         
-        mydsp_wrap(int samplingFreq) 
+        mydsp_wrap(int sample_rate) 
         {
-            // Init it with samplingFreq supplied...
-            init(samplingFreq);
+            // Init it with sample_rate supplied...
+            init(sample_rate);
             buildUserInterface(this);
             
             // Creates JSON
@@ -105,9 +105,9 @@ extern "C" {
     
     
     // C like API
-    mydsp_wrap* mydsp_constructor(int samplingFreq) 
+    mydsp_wrap* mydsp_constructor(int sample_rate) 
     {
-        return new mydsp_wrap(samplingFreq);
+        return new mydsp_wrap(sample_rate);
     }
     
     void mydsp_destructor(mydsp_wrap* n) 

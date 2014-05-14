@@ -79,8 +79,6 @@ inline double min(double a, float b) 	{ return (a<b) ? a : b; }
 
 extern "C" {
     
-    #define MAX_BUFFER_SIZE 1024
-    
     inline float midiToFreq(int note) 
     {
           return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
@@ -90,9 +88,9 @@ extern "C" {
         mydsp fVoice;
         int fNote;
         
-        mydsp_voice(int samplingFreq)
+        mydsp_voice(int sample_rate)
         {
-            fVoice.init(samplingFreq);
+            fVoice.init(sample_rate);
             fVoice.buildUserInterface(this);
             fNote = -1;
         }
@@ -139,21 +137,21 @@ extern "C" {
             return -1;
         }
         
-        mydsp_poly_wrap(int samplingFreq, int max_polyphony)
+        mydsp_poly_wrap(int sample_rate, int buffer_size, int max_polyphony)
         {
             fMaxPolyphony = max_polyphony;
             fVoiceTable = new mydsp_voice*[max_polyphony];
             
-            // Init it with supplied samplingFreq 
+            // Init it with supplied sample_rate 
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i] = new mydsp_voice(samplingFreq);
+                fVoiceTable[i] = new mydsp_voice(sample_rate);
             }
             
             // Init audio output buffers
             fNumOutputs = fVoiceTable[0]->fVoice.getNumOutputs();
             fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
             for (int i = 0; i < fNumOutputs; i++) {
-                fNoteOutputs[i] = new FAUSTFLOAT[MAX_BUFFER_SIZE];
+                fNoteOutputs[i] = new FAUSTFLOAT[buffer_size];
             }
             
             // Creates JSON
@@ -256,9 +254,9 @@ extern "C" {
     };
         
     // C like API
-    mydsp_poly_wrap* mydsp_poly_constructor(int samplingFreq, int max_polyphony) 
+    mydsp_poly_wrap* mydsp_poly_constructor(int sample_rate, int buffer_size, int max_polyphony) 
     {
-         return new mydsp_poly_wrap(samplingFreq, max_polyphony);
+         return new mydsp_poly_wrap(sample_rate, buffer_size, max_polyphony);
     }
     
     void mydsp_poly_destructor(mydsp_poly_wrap* n) 

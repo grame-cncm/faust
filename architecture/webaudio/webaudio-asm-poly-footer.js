@@ -16,7 +16,7 @@
 
 // Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with noteOn, noteOff events.
 
-var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number']);
+var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number','number']);
 var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
@@ -27,18 +27,18 @@ var DSP_poly_getValue = Module.cwrap('DSP_poly_getValue', 'number', ['number', '
 var DSP_poly_noteOn = Module.cwrap('DSP_poly_noteOn', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_noteOff = Module.cwrap('DSP_poly_noteOff', null, ['number', 'number', 'number']);
 
-faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
+faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
     var that = {};
     
     faust.context = context;
-    that.vectorsize = vectorsize;
+    that.buffer_size = buffer_size;
     that.handler = handler;
     
     // bargraph
     that.bargraph_timer = 5;
     that.bargraph_table = [];
     
-    that.ptr = DSP_poly_constructor(faust.context.sampleRate, max_polyphony);
+    that.ptr = DSP_poly_constructor(faust.context.sampleRate, buffer_size, max_polyphony);
     
     // Bind to C++ Member Functions
     
@@ -88,7 +88,7 @@ faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
         }
         
         // Compute
-        DSP_poly_compute(that.ptr, that.vectorsize, that.ins, that.outs);
+        DSP_poly_compute(that.ptr, that.buffer_size, that.ins, that.outs);
         
         // Update bargraph
         that.update_bargraph();
@@ -186,7 +186,7 @@ faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
         that.numOut = that.getNumOutputs();
         
         // Setup web audio context
-        that.scriptProcessor = faust.context.createScriptProcessor(that.vectorsize, that.numIn, that.numOut);
+        that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
         that.scriptProcessor.onaudioprocess = that.compute;
         
         // TODO the below calls to malloc are not yet being freed, potential memory leak
@@ -196,7 +196,7 @@ faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
         // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
         for (i = 0; i < that.numIn; i++) { 
             // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
-            HEAP32[(that.ins >> 2) + i] = Module._malloc(that.vectorsize * that.samplesize); 
+            HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
         }
         
         //ptrsize, change to eight or use Runtime.QUANTUM? or what?
@@ -205,20 +205,20 @@ faust.DSP_poly = function (context, vectorsize, max_polyphony, handler) {
         // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
         for (i = 0; i < that.numOut; i++) { 
             // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
-            HEAP32[(that.outs >> 2) + i] = Module._malloc(that.vectorsize * that.samplesize);
+            HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
         }
         
         // Prepare Ins/out buffer tables
         that.dspInChannnels = [];
         var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
         for (i = 0; i < that.numIn; i++) {
-            that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.vectorsize * that.ptrsize) >> 2);
+            that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
         }
         
         that.dspOutChannnels = [];
         var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
         for (i = 0; i < that.numOut; i++) {
-            that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.vectorsize * that.ptrsize) >> 2);
+            that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
         }
         
         // bargraph

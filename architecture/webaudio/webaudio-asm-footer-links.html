@@ -1,0 +1,60 @@
+
+    <body>
+ 		<div style="text-align:center;height:20px">
+			<style>
+				a:link {font-family:Arial; font-size:10px; color:#3D3C3A; text-decoration:none}
+				a:visited {font-family:Arial; font-size:10px; color:#3D3C3A; text-decoration:none}
+				a:hover {font-family:Arial; font-size:10px; color:white; text-decoration:none}
+			</style>
+			<a href="DSP.dsp" target="_blank">code</a>  <a href="DSP-svg/process.svg" target="_blank">diagram</a>
+		</div>
+
+        <div id = "faustsvg">
+        <script>
+        
+        var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+        var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+        var buffer_size = 1024;
+        var audio_input;
+        var DSP = null;
+            
+        // Audio input handling
+        
+        function activateAudioInput()
+        {
+            if (!navigator.getUserMedia) {
+                navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            }
+           
+            navigator.getUserMedia({audio:true}, getDevice, function(e) {
+                    alert('Error getting audio input');
+                    console.log(e);
+            });
+        }
+        
+        function getDevice(device) 
+        {
+            // Create an AudioNode from the stream.
+            audio_input = audio_context.createMediaStreamSource(device);
+            
+            // Connect it to the destination.
+            audio_input.connect(DSP.scriptProcessor);
+        }
+        
+        // General
+        
+        $('#faustsvg').svg({onLoad: function (svg) {
+         
+            DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
+            if (DSP.getNumInputs() > 0) {
+                activateAudioInput();
+             }
+            DSP.start();
+            console.log(DSP.json());
+            _f4u$t.make_audio_ui_asm(svg, DSP);
+            
+        }});
+        
+        </script>
+    </body>
+</html>
