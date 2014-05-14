@@ -174,6 +174,7 @@ faust.DSP = function (context, buffer_size, handler) {
         that.numOut = that.getNumOutputs();
         
         // Setup web audio context
+        console.log("that.buffer_size %d", that.buffer_size);
         that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
         that.scriptProcessor.onaudioprocess = that.compute;
         

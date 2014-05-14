@@ -6,6 +6,8 @@
 HTML_FOOTER=webaudio-asm-footer.html
 CPP_WRAPPER=webaudio-asm.cpp
 JS_WRAPPER=webaudio-asm-footer.js
+LINKS=""
+SVG=""
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -30,10 +32,20 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-poly" ]; then
-     HTML_FOOTER=webaudio-asm-poly-footer.html
-     CPP_WRAPPER=webaudio-asm-poly.cpp
-     JS_WRAPPER=webaudio-asm-poly-footer.js
+    if [ $p = "-links" ]; then
+        SVG="-svg"
+        LINKS="<div style=\"text-align:center;height:20px\"> 
+                <style>
+				a:link {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
+				a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
+				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
+                </style>
+            <a href=\"DSP.dsp\" target=\"_blank\">code</a>  <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
+            </div>"
+    elif [ $p = "-poly" ]; then
+        HTML_FOOTER=webaudio-asm-poly-footer.html
+        CPP_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-footer.js
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -50,7 +62,7 @@ for f in $FILES; do
     name=${f%.dsp}
     
     # compile the Faust DSP to C++ code
-    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
     if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
         EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
@@ -59,22 +71,28 @@ for f in $FILES; do
 	fi
      
     # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
         -s EXPORTED_FUNCTIONS=$EXPORTED
           
     # compose the self-contained HTML page
-    echo "<html>" > $name.html
-    echo "<head>" >> $name.html
-    echo "<meta charset=\"UTF-8\">" >> $name.html
-    echo "<style type=\"text/css\">" >> $name.html
-    cat $FAUSTLIB/js/stylesheet.js >> $name.html
-    echo "</style>" >> $name.html
-    echo "<script type=\"text/javascript\">" >> $name.html
-    sed -e "s/DSP/"$name"/g" $name-temp.js >> $name.html
-    echo "</script>" >> $name.html 
-    echo "</head>" >> $name.html
-    sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/$HTML_FOOTER >> $name.html
+    echo "<html>" > $name-temp2.html
+    echo "<head>" >> $name-temp2.html
+    echo "<meta charset=\"UTF-8\">" >> $name-temp2.html
+    echo "<style type=\"text/css\">" >> $name-temp2.html
+    cat $FAUSTLIB/js/stylesheet.js >> $name-temp2.html
+    echo "</style>" >> $name-temp2.html
+    echo "<script type=\"text/javascript\">" >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
+    echo "</script>" >> $name-temp2.html 
+    echo "</head>" >> $name-temp2.html
+    echo "<body>" >> $name-temp2.html
+    echo $LINKS >> $name-temp2.html
+    cat $FAUSTLIB/webaudio/$HTML_FOOTER >> $name-temp2.html
+    echo "</body>" >> $name-temp2.html
+    echo "</html>" >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
-    rm $name-temp.js
+    rm $name-temp1.js
+    rm $name-temp2.html
     rm $name.cpp
 done

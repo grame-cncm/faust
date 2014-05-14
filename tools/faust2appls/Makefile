@@ -63,7 +63,6 @@ install:
 	install faust2owl $(dest)
 	install faust2webaudioasm $(dest)
 	install faust2asm $(dest)
-	install faust2webaudiopkg $(dest)
 	
 
 uninstall:
@@ -118,7 +117,6 @@ uninstall:
 	rm -f $(dest)/faust2owl
 	rm -f $(dest)/faust2webaudioasm
 	rm -f $(dest)/faust2asm
-	rm -f $(dest)/faust2webaudiopkg
 	
 
 
