@@ -1,6 +1,12 @@
 #!/bin/bash
 
 #-------------------------------------------------------------------
+# Wrapping resources
+
+CPP_WRAPPER=webaudio-asm.cpp
+JS_WRAPPER=webaudio-asm-footer.js
+
+#-------------------------------------------------------------------
 # Set Faust include path
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
@@ -24,10 +30,9 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
-    elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+    if [ $p = "-poly" ]; then
+     CPP_WRAPPER=webaudio-asm-poly.cpp
+     JS_WRAPPER=webaudio-asm-poly-footer.js
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -37,7 +42,6 @@ for p in $@; do
 	fi
 done
 
-
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
@@ -45,12 +49,18 @@ for f in $FILES; do
     name=${f%.dsp}
     
     # compile the C++ code
-    faust -a $FAUSTLIB/webaudio/webaudio-asm.cpp -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    
+    if [ $CPP_WRAPPER = webaudio-asm-poly.cpp ]; then
+        EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+    else
+	    EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff']"       
+	fi
     
     # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=10485760 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/webaudio-asm-footer.js -o $name-temp.js \
-        -s EXPORTED_FUNCTIONS="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute', '_"$name"_getNumInputs', '_"$name"_getNumOutputs', '_"$name"_setValue', '_"$name"_getValue', '_"$name"_getJSON']"
-    
+    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+        -s EXPORTED_FUNCTIONS=$EXPORTED
+   
     # compose the asm.js code
     sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
     
