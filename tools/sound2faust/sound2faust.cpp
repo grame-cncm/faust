@@ -11,9 +11,11 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#ifndef _WIN32
 #include <libgen.h>
+#endif
 
-#include "../../architecture/faust/misc.h"
+#include "faust/misc.h"
 
 using namespace std;
 
@@ -32,8 +34,15 @@ int main(int argc, char *argv[])
 	SNDFILE* soundfile;
 	SF_INFO	snd_info;
     
-    const char* base_name = basename(argv[1]);
+    char* base_name;
     
+#ifndef _WIN32
+	base_name = basename(argv[1]);
+#else
+	base_name = new char[_MAX_FNAME];
+	_splitpath(argv[1], NULL, NULL, base_name, NULL);
+	printf("BASENAME = %s\n", base_name);
+#endif
     if (argc < 2) {
         printf("sound2faust <sound> -o <file>\n");
         printf("Generates : 'sound_n = waveform {....}' interleaved waveform\n");
@@ -45,13 +54,27 @@ int main(int argc, char *argv[])
     const char* output = lopts(argv, "-o", "");
     
     snd_info.format = 0;
+#ifndef _WIN32
     soundfile = sf_open(argv[1], SFM_READ, &snd_info);
+#else
+	printf("ARGV 1 = %s\n", argv[1]);
+	char *dir = new char[_MAX_DIR];
+	char* ext = new char[_MAX_EXT];
+	_splitpath(argv[1], NULL, dir, base_name, ext);
+	string fullPath(dir);
+	fullPath += "\\";
+	fullPath += base_name;
+	fullPath += ext;
+	printf("FullPath = %s\n", fullPath.c_str());
+	soundfile = sf_open(fullPath.c_str(), SFM_READ, &snd_info);
+#endif
+    
     if (soundfile == NULL) { 
         printf("soundfile '%s' cannot be opened\n", base_name);
         sf_perror(soundfile); 
         exit(0); 
     }
-
+    
     std::ostream* dst;
     if (strcmp(output, "") == 0) {
         dst = &cout;
@@ -60,7 +83,7 @@ int main(int argc, char *argv[])
     }
     
     double buffer[BUFFER_SIZE * snd_info.channels];
-     
+    
     // Generates one interleaved waveform
     *dst << RemoveEnding(base_name) << "_n = waveform";
     int nbf;
@@ -100,7 +123,7 @@ int main(int argc, char *argv[])
     sep = '(';
     for (int chan = 0; chan < snd_info.channels; chan++) {
         *dst << sep << RemoveEnding(base_name) << "_" << chan;
-         sep = ',';
+        sep = ',';
     }
     
     *dst << "):";
@@ -108,7 +131,7 @@ int main(int argc, char *argv[])
     sep = '(';
     for (int chan = 0; chan < snd_info.channels; chan++) {
         *dst << sep << "(!,_)";
-         sep = ',';
+        sep = ',';
     }
     
     *dst << ");" << std::endl;
