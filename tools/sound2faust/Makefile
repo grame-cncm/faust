@@ -10,7 +10,7 @@ sound2faust : sound2faust.cpp
 
 static:
 
-	g++ -O3 sound2faust.cpp  /usr/local/lib/libsndfile.a -o sound2faust
+	g++ -O3 sound2faust.cpp `pkg-config --cflags  sndfile`  /usr/local/lib/libsndfile.a -o sound2faust
 
 install :
 

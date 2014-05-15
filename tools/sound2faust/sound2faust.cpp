@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	SF_INFO	snd_info;
     
     char* base_name;
-
+    
 #ifndef _WIN32
 	base_name = basename(argv[1]);
 #else
@@ -68,13 +68,13 @@ int main(int argc, char *argv[])
 	printf("FullPath = %s\n", fullPath.c_str());
 	soundfile = sf_open(fullPath.c_str(), SFM_READ, &snd_info);
 #endif
-
+    
     if (soundfile == NULL) { 
         printf("soundfile '%s' cannot be opened\n", base_name);
         sf_perror(soundfile); 
         exit(0); 
     }
-
+    
     std::ostream* dst;
     if (strcmp(output, "") == 0) {
         dst = &cout;
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     }
     
     double buffer[BUFFER_SIZE * snd_info.channels];
-     
+    
     // Generates one interleaved waveform
     *dst << RemoveEnding(base_name) << "_n = waveform";
     int nbf;
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     sep = '(';
     for (int chan = 0; chan < snd_info.channels; chan++) {
         *dst << sep << RemoveEnding(base_name) << "_" << chan;
-         sep = ',';
+        sep = ',';
     }
     
     *dst << "):";
@@ -131,11 +131,10 @@ int main(int argc, char *argv[])
     sep = '(';
     for (int chan = 0; chan < snd_info.channels; chan++) {
         *dst << sep << "(!,_)";
-         sep = ',';
+        sep = ',';
     }
     
     *dst << ");" << std::endl;
     
     dst->flush();
-	delete buffer;
 }
