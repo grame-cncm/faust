@@ -298,7 +298,7 @@ bool check_url(const char* filename)
     char* fileBuf = 0;
 
 	// Tries to open as an URL for a local file
-    if (strstr(filename, "file://") > 0) {
+    if (strstr(filename, "file://") != 0) {
         // Tries to open as a regular file after removing 'file://'
         FILE* f = fopen(&filename[7], "r");
         if (f) {
@@ -310,7 +310,7 @@ bool check_url(const char* filename)
         }
      
     // Tries to open as a http URL
-    } else if (strstr(filename, "http://") > 0) {
+    } else if (strstr(filename, "http://") != 0) {
         if (http_fetch(filename, &fileBuf) != -1) {
             return true;
         } else {
