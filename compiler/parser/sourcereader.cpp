@@ -1,32 +1,32 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ FAUST compiler
+ Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 
 /*
-	sourcereader : Faust source file reader
-	
-	This component is in charge of mapping filenames to 
-	the list of faust definitions they contain.
-	
-*/
+ sourcereader : Faust source file reader
+ 
+ This component is in charge of mapping filenames to 
+ the list of faust definitions they contain.
+ 
+ */
 #include <iostream>
 #include <map>
 #include <list>
@@ -48,8 +48,8 @@ int yylex_destroy(void);
 void yyrestart(FILE *new_file);
 
 /****************************************************************
- 						Parser variables
-*****************************************************************/
+ Parser variables
+ *****************************************************************/
 
 int yyparse();
 struct yy_buffer_state* yy_scan_string (const char *yy_str  ); // In principle YY_BUFFER_STATE
@@ -67,7 +67,7 @@ extern const char * yyfilename;
  * @param args the argument list to check
  * @return true if it contains only identifiers 
  */
- 
+
 static bool standardArgList(Tree args)
 {
 	map<Tree,int>	L;
@@ -83,11 +83,11 @@ static string printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
     stringstream error;
 	error 	<< "ERROR : inconsistent number of parameters in pattern-matching rule: "
-			<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-			<< " previous rule was: " 
-			<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-			<< endl;
-            
+    << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+    << " previous rule was: " 
+    << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+    << endl;
+    
     return error.str();
 }
 
@@ -106,7 +106,7 @@ Tree checkRulelist (Tree lr)
 		Tree lhs2 = hd(hd(lrules));
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
-	         throw faustexception(printPatternError(lhs1,rhs1,lhs2,rhs2));
+            throw faustexception(printPatternError(lhs1,rhs1,lhs2,rhs2));
 		}
 		
 		lhs1 = lhs2;
@@ -262,9 +262,9 @@ Tree SourceReader::parse(string fname)
         error << "ERROR : parse, code = " << yyerr << endl;
         throw faustexception(error.str());
 	}
-
+    
     yylex_destroy();
-   
+    
 	// we have parsed a valid file
 	fFilePathnames.push_back(fname);
 	return gGlobal->gResult;
@@ -303,7 +303,7 @@ Tree SourceReader::getlist(string fname)
     }
     return fFileCache[fname];
 }
- 
+
 /**
  * Return a vector of pathnames representing the list 
  * of all the source files that have been required
@@ -312,13 +312,13 @@ Tree SourceReader::getlist(string fname)
 
 vector<string> SourceReader::listSrcFiles()
 {
-//	vector<string> 						srcfiles;
-
-//	for (map<string, Tree>::const_iterator p = fFileCache.begin(); p != fFileCache.end(); p++) {
-//		srcfiles.push_back(p->first);
-//	}
-
-//	return srcfiles;	
+    //	vector<string> 						srcfiles;
+    
+    //	for (map<string, Tree>::const_iterator p = fFileCache.begin(); p != fFileCache.end(); p++) {
+    //		srcfiles.push_back(p->first);
+    //	}
+    
+    //	return srcfiles;	
 	return fFilePathnames;
 }
 
@@ -359,7 +359,7 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 	}
 	return lresult;
 }
-				
+
 void declareMetadata(Tree key, Tree value)
 {
     if (gGlobal->gMasterDocument == yyfilename) {

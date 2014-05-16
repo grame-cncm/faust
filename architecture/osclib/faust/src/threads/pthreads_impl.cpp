@@ -36,10 +36,13 @@
 //_____________________________________________________________________
 static void * baseThreadProc (void * ptr)
 {
+	printf("baseThreadProc\n");
+
 	TThreads* thread = (TThreads*)ptr;
 	thread->running (true);
 	thread->run();
 	thread->running (false);
+	pthread_exit(NULL);
 	return 0;
 }
 
