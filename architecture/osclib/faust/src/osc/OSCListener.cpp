@@ -54,7 +54,6 @@ void OSCListener::run()
 { 
 	fRunning = true;
 	while (fRunning) {
-		try {
 			if (fPort) {
 				delete fSocket;
                 fSocket = NULL;
@@ -64,10 +63,7 @@ void OSCListener::run()
         
             if(fSocket != NULL)
                 fSocket->Run();
-		}
-		catch (...) {
-            throw;
-        }
+
 	}
 }
 
