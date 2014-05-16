@@ -27,7 +27,7 @@
 
 using namespace std;
 
-map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;      // Global functions names
+map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;    
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

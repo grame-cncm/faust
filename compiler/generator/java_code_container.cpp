@@ -29,7 +29,7 @@ using namespace std;
 
 map <string, string> JAVAInstVisitor::fMathLibTable;
 JAVAInstVisitor* JAVAInstVisitor::fGlobalVisitor = 0;
-map <string, int> JAVAInstVisitor::gFunctionSymbolTable;      // Global functions names
+map <string, int> JAVAInstVisitor::gFunctionSymbolTable;     
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

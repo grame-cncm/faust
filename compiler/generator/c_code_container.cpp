@@ -28,7 +28,7 @@
 
 using namespace std;
 
-map <string, int> CInstVisitor::gFunctionSymbolTable;      // Global functions names
+map <string, int> CInstVisitor::gFunctionSymbolTable;      
 
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

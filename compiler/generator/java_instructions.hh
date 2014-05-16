@@ -29,8 +29,12 @@ using namespace std;
 class JAVAInstVisitor : public TextInstVisitor {
 
     private:
- 
-        static map <string, int> gFunctionSymbolTable;      // Global functions names
+    
+        /*
+         Global functions names table as a static variable in the visitor
+         so that each function prototye is generated as most once in the module.
+         */
+        static map <string, int> gFunctionSymbolTable;      
         static map <string, string> fMathLibTable;
         Typed::VarType fCurType;
    
