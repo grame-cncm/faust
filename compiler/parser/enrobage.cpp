@@ -296,9 +296,21 @@ const char* strip_start(const char* filename)
 bool check_url(const char* filename)
 {
     char* fileBuf = 0;
+
+	// Tries to open as an URL for a local file
+    if (strstr(filename, "file://") > 0) {
+        // Tries to open as a regular file after removing 'file://'
+        FILE* f = fopen(&filename[7], "r");
+        if (f) {
+            fclose(f);
+            return true;
+        } else {
+            cerr << "ERROR : cannot open file '" << filename << "' : " <<  strerror(errno) << "; for help type \"faust --help\"" << endl;
+            return false;
+        }
      
     // Tries to open as a http URL
-    if (strstr(filename, "://") > 0) {
+    } else if (strstr(filename, "url://") > 0) {
         if (http_fetch(filename, &fileBuf) != -1) {
             return true;
         } else {
@@ -342,6 +354,7 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
     return 0;
 }
 
+
 /**
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
  * of the file into <fullpath>
@@ -376,8 +389,6 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
     err = chdir(olddir);
     return 0;
 }
-
-
 
 /**
  * Test absolute pathname.
