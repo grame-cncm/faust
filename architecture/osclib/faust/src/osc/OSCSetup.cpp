@@ -62,7 +62,7 @@ class OscThread : public TThreads
             if(fErrCallback != NULL)
                 (*fErrCallback)(fArg);
         }        
-	catch (std::runtime& err) {
+	catch (std::runtime_error& err) {
             
             if(fErrCallback != NULL)
                 (*fErrCallback)(fArg);
