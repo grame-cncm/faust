@@ -301,9 +301,24 @@ const char* strip_start(const char* filename)
 		
 bool check_url(const char* filename)
 {
-    // Tries to open as a http URL
-    if (strstr(filename, "://") != NULL) {
-        if (http_fetch(filename, NULL) != -1) {
+    char* fileBuf = 0;
+    
+    // Tries to open as an URL for a local file
+    if (strstr(filename, "file://") != 0) {
+        // Tries to open as a regular file after removing 'file://'
+        FILE* f = fopen(&filename[7], "r");
+        if (f) {
+            fclose(f);
+            return true;
+        } else {
+            stringstream error;
+            error << "ERROR : cannot open file '" << filename << "' : " << http_strerror() << "; for help type \"faust --help\"" << endl;
+            throw faustexception(error.str());
+        }
+        
+        // Tries to open as a http URL
+    } else if (strstr(filename, "http://") != 0) {
+        if (http_fetch(filename, &fileBuf) != -1) {
             return true;
         } else {
             stringstream error;

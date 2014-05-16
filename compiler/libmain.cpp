@@ -616,8 +616,8 @@ static bool process_cmdline(int argc, const char* argv[])
              i += 1;
 
         } else if (argv[i][0] != '-') {
-            const char* url = strip_start(argv[i]);
-			if (check_url(url)) {
+            const char* url = argv[i];
+            if (check_url(url)) {
 				gGlobal->gInputFiles.push_back(url);
 			}
 			i++;

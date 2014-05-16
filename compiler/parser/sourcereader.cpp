@@ -44,7 +44,8 @@
 
 using namespace std;
 
-int yylex_destroy (void );
+int yylex_destroy(void);
+void yyrestart(FILE *new_file);
 
 /****************************************************************
  						Parser variables
@@ -77,7 +78,6 @@ static bool standardArgList(Tree args)
 	}
 	return true;
 }
-
 
 static string printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
@@ -116,7 +116,6 @@ Tree checkRulelist (Tree lr)
 	return lr;
 }
 
-
 /**
  * Transforms a list of variants (arglist.body) 
  * into an abstraction or a boxCase.
@@ -153,8 +152,6 @@ static Tree makeDefinition(list<Tree>& variants)
 		return boxCase(l);
 	}
 }
-
-
 
 /**
  * Formats a list of raw definitions represented by triplets
@@ -194,7 +191,6 @@ Tree formatDefinitions(Tree rldef)
 	return ldef2;
 }
 
-
 /**
  * Parse a single faust source file. returns the list of
  * definitions it contains.
@@ -208,8 +204,9 @@ Tree SourceReader::parsefile(string fname)
  	yyerr = 0;
     yylineno = 1;
   	yyfilename = fname.c_str();
+    string fullpath;
     
-    if (strstr(yyfilename, "://") != NULL) {
+    if (strstr(yyfilename,"http://") != 0) {
         // We are requested to parse an URL file
         char* buffer = 0;
         if (http_fetch(yyfilename, &buffer) == -1) {
@@ -222,6 +219,12 @@ Tree SourceReader::parsefile(string fname)
         free(buffer);
         return res;
     } else {
+        
+        // Test for local url
+		if (strstr(yyfilename,"file://") != 0) {
+			yyfilename  = &yyfilename[7]; // skip 'file://'
+		}
+        
         string fullpath;
         FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
         
@@ -279,7 +282,6 @@ bool SourceReader::cached(string fname)
 	return fFileCache.find(fname) != fFileCache.end();
 }
 
-
 /**
  * Return the list of definitions file contains. Cache the result.
  * 
@@ -301,7 +303,6 @@ Tree SourceReader::getlist(string fname)
     }
     return fFileCache[fname];
 }
-
  
 /**
  * Return a vector of pathnames representing the list 
@@ -321,7 +322,6 @@ vector<string> SourceReader::listSrcFiles()
 	return fFilePathnames;
 }
 
- 
 /**
  * Return the list of definitions where all imports have been expanded.
  * 
