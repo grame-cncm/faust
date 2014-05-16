@@ -194,7 +194,7 @@ Tree SourceReader::parse(string fname)
 	yyerr = 0;
 	
 	yyfilename = fname.c_str();
-    if (strstr(yyfilename,"http://") > 0) {
+    if (strstr(yyfilename,"http://") != 0) {
         // We are requested to parse an URL file
         int ret = http_fetch(yyfilename, &fileBuf);
         if (ret == -1) {
@@ -219,7 +219,7 @@ Tree SourceReader::parse(string fname)
 
     } else {
 		// test for local url
-		if (strstr(yyfilename,"file://") > 0) {
+		if (strstr(yyfilename,"file://") != 0) {
 			yyfilename  = &yyfilename[7]; // skip 'file://'
 		}
 		
