@@ -54,6 +54,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual ~FIRInstVisitor()
         {}
+    
+        static map <string, int> gFunctionSymbolTable;      // Global functions names
 
         void Tab(int n) {fTab = n;}
 
@@ -286,10 +288,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gSymbolGlobalsTable.find(inst->fName) != gGlobal->gSymbolGlobalsTable.end()) {
-                return;  // Already declared
+            // Already generated
+            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+                return;
+            } else {
+                gFunctionSymbolTable[inst->fName] = 1;
             }
-       
+            
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
@@ -328,8 +333,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << "EndDeclare";
                 tab(fTab, *fOut);
             }
-
-            gGlobal->gSymbolGlobalsTable[inst->fName] = 1;
         }
         
         virtual void visit(NamedAddress* named)

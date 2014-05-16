@@ -140,6 +140,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
 
 void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code, int cur_thread)
 {
+    
     // Last stage connected to end task
     if (dag[0].size() > 1) {
         list<ValueInst*> fun_args;
@@ -483,7 +484,7 @@ void WSSCodeContainer::processFIR(void)
 {
     // Default FIR to FIR transformations
     CodeContainer::processFIR();
-
+ 
     // Transform some stack variables in struct variables, move some variables from "compute" to "computeThread"
     moveCompute2ComputeThread();
 
@@ -491,6 +492,7 @@ void WSSCodeContainer::processFIR(void)
     vector<int> ready_loop;
     int loop_count;
     CodeLoop::sortGraph(fCurLoop, dag);
+    
     computeForwardDAG(dag, loop_count, ready_loop);
     
     generateDAGLoopWSSAux3(loop_count, ready_loop);

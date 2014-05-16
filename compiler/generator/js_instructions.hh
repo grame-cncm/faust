@@ -30,6 +30,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
 
+        static map <string, int> gFunctionSymbolTable;      // Global functions names
         map <string, string> fMathLibTable;
 
     public:
@@ -179,6 +180,13 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(DeclareFunInst* inst)
         {
+            // Already generated
+            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+                return;
+            } else {
+                gFunctionSymbolTable[inst->fName] = 1;
+            }
+            
             // Do not declare Math library functions
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;

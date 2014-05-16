@@ -27,6 +27,10 @@ using namespace std;
 #include "text_instructions.hh"
 
 class CInstVisitor : public TextInstVisitor {
+    
+    private:
+    
+        static map <string, int> gFunctionSymbolTable;      // Global functions names
 
     public:
 
@@ -127,6 +131,13 @@ class CInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareFunInst* inst)
         {
+            // Already generated
+            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+                return;
+            } else {
+                gFunctionSymbolTable[inst->fName] = 1;
+            }
+            
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;

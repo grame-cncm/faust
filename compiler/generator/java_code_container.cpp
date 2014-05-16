@@ -28,7 +28,8 @@
 using namespace std;
 
 map <string, string> JAVAInstVisitor::fMathLibTable;
-JAVAInstVisitor* JAVAInstVisitor::fGlobalVisitor = 0; 
+JAVAInstVisitor* JAVAInstVisitor::fGlobalVisitor = 0;
+map <string, int> JAVAInstVisitor::gFunctionSymbolTable;      // Global functions names
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -80,12 +81,14 @@ void JAVACodeContainer::produceInternal()
     //generateGlobalDeclarations(&fCodeProducer);
     
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut);
 
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-        tab(n+1, *fOut);
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
         
@@ -134,6 +137,7 @@ void JAVACodeContainer::produceClass()
     tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
 
         // Global declarations
+        tab(n+1, *fOut);
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateGlobalDeclarations(&fCodeProducer);

@@ -697,8 +697,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
    
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
-    FunTyped* fun_type;
-
+ 
     for (int i = 0; i< ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
@@ -710,13 +709,8 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     }
    
     // Add function declaration
-    fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
-    
-    // If not yet declared...
-    if (gGlobal->gSymbolGlobalsTable.find(funname) == gGlobal->gSymbolGlobalsTable.end()) {
-        pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
-        gGlobal->gSymbolGlobalsTable[funname] = 1;
-    }
+    FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
+    pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
  
     return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
 }
