@@ -90,6 +90,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <map>
 #include <cstring>

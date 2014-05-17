@@ -115,7 +115,10 @@
 //#include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <cstdio>
 #include <string>
+#include <cstring>
+#include <algorithm>
 #include <vector>
 #include <math.h>
 
