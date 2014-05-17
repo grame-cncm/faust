@@ -427,6 +427,8 @@ bool Faust::getParameterProperties(VstInt32 index, VstParameterProperties* prope
 		properties->flags |= kVstParameterIsSwitch;
 	}
 
+	getParameterName(index, properties->label);
+
 	return true;
 } // end of getParameterProperties
 
