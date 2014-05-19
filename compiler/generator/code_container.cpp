@@ -245,56 +245,40 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         stringstream num; num << arg1->fNum;
         string faust_power_name = name + num.str() + ((result == Typed::kInt) ? "_i" : "_f");
  
-        // If not yet declared...
-        if (gGlobal->gSymbolGlobalsTable.find(faust_power_name) == gGlobal->gSymbolGlobalsTable.end()) {
-            gGlobal->gSymbolGlobalsTable[faust_power_name] = 1;
-       
-            list<NamedTyped*> named_args;
-            named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
+        list<NamedTyped*> named_args;
+        named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
 
-            BlockInst* global_block = InstBuilder::genBlockInst();
+        BlockInst* global_block = InstBuilder::genBlockInst();
 
-            global_block->pushBackInst(InstBuilder::genLabelInst("#ifndef __" + faust_power_name + "__"));
-            global_block->pushBackInst(InstBuilder::genLabelInst("#define __" + faust_power_name + "__"));
+        // Expand the pow depending of the exposant argument
+        BlockInst* block = InstBuilder::genBlockInst();
 
-            // Expand the pow depending of the exposant argument
-            BlockInst* block = InstBuilder::genBlockInst();
-
-            if (arg1->fNum == 0) {
-                 block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
-            } else {
-                ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
-                for (int i= 0; i < arg1->fNum - 1; i++) {
-                    res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
-                }
-                block->pushBackInst(InstBuilder::genRetInst(res));
+        if (arg1->fNum == 0) {
+             block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
+        } else {
+            ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
+            for (int i= 0; i < arg1->fNum - 1; i++) {
+                res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
             }
-
-            global_block->pushBackInst(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
-            fGlobalDeclarationInstructions->pushBackInst(global_block);
-
-            global_block->pushBackInst(InstBuilder::genLabelInst("#endif"));
+            block->pushBackInst(InstBuilder::genRetInst(res));
         }
+
+        global_block->pushBackInst(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
+        fGlobalDeclarationInstructions->pushBackInst(global_block);
 
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));
         return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
  
     } else {
-    
-         // If not yet declared...
-        if (gGlobal->gSymbolGlobalsTable.find(name) == gGlobal->gSymbolGlobalsTable.end()) {
-            gGlobal->gSymbolGlobalsTable[name] = 1;
-
-            list<NamedTyped*> named_args;
-            for (size_t i = 0; i < types.size(); i++) {
-                stringstream num; num << i;
-                named_args.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped(types[i])));
-            }
-
-            fGlobalDeclarationInstructions->pushBackInst(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
+      
+        list<NamedTyped*> named_args;
+        for (size_t i = 0; i < types.size(); i++) {
+            stringstream num; num << i;
+            named_args.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped(types[i])));
         }
-        
+
+        fGlobalDeclarationInstructions->pushBackInst(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         return InstBuilder::genFunCallInst(name, args);
     }
 }

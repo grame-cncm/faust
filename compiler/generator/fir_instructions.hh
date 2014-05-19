@@ -45,7 +45,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
- 
+    
+        /*
+         Global functions names table as a static variable in the visitor
+         so that each function prototye is generated as most once in the module.
+         */
+        static map <string, int> gFunctionSymbolTable;      
+   
     public:
 
         FIRInstVisitor(std::ostream* out, int tab = 0)
@@ -54,7 +60,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual ~FIRInstVisitor()
         {}
-
+    
+       
         void Tab(int n) {fTab = n;}
 
         void EndLine()
@@ -286,10 +293,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            if (gGlobal->gSymbolGlobalsTable.find(inst->fName) != gGlobal->gSymbolGlobalsTable.end()) {
-                return;  // Already declared
+            // Already generated
+            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+                return;
+            } else {
+                gFunctionSymbolTable[inst->fName] = 1;
             }
-       
+            
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
@@ -328,8 +338,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << "EndDeclare";
                 tab(fTab, *fOut);
             }
-
-            gGlobal->gSymbolGlobalsTable[inst->fName] = 1;
         }
         
         virtual void visit(NamedAddress* named)

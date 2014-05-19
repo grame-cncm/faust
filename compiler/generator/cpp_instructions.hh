@@ -28,7 +28,15 @@ using namespace std;
 #include "type_manager.hh"
 
 class CPPInstVisitor : public TextInstVisitor {
-
+    
+    private:
+    
+        /*
+         Global functions names table as a static variable in the visitor
+         so that each function prototye is generated as most once in the module.
+         */
+        static map <string, int> gFunctionSymbolTable;     
+ 
     public:
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
@@ -126,6 +134,13 @@ class CPPInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareFunInst* inst)
         {
+            // Already generated
+            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+                return;
+            } else {
+                gFunctionSymbolTable[inst->fName] = 1;
+            }
+            
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;

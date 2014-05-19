@@ -27,6 +27,8 @@
 
 using namespace std;
 
+map <string, int> JAVAScriptInstVisitor::gFunctionSymbolTable;     
+
 CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new JAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
@@ -77,11 +79,13 @@ void JAVAScriptCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
+        tab(n+1, *fOut);
+        tab(n+1, *fOut);
+    
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
         
-        tab(n+1, *fOut);
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
 

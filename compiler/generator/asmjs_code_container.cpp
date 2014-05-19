@@ -27,6 +27,8 @@
 
 using namespace std;
 
+map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;    
+
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new ASMJAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);

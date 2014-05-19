@@ -28,6 +28,8 @@
 
 using namespace std;
 
+map <string, int> CInstVisitor::gFunctionSymbolTable;      
+
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
@@ -83,7 +85,7 @@ void CCodeContainer::produceInternal()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-
+  
     tab(n, *fOut); *fOut << "typedef struct " << " {";
 
         tab(n+1, *fOut);
@@ -139,19 +141,19 @@ void CCodeContainer::produceClass()
     int n = 0;
 
     generateSR();
-
+    
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
 
-     // Sub containers
+    // Sub containers
     generateSubContainers();
 
     // Functions
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-
+  
     tab(n, *fOut); 
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;

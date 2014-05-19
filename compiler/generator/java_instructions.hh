@@ -29,7 +29,12 @@ using namespace std;
 class JAVAInstVisitor : public TextInstVisitor {
 
     private:
- 
+    
+        /*
+         Global functions names table as a static variable in the visitor
+         so that each function prototye is generated as most once in the module.
+         */
+        static map <string, int> gFunctionSymbolTable;      
         static map <string, string> fMathLibTable;
         Typed::VarType fCurType;
    
@@ -233,6 +238,13 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareFunInst* inst)
         {
+            // Already generated
+            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+                return;
+            } else {
+                gFunctionSymbolTable[inst->fName] = 1;
+            }
+            
             // Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;

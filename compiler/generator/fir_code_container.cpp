@@ -24,6 +24,8 @@
 
 using namespace std;
 
+map <string, int> FIRInstVisitor::gFunctionSymbolTable;      
+
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new FirScalarCodeContainer(name, 0, 1, sub_container_type, false);

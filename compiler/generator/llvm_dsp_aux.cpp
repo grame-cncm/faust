@@ -37,6 +37,7 @@
 #include "libfaust.h"
 #include "dsp_aux.hh"
 #include "timing.hh"
+#include "exception.hh"
 
 #if defined(LLVM_33) || defined(LLVM_34)
 #include <llvm/IR/Module.h>
@@ -51,11 +52,13 @@
 #include <llvm/ADT/Triple.h>
 #include <llvm/Target/TargetLibraryInfo.h>
 #include <llvm/Support/TargetRegistry.h>
+#include <llvm-c/Core.h>
 #else
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Support/IRReader.h>
 #endif
+
 
 /* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
  * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
@@ -109,7 +112,9 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
     if (fun_ptr) {
         return fJIT->getPointerToFunction(fun_ptr);
     } else {
-        throw -1;
+        stringstream error;
+        error << "LoadOptimize : getPointerToFunction failed for " << function;
+        throw faustexception(error.str());
     }
 }
 
@@ -222,6 +227,13 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fResult->fContext = context;
 }
 
+#if defined(LLVM_33) || defined(LLVM_34)
+void llvm_dsp_factory::LLVMFatalErrorHandler(const char* reason)
+{
+    throw faustexception(reason);
+}
+#endif
+
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                                     const string& name_app,
                                     const string& dsp_content, 
@@ -229,6 +241,11 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
                                     string& error_msg, int opt_level)
 {
     if (llvm_dsp_factory::gInstance++ == 0) {
+        
+        // Install a LLVM error handler
+    #if defined(LLVM_33) || defined(LLVM_34)
+        LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
+    #endif
         if (!llvm_start_multithreaded()) {
             printf("llvm_start_multithreaded error...\n");
         }
@@ -443,8 +460,9 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
         endTiming("initJIT");
         return true;
-    } catch (...) { // Module does not contain the Faust entry points...
+     } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
         endTiming("initJIT");
+        error_msg = e.Message();
         return false;
     }
 }
