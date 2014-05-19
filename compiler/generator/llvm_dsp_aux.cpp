@@ -227,10 +227,12 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fResult->fContext = context;
 }
 
+#if defined(LLVM_33) || defined(LLVM_34)
 void llvm_dsp_factory::LLVMFatalErrorHandler(const char* reason)
 {
     throw faustexception(reason);
 }
+#endif
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                                     const string& name_app,
@@ -241,8 +243,9 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
     if (llvm_dsp_factory::gInstance++ == 0) {
         
         // Install a LLVM error handler
+    #if defined(LLVM_33) || defined(LLVM_34)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
-        
+    #endif
         if (!llvm_start_multithreaded()) {
             printf("llvm_start_multithreaded error...\n");
         }
