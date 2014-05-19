@@ -84,7 +84,6 @@ extern "C"
         static int pingHandler(const char *path, const char *types, lo_arg ** argv,
                         int argc, void *data, void *user_data);
         
-        pthread_t           fThread;
         lo_server_thread    fLoThread;
         
         std::map<string, member>        fClients;
@@ -94,7 +93,6 @@ extern "C"
         remote_DNS();
         virtual ~remote_DNS();
         
-        static void* scanFaustRemote(void *arg);
     };
     
 #define NO_ERROR      0

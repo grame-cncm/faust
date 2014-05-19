@@ -862,45 +862,6 @@ __attribute__((destructor)) static void destroy_libfaustremote()
     delete gDNS;
 }
 
-void* remote_DNS::scanFaustRemote(void* arg)
-{
-//    remote_DNS* dns = (remote_DNS*)arg;
-//
-//    while (true) {
-//        // Add and explicit cancellation point
-//        pthread_testcancel();
-//        
-//#ifdef WIN32
-//        Sleep(1);
-//#else
-//        usleep(1000000);
-//#endif
-//        
-//        if(dns->fLocker.Lock()){
-//            
-//            map<string, member>::iterator iter = dns->fClients.begin();
-//            lo_timetag now;
-//            lo_timetag_now(&now);
-//            while(iter != dns->fClients.end())
-//            {
-//                member iterMem = iter->second;
-//                if ((now.sec - iterMem.timetag.sec) > 3)
-//                {
-//                    cerr << "DISCONNECTED ~ PID: " << iterMem.pid << " || HOSTNAME: " << iterMem.hostname << endl;
-//                    dns->fClients.erase(iter->first);
-//                    iter = dns->fClients.begin();
-//                }
-//                else
-//                    iter++;
-//            }
-//            
-//            dns->fLocker.Unlock();
-//        }
-//    }
-//    
-//    pthread_exit(NULL);
-}
-
 remote_DNS::remote_DNS()
 {
   
@@ -920,17 +881,10 @@ remote_DNS::remote_DNS()
 //    lo_server_thread_add_method(fLoThread, "/quit", "", remote_DNS::quitHandler, this);
     
     lo_server_thread_start(fLoThread);
-    
-//	if (pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this) != 0) {
-//        printf("remote_DNS : pthread_create fails\n");
-//    }
 }
                                 
 remote_DNS::~remote_DNS()
 {
-    pthread_cancel(fThread);
-    pthread_join(fThread, NULL);
-    
     lo_server_thread_free(fLoThread);
 }
 
