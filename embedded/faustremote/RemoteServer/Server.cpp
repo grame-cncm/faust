@@ -117,7 +117,7 @@ Server::~Server(){}
 //---- START/STOP SERVER
 bool Server::start(int port){
     
-//    fPort = port;
+    fPort = port;
     
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
@@ -129,7 +129,7 @@ bool Server::start(int port){
 
     if(fDaemon){
         
-        if (pthread_create(&fThread, NULL, Server::registration, &port) != 0) {
+        if (pthread_create(&fThread, NULL, Server::registration, this) != 0) {
             printf("RemoteServer::pthread_create failed\n");
             return false;
         }
@@ -595,16 +595,16 @@ void* Server::registration(void* arg){
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
     
-    int port = *((int*) arg);
+    Server* serv = (Server*)arg;
     
     stringstream p;
-    p<<port;
+    p<<serv->fPort;
     
     string nameRegisterService = "._";
     
     nameRegisterService += searchIP();
     nameRegisterService += ":";
-    nameRegisterService += "7777";
+    nameRegisterService += p.str();
     nameRegisterService += "._";
     nameRegisterService += host_name;
 

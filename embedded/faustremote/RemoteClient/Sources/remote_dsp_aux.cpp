@@ -864,41 +864,41 @@ __attribute__((destructor)) static void destroy_libfaustremote()
 
 void* remote_DNS::scanFaustRemote(void* arg)
 {
-    remote_DNS* dns = (remote_DNS*)arg;
-
-    while (true) {
-        // Add and explicit cancellation point
-        pthread_testcancel();
-        
+//    remote_DNS* dns = (remote_DNS*)arg;
+//
+//    while (true) {
+//        // Add and explicit cancellation point
+//        pthread_testcancel();
+//        
 //#ifdef WIN32
 //        Sleep(1);
 //#else
 //        usleep(1000000);
 //#endif
-        
-        if(dns->fLocker.Lock()){
-            
-            map<string, member>::iterator iter = dns->fClients.begin();
-            lo_timetag now;
-            lo_timetag_now(&now);
-            while(iter != dns->fClients.end())
-            {
-                member iterMem = iter->second;
-                if ((now.sec - iterMem.timetag.sec) > 3)
-                {
-                    cerr << "DISCONNECTED ~ PID: " << iterMem.pid << " || HOSTNAME: " << iterMem.hostname << endl;
-                    dns->fClients.erase(iter->first);
-                    iter = dns->fClients.begin();
-                }
-                else
-                    iter++;
-            }
-            
-            dns->fLocker.Unlock();
-        }
-    }
-    
-    pthread_exit(NULL);
+//        
+//        if(dns->fLocker.Lock()){
+//            
+//            map<string, member>::iterator iter = dns->fClients.begin();
+//            lo_timetag now;
+//            lo_timetag_now(&now);
+//            while(iter != dns->fClients.end())
+//            {
+//                member iterMem = iter->second;
+//                if ((now.sec - iterMem.timetag.sec) > 3)
+//                {
+//                    cerr << "DISCONNECTED ~ PID: " << iterMem.pid << " || HOSTNAME: " << iterMem.hostname << endl;
+//                    dns->fClients.erase(iter->first);
+//                    iter = dns->fClients.begin();
+//                }
+//                else
+//                    iter++;
+//            }
+//            
+//            dns->fLocker.Unlock();
+//        }
+//    }
+//    
+//    pthread_exit(NULL);
 }
 
 remote_DNS::remote_DNS()
@@ -921,9 +921,9 @@ remote_DNS::remote_DNS()
     
     lo_server_thread_start(fLoThread);
     
-	if (pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this) != 0) {
-        printf("remote_DNS : pthread_create fails\n");
-    }
+//	if (pthread_create(&fThread, NULL, remote_DNS::scanFaustRemote, this) != 0) {
+//        printf("remote_DNS : pthread_create fails\n");
+//    }
 }
                                 
 remote_DNS::~remote_DNS()
@@ -977,22 +977,32 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
         
         for(map<string, member>::iterator it=gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
             
+            member iterMem = it->second;
+            
+            lo_timetag now;
+            lo_timetag_now(&now);
+            
+//            If the server machine did not send a message for 3 secondes, it is considered disconnected
+            if((now.sec - iterMem.timetag.sec) < 3){
+                
 //        Decompose HostName to have Name, Ip and Port of service
-            string serviceNameCpy(it->second.hostname);
-            
-            int pos = serviceNameCpy.find("._");
-            string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-            pos = remainingString.find("._");
-            string serviceIP = remainingString.substr(0, pos);
-        
-            string hostName = remainingString.substr(pos+2, string::npos);
-            
-            int pos2 = serviceIP.find(":");
-            string ipAddr = serviceIP.substr(0, pos2);
-            string port = serviceIP.substr(pos2+1, string::npos);
-            
-            (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
-                    
+                string serviceNameCpy(iterMem.hostname);
+                
+                int pos = serviceNameCpy.find("._");
+                string remainingString = serviceNameCpy.substr(pos+2, string::npos);
+                pos = remainingString.find("._");
+                string serviceIP = remainingString.substr(0, pos);
+                
+                string hostName = remainingString.substr(pos+2, string::npos);
+                
+                int pos2 = serviceIP.find(":");
+                string ipAddr = serviceIP.substr(0, pos2);
+                string port = serviceIP.substr(pos2+1, string::npos);
+                
+                (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+                
+            }
+
         }
         
         gDNS->fLocker.Unlock();

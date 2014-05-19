@@ -179,6 +179,8 @@ public :
     pthread_t       fThread;
         
     TMutex          fLocker;
+    
+    int              fPort;
         
 // Factories that can be instanciated. 
 // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
