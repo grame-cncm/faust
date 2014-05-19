@@ -115,7 +115,10 @@
 //#include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <cstdio>
 #include <string>
+#include <cstring>
+#include <algorithm>
 #include <vector>
 #include <math.h>
 
@@ -423,6 +426,8 @@ bool Faust::getParameterProperties(VstInt32 index, VstParameterProperties* prope
 	if ( index == m_dspUI->gateIndex ) {
 		properties->flags |= kVstParameterIsSwitch;
 	}
+
+	getParameterName(index, properties->label);
 
 	return true;
 } // end of getParameterProperties

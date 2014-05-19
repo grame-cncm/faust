@@ -45,6 +45,8 @@ done
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
+BINARIES=""
+
 for f in $FILES; do
     name=${f%.dsp}
     
@@ -66,4 +68,10 @@ for f in $FILES; do
     
     rm $name-temp.js
     rm $name.cpp
+
+	# collect binary file name for FaustWorks
+	BINARIES="$BINARIES$name.js;"
+
 done
+
+echo $BINARIES

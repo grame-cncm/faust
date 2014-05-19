@@ -109,7 +109,9 @@
 //#include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <cstdio>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <math.h>
 
