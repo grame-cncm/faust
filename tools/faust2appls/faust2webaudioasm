@@ -58,6 +58,8 @@ done
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
+BINARIES=""
+
 for f in $FILES; do
     name=${f%.dsp}
     
@@ -95,4 +97,9 @@ for f in $FILES; do
     rm $name-temp1.js
     rm $name-temp2.html
     rm $name.cpp
+
+	BINARIES="$BINARIES$name.html;"
+
 done
+
+echo $BINARIES
