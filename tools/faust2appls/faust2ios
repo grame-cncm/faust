@@ -27,7 +27,7 @@ for p in $@; do
         OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-L$FAUSTLIB -L$HTTPLIB -lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
         JACK="1"
     elif [ "$p" = "-xcode" ]; then

@@ -1,15 +1,40 @@
 							================
-							| FAUST 0.9.65 |
+							| FAUST 0.9.67 |
 							================
 
 GRAME - Centre National de Creation Musicale - is happy to announce
-the release of FAUST 0.9.65. 
+the release of FAUST 0.9.67. 
 
-This release provides some extensions to the language, two new 
-architectures : Android and Audio Units, enhanced libraries and a new hoa.lib 
-(high order ambisonic) library, enhanced iOS and LV2 architectures, 
-improved HTTP and OSC support, new examples (guitarix amplifiers)... 
+This release provides many bug fixes and improvements in several architectures 
+(Audio Units, VTSi, etc.) and libraries, as well as two very exiting new tools : 
 
+faust2webaudioasm 
+-----------------
+
+This tool, based on developments by Myles Borin at CCRMA, and by Mike Solomon and 
+Stephane Letz at GRAME, allows to make realtime audio applications in a web browser ! 
+
+faust2webaudioasm uses emscripten to translate Faust programs to efficient Javascript 
+code (asm.js) embedded in a single HTML page.   
+
+Check some examples (best results with firefox 29) :
+ 
+- http://faust.grame.fr/www/vumeters.html
+- http://faust.grame.fr/www/compressor.html
+- http://faust.grame.fr/www/freeverb.html
+- http://faust.grame.fr/www/harpe.html
+- http://faust.grame.fr/www/kisana.html
+- http://faust.grame.fr/www/wahwah.html
+
+
+faust2owl
+---------
+
+faust2owl allows to develop effects for the OWL programmable effects pedal. 
+See http://hoxtonowl.com/ for the pedal, and a short demo of a wah wah effect here : 
+https://plus.google.com/u/0/photos/107719207245386120799/albums/5992899364872321153/5992899369025973874
+BTW big thanks to the people at hoxtonowl.com for the pedal !
+ 
 
 -------------
 About FAUST :
@@ -48,142 +73,195 @@ Online Faust Compiler :
 http://faust.grame.fr
 
 
-======================== WHAT'S NEW ==============================
-
-------------
-iOS			:
-------------
-The iOS architecture has been improved and is now compatible with iOS 7. New metadata
-allow to map accelerometers to user interface widgets.
+======================== Change log since 0.9.65 ==============================
 
 
-------------
-Android		:
-------------
-A new architecture, contributed by Romain Michon from CCRMA, allows to develop audio
-applications for Android. It uses the same metadata as iOS to map accelerometers 
-to user interface widgets.
+7cce0e5 Correct netjackaudio::process.
+6be9d61 Allow vsti-poly.cpp to be monophonic
+24090ee New netjackaudio_midicontrol in netjack-dsp.h.
+e1a634a Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+ab13477 Restore working version of boxpp, since last commit was a bit early...
+68657e8 Hiddable sliders in faust2android
+21a2b65 Use net_format in net-jack.h
+83ee843 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+d61a2ab Switch to OPUS compression.
+3b65c2b Add export-dsp option.
+fdcb183 Completely expand waveform.
+a25b665 New -O option to specify output directory for C++ file and additional ressources.
+0175ba1 Added new faust2w32msp script allowing to cross compile maxmsp external for windows
+9a0ff65 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+88339a1 Added missing std lib.h include
+d1095f3 Dependencies updated
+060314f Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+4aa41ca Missing include of stdio.h added to files.cpp
+443bc15 Back to CELT encoder.
+86799f6 removed useless dependency
+a7a7d68 Force portrait orientation for Android apps
+09bbbe5 Force portrait orientation for Android apps
+665e52d OPUS encoder again.
+d1de9ac Remove unused global.
+47dda00 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+8f849d2 Correct 'declare' method in jsonui.
+dc926cf Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+d35c729 More generic jack-dsp.h and netjack-dsp.h files.
+4b0f9fe Rework start/stop logic in audio architectures.
+8f96441 Correct netjack-dsp.h.
+37074f1 Correct memory management in GUI.h and several architecture files.
+64a5d74 Add GUI_MEMORY_MANAGER flag.
+9d514cc Correct OSCUI.h.
+57c2279 Remove GUI_MEMORY_MANAGER for now.
+0c960cf Correct memory management in GUI.h
+f6a9c40 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+8733d0f Update LV2 architectures to new atom extension.
+2301c54 Correct GUI.h
+b7da6a6 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+5707bf3 new '--in-place' generates code working when input and output buffers are the same. This option works only with the scalar mode. It is incompatible with vector and parallel modes.
+7009486 merged new in-place option
+3f93af8 Add 'in-place' documentation.
+2e0a18f Rework sound2faust converter.
+74b00f2 Correct sound2faust Makefile.
+930db66 Correct sound2faust.
+1c74634 Correct parser to handle float with the 'f', correct sound2faust.
+1f65ffd Revert last commit on sound2faust : 'f' for float is not needed.
+4697950 Correct ScalarCompiler::generateWaveform, generateCacheCode was missing.
+ebf5e7f waveform sag representation added
+a4d0640 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+1183bdc Correct VectorCompiler::generateWaveform.
+8415412 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+d7fa1d5 Improve sound2faust.
+27de7b8 Simplify sound2faust: now generated all possible ouputs in a same DSP.
+66761ae Accelerate waveform parsing.
+2dd796e New dsp_adapter class.
+4919889 Android architecture modified to start and stop audio task on onStart() and onStop(). OSC reception (temporary) removed to avoid blocking other Faust applications.
+1eb7393 Correct coreaudio-ios-dsp.h to allow any number of input/output.
+1b94c23 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+503fe5f Android: register sensor listener only in onResume()
+52df169 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+2bd2ec4 Add missing include.
+546e34d Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+95f7313 Correct Max/MSP architecture files.
+0cff9b9 Simplify CreateLabel in Max/MSP architecture files.
+a43748f Separate dsp_adapter in another file.
+53e636c Add missing file.
+14f88c3 Correct dsp_adapter.h
+03ebd32 Preliminary support for OWL pedal (hoxtonowl.com). It contains the file architecture owl.cpp and the script faust2owl. The command 'faust2owl foo.dsp' will create a file fooPatch.hpp ready to insert into owl's firmware source.
+a1b897b Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+adaaa3a silence compiler warning for supercollider.cpp
+37e8177 Static version for sound2faust.
+e9a326a Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+6aebd19 Portaudio adaptated
+ccfdde5 Portaudio adaptated
+323f120 vstUI extends UI class instead of redefining
+f22349d Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+21ffada QrCode in faustqt changed
+695a099 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+7e21e9d Use underscore to generate expanded filename.
+2ea3027 Fix problem in pow code generation. Version set to 0.9.66
+bcb0999 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+47cd2ab fix pretty-printing of floats
+5349ce4 Small modification to void faust2android to stop when running on faust server
+68fe7ad Print improved instructions for OWL
+bba6cfb Osc changes - error callback
+ebbabe2 sound2faust now read sample as double by default.
+a09c47b Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+d6df461 Osc merge
+4ff1e19 Fix OSCUI.
+66d5bb2 display QRCode modified
+dc7ccc1 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+9fa67e6 Fix qt compilation on OSX
+aa95f9e Correct faustqt.h.
+1ae6c96 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+fd5e80f Correct faustqt.h.
+e74b73b revise triangle-wave scaling in oscillator.lib to give approximately unit peak amplitude
+091ee07 Correct netjack-dsp.h.
+0992d4a Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+189acbc Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+f329bd6 Correct TCoreAudioSharedRenderer : now use current buffer_size if the value cannot be changed.
+89aee7b CoreAudio code now correctly switch to new default device if dynamically changed.
+0d24812 Remove unused header.
+9794205 Cleanup.
+311d013 Synch with faust2 branch.
+53f78c7 Init variables in OpenDefault.
+55f709b Correct CreateAggregateDevices.
+baf0ea4 Cleanup.
+9062493 Fix bug in -inpl (in place) option by adding a new forceCacheCode method in scalar compiler
+54a54f3 version number set to 0.9.67
+58f4b14 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+e22ea24 added all four direct-form biquad structures to filter.lib; new phase-controllable quadrature oscillator in oscillator.lib
+642e6c8 Fix qrcode URL
+e34297e Correct TCoreAudioRenderer.
+21e3d49 (Brendan Adamson) fix hz2pianokey typo
+f1d2d17 Special case for JackRouter in TCoreAudioRenderer.
+19095f1 Fix VST on OSX by adding arch i386
+2df3923 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+825c607 Undefine #DEBUG to not trace by default from vsti-poly.cpp
+d341248 Removed DEBUG from vstui.h to prevent traces by default
+5975f62 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+3eb8774 New JSONUI class.
+6c23a3e VSTi: avoid dynamic allocation of output buffer pointers
+5d59410 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+0e3cb47 Typos in documentation.
+4762544 Correct JSONUI.
+6e5d0ed Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+c15fba2 New faust2webaudioasm.
+320965a Add missing header in webaudio-asm.cpp.
+efe61fd Correct JSONUI.
+6e0f5f0 Correct jsoncontrol.h.
+8094eef Fix faust2webaudioasm.
+4cfbffe faust2webaudioasm : more WEB audio API oriented.
+dd31e13 Make JSONUI generate name tag.
+644a738 faust2webaudioasm : now inline all JS ressources to have Firefox working.
+6ca7aae faust2webaudioasm : now inline all JS ressources to have Firefox working(2).
+eb2738e Use --pre-js option in emcc.
+d65a3de Raise TOTAL_STACK in emcc compilation for asm.js.
+f1fa55d faust2webaudioasm: audio input now activated.
+da220d5 New MapUI class with setValue/getValue to access parameters.
+869c5f7 faust2webaudioasm : simplify compute.
+05fbe57 Add meta management in JSONUI.
+989a82c faust2webaudioasm : bargraph handling in progress.
+8924619 faust2webaudioasm : bargraph now working.
+37007c0 Correct JSONUI.
+cd1db5b Check nouts doesn't exceed preallocated limit
+1d6d978 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+6c4144b Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+a3b39fe faust2webaudioasm : correct issue with audio input.
+36bb32e Add faust2asm script.
+527489d faust2webaudioasm : correct 'equal' operator.
+cd0b21e faust2webaudioasm : add Web MIDI API code.
+ea9e271 faust2webaudioasm : connect all possible MIDI inputs.
+b304cc4 faust2webaudioasm : add polyphonic instrument.
+9f7b5df add cherset utf8 in html page
+e8d2410 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+64aa578 faust2webaudioasm : dynamic polyphony.
+8c11fb6 Use std namespace for iostream functions in plot.cpp.
+18688fe faust2webaudioasm : check MIDI input activation.
+342161e added faust2webaudiopkg tool
+bde8a1b Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+99d4312 faust2webaudioasm : better separate polyphonic case.
+606829e Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+8e0bf88 faust2webaudioasm : dynamic output audio buffers.
+19286e7 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+04c96f8 Add -poly option in faust2asm.
+b01bacc added missing faust2webaudiopkg tool
+c6e8666 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
+a9209f7 added webaudio-asm-footer with code and diagram links
+b884639 Remove faust2webaudiopkg, add '-links' in faust2webaudioasm.
+a61931c Correct 'tools' Makefile.
+ac1eb60 faust2webaudioasm : add buffer_size menu.
+80f0ae1 faust2audioasm : improve activateAudioInput.
+26834db Correct sound2faust.
+abf5829 Handle file:// urls as local files. Fix scanning problem with Flex.
+caba824 Fix  ‘http://' prefix
+419ce04 handle http:// and file:// in a more centralized way
+43b200b fix strstr
+484664e OSC exceptions catch modified
+11736da runtime_error in osc corrected
+354f3e5 vstui: fix include for case-sensitive filesystems
+d03722d linux-VST: add missing include for standard C string functions
+c5ed59a VSTi: set label in call to effGetParameterProperties
+8797fd6 faust2asm and faust2webaudioasm modified to follow faustworks convention of listing produced files at the end of the execution
+459c866 Old -verbose option removed
 
-
-------------
-Audio Unit :
-------------
-A new architecture, contributed by Reza Payami from CCRMA, allows to develop Audio
-Units for OSX. The custom user interface includes:
-- Normal Faust GUI horizontal and vertical box layout support
-- Normal Faust GUI widgets including hsliders, vsliders, hbargraphs, vbargraphs, 
-  knobs, buttons and checkboxes
-- Viewer support for hbargraph and vbargraph using Audio Unit Event Listening and 
-  automatically moving sliders
-- Save button for saving plugin state in Faust XML format
-
-
-------------
-OSC        :
-------------
-Improved OSC support. Faust applications compiled with the -osc 
-option embed OSC support. With FAUST 0.9.65, applications have now 
-also the possibility to send OSC messages (and therefore to be used 
-as OSC controller).
-The transmission can be activated either when the application is 
-started using the "-xmit 1" command line option, or later on, by 
-sending to the application the osc message xmit 1. 
-
-
-------------
-HTTP       :
-------------
-Improved HTTP support. Faust applications compiled with the -httpd option embed a 
-small web server that allows to remotely control the faust application using any 
-HTML5 capable web browser. The web page now reproduces a nice looking graphic user 
-interface very similar to the QT one. The control's fluidity has been improved.
-The application can also display a QRcode to easily take control of it with a smartphone.
-
-
-------------
-LV2        :
-------------
-A critical bug was fixed in the LV2 implementation which aims at providing LV2 support,
-both audio (pure signal processing) and instrument (MIDI -> audio) plugins. The full 
-faust-lv2 package by Albert Gräf (U. of Mainz) is available here : 
-	http://code.google.com/p/faust-lv2/
-
-
----------------
-Supercollider :
----------------
-Improved supercollider architecture with modifications for supernova contributed by 
-Fernando Lopez-Lezcano.
-
-
-------------
-Libraries  :
-------------
-- Improved filter.lib, oscillator.lib and effect.lib contributed by Julius 
-Smith (CCRMA/Stanford U.).
-
-- A new harmonic exciter effect by Priyanka Shekar (CCRMA) has been added to effect.lib
-
-- a new library "hoa.lib" has been contributed by the CICM/U. Paris 8. It provides a set 
-of functions for high order Ambisonics sound reproduction (encoder : encodes a signal 
-in the circular harmonics domain; decoder : decodes an Ambisonics sound field for 
-a circular array of loudspeakers; decoderStereo : decodes an ambisonic sound field 
-for stereophonic configuration; optimBasic, optimMaxRe, optimInPhase : apply 
-Ambisonics optimizations;wider : enlarges the diffusion of a localized sound; 
-map : encodes a source with distance compensation; rotate : rotates the sound field).
-Web site: http://www.mshparisnord.fr/hoalibrary/en
-
-
-------------
-Examples	:
-------------
-
-Guitarix amplifiers. Thanks to code contributed by the Guitarix development team, 
-the examples folder now contains Guitarix tube amp emulations. The faust-tubes folder 
-contains the tube.lib, the tonestack.lib, and the tube tables with valve.h, which 
-contain the foreign function, and an example tube preamp.dsp.
-
----------------------------
-Extensions to the language:
----------------------------
-
-1) extended syntax for foreign function declarations :
-The syntax for foreign function declarations has been extended to take into account the 
-floating point precision in use (float, double and quad). It is now possible to give a 
-different function name for each floating point precision using the construction 
-name1|name2|name3.
-
-Here is an example of declaration :
-
-asinh = ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
-
-
-2) inputs(exp) and outputs(exp) :
-These two new constructions give respectively the number of inputs and the number of 
-outputs of a Faust expression. These constructions are useful to define high order 
-functions and to build algorithmically complex block-diagrams.
-
-Here is an example to reverse the order of the inputs of an expression automatically.
-
-X(expr) = bus(n) <: par(i,n,selector(n-i-1,n)) : expr with { n=inputs(expr); };
-
-
-3) waveform :
-A waveform is a fixed periodic signal defined by a list of samples. A waveform has two 
-outputs. The first output is constant and indicates the size (number of samples) of the 
-period. The second output is the periodic signal itself. This design allows waveform to
-work nicely with tables.
-
-For example waveform {0,1,2,3} produces two outputs, the constant signal 4 and the 
-periodic signal 0,1,2,3,0,1,2,3,0,1... 
-
-
----------------------------
-New compiler's options    :
----------------------------
-
-A new compiler option '-I dir' add dir to the list of directory to search for components, 
-library and imports. It is equivalent of gcc -I dir option.
 
 
 ----------------
@@ -193,16 +271,18 @@ Many persons have been contributing to the FAUST project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
 
-We would like to thank them and especially: Fons Adriaensen, Jerome Barthelemy, 
-Tim Blechmann, Tiziano Bole, Alain Bonardi, Baktery Chanka, Thomas Charbonnel, 
-Raffaele Ciavarella, Julien Colafrancesco, Damien Cramet, Etienne Gaudrin, Olivier
-Guillerminet, Albert Graef, Pierre Guillot, Pierre Jouvelot, Stefan Kersten, 
-Victor Lazzarini, Matthieu Leberre, Mathieu Leroi, Fernando Lopez-Lezcano, Kjetil 
-Matheussen, Hermann Meyer, Romain Michon, Remy Muller, Eliott Paris, Reza Payami, 
-Laurent Pottier, Sampo Savolainen, Nicolas Scaringella, Anne Sedes, Priyanka Shekar, 
-Stephen Sinclair, Travis Skare, Julius Smith, Michael Wilson, as well as our colleagues  
-at GRAME, in particular : Karim Barkati, Sarah Denoux, Olivier Guillerminet, Christophe 
-Lebreton and Mike Solomon.
+We would like to thank them and especially: Fons Adriaensen, Jerome
+Barthelemy, Tim Blechmann, Tiziano Bole, Alain Bonardi, Myles Borin,
+Baktery Chanka, Thomas Charbonnel, Raffaele Ciavarella, Julien
+Colafrancesco, Damien Cramet, Robin Gareus, Etienne Gaudrin, Olivier
+Guillerminet, Albert Graef, Pierre Guillot, Pierre Jouvelot, Stefan
+Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu Leroi, Fernando
+Lopez-Lezcano, Kjetil Matheussen, Hermann Meyer, Romain Michon, Remy
+Muller, Eliott Paris, Reza Payami, Laurent Pottier, Sampo Savolainen,
+Nicolas Scaringella, Anne Sedes, Priyanka Shekar, Stephen Sinclair,
+Travis Skare, Julius Smith, Michael Wilson, as well as our colleagues at
+GRAME, in particular : Karim Barkati, Sarah Denoux, Olivier
+Guillerminet, Christophe Lebreton and Mike Solomon.
 
 Yann Orlarey, Stephane Letz and Dominique Fober
 GRAME

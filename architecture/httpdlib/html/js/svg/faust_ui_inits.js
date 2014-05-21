@@ -145,8 +145,10 @@ _f4u$t.bargraph_inits.init = null;
 _f4u$t.bargraph_inits.girth = 30;
 
 _f4u$t.hbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
+_f4u$t.hbargraph_inits.meter_fill = 'url(#horizontalBarGraphMeterGradient)';
 _f4u$t.hbargraph_inits.stretchable = [true, false];
 _f4u$t.vbargraph_inits = $.extend(true, {}, _f4u$t.bargraph_inits);
+_f4u$t.vbargraph_inits.meter_fill = 'url(#verticalBarGraphMeterGradient)';
 _f4u$t.vbargraph_inits.stretchable = [false, true];
 
 _f4u$t.nentry_inits = {
