@@ -326,13 +326,16 @@ $.extend(SVGWrapper.prototype, {
 	   @param  text      (string) the text of the title
 	   @param  settings  (object) additional settings for the title (optional)
 	   @return  (element) the new title node */
+        /*
+        //COMMENTED OUT BY Mike Solomon
+        //this creates unwanted tooltip behavior
 	title: function(parent, text, settings) {
 		var args = this._args(arguments, ['text']);
 		var node = this._makeNode(args.parent, 'title', args.settings || {});
 		node.appendChild(this._svg.ownerDocument.createTextNode(args.text));
 		return node;
 	},
-
+        */
 	/* Add a description.
 	   @param  parent    (element or jQuery) the parent node for the new description (optional)
 	   @param  text      (string) the text of the description
