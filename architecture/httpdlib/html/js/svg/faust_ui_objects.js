@@ -776,7 +776,7 @@ _f4u$t.BarGraph.prototype.make_curtain = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.curtain_fill),
       stroke : _f4u$t.color_to_rgb(this.curtain_stroke),
       id : full_id,
-      transform : 'translate('+xo+',0)',
+      transform : _f4u$t.xy(this.axis,'translate('+(xo + this.length)+',0) scale(-1,1)', 'translate('+xo+',0)'),
       'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-curtain', 'faust-vbargraph-curtain')
     });
 

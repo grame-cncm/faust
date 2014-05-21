@@ -964,7 +964,7 @@ _f4u$t.actualize_incremental_object = function(id) {
     var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
     var weakaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["weakaxis"];
     var strongaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["strongaxis"];
-    val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
+    val = _f4u$t[_f4u$t.xy(axis, "remap_and_flip", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
     val = _f4u$t.bound(val, 0, strongaxis);
     /*
     // for paths...
