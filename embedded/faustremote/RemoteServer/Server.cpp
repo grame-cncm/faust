@@ -17,7 +17,7 @@
 #include <openssl/sha.h>
 
 #include "faust/gui/meta.h"
-#include "faust/gui/jsonfaustui.h"
+#include "faust/gui/JSONUI.h"
 
 enum{
     ERROR_FACTORY_NOTFOUND,
@@ -48,16 +48,12 @@ string getJson(connection_info_struct* con_info){
         
     //This instance is used only to build json interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(con_info->fLLVMFactory);
-        
-    httpdfaust::jsonfaustui json(con_info->fNameApp.c_str(), "", 0);
-    dsp->buildUserInterface(&json);
-    json.numInput(dsp->getNumInputs());
-    json.numOutput(dsp->getNumOutputs());
-//    json.declare("factoryKey", factoryKey.c_str());
     
-    printf("JSON = %s\n", json.json().c_str());
-        
-    string answer = json.json();
+    JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
+    dsp->buildUserInterface(&json);    
+    string answer = json.JSON();
+    
+    printf("JSON = %s\n", answer.c_str());
         
     deleteDSPInstance(dsp);
     

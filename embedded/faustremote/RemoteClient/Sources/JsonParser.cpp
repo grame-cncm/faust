@@ -4,46 +4,83 @@
 #include "JsonParser.h"
 
 // ---------------------------------------------------------------------
-// Parse full json record describing a json/faust interface :
-// {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
-//
-// and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
-// This function is used by targetsDescriptionReceived() the remote  DSP to decode the result of 
-//
-bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems)
+//                          Elementary parsers
+// ---------------------------------------------------------------------
+
+// Advance pointer p to the first non blank character
+static void skipBlank(const char*& p)
 {
-    parseChar(p, '{');
-    do {
-        string          key;
-        string          value;
-        
-        if (parseMetaData(p, key, value, metadatas)) {
-            metadatas[key] = value;
-//            printf("KEY %s|| Value = %s\n", key.c_str(), value.c_str());
-        } else {
-            if(key.compare("ui") == 0){
-                int numItems = 0;
-                parseChar(p,'[') && parseUI(p, uiItems, numItems);
-            }
-        }
-    } while (tryChar(p,','));
-    return parseChar(p, '}');
+    while (isspace(*p)) { p++; }
 }
 
+// Parse a quoted string "..." and store the result in s, reports an error if it fails
+static  bool parseString(const char*& p, string& s)
+{
+    string str;
+    
+    skipBlank(p);
+    
+    const char* saved = p;
+    
+    if (*p++ == '"') {
+        while ((*p != 0) && (*p != '"')) {
+            str += *p++;
+        }
+        if (*p++=='"') {
+            s = str;
+            return true;
+        }
+    }
+    p = saved;
+    //    std::cerr << "parsing error : expected quoted string, instead got : "<< p << std::endl;
+    return false;
+}
+
+// Report a parsing error
+static bool parseError(const char*& p, const char* errmsg)
+{
+    cerr << "Parse error : " << errmsg << " here : " << p << endl;
+    return true;
+}
+
+// Parse character x, but don't report error if fails
+static bool tryChar(const char*& p, char x)
+{
+    skipBlank(p);
+    if (x == *p) {
+        p++;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//Parse character x, reports an error if it fails
+static bool parseChar(const char*& p, char x)
+{
+    skipBlank(p);
+    if (x == *p) {
+        p++;
+        return true;
+    } else {
+        //        cerr << "parsing error : expoected character '" << x << "'" << ", instead got : " << p << endl;
+        return false;
+    }
+}
 
 // ---------------------------------------------------------------------
 // Parse metadatas of the interface:
 //  "name" : "...", "inputs" : "...", "outputs" : "...", ...
 // and store the result as key/value
 //
-bool parseMetaData (const char*& p, string& key, string& value, map<string,string>& metadatas)
+static bool parseMetaData(const char*& p, string& key, string& value, map<string,string>& metadatas)
 {
     if(parseString(p,key)){
         if(key.compare("meta") == 0){
             if(parseChar(p,':') && parseChar(p,'[') && parseChar(p,'{')){
                 do {
-                    string          key1;
-                    string          value1;
+                    string key1;
+                    string value1;
                     
                     if (parseMetaData(p, key1, value1, metadatas)) {
                         metadatas[key1] = value1;
@@ -63,18 +100,15 @@ bool parseMetaData (const char*& p, string& key, string& value, map<string,strin
         return false;
 }
 
-
 // ---------------------------------------------------------------------
 // Parse gui:
 //  "type" : "...", "label" : "...", "address" : "...", ...
 // and store the result in uiItems Vector
 //
-
-bool parseUI (const char*& p, vector<itemInfo*>& uiItems, int& numItems)
+static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 {
-    
     if(parseChar(p,'{')){
-    
+        
         string label;
         string value;
         
@@ -114,18 +148,18 @@ bool parseUI (const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                     string metaKey, metaValue;
                     
                     if(parseChar(p, ':') && parseChar(p,'[')){
-                    
+                        
                         do{ 
                             if( parseChar(p,'{') && parseString(p, metaKey) && parseChar(p, ':') && parseString(p, metaValue) && parseChar(p,'}')){
                                 itemInfo* item = uiItems[numItems];
                                 item->meta[metaKey] = metaValue;
                             }
-                                
+                            
                         }while (tryChar(p,','));
                         if(!parseChar(p,']'))
                             return false;
                     }
-                
+                    
                 }
                 
                 else if(label.compare("init") == 0){
@@ -187,70 +221,30 @@ bool parseUI (const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 }
 
 // ---------------------------------------------------------------------
-//                          Elementary parsers
-// ---------------------------------------------------------------------
-
-
-// Advance pointer p to the first non blank character
-void skipBlank(const char*& p)
+// Parse full json record describing a json/faust interface :
+// {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
+//
+// and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
+// This function is used by targetsDescriptionReceived() the remote  DSP to decode the result of 
+//
+bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems)
 {
-    while (isspace(*p)) { p++; }
-}
-
-// Report a parsing error
-bool parseError(const char*& p, const char* errmsg )
-{
-    cerr << "Parse error : " << errmsg << " here : " << p << endl;
-    return true;
-}
-
-// Parse character x, but don't report error if fails
-bool tryChar(const char*& p, char x)
-{
-    skipBlank(p);
-    if (x == *p) {
-        p++;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-//Parse character x, reports an error if it fails
-bool parseChar(const char*& p, char x)
-{
-    skipBlank(p);
-    if (x == *p) {
-        p++;
-        return true;
-    } else {
-//        cerr << "parsing error : expoected character '" << x << "'" << ", instead got : " << p << endl;
-        return false;
-    }
-}
-
-// Parse a quoted string "..." and store the result in s, reports an error if it fails
-bool parseString(const char*& p, string& s)
-{
-    string str;
-
-    skipBlank(p);
-
-    const char* saved = p;
-
-    if (*p++ == '"') {
-        while ((*p != 0) && (*p != '"')) {
-            str += *p++;
+    parseChar(p, '{');
+    
+    do {
+        string key;
+        string value;
+        
+        if (parseMetaData(p, key, value, metadatas)) {
+            metadatas[key] = value;
+//            printf("KEY %s|| Value = %s\n", key.c_str(), value.c_str());
+        } else {
+            if(key.compare("ui") == 0){
+                int numItems = 0;
+                parseChar(p,'[') && parseUI(p, uiItems, numItems);
+            }
         }
-        if (*p++=='"') {
-            s = str;
-            return true;
-        }
-    }
-    p = saved;
-//    std::cerr << "parsing error : expected quoted string, instead got : "<< p << std::endl;
-    return false;
+    } while (tryChar(p,','));
+    return parseChar(p, '}');
 }
-
-
 

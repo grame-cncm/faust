@@ -4,7 +4,7 @@ DEFINE	      = D_REENTRANT
 INCPATH       = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/Frameworks
 LINK          = g++
 LLVM_CONFIG   = llvm-config
-LIBS          = -L/usr/local/lib/faust -lfaust -lHTTPDFaust -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -ldl -llo
+LIBS          = -L/usr/local/lib/faust -lfaust -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -ldl -llo
 
 sources =  $(wildcard *.cpp)
 objects = $(sources:.cpp=.o)
