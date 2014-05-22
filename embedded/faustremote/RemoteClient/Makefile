@@ -8,11 +8,11 @@ os 	:= $(shell uname)
 system	?= $(shell uname -s)
 
 PREFIX ?= /usr/local
-INCPATH       = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/
+INCPATH = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= -I../ -arch i386 -arch x86_64
+	CXXFLAGS	= -I../ -g -arch i386 -arch x86_64
 	LIB_EXT        = dylib
 else 
 	ARCHFLAGS 	:= 
@@ -28,7 +28,7 @@ all: $(objects) libfaustremote.a
 
 
 libfaustremote.a : $(objects)
-		libtool -static $(LIBFLAGS) $(objects) -o libfaustremote.a 
+	libtool -static $(LIBFLAGS) $(objects) -o libfaustremote.a 
 
 install:
 	install libfaustremote.a  /usr/local/lib/faust/ 
@@ -37,6 +37,14 @@ install:
 clean :
 	rm -f $(objects) libfaustremote.a
 
-remote_dsp_aux.o: JsonParser.h ../TMutex.h
+depend :
+	makedepend -w120 -Y -- $(sources)
 
 
+# DO NOT DELETE
+
+Sources/JsonParser.o: Sources/JsonParser.h
+Sources/remote_dsp_aux.o: Sources/remote_dsp_aux.h ../TMutex.h Sources/JsonParser.h
+Sources/remote_dsp_aux.o: ../../../compiler/generator/smartpointer.h ../../../compiler/libfaust.h
+Sources/remote_dsp_aux.o: ../../../compiler/export.hh ../utilities.h
+../utilities.o: ../utilities.h
