@@ -12,7 +12,7 @@ INCPATH = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= -I../ -g -arch i386 -arch x86_64
+	CXXFLAGS	= -I../ -O3 -arch i386 -arch x86_64
 	LIB_EXT        = dylib
 else 
 	ARCHFLAGS 	:= 

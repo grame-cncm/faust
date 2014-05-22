@@ -3,7 +3,7 @@
 //  
 //
 //  Created by Sarah Denoux on 13/05/13.
-//  Copyright (c) 2013 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2013 GRAME. All rights reserved.
 //
 //
 
@@ -292,7 +292,7 @@ int Server::answer_get(MHD_Connection* connection, const char *url){
     
     if(strcmp(url, "/GetAvailableFactories") == 0){
         
-        printf("GetAvailableFactories %d\n", fAvailableFactories.size());
+        printf("GetAvailableFactories %ld\n", fAvailableFactories.size());
 
         string answerstring("");
         

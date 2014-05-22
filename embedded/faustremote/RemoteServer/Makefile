@@ -1,5 +1,5 @@
-CC            = gcc -g
-CXX           = g++ -g
+CC            = gcc -O3
+CXX           = g++ -O3
 DEFINE	      = D_REENTRANT	 
 INCPATH       = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/Frameworks
 LINK          = g++
