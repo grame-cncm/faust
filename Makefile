@@ -52,7 +52,7 @@ sound2faust:
 help :
 	@echo "Usage : 'make; sudo make install'"
 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
-	@echo "make or make all : compile the faust compiler"
+	@echo "make or make all : compile the Faust compiler"
 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
 	@echo "make sound2faust : compile sound to DSP file converter"
 	@echo "make parser : generate the parser from the lex and yacc files"
@@ -73,6 +73,7 @@ clean :
 	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
 	$(MAKE) -C embedded/faustremote/RemoteClient clean
+	$(MAKE) -C tools/sound2faust clean
 
 depend :
 	$(MAKE) -C compiler -f $(MAKEFILE) depend

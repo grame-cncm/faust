@@ -218,4 +218,3 @@ faust.DSP = function (context, buffer_size, handler) {
     return that;
 };
 
-}());
