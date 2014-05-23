@@ -229,7 +229,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab, fMeta); fMeta << "],";
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
-            if (fCloseMetaPar == ',') { // If  "declare" has been called, fCloseMetaPar state is now ','
+            if (fCloseMetaPar == ',') { // If "declare" has been called, fCloseMetaPar state is now ','
                 fJSON << fMeta.str() << fUI.str();
             } else {
                 fJSON << fUI.str();

@@ -6,7 +6,7 @@
 #include <vector>
 #include <assert.h>
 
-class ControlUI  : public UI {  
+class ControlUI : public UI {  
 
     protected:
     
@@ -25,7 +25,7 @@ class ControlUI  : public UI {
         void addButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
         void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
-        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone);};
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
 
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
 

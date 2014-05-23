@@ -5,6 +5,11 @@
 
 CPP_WRAPPER=webaudio-asm.cpp
 JS_WRAPPER=webaudio-asm-footer.js
+COMB=0
+COMB_SRC=
+COMB_EXPORTED=
+COMB_WRAPPED=
+COMB_SEP=
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -30,9 +35,11 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-poly" ]; then
-     CPP_WRAPPER=webaudio-asm-poly.cpp
-     JS_WRAPPER=webaudio-asm-poly-footer.js
+    if [ $p = "-comb" ]; then
+        COMB=1
+    elif [ $p = "-poly" ]; then
+        CPP_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-footer.js
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -47,13 +54,15 @@ done
 #
 BINARIES=""
 
+if [ $COMB = 0 ]; then
+
 for f in $FILES; do
     name=${f%.dsp}
     
     # compile the C++ code
     faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
-    if [ $CPP_WRAPPER = webaudio-asm-poly.cpp ]; then
+    if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
         EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
     else
         EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff']"       
@@ -73,5 +82,42 @@ for f in $FILES; do
 	BINARIES="$BINARIES$name.js;"
 
 done
+
+else
+
+for f in $FILES; do
+    name=${f%.dsp}
+    
+    # compile the C++ code
+    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    
+    if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
+        EXPORTED="'_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON'"
+    else
+        EXPORTED="'_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff'"       
+	fi
+    
+    # compose the asm.js code
+    sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/$JS_WRAPPER > $name-wrapper.js
+    
+    COMB_SRC+=$name.cpp
+    COMB_SRC+=" "
+    
+    COMB_EXPORTED+=$COMB_SEP$EXPORTED
+    COMB_SEP=","
+    
+    COMB_WRAPPED+=" --post-js "
+    COMB_WRAPPED+=$name-wrapper.js
+  	
+done
+
+# compile final file
+emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
+        -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
+
+# collect binary file name for FaustWorks
+	BINARIES="$BINARIES$comb.js;"
+
+fi
 
 echo $BINARIES
