@@ -75,6 +75,9 @@ for f in $FILES; do
     # compose the asm.js code
     sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
     
+    # add final footer of JS page
+    echo "}());" >> $name.js
+    
     rm $name-temp.js
     rm $name.cpp
 
@@ -112,9 +115,12 @@ for f in $FILES; do
 done
 
 # compile final file
-emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
+    emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
         -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
+# add final footer of JS page
+    echo "}());" >> comb.js
+    
 # collect binary file name for FaustWorks
 	BINARIES="$BINARIES$comb.js;"
 

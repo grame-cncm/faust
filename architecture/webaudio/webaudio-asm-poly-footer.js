@@ -229,4 +229,3 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
     return that;
 };
 
-}());
