@@ -9,6 +9,7 @@ COMB=0
 COMB_SRC=
 COMB_EXPORTED=
 COMB_WRAPPED=
+COMB_WRAPPED_FILES=
 COMB_SEP=
 
 #-------------------------------------------------------------------
@@ -109,20 +110,26 @@ for f in $FILES; do
     COMB_EXPORTED+=$COMB_SEP$EXPORTED
     COMB_SEP=","
     
+    COMB_WRAPPED_FILES+=$name-wrapper.js
+    COMB_WRAPPED_FILES+=" "
+    
     COMB_WRAPPED+=" --post-js "
     COMB_WRAPPED+=$name-wrapper.js
   	
 done
 
 # compile final file
-    emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
-        -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
+emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
+    -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
 # add final footer of JS page
-    echo "}());" >> comb.js
+echo "}());" >> comb.js
     
 # collect binary file name for FaustWorks
-	BINARIES="$BINARIES$comb.js;"
+BINARIES="comb.js;"
+
+rm $COMB_SRC
+rm $COMB_WRAPPED_FILES
 
 fi
 
