@@ -19,7 +19,7 @@
 
 using namespace std;
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 1024
 
 // g++ -O3 sound2faust.cpp -lsndfile -o sound2faust
 
@@ -33,8 +33,10 @@ int main(int argc, char *argv[])
 {
 	SNDFILE* soundfile;
 	SF_INFO	snd_info;
-    
     char* base_name;
+    
+    const char* output = lopts(argv, "-o", "");
+    long interleaved = isopt(argv, "-i");
     
 #ifndef _WIN32
 	base_name = basename(argv[1]);
@@ -44,15 +46,13 @@ int main(int argc, char *argv[])
 	printf("BASENAME = %s\n", base_name);
 #endif
     if (argc < 2) {
-        printf("sound2faust <sound> -o <file>\n");
+        printf("sound2faust <sound> -i (for interleaved) -o <file>\n");
         printf("Generates : 'sound_n = waveform {....}' interleaved waveform\n");
         printf("Generates : 'sound_0 = waveform {....} .... sound_x = waveform {....}' mono waveforms\n");
         printf("Generates : 'sound = (sound_0,...sound_x):((!,_),...(!,_))' processor\n");
         exit(1);
     }
-    
-    const char* output = lopts(argv, "-o", "");
-    
+     
     snd_info.format = 0;
 #ifndef _WIN32
     soundfile = sf_open(argv[1], SFM_READ, &snd_info);
@@ -84,57 +84,65 @@ int main(int argc, char *argv[])
     
     double buffer[BUFFER_SIZE * snd_info.channels];
     
-    // Generates one interleaved waveform
-    *dst << RemoveEnding(base_name) << "_n = waveform";
-    int nbf;
-    char sep = '{';
-    do {
-        nbf = sf_readf_double(soundfile, buffer, BUFFER_SIZE);
-        for (int i = 0; i < nbf * snd_info.channels; i++) {
-            *dst << sep << buffer[i];
-            sep = ',';
-        }
-        
-    } while (nbf == BUFFER_SIZE);
-    *dst << "};" << std::endl;
+    char sep;
     
-    // Generates separated mono waveforms
-    for (int chan = 0; chan < snd_info.channels; chan++) {
-        sf_seek(soundfile, 0, SEEK_SET);
-        *dst << RemoveEnding(base_name) << "_" << chan << " = waveform";
+    if (interleaved) {
+        
+        // Generates one interleaved waveform
+        *dst << RemoveEnding(base_name) << "_n = waveform";
         int nbf;
         sep = '{';
         do {
             nbf = sf_readf_double(soundfile, buffer, BUFFER_SIZE);
             for (int i = 0; i < nbf * snd_info.channels; i++) {
-                if (i % snd_info.channels == chan) {
-                    *dst << sep << buffer[i];
-                    sep = ',';
-                }
+                *dst << sep << buffer[i];
+                sep = ',';
             }
             
         } while (nbf == BUFFER_SIZE);
         *dst << "};" << std::endl;
+        
+    } else {
+    
+        // Generates separated mono waveforms
+        for (int chan = 0; chan < snd_info.channels; chan++) {
+            sf_seek(soundfile, 0, SEEK_SET);
+            *dst << RemoveEnding(base_name) << "_" << chan << " = waveform";
+            int nbf;
+            sep = '{';
+            do {
+                nbf = sf_readf_double(soundfile, buffer, BUFFER_SIZE);
+                for (int i = 0; i < nbf * snd_info.channels; i++) {
+                    if (i % snd_info.channels == chan) {
+                        *dst << sep << buffer[i];
+                        sep = ',';
+                    }
+                }
+                
+            } while (nbf == BUFFER_SIZE);
+            *dst << "};" << std::endl;
+        }
+        
+        // And generates one multi-channels processor
+        *dst << RemoveEnding(base_name) << " = ";
+        
+        sep = '(';
+        for (int chan = 0; chan < snd_info.channels; chan++) {
+            *dst << sep << RemoveEnding(base_name) << "_" << chan;
+            sep = ',';
+        }
+        
+        *dst << "):";
+        
+        sep = '(';
+        for (int chan = 0; chan < snd_info.channels; chan++) {
+            *dst << sep << "(!,_)";
+            sep = ',';
+        }
+        
+        *dst << ");" << std::endl;
+        
     }
-    
-    // And generates one multi-channels processor
-    *dst << RemoveEnding(base_name) << " = ";
-    
-    sep = '(';
-    for (int chan = 0; chan < snd_info.channels; chan++) {
-        *dst << sep << RemoveEnding(base_name) << "_" << chan;
-        sep = ',';
-    }
-    
-    *dst << "):";
-    
-    sep = '(';
-    for (int chan = 0; chan < snd_info.channels; chan++) {
-        *dst << sep << "(!,_)";
-        sep = ',';
-    }
-    
-    *dst << ");" << std::endl;
-    
+       
     dst->flush();
 }
