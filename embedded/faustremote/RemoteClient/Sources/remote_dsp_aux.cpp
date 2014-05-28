@@ -505,7 +505,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
         bool isOutItem = false;
         
 //        Meta Data declaration for entry items
-        if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close")!=0){
+        if((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close") != 0){
             
             fInControl[counterIn] = init;
             isInItem = true;

@@ -115,7 +115,7 @@ static bool parseMetaData(const char*& p, string& key, string& value, map<string
                 return false;
         }
         else
-            return  parseChar(p,':') && parseString(p, value);
+            return parseChar(p,':') && parseString(p, value);
     }
     else
         return false;

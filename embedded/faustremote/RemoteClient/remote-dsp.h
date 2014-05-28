@@ -204,7 +204,6 @@ extern "C"
      */    
     bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
     
-    
 #ifdef __cplusplus
 }
 #endif
