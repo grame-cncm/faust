@@ -622,7 +622,9 @@ llvm_dsp_factory::~llvm_dsp_factory()
     
     if (--llvm_dsp_factory::gInstance == 0) {
         llvm_stop_multithreaded();
+    #if defined(LLVM_33) || defined(LLVM_34)
         LLVMResetFatalErrorHandler();
+    #endif
     }
 }
 
