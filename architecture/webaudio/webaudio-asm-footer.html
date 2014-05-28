@@ -60,6 +60,7 @@ function startDSPAux(svg, buffer_size)
     }
     DSP.start();
     console.log(DSP.json());
+    console.log(DSP.controls());
     _f4u$t.make_audio_ui_asm(svg, DSP);
 }
 

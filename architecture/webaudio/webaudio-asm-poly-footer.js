@@ -35,8 +35,11 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
     that.handler = handler;
     
     // bargraph
-    that.bargraph_timer = 5;
-    that.bargraph_table = [];
+    that.ouputs_timer = 5;
+    that.ouputs_items = [];
+    
+    // input items
+    that.inputs_items = [];
     
     that.ptr = DSP_poly_constructor(faust.context.sampleRate, buffer_size, max_polyphony);
     
@@ -62,14 +65,14 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
         DSP_poly_noteOff(that.ptr, channel, pitch);
     }
     
-    that.update_bargraph = function () 
+    that.update_outputs = function () 
     {
-        if (that.bargraph_table.length > 0 && that.handler && that.bargraph_timer-- === 0) {
-            that.bargraph_timer = 5;
+        if (that.ouputs_items.length > 0 && that.handler && that.ouputs_timer-- === 0) {
+            that.ouputs_timer = 5;
             var i;
-            for (i = 0; i < that.bargraph_table.length; i++) {
-                var pathPtr = allocate(intArrayFromString(that.bargraph_table[i]), 'i8', ALLOC_STACK);
-                that.handler(that.bargraph_table[i], DSP_poly_getValue(that.ptr, pathPtr));
+            for (i = 0; i < that.ouputs_items.length; i++) {
+                var pathPtr = allocate(intArrayFromString(that.ouputs_items[i]), 'i8', ALLOC_STACK);
+                that.handler(that.ouputs_items[i], DSP_poly_getValue(that.ptr, pathPtr));
             }
         }
     };
@@ -91,7 +94,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
         DSP_poly_compute(that.ptr, that.buffer_size, that.ins, that.outs);
         
         // Update bargraph
-        that.update_bargraph();
+        that.update_outputs();
         
         // Write outputs
         for (i = 0; i < that.numOut; i++) {
@@ -118,7 +121,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
         }
     };
     
-    // Bind to Web Audio
+    // Bind to Web Audio, external API
     that.start = function () 
     {
         that.scriptProcessor.connect(faust.context.destination);
@@ -139,6 +142,11 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
         var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
         DSP_poly_getJSON(that.ptr, jsonPtr);
         return Pointer_stringify(jsonPtr);
+    }
+    
+    that.controls = function()
+    {
+        return that.inputs_items;
     }
     
     // JSON parsing
@@ -171,7 +179,10 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
             that.parse_items(item.items);
         } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
-            that.bargraph_table.push(item.address);
+            that.ouputs_items.push(item.address);
+        } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+            // Keep inputs adresses
+            that.inputs_items.push(item.address);
         }
     }
     
