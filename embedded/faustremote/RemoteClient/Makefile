@@ -8,7 +8,7 @@ os 	:= $(shell uname)
 system	?= $(shell uname -s)
 
 PREFIX ?= /usr/local
-INCPATH = -I. -I../ -I/usr/include -I/opt/local/include -F/Library/
+INCPATH = -I. -I../ -I../../../architecture -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
@@ -28,7 +28,7 @@ all: $(objects) libfaustremote.a
 
 
 libfaustremote.a : $(objects)
-	libtool -static $(LIBFLAGS) $(objects) -o libfaustremote.a 
+	libtool $(LIBFLAGS) $(objects) -o libfaustremote.a 
 
 install:
 	install libfaustremote.a  /usr/local/lib/faust/ 
