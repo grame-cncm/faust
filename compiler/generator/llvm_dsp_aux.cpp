@@ -135,13 +135,13 @@ EXPORT Module* load_single_module(const string filename, LLVMContext* context)
     }
 }
 
-EXPORT bool link_modules(Module* dst, Module* src, char* error_message)
+EXPORT bool link_modules(Module* dst, Module* src, char* error_msg)
 {
     string err;
     
     if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
         delete src;
-        sprintf(error_message, "cannot link module : %s", err.c_str());
+        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
         return false;
     } else {
         delete src;
