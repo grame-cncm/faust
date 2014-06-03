@@ -1198,9 +1198,11 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gHelpSwitch) { 
         printhelp(); 
+        throw faustexception("");
     }
     if (gVersionSwitch) { 
         printversion(); 
+        throw faustexception("");
     }
 
 #ifndef WIN32
