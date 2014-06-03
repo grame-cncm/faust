@@ -175,7 +175,7 @@ struct mydsp_poly
         return fVoiceTable[0]->fVoice.getNumOutputs();
     }
     
-    void noteOn(int pitch, int velocity)
+    void keyOn(int channel, int pitch, int velocity)
     {
         int voice = getVoice(-1);  // Gets a free voice
         if (voice >= 0) {
@@ -189,7 +189,7 @@ struct mydsp_poly
         }
     }
     
-    void noteOff(int pitch)
+    void keyOff(int channel, int pitch)
     {
         int voice = getVoice(pitch);
         if (voice >= 0) {
@@ -200,6 +200,12 @@ struct mydsp_poly
             printf("Playing voice not found...\n");
         }
     }
+    
+    void ctrlChange(int channel, int ctrl, int value)
+    {}
+    
+    void pitchWheel(int channel, int pitchWheel)
+    {}
     
     void getJSON(char* json)
     {
@@ -253,16 +259,26 @@ extern "C" {
         return n->getNumOutputs();
     }
 
-    void mydsp_poly_noteOn(mydsp_poly* n, int channel, int pitch, int velocity)
+    void mydsp_poly_keyOn(mydsp_poly* n, int channel, int pitch, int velocity)
     {
-        n->noteOn(pitch, velocity);
+        n->keyOn(channel, pitch, velocity);
     }
 
-    void mydsp_poly_noteOff(mydsp_poly* n, int channel, int pitch)
+    void mydsp_poly_keyOff(mydsp_poly* n, int channel, int pitch)
     {
-        n->noteOff(pitch);
+        n->keyOff(channel, pitch);
     }
-
+    
+    void mydsp_poly_ctrlChange(mydsp_poly* n, int channel, int ctrl, int value)
+    {
+        n->ctrlChange(channel, ctrl, value);
+    }
+    
+    void mydsp_poly_pitchWheel(mydsp_poly* n, int channel, int pitchWheel)
+    {
+        n->pitchWheel(channel, pitchWheel);
+    }
+    
     void mydsp_poly_setValue(mydsp_poly* n, const char* path, float value)
     {
         n->setValue(path, value);
