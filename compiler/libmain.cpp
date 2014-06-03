@@ -846,9 +846,7 @@ static void parseSourceFiles()
     gGlobal->gResult2 = gGlobal->nil;
 
     if (gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
-        stringstream error;
-        error << "ERROR : no files specified; for help type \"faust --help\"" << endl;
-        throw faustexception(error.str());
+        throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
     for (s = gGlobal->gInputFiles.begin(); s != gGlobal->gInputFiles.end(); s++) {
         if (s == gGlobal->gInputFiles.begin()) {
@@ -1200,11 +1198,9 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gHelpSwitch) { 
         printhelp(); 
-        throw faustexception("Help printed and compilation aborted");
     }
     if (gVersionSwitch) { 
         printversion(); 
-        throw faustexception("Version printed and compilation aborted"); 
     }
 
 #ifndef WIN32
