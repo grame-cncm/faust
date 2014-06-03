@@ -18,5 +18,3 @@ install :
 
 clean :
 	rm -f sound2faust
-
-	
