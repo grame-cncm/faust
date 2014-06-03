@@ -17,6 +17,6 @@ install :
 	install sound2faust $(prefix)/bin/
 
 clean :
-	rm sound2faust
+	rm -f sound2faust
 
 	
