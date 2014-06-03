@@ -27,8 +27,15 @@ first: all
 all: $(objects) libfaustremote.a
 
 
+ifeq ($(system), Darwin)
 libfaustremote.a : $(objects)
-	libtool $(LIBFLAGS) $(objects) -o libfaustremote.a 
+	libtool -static $(LIBFLAGS) $(objects) -o libfaustremote.a
+else 
+libfaustremote.a : $(objects)
+	rm -f $@
+	ar cq $@ $(objects)
+	ranlib $@
+endif
 
 install:
 	install libfaustremote.a  /usr/local/lib/faust/ 
