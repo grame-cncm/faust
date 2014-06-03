@@ -4,6 +4,7 @@
 #include "faust/gui/UI.h"
 #include <vector>
 #include <string>
+#include <algorithm>
 
 /*******************************************************************************
  * PathUI : Faust User Interface
