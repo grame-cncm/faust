@@ -42,12 +42,8 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
-static inline float midiToFreq(int note) 
-{
-      return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
-}
-
 struct mydsp_voice : public MapUI {
+    
     mydsp fVoice;
     int fNote;
     
@@ -83,6 +79,11 @@ struct mydsp_poly
                 mixChannel[j] += outChannel[j];
             }
         }
+    }
+    
+    inline float midiToFreq(int note) 
+    {
+        return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
     }
     
     inline void clearOutput(int count, FAUSTFLOAT** mixBuffer) 
@@ -140,8 +141,6 @@ struct mydsp_poly
     
     virtual ~mydsp_poly()
     {
-        printf("~mydsp_poly\n");
-        
         for (int i = 0; i < fNumOutputs; i++) {
             delete[] fNoteOutputs[i];
         }
