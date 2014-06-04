@@ -1133,15 +1133,12 @@ Makes the UI for the faust application.
 @param {Object} svg The root SVG node.
 @param {Object} raw_json The raw JSON describing the UI to build.
 **/
-_f4u$t.make_ui = function(svg, raw_json) {
+_f4u$t.make_ui = function(svg, raw_json, width, height) {
   var json = eval ("(" + raw_json + ")");
-
   var faust_svg = new _f4u$t.SVG(
     svg,
-    // kludge to prevent scroll bars...
-    $(window).width() - 15,
-    // kludge to prevent scroll bars...
-    $(window).height() - 17,
+    width,
+    height,
     {
       constrain : false,
       title : json["ui"][0].label,
@@ -1154,42 +1151,56 @@ _f4u$t.make_ui = function(svg, raw_json) {
   faust_svg.make();
 }
 
+_f4u$t.assign_parameters_to_values = function(URLParams) {
+  for (var index in URLParams) {
+    var split_index = index.split('.');
+    if (split_index.length != 2) {
+      continue;
+    }
+    if (_f4u$t[split_index[0]]) {
+      if (_f4u$t[split_index[0]][split_index[1]]) {
+        _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
+      }
+    }
+  }
+}
+
 /**
 The main function called to build the faust UI.
 Parses the URL to include any new documents and then builds the UI.
 
-@method make
+@method main
 @for _f4u$t
-@param {Object} svg The root SVG node.
-@param {Object} raw_json The raw JSON describing the UI to build.
+@param {Array} raw_jsons A list of raw JSON objects describing the UI to build.
 **/
-_f4u$t.main = function(svg, raw_json) {
-  /*
-  // bad idea...disactivates all zoom...
-  if (_f4u$t.detect_mobile_device.any()) {
-    _f4u$t.disable_zoom();
-  }
-  */
-  // make sure that loading of files is synchronous...
+_f4u$t.main = function(raw_jsons) {
+  // first, we parse URL parameters to change UIs' style if necessary
   var URLParams = _f4u$t.parseURLParams(document.URL);
-  if (URLParams) {
-    URLParams.js = URLParams.js || [];
-    URLParams.css = URLParams.css || [];
-    for (var index in URLParams) {
-      var split_index = index.split('.');
-      if (split_index.length != 2) {
-        continue;
-      }
-      if (_f4u$t[split_index[0]]) {
-        if (_f4u$t[split_index[0]][split_index[1]]) {
-          _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
-        }
-      }
-    }
-    _f4u$t.load_css_and_then_js_and_then_build_ui(URLParams.css, URLParams.js, svg, raw_json);
-  }
-  else {
-    _f4u$t.make_ui(svg, raw_json);
+  // then we assign parameters
+  _f4u$t.assign_parameters_to_values(URLParams);
+  // we make sure all JS and CSS is loaded before we build the UI
+  _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
+  // we set the width to the entire screen
+  // shaving off a bit to prevent scroll bars
+  // HUOM: this shaving is a kludge and should dealt with more elegantly
+  var width = $(window).width() - 15;
+  var height = $(window).height() - 17;
+  // we build the UIs
+  /*
+    IF ANYONE EVER WANTS TO BUILD SEVERAL UIs, all that has to be done
+    is to send multiple raw_jsons and this will stack them one above the
+    other.  Currently, in httppage.cpp, there is only one created.
+  */
+  for(var i = 0; i < raw_jsons.length; i++) {
+    raw_json = raw_jsons[i];
+    var div = $( "<div />" );
+    div.css("position", "absolute");
+    div.css("top", (i * height / raw_jsons.length) + "px");
+    div.css("left", "0px");
+    $("body").append(div);
+    div.svg({onLoad: function (svg) {
+      _f4u$t.make_ui(svg, raw_json, width, height / raw_jsons.length);
+    }});
   }
 }
 
