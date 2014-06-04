@@ -438,36 +438,6 @@ _f4u$t.PATHS_TO_IDS = {};
 _f4u$t.IDS_TO_ATTRIBUTES = {};
 
 /**
- Each audio bridge reports a callback that the listener calls with an address of
- a UI object and the value it is changing to.  The bridge is resonsible for
- using this information in a useful way (sending it to a server, to a
- JavaScript object, etc.).
-
-@property HANDLER_CALLBACKS
-@for _f4u$t
-@type Array
-@default []
-**/
-_f4u$t.HANDLER_CALLBACKS = [];
-
-/**
-Returns a random, soft, pretty color, represented
-as 0-255 RGB values in an array, to act as a background
-for layout managers.
-
-@method magic_color
-@for _f4u$t
-@static
-@return {Array} An array of three values, 0-255 for RGB.
-**/
-
-_f4u$t.fausthandler = function(dest, value) {
-  for (var i = 0; i < _f4u$t.HANDLER_CALLBACKS.length; i++) {
-    _f4u$t.HANDLER_CALLBACKS[i](dest, value);
-  }
-}
-
-/**
 Returns a random, soft, pretty color, represented
 as 0-255 RGB values in an array, to act as a background
 for layout managers.
@@ -1262,42 +1232,10 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
     _f4u$t.controls[dest].value = value; 
   }
     
-  _f4u$t.update = function() {}
   _f4u$t.main_loop = function() {}
 
   faust_svg.defs();
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
-}
-
-/**
- To be called when used with the emcc based asm.js FaustNode.
- **/
-_f4u$t.make_audio_ui_asm = function(svg, dsp) {
-    var json = eval ("(" + dsp.json() + ")");
-    var faust_svg = new _f4u$t.SVG(
-       svg,
-       // kludge to prevent scroll bars...
-       $(window).width() - 15,
-       // kludge to prevent scroll bars...
-       $(window).height() - 17,
-       {
-       constrain : false,
-       title : json["ui"][0].label,
-       lm : _f4u$t.json_to_ui(json)
-       }
-    );
-    
-    // Set values in the asm.js part...
-    _f4u$t.fausthandler = function(dest, value) {
-       dsp.update(dest, value);
-    }
-     
-    _f4u$t.update = function() {}
-    _f4u$t.main_loop = function() {}
-    
-    faust_svg.defs();
-    faust_svg.lm.mom = faust_svg;
-    faust_svg.make();
 }
 
