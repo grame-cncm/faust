@@ -438,6 +438,36 @@ _f4u$t.PATHS_TO_IDS = {};
 _f4u$t.IDS_TO_ATTRIBUTES = {};
 
 /**
+ Each audio bridge reports a callback that the listener calls with an address of
+ a UI object and the value it is changing to.  The bridge is resonsible for
+ using this information in a useful way (sending it to a server, to a
+ JavaScript object, etc.).
+
+@property HANDLER_CALLBACKS
+@for _f4u$t
+@type Array
+@default []
+**/
+_f4u$t.HANDLER_CALLBACKS = [];
+
+/**
+Returns a random, soft, pretty color, represented
+as 0-255 RGB values in an array, to act as a background
+for layout managers.
+
+@method magic_color
+@for _f4u$t
+@static
+@return {Array} An array of three values, 0-255 for RGB.
+**/
+
+_f4u$t.fausthandler = function(dest, value) {
+  for (var i = 0; i < _f4u$t.HANDLER_CALLBACKS.length; i++) {
+    _f4u$t.HANDLER_CALLBACKS[i](dest, value);
+  }
+}
+
+/**
 Returns a random, soft, pretty color, represented
 as 0-255 RGB values in an array, to act as a background
 for layout managers.
@@ -1171,37 +1201,36 @@ Parses the URL to include any new documents and then builds the UI.
 
 @method main
 @for _f4u$t
-@param {Array} raw_jsons A list of raw JSON objects describing the UI to build.
+@param {Object} raw_json A raw JSON object describing the UI to build.
+@param {Object} div (optional) The div to place the object in.
 **/
-_f4u$t.main = function(raw_jsons) {
+_f4u$t.main = function(raw_json, div, callback) {
   // first, we parse URL parameters to change UIs' style if necessary
   var URLParams = _f4u$t.parseURLParams(document.URL);
   // then we assign parameters
   _f4u$t.assign_parameters_to_values(URLParams);
   // we make sure all JS and CSS is loaded before we build the UI
   _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
-  // we set the width to the entire screen
-  // shaving off a bit to prevent scroll bars
-  // HUOM: this shaving is a kludge and should dealt with more elegantly
-  var width = $(window).width() - 15;
-  var height = $(window).height() - 17;
-  // we build the UIs
-  /*
-    IF ANYONE EVER WANTS TO BUILD SEVERAL UIs, all that has to be done
-    is to send multiple raw_jsons and this will stack them one above the
-    other.  Currently, in httppage.cpp, there is only one created.
-  */
-  for(var i = 0; i < raw_jsons.length; i++) {
-    raw_json = raw_jsons[i];
+  if (!div) {
     var div = $( "<div />" );
-    div.css("position", "absolute");
-    div.css("top", (i * height / raw_jsons.length) + "px");
-    div.css("left", "0px");
     $("body").append(div);
-    div.svg({onLoad: function (svg) {
-      _f4u$t.make_ui(svg, raw_json, width, height / raw_jsons.length);
-    }});
   }
+  var width = $(div).width();
+  if (width == 0) {
+    // HUOM: this "- 15" is a kludge and should dealt with more elegantly
+    width = $(window).width() - 15;
+  }
+  var height = $(div).height();
+  if (height == 0) {
+    // HUOM: this "- 17" is a kludge and should dealt with more elegantly
+    height = $(window).height() - 17;
+  }
+  if (callback) {
+    _f4u$t.HANDLER_CALLBACKS.push(callback);
+  }
+  div.svg({onLoad: function (svg) {
+    _f4u$t.make_ui(svg, raw_json, width, height);
+  }});
 }
 
 /**

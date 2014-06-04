@@ -3,7 +3,7 @@
 // handlers to send a faust 'set' message
 // actually using a 'GET' method
 //-----------------------------------------------------------------------------
-_f4u$t.fausthandler = function(dest, value) {
+_f4u$t.faust_server_handler = function(dest, value) {
   if (!_f4u$t.ajax_queue[dest]) {
     _f4u$t.ajax_queue[dest] = [];
   }
