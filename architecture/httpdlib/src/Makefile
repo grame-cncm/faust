@@ -72,6 +72,8 @@ hexa/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
 	echo " " >> $@
 	cat ../html/js/svg/faust_ui_interact.js >> $@
 	echo " " >> $@
+	cat ../html/js/svg/faust_ui_audio_bridge.js >> $@
+	echo " " >> $@
 	cat ../html/js/svg/faust_server_communication.js >> $@
 
 hexa/stylesheet : ../html/js/svg/faust_css.css

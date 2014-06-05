@@ -1,6 +1,5 @@
 
 
-<div id = "faustsvg">
 <script>
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
@@ -9,13 +8,12 @@ var max_polyphony = 16;
 var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
-var SVG = null;
 
 function changeBufferSize(buffer_size)
 {
     var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
     console.log(new_buffer_size);
-    startNewDSP(SVG, new_buffer_size);
+    startNewDSP(new_buffer_size);
 }
 
 // MIDI input handling
@@ -120,9 +118,8 @@ function getDevice(device)
     audio_input.connect(DSP_poly.scriptProcessor);
 }
 
-function startDSPAux(svg, buffer_size) 
+function startDSPAux(buffer_size) 
 {
-    SVG = svg;
     activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
@@ -131,25 +128,27 @@ function startDSPAux(svg, buffer_size)
         DSP_poly.stop();
         DSP_poly.destroy();
     }
-    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_incremental_object_value);
+    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_value_at_address);
     DSP_poly.start();
     console.log(DSP_poly.json());
-    _f4u$t.make_audio_ui_asm(svg, DSP_poly);
+    // kludge...ideally, this needs to not be part of the imported JS
+    _f4u$t.main_loop = function() {}
+    _f4u$t.main(DSP_poly.json(), null, DSP_poly.update);
 }
 
-function startDSP(svg) 
+function startDSP() 
 {
-    startDSPAux(svg, 1024);
+    startDSPAux(1024);
 }
 
-function startNewDSP(svg, buffer_size) 
+function startNewDSP(buffer_size) 
 {
-    startDSPAux(svg, buffer_size);
+    startDSPAux(buffer_size);
 }
 
 // Polyphonic instrument
 
-$('#faustsvg').svg({onLoad: startDSP});
+$(startDSP);
 
 </script>
 

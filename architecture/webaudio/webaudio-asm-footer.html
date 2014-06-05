@@ -1,19 +1,17 @@
 
 
-<div id = "faustsvg">
 <script>
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var audio_input = null;
 var DSP = null;
-var SVG = null;
 
 function changeBufferSize(buffer_size)
 {
     var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
     console.log(new_buffer_size);
-    startNewDSP(SVG, new_buffer_size);
+    startNewDSP(new_buffer_size);
 }
  
 // Audio input handling
@@ -43,9 +41,8 @@ function getDevice(device)
     audio_input.connect(DSP.scriptProcessor);
 }
 
-function startDSPAux(svg, buffer_size) 
+function startDSPAux(buffer_size) 
 {
-    SVG = svg;
     console.log("startDSP %d", buffer_size);
     if (DSP) {
         if (audio_input) {
@@ -54,29 +51,31 @@ function startDSPAux(svg, buffer_size)
         DSP.stop();
         DSP.destroy();
     }
-    DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_incremental_object_value);
+    DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_value_at_address);
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
     DSP.start();
     console.log(DSP.json());
     console.log(DSP.controls());
-    _f4u$t.make_audio_ui_asm(svg, DSP);
+    // kludge...ideally, this needs to not be part of the imported JS
+    _f4u$t.main_loop = function() {}
+    _f4u$t.main(DSP.json(), null, DSP.update);
 }
 
-function startDSP(svg) 
+function startDSP() 
 {
-    startDSPAux(svg, 1024);
+    startDSPAux(1024);
 }
 
-function startNewDSP(svg, buffer_size) 
+function startNewDSP(buffer_size) 
 {
-    startDSPAux(svg, buffer_size);
+    startDSPAux(buffer_size);
 }
 
 // General
 
-$('#faustsvg').svg({onLoad: startDSP});
+$(startDSP);
 
 </script>
 

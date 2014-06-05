@@ -17,6 +17,7 @@
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_load_external_file.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_mobile.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_proto.js"></script>
+        <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_ui_audio_bridge.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_server_communication.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_ui_builder.js"></script>
         <script  src="file://localhost/usr/local/lib/faust/js/svg/faust_ui_inits.js"></script>
@@ -27,23 +28,18 @@
     </head>
 
     <body>
-        <div id = "faustsvg">
         <script src = "DSP.js"></script>
         <script>
         
         var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
         var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
         var buffer_size = 1024;
-        
-        $('#faustsvg').svg({onLoad: function (svg) {
-         
-            var DSP = faust.DSP(context, buffer_size, f4u$t.update_incremental_object_value);
-            DSP.start();
-            console.log(DSP.json());
-            _f4u$t.make_audio_ui_asm(svg, DSP);
-            
-          }});
-       
+        var DSP = faust.DSP(context, buffer_size, _f4u$t.update_value_at_address);
+        DSP.start();
+        console.log(DSP.json());
+        // kludge...ideally, this needs to not be part of the imported JS
+        _f4u$t.main_loop = function() {}
+        _f4u$t.main(DSP.json(), null, DSP.update);
         </script>
     </body>
 </html>
