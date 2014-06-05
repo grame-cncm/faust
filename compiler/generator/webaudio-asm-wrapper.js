@@ -21,100 +21,6 @@ var faust = faust || {};
 // Shim AudioContext on webkit
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
-/*
-function mydsp() {
-	
-	this.iRec0 = new Int32Array(2);
-	this.fVslider0;
-	this.fSamplingFreq;
-	
-	this.metadata = function(m) { 
-		m.declare("author", "Grame");
-		m.declare("copyright", "(c)GRAME 2009");
-		m.declare("license", "BSD");
-		m.declare("name", "Noise");
-		m.declare("version", "1.1");
-	}
-    
-	this.getNumInputs = function() {
-		return 0;
-		
-	}
-	this.getNumOutputs = function() {
-		return 1;
-		
-	}
-	this.getInputRate = function(channel) {
-		var rate;
-		switch (channel) {
-			default: {
-				rate = -1;
-				break;
-			}
-                
-		}
-		return rate;
-		
-	}
-	this.getOutputRate = function(channel) {
-		var rate;
-		switch (channel) {
-			case 0: {
-				rate = 1;
-				break;
-			}
-			default: {
-				rate = -1;
-				break;
-			}
-                
-		}
-		return rate;
-		
-	}
-	
-	this.classInit = function(samplingFreq) {
-		
-	}
-	
-	this.instanceInit = function(samplingFreq) {
-		this.fSamplingFreq = samplingFreq;
-		this.fVslider0 = 0;
-		for (var i = 0; (i < 2); i = (i + 1)) {
-			this.iRec0[i] = 0;
-			
-		}
-		
-	}
-	
-	this.init = function(samplingFreq) {
-		this.classInit(samplingFreq);
-		this.instanceInit(samplingFreq);
-	}
-	
-	this.buildUserInterface = function(ui_interface) {
-		ui_interface.openVerticalBox("noise");
-		ui_interface.declare("fVslider0", "style", "knob");
-		ui_interface.addVerticalSlider("Volume", function handler(obj) { function setval(val) { obj.fVslider0 = val; } return setval; }(this), 0, 0, 1, 0.1);
-		ui_interface.closeBox();
-		
-	}
-	
-	this.compute = function(count, inputs, outputs) {
-		var output0 = outputs[0];
-		var fSlow0 = (4.65661e-10 * this.fVslider0);
-		for (var i = 0; (i < count); i = (i + 1)) {
-			this.iRec0[0] = (12345 + (1103515245 * this.iRec0[1]));
-			output0[i] = (fSlow0 * this.iRec0[0]);
-			this.iRec0[1] = this.iRec0[0];
-			
-		}
-		
-	}
-	
-}
-*/
-
 (function () {
  
     var asmjs_dsp_factory = Module.cwrap('asmjs_dsp_factory', null, ['number']);
@@ -140,14 +46,10 @@ function mydsp() {
         //that.factory = Pointer_stringify(factoryPtr);
  
         var dspcontentPtr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
- 
         that.factory = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
- 
-        console.log("FACTORY");
-        console.log(that.factory);
-    
         that.ptr = eval(that.factory);
  
+        console.log(that.factory);
         console.log(that.ptr);
          
         // Bind to C++ Member Functions
@@ -161,7 +63,6 @@ function mydsp() {
         {
             return that.ptr.getNumOutputs();
         };
-        
         
         that.update_outputs = function () 
         {
