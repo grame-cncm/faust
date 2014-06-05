@@ -121,7 +121,7 @@ function mydsp() {
  
     // Standard Faust DSP
 
-    faust.DSP = function (context, buffer_size, handler) {
+    faust.DSP = function (context, code, buffer_size, handler) {
         var that = {};
         
         faust.context = context;
@@ -139,7 +139,7 @@ function mydsp() {
         //asmjs_dsp_factory(factoryPtr);
         //that.factory = Pointer_stringify(factoryPtr);
  
-        var dspcontentPtr = allocate(intArrayFromString("process = +,+,+,+;"), 'i8', ALLOC_STACK);
+        var dspcontentPtr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
  
         that.factory = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
  

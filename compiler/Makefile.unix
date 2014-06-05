@@ -94,7 +94,7 @@ ios : libfaust.a
 
 emcc : CC=emcc
 emcc : CXX=emcc
-emcc : CXXFLAGS =  -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : CXXFLAGS =  -O2 -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js
