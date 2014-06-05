@@ -52,8 +52,8 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, c
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for ASMJavaScript\n");
     } else {
-        //container = new ASMJAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
-        throw faustexception("Scalar mode not (yet) supported for ASMJavaScript\n");
+        container = new ASMJAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        //throw faustexception("Scalar mode not (yet) supported for ASMJavaScript\n");
     }
 
     return container;
@@ -87,9 +87,11 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+1, *fOut);
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
+    
+        tab(n+1, *fOut); *fOut << "var that = {};"; 
 
         // Inits
-        tab(n+1, *fOut); *fOut << "this.instanceInit" << fKlassName << " = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
@@ -98,7 +100,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         // Fill
         string counter = "count";
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "this.fill" << fKlassName << " = function" << subst("($0, output) {", counter);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "fill" << fKlassName << " = function" << subst("($0, output) {", counter);
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateComputeBlock(&fCodeProducer);
@@ -134,9 +136,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
     generateGlobalDeclarations(&fCodeProducer);
 
     //tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
-    tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
+    tab(n, *fOut); *fOut << "(function " << fKlassName << "() {";
 
         tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "var that = {};"; 
 
         // Fields
         tab(n+1, *fOut);
@@ -144,7 +147,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         generateDeclarations(&fCodeProducer);
 
         // Print metadata declaration
-        tab(n+1, *fOut); *fOut   << "this.metadata = function(m) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "metadata = function(m) {";
 
         for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
@@ -166,28 +169,28 @@ void ASMJAVAScriptCodeContainer::produceClass()
         produceInfoFunctions(n+1, fKlassName, true);
 
         // Inits
-        tab(n+1, *fOut); *fOut << "this.classInit = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "classInit = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "this.instanceInit = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "this.classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "this.instanceInit(samplingFreq);";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "init = function(samplingFreq) {";
+            tab(n+2, *fOut); *fOut << fObjPrefix << "classInit(samplingFreq);";
+            tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
 
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "this.buildUserInterface = function(ui_interface) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "buildUserInterface = function(ui_interface) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);
@@ -202,7 +205,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         generateComputeFunctions(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "}\n" << endl;
+        tab(n, *fOut); *fOut << "return that;"<< endl;
+    tab(n, *fOut); *fOut << "}())";
 }
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
@@ -225,7 +229,7 @@ void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& cl
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("this.compute = function($0, inputs, outputs) {", fFullCount);
+    tab(n+1, *fOut); *fOut << fObjPrefix << subst("compute = function($0, inputs, outputs) {", fFullCount);
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 

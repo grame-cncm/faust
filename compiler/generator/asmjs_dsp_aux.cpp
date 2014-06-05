@@ -37,6 +37,7 @@
 #include "timing.hh"
 #include "exception.hh"
 
+
 /*
 int main(int argc, const char* argv[])
 {
@@ -131,5 +132,26 @@ string factory = "(function noise() { \
 
 EXPORT const char* asmjs_dsp_factory(char* dsp_content)
 {
+    printf("dsp_content = %s\n", dsp_content);
+    char error_msg[256];
+    
+    int argc = 0;
+    
+    int argc1 = argc + 5;
+ 	const char* argv1[32];
+    
+    argv1[0] = "faust";
+	argv1[1] = "-lang";
+	argv1[2] = "ajs";
+    argv1[3] = "-o";
+    argv1[4] = "tmp";
+    
+    /*
+    for (int i = 0; i < argc; i++) {
+        argv1[i+3] = argv[i];
+    }
+    */
+    
+    factory = compile_faust_asmjs(argc1, argv1, "WEB_DSP", dsp_content, error_msg);
     return factory.c_str();
 }

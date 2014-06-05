@@ -37,6 +37,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         static map <string, int> gFunctionSymbolTable; 
         map <string, string> fMathLibTable;
         Typed::VarType fCurType;
+    
+        string fObjPrefix;
 
     public:
 
@@ -63,6 +65,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["sinf"] = "Math.sin";
             fMathLibTable["sqrtf"] = "Math.sqrt";
             fMathLibTable["tanf"] = "Math.tan";
+            
+            fObjPrefix = "that.";
         }
 
         virtual ~ASMJAVAScriptInstVisitor()
@@ -145,7 +149,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
+            string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? fObjPrefix : "var ";
 
             if (inst->fValue) {
                 *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
@@ -198,7 +202,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         
             // Prototype
-            *fOut << "this." << generateFunName(inst->fName) << " = " << "function";
+            *fOut << fObjPrefix << generateFunName(inst->fName) << " = " << "function";
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
@@ -220,7 +224,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(NamedAddress* named)
         {   
             if (named->getAccess() & Address::kStruct) {
-                *fOut << "this.";
+                *fOut << fObjPrefix;
             }
             *fOut << named->fName;
         }

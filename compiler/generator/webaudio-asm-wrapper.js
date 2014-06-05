@@ -139,11 +139,16 @@ function mydsp() {
         //asmjs_dsp_factory(factoryPtr);
         //that.factory = Pointer_stringify(factoryPtr);
  
-        that.factory = Pointer_stringify(asmjs_dsp_factory("process = +;"));
+        var dspcontentPtr = allocate(intArrayFromString("process = +,+,+,+;"), 'i8', ALLOC_STACK);
  
+        that.factory = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
+ 
+        console.log("FACTORY");
         console.log(that.factory);
     
         that.ptr = eval(that.factory);
+ 
+        console.log(that.ptr);
          
         // Bind to C++ Member Functions
         

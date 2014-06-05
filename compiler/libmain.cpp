@@ -97,6 +97,7 @@ static void call_fun(compile_fun fun)
 
 static void call_fun(compile_fun fun)
 {
+    /*
     pthread_t thread;
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
@@ -104,6 +105,8 @@ static void call_fun(compile_fun fun)
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     pthread_create(&thread, &attr, fun, NULL);
     pthread_join(thread, NULL);
+    */
+    fun(NULL);
 }
 
 #endif
@@ -960,7 +963,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gGlobal->gOutputFile != "") {
             string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-            dst = new ofstream(outpath.c_str());
+            //dst = new ofstream(outpath.c_str());
+            dst = new stringstream(outpath.c_str());
+            gGlobal->gStringResult = dst;
         } else {
             dst = &cout;
         }
@@ -1028,7 +1033,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
             if ((enrobage = open_arch_stream(gArchFile))) {
                 
-                if (strcmp(gOutputLang, "js") != 0) {
+                if ((strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
                     printheader(*dst);
                 }
                 
@@ -1048,7 +1053,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     delete(thread_include);
                 }
 
-                if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0)) {
+                if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
                     printfloatdef(*dst, (gGlobal->gFloatSize == 3));
                 }
 
@@ -1081,10 +1086,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             
         } else {
-            if (strcmp(gOutputLang, "js") != 0) {
+            if ((strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
                 printheader(*dst);
             }
-            if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0)) {
+            if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
                 printfloatdef(*dst, (gGlobal->gFloatSize == 3));
             }
             if (strcmp(gOutputLang, "c") == 0) {
@@ -1332,6 +1337,33 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
         res = -1;
+    }
+    
+    global::destroy();
+    return res;
+}
+
+EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+{
+    gLLVMOut = true;
+    gGlobal = NULL;
+    
+    gProcessTree = 0;
+    gLsignalsTree = 0;
+    gNumInputs = 0;
+    gNumOutputs = 0;
+    gErrorMessage = "";
+    
+    string res;
+    
+    try {
+        global::allocate();     
+        compile_faust_internal(argc, argv, name, input, true);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+        res = dynamic_cast<stringstream*>(gGlobal->gStringResult)->str();
+    } catch (faustexception& e) {
+        strncpy(error_msg, e.Message().c_str(), 256);
+        res = "";
     }
     
     global::destroy();

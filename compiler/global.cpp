@@ -110,6 +110,8 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gLLVMResult = 0;
     gInputString = 0;
     
+    gStringResult = 0;
+    
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
     gLstDistributedSwitch	= true; ///< mdoc listing management.
