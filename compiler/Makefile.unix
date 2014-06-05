@@ -98,7 +98,7 @@ emcc : CXXFLAGS =  -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-vir
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js
-emcc : EXPORTED="['_createCDSPFactoryFromString','_createCDSPInstance']"
+emcc : EXPORTED="['_main', '_asmjs_dsp_factory']"
 
 libfaust.js :$(objects) libmain.o global.o
 	$(CXX) -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
