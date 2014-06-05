@@ -37,88 +37,99 @@
 #include "timing.hh"
 #include "exception.hh"
 
+/*
 int main(int argc, const char* argv[])
 {
     string error;
-    string res = asmjs_dsp_factory("", 0, NULL, "", "", "", error, 0);
-    printf("res = %s\n", res.c_str());
+    char buffer[2048];
+    asmjs_dsp_factory(buffer);
+    printf("factory = %s\n", buffer);
     return 0;
 }
+ */
 
+/*
 EXPORT string asmjs_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                                  const string& name_app,
                                  const string& dsp_content, 
                                  const string& target, 
                                  string& error_msg, int opt_level)
+*/
+
+string factory = "(function noise() { \
+        var that = {}; \
+        that.iRec0 = new Int32Array(2); \
+        that.fVslider0; \
+        that.fSamplingFreq; \
+        that.metadata = function(m) {  \
+        m.declare(\"author\", \"Grame\"); \
+        m.declare(\"copyright\", \"(c)GRAME 2009\"); \
+        m.declare(\"license\", \"BSD\"); \
+        m.declare(\"name\", \"Noise\"); \
+        m.declare(\"version\", \"1.1\"); \
+        }; \
+        that.getNumInputs = function() { \
+        return 0; \
+        }; \ 
+        that.getNumOutputs = function() { \
+        return 1; \
+        }; \
+        that.getInputRate = function(channel) { \
+        var rate; \
+        switch (channel) { \
+        default: { \
+        rate = -1; \
+        break; \
+        }; \
+        };\
+        return rate;\
+        };\
+        that.getOutputRate = function(channel) {\
+        var rate;\
+        switch (channel) {\
+        case 0: {\
+        rate = 1;\
+        break;\
+        };\
+        default: {\
+        rate = -1;\
+        break;\
+        };\
+        };\
+        return rate;\
+        };\
+        that.classInit = function(samplingFreq) {\
+        };\
+        that.instanceInit = function(samplingFreq) {\
+        that.fSamplingFreq = samplingFreq;\
+        that.fVslider0 = 0.5;\
+        for (var i = 0; (i < 2); i = (i + 1)) {\
+        that.iRec0[i] = 0;\
+        };\
+        };\
+        that.init = function(samplingFreq) {\
+        that.classInit(samplingFreq);\
+        that.instanceInit(samplingFreq);\
+        };\
+        that.buildUserInterface = function(ui_interface) {\
+        ui_interface.openVerticalBox(\"noise\");\
+        ui_interface.declare(\"fVslider0\", \"style\", \"knob\");\
+        ui_interface.addVerticalSlider(\"Volume\", function handler(obj) { function setval(val) { obj.fVslider0 = val; } return setval; }(that), 0, 0, 1, 0.1);\
+        ui_interface.closeBox();\
+        };\
+        that.compute = function(count, inputs, outputs) {\
+        var output0 = outputs[0];\
+        var fSlow0 = (4.65661e-10 * that.fVslider0);\
+        for (var i = 0; (i < count); i = (i + 1)) {\
+        that.iRec0[0] = (12345 + (1103515245 * that.iRec0[1]));\
+        output0[i] = (fSlow0 * that.iRec0[0]);\
+        that.iRec0[1] = that.iRec0[0];\
+        };\
+        };\
+       return that;\
+       }())";
+
+EXPORT const char* asmjs_dsp_factory(char* dsp_content)
 {
-    return  "function noise() { \
-        this.iRec0 = new Int32Array(2); \
-        this.fVslider0; \
-        this.fSamplingFreq; \
-        this.metadata = function(m) {  \
-            m.declare(\"author\", \"Grame\"); \
-            m.declare(\"copyright\", \"(c)GRAME 2009\"); \
-            m.declare(\"license\", \"BSD\"); \
-            m.declare(\"name\", \"Noise\"); \
-            m.declare(\"version\", \"1.1\"); \
-        } \
-        this.getNumInputs = function() { \
-            return 0; \
-        } \ 
-        this.getNumOutputs = function() { \
-            return 1; \
-        } \
-        this.getInputRate = function(channel) { \
-            var rate; \
-            switch (channel) { \
-                default: { \
-                    rate = -1; \
-                    break; \
-                } \
-            }\
-            return rate;\
-        }\
-        this.getOutputRate = function(channel) {\
-            var rate;\
-            switch (channel) {\
-                case 0: {\
-                    rate = 1;\
-                    break;\
-                }\
-                default: {\
-                    rate = -1;\
-                    break;\
-                }\
-            }\
-            return rate;\
-        }\
-        this.classInit = function(samplingFreq) {\
-        }\
-        this.instanceInit = function(samplingFreq) {\
-            this.fSamplingFreq = samplingFreq;\
-            this.fVslider0 = 0;\
-            for (var i = 0; (i < 2); i = (i + 1)) {\
-                this.iRec0[i] = 0;\
-            }\
-        }\
-        this.init = function(samplingFreq) {\
-            this.classInit(samplingFreq);\
-            this.instanceInit(samplingFreq);\
-        }\
-        this.buildUserInterface = function(ui_interface) {\
-            ui_interface.openVerticalBox(\"noise\");\
-            ui_interface.declare(\"fVslider0\", \"style\", \"knob\");\
-            ui_interface.addVerticalSlider(\"Volume\", function handler(obj) { function setval(val) { obj.fVslider0 = val; } return setval; }(this), 0, 0, 1, 0.1);\
-            ui_interface.closeBox();\
-        }\
-        this.compute = function(count, inputs, outputs) {\
-            var output0 = outputs[0];\
-            var fSlow0 = (4.65661e-10 * this.fVslider0);\
-            for (var i = 0; (i < count); i = (i + 1)) {\
-                this.iRec0[0] = (12345 + (1103515245 * this.iRec0[1]));\
-                output0[i] = (fSlow0 * this.iRec0[0]);\
-                this.iRec0[1] = this.iRec0[0];\
-            }\
-        }\
-    }";
+    return factory.c_str();
 }

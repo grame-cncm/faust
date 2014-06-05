@@ -43,12 +43,15 @@ extern "C" {
 #endif
 
 // Public C interface using asm.js
-EXPORT string asmjs_dsp_factory(const string& sha_key, int argc, const char* argv[], 
-                                 const string& name_app,
-                                 const string& dsp_content, 
-                                 const string& target, 
-                                 string& error_msg, int opt_level);
+    /*
+    EXPORT string asmjs_dsp_factory(const string& sha_key, int argc, const char* argv[], 
+                                     const string& name_app,
+                                     const string& dsp_content, 
+                                     const string& target, 
+                                     string& error_msg, int opt_level);
+    */
 
+    EXPORT const char* asmjs_dsp_factory(char* dsp_content);
     
 #ifdef __cplusplus
 }
