@@ -34,6 +34,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#define herror perror
 #else
 #include <winsock2.h>
 #define close closesocket

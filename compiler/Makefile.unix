@@ -92,6 +92,18 @@ ios: LLVM_VERSION =
 
 ios : libfaust.a
 
+emcc : CC=emcc
+emcc : CXX=emcc
+emcc : CXXFLAGS =  -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : ARCHFLAGS =
+emcc : LLVM_VERSION =
+emcc : libfaust.js
+emcc : EXPORTED="['_createCDSPFactoryFromString','_createCDSPInstance']"
+
+libfaust.js :$(objects) libmain.o global.o
+	$(CXX) -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
+
+
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
 

@@ -76,5 +76,7 @@ size_t cache_line_size()
 }
 
 #else
-#error Unrecognized platform
+#warning Unrecognized platform
+#include <sys/sysctl.h>
+size_t cache_line_size() { return 0; }
 #endif

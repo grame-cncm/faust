@@ -43,6 +43,9 @@ win32 :
 ios :
 	$(MAKE) -C compiler ios -f $(MAKEFILE) prefix=$(prefix) 
 
+emcc :
+	$(MAKE) -C compiler emcc -f $(MAKEFILE) prefix=$(prefix)
+
 sound2faust: 
 
 	$(MAKE) -C tools/sound2faust
