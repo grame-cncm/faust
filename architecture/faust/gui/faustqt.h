@@ -969,6 +969,10 @@ class uiSlider : public QObject, public uiItem
 	int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
 	FAUSTFLOAT	qt2faust (int v)	{ return fMin + v*fStep; }
 	int		optimalTick()		{
+        
+                if(fStep == 0)
+                    fStep = fMax-fMin;
+        
 				FAUSTFLOAT x = fStep;
 				while ((fMax-fMin)/x > 50) x*=10;
 				while ((fMax-fMin)/x < 10) x/=2;
