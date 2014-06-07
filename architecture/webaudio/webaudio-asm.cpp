@@ -97,9 +97,9 @@ extern "C" {
             fJSON = builder.JSON();
         }
         
-        void getJSON(char* json)
+        const char* getJSON()
         {
-            strcpy(json, fJSON.c_str());
+            return fJSON.c_str();
         }
     };
     
@@ -129,10 +129,10 @@ extern "C" {
     {
         return n->getNumOutputs();
     }
-    
-    void mydsp_getJSON(mydsp_wrap* n, char* json)
+      
+    const char* mydsp_getJSON(mydsp_wrap* n)
     {
-        n->getJSON(json);
+        return n->getJSON();
     }
     
     void mydsp_setValue(mydsp_wrap* n, const char* path, float value)
