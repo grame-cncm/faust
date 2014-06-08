@@ -26,9 +26,13 @@ using namespace std;
 
 #include "text_instructions.hh"
 
+#include "../../architecture/faust/gui/JSONUI.h"
+
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
+    
+        JSONUI fJSON;
 
         /*
          Global functions names table as a static variable in the visitor
@@ -45,7 +49,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     public:
 
-        ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, ".", tab), fCurType(Typed::kNoType)
+        ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
+        :TextInstVisitor(out, ".", tab), fJSON(0,0), fCurType(Typed::kNoType) 
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
@@ -77,6 +82,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {}
     
         int getStructSize() { return fStructSize; }
+        string getJSON(bool flat) { return fJSON.JSON(flat); }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -89,11 +95,15 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fOrient) {
                 case 0:
-                    name = "ui_interface.openVerticalBox"; break;
+                    name = "ui_interface.openVerticalBox"; 
+                    fJSON.openVerticalBox(inst->fName.c_str());
+                    break;
                 case 1:
                     name = "ui_interface.openHorizontalBox"; break;
+                    fJSON.openHorizontalBox(inst->fName.c_str());
                 case 2:
                     name = "ui_interface.openTabBox"; break;
+                    fJSON.openTabBox(inst->fName.c_str());
             }
             *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
             EndLine();
@@ -102,14 +112,17 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(CloseboxInst* inst)
         {
             *fOut << "ui_interface.closeBox();"; tab(fTab, *fOut);
+            fJSON.closeBox();
         }
         
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", ";
+                fJSON.addButton(inst->fLabel.c_str(), NULL);
             } else {
                 *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", ";
+                fJSON.addCheckButton(inst->fLabel.c_str(), NULL);
             }
             
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this))";
@@ -121,11 +134,17 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "ui_interface.addHorizontalSlider"; break;
+                    name = "ui_interface.addHorizontalSlider"; 
+                    fJSON.addHorizontalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                    break;
                 case AddSliderInst::kVertical:
-                    name = "ui_interface.addVerticalSlider"; break;
+                    name = "ui_interface.addVerticalSlider";
+                    fJSON.addVerticalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                    break;
                 case AddSliderInst::kNumEntry:
-                    name = "ui_interface.addNumEntry"; break;
+                    name = "ui_interface.addNumEntry"; 
+                    fJSON.addNumEntry(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                    break;
             }
             *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
@@ -138,9 +157,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "ui_interface.addHorizontalBargraph"; break;
+                    name = "ui_interface.addHorizontalBargraph"; 
+                    fJSON.addHorizontalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
+                    break;
                 case AddBargraphInst::kVertical:
-                    name = "ui_interface.addVerticalBargraph"; break;
+                    name = "ui_interface.addVerticalBargraph"; 
+                    fJSON.addVerticalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
+                    break;
             }
             *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";

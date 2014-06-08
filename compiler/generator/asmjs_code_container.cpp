@@ -225,6 +225,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
             generateUserInterface(&fCodeProducer);
             printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "JSON = function(dsp) {";
+            tab(n+2, *fOut);
+            *fOut << "return \"";
+            *fOut << fCodeProducer.getJSON(true);
+            *fOut << "\";";
+        printlines(n+2, fUICode, *fOut);
+        tab(n+1, *fOut); *fOut << "}";
 
         // Compute
         generateCompute(n);
