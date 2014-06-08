@@ -27,7 +27,8 @@
 
 using namespace std;
 
-map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;    
+map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;  
+map <string, pair<int, Typed::VarType> > ASMJAVAScriptInstVisitor::gFieldTable; 
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -140,12 +141,35 @@ void ASMJAVAScriptCodeContainer::produceClass()
 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "var that = {};"; 
-
+      
         // Fields
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
-
+      
+        // Memory methods
+        tab(n+1, *fOut); *fOut << "that.new = function() { ";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+            tab(n+2, *fOut); *fOut << "var dsp = Module._malloc(" << fCodeProducer.getStructSize() << ") | 0;";
+            if (fAllocateInstructions->fCode.size() > 0) {
+                tab(n+2, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
+            }
+            tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+            tab(n+2, *fOut); *fOut << "return dsp | 0;";
+        tab(n+1, *fOut);  *fOut << "}";
+        
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "that.delete = function(dsp) { ";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "Module._free(dsp);";
+            if (fDestroyInstructions->fCode.size() > 0) {
+                tab(n+2, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
+            }
+            tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+            tab(n+2, *fOut); *fOut << "return;";
+        tab(n+1, *fOut);  *fOut << "}";
+    
         // Print metadata declaration
         tab(n+1, *fOut); *fOut << fObjPrefix << "metadata = function(m) {";
 
@@ -169,28 +193,33 @@ void ASMJAVAScriptCodeContainer::produceClass()
         produceInfoFunctions(n+1, fKlassName, true);
 
         // Inits
-        tab(n+1, *fOut); *fOut << fObjPrefix << "classInit = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "classInit = function(dsp, samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit = function(dsp, samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+            tab(n+2, *fOut); *fOut << "return;";
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "init = function(samplingFreq) {";
-            tab(n+2, *fOut); *fOut << fObjPrefix << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(samplingFreq);";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "init = function(dsp, samplingFreq) {";
+            tab(n+2, *fOut); *fOut << fObjPrefix << "classInit(dsp, samplingFreq);";
+            tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(dsp, samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
 
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "buildUserInterface = function(ui_interface) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "buildUserInterface = function(dsp, ui_interface) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);
@@ -214,22 +243,29 @@ void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& cl
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("$0::getNumInputs", classname), true, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("$0::getNumOutputs", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetInputs(subst("$0::getNumInputs", classname), false, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("$0::getNumOutputs", classname), false, isvirtual)->accept(&fCodeProducer);
 
+    /*
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("$0::getInputRate", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetInputRate(subst("$0::getInputRate", classname), false, isvirtual)->accept(&fCodeProducer);
 
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("$0::getOutputRate", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputRate(subst("$0::getOutputRate", classname), false, isvirtual)->accept(&fCodeProducer);
+    */
 }
 
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << fObjPrefix << subst("compute = function($0, inputs, outputs) {", fFullCount);
+    tab(n+1, *fOut); *fOut << fObjPrefix << subst("compute = function(dsp, $0, inputs, outputs) {", fFullCount);
+    tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+    tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
+    tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
+    tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -239,6 +275,10 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
+    
+    tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+    tab(n+2, *fOut); *fOut << "return;";
+
 
     tab(n+1, *fOut); *fOut << "}";
 }

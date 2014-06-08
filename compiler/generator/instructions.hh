@@ -572,7 +572,7 @@ struct Address : public Printable {
         kGlobal = 0x10,
         kLink = 0x20,
         kLoop = 0x40,
-        kVolatile = 0x80
+        kVolatile = 0x80,
     };
 
     Address()

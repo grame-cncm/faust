@@ -39,6 +39,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         Typed::VarType fCurType;
     
         string fObjPrefix;
+        int fStructSize;    // Keep the size in bytes of the structure
+    
+        static map <string, pair<int, Typed::VarType> > gFieldTable;  // Table : name, <byte offset in structure, type>
 
     public:
 
@@ -67,10 +70,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["tanf"] = "Math.tan";
             
             fObjPrefix = "that.";
+            fStructSize = 0;
         }
 
         virtual ~ASMJAVAScriptInstVisitor()
         {}
+    
+        int getStructSize() { return fStructSize; }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -149,20 +155,29 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
         virtual void visit(DeclareVarInst* inst)
         {
+            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct);  // Do no generate structure variable, since they are in the global HEAP
             string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? fObjPrefix : "var ";
 
             if (inst->fValue) {
-                *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
+                if (!is_struct)
+                    *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
             } else {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
-                    *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
+                    if (!is_struct)
+                        *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
+                    gFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
+                    fStructSize += array_typed->fSize * 4;
                 } else {
-                    *fOut << prefix << inst->fAddress->getName();
+                    if (!is_struct)
+                        *fOut << prefix << inst->fAddress->getName();
+                    gFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
+                    fStructSize += 4;
                 }
             }
-            EndLine();
+            if (!is_struct)
+                EndLine();
         }
         
         virtual void generateFunArgs(DeclareFunInst* inst)
@@ -186,7 +201,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (i < size - 1) *fOut << ", ";
             }
         }
-        
+     
         virtual void visit(DeclareFunInst* inst)
         {
             // Already generated
@@ -224,9 +239,39 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(NamedAddress* named)
         {   
             if (named->getAccess() & Address::kStruct) {
-                *fOut << fObjPrefix;
+                pair<int, Typed::VarType> tmp = gFieldTable[named->getName()];
+                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
+                    *fOut << "Module.HEAPF32[dsp + " << tmp.first << " >> 2]";
+                } else {
+                    *fOut << "Module.HEAP32[dsp + " << tmp.first << " >> 2]";
+                }
+            } else {
+                *fOut << named->fName;
             }
-            *fOut << named->fName;
+        }
+        
+        virtual void visit(IndexedAddress* indexed)
+        {
+            // PTR size is 4 bytes
+            if (indexed->getAccess() & Address::kStruct) {
+                pair<int, Typed::VarType> tmp = gFieldTable[indexed->getName()];
+                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
+                    *fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
+                    *fOut << "(4 * ";
+                    indexed->fIndex->accept(this);
+                    *fOut << ")";       
+                    *fOut << " >> 2]";
+                } else {
+                    *fOut << "Module.HEAP32[dsp + " << tmp.first << " + ";  
+                    *fOut << "(4 * ";
+                    indexed->fIndex->accept(this);
+                    *fOut << ")";        
+                    *fOut << " >> 2]";
+                }
+            } else {
+                indexed->fAddress->accept(this);
+                *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
+            }
         }
   
         virtual void visit(LoadVarAddressInst* inst)

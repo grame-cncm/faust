@@ -171,7 +171,6 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
 
     // Memory methods
-   
     tab(n, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n, *fOut); *fOut << "static void " << "allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
@@ -190,12 +189,13 @@ void CCodeContainer::produceClass()
     }
     
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << fKlassName << "* " << "new" << fKlassName << "() { ";
-                        tab(n+1, *fOut); *fOut << fKlassName << "* dsp = " << "(" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "));";
-                        if (fAllocateInstructions->fCode.size() > 0) {
-                            tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
-                        }
-                        tab(n+1, *fOut); *fOut << "return dsp;";
+    tab(n, *fOut); 
+    *fOut << fKlassName << "* " << "new" << fKlassName << "() { ";
+        tab(n+1, *fOut); *fOut << fKlassName << "* dsp = " << "(" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "));";
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
+        }
+        tab(n+1, *fOut); *fOut << "return dsp;";
     tab(n, *fOut);  *fOut << "}";
 
     tab(n, *fOut);
