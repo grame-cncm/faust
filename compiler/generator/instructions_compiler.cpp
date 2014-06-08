@@ -657,29 +657,16 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, 
 
     // Arguments and expected result type analysis, add the required "cast" when needed
     if (t1 == kReal) {
-        if (t2 == kReal) {
-            res = InstBuilder::genBinopInst(opcode, val1, val2);
-            if (t3 != kReal) {
-                res = InstBuilder::genCastNumIntInst(res);
-            }
-        } else {
-            res = InstBuilder::genBinopInst(opcode, val1, InstBuilder::genCastNumFloatInst(val2));
-            if (t3 != kReal) {
-                res = InstBuilder::genCastNumIntInst(res);
-            }
-        }
+        res = (t2 == kReal) 
+            ? InstBuilder::genBinopInst(opcode, val1, val2) 
+            : InstBuilder::genBinopInst(opcode, val1, InstBuilder::genCastNumFloatInst(val2));
     } else if (t2 == kReal) {
         res = InstBuilder::genBinopInst(opcode, InstBuilder::genCastNumFloatInst(val1), val2);
-        if (t3 != kReal) {
-            res = InstBuilder::genCastNumIntInst(res);
-        }
     } else {
         res = InstBuilder::genBinopInst(opcode, val1, val2);
-        if (t3 == kReal) {
-            res = InstBuilder::genCastNumFloatInst(res);
-        }
     }
-
+    
+    res = (t3 == kReal) ? InstBuilder::genCastNumFloatInst(res) : InstBuilder::genCastNumIntInst(res);
     assert(res);
     return generateCacheCode(sig, res);
 }
