@@ -205,8 +205,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         generateComputeFunctions(&fCodeProducer);
 
-        tab(n, *fOut); *fOut << "return that;"<< endl;
-    tab(n, *fOut); *fOut << "}())";
+        tab(n+1, *fOut); *fOut << "return that;" << endl;
+    tab(n, *fOut); *fOut << "}())" << endl << endl;
 }
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
