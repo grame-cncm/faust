@@ -149,7 +149,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
       
         // Memory methods
         tab(n+1, *fOut); *fOut << "that.new = function() { ";
-            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
             tab(n+2, *fOut); *fOut << "var dsp = Module._malloc(" << fCodeProducer.getStructSize() << ") | 0;";
             if (fAllocateInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
@@ -160,7 +160,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "that.delete = function(dsp) { ";
-            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "Module._free(dsp);";
             if (fDestroyInstructions->fCode.size() > 0) {
@@ -201,7 +201,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit = function(dsp, samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
@@ -261,24 +261,22 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << subst("compute = function(dsp, $0, inputs, outputs) {", fFullCount);
-    tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP;";
-    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-    tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
-    tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
-    tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+        tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+        tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
+        tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
+        tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
-    
-    tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
-    tab(n+2, *fOut); *fOut << "return;";
-
-
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(&fCodeProducer);
+        
+        tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+        tab(n+2, *fOut); *fOut << "return;";
     tab(n+1, *fOut); *fOut << "}";
 }
