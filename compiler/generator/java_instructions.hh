@@ -342,6 +342,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this);
                     fCurType = Typed::kFloat;
                 } else if (type1 == Typed::kFloat && type2 == Typed::kInt) {
+                    inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";

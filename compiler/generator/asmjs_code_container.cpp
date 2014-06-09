@@ -28,6 +28,7 @@
 using namespace std;
 
 map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;  
+ASMJAVAScriptInstVisitor* ASMJAVAScriptInstVisitor::fGlobalVisitor = 0;
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -238,14 +239,21 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // setValue/getValue
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "setValue = function(dsp, path, value) {";
+            //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut);*fOut << "var offset = that.pathTable[path];";
-            tab(n+2, *fOut);*fOut << "Module.HEAPF32[offset >> 2] = value;";  
+            tab(n+2, *fOut);*fOut << "Module.HEAPF32[dsp + offset >> 2] = value;";  
+            //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+            //tab(n+2, *fOut); *fOut << "return;";
         tab(n+1, *fOut); *fOut << "}";
     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "getValue = function(dsp, path) {";
+            //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut);*fOut << "var offset = that.pathTable[path];";
-            tab(n+2, *fOut);*fOut << "return Module.HEAPF32[offset >> 2];";
+            //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+            tab(n+2, *fOut);*fOut << "return Module.HEAPF32[dsp + offset >> 2];";
         tab(n+1, *fOut); *fOut << "}";
      
         tab(n+1, *fOut);
