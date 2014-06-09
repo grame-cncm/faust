@@ -258,10 +258,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             generateFunDefBody(inst);
         }
         
+        
         virtual void visit(LoadVarInst* inst)
         {
             TextInstVisitor::visit(inst);
-             
+            
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
@@ -270,7 +271,30 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else {
                 fCurType = Typed::kNoType;
             }
-        }
+        } 
+        
+        /*
+        virtual void visit(LoadVarInst* inst)
+        {
+            *fOut << "(";
+            TextInstVisitor::visit(inst);
+            
+            if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
+                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
+                if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+                    fCurType = Typed::getTypeFromPtr(fCurType);
+                }
+            } else {
+                fCurType = Typed::kNoType;
+            }
+            
+            if (fCurType == Typed::kInt) {
+                *fOut << " | 0)";
+            } else {
+                *fOut << ")";
+            }
+        } 
+        */
         
         virtual void visit(NamedAddress* named)
         {   
@@ -338,21 +362,18 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
-            //*fOut << "+(" << inst->fNum << ")";
             *fOut << inst->fNum;
             fCurType = Typed::kFloat;
         }
         
         virtual void visit(IntNumInst* inst)
         {
-            //*fOut << "(" << inst->fNum << " | 0)";
             *fOut << inst->fNum;
             fCurType = Typed::kInt;
         }
         
         virtual void visit(BoolNumInst* inst)
         {
-            //*fOut << "(" << inst->fNum << " | 0)";
             *fOut << inst->fNum;
             fCurType = Typed::kBool;
         }
@@ -363,7 +384,35 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             *fOut << inst->fNum;
             fCurType = Typed::kInt;
         }
+    
+        /*
+        // No .f syntax for float in JS
+        virtual void visit(FloatNumInst* inst)
+        {
+            *fOut << "+(" << inst->fNum << ")";
+            fCurType = Typed::kFloat;
+        }
         
+        virtual void visit(IntNumInst* inst)
+        {
+            *fOut << "(" << inst->fNum << " | 0)";
+            fCurType = Typed::kInt;
+        }
+        
+        virtual void visit(BoolNumInst* inst)
+        {
+            *fOut << "(" << inst->fNum << " | 0)";
+            fCurType = Typed::kBool;
+        }
+        
+        // No . syntax for double in JS
+        virtual void visit(DoubleNumInst* inst)
+        {
+            *fOut << inst->fNum;
+            fCurType = Typed::kInt;
+        }
+        */
+    
         virtual void visit(BinopInst* inst)
         {
             if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
@@ -383,8 +432,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst2->accept(fGlobalVisitor);
                 Typed::VarType type2 = fGlobalVisitor->fCurType;
                 
-                *fOut << "(";
-                
                 if (type1 == Typed::kInt && type2 == Typed::kInt) {
                     if (inst->fOpcode == kMul) {
                         *fOut << "Math.imul(";
@@ -393,37 +440,46 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         inst->fInst2->accept(this);
                         *fOut << ")";
                     } else {
+                        *fOut << "(";
                         inst->fInst1->accept(this);
                         *fOut << " ";
                         *fOut << gBinOpTable[inst->fOpcode]->fName;
                         *fOut << " ";
                         inst->fInst2->accept(this);
+                        *fOut << ")";
                     }
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kInt && type2 == Typed::kFloat) {
+                    *fOut << "(";
                     //*fOut << "(float)";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
+                    *fOut << ")";
                     fCurType = Typed::kFloat;
                 } else if (type1 == Typed::kFloat && type2 == Typed::kInt) {
+                    *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     //*fOut << "(float)";
                     inst->fInst2->accept(this); 
+                    *fOut << ")";
                     fCurType = Typed::kFloat;   
                 } else if (type1 == Typed::kFloat && type2 == Typed::kFloat) {
+                    *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
+                    *fOut << ")";
                     fCurType = Typed::kFloat;
                 } else if (type1 == Typed::kInt && type2 == Typed::kBool) {
+                    *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
@@ -431,8 +487,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     //*fOut << "((";
                     inst->fInst2->accept(this);
                     //*fOut << ")?1:0)";
+                    *fOut << ")";
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
+                    *fOut << "(";
                     //*fOut << "((";
                     inst->fInst1->accept(this);
                     //*fOut << ")?1:0)";
@@ -440,8 +498,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
+                    *fOut << " | 0)";
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                    *fOut << "(";
                     //*fOut << "((";
                     inst->fInst1->accept(this);
                     //*fOut << ")?1:0)";
@@ -451,8 +511,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     //*fOut << "((";
                     inst->fInst2->accept(this);
                     //*fOut << ")?1:0)";
+                    *fOut << ")";
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kFloat && type2 == Typed::kBool) {
+                    *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
@@ -460,8 +522,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     //*fOut << "((";
                     inst->fInst2->accept(this);
                     //*fOut << ")?1.f:0.f)";
+                    *fOut << ")";
                     fCurType = Typed::kFloat;
                 } else if (type1 == Typed::kBool && type2 == Typed::kFloat) {
+                    *fOut << "(";
                     //*fOut << "((";
                     inst->fInst1->accept(this);
                     //*fOut << ")?1.f:0.f)";
@@ -470,25 +534,183 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     inst->fInst2->accept(this);
                     fCurType = Typed::kFloat;
+                    *fOut << ")";
                 } else { // Default
+                    *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
                     fCurType = Typed::kNoType;
+                    *fOut << ")";
                 }  
-                            
-                *fOut << ")";
             }
         }
-   
+        
+        /*
+        virtual void visit(BinopInst* inst)
+        {
+            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+                *fOut << "(";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << " | 0)";
+                fCurType = Typed::kBool;
+            } else {
+                
+                inst->fInst1->accept(fGlobalVisitor);
+                Typed::VarType type1 = fGlobalVisitor->fCurType;
+                
+                inst->fInst2->accept(fGlobalVisitor);
+                Typed::VarType type2 = fGlobalVisitor->fCurType;
+                
+                if (type1 == Typed::kInt && type2 == Typed::kInt) {
+                    if (inst->fOpcode == kMul) {
+                        *fOut << "(";
+                        *fOut << "Math.imul(";
+                        inst->fInst1->accept(this);
+                        *fOut << ", ";
+                        inst->fInst2->accept(this);
+                        *fOut << ") | 0";
+                        *fOut << ")";
+                    } else {
+                        *fOut << "(";
+                        inst->fInst1->accept(this);
+                        *fOut << " ";
+                        *fOut << gBinOpTable[inst->fOpcode]->fName;
+                        *fOut << " ";
+                        inst->fInst2->accept(this);
+                        *fOut << " | 0)";
+                    }
+                    fCurType = Typed::kInt;
+                } else if (type1 == Typed::kInt && type2 == Typed::kFloat) {
+                    *fOut << "+(";
+                    //*fOut << "(float)";
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                    *fOut << ")";
+                    fCurType = Typed::kFloat;
+                } else if (type1 == Typed::kFloat && type2 == Typed::kInt) {
+                    *fOut << "+(";
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    //*fOut << "(float)";
+                    inst->fInst2->accept(this); 
+                    *fOut << ")";
+                    fCurType = Typed::kFloat;   
+                } else if (type1 == Typed::kFloat && type2 == Typed::kFloat) {
+                    *fOut << "+(";
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                    *fOut << ")";
+                    fCurType = Typed::kFloat;
+                } else if (type1 == Typed::kInt && type2 == Typed::kBool) {
+                    *fOut << "(";
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    //*fOut << "((";
+                    inst->fInst2->accept(this);
+                    //*fOut << ")?1:0)";
+                    *fOut << " | 0)";
+                    fCurType = Typed::kInt;
+                } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
+                    *fOut << "(";
+                    //*fOut << "((";
+                    inst->fInst1->accept(this);
+                    //*fOut << ")?1:0)";
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                    *fOut << " | 0)";
+                    fCurType = Typed::kInt;
+                } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                    *fOut << "(";
+                    //*fOut << "((";
+                    inst->fInst1->accept(this);
+                    //*fOut << ")?1:0)";
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    //*fOut << "((";
+                    inst->fInst2->accept(this);
+                    //*fOut << ")?1:0)";
+                    *fOut << " | 0)";
+                    fCurType = Typed::kInt;
+                } else if (type1 == Typed::kFloat && type2 == Typed::kBool) {
+                    *fOut << "+(";
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    //*fOut << "((";
+                    inst->fInst2->accept(this);
+                    //*fOut << ")?1.f:0.f)";
+                    *fOut << ")";
+                    fCurType = Typed::kFloat;
+                } else if (type1 == Typed::kBool && type2 == Typed::kFloat) {
+                    *fOut << "+(";
+                    //*fOut << "((";
+                    inst->fInst1->accept(this);
+                    //*fOut << ")?1.f:0.f)";
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                    fCurType = Typed::kFloat;
+                    *fOut << ")";
+                } else { // Default
+                    *fOut << "(";
+                    inst->fInst1->accept(this);
+                    *fOut << " ";
+                    *fOut << gBinOpTable[inst->fOpcode]->fName;
+                    *fOut << " ";
+                    inst->fInst2->accept(this);
+                    fCurType = Typed::kNoType;
+                    *fOut << ")";
+                }  
+            }
+        }
+        */
+        
+        
         virtual void visit(CastNumInst* inst)
         {
             // No explicit cast generation
             inst->fInst->accept(this);
         }
-       
+        
+        /*
+        virtual void visit(CastNumInst* inst)
+        {
+            if (generateType(inst->fType) == "int") {
+                *fOut << "(";
+                inst->fInst->accept(this);
+                *fOut << " | 0)";
+                fCurType = Typed::kInt;
+            } else {
+                *fOut << "+(";
+                inst->fInst->accept(this);
+                *fOut << ")";
+                fCurType = Typed::kFloat;
+            }
+        }
+        */
+     
         virtual void visit(FunCallInst* inst)
         {
             string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
