@@ -90,8 +90,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         produceInfoFunctions(n+1, fKlassName, false);
     
         tab(n+1, *fOut); *fOut << "var that = {};"; 
-        //tab(n+1, *fOut); *fOut << "Module.TOTAL_MEMORY = 41943040";
-
+    
         // Inits
         tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(samplingFreq) {";
             tab(n+2, *fOut);
