@@ -28,7 +28,6 @@
 using namespace std;
 
 map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;  
-map <string, pair<int, Typed::VarType> > ASMJAVAScriptInstVisitor::gFieldTable; 
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -141,7 +140,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "var that = {};"; 
-      
+    
         // Fields
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
@@ -225,7 +224,30 @@ void ASMJAVAScriptCodeContainer::produceClass()
             generateUserInterface(&fCodeProducer);
             printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
+       
+        // Fields to path
+        tab(n+1, *fOut); *fOut << "var that.pathTable = {};"; 
+        map <string, string>::iterator it;
+        map <string, string>& pathTable = fCodeProducer.getPathTable();
+        map <string, pair<int, Typed::VarType> >& fieldTable = fCodeProducer.getFieldTable();
+        for (it = pathTable.begin(); it != pathTable.end(); it++) {
+            pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
+            tab(n+1, *fOut); *fOut << "that.pathTable[" << (*it).second << "] = " << tmp.first << ";"; 
+        }
     
+        // setValue/getValue
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "setValue = function(dsp, path, value) {";
+            tab(n+2, *fOut);*fOut << "var offset = that.pathTable[path];";
+            tab(n+2, *fOut);*fOut << "Module.HEAPF32[offset >> 2] = value;";  
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "getValue = function(dsp, path) {";
+            tab(n+2, *fOut);*fOut << "var offset = that.pathTable[path];";
+            tab(n+2, *fOut);*fOut << "return Module.HEAPF32[offset >> 2];";
+        tab(n+1, *fOut); *fOut << "}";
+     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "JSON = function(dsp) {";
             tab(n+2, *fOut);

@@ -219,7 +219,6 @@ class JSONUI : public PathUI, public Meta
         inline string flatten(const string& src)
         {
             std::stringstream dst;
-            
             for (int i = 0; i < src.size(); i++) {
                 switch (src[i]) {
                     case '\n':

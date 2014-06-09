@@ -25,7 +25,6 @@
 using namespace std;
 
 #include "text_instructions.hh"
-
 #include "../../architecture/faust/gui/JSONUI.h"
 
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
@@ -45,7 +44,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         string fObjPrefix;
         int fStructSize;    // Keep the size in bytes of the structure
     
-        static map <string, pair<int, Typed::VarType> > gFieldTable;  // Table : name, <byte offset in structure, type>
+        map <string, pair<int, Typed::VarType> > fFieldTable;  // Table : field_name, <byte offset in structure, type>
+        map <string, string> fPathTable;                       // Table : field_name, complete path
 
     public:
 
@@ -83,6 +83,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     
         int getStructSize() { return fStructSize; }
         string getJSON(bool flat) { return fJSON.JSON(flat); }
+        map <string, string>& getPathTable() { return fPathTable; }
+        map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -125,6 +127,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fJSON.addCheckButton(inst->fLabel.c_str(), NULL);
             }
             
+            fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this))";
             EndLine();
         }
@@ -146,6 +149,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fJSON.addNumEntry(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                     break;
             }
+            
+            fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
             *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
             *fOut << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
@@ -165,6 +170,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fJSON.addVerticalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
                     break;
             }
+            
+            fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
             *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
             *fOut << ", " << inst->fMin << ", " << inst->fMax << ")";
@@ -190,12 +197,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
                     if (!is_struct)
                         *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
-                    gFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
                     fStructSize += array_typed->fSize * 4;
                 } else {
                     if (!is_struct)
                         *fOut << prefix << inst->fAddress->getName();
-                    gFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
                     fStructSize += 4;
                 }
             }
@@ -262,7 +269,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(NamedAddress* named)
         {   
             if (named->getAccess() & Address::kStruct) {
-                pair<int, Typed::VarType> tmp = gFieldTable[named->getName()];
+                pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
                     *fOut << "Module.HEAPF32[dsp + " << tmp.first << " >> 2]";
                 } else {
@@ -277,7 +284,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             // PTR size is 4 bytes
             if (indexed->getAccess() & Address::kStruct) {
-                pair<int, Typed::VarType> tmp = gFieldTable[indexed->getName()];
+                pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
                     *fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(4 * ";

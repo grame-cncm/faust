@@ -17,7 +17,9 @@ class PathUI : public UI
     protected:
     
         std::vector<std::string> fControlsLevel;
-        
+       
+    public:
+    
         std::string buildPath(const std::string& label) 
         {
             std::string res = "/";
