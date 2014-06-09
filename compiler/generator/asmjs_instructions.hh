@@ -91,97 +91,69 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue << "\")";
             fJSON.declare(NULL, inst->fKey.c_str(), inst->fValue.c_str());
-            EndLine();
         }
 
         virtual void visit(OpenboxInst* inst)
         {
-            string name;
             switch (inst->fOrient) {
                 case 0:
-                    name = "ui_interface.openVerticalBox"; 
                     fJSON.openVerticalBox(inst->fName.c_str());
                     break;
                 case 1:
-                    name = "ui_interface.openHorizontalBox";
                     fJSON.openHorizontalBox(inst->fName.c_str());
                     break;
                 case 2:
-                    name = "ui_interface.openTabBox";
                     fJSON.openTabBox(inst->fName.c_str());
                     break;
             }
-            *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
-            EndLine();
         }
 
         virtual void visit(CloseboxInst* inst)
         {
-            *fOut << "ui_interface.closeBox();"; tab(fTab, *fOut);
             fJSON.closeBox();
         }
         
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", ";
                 fJSON.addButton(inst->fLabel.c_str(), NULL);
             } else {
-                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", ";
                 fJSON.addCheckButton(inst->fLabel.c_str(), NULL);
             }
             
             fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
-            *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this))";
-            EndLine();
         }
         
         virtual void visit(AddSliderInst* inst)
         {
-            string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "ui_interface.addHorizontalSlider"; 
                     fJSON.addHorizontalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                     break;
                 case AddSliderInst::kVertical:
-                    name = "ui_interface.addVerticalSlider";
                     fJSON.addVerticalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                     break;
                 case AddSliderInst::kNumEntry:
-                    name = "ui_interface.addNumEntry"; 
                     fJSON.addNumEntry(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                     break;
             }
             
             fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
-            *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
-            *fOut << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
-            EndLine();
         }
 
         virtual void visit(AddBargraphInst* inst)
         {
-            string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "ui_interface.addHorizontalBargraph"; 
                     fJSON.addHorizontalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
                     break;
                 case AddBargraphInst::kVertical:
-                    name = "ui_interface.addVerticalBargraph"; 
                     fJSON.addVerticalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
                     break;
             }
             
             fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
-            *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
-            *fOut << ", " << inst->fMin << ", " << inst->fMax << ")";
-            EndLine();
         }
 
         virtual void visit(LabelInst* inst)

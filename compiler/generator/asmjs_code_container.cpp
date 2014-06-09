@@ -54,7 +54,6 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, c
         throw faustexception("Vector mode not supported for ASMJavaScript\n");
     } else {
         container = new ASMJAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
-        //throw faustexception("Scalar mode not (yet) supported for ASMJavaScript\n");
     }
 
     return container;
@@ -143,7 +142,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "var that = {};"; 
     
-        // Fields
+        // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
@@ -190,6 +189,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
 
         tab(n+1, *fOut); *fOut << "}" << endl;
   
+        // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, true);
 
@@ -218,16 +218,19 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(dsp, samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
         
-        // User interface
+        // User interface : prepare the JSON string...
+        generateUserInterface(&fCodeProducer);
+    
+        // Generate JSON 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "buildUserInterface = function(dsp, ui_interface) {";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "JSON = function() {";
             tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
-            generateUserInterface(&fCodeProducer);
+            *fOut << "return \""; *fOut << fCodeProducer.getJSON(true); *fOut << "\";";
             printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
     
         // Fields to path
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "that.pathTable = {};"; 
         map <string, string>::iterator it;
         map <string, string>& pathTable = fCodeProducer.getPathTable();
@@ -248,6 +251,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             //tab(n+2, *fOut); *fOut << "return;";
         tab(n+1, *fOut); *fOut << "}";
     
+        // setValue
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "getValue = function(dsp, path) {";
             //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
@@ -255,15 +259,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut);*fOut << "var offset = that.pathTable[path];";
             //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
             tab(n+2, *fOut);*fOut << "return Module.HEAPF32[dsp + offset >> 2];";
-        tab(n+1, *fOut); *fOut << "}";
-     
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "JSON = function() {";
-            tab(n+2, *fOut);
-            *fOut << "return \"";
-            *fOut << fCodeProducer.getJSON(true);
-            *fOut << "\";";
-        printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
     
         // Compute
@@ -285,16 +280,6 @@ void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& cl
     fCodeProducer.Tab(tabs);
     generateGetInputs(subst("$0::getNumInputs", classname), false, isvirtual)->accept(&fCodeProducer);
     generateGetOutputs(subst("$0::getNumOutputs", classname), false, isvirtual)->accept(&fCodeProducer);
-
-    /*
-    // Input Rates
-    fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("$0::getInputRate", classname), false, isvirtual)->accept(&fCodeProducer);
-
-    // Output Rates
-    fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("$0::getOutputRate", classname), false, isvirtual)->accept(&fCodeProducer);
-    */
 }
 
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
