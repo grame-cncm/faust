@@ -41,44 +41,39 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         // input items
         that.inputs_items = [];
  
-        //var factoryPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
-        //asmjs_dsp_factory(factoryPtr);
-        //that.factory = Pointer_stringify(factoryPtr);
- 
         var dspcontentPtr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
-        that.factory = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
-        that.ptr = eval(that.factory);
+        that.factory_code = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
+        that.factory = eval(thatfactory_codefactory);
+        that.dsp = that.factory.newmydsp();
  
+        console.log(that.factory_code);
         console.log(that.factory);
-        console.log(that.ptr);
+        console.log(that.dsp);
          
         // Bind to C++ Member Functions
         
         that.getNumInputs = function () 
         {
-            return that.ptr.getNumInputs();
+            return that.factory.getNumInputs(that.dsp);
         };
         
         that.getNumOutputs = function () 
         {
-            return that.ptr.getNumOutputs();
+            return that.factory.getNumOutputs(that.dsp);
         };
         
         that.update_outputs = function () 
         {
-            /*
             if (that.ouputs_items.length > 0 && that.handler && that.ouputs_timer-- === 0) {
                 that.ouputs_timer = 5;
                 var i;
                 for (i = 0; i < that.ouputs_items.length; i++) {
                     var pathPtr = allocate(intArrayFromString(that.ouputs_items[i]), 'i8', ALLOC_STACK);
-                    that.handler(that.ouputs_items[i], DSP_getValue(that.ptr, pathPtr));
+                    that.handler(that.ouputs_items[i], that.factory.getValue(that.dsp, pathPtr));
                 }
             }
-            */
         };
-        
- 
+     
         that.compute = function (e) 
         {
             var i;
@@ -94,7 +89,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
              }
  
             // Compute
-            that.ptr.compute(that.buffer_size, inputs, outputs);
+            that.factory.compute(that.dsp, that.buffer_size, inputs, outputs);
            
             // Update bargraph
             that.update_outputs();
@@ -102,7 +97,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.destroy = function ()
         {
-            //DSP_destructor(that.ptr);
+            that.factory.deletemydsp(that.dsp);
         };
         
         // Connect to another node
@@ -128,16 +123,12 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.update = function (path, val) 
         {
-            //DSP_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
+            that.factory.setValue(that.dsp, path, val);
         };
         
         that.json = function ()
         {
-            /*
-            var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
-            DSP_getJSON(that.ptr, jsonPtr);
-            return Pointer_stringify(jsonPtr);
-            */
+            return Pointer_stringify(that.factory.JSON());
         }
         
         that.controls = function()
@@ -187,12 +178,13 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             // Setup web audio context
             console.log("that.buffer_size %d", that.buffer_size);
             that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.getNumInputs(), that.getNumOutputs());
-            that.scriptProcessor.onaudioprocess = that.compute;
+            that.scriptProcessor.onaudioprocess = that.factory.compute;
                                     
             // bargraph
-            //that.parse_ui(JSON.parse(that.json()).ui);
+            that.parse_ui(JSON.parse(that.json()).ui);
  
-            that.ptr.init(faust.context.sampleRate);
+            // Init DSP
+            that.factory.init(that.dsp, faust.context.sampleRate);
         };
         
         that.init();

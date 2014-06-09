@@ -106,7 +106,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 case 1:
                     name = "ui_interface.openHorizontalBox";
                     fJSON.openHorizontalBox(inst->fName.c_str());
-                     break;
+                    break;
                 case 2:
                     name = "ui_interface.openTabBox";
                     fJSON.openTabBox(inst->fName.c_str());
@@ -284,11 +284,30 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << named->fName;
             }
         }
+    
+        inline bool startWith(const string& str, const string& prefix)
+        {
+            return (str.substr(0, prefix.size()) == prefix);
+        }
         
         virtual void visit(IndexedAddress* indexed)
         {
             // PTR size is 4 bytes
-            if (indexed->getAccess() & Address::kStruct) {
+            
+            // To test : completely adhoc code for input/output...
+            if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
+                *fOut << "Module.HEAP32[" << indexed->getName() << " + ";  
+                *fOut << "(4 * ";
+                indexed->fIndex->accept(this);
+                *fOut << ")";       
+                *fOut << " >> 2]";
+            } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
+                *fOut << "Module.HEAPF32[" << indexed->getName() << " + ";  
+                *fOut << "(4 * ";
+                indexed->fIndex->accept(this);
+                *fOut << ")";       
+                *fOut << " >> 2]";
+            } else if (indexed->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
                     *fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
