@@ -104,11 +104,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fJSON.openVerticalBox(inst->fName.c_str());
                     break;
                 case 1:
-                    name = "ui_interface.openHorizontalBox"; break;
+                    name = "ui_interface.openHorizontalBox";
                     fJSON.openHorizontalBox(inst->fName.c_str());
+                     break;
                 case 2:
-                    name = "ui_interface.openTabBox"; break;
+                    name = "ui_interface.openTabBox";
                     fJSON.openTabBox(inst->fName.c_str());
+                    break;
             }
             *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
             EndLine();
@@ -376,7 +378,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     }
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kInt && type2 == Typed::kFloat) {
-                    *fOut << "(float)";
+                    //*fOut << "(float)";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
@@ -388,7 +390,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
-                    *fOut << "(float)";
+                    //*fOut << "(float)";
                     inst->fInst2->accept(this); 
                     fCurType = Typed::kFloat;   
                 } else if (type1 == Typed::kFloat && type2 == Typed::kFloat) {
