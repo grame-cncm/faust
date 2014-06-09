@@ -153,5 +153,7 @@ EXPORT const char* asmjs_dsp_factory(char* dsp_content)
     */
     
     factory = compile_faust_asmjs(argc1, argv1, "WEB_DSP", dsp_content, error_msg);
+    printf("error_msg %s\n", error_msg);
+    printf("factory = %s\n", factory.c_str());
     return factory.c_str();
 }

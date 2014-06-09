@@ -297,29 +297,29 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             // To test : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
                 *fOut << "Module.HEAP32[" << indexed->getName() << " + ";  
-                *fOut << "(4 * ";
+                *fOut << "(";
                 indexed->fIndex->accept(this);
-                *fOut << ")";       
+                *fOut << " << 2)";       
                 *fOut << " >> 2]";
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
                 *fOut << "Module.HEAPF32[" << indexed->getName() << " + ";  
-                *fOut << "(4 * ";
+                *fOut << "(";
                 indexed->fIndex->accept(this);
-                *fOut << ")";       
+                *fOut << " << 2)";       
                 *fOut << " >> 2]";
             } else if (indexed->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
                     *fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
-                    *fOut << "(4 * ";
+                    *fOut << "(";
                     indexed->fIndex->accept(this);
-                    *fOut << ")";       
+                    *fOut << " << 2)";       
                     *fOut << " >> 2]";
                 } else {
                     *fOut << "Module.HEAP32[dsp + " << tmp.first << " + ";  
-                    *fOut << "(4 * ";
+                    *fOut << "(";
                     indexed->fIndex->accept(this);
-                    *fOut << ")";        
+                    *fOut << " << 2)";        
                     *fOut << " >> 2]";
                 }
             } else {
@@ -383,7 +383,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 
                 if (type1 == Typed::kInt && type2 == Typed::kInt) {
                     if (inst->fOpcode == kMul) {
-                        *fOut << "Module.Math.imul(";
+                        *fOut << "Math.imul(";
                         inst->fInst1->accept(this);
                         *fOut << ", ";
                         inst->fInst2->accept(this);

@@ -43,11 +43,12 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
  
         var dspcontentPtr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
         that.factory_code = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
-        that.factory = eval(thatfactory_codefactory);
-        that.dsp = that.factory.newmydsp();
- 
         console.log(that.factory_code);
+ 
+        that.factory = eval(that.factory_code);
         console.log(that.factory);
+ 
+        that.dsp = that.factory.newmydsp();
         console.log(that.dsp);
          
         // Bind to C++ Member Functions
@@ -76,23 +77,31 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
      
         that.compute = function (e) 
         {
-            var i;
- 
-            var inputs = [];
-            for (i = 0; i < that.getNumInputs(); i++) {
-                inputs[i] = e.inputBuffer.getChannelData(i);
+            var i, j;
+             
+            // Read inputs
+            for (i = 0; i < that.numIn; i++) {
+                var input = e.inputBuffer.getChannelData(i);
+                var dspInput = that.dspInChannnels[i];
+                for (j = 0; j < input.length; j++) {
+                    dspInput[j] = input[j];
+                }
             }
  
-             var outputs = [];
-             for (i = 0; i < that.getNumOutputs(); i++) {
-                outputs[i] = e.outputBuffer.getChannelData(i);
-             }
- 
             // Compute
-            that.factory.compute(that.dsp, that.buffer_size, inputs, outputs);
+            that.factory.compute(that.dsp, that.buffer_size, that.ins, that.outs);
            
             // Update bargraph
             that.update_outputs();
+ 
+            // Write outputs
+            for (i = 0; i < that.numOut; i++) {
+                var output = e.outputBuffer.getChannelData(i);
+                var dspOutput = that.dspOutChannnels[i];
+                for (j = 0; j < output.length; j++) {
+                    output[j] = dspOutput[j];
+                }
+            }
         };
         
         that.destroy = function ()
@@ -128,7 +137,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.json = function ()
         {
-            return Pointer_stringify(that.factory.JSON());
+            return that.factory.JSON();
         }
         
         that.controls = function()
@@ -176,12 +185,54 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         that.init = function ()
         {
             // Setup web audio context
+            var i;
+            that.ptrsize = 4; //assuming pointer in emscripten are 32bits
+            that.samplesize = 4;
+             
+            // Get input / output counts
+            that.numIn = that.getNumInputs();
+            that.numOut = that.getNumOutputs();
+             
+            // Setup web audio context
             console.log("that.buffer_size %d", that.buffer_size);
-            that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.getNumInputs(), that.getNumOutputs());
-            that.scriptProcessor.onaudioprocess = that.factory.compute;
+            that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
+            that.scriptProcessor.onaudioprocess = that.compute;
+             
+            // TODO the below calls to malloc are not yet being freed, potential memory leak
+            // allocate memory for input / output arrays
+            that.ins = Module._malloc(that.ptrsize * that.numIn);
+             
+            // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
+            for (i = 0; i < that.numIn; i++) { 
+                // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
+            }
+             
+            //ptrsize, change to eight or use Runtime.QUANTUM? or what?
+            that.outs = Module._malloc(that.ptrsize * that.numOut); 
+             
+            // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
+            for (i = 0; i < that.numOut; i++) { 
+                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
+            }
+             
+            // Prepare Ins/out buffer tables
+            that.dspInChannnels = [];
+            var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+            for (i = 0; i < that.numIn; i++) {
+                that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
+            }
+             
+            that.dspOutChannnels = [];
+            var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
+            for (i = 0; i < that.numOut; i++) {
+                that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
+            }
                                     
             // bargraph
-            that.parse_ui(JSON.parse(that.json()).ui);
+            console.log(that.factory.JSON());
+            that.parse_ui(JSON.parse(that.factory.JSON()).ui);
  
             // Init DSP
             that.factory.init(that.dsp, faust.context.sampleRate);

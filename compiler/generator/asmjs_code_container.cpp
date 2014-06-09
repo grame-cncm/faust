@@ -216,7 +216,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << fObjPrefix << "classInit(dsp, samplingFreq);";
             tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(dsp, samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
-
+        
         // User interface
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "buildUserInterface = function(dsp, ui_interface) {";
@@ -225,15 +225,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
             generateUserInterface(&fCodeProducer);
             printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
-       
+    
         // Fields to path
-        tab(n+1, *fOut); *fOut << "var that.pathTable = {};"; 
+        tab(n+1, *fOut); *fOut << "that.pathTable = {};"; 
         map <string, string>::iterator it;
         map <string, string>& pathTable = fCodeProducer.getPathTable();
         map <string, pair<int, Typed::VarType> >& fieldTable = fCodeProducer.getFieldTable();
         for (it = pathTable.begin(); it != pathTable.end(); it++) {
             pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
-            tab(n+1, *fOut); *fOut << "that.pathTable[" << (*it).second << "] = " << tmp.first << ";"; 
+            tab(n+1, *fOut); *fOut << "that.pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
         }
     
         // setValue/getValue
@@ -264,7 +264,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             *fOut << "\";";
         printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
-
+    
         // Compute
         generateCompute(n);
 
@@ -272,7 +272,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
         generateComputeFunctions(&fCodeProducer);
-
+   
         tab(n+1, *fOut); *fOut << "return that;" << endl;
     tab(n, *fOut); *fOut << "}())" << endl << endl;
 }
