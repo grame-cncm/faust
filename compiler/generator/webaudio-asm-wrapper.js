@@ -41,10 +41,10 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         // input items
         that.inputs_items = [];
  
-
+        //Module.TOTAL_MEMORY = 41943040;
  
-        var dspcontentPtr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
-        that.factory_code = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
+        var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
+        that.factory_code = Pointer_stringify(asmjs_dsp_factory(code_ptr));
         console.log(that.factory_code);
  
         that.factory = eval(that.factory_code);
@@ -53,8 +53,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         that.dsp = that.factory.newmydsp();
         console.log(that.dsp);
          
-        // Bind to C++ Member Functions
-        
         that.getNumInputs = function () 
         {
             return that.factory.getNumInputs(that.dsp);
@@ -107,6 +105,17 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.destroy = function ()
         {
+            for (i = 0; i < that.numIn; i++) { 
+                Module._free(HEAP32[(that.ins >> 2) + i]); 
+            }
+             
+            for (i = 0; i < that.numOut; i++) { 
+                Module._free(HEAP32[(that.outs >> 2) + i])
+            }
+ 
+            Module._free(that.ins);
+            Module._free(that.outs);
+ 
             that.factory.deletemydsp(that.dsp);
         };
         

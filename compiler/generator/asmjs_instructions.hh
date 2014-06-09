@@ -91,7 +91,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" <<  inst->fValue << "\")";
+            *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue << "\")";
+            fJSON.declare(NULL, inst->fKey.c_str(), inst->fValue.c_str());
             EndLine();
         }
 
@@ -337,18 +338,21 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
+            //*fOut << "+(" << inst->fNum << ")";
             *fOut << inst->fNum;
             fCurType = Typed::kFloat;
         }
         
         virtual void visit(IntNumInst* inst)
         {
+            //*fOut << "(" << inst->fNum << " | 0)";
             *fOut << inst->fNum;
             fCurType = Typed::kInt;
         }
         
         virtual void visit(BoolNumInst* inst)
         {
+            //*fOut << "(" << inst->fNum << " | 0)";
             *fOut << inst->fNum;
             fCurType = Typed::kBool;
         }

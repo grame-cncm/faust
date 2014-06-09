@@ -104,7 +104,7 @@ msg/Message.o: msg/Message.h lib/smartpointer.h
 nodes/FaustFactory.o: nodes/FaustFactory.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h
 nodes/FaustFactory.o: nodes/FaustNode.h msg/Message.h nodes/RootNode.h
 nodes/FaustNode.o: nodes/FaustNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h
-nodes/FaustNode.o: httpd/HTTPDServer.h 
+nodes/FaustNode.o: httpd/HTTPDServer.h
 nodes/MessageDriven.o: httpd/Address.h msg/Message.h lib/smartpointer.h nodes/MessageDriven.h msg/MessageProcessor.h
-nodes/MessageDriven.o: httpd/HTTPDServer.h 
+nodes/MessageDriven.o: httpd/HTTPDServer.h
 nodes/RootNode.o: nodes/RootNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h

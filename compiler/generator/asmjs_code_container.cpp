@@ -80,7 +80,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
-
+    
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
@@ -90,6 +90,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         produceInfoFunctions(n+1, fKlassName, false);
     
         tab(n+1, *fOut); *fOut << "var that = {};"; 
+        //tab(n+1, *fOut); *fOut << "Module.TOTAL_MEMORY = 41943040";
 
         // Inits
         tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(samplingFreq) {";
@@ -136,9 +137,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    //tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
     tab(n, *fOut); *fOut << "(function " << fKlassName << "() {";
-
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "'use asm';"; 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "var that = {};"; 
     
