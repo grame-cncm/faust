@@ -338,22 +338,22 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
-            *fOut << "+(" << inst->fNum << ")";
-            //*fOut << inst->fNum;
+            //*fOut << "+(" << inst->fNum << ")";
+            *fOut << inst->fNum;
             fCurType = Typed::kFloat;
         }
         
         virtual void visit(IntNumInst* inst)
         {
-            *fOut << "(" << inst->fNum << " | 0)";
-            //*fOut << inst->fNum;
+            //*fOut << "(" << inst->fNum << " | 0)";
+            *fOut << inst->fNum;
             fCurType = Typed::kInt;
         }
         
         virtual void visit(BoolNumInst* inst)
         {
-            *fOut << "(" << inst->fNum << " | 0)";
-            //*fOut << inst->fNum;
+            //*fOut << "(" << inst->fNum << " | 0)";
+            *fOut << inst->fNum;
             fCurType = Typed::kBool;
         }
         
