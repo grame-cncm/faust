@@ -424,42 +424,43 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
-                    *fOut << "((";
+                    //*fOut << "((";
                     inst->fInst2->accept(this);
-                    *fOut << ")?1:0)";
+                    //*fOut << ")?1:0)";
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
-                    *fOut << "((";
+                    //*fOut << "((";
                     inst->fInst1->accept(this);
-                    *fOut << ")?1:0)";
+                    //*fOut << ")?1:0)";
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                    *fOut << "((";
+                    //*fOut << "((";
                     inst->fInst1->accept(this);
-                    *fOut << ")?1:0)";
+                    //*fOut << ")?1:0)";
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
-                    *fOut << "((";
+                    //*fOut << "((";
                     inst->fInst2->accept(this);
-                    *fOut << ")?1:0)";
+                    //*fOut << ")?1:0)";
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kFloat && type2 == Typed::kBool) {
+                    inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
-                    *fOut << "((";
+                    //*fOut << "((";
                     inst->fInst2->accept(this);
-                    *fOut << ")?1.f:0.f)";
+                    //*fOut << ")?1.f:0.f)";
                     fCurType = Typed::kFloat;
                 } else if (type1 == Typed::kBool && type2 == Typed::kFloat) {
-                    *fOut << "((";
+                    //*fOut << "((";
                     inst->fInst1->accept(this);
-                    *fOut << ")?1.f:0.f)";
+                    //*fOut << ")?1.f:0.f)";
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";

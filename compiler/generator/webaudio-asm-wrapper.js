@@ -41,6 +41,8 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         // input items
         that.inputs_items = [];
  
+
+ 
         var dspcontentPtr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
         that.factory_code = Pointer_stringify(asmjs_dsp_factory(dspcontentPtr));
         console.log(that.factory_code);
@@ -69,8 +71,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
                 that.ouputs_timer = 5;
                 var i;
                 for (i = 0; i < that.ouputs_items.length; i++) {
-                    var pathPtr = allocate(intArrayFromString(that.ouputs_items[i]), 'i8', ALLOC_STACK);
-                    that.handler(that.ouputs_items[i], that.factory.getValue(that.dsp, pathPtr));
+                    that.handler(that.ouputs_items[i], that.factory.getValue(that.dsp, that.ouputs_items[i]));
                 }
             }
         };
