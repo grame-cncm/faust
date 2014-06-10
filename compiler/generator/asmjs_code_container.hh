@@ -41,7 +41,7 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
     public:
 
         ASMJAVAScriptCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :fCodeProducer(out), fOut(out), fSuperKlassName(super), fObjPrefix("that.")
+            :fCodeProducer(out), fOut(out), fSuperKlassName(super), fObjPrefix("")
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;

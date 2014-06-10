@@ -33,6 +33,9 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         faust.context = context;
         that.buffer_size = buffer_size;
         that.handler = handler;
+ 
+        // TODO : generate real factory name...
+        var dsp_name = "mydsp";
         
         // bargraph
         that.ouputs_timer = 5;
@@ -47,9 +50,10 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         that.factory_code = Pointer_stringify(asmjs_dsp_factory(code_ptr));
         console.log(that.factory_code);
  
-        that.factory = eval(that.factory_code);
+        eval(that.factory_code);
+        
+        that.factory = eval(dsp_name + "Factory()");        
         console.log(that.factory);
- 
         that.dsp = that.factory.newmydsp();
         console.log(that.dsp);
          
@@ -147,7 +151,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.json = function ()
         {
-            return that.factory.JSON();
+            return that.factory.getJSON();
         }
         
         that.controls = function()
@@ -241,8 +245,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             }
                                     
             // bargraph
-            console.log(that.factory.JSON());
-            that.parse_ui(JSON.parse(that.factory.JSON()).ui);
+            that.parse_ui(JSON.parse(that.factory.getJSON()).ui);
  
             // Init DSP
             that.factory.init(that.dsp, faust.context.sampleRate);

@@ -77,7 +77,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["sqrtf"] = "Math.sqrt";
             fMathLibTable["tanf"] = "Math.tan";
             
-            fObjPrefix = "that.";
+            fObjPrefix = "";
             fStructSize = 0;
         }
 
@@ -225,7 +225,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         
             // Prototype
-            *fOut << fObjPrefix << generateFunName(inst->fName) << " = " << "function";
+            *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
