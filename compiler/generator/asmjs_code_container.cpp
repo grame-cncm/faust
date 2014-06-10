@@ -91,24 +91,29 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         
         tab(n+1, *fOut);
         tab(n+1, *fOut);
+        // fKlassName used in method naming for subclasses
         produceInfoFunctions(n+1, fKlassName, false);
     
         // Inits
-        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(samplingFreq) {";
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(dsp, samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
         string counter = "count";
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "fill" << fKlassName << " = function" << subst("($0, output) {", counter);
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "fill" << fKlassName << " = function" << subst("(dsp, $0, output) {", counter);
+            tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); fCodeProducer.Tab(n+2);
             generateComputeBlock(&fCodeProducer);
             ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
             loop->accept(&fCodeProducer);
+            tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
         tab(n+1, *fOut); *fOut << "}";
 
     tab(n, *fOut); *fOut << "}" << endl;
@@ -194,6 +199,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
   
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
+        // No class name for main class
         produceInfoFunctions(n+1, fKlassName, true);
 
         // Inits
@@ -281,8 +287,8 @@ void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& cl
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("$0::getNumInputs", classname), false, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("$0::getNumOutputs", classname), false, isvirtual)->accept(&fCodeProducer);
+    generateGetInputs(subst("getNumInputs$0", classname), false, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), false, isvirtual)->accept(&fCodeProducer);
 }
 
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
