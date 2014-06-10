@@ -232,7 +232,7 @@ void JAVACodeContainer::produceClass()
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void JAVACodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{
+{   
     // Input/Output method
     fCodeProducer.Tab(tabs);
     generateGetInputs(subst("$0::getNumInputs", classname), true, isvirtual)->accept(&fCodeProducer);

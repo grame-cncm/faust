@@ -80,6 +80,11 @@ void ASMJAVAScriptCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
     
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "'use asm';"; 
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "var that = {};"; 
+        
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
@@ -87,8 +92,6 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+1, *fOut);
         tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
-    
-        tab(n+1, *fOut); *fOut << "var that = {};"; 
     
         // Inits
         tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(samplingFreq) {";
