@@ -87,6 +87,7 @@ void JAVAScriptCodeContainer::produceInternal()
         generateDeclarations(&fCodeProducer);
         
         tab(n+1, *fOut);
+        // fKlassName used in method naming for subclasses
         produceInfoFunctions(n+1, fKlassName, false);
 
         // Inits
@@ -165,7 +166,8 @@ void JAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}" << endl;
   
         tab(n+1, *fOut);
-        produceInfoFunctions(n+1, fKlassName, true);
+        // No class name for main class
+        produceInfoFunctions(n+1, "", true);
 
         // Inits
         tab(n+1, *fOut); *fOut << "this.classInit = function(samplingFreq) {";
@@ -212,16 +214,16 @@ void JAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& class
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("$0::getNumInputs", classname), true, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("$0::getNumOutputs", classname), true, isvirtual)->accept(&fCodeProducer);
-
+    generateGetInputs(subst("getNumInputs$0", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), true, isvirtual)->accept(&fCodeProducer);
+    
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("$0::getInputRate", classname), true, isvirtual)->accept(&fCodeProducer);
-
+    generateGetInputRate(subst("getInputRate$0", classname), true, isvirtual)->accept(&fCodeProducer);
+    
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("$0::getOutputRate", classname), true, isvirtual)->accept(&fCodeProducer);
+    generateGetOutputRate(subst("getOutputRate$0", classname), true, isvirtual)->accept(&fCodeProducer);
 }
 
 void JAVAScriptScalarCodeContainer::generateCompute(int n)
