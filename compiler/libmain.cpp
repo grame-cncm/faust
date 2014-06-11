@@ -371,7 +371,7 @@ static bool gExportDSP = false;
 
 static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
 static bool gPrintFileListSwitch = false;
-static const char* gOutputLang = 0;
+//static const char* gOutputLang = 0;
 static bool gLLVMOut = true;
 
 //-- command line tools
@@ -405,7 +405,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 1;
             
         } else if (isCmd(argv[i], "-lang", "--language") && (i+1 < argc)) {
-			gOutputLang = argv[i+1];
+			gGlobal->gOutputLang = argv[i+1];
 			i += 2;
             
         } else if (isCmd(argv[i], "-v", "--version")) {
@@ -908,8 +908,8 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     // By default use "cpp" output
-    if (!gOutputLang) {
-        gOutputLang = "cpp";
+    if (gGlobal->gOutputLang == "") {
+        gGlobal->gOutputLang = "cpp";
     }
 
     InstructionsCompiler* comp = NULL;
@@ -917,7 +917,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     startTiming("generateCode");
     
-    if (strcmp(gOutputLang, "llvm") == 0) {
+    if (gGlobal->gOutputLang == "llvm") {
         
     #if LLVM_BUILD
 
@@ -973,27 +973,27 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             dst = &cout;
         }
         
-        if (strcmp(gOutputLang, "c") == 0) {
+        if (gGlobal->gOutputLang == "c") {
 
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
-        } else if (strcmp(gOutputLang, "cpp") == 0) {
+        } else if (gGlobal->gOutputLang == "cpp") {
 
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
-        } else if (strcmp(gOutputLang, "java") == 0) {
+        } else if (gGlobal->gOutputLang == "java") {
 
             container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
             
-        } else if (strcmp(gOutputLang, "js") == 0) {
+        } else if (gGlobal->gOutputLang == "js") {
 
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
         
-        } else if (strcmp(gOutputLang, "ajs") == 0) {
+        } else if (gGlobal->gOutputLang == "ajs") {
 
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
-        } else if (strcmp(gOutputLang, "fir") == 0) {
+        } else if (gGlobal->gOutputLang == "fir") {
        
             container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
 
@@ -1009,7 +1009,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         }
         if (!container) {
             stringstream error;
-            error << "ERROR : cannot find compiler for " << "\"" << gOutputLang  << "\"" << endl;
+            error << "ERROR : cannot find compiler for " << "\"" << gGlobal->gOutputLang  << "\"" << endl;
             throw faustexception(error.str());
         }
         if (gGlobal->gVectorSwitch) {
@@ -1036,11 +1036,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
             if ((enrobage = open_arch_stream(gArchFile))) {
                 
-                if ((strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
+                if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                     printheader(*dst);
                 }
                 
-                if ((strcmp(gOutputLang, "c") == 0) || (strcmp(gOutputLang, "cpp") == 0)) {
+                if ((gGlobal->gOutputLang == "c") || (gGlobal->gOutputLang == "cpp")) {
                     tab(0, *dst); *dst << "#ifndef  __" << gGlobal->gClassName << "_H__";
                     tab(0, *dst); *dst << "#define  __" << gGlobal->gClassName << "_H__" << std::endl;
                 }
@@ -1056,11 +1056,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     delete(thread_include);
                 }
 
-                if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
+                if ((gGlobal->gOutputLang != "java") && (gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                     printfloatdef(*dst, (gGlobal->gFloatSize == 3));
                 }
 
-                if (strcmp(gOutputLang, "c") == 0) {
+                if (gGlobal->gOutputLang == "c") {
                     *dst << "#include <stdlib.h>"<< std::endl;
                 }
 
@@ -1074,7 +1074,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     delete(scheduler_include);
                 }
 
-                if ((strcmp(gOutputLang, "c") == 0) || (strcmp(gOutputLang, "cpp") == 0)) {
+                if ((gGlobal->gOutputLang == "c") || (gGlobal->gOutputLang == "cpp")) {
                     tab(0, *dst); *dst << "#endif"<< std::endl;
                 }
                 
@@ -1089,13 +1089,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             
         } else {
-            if ((strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
+            if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                 printheader(*dst);
             }
-            if ((strcmp(gOutputLang, "java") != 0) && (strcmp(gOutputLang, "js") != 0) && (strcmp(gOutputLang, "ajs") != 0)) {
+            if ((gGlobal->gOutputLang != "java") && (gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                 printfloatdef(*dst, (gGlobal->gFloatSize == 3));
             }
-            if (strcmp(gOutputLang, "c") == 0) {
+            if (gGlobal->gOutputLang == "c") {
                 *dst << "#include <stdlib.h>"<< std::endl;
             }
             container->produceClass();
@@ -1197,7 +1197,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     gBalancedSwitch = 0;
     gArchFile = 0;
     gPrintFileListSwitch = false;
-    gOutputLang = 0;
+    //gOutputLang = 0;
   
     /****************************************************************
      1 - process command line

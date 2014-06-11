@@ -219,10 +219,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
+            /*
             // Do not declare Math library functions
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
+             */
         
             // Prototype
             *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
@@ -230,7 +232,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             generateFunDefBody(inst);
         }
         
-        
+    /*
         virtual void visit(LoadVarInst* inst)
         {
             TextInstVisitor::visit(inst);
@@ -244,12 +246,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
         } 
+        */
         
-        /*
         virtual void visit(LoadVarInst* inst)
         {
-            *fOut << "(";
-            TextInstVisitor::visit(inst);
+            
+            printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
             
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
@@ -261,21 +263,39 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
             
             if (fCurType == Typed::kInt) {
+                 
+                *fOut << "(";
+                TextInstVisitor::visit(inst);
                 *fOut << " | 0)";
-            } else {
+            
+            } else if (fCurType == Typed::kFloatMacro || fCurType == Typed::kFloat) {
+                
+                *fOut << "+(";
+                TextInstVisitor::visit(inst);
                 *fOut << ")";
+                
+            } else {
+                // To test : completely adhoc code for input/output...
+                if ((startWith(inst->getName(), "inputs") || startWith(inst->getName(), "outputs") || startWith(inst->getName(), "count"))) {
+                    *fOut << "(";
+                    TextInstVisitor::visit(inst);
+                    *fOut << " | 0)";
+                } else {
+                    TextInstVisitor::visit(inst);
+                }
             }
         } 
-        */
         
         virtual void visit(NamedAddress* named)
         {   
             if (named->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
-                    *fOut << "Module.HEAPF32[dsp + " << tmp.first << " >> 2]";
+                    //*fOut << "Module.HEAPF32[dsp + " << tmp.first << " >> 2]";
+                    *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
                 } else {
-                    *fOut << "Module.HEAP32[dsp + " << tmp.first << " >> 2]";
+                    //*fOut << "Module.HEAP32[dsp + " << tmp.first << " >> 2]";
+                    *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
                 }
             } else {
                 *fOut << named->fName;
@@ -293,13 +313,15 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             
             // To test : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-                *fOut << "Module.HEAP32[" << indexed->getName() << " + ";  
+                //*fOut << "Module.HEAP32[" << indexed->getName() << " + ";  
+                *fOut << "HEAP32[" << indexed->getName() << " + ";  
                 *fOut << "(";
                 indexed->fIndex->accept(this);
-                *fOut << " << 2)";       
+                *fOut << " << 2)"; 
                 *fOut << " >> 2]";
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                *fOut << "Module.HEAPF32[" << indexed->getName() << " + ";  
+                //*fOut << "Module.HEAPF32[" << indexed->getName() << " + ";  
+                *fOut << "HEAPF32[" << indexed->getName() << " + ";  
                 *fOut << "(";
                 indexed->fIndex->accept(this);
                 *fOut << " << 2)";       
@@ -307,13 +329,15 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else if (indexed->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
-                    *fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
+                    //*fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
+                    *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
                     *fOut << " << 2)";       
                     *fOut << " >> 2]";
                 } else {
-                    *fOut << "Module.HEAP32[dsp + " << tmp.first << " + ";  
+                    //*fOut << "Module.HEAP32[dsp + " << tmp.first << " + "; 
+                    *fOut << "HEAP32[dsp + " << tmp.first << " + "; 
                     *fOut << "(";
                     indexed->fIndex->accept(this);
                     *fOut << " << 2)";        
@@ -385,6 +409,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         }
         */
     
+        /*
         virtual void visit(BinopInst* inst)
         {
             if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
@@ -519,8 +544,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }  
             }
         }
+        */
         
-        /*
+        
         virtual void visit(BinopInst* inst)
         {
             if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
@@ -530,7 +556,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << " | 0)";
+                *fOut << ")";
                 fCurType = Typed::kBool;
             } else {
                 
@@ -657,8 +683,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }  
             }
         }
-        */
-        
         
         virtual void visit(CastNumInst* inst)
         {
@@ -683,11 +707,72 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         }
         */
      
+        /*
         virtual void visit(FunCallInst* inst)
         {
             string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
             generateFunCall(inst, fun_name);
         }
+         */
+        
+        // Math function moved in ASM module delaration
+        virtual void visit(FunCallInst* inst)
+        {
+            generateFunCall(inst, inst->fName);
+        }
+    
+        virtual void visit(ForLoopInst* inst)
+        {
+            // Don't generate empty loops...
+            if (inst->fCode->size() == 0) return;
+            
+            DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
+            StoreVarInst* c99_init_inst = NULL;
+            
+            if (c99_declare_inst) {
+                InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
+                *fOut << "{";
+                fTab++;
+                tab(fTab, *fOut);
+                
+                // To generate C99 compatible loops...
+                c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+                // C99 loop variable declared outside the loop
+                c99_declare_inst->accept(this);
+            }
+            
+            *fOut << "for (";
+            fFinishLine = false;
+            if (c99_declare_inst) {
+                // C99 loop initialized here
+                c99_init_inst->accept(this);
+            } else {
+                // Index already defined
+                inst->fInit->accept(this);
+            }
+            *fOut << "; ";
+            inst->fEnd->accept(this);
+            *fOut << "; ";
+            inst->fIncrement->accept(this);
+            fFinishLine = true;
+            *fOut << ") {";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fCode->accept(this);
+            fTab--;
+            tab(fTab, *fOut);
+            *fOut << "}";
+            tab(fTab, *fOut);
+            
+            if (c99_declare_inst) {
+                fTab--;
+                tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+            }
+        }
+    
 
 };
 

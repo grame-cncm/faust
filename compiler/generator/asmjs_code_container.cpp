@@ -140,18 +140,42 @@ void ASMJAVAScriptCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-
-    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory() {";
+    
+    
+    // ASM module
+    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, Module, buffer) {";
     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "'use asm';"; 
+        tab(n+1, *fOut);
+        
+        tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Uint32Array(buffer);"; 
+        tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
     
+        tab(n+1, *fOut); *fOut << "var floor = global.Math.floor;";
+        tab(n+1, *fOut); *fOut << "var abs = global.Math.abs;";
+        tab(n+1, *fOut); *fOut << "var sqrt = global.Math.sqrt;";
+        tab(n+1, *fOut); *fOut << "var pow = global.Math.pow;";
+        tab(n+1, *fOut); *fOut << "var cos = global.Math.cos;";
+        tab(n+1, *fOut); *fOut << "var sin = global.Math.sin;";
+        tab(n+1, *fOut); *fOut << "var tan = global.Math.tan;";
+        tab(n+1, *fOut); *fOut << "var acos = global.Math.acos;";
+        tab(n+1, *fOut); *fOut << "var asin = global.Math.asin;";
+        tab(n+1, *fOut); *fOut << "var atan = global.Math.atan;";
+        tab(n+1, *fOut); *fOut << "var atan2 = global.Math.atan2;";
+        tab(n+1, *fOut); *fOut << "var exp = global.Math.exp;";
+        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+        tab(n+1, *fOut); *fOut << "var ceil = global.Math.ceil;";
+    
+        // TODO : add 'fmodf' and 'log10f"
+       
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
       
         // Memory methods
+        /*
         tab(n+1, *fOut); *fOut << fObjPrefix << "function newDSP() { ";
             //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
             tab(n+2, *fOut); *fOut << "var dsp = Module._malloc(" << fCodeProducer.getStructSize() << ") | 0;";
@@ -161,6 +185,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
             tab(n+2, *fOut); *fOut << "return dsp | 0;";
         tab(n+1, *fOut);  *fOut << "}";
+        
         
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function deleteDSP(dsp) { ";
@@ -173,26 +198,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
             //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
             //tab(n+2, *fOut); *fOut << "return;";
         tab(n+1, *fOut);  *fOut << "}";
-    
-        // Print metadata declaration
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function metadata(m) {";
-
-        for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **j << ");" ;
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m.declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        */ 
+         
   
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
@@ -200,12 +207,12 @@ void ASMJAVAScriptCodeContainer::produceClass()
         //produceInfoFunctions(n+1, "", true);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); *fOut << "return " << fNumInputs;
+            tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
         tab(n+1, *fOut); *fOut << "}";
     
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); *fOut << "return " << fNumOutputs;
+            tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
         tab(n+1, *fOut); *fOut << "}";
 
         // Inits
@@ -218,14 +225,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit(dsp, samplingFreq) {";
-            //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
-            //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
-            tab(n+2, *fOut); *fOut << "return;";
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -235,48 +239,24 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << fObjPrefix << "classInit(dsp, samplingFreq);";
             tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(dsp, samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
-        
-        // User interface : prepare the JSON string...
-        generateUserInterface(&fCodeProducer);
-    
-        // Generate JSON 
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getJSON() {";
-            tab(n+2, *fOut);
-            *fOut << "return \""; *fOut << fCodeProducer.getJSON(true); *fOut << "\";";
-            printlines(n+2, fUICode, *fOut);
-        tab(n+1, *fOut); *fOut << "}";
-    
-        // Fields to path
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "pathTable = {};"; 
-        map <string, string>::iterator it;
-        map <string, string>& pathTable = fCodeProducer.getPathTable();
-        map <string, pair<int, Typed::VarType> >& fieldTable = fCodeProducer.getFieldTable();
-        for (it = pathTable.begin(); it != pathTable.end(); it++) {
-            pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
-            tab(n+1, *fOut); *fOut << fObjPrefix << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
-        }
     
         // setValue
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function setValue(dsp, path, value) {";
-            //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function setValue(dsp, offset, value) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut);*fOut << "var offset = " << fObjPrefix << "pathTable[path];";
-            tab(n+2, *fOut);*fOut << "Module.HEAPF32[dsp + offset >> 2] = value;";  
-            //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
-            //tab(n+2, *fOut); *fOut << "return;";
+            tab(n+2, *fOut); *fOut << "offset = offset | 0;";
+            tab(n+2, *fOut); *fOut << "value = +value;";
+            //tab(n+2, *fOut);*fOut << "Module.HEAPF32[dsp + offset >> 2] = value;"; 
+            tab(n+2, *fOut);*fOut << "HEAPF32[dsp + offset >> 2] = value;"; 
         tab(n+1, *fOut); *fOut << "}";
     
         // getValue
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getValue(dsp, path) {";
-            //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function getValue(dsp, offset) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut);*fOut << "var offset = " << fObjPrefix << "pathTable[path];";
-            //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
-            tab(n+2, *fOut);*fOut << "return Module.HEAPF32[dsp + offset >> 2];";
+            tab(n+2, *fOut); *fOut << "offset = offset | 0;";
+            //tab(n+2, *fOut);*fOut << "return Module.HEAPF32[dsp + offset >> 2];";
+            tab(n+2, *fOut);*fOut << "return +HEAPF32[dsp + offset >> 2];";
         tab(n+1, *fOut); *fOut << "}";
     
         // Compute
@@ -290,22 +270,74 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Exported functions
         tab(n+1, *fOut);
         *fOut << "return { ";
-        *fOut << "newDSP: " << "newDSP" << ", ";
-        *fOut << "deleteDSP: " << "deleteDSP" << ", ";
-        *fOut << "metadata" << ": " << "metadata" << ", ";
+        //*fOut << "newDSP: " << "newDSP" << ", ";
+        //*fOut << "deleteDSP: " << "deleteDSP" << ", ";
+        //*fOut << "metadata" << ": " << "metadata" << ", ";
         *fOut << "getNumInputs" << ": " << "getNumInputs" << ", ";
         *fOut << "getNumOutputs" << ": " << "getNumOutputs" << ", ";
         *fOut << "classInit" << ": " << "classInit" << ", ";
         *fOut << "instanceInit" << ": " << "instanceInit" << ", ";
         *fOut << "init" << ": " << "init" << ", ";
-        *fOut << "getJSON" << ": " << "getJSON" << ", ";   
+        //*fOut << "getJSON" << ": " << "getJSON" << ", ";   
         *fOut << "setValue" << ": " << "setValue" << ", ";
         *fOut << "getValue" << ": " << "getValue" << ", ";
         *fOut << "compute" << ": " << "compute";
         *fOut << " };";
    
+    tab(n, *fOut); *fOut << "}" << endl;
+    
+    // User interface : prepare the JSON string...
+    generateUserInterface(&fCodeProducer);
+    
+    // Generate JSON 
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
+    tab(n+1, *fOut);
+    *fOut << "return " << fCodeProducer.getStructSize() << ";";
+    printlines(n+1, fUICode, *fOut);
+    tab(n, *fOut); *fOut << "}";
+    
+    tab(n, *fOut); *fOut << "function getPathTable" << fKlassName << "() {";
+    // Fields to path
+    tab(n+1, *fOut);
+    tab(n+1, *fOut); *fOut << fObjPrefix << "var pathTable = {};"; 
+    map <string, string>::iterator it;
+    map <string, string>& pathTable = fCodeProducer.getPathTable();
+    map <string, pair<int, Typed::VarType> >& fieldTable = fCodeProducer.getFieldTable();
+    for (it = pathTable.begin(); it != pathTable.end(); it++) {
+        pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
+        tab(n+1, *fOut); *fOut << fObjPrefix << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
+    }
+    tab(n+1, *fOut); *fOut << "return pathTable;"; 
+    tab(n, *fOut); *fOut << "}";
+    
+    // Generate JSON 
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "function getJSON" <<  fKlassName << "() {";
+    tab(n+1, *fOut);
+    *fOut << "return \""; *fOut << fCodeProducer.getJSON(true); *fOut << "\";";
+    printlines(n+1, fUICode, *fOut);
+    tab(n, *fOut); *fOut << "}";
+    
+    // Print metadata declaration
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "function metadata" << fKlassName << "(m) {";
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            tab(n+1, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    tab(n+1, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **j << ");" ;
+                } else {
+                    tab(n+1, *fOut); *fOut << "m.declare(\"" << "contributor" << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+    
     tab(n, *fOut); *fOut << "}" << endl << endl;
-}
+ }
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
@@ -320,7 +352,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << subst("function compute(dsp, $0, inputs, outputs) {", fFullCount);
-        tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
+        //tab(n+2, *fOut); *fOut << "var stack = Module.STACKTOP | 0;";
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
         tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
@@ -335,7 +367,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         loop->accept(&fCodeProducer);
         
-        tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
-        tab(n+2, *fOut); *fOut << "return;";
+        //tab(n+2, *fOut); *fOut << "Module.STACKTOP = stack;";
+        //tab(n+2, *fOut); *fOut << "return;";
     tab(n+1, *fOut); *fOut << "}";
 }

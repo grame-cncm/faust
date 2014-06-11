@@ -411,6 +411,8 @@ struct global {
     int gAllocationCount;
     
     bool gInPlace;  // add cache to input for correct in-place computations
+    
+    string gOutputLang;
    
     // GC
     static list<Garbageable*> gObjectTable;

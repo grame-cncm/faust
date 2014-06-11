@@ -310,7 +310,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << ") {";
                 fTab++;
                 tab(fTab, *fOut);
-                inst->fCode->accept(this);
+                //inst->fCode->accept(this);
                 fTab--;
                 tab(fTab, *fOut);
             *fOut << "}";

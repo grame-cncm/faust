@@ -29,8 +29,12 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 
     faust.createDSPFactory = function (code) {
         
-         // TODO : generate real factory name...
+        // TODO : generate real factory name...
         var factory_name = "mydsp";
+        
+        // 'buffer' is the emscripten global memory conext
+ console.log(buffer);
+ console.log(globalScope);
         
         //Module.TOTAL_MEMORY = 41943040;
  
@@ -38,21 +42,39 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var factory_code = Pointer_stringify(createDSPFactory(code_ptr));
         console.log(factory_code);
  
-        // 'asm.js' compile the 'libfaust.js' generated code
+        // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
         eval(factory_code);
-        // 'factory' is the asm.js module itself
-        var factory = eval(factory_name + "Factory()");        
+ 
+        // Compile the ASM module itself
+        // console.log(Module);
+        var factory = eval(factory_name + "Factory(window, Module, buffer)");        
         console.log(factory);
+ 
+        var path_table_function_name = eval("getPathTable" + factory_name); 
+        factory.pathTable = path_table_function_name();
+    
+        var json_function_name = eval("getJSON" + factory_name);
+        factory.getJSON = function() { return json_function_name();}
+ 
+        var metadata_function_name = eval("metadata" + factory_name);
+        factory.metadata = function(m) { return metadata_function_name(m);}
+ 
+        var getdspsize_function_name = eval("getDSPSize" + factory_name);
+        factory.getDSPSize = function(m) { return getdspsize_function_name(m);}
  
         return factory;
     };
  
     faust.createDSPInstance = function (factory, context, buffer_size, handler) {
         
+        // TODO : generate real factory name...
+        var factory_name = "mydsp";
+ 
         var that = {};
  
         that.factory = factory;
-        that.dsp = that.factory.newDSP();
+        //that.dsp = that.factory.newDSP();
+        that.dsp = Module._malloc(that.factory.getDSPSize());
         faust.context = context;
         that.buffer_size = buffer_size;
         that.handler = handler;
@@ -80,7 +102,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
                 that.ouputs_timer = 5;
                 var i;
                 for (i = 0; i < that.ouputs_items.length; i++) {
-                    that.handler(that.ouputs_items[i], that.factory.getValue(that.dsp, that.ouputs_items[i]));
+                    that.handler(that.ouputs_items[i], that.factory.getValue(that.dsp, that.factory.pathTable[that.ouputs_items[i]]));
                 }
             }
         };
@@ -127,7 +149,9 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             Module._free(that.ins);
             Module._free(that.outs);
  
-            that.factory.deleteDSP(that.dsp);
+            //that.factory.deleteDSP(that.dsp);
+ 
+            Module._free(that.dsp);
         };
         
         // Connect to another node
@@ -153,11 +177,16 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.update = function (path, val) 
         {
-            that.factory.setValue(that.dsp, path, val);
+            that.factory.setValue(that.dsp, that.factory.pathTable[path], val);
         };
         
         that.json = function ()
         {
+            /*
+            var json_function_name = eval("faustUI.getJSON" + factory_name);
+ console.log(json_function_name);
+            return that.factory.json_function_name();
+            */
             return that.factory.getJSON();
         }
         
@@ -252,7 +281,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             }
                                     
             // bargraph
-            that.parse_ui(JSON.parse(that.factory.getJSON()).ui);
+            that.parse_ui(JSON.parse(that.json()).ui);
  
             // Init DSP
             that.factory.init(that.dsp, faust.context.sampleRate);

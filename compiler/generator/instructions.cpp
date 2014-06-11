@@ -33,6 +33,7 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
 {
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[fAddress->getName()] = typed;
+        //printf("DeclareVarInst : variable = %s type = %d\n", fAddress->getName().c_str(), typed->getType());
     } else {
         //printf("DeclareVarInst : variable = %s already typed...\n", fAddress->getName().c_str());
     }
