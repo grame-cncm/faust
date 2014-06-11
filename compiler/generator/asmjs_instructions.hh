@@ -275,7 +275,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << ")";
                 
             } else {
-                // To test : completely adhoc code for input/output...
+                // HACK : completely adhoc code for input/output/count...
                 if ((startWith(inst->getName(), "inputs") || startWith(inst->getName(), "outputs") || startWith(inst->getName(), "count"))) {
                     *fOut << "(";
                     TextInstVisitor::visit(inst);
@@ -311,7 +311,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             // PTR size is 4 bytes
             
-            // To test : completely adhoc code for input/output...
+            // HACK : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
                 //*fOut << "Module.HEAP32[" << indexed->getName() << " + ";  
                 *fOut << "HEAP32[" << indexed->getName() << " + ";  
