@@ -23,40 +23,47 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 
 (function () {
  
-    var asmjs_dsp_factory = Module.cwrap('asmjs_dsp_factory', null, ['number']);
+    var createDSPFactory = Module.cwrap('createDSPFactory', 'number', ['number']);
  
     // Standard Faust DSP
 
-    faust.DSP = function (context, code, buffer_size, handler) {
-        var that = {};
+    faust.createDSPFactory = function (code) {
         
+         // TODO : generate real factory name...
+        var factory_name = "mydsp";
+        
+        //Module.TOTAL_MEMORY = 41943040;
+ 
+        var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
+        var factory_code = Pointer_stringify(createDSPFactory(code_ptr));
+        console.log(factory_code);
+ 
+        // 'asm.js' compile the 'libfaust.js' generated code
+        eval(factory_code);
+        // 'factory' is the asm.js module itself
+        var factory = eval(factory_name + "Factory()");        
+        console.log(factory);
+ 
+        return factory;
+    };
+ 
+    faust.createDSPInstance = function (factory, context, buffer_size, handler) {
+        
+        var that = {};
+ 
+        that.factory = factory;
+        that.dsp = that.factory.newDSP();
         faust.context = context;
         that.buffer_size = buffer_size;
         that.handler = handler;
  
-        // TODO : generate real factory name...
-        var dsp_name = "mydsp";
-        
         // bargraph
         that.ouputs_timer = 5;
         that.ouputs_items = [];
-        
+         
         // input items
         that.inputs_items = [];
- 
-        //Module.TOTAL_MEMORY = 41943040;
- 
-        var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
-        that.factory_code = Pointer_stringify(asmjs_dsp_factory(code_ptr));
-        console.log(that.factory_code);
- 
-        eval(that.factory_code);
-        
-        that.factory = eval(dsp_name + "Factory()");        
-        console.log(that.factory);
-        that.dsp = that.factory.newmydsp();
-        console.log(that.dsp);
-         
+               
         that.getNumInputs = function () 
         {
             return that.factory.getNumInputs(that.dsp);
@@ -120,7 +127,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             Module._free(that.ins);
             Module._free(that.outs);
  
-            that.factory.deletemydsp(that.dsp);
+            that.factory.deleteDSP(that.dsp);
         };
         
         // Connect to another node

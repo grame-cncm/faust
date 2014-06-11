@@ -39,7 +39,7 @@
 
 string gFactory; 
 
-EXPORT const char* asmjs_dsp_factory(char* dsp_content)
+EXPORT const char* createDSPFactory(char* dsp_content)
 {
     printf("dsp_content = %s\n", dsp_content);
     char error_msg[256];
