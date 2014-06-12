@@ -165,13 +165,33 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var exp = global.Math.exp;";
         tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
         tab(n+1, *fOut); *fOut << "var ceil = global.Math.ceil;";
-    
+        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
+      
         // TODO : add 'fmodf' and 'log10f"
        
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
+    
+        // TODO:
+        /*
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "function log10(a) {";
+            tab(n+2, *fOut); *fOut << "a = +a;";
+            tab(n+2, *fOut); *fOut << "var b = 0.;";
+            tab(n+2, *fOut); *fOut << "b = +log(10);";
+            tab(n+2, *fOut); *fOut << "return +(a/b);";
+        tab(n+1, *fOut); *fOut << "}";
+        */
+        
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "function fmod(x, y) {";
+            tab(n+2, *fOut); *fOut << "x = +x;";
+            tab(n+2, *fOut); *fOut << "y = +y;";
+            tab(n+2, *fOut); *fOut <<  "return +(x % y);";
+        tab(n+1, *fOut); *fOut << "}";
 
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
@@ -199,7 +219,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
-            generateInit(&fCodeProducer);
+            // Moves all variables at the beginning of the block
+            MoveVariablesInFront mover;
+            BlockInst* block = mover.getCode(fInitInstructions); 
+            block->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -323,13 +346,25 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
-
+    
+        // Generates one single scalar loop and put is the the block
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        fComputeBlockInstructions->pushBackInst(loop);
+    
+        // Moves all variables at the beginning of the block
+        MoveVariablesInFront1 mover;
+        BlockInst* block = mover.getCode(fComputeBlockInstructions); 
+        block->accept(&fCodeProducer);
+      
+        /*
         // Generates local variables declaration and setup
         generateComputeBlock(&fCodeProducer);
 
         // Generates one single scalar loop
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         loop->accept(&fCodeProducer);
+        */
+         
         
     tab(n+1, *fOut); *fOut << "}";
 }

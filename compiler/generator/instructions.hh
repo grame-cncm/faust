@@ -558,6 +558,8 @@ struct VectorTyped : public Typed {
 
 struct SimpleValueInst {};
 
+struct NumValueInst {};
+
 // ============
 //  Addresses
 // ============
@@ -901,7 +903,7 @@ struct StoreVarInst : public StatementInst
 // Numbers
 // ========
 
-struct FloatNumInst : public ValueInst, public SimpleValueInst
+struct FloatNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
     float fNum;
 
@@ -948,7 +950,7 @@ struct FloatArrayNumInst : public ArrayNumInst<float>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DoubleNumInst : public ValueInst, public SimpleValueInst
+struct DoubleNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
     double fNum;
 
@@ -974,7 +976,7 @@ struct DoubleArrayNumInst : public ArrayNumInst<double>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct IntNumInst : public ValueInst, public SimpleValueInst
+struct IntNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
     int fNum;
 
@@ -1000,7 +1002,7 @@ struct IntArrayNumInst : public ArrayNumInst<int>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct BoolNumInst : public ValueInst, public SimpleValueInst
+struct BoolNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
     int fNum;
 
@@ -1769,7 +1771,7 @@ struct InstBuilder
 
     static ValueInst* genTypedZero(Typed::VarType type)
     {
-        return (type == Typed::kInt) ? genIntNumInst(0) : genRealNumInst(type, 0);
+        return (type == Typed::kInt) ? genIntNumInst(0) : genRealNumInst(type, 0.);
     }
     
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)

@@ -715,7 +715,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
  - vérifier que les Load/Store utilisent des variables bien définies
  
- - vérifier que les Load utilisent des variables bien initialiés (soit par une Declaration ou un Store prealable)
+ - vérifier que les Load utilisent des variables bien initialiées (soit par une Declaration ou un Store prealable)
 
  - vérifier que les Funcall correspondent à des fonctions existantes
 

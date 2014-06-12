@@ -55,27 +55,29 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
         :TextInstVisitor(out, ".", tab), fJSON(0,0), fCurType(Typed::kNoType) 
         {
-            fMathLibTable["abs"] = "Math.abs";
-            fMathLibTable["absf"] = "Math.abs";
-            fMathLibTable["fabsf"] = "Math.abs";
-            fMathLibTable["acosf"] = "Math.acos";
-            fMathLibTable["asinf"] = "Math.asin";
-            fMathLibTable["atanf"] = "Math.atan";
-            fMathLibTable["atan2f"] = "Math.atan2";
-            fMathLibTable["ceilf"] = "Math.ceil";
-            fMathLibTable["cosf"] = "Math.cos";
-            fMathLibTable["expf"] = "Math.exp";
-            fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
-            fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "function log10(a) { return Math.log(a)/Math.log(10); }";
-            fMathLibTable["max"] = "Math.max";
-            fMathLibTable["min"] = "Math.min";
-            fMathLibTable["powf"] = "Math.pow";
-            fMathLibTable["roundf"] = "Math.round";
-            fMathLibTable["sinf"] = "Math.sin";
-            fMathLibTable["sqrtf"] = "Math.sqrt";
-            fMathLibTable["tanf"] = "Math.tan";
+            fMathLibTable["abs"] = "abs";
+            fMathLibTable["absf"] = "abs";
+            fMathLibTable["fabsf"] = "abs";
+            fMathLibTable["acosf"] = "acos";
+            fMathLibTable["asinf"] = "asin";
+            fMathLibTable["atanf"] = "atan";
+            fMathLibTable["atan2f"] = "atan2";
+            fMathLibTable["ceilf"] = "ceil";
+            fMathLibTable["cosf"] = "cos";
+            fMathLibTable["expf"] = "exp";
+            fMathLibTable["floorf"] = "floor";
+            //fMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
+            fMathLibTable["fmodf"] = "fmod";
+            fMathLibTable["logf"] = "log";
+            //fMathLibTable["log10f"] = "function log10(a) { return log(a)/log(10); }";
+            fMathLibTable["log10f"] = "log10";
+            fMathLibTable["max"] = "max";
+            fMathLibTable["min"] = "min";
+            fMathLibTable["powf"] = "pow";
+            fMathLibTable["roundf"] = "round";
+            fMathLibTable["sinf"] = "sin";
+            fMathLibTable["sqrtf"] = "sqrt";
+            fMathLibTable["tanf"] = "tan";
             
             fObjPrefix = "";
             fStructSize = 0;
@@ -219,12 +221,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
-            /*
             // Do not declare Math library functions
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
-            */
         
             // Prototype
             *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
@@ -246,8 +246,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
         } 
-        */
+   */     
         
+    
         virtual void visit(LoadVarInst* inst)
         {
             //printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
@@ -287,6 +288,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }
             }
         } 
+     
+     
         
         virtual void visit(NamedAddress* named)
         {   
@@ -354,7 +357,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
-            *fOut << inst->fNum;
+            //*fOut << inst->fNum;
+            
+            // 'dot' syntax for float
+            *fOut << checkDouble(inst->fNum);
             fCurType = Typed::kFloat;
         }
         
@@ -370,10 +376,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fCurType = Typed::kBool;
         }
         
-        // No . syntax for double in JS
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << inst->fNum;
+            //*fOut << inst->fNum;
+            *fOut << checkDouble(inst->fNum);
             fCurType = Typed::kInt;
         }
     
@@ -561,11 +567,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst2->accept(fGlobalVisitor);
                 Typed::VarType type2 = fGlobalVisitor->fCurType;
                 
+                //printf("visit(BinopInst* inst) %d %d\n", type1, type2);
+                
                 if (type1 == Typed::kInt && type2 == Typed::kInt) {
                     // Special case of 32 bits integer multiply
                     if (inst->fOpcode == kMul) {
                         *fOut << "(";
-                        *fOut << "Math.imul(";
+                        *fOut << "imul(";
                         inst->fInst1->accept(this);
                         *fOut << ", ";
                         inst->fInst2->accept(this);
@@ -581,7 +589,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         *fOut << " | 0)";
                     }
                     fCurType = Typed::kInt;
-                } else if (type1 == Typed::kInt && type2 == Typed::kFloat) {
+                } else if (type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro)) {
                     *fOut << "+(";
                     //*fOut << "(float)";
                     inst->fInst1->accept(this);
@@ -591,7 +599,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this);
                     *fOut << ")";
                     fCurType = Typed::kFloat;
-                } else if (type1 == Typed::kFloat && type2 == Typed::kInt) {
+                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro) && type2 == Typed::kInt) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -601,7 +609,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this); 
                     *fOut << ")";
                     fCurType = Typed::kFloat;   
-                } else if (type1 == Typed::kFloat && type2 == Typed::kFloat) {
+                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro) && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro)) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -645,7 +653,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     //*fOut << ")?1:0)";
                     *fOut << " | 0)";
                     fCurType = Typed::kInt;
-                } else if (type1 == Typed::kFloat && type2 == Typed::kBool) {
+                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro) && type2 == Typed::kBool) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -656,7 +664,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     //*fOut << ")?1.f:0.f)";
                     *fOut << ")";
                     fCurType = Typed::kFloat;
-                } else if (type1 == Typed::kBool && type2 == Typed::kFloat) {
+                } else if (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro)) {
                     *fOut << "+(";
                     //*fOut << "((";
                     inst->fInst1->accept(this);
@@ -680,42 +688,57 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
         
+        /*
         virtual void visit(CastNumInst* inst)
         {
             // No explicit cast generation
             inst->fInst->accept(this);
         }
+        */
         
-        /*
         virtual void visit(CastNumInst* inst)
         {
             if (generateType(inst->fType) == "int") {
-                *fOut << "(";
-                inst->fInst->accept(this);
-                *fOut << " | 0)";
-                fCurType = Typed::kInt;
+                //if (fCurType != Typed::kInt) {
+                    *fOut << "~~(";
+                    inst->fInst->accept(this);
+                    *fOut << ")";
+                    fCurType = Typed::kInt;
+                /*
+                } else {
+                    // No explicit cast generation
+                    inst->fInst->accept(this);
+                }
+                 */
             } else {
-                *fOut << "+(";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                fCurType = Typed::kFloat;
+                //if (fCurType == Typed::kFloat || fCurType == Typed::kFloatMacro) {
+                    // No explicit cast generation
+                //    inst->fInst->accept(this);
+                
+                //} else {
+                    *fOut << "+(";
+                    inst->fInst->accept(this);
+                    *fOut << ")";
+                    fCurType = Typed::kFloat;
+               // }
+                 
             }
         }
-        */
+        
      
-        /*
         virtual void visit(FunCallInst* inst)
         {
             string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
             generateFunCall(inst, fun_name);
         }
-         */
-        
+    
+        /*
         // Math function moved in ASM module delaration
         virtual void visit(FunCallInst* inst)
         {
             generateFunCall(inst, inst->fName);
         }
+        */
     
         virtual void visit(ForLoopInst* inst)
         {
@@ -770,6 +793,64 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         }
     
 
+};
+
+// Moves all variables declaratioon at the beginning of the block and rewrite the as 'declaration' followed by 'store'
+struct MoveVariablesInFront : public BasicCloneVisitor {
+    
+    list<DeclareVarInst*> fVarTable;
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        BasicCloneVisitor cloner;
+        fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+        return new DropInst();
+    }
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
+        // Moved in front..
+        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+            dst->pushFrontInst(*it);
+        }
+        return dst;
+    }
+    
+};
+
+// Moves all variables declaratioon at the beginning of the block and rewrite the as 'declaration' followed by 'store'
+struct MoveVariablesInFront1 : public BasicCloneVisitor {
+    
+    list<DeclareVarInst*> fVarTable;
+    list<StoreVarInst*> fStoreTable;
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        BasicCloneVisitor cloner;
+        // For variable declaration that is not a number, separate the declaration and the store
+        if (inst->fValue && !dynamic_cast<NumValueInst*>(inst->fValue)) {
+            fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
+            fStoreTable.push_back(new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
+        } else {
+           fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+        }
+        return new DropInst();
+    }
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
+        for (list<StoreVarInst*>::reverse_iterator it = fStoreTable.rbegin(); it != fStoreTable.rend(); ++it) {
+            dst->pushFrontInst(*it);
+        }
+        // Moved in front..
+        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+            dst->pushFrontInst(*it);
+        }
+        return dst;
+    }
+    
 };
 
 #endif
