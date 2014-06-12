@@ -557,7 +557,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << ")";
+                *fOut << " | 0)";
                 fCurType = Typed::kBool;
             } else {
                 
@@ -572,13 +572,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (type1 == Typed::kInt && type2 == Typed::kInt) {
                     // Special case of 32 bits integer multiply
                     if (inst->fOpcode == kMul) {
-                        *fOut << "(";
-                        *fOut << "imul(";
+                        *fOut << "(imul(";
                         inst->fInst1->accept(this);
                         *fOut << ", ";
                         inst->fInst2->accept(this);
-                        *fOut << ") | 0";
-                        *fOut << ")";
+                        *fOut << ") | 0)";
                     } else {
                         *fOut << "(";
                         inst->fInst1->accept(this);
@@ -725,7 +723,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
         
-     
+        // TODO : correctly type result
         virtual void visit(FunCallInst* inst)
         {
             string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
@@ -819,11 +817,12 @@ struct MoveVariablesInFront : public BasicCloneVisitor {
     
 };
 
+
 // Moves all variables declaratioon at the beginning of the block and rewrite the as 'declaration' followed by 'store'
 struct MoveVariablesInFront1 : public BasicCloneVisitor {
     
     list<DeclareVarInst*> fVarTable;
-    list<StoreVarInst*> fStoreTable;
+    //list<StoreVarInst*> fStoreTable;
     
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
@@ -831,19 +830,23 @@ struct MoveVariablesInFront1 : public BasicCloneVisitor {
         // For variable declaration that is not a number, separate the declaration and the store
         if (inst->fValue && !dynamic_cast<NumValueInst*>(inst->fValue)) {
             fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
-            fStoreTable.push_back(new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
+            //fStoreTable.push_back(new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
+            return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
         } else {
-           fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+            fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+            return new DropInst();
         }
-        return new DropInst();
+        
     }
     
     BlockInst* getCode(BlockInst* src)
     {
         BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
+        /*
         for (list<StoreVarInst*>::reverse_iterator it = fStoreTable.rbegin(); it != fStoreTable.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
+        */
         // Moved in front..
         for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
             dst->pushFrontInst(*it);

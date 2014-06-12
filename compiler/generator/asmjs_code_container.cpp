@@ -184,7 +184,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "return +(a/b);";
         tab(n+1, *fOut); *fOut << "}";
         */
-        
     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "function fmod(x, y) {";
