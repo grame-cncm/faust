@@ -165,6 +165,18 @@ public:
   virtual void SetValueNoNormalization(double f) {
 		*fZone = clip(fMin,fMax,(float)f); // raw
 	}
+
+	int getMinValue() const {
+		return fMin;
+	}
+
+	int getMaxValue() const {
+		return fMax;
+	}
+
+	int getStep() const {
+		return fStep;
+	}
 };
 
 /*--------------------------------------------------------------------------*/
@@ -284,6 +296,10 @@ public:
 		setAny(freqIndex, val, "freq");
   }
 		
+	float getFreq( void ) {
+		return getAny(freqIndex, "freq");	
+	}
+
   void setGate(float val) {
     setAny(gateIndex, val, "gate");
   }
@@ -294,10 +310,6 @@ public:
 
 	void setPrevFreq(float val) {
 		setAny(prevFreqIndex, val, "prevfreq");
-	}
-
-	float getFreq( void ) {
-		return getAny(freqIndex, "freq");	
 	}
 
 	void setPitchBend(float val) {
