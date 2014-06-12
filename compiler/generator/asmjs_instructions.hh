@@ -224,7 +224,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
-             */
+            */
         
             // Prototype
             *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
@@ -276,7 +276,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 
             } else {
                 // HACK : completely adhoc code for input/output/count...
-                if ((startWith(inst->getName(), "inputs") || startWith(inst->getName(), "outputs") || startWith(inst->getName(), "count"))) {
+                if ((startWith(inst->getName(), "inputs") 
+                    || startWith(inst->getName(), "outputs") 
+                    || startWith(inst->getName(), "count")
+                    || startWith(inst->getName(), "samplingFreq"))) {
                     *fOut << "(";
                     TextInstVisitor::visit(inst);
                     *fOut << " | 0)";
@@ -546,7 +549,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         }
         */
         
-        
         virtual void visit(BinopInst* inst)
         {
             if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
@@ -567,6 +569,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 Typed::VarType type2 = fGlobalVisitor->fCurType;
                 
                 if (type1 == Typed::kInt && type2 == Typed::kInt) {
+                    // Special case of 32 bits integer multiply
                     if (inst->fOpcode == kMul) {
                         *fOut << "(";
                         *fOut << "Math.imul(";

@@ -145,9 +145,12 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "'use asm';"; 
         tab(n+1, *fOut);
         
+        // Memory access
         tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Uint32Array(buffer);"; 
         tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
+        tab(n+1, *fOut);
     
+        // Mathematial functions
         tab(n+1, *fOut); *fOut << "var floor = global.Math.floor;";
         tab(n+1, *fOut); *fOut << "var abs = global.Math.abs;";
         tab(n+1, *fOut); *fOut << "var sqrt = global.Math.sqrt;";
@@ -172,8 +175,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
 
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
-        // No class name for main class
-        //produceInfoFunctions(n+1, "", true);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
@@ -261,9 +262,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
     *fOut << "return " << fCodeProducer.getStructSize() << ";";
     printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
+    tab(n, *fOut);
     
-    tab(n, *fOut); *fOut << "function getPathTable" << fKlassName << "() {";
     // Fields to path
+    tab(n, *fOut); *fOut << "function getPathTable" << fKlassName << "() {";
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "var pathTable = {};"; 
     map <string, string>::iterator it;
@@ -284,7 +286,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
     
-    // Print metadata declaration
+    // Metadata declaration
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "function metadata" << fKlassName << "(m) {";
     for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
