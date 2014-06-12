@@ -146,11 +146,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         
         // Memory access
-        tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Uint32Array(buffer);"; 
+        tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
         tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
         tab(n+1, *fOut);
     
-        // Mathematial functions
+        // Mathematical functions
         tab(n+1, *fOut); *fOut << "var floor = global.Math.floor;";
         tab(n+1, *fOut); *fOut << "var abs = global.Math.abs;";
         tab(n+1, *fOut); *fOut << "var sqrt = global.Math.sqrt;";
@@ -167,8 +167,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var ceil = global.Math.ceil;";
         tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
       
-        // TODO : add 'fmodf' and 'log10f"
-       
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
@@ -189,7 +187,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "function fmod(x, y) {";
             tab(n+2, *fOut); *fOut << "x = +x;";
             tab(n+2, *fOut); *fOut << "y = +y;";
-            tab(n+2, *fOut); *fOut <<  "return +(x % y);";
+            tab(n+2, *fOut); *fOut << "return +(x % y);";
         tab(n+1, *fOut); *fOut << "}";
 
         // getNumInputs/getNumOutputs
@@ -218,8 +216,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
-            // Moves all variables at the beginning of the block
-            MoveVariablesInFront mover;
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront1 mover;
             BlockInst* block = mover.getCode(fInitInstructions); 
             block->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
@@ -301,9 +299,9 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // Generate JSON 
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "function getJSON" <<  fKlassName << "() {";
-    tab(n+1, *fOut);
-    *fOut << "return \""; *fOut << fCodeProducer.getJSON(true); *fOut << "\";";
-    printlines(n+1, fUICode, *fOut);
+        tab(n+1, *fOut);
+        *fOut << "return \""; *fOut << fCodeProducer.getJSON(true); *fOut << "\";";
+        printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
     
     // Metadata declaration
@@ -350,8 +348,8 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
     
-        // Moves all variables at the beginning of the block
-        MoveVariablesInFront1 mover;
+        // Moves all variables declaration at the beginning of the block
+        MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions); 
         block->accept(&fCodeProducer);
       
@@ -363,7 +361,6 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         loop->accept(&fCodeProducer);
         */
-         
         
     tab(n+1, *fOut); *fOut << "}";
 }

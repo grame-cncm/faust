@@ -66,10 +66,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["cosf"] = "cos";
             fMathLibTable["expf"] = "exp";
             fMathLibTable["floorf"] = "floor";
-            //fMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
             fMathLibTable["fmodf"] = "fmod";
             fMathLibTable["logf"] = "log";
-            //fMathLibTable["log10f"] = "function log10(a) { return log(a)/log(10); }";
             fMathLibTable["log10f"] = "log10";
             fMathLibTable["max"] = "max";
             fMathLibTable["min"] = "min";
@@ -793,8 +791,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
 };
 
-// Moves all variables declaratioon at the beginning of the block and rewrite the as 'declaration' followed by 'store'
-struct MoveVariablesInFront : public BasicCloneVisitor {
+// Moves all variables declaration at the beginning of the block
+struct MoveVariablesInFront1 : public BasicCloneVisitor {
     
     list<DeclareVarInst*> fVarTable;
     
@@ -818,8 +816,8 @@ struct MoveVariablesInFront : public BasicCloneVisitor {
 };
 
 
-// Moves all variables declaratioon at the beginning of the block and rewrite the as 'declaration' followed by 'store'
-struct MoveVariablesInFront1 : public BasicCloneVisitor {
+// Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
+struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
     list<DeclareVarInst*> fVarTable;
     //list<StoreVarInst*> fStoreTable;
