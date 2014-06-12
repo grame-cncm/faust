@@ -1692,6 +1692,7 @@ class CombinerVisitor : public DispatchVisitor
 struct InstBuilder
 {
 
+    /*
     static map<string, int> fIDCounters;
 
     static string getFreshID(const string& prefix)
@@ -1703,6 +1704,7 @@ struct InstBuilder
         fIDCounters[prefix] = n+1;
         return subst("$0$1", prefix, T(n));
     }
+    */
 
     // User interface
     static AddMetaDeclareInst* genAddMetaDeclareInst(const string& zone, const string& key, const string& value)

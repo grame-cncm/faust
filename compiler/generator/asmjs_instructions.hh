@@ -250,8 +250,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(LoadVarInst* inst)
         {
-            
-            printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
+            //printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
             
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
@@ -294,10 +293,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             if (named->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
-                    //*fOut << "Module.HEAPF32[dsp + " << tmp.first << " >> 2]";
                     *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
                 } else {
-                    //*fOut << "Module.HEAP32[dsp + " << tmp.first << " >> 2]";
                     *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
                 }
             } else {
@@ -316,14 +313,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             
             // HACK : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-                //*fOut << "Module.HEAP32[" << indexed->getName() << " + ";  
                 *fOut << "HEAP32[" << indexed->getName() << " + ";  
                 *fOut << "(";
                 indexed->fIndex->accept(this);
                 *fOut << " << 2)"; 
                 *fOut << " >> 2]";
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                //*fOut << "Module.HEAPF32[" << indexed->getName() << " + ";  
                 *fOut << "HEAPF32[" << indexed->getName() << " + ";  
                 *fOut << "(";
                 indexed->fIndex->accept(this);
@@ -332,14 +327,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else if (indexed->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
-                    //*fOut << "Module.HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
                     *fOut << " << 2)";       
                     *fOut << " >> 2]";
                 } else {
-                    //*fOut << "Module.HEAP32[dsp + " << tmp.first << " + "; 
                     *fOut << "HEAP32[dsp + " << tmp.first << " + "; 
                     *fOut << "(";
                     indexed->fIndex->accept(this);

@@ -1335,7 +1335,7 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 {
     ValueInst* init = InstBuilder::genTypedZero(ctype);
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-    string index = "i";
+    string index = getFreshID("i");
 
     // Generates table declaration
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
@@ -1353,7 +1353,7 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 
 StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int delay)
 {
-    string index = "j";
+    string index = getFreshID("j");
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
@@ -1376,7 +1376,7 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname, int 
 
 StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, const string& vname_from, int size)
 {
-    string index = "j";
+    string index = getFreshID("j");
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));

@@ -216,7 +216,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
             tab(n+2, *fOut); *fOut << "value = +value;";
-            //tab(n+2, *fOut);*fOut << "Module.HEAPF32[dsp + offset >> 2] = value;"; 
             tab(n+2, *fOut);*fOut << "HEAPF32[dsp + offset >> 2] = value;"; 
         tab(n+1, *fOut); *fOut << "}";
     
@@ -225,7 +224,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getValue(dsp, offset) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
-            //tab(n+2, *fOut);*fOut << "return Module.HEAPF32[dsp + offset >> 2];";
             tab(n+2, *fOut);*fOut << "return +HEAPF32[dsp + offset >> 2];";
         tab(n+1, *fOut); *fOut << "}";
     
