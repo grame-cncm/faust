@@ -159,19 +159,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
         // Always generated
         tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
-        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
-        tab(n+1, *fOut); *fOut << "function log10f(a) {";
-            tab(n+2, *fOut); *fOut << "a = +a;";
-            tab(n+2, *fOut); *fOut << "return +(a / +log(10.));";
-        tab(n+1, *fOut); *fOut << "}";
-     
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "function fmodf(x, y) {";
-            tab(n+2, *fOut); *fOut << "x = +x;";
-            tab(n+2, *fOut); *fOut << "y = +y;";
-            tab(n+2, *fOut); *fOut << "return +(x % y);";
-        tab(n+1, *fOut); *fOut << "}";
-
+    
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";

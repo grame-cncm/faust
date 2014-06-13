@@ -66,9 +66,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["cosf"] = "global.Math.cos";
             fMathLibTable["expf"] = "global.Math.exp";
             fMathLibTable["floorf"] = "global.Math.floor";
-            //fMathLibTable["fmodf"] = "fmod";    // Manually generated
+            fMathLibTable["fmodf"] = "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";   // Manually generated
             fMathLibTable["logf"] = "global.Math.log";
-            //fMathLibTable["log10f"] = "log10";  // Manually generated
+            fMathLibTable["log10f"] = "function log10f(a) { a = +a; return +(a / +log(10.)); }";    // Manually generated
             fMathLibTable["max"] = "global.Math.max";
             fMathLibTable["min"] = "global.Math.min";
             fMathLibTable["powf"] = "global.Math.pow";
@@ -224,16 +224,15 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut); *fOut << "var " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
             } else {
             
-                /* TODO
                 // Prototype
                 tab(fTab, *fOut); *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
                 generateFunDefArgs(inst);
                 generateFunDefBody(inst);
-                 */
+                
             }
         }
         
-    
+        /*
         virtual void visit(LoadVarInst* inst)
         {
             TextInstVisitor::visit(inst);
@@ -247,9 +246,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
         } 
-   
+        */
         
-        /*
+        
         virtual void visit(LoadVarInst* inst)
         {
             //printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
@@ -289,7 +288,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }
             }
         } 
-        */
+        
      
         
         virtual void visit(NamedAddress* named)

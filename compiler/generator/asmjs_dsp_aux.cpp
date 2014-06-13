@@ -55,7 +55,7 @@ EXPORT const char* createDSPFactory(const char* dsp_content, char* error_msg)
     
     /*
     for (int i = 0; i < argc; i++) {
-        argv1[i+3] = argv[i];
+        argv1[i+5] = argv[i];
     }
     */
     try {
