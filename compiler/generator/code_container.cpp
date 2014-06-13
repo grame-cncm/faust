@@ -264,12 +264,16 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         }
 
         global_block->pushBackInst(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
-        fGlobalDeclarationInstructions->pushBackInst(global_block);
+        pushGlobalDeclare(global_block);
 
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));
-        return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
- 
+        if (gGlobal->gOutputLang == "ajs") {
+            // Use cast to "keep" result type
+            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), result_type);
+        } else {
+            return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
+        }
     } else {
       
         list<NamedTyped*> named_args;
@@ -278,8 +282,12 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
             named_args.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped(types[i])));
         }
 
-        fGlobalDeclarationInstructions->pushBackInst(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
-        return InstBuilder::genFunCallInst(name, args);
+        pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
+        if (gGlobal->gOutputLang == "ajs") {
+            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(name, args), result_type);
+        } else {
+            return InstBuilder::genFunCallInst(name, args);
+        }
     }
 }
 

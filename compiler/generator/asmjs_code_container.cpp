@@ -135,8 +135,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    generateGlobalDeclarations(&fCodeProducer);
-    
     
     // ASM module
     tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, Module, buffer) {";
@@ -148,43 +146,27 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Memory access
         tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
         tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
-        tab(n+1, *fOut);
     
-        // Mathematical functions
-        tab(n+1, *fOut); *fOut << "var floor = global.Math.floor;";
-        tab(n+1, *fOut); *fOut << "var abs = global.Math.abs;";
-        tab(n+1, *fOut); *fOut << "var sqrt = global.Math.sqrt;";
-        tab(n+1, *fOut); *fOut << "var pow = global.Math.pow;";
-        tab(n+1, *fOut); *fOut << "var cos = global.Math.cos;";
-        tab(n+1, *fOut); *fOut << "var sin = global.Math.sin;";
-        tab(n+1, *fOut); *fOut << "var tan = global.Math.tan;";
-        tab(n+1, *fOut); *fOut << "var acos = global.Math.acos;";
-        tab(n+1, *fOut); *fOut << "var asin = global.Math.asin;";
-        tab(n+1, *fOut); *fOut << "var atan = global.Math.atan;";
-        tab(n+1, *fOut); *fOut << "var atan2 = global.Math.atan2;";
-        tab(n+1, *fOut); *fOut << "var exp = global.Math.exp;";
-        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
-        tab(n+1, *fOut); *fOut << "var ceil = global.Math.ceil;";
-        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
-      
+        // Global declarations (mathematical functions, global variables...)
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateGlobalDeclarations(&fCodeProducer);
+    
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
     
-        // TODO:
-        /*
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "function log10(a) {";
+        // Always generated
+        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
+        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+        tab(n+1, *fOut); *fOut << "function log10f(a) {";
             tab(n+2, *fOut); *fOut << "a = +a;";
-            tab(n+2, *fOut); *fOut << "var b = 0.;";
-            tab(n+2, *fOut); *fOut << "b = +log(10);";
-            tab(n+2, *fOut); *fOut << "return +(a/b);";
+            tab(n+2, *fOut); *fOut << "return +(a/+log(10.));";
         tab(n+1, *fOut); *fOut << "}";
-        */
-    
+     
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "function fmod(x, y) {";
+        tab(n+1, *fOut); *fOut << "function fmodf(x, y) {";
             tab(n+2, *fOut); *fOut << "x = +x;";
             tab(n+2, *fOut); *fOut << "y = +y;";
             tab(n+2, *fOut); *fOut << "return +(x % y);";

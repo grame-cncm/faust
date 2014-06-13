@@ -55,27 +55,27 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
         :TextInstVisitor(out, ".", tab), fJSON(0,0), fCurType(Typed::kNoType) 
         {
-            fMathLibTable["abs"] = "abs";
-            fMathLibTable["absf"] = "abs";
-            fMathLibTable["fabsf"] = "abs";
-            fMathLibTable["acosf"] = "acos";
-            fMathLibTable["asinf"] = "asin";
-            fMathLibTable["atanf"] = "atan";
-            fMathLibTable["atan2f"] = "atan2";
-            fMathLibTable["ceilf"] = "ceil";
-            fMathLibTable["cosf"] = "cos";
-            fMathLibTable["expf"] = "exp";
-            fMathLibTable["floorf"] = "floor";
-            fMathLibTable["fmodf"] = "fmod";
-            fMathLibTable["logf"] = "log";
-            fMathLibTable["log10f"] = "log10";
-            fMathLibTable["max"] = "max";
-            fMathLibTable["min"] = "min";
-            fMathLibTable["powf"] = "pow";
-            fMathLibTable["roundf"] = "round";
-            fMathLibTable["sinf"] = "sin";
-            fMathLibTable["sqrtf"] = "sqrt";
-            fMathLibTable["tanf"] = "tan";
+            fMathLibTable["abs"] = "global.Math.abs";
+            fMathLibTable["absf"] = "global.Math.abs";
+            fMathLibTable["fabsf"] = "global.Math.abs";
+            fMathLibTable["acosf"] = "global.Math.acos";
+            fMathLibTable["asinf"] = "global.Math.asin";
+            fMathLibTable["atanf"] = "global.Math.atan";
+            fMathLibTable["atan2f"] = "global.Math.atan2";
+            fMathLibTable["ceilf"] = "global.Math.ceil";
+            fMathLibTable["cosf"] = "global.Math.cos";
+            fMathLibTable["expf"] = "global.Math.exp";
+            fMathLibTable["floorf"] = "global.Math.floor";
+            //fMathLibTable["fmodf"] = "fmod";    // Manually generated
+            fMathLibTable["logf"] = "global.Math.log";
+            //fMathLibTable["log10f"] = "log10";  // Manually generated
+            fMathLibTable["max"] = "global.Math.max";
+            fMathLibTable["min"] = "global.Math.min";
+            fMathLibTable["powf"] = "global.Math.pow";
+            fMathLibTable["roundf"] = "global.Math.round";
+            fMathLibTable["sinf"] = "global.Math.sin";
+            fMathLibTable["sqrtf"] = "global.Math.sqrt";
+            fMathLibTable["tanf"] = "global.Math.tan";
             
             fObjPrefix = "";
             fStructSize = 0;
@@ -219,15 +219,18 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
-            // Do not declare Math library functions
+            // Math library functions are part of the 'global' module, fmod and log10 are manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-                return;
+                tab(fTab, *fOut); *fOut << "var " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
+            } else {
+            
+                /* TODO
+                // Prototype
+                tab(fTab, *fOut); *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
+                generateFunDefArgs(inst);
+                generateFunDefBody(inst);
+                 */
             }
-        
-            // Prototype
-            *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
-            generateFunDefArgs(inst);
-            generateFunDefBody(inst);
         }
         
     /*
@@ -697,8 +700,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             if (generateType(inst->fType) == "int") {
                 //if (fCurType != Typed::kInt) {
                     *fOut << "~~(";
+                    //*fOut << "(";
                     inst->fInst->accept(this);
                     *fOut << ")";
+                    //*fOut << " | 0)";
                     fCurType = Typed::kInt;
                 /*
                 } else {
@@ -721,20 +726,21 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
         
-        // TODO : correctly type result
+        
+        /*
         virtual void visit(FunCallInst* inst)
         {
             string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
             generateFunCall(inst, fun_name);
         }
+        */
     
-        /*
-        // Math function moved in ASM module delaration
+        // All function calls are casted with the correct function result type
         virtual void visit(FunCallInst* inst)
         {
             generateFunCall(inst, inst->fName);
         }
-        */
+        
     
         virtual void visit(ForLoopInst* inst)
         {

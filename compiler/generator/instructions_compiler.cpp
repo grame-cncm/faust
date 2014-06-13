@@ -309,54 +309,23 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
 
-        // Special case for asm.js
-        if (gGlobal->gOutputLang == "ajs") {
-            
-            for (int index = 0; index < fContainer->inputs(); index++) {
-                string name = subst("input$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0), InstBuilder::genIntNumInst(0)));
+        // "input" and "inputs" used as a name convention
+        for (int index = 0; index < fContainer->inputs(); index++) {
+            string name = subst("input$0", T(index));
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
+                                                               
+            if (gGlobal->gInPlace) {
+                CS(sigInput(index));
             }
-            
-            // "output" and "outputs" used as a name convention
-            for (int index = 0; index < fContainer->outputs(); index++) {
-                string name = subst("output$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0), InstBuilder::genIntNumInst(0)));
-            }
-            
-            for (int index = 0; index < fContainer->inputs(); index++) {
-                string name = subst("input$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genStoreStackVar(name, InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
-            
-                if (gGlobal->gInPlace) {
-                    CS(sigInput(index));
-                }
-            }
-            
-            for (int index = 0; index < fContainer->outputs(); index++) {
-                string name = subst("output$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genStoreStackVar(name, InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
-            }
-            
-        } else {
-        
-            // "input" and "inputs" used as a name convention
-            for (int index = 0; index < fContainer->inputs(); index++) {
-                string name = subst("input$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
-                    InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
-                                                                   
-                if (gGlobal->gInPlace) {
-                    CS(sigInput(index));
-                }
-            }
+        }
 
-            // "output" and "outputs" used as a name convention
-            for (int index = 0; index < fContainer->outputs(); index++) {
-                string name = subst("output$0", T(index));
-                
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
-                    InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
-            }
+        // "output" and "outputs" used as a name convention
+        for (int index = 0; index < fContainer->outputs(); index++) {
+            string name = subst("output$0", T(index));
+            
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
         }
     }
 
