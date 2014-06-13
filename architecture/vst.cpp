@@ -428,6 +428,15 @@ bool Faust::getParameterProperties(VstInt32 index, VstParameterProperties* prope
 	}
 
 	getParameterName(index, properties->label);
+	
+	// TODO: set parameter range
+	const vstSlider* slider = dynamic_cast<const vstSlider*>(m_dspUI);
+	if (NULL != slider) {
+		// has min-max range
+		properties->minInteger = slider->getMinValue();
+		properties->maxInteger = slider->getMaxValue();
+		properties->stepInteger = slider->getStep();
+	}
 
 	return true;
 } // end of getParameterProperties
