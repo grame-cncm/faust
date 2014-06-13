@@ -33,8 +33,8 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var factory_name = "mydsp";
         
         // 'buffer' is the emscripten global memory conext
- console.log(buffer);
- console.log(globalScope);
+ //console.log(buffer);
+ //console.log(globalScope);
         
         //Module.TOTAL_MEMORY = 41943040;
  
@@ -65,6 +65,10 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         return factory;
     };
  
+    faust.deleteDSPFactory = function (factory) {
+ 
+ }
+  
     faust.createDSPInstance = function (factory, context, buffer_size, handler) {
         
         // TODO : generate real factory name...
@@ -134,24 +138,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
                     output[j] = dspOutput[j];
                 }
             }
-        };
-        
-        that.destroy = function ()
-        {
-            for (i = 0; i < that.numIn; i++) { 
-                Module._free(HEAP32[(that.ins >> 2) + i]); 
-            }
-             
-            for (i = 0; i < that.numOut; i++) { 
-                Module._free(HEAP32[(that.outs >> 2) + i])
-            }
- 
-            Module._free(that.ins);
-            Module._free(that.outs);
- 
-            //that.factory.deleteDSP(that.dsp);
- 
-            Module._free(that.dsp);
         };
         
         // Connect to another node
@@ -290,6 +276,28 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         that.init();
         
         return that;
+    };
+ 
+    faust.deleteDSPInstance = function (that) {
+     
+ console.log("faust.deleteDSPInstance ");
+ console.log(that);
+ that.stop();
+         
+         for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]); 
+         }
+         
+         for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i])
+         }
+         
+         Module._free(that.ins);
+         Module._free(that.outs);
+         
+         //that.factory.deleteDSP(that.dsp);
+         
+         Module._free(that.dsp);
     };
 
 }());

@@ -1359,6 +1359,8 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
     
     string res;
     
+    //printf("compile_faust_asmjs\n");
+    
     try {
         global::allocate();     
         compile_faust_internal(argc, argv, name, input, true);
@@ -1369,7 +1371,10 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
         res = "";
     }
     
-    global::destroy();
+    //printf("compile_faust_asmjs OK\n");
+    
+    // TODO : make the compilation fails the next time...
+    //global::destroy();
     return res;
 }
 

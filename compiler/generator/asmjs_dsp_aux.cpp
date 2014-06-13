@@ -41,7 +41,7 @@ string gFactory;
 
 EXPORT const char* createDSPFactory(char* dsp_content)
 {
-    printf("dsp_content = %s\n", dsp_content);
+    //printf("dsp_content = %s\n", dsp_content);
     char error_msg[256];
     
     int argc = 0;
@@ -63,6 +63,6 @@ EXPORT const char* createDSPFactory(char* dsp_content)
     
     gFactory = compile_faust_asmjs(argc1, argv1, "WEB_DSP", dsp_content, error_msg);
     printf("error_msg %s\n", error_msg);
-    printf("factory = %s\n", gFactory.c_str());
+    //printf("factory = %s\n", gFactory.c_str());
     return gFactory.c_str();
 }
