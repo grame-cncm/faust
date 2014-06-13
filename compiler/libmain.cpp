@@ -70,7 +70,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION        "2.0.a23"
+#define FAUSTVERSION        "2.0.a24"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;
@@ -97,16 +97,18 @@ static void call_fun(compile_fun fun)
 
 static void call_fun(compile_fun fun)
 {
-    /*
-    pthread_t thread;
-    pthread_attr_t attr; 
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 524288 * 128);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-    pthread_create(&thread, &attr, fun, NULL);
-    pthread_join(thread, NULL);
-    */
-    fun(NULL);
+    if (gGlobal->gOutputLang == "ajs") {
+        // No thread support in asm.js
+        fun(NULL);
+    } else {
+        pthread_t thread;
+        pthread_attr_t attr; 
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, 524288 * 128);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+        pthread_create(&thread, &attr, fun, NULL);
+        pthread_join(thread, NULL);
+    }
 }
 
 #endif
@@ -371,7 +373,6 @@ static bool gExportDSP = false;
 
 static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
 static bool gPrintFileListSwitch = false;
-//static const char* gOutputLang = 0;
 static bool gLLVMOut = true;
 
 //-- command line tools

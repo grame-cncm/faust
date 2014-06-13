@@ -147,6 +147,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
         tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
     
+        // Always generated
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
+        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+    
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
@@ -156,9 +161,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
-    
-        // Always generated
-        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
     
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);

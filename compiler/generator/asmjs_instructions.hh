@@ -232,7 +232,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
         
-        /*
+        
         virtual void visit(LoadVarInst* inst)
         {
             TextInstVisitor::visit(inst);
@@ -246,9 +246,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
         } 
-        */
         
         
+        /*
         virtual void visit(LoadVarInst* inst)
         {
             //printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
@@ -288,7 +288,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }
             }
         } 
-        
+        */
      
         
         virtual void visit(NamedAddress* named)

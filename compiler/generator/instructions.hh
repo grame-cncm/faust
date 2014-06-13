@@ -2281,6 +2281,7 @@ struct InstBuilder
  */
 struct FIRIndex
 {
+        
     /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst * inst):
         fValue(inst)
@@ -2390,9 +2391,10 @@ struct FIRIndex
         return operator%(lhs, InstBuilder::genIntNumInst(rhs));
     }
 
-
 private:
-    ValueInst * fValue;
+    
+    ValueInst* fValue;
+    
 };
 
 #endif
@@ -2412,18 +2414,22 @@ Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) |
 Address := Access name | Address index
 
 Statement   := DeclareVar (Address, Type, Value)
+            | DeclareFun (Name, Type, Block)
             | ForLoop (Statement, Value, Statement, Block)
             | WhileLoop (Value, Block)
             | StoreVar (Address, Value)
-            | DeclareFun (Name, Type, Statement*)
-            | Drop Value
-            | Return Value
+            | Drop (Value)
+            | Return (Value)
             | BlockInst (Statement*)
-            | If (Value1, BlockInst, BlockInst)
-            | Switch (Value1, <int, BlockInst> *)
+            | If (Value, BlockInst, BlockInst)
+            | Switch (Value, <int, BlockInst>*)
 
 Value       := LoadVar (Address)
-            | Float | Int | Double
+            | Float | Int | Double | Bool
+            | Select (Value1, Value2, Value3)
+            | Binop (Opcode, Value1, Value2)
+            | Cast (Type, Value)
+            | Null ()
 
 Code rewritting :
 
@@ -2441,13 +2447,11 @@ I)
 2) transform Loop (Name, Value, Statement*) in DeclareFun (Name, Type, Statement*) : function type kVoid --> kVoid
 3) in Compute, replace each loop with a call to the created function
 
-
 II)
 
 1) in each loop, transform in put vector access from kStack in kFunArgs
 2) transform Loop (Name, Value, Statement*) in DeclareFun (Name, Type, Statement*) : all input variables become function parameters
 3) in Compute, replace each loop with a call to the created function giving it the good parameters
-
 
 Scalarisation (some ideas, possibly not correct or not complete...):
 
@@ -2468,9 +2472,6 @@ compute(count, float**, float**)
 2) compiler les boucles
 
 Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard? Avec un nommage spécifique?
-
-TODO : gestion des indices de boucles:
-
 
 TODO : gestion des indices de boucles:
 

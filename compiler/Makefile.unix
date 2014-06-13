@@ -51,11 +51,11 @@ ifeq ($(LLVM_VERSION), 3.3)
 endif
 
 ifeq ($(LLVM_VERSION), 3.4)
-LLVM_VERSION = LLVM_34
+    LLVM_VERSION = LLVM_34
 endif
 
 ifeq ($(LLVM_VERSION), 3.4.1)
-LLVM_VERSION = LLVM_34
+    LLVM_VERSION = LLVM_34
 endif
 
 ifeq ($(system), Darwin)
@@ -64,7 +64,7 @@ else
 	CXXFLAGS += -O1
 endif
 
-CXXFLAGS +=  -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
@@ -94,16 +94,17 @@ ios : libfaust.a
 
 emcc : CC=emcc
 emcc : CXX=emcc
-emcc : CXXFLAGS = -O2 -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : CXXFLAGS = -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js
 emcc : EXPORTED="['_createDSPFactory']"
 
 ##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 
+##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
 
 libfaust.js : $(objects) libmain.o global.o
-	$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
+	$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0  -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o

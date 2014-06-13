@@ -83,7 +83,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var that = {};
  
         that.factory = factory;
-        //that.dsp = that.factory.newDSP();
         that.dsp = Module._malloc(that.factory.getDSPSize());
         faust.context = context;
         that.buffer_size = buffer_size;
@@ -174,11 +173,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         
         that.json = function ()
         {
-            /*
-            var json_function_name = eval("faustUI.getJSON" + factory_name);
- console.log(json_function_name);
-            return that.factory.json_function_name();
-            */
             return that.factory.getJSON();
         }
         
@@ -261,7 +255,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
              
             // Prepare Ins/out buffer tables
             that.dspInChannnels = [];
-            var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+            var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
             for (i = 0; i < that.numIn; i++) {
                 that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
             }
@@ -300,9 +294,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
          
          Module._free(that.ins);
          Module._free(that.outs);
-         
-         //that.factory.deleteDSP(that.dsp);
-         
          Module._free(that.dsp);
     };
 
