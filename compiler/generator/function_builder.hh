@@ -316,12 +316,12 @@ struct StackVariableRemover : public DispatchVisitor {
     ForLoopInst* fResultLoop;
 
     // Table used to "link" direct Store and Load
-    map<string, ValueInst*>  fLinkTable;
+    map<string, ValueInst*> fLinkTable;
 
     // Store operation makes the "link" stuff
     struct VariableMarker : public DispatchVisitor {
 
-        map<string, ValueInst*>&  fLinkTable;
+        map<string, ValueInst*>& fLinkTable;
         string fName;
 
         VariableMarker(map<string, ValueInst*>& linktable, const string& name)

@@ -872,7 +872,7 @@ struct LoadVarAddressInst : public ValueInst, public SimpleValueInst
     {}
 
     void setName(const string& name) { fAddress->setName(name); }
-    string getName() {return fAddress->getName(); }
+    string getName() { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -892,7 +892,7 @@ struct StoreVarInst : public StatementInst
     {}
 
     void setName(const string& name) { fAddress->setName(name); }
-    string getName() {return fAddress->getName(); }
+    string getName() { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 

@@ -740,7 +740,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             generateFunCall(inst, inst->fName);
         }
         
-    
         virtual void visit(ForLoopInst* inst)
         {
             // Don't generate empty loops...
@@ -793,7 +792,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
     
-
 };
 
 // Moves all variables declaration at the beginning of the block
@@ -836,7 +834,6 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
             return new DropInst();
         }
-        
     }
     
     BlockInst* getCode(BlockInst* src)
