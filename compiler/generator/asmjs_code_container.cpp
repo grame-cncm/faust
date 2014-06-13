@@ -162,7 +162,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
         tab(n+1, *fOut); *fOut << "function log10f(a) {";
             tab(n+2, *fOut); *fOut << "a = +a;";
-            tab(n+2, *fOut); *fOut << "return +(a/+log(10.));";
+            tab(n+2, *fOut); *fOut << "return +(a / +log(10.));";
         tab(n+1, *fOut); *fOut << "}";
      
         tab(n+1, *fOut);

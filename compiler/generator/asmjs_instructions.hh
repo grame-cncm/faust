@@ -233,7 +233,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
         
-    /*
+    
         virtual void visit(LoadVarInst* inst)
         {
             TextInstVisitor::visit(inst);
@@ -247,9 +247,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
         } 
-   */     
+   
         
-    
+        /*
         virtual void visit(LoadVarInst* inst)
         {
             //printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
@@ -289,7 +289,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }
             }
         } 
-     
+        */
      
         
         virtual void visit(NamedAddress* named)
@@ -821,12 +821,10 @@ struct MoveVariablesInFront1 : public BasicCloneVisitor {
     
 };
 
-
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
 struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
     list<DeclareVarInst*> fVarTable;
-    //list<StoreVarInst*> fStoreTable;
     
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
@@ -834,7 +832,6 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         // For variable declaration that is not a number, separate the declaration and the store
         if (inst->fValue && !dynamic_cast<NumValueInst*>(inst->fValue)) {
             fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
-            //fStoreTable.push_back(new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
             return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
         } else {
             fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
@@ -846,11 +843,6 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
     BlockInst* getCode(BlockInst* src)
     {
         BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
-        /*
-        for (list<StoreVarInst*>::reverse_iterator it = fStoreTable.rbegin(); it != fStoreTable.rend(); ++it) {
-            dst->pushFrontInst(*it);
-        }
-        */
         // Moved in front..
         for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
             dst->pushFrontInst(*it);
