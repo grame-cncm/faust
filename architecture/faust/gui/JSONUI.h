@@ -216,7 +216,27 @@ class JSONUI : public PathUI, public Meta
             fCloseMetaPar = ',';
         }
     
-        std::string JSON()
+        inline string flatten(const string& src)
+        {
+            std::stringstream dst;
+            for (int i = 0; i < src.size(); i++) {
+                switch (src[i]) {
+                    case '\n':
+                    case '\t':
+                        dst << ' ';
+                        break;
+                    case '"':
+                        dst << "\\" << '"';
+                        break;
+                    default:
+                        dst << src[i];
+                        break;
+                }
+            }
+            return dst.str();
+        }
+    
+        std::string JSON(bool flat = false)
         {
             fTab = 0;
             fJSON << "{";
@@ -235,7 +255,7 @@ class JSONUI : public PathUI, public Meta
                 fJSON << fUI.str();
             }
             tab(fTab, fJSON); fJSON << "}" << std::endl;
-            return fJSON.str();
+            return (flat) ? flatten(fJSON.str()) : fJSON.str();
         }
     
 };

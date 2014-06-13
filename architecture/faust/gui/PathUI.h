@@ -4,6 +4,7 @@
 #include "faust/gui/UI.h"
 #include <vector>
 #include <string>
+#include <algorithm>
 
 /*******************************************************************************
  * PathUI : Faust User Interface
@@ -16,7 +17,9 @@ class PathUI : public UI
     protected:
     
         std::vector<std::string> fControlsLevel;
-        
+       
+    public:
+    
         std::string buildPath(const std::string& label) 
         {
             std::string res = "/";
