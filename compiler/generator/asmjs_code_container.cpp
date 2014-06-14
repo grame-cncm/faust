@@ -27,8 +27,6 @@
 
 using namespace std;
 
-ASMJAVAScriptInstVisitor* ASMJAVAScriptInstVisitor::fGlobalVisitor = 0;
-
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new ASMJAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);

@@ -47,10 +47,6 @@ class JAVACodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
-            
-            if (!JAVAInstVisitor::fGlobalVisitor) {
-                JAVAInstVisitor::fGlobalVisitor = new JAVAInstVisitor(new stringstream(), 0);   
-            }
         }
         virtual ~JAVACodeContainer()
         {}

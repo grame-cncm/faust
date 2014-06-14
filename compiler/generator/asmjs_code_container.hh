@@ -45,10 +45,6 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
-            
-            if (!ASMJAVAScriptInstVisitor::fGlobalVisitor) {
-                ASMJAVAScriptInstVisitor::fGlobalVisitor = new ASMJAVAScriptInstVisitor(new stringstream(), 0);   
-            }
         }
         virtual ~ASMJAVAScriptCodeContainer()
         {}

@@ -1444,13 +1444,21 @@ class BasicCloneVisitor : public CloneVisitor {
 
 struct DispatchVisitor : public InstVisitor {
 
-    
     using InstVisitor::visit;
     
     virtual void visit(DeclareVarInst* inst)
     {
+        inst->fAddress->accept(this);
+        // No visitor on types
         if (inst->fValue) {
             inst->fValue->accept(this);
+        }
+    }
+    
+    virtual void visit(DeclareFunInst* inst)
+    {
+        if (inst->fCode) {
+            inst->fCode->accept(this);
         }
     }
 
