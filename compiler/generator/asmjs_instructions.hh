@@ -88,6 +88,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         string getJSON(bool flat) { return fJSON.JSON(flat); }
         map <string, string>& getPathTable() { return fPathTable; }
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
+        map <string, string>& getMathLibTable() { return fMathLibTable; }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
@@ -209,7 +210,35 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (i < size - 1) *fOut << ", ";
             }
         }
-     
+        
+        virtual void generateFunDefBody(DeclareFunInst* inst)
+        {
+            if (inst->fCode->fCode.size() == 0) {
+                *fOut << ");" << endl;  // Pure prototype
+            } else {
+                // Function body
+                *fOut << ") {";
+                fTab++;
+                tab(fTab, *fOut);
+                // Types function arguments
+                list<NamedTyped*>::const_iterator it;
+                for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
+                    Typed* type = (*it)->fType;
+                    if (type->getType() == Typed::kInt) {
+                        *fOut << (*it)->fName << " = " << (*it)->fName << " | 0;";
+                    } else {
+                        *fOut << (*it)->fName << " = " << "+" << (*it)->fName << ";";
+                    }
+                    tab(fTab, *fOut); 
+                }
+                inst->fCode->accept(this);
+                fTab--;
+                tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+            }
+        }
+    
         virtual void visit(DeclareFunInst* inst)
         {
             // Already generated
@@ -225,15 +254,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     tab(fTab, *fOut); *fOut << "var " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
                 }
             } else {
-            
                 // Prototype
                 tab(fTab, *fOut); *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
                 generateFunDefArgs(inst);
                 generateFunDefBody(inst);
-                
             }
         }
-        
+            
         /*
         virtual void visit(LoadVarInst* inst)
         {

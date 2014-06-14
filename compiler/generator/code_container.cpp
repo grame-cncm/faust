@@ -261,8 +261,6 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         list<NamedTyped*> named_args;
         named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
 
-        BlockInst* global_block = InstBuilder::genBlockInst();
-
         // Expand the pow depending of the exposant argument
         BlockInst* block = InstBuilder::genBlockInst();
 
@@ -273,11 +271,15 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
             for (int i= 0; i < arg1->fNum - 1; i++) {
                 res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
             }
-            block->pushBackInst(InstBuilder::genRetInst(res));
+            // Use cast to "keep" result type
+            if (gGlobal->gOutputLang == "ajs") {
+                block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastNumInst(res, getTypeASM(result))));
+            } else {
+                block->pushBackInst(InstBuilder::genRetInst(res));
+            }
         }
-
-        global_block->pushBackInst(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
-        pushGlobalDeclare(global_block);
+        
+        pushGlobalDeclare(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
 
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));

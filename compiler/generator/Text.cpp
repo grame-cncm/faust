@@ -277,13 +277,22 @@ string checkDouble(double val)
     string str = num.str();
 
     bool dot = false;
+    int e_pos = -1;
     for (unsigned int i = 0; i < str.size(); i++) {
-        if (str[i] == '.' || str[i] == 'e') {
-           dot = true;
-           break;
+        if (str[i] == '.') {
+            dot = true;
+            break;
+        } else if (str[i] == 'e') {
+            e_pos = i;
+            break;
         }
     }
-    return (dot) ? str : (str + ".");
+    
+    if (e_pos >= 0) {
+        return str.insert(e_pos, 1, '.');
+    } else {
+        return (dot) ? str : (str + ".");
+    }    
 }
 
 string checkReal(double val)

@@ -119,6 +119,33 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n, *fOut);
 }
 
+struct sortDeclareFunctions
+{
+    map <string, string> fMathLibTable;
+    
+    sortDeclareFunctions(const map <string, string>& table) : fMathLibTable(table)
+    {}
+    
+    bool operator()(StatementInst* a, StatementInst* b)
+    { 
+        DeclareFunInst* inst1 = dynamic_cast<DeclareFunInst*>(a);
+        DeclareFunInst* inst2 = dynamic_cast<DeclareFunInst*>(b);
+        
+        if (inst1) {
+            if (inst2) {
+                if (fMathLibTable.find(inst1->fName) != fMathLibTable.end()) {
+                    if (fMathLibTable.find(inst2->fName) != fMathLibTable.end()) {
+                        return inst1->fName < inst2->fName;
+                    } else {
+                        return true;
+                    }
+                } 
+            }
+        }
+        return false;
+    }
+};
+
 void ASMJAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
@@ -154,6 +181,9 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
+        // All mathematical functions (got from math library as variables) have to be first...
+        sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
+        fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(&fCodeProducer);
     
         // Always generated
