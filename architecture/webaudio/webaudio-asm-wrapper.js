@@ -32,12 +32,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         // TODO : generate real factory name...
         var factory_name = "mydsp";
         
-        // 'buffer' is the emscripten global memory conext
- //console.log(buffer);
- //console.log(globalScope);
-        
-        //Module.TOTAL_MEMORY = 41943040;
- 
         var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
         var name_ptr = allocate(intArrayFromString("FaustDSP"), 'i8', ALLOC_STACK);
         var error_msg_ptr = allocate(intArrayFromString('', false, 256), 'i8', ALLOC_STACK);
@@ -53,8 +47,10 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         eval(factory_code);
  
         // Compile the ASM module itself
-        // console.log(Module);
-        var factory = eval(factory_name + "Factory(window, Module, buffer)");        
+ 
+        // 'buffer' is the emscripten global memory conext
+ 
+        var factory = eval(factory_name + "Factory(window, null, buffer)");        
         console.log(factory);
  
         var path_table_function_name = eval("getPathTable" + factory_name); 

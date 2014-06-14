@@ -119,6 +119,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n, *fOut);
 }
 
+// Mathematical fucntion are declared as variables, they have to be generated before any other function (like 'faustpower')
 struct sortDeclareFunctions
 {
     map <string, string> fMathLibTable;
@@ -163,6 +164,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     
     // ASM module
+    /*
+        All variables have to be declared fierst, then functions, then export section.
+     
+    */
     tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, Module, buffer) {";
     
         tab(n+1, *fOut);
@@ -181,6 +186,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
+    
         // All mathematical functions (got from math library as variables) have to be first...
         sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
         fGlobalDeclarationInstructions->fCode.sort(sorter);
@@ -353,7 +359,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
     
-        // Moves all variables declaration at the beginning of the block
+        // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions); 
         block->accept(&fCodeProducer);

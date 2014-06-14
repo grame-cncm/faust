@@ -46,7 +46,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     
         map <string, pair<int, Typed::VarType> > fFieldTable;  // Table : field_name, <byte offset in structure, type>
         map <string, string> fPathTable;                       // Table : field_name, complete path
-
+    
+        inline bool startWith(const string& str, const string& prefix)
+        {
+            return (str.substr(0, prefix.size()) == prefix);
+        }
+  
     public:
     
         // Only one shared visitor
@@ -162,6 +167,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             // Empty
         }
 
+        // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct);  // Do no generate structure variable, since they are in the global HEAP
@@ -248,7 +254,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
-            // Math library functions are part of the 'global' module, fmod and log10 are manually generated
+            // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual") {
                     tab(fTab, *fOut); *fOut << "var " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
@@ -272,7 +278,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
             
-            // Type by me incorrectly changed by TextInstVisitor::visit(inst);
+            // Type may be incorrectly changed by TextInstVisitor::visit(inst);
             Typed::VarType tmp = fCurType;
             
             if (fCurType == Typed::kInt) {
@@ -318,12 +324,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << named->fName;
             }
         }
-    
-        inline bool startWith(const string& str, const string& prefix)
-        {
-            return (str.substr(0, prefix.size()) == prefix);
-        }
-        
+      
         virtual void visit(IndexedAddress* indexed)
         {
             // PTR size is 4 bytes
