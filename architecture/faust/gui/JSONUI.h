@@ -216,7 +216,7 @@ class JSONUI : public PathUI, public Meta
             fCloseMetaPar = ',';
         }
     
-        inline string flatten(const string& src)
+        inline std::string flatten(const std::string& src)
         {
             std::stringstream dst;
             for (int i = 0; i < src.size(); i++) {
