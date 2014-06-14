@@ -115,11 +115,6 @@ struct TypingVisitor : public InstVisitor {
         {
             fCurType = inst->fType->getType();
         }
-    
-        virtual void visit(FunCallInst* inst)
-        {
-            // ??
-        }
       
         virtual void visit(Select2Inst* inst)
         {

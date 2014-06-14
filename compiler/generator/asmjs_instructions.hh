@@ -270,19 +270,15 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
             
             if (fTypingVisitor.fCurType == Typed::kInt) {
-                 
                 *fOut << "(";
                 TextInstVisitor::visit(inst);
                 *fOut << " | 0)";
-            
             } else if (fTypingVisitor.fCurType == Typed::kFloatMacro 
                        || fTypingVisitor.fCurType == Typed::kFloat 
                        || fTypingVisitor.fCurType == Typed::kDouble) {
-                
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
-                
             } else {
                 // HACK : completely adhoc code for input/output/count...
                 if ((startWith(inst->getName(), "inputs") 
@@ -352,7 +348,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
   
         virtual void visit(LoadVarAddressInst* inst)
         {
-           // Not implemented in JavaScript
+           // Not implemented in ASMJavaScript
             assert(false);
         }
                 
@@ -577,8 +573,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
             }
         }
-    
-};
+ };
 
 // Moves all variables declaration at the beginning of the block
 struct MoveVariablesInFront1 : public BasicCloneVisitor {
