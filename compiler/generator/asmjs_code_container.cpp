@@ -188,7 +188,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
         // Always generated
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
-        tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(a / +log(10.)); }";
+        tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
     
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
@@ -357,15 +357,6 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions); 
         block->accept(&fCodeProducer);
-      
-        /*
-        // Generates local variables declaration and setup
-        generateComputeBlock(&fCodeProducer);
-
-        // Generates one single scalar loop
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-        loop->accept(&fCodeProducer);
-        */
-        
+           
     tab(n+1, *fOut); *fOut << "}";
 }
