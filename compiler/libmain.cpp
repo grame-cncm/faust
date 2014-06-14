@@ -131,6 +131,8 @@ static Module* load_module(const string& module_name, llvm::LLVMContext* context
     }
 }
 
+#if LLVM_BUILD
+
 static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* error)
 {
     list<string>::iterator it;
@@ -151,6 +153,8 @@ static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* e
         
     return dst;
 }
+
+#endif
 
 //Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
