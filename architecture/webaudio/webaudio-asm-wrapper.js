@@ -23,7 +23,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 
 (function () {
  
-    var createDSPFactory = Module.cwrap('createDSPFactory', 'number', ['number', 'number']);
+    var createDSPFactory = Module.cwrap('createCDSPFactoryFromString', 'number', ['number', 'number', 'number']);
  
     // Standard Faust DSP
 
@@ -39,8 +39,9 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         //Module.TOTAL_MEMORY = 41943040;
  
         var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
+        var name_ptr = allocate(intArrayFromString("FaustDSP"), 'i8', ALLOC_STACK);
         var error_msg_ptr = allocate(intArrayFromString('', false, 256), 'i8', ALLOC_STACK);
-        var factory_code = Pointer_stringify(createDSPFactory(code_ptr, error_msg_ptr));
+        var factory_code = Pointer_stringify(createDSPFactory(name_ptr, code_ptr, error_msg_ptr));
         var error_msg = Pointer_stringify(error_msg_ptr);
         console.log(factory_code);
  
@@ -274,7 +275,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         };
         
         that.init();
-        
         return that;
     };
  

@@ -39,7 +39,7 @@
 
 string gFactory; 
 
-EXPORT const char* createDSPFactory(const char* dsp_content, char* error_msg)
+EXPORT const char* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg)
 {
     //printf("dsp_content = %s\n", dsp_content);
     int argc = 0;
@@ -51,7 +51,7 @@ EXPORT const char* createDSPFactory(const char* dsp_content, char* error_msg)
 	argv1[1] = "-lang";
 	argv1[2] = "ajs";
     argv1[3] = "-o";
-    argv1[4] = "amsjs";
+    argv1[4] = "asmjs";
     
     /*
     for (int i = 0; i < argc; i++) {
@@ -59,7 +59,7 @@ EXPORT const char* createDSPFactory(const char* dsp_content, char* error_msg)
     }
     */
     try {
-        gFactory = compile_faust_asmjs(argc1, argv1, "WEB_DSP", dsp_content, error_msg);
+        gFactory = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
     } catch (...) {
         strncpy(error_msg, "libfaust.js fatal error...", 256);
         gFactory = "";

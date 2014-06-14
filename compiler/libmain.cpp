@@ -968,7 +968,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gGlobal->gOutputFile != "") {
             string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-            if (gGlobal->gOutputFile == "amsjs") {
+            if (gGlobal->gOutputFile == "asmjs") {
                 dst = new stringstream(outpath.c_str());
                 gGlobal->gStringResult = dst;
             } else {

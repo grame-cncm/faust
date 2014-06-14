@@ -98,7 +98,7 @@ emcc : CXXFLAGS = -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parenth
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js
-emcc : EXPORTED="['_createDSPFactory']"
+emcc : EXPORTED="['_createCDSPFactoryFromString']"
 
 ##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js

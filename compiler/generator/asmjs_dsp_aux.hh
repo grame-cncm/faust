@@ -51,7 +51,7 @@ extern "C" {
                                      string& error_msg, int opt_level);
     */
 
-    EXPORT const char* createDSPFactory(const char* dsp_content, char* error_msg);
+    EXPORT const char* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg);
     
 #ifdef __cplusplus
 }
