@@ -287,7 +287,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 TextInstVisitor::visit(inst);
                 *fOut << " | 0)";
             
-            } else if (fCurType == Typed::kFloatMacro || fCurType == Typed::kFloat) {
+            } else if (fCurType == Typed::kFloatMacro || fCurType == Typed::kFloat || fCurType == Typed::kDouble) {
                 
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
@@ -315,7 +315,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {   
             if (named->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
-                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
+                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second  == Typed::kDouble) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
                 } else {
                     *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
@@ -344,7 +344,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << " >> 2]";
             } else if (indexed->getAccess() & Address::kStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat) {
+                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
@@ -391,9 +391,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(DoubleNumInst* inst)
         {
-            //*fOut << inst->fNum;
             *fOut << checkDouble(inst->fNum);
-            fCurType = Typed::kInt;
+            fCurType = Typed::kDouble;
         }
            
         virtual void visit(BinopInst* inst)
@@ -433,7 +432,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         *fOut << " | 0)";
                     }
                     fCurType = Typed::kInt;
-                } else if (type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro)) {
+                } else if (type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -441,8 +440,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     inst->fInst2->accept(this);
                     *fOut << ")";
-                    fCurType = Typed::kFloat;
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro) && type2 == Typed::kInt) {
+                    fCurType = type2;
+                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kInt) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -450,8 +449,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     inst->fInst2->accept(this); 
                     *fOut << ")";
-                    fCurType = Typed::kFloat;   
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro) && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro)) {
+                     fCurType = type1;   
+                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) 
+                            && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -459,7 +459,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     inst->fInst2->accept(this);
                     *fOut << ")";
-                    fCurType = Typed::kFloat;
+                    fCurType = type2;
                 } else if (type1 == Typed::kInt && type2 == Typed::kBool) {
                     *fOut << "(";
                     inst->fInst1->accept(this);
@@ -487,7 +487,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this);
                     *fOut << " | 0)";
                     fCurType = Typed::kInt;
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro) && type2 == Typed::kBool) {
+                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kBool) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -495,16 +495,16 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " ";
                     inst->fInst2->accept(this);
                     *fOut << ")";
-                    fCurType = Typed::kFloat;
-                } else if (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro)) {
+                    fCurType = type1;
+                } else if (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
-                    fCurType = Typed::kFloat;
                     *fOut << ")";
+                    fCurType = type2;
                 } else { // Default
                     *fOut << "(";
                     inst->fInst1->accept(this);
@@ -532,7 +532,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kInt;
             } else if (inst->fType->getType() == Typed::kFloatMacro 
                        || inst->fType->getType() == Typed::kFloat
-                       || inst->fType->getType() == Typed::kFloatish) {
+                       || inst->fType->getType() == Typed::kFloatish
+                       || inst->fType->getType() == Typed::kDouble
+                       || inst->fType->getType() == Typed::kDoublish) {
                 *fOut << "+(";
                 inst->fInst->accept(this);
                 *fOut << ")";

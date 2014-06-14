@@ -680,7 +680,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST : DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, LLVM IR, version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
@@ -719,7 +719,7 @@ static void printhelp()
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
-    cout << "-o <file> \tC, C++, JAVA, JavaScript or LLVM IR output file\n";
+    cout << "-o <file> \tC, C++, JAVA, JavaScript/ASMJavaScript or LLVM IR output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
@@ -1280,7 +1280,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     endTiming("propagation");
 
     /****************************************************************
-    5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
+    5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript/ASMJavaScript or LLVM IR
     *****************************************************************/
     pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs, generate);
 

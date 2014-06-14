@@ -168,7 +168,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         All variables have to be declared fierst, then functions, then export section.
      
     */
-    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, Module, buffer) {";
+    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "'use asm';"; 
