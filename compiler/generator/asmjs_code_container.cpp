@@ -27,7 +27,6 @@
 
 using namespace std;
 
-map <string, int> ASMJAVAScriptInstVisitor::gFunctionSymbolTable;  
 ASMJAVAScriptInstVisitor* ASMJAVAScriptInstVisitor::fGlobalVisitor = 0;
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -156,6 +155,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateGlobalDeclarations(&fCodeProducer);
+    
+        // Always generated
+        tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
+        tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(a / +log(10.)); }";
     
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);

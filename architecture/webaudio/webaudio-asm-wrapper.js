@@ -23,7 +23,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 
 (function () {
  
-    var createDSPFactory = Module.cwrap('createCDSPFactoryFromString', 'number', ['number', 'number', 'number']);
+    var createDSPFactory = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number']);
  
     // Standard Faust DSP
 
@@ -72,9 +72,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         return factory;
     };
  
-    faust.deleteDSPFactory = function (factory) {
- 
- }
+    faust.deleteDSPFactory = function (factory) {}
   
     faust.createDSPInstance = function (factory, context, buffer_size, handler) {
         
@@ -265,6 +263,13 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
             for (i = 0; i < that.numOut; i++) {
                 that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
+                /*
+                // clear output buffer
+                var dspOutput = that.dspOutChannnels[i];
+                for (j = 0; j < that.buffer_size; j++) {
+                    dspOutput[j] = 0.
+                }
+                */
             }
                                     
             // bargraph

@@ -37,7 +37,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototye is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable; 
+        map <string, int> gFunctionSymbolTable; 
         map <string, string> fMathLibTable;
         Typed::VarType fCurType;
     
@@ -66,9 +66,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["cosf"] = "global.Math.cos";
             fMathLibTable["expf"] = "global.Math.exp";
             fMathLibTable["floorf"] = "global.Math.floor";
-            fMathLibTable["fmodf"] = "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";   // Manually generated
+            fMathLibTable["fmodf"] = "manual";      // Manually generated
             fMathLibTable["logf"] = "global.Math.log";
-            fMathLibTable["log10f"] = "function log10f(a) { a = +a; return +(a / +log(10.)); }";    // Manually generated
+            fMathLibTable["log10f"] = "manual";     // Manually generated
             fMathLibTable["max"] = "global.Math.max";
             fMathLibTable["min"] = "global.Math.min";
             fMathLibTable["powf"] = "global.Math.pow";
@@ -221,7 +221,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             
             // Math library functions are part of the 'global' module, fmod and log10 are manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-                tab(fTab, *fOut); *fOut << "var " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
+                if (fMathLibTable[inst->fName] != "manual") {
+                    tab(fTab, *fOut); *fOut << "var " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
+                }
             } else {
             
                 // Prototype
@@ -232,7 +234,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
         
-        
+        /*
         virtual void visit(LoadVarInst* inst)
         {
             TextInstVisitor::visit(inst);
@@ -246,12 +248,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 fCurType = Typed::kNoType;
             }
         } 
+        */
         
         
-        /*
         virtual void visit(LoadVarInst* inst)
         {
-            //printf("LoadVarInst inst->getName() %s\n", inst->getName().c_str());
+            
             
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
@@ -261,6 +263,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else {
                 fCurType = Typed::kNoType;
             }
+            
+            // Type by me incorrectly changed by TextInstVisitor::visit(inst);
+            Typed::VarType tmp = fCurType;
+            
+            //printf("LoadVarInst inst->getName() %s %d\n", inst->getName().c_str(), fCurType);
             
             if (fCurType == Typed::kInt) {
                  
@@ -283,13 +290,14 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << "(";
                     TextInstVisitor::visit(inst);
                     *fOut << " | 0)";
+                    fCurType = Typed::kInt;
                 } else {
                     TextInstVisitor::visit(inst);
                 }
             }
+            
+            fCurType = tmp;
         } 
-        */
-     
         
         virtual void visit(NamedAddress* named)
         {   
@@ -696,32 +704,25 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(CastNumInst* inst)
         {
-            if (generateType(inst->fType) == "int") {
-                //if (fCurType != Typed::kInt) {
-                    *fOut << "~~(";
-                    //*fOut << "(";
-                    inst->fInst->accept(this);
-                    *fOut << ")";
-                    //*fOut << " | 0)";
-                    fCurType = Typed::kInt;
-                /*
-                } else {
-                    // No explicit cast generation
-                    inst->fInst->accept(this);
-                }
-                 */
+            if (inst->fType->getType() == Typed::kInt) {
+                *fOut << "~~(";
+                inst->fInst->accept(this);
+                *fOut << ")";
+                fCurType = Typed::kInt;
+            } else if (inst->fType->getType() == Typed::kIntish) {
+                *fOut << "(";
+                inst->fInst->accept(this);
+                *fOut << " | 0)";
+                fCurType = Typed::kInt;
+            } else if (inst->fType->getType() == Typed::kFloatMacro 
+                       || inst->fType->getType() == Typed::kFloat
+                       || inst->fType->getType() == Typed::kFloatish) {
+                *fOut << "+(";
+                inst->fInst->accept(this);
+                *fOut << ")";
+                fCurType = Typed::kFloat;
             } else {
-                //if (fCurType == Typed::kFloat || fCurType == Typed::kFloatMacro) {
-                    // No explicit cast generation
-                //    inst->fInst->accept(this);
-                
-                //} else {
-                    *fOut << "+(";
-                    inst->fInst->accept(this);
-                    *fOut << ")";
-                    fCurType = Typed::kFloat;
-               // }
-                 
+                assert(false);
             }
         }
         

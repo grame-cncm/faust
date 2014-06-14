@@ -189,13 +189,13 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
 	
 /*
 Fonctionnement des dossiers. 
-Dossier à 1 niveau : Un dossier contient une liste de choses reperées par un nom  :
+Dossier a 1 niveau : Un dossier contient une liste de choses reperees par un nom  :
 	Dossier[(l1,d1)...(ln,dn)] 
-ou (lx,dx) est une chose dx repérée par un nom lx. On suppose les lx tous différents
+ou (lx,dx) est une chose dx repérée par un nom lx. On suppose les lx tous differents
 
-On peut ajouter une chose à un dossier : Ajouter(Dossier, Chose) -> Dossier
+On peut ajouter une chose a un dossier : Ajouter(Dossier, Chose) -> Dossier
 
-Si le dossier contient deja qq chose de meme nom, cette chose est remplacée par la nouvelle.
+Si le dossier contient deja qq chose de meme nom, cette chose est remplacee par la nouvelle.
 
 AJOUTER (Dossier[(l1,d1)...(ln,dn)], (lx,dx)) -> Dossier[(l1,d1)...(lx,dx)...(ln,dn)]
 

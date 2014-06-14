@@ -58,7 +58,7 @@ typedef struct LLVMResult {
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 
 /**
- * Compile a Faust program and produces an LLVM module.
+ * Compile a Faust program and produces a LLVM module.
  * 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters

@@ -49,7 +49,7 @@ string makeDrawPath();
 
 std::ostream* Printable::fOut = &cout;
 
-static BasicTyped* genBasicFIRTyped(int sig_type)
+static inline BasicTyped* genBasicFIRTyped(int sig_type)
 {
     return InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat());
 }
@@ -701,6 +701,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
     pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
  
+    // TODO : asm.js
     return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
 }
 

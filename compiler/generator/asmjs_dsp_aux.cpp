@@ -39,7 +39,7 @@
 
 string gFactory; 
 
-EXPORT const char* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg)
+EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg)
 {
     //printf("dsp_content = %s\n", dsp_content);
     int argc = 0;

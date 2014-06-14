@@ -304,9 +304,9 @@ struct NullInst : public ValueInst
 
 struct Typed : public Printable
 {
-    enum VarType {kFloatMacro, kFloatMacro_ptr, kFloat, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
-                kInt, kInt_ptr, kInt_vec, kInt_vec_ptr,
-                kDouble, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
+    enum VarType {kFloatMacro, kFloatMacro_ptr, kFloat, kFloatish, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
+                kInt, kIntish, kInt_ptr, kInt_vec, kInt_vec_ptr,
+                kDouble, kDoublish, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
                 kQuad, kQuad_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
                 kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr, kNoType};

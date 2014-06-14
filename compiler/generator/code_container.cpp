@@ -151,7 +151,7 @@ void CodeContainer::printLibrary(ostream& fout)
 	collectLibrary(S);
     if (S.size() > 0) {
         fout << "/* link with ";
-        for (f = S.begin(), sep =": "; f != S.end(); f++, sep = ", ") 	{
+        for (f = S.begin(), sep =": "; f != S.end(); f++, sep = ", ") {
             fout << sep << *f;
         }
         fout << " */\n";
@@ -167,7 +167,7 @@ void CodeContainer::printIncludeFile(ostream& fout)
     set<string>::iterator f;
 
     collectIncludeFile(S);
-    for (f = S.begin(); f != S.end(); f++) 	{
+    for (f = S.begin(); f != S.end(); f++) {
         fout << "#include " << *f << "\n";
     }
 }
@@ -232,6 +232,19 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
     loop_count = loop_index;
 }
 
+static inline BasicTyped* getTypeASM(Typed::VarType result)
+{
+    if (result == Typed::kInt) {
+        return InstBuilder::genBasicTyped(Typed::kIntish);
+    } else if ((result == Typed::kFloatMacro || result == Typed::kFloat)) {
+        return InstBuilder::genBasicTyped(Typed::kFloatish);
+    } else if ((result == Typed::kDouble)) {
+        return InstBuilder::genBasicTyped(Typed::kDoublish);
+    } else {
+        return InstBuilder::genBasicTyped(result);
+    }
+}
+
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args)
 {
     BasicTyped* result_type = InstBuilder::genBasicTyped(result);
@@ -270,7 +283,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         truncated_args.push_back((*args.begin()));
         if (gGlobal->gOutputLang == "ajs") {
             // Use cast to "keep" result type
-            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), result_type);
+            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), getTypeASM(result));
         } else {
             return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
         }
@@ -284,7 +297,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 
         pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         if (gGlobal->gOutputLang == "ajs") {
-            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(name, args), result_type);
+            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(name, args), getTypeASM(result));
         } else {
             return InstBuilder::genFunCallInst(name, args);
         }

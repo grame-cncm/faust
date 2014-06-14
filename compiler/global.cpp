@@ -45,7 +45,6 @@
 #include "binop.hh"
 #include "instructions.hh"
 
-
 // Parser
 extern FILE* yyin;
 extern const char * yyfilename;
