@@ -1003,15 +1003,15 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1,
     if (t1 == kReal) {
         block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
         block2_inst.push_back(InstBuilder::genStoreStackVar(vname, ((t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2))));
-        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()));
+        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), InstBuilder::genTypedZero(itfloat()));
     } else if (t2 == kReal) {
         block1_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumFloatInst(val1)));
         block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
-        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()));
+        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), InstBuilder::genTypedZero(itfloat()));
     } else {
         block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
         block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
-        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(Typed::kInt));
+        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genTypedZero(Typed::kInt));
     }
     
     BlockInst* block1 = InstBuilder::genBlockInst(block1_inst);
