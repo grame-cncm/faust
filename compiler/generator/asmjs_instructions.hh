@@ -28,6 +28,11 @@ using namespace std;
 #include "typing_instructions.hh"
 #include "../../architecture/faust/gui/JSONUI.h"
 
+static inline bool startWith(const string& str, const string& prefix)
+{
+    return (str.substr(0, prefix.size()) == prefix);
+}
+
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
@@ -48,15 +53,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         map <string, pair<int, Typed::VarType> > fFieldTable;  // Table : field_name, <byte offset in structure, type>
         map <string, string> fPathTable;                       // Table : field_name, complete path
     
-        inline bool startWith(const string& str, const string& prefix)
-        {
-            return (str.substr(0, prefix.size()) == prefix);
-        }
-  
     public:
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
-            :TextInstVisitor(out, ".", tab), fJSON(0,0) 
+            //:TextInstVisitor(out, ".", tab), fJSON(0,0) 
+            :TextInstVisitor(out, ".", ifloat(), "", tab), fJSON(0,0)
         {
             fMathLibTable["abs"] = "global.Math.abs";
             fMathLibTable["absf"] = "global.Math.abs";
@@ -168,9 +169,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
-            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct);  // Do no generate structure variable, since they are in the global HEAP
-            string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? fObjPrefix : "var ";
-
+            //bool is_struct = (inst->fAddress->getAccess() & Address::kStruct);  // Do no generate structure variable, since they are in the global HEAP
+            //string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? fObjPrefix : "var ";
+            
+            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) 
+                || (inst->fAddress->getAccess() & Address::kStaticStruct);  // Do no generate structure variable, since they are in the global HEAP
+            string prefix = is_struct ? fObjPrefix : "var ";
+         
             if (inst->fValue) {
                 if (!is_struct)
                     *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
@@ -180,7 +185,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
                     if (!is_struct)
                         *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
+                    //fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
+                    
+                    // KEEP PTR type
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, Typed::getPtrFromType( array_typed->fType->getType()));
+                    
                     fStructSize += array_typed->fSize * 4;
                 } else {
                     if (!is_struct)
@@ -193,7 +202,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 EndLine();
         }
         
-        virtual void generateFunArgs(DeclareFunInst* inst)
+        /*
+        virtual void generateFunCallArgs(DeclareFunInst* inst)
         {
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
@@ -203,6 +213,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (i < size - 1) *fOut << ", ";
             }
         }
+        */
   
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
@@ -210,6 +221,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
+                // No type is generated...
                 *fOut << (*it)->fName;
                 if (i < size - 1) *fOut << ", ";
             }
@@ -269,7 +281,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             fTypingVisitor.visit(inst);
             
-            if (fTypingVisitor.fCurType == Typed::kInt) {
+            if (fTypingVisitor.fCurType == Typed::kInt
+                || fTypingVisitor.fCurType == Typed::kInt_ptr
+                || fTypingVisitor.fCurType == Typed::kFloat_ptr
+                || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr) {
                 *fOut << "(";
                 TextInstVisitor::visit(inst);
                 *fOut << " | 0)";
@@ -296,9 +311,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(NamedAddress* named)
         {   
-            if (named->getAccess() & Address::kStruct) {
+            //printf("NamedAddress %s\n", named->getName().c_str());
+            //if (named->getAccess() & Address::kStruct) {
+            if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
-                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second  == Typed::kDouble) {
+                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
                 } else {
                     *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
@@ -310,6 +327,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
       
         virtual void visit(IndexedAddress* indexed)
         {
+            //printf("IndexedAddress %s\n", indexed->getName().c_str());
             // PTR size is 4 bytes
             
             // HACK : completely adhoc code for input/output...
@@ -325,9 +343,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 indexed->fIndex->accept(this);
                 *fOut << " << 2)";       
                 *fOut << " >> 2]";
-            } else if (indexed->getAccess() & Address::kStruct) {
+            //} else if (indexed->getAccess() & Address::kStruct) {
+            } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
+                //printf("IndexedAddress %s %d\n", indexed->getName().c_str(), tmp.second);
+                //if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
+                // KEEP PTR
+                if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
@@ -516,10 +538,20 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
        
+        /*
         // All function calls are casted with the correct function result type
         virtual void visit(FunCallInst* inst)
         {
             generateFunCall(inst, inst->fName);
+        }
+        */
+    
+        // Generate standard funcall (not 'method' like funcall...)
+        virtual void visit(FunCallInst* inst)
+        {
+            *fOut << inst->fName << "(";
+            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            *fOut << ")";
         }
         
         virtual void visit(ForLoopInst* inst)
@@ -624,9 +656,145 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
+        BasicCloneVisitor cloner;
         return dst;
     }
     
+};
+
+// Used for subcontainers table generation
+struct ContainerObjectRemover : public BasicCloneVisitor {
+    
+    map <string, pair<int, Typed::VarType> > fFieldTable;
+    
+    ContainerObjectRemover(const map <string, pair<int, Typed::VarType> >& field_table) : fFieldTable(field_table)
+    {}
+    
+    
+    virtual ValueInst* visit(LoadVarInst* inst)
+    { 
+        BasicCloneVisitor cloner;
+        string name = inst->fAddress->getName();
+        
+        if (startWith(name, "sig") && fFieldTable.find(name) != fFieldTable.end()) {
+            pair<int, Typed::VarType> pair = fFieldTable[name];
+            //return InstBuilder::genLoadArrayStructVar(name, InstBuilder::genIntNumInst(pair.first));
+            return InstBuilder::genLoadArrayStructVar(name, InstBuilder::genIntNumInst(0));
+        } else {
+            BasicCloneVisitor cloner;
+            return inst->clone(&cloner);
+        }       
+    }
+    
+    
+    /*
+    virtual Address* visit(NamedAddress* named)
+    {   
+        BasicCloneVisitor cloner;
+        
+        if (startWith(named->getName(), "sig") && fFieldTable.find(named->getName()) != fFieldTable.end()) {
+            pair<int, Typed::VarType> pair = fFieldTable[named->getName()];
+            printf("sig %d \n", pair.first);
+            return InstBuilder::genIndexedAddress(named->clone(&cloner), InstBuilder::genIntNumInst(pair.first));
+        } else {
+            return named->clone(&cloner);
+        }
+    }
+    */                                                   
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        if (startWith(inst->fAddress->getName(), "sig")) {
+            return new DropInst();
+        } else {
+            BasicCloneVisitor cloner;
+            return inst->clone(&cloner);
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
+        return dst;
+    }
+    
+};
+
+/*
+struct ForeignContainerWriter : public DispatchVisitor {
+    
+    int fTab;
+    std::ostream* fOut;
+    bool fFinishLine;
+    
+    map <string, int> gFunctionSymbolTable;
+    
+    void Tab(int n) { fTab = n; }
+    
+    void EndLine()
+    {
+        if (fFinishLine) {
+            *fOut << ";";
+            tab(fTab, *fOut);
+        }
+    }
+    
+    ForeignContainerWriter(std::ostream* out, int tab)
+        :fTab(tab), fOut(out), fFinishLine(true)
+    {}
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        if (startWith(inst->fAddress->getName(), "sig")) {
+            *fOut << "var " << inst->fAddress->getName() << " = " << "foreign." << inst->fAddress->getName();
+            EndLine();
+        }
+    }
+        
+    virtual void visit(FunCallInst* inst)
+    {
+        // Already generated
+        if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+            return;
+        } else {
+            gFunctionSymbolTable[inst->fName] = 1;
+        }
+        
+        if (startWith(inst->fName, "instanceInit") || startWith(inst->fName, "fill")) {
+            *fOut << "var " << inst->fName << " = " << "foreign." << inst->fName;
+            EndLine();
+        }
+    }
+    
+};
+*/
+
+// Mathematical functions are declared as variables, they have to be generated before any other function (like 'faustpower')
+struct sortDeclareFunctions
+{
+    map <string, string> fMathLibTable;
+    
+    sortDeclareFunctions(const map <string, string>& table) : fMathLibTable(table)
+    {}
+    
+    bool operator()(StatementInst* a, StatementInst* b)
+    { 
+        DeclareFunInst* inst1 = dynamic_cast<DeclareFunInst*>(a);
+        DeclareFunInst* inst2 = dynamic_cast<DeclareFunInst*>(b);
+        
+        if (inst1) {
+            if (inst2) {
+                if (fMathLibTable.find(inst1->fName) != fMathLibTable.end()) {
+                    if (fMathLibTable.find(inst2->fName) != fMathLibTable.end()) {
+                        return inst1->fName < inst2->fName;
+                    } else {
+                        return true;
+                    }
+                } 
+            }
+        }
+        return false;
+    }
 };
 
 #endif

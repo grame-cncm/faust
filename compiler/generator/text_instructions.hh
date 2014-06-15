@@ -201,7 +201,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
         
-        virtual void generateFunArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
+        virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
         {   
             list<ValueInst*>::const_iterator it = beg;
             int i = 0;
@@ -248,11 +248,11 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
                 (*it)->accept(this);
                 // Compile parameters
                 *fOut << fObjectAccess << fun_name << "(";
-                generateFunArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
+                generateFunCallArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
             } else {
                 *fOut << fun_name << "(";
                 // Compile parameters
-                generateFunArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+                generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             }
             *fOut << ")";
         }

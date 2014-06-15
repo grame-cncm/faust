@@ -337,6 +337,8 @@ class CodeContainer : public virtual Garbageable {
                 (*it)->produceInternal();
             }
         }
+        
+        int getSubContainers() { return fSubContainers.size(); }
 
         const string& getClassName() { return fKlassName; }
 
@@ -351,6 +353,8 @@ class CodeContainer : public virtual Garbageable {
 
         virtual void dump() {}
         virtual void dump(ostream* dst) {}
+    
+        virtual int getStructSize() { assert(false); return 0; }
 
 };
 

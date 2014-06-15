@@ -39,7 +39,8 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
 
     public:
 
-        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):TextInstVisitor(out, ".", tab)
+        JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
+            :TextInstVisitor(out, ".", tab)
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
@@ -160,7 +161,8 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             EndLine();
         }
         
-        virtual void generateFunArgs(DeclareFunInst* inst)
+        /*
+        virtual void generateFunCallArgs(DeclareFunInst* inst)
         {
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
@@ -181,6 +183,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
                 if (i < size - 1) *fOut << ", ";
             }
         }
+        */
         
         virtual void visit(DeclareFunInst* inst)
         {

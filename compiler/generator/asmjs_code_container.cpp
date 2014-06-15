@@ -66,34 +66,7 @@ ASMJAVAScriptScalarCodeContainer::ASMJAVAScriptScalarCodeContainer(const string&
 ASMJAVAScriptScalarCodeContainer::~ASMJAVAScriptScalarCodeContainer()
 {}
 
-// Mathematical fucntion are declared as variables, they have to be generated before any other function (like 'faustpower')
-struct sortDeclareFunctions
-{
-    map <string, string> fMathLibTable;
-    
-    sortDeclareFunctions(const map <string, string>& table) : fMathLibTable(table)
-    {}
-    
-    bool operator()(StatementInst* a, StatementInst* b)
-    { 
-        DeclareFunInst* inst1 = dynamic_cast<DeclareFunInst*>(a);
-        DeclareFunInst* inst2 = dynamic_cast<DeclareFunInst*>(b);
-        
-        if (inst1) {
-            if (inst2) {
-                if (fMathLibTable.find(inst1->fName) != fMathLibTable.end()) {
-                    if (fMathLibTable.find(inst2->fName) != fMathLibTable.end()) {
-                        return inst1->fName < inst2->fName;
-                    } else {
-                        return true;
-                    }
-                } 
-            }
-        }
-        return false;
-    }
-};
-
+/*
 void ASMJAVAScriptCodeContainer::produceInternal()
 {
     int n = 0;
@@ -138,11 +111,20 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, false);
+        //produceInfoFunctions(n+1, fKlassName, false);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs" << fKlassName << "(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
+        tab(n+1, *fOut); *fOut << "}";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs" << fKlassName << "(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
+        tab(n+1, *fOut); *fOut << "}";
     
         // Inits
         tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut); fCodeProducer.Tab(n+2);
             //generateInit(&fCodeProducer);
             // Moves all variables declaration at the beginning of the block
@@ -156,6 +138,8 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
+            tab(n+2, *fOut); *fOut << "output = output | 0;";
             tab(n+2, *fOut); fCodeProducer.Tab(n+2);
      
             // Generates one single scalar loop and put is the the block
@@ -166,6 +150,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
             MoveVariablesInFront2 mover2;
             BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
             block2->accept(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
     
         // Exported functions (DSP only)
         tab(n+1, *fOut);
@@ -175,8 +160,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         *fOut << "instanceInit"<< fKlassName << ": " << "instanceInit"<< fKlassName << ", ";
         *fOut << "fill"<< fKlassName << ": " << "fill"<< fKlassName;
         *fOut << " };";
-        tab(n+1, *fOut); *fOut << "}";
-
+  
     tab(n, *fOut); *fOut << "}";
     
     // Generate JSON and getDSPSize
@@ -186,6 +170,122 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     *fOut << "return " << fCodeProducer.getStructSize() << ";";
     printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
+}
+*/
+
+void ASMJAVAScriptCodeContainer::produceInternal()
+{
+    int n = 0;
+    
+    // Global declarations
+    tab(n, *fOut);
+    fCodeProducer.Tab(n);
+    
+    /*
+    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
+    
+    tab(n+1, *fOut);
+    tab(n+1, *fOut); *fOut << "'use asm';"; 
+    tab(n+1, *fOut);
+    
+    // Memory access
+    tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
+    tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
+    
+    // Always generated
+    tab(n+1, *fOut); 
+    tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
+    tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+    
+    // Global declarations (mathematical functions, global variables...)
+    tab(n+1, *fOut);
+    fCodeProducer.Tab(n+1);
+    */
+    
+    /*
+    // All mathematical functions (got from math library as variables) have to be first...
+    sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
+    fGlobalDeclarationInstructions->fCode.sort(sorter);
+    generateGlobalDeclarations(&fCodeProducer);
+     */
+    
+    /*
+    // Always generated
+    tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
+    tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
+    */
+    
+    // Fields : compute the structure size to use in 'new'
+    tab(n+1, *fOut);
+    fCodeProducer.Tab(n+1);
+    generateDeclarations(&fCodeProducer);
+    
+    
+    // getNumInputs/getNumOutputs
+    tab(n+1, *fOut);
+    // fKlassName used in method naming for subclasses
+    //produceInfoFunctions(n+1, fKlassName, false);
+    tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs" << fKlassName << "(dsp) {";
+    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+    tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
+    tab(n+1, *fOut); *fOut << "}";
+    tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs" << fKlassName << "(dsp) {";
+    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+    tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
+    tab(n+1, *fOut); *fOut << "}";
+    
+    // Inits
+    tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
+    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+    tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
+    tab(n+2, *fOut); fCodeProducer.Tab(n+2);
+    //generateInit(&fCodeProducer);
+    // Moves all variables declaration at the beginning of the block
+    MoveVariablesInFront1 mover1;
+    BlockInst* block1 = mover1.getCode(fInitInstructions); 
+    block1->accept(&fCodeProducer);
+    tab(n+1, *fOut); *fOut << "}";
+    
+    // Fill
+    string counter = "count";
+    tab(n+1, *fOut);
+    tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
+    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+    tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
+    tab(n+2, *fOut); *fOut << "output = output | 0;";
+    tab(n+2, *fOut); fCodeProducer.Tab(n+2);
+    
+    // Generates one single scalar loop and put is the the block
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    fComputeBlockInstructions->pushBackInst(loop);
+    
+    // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
+    MoveVariablesInFront2 mover2;
+    BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
+    block2->accept(&fCodeProducer);
+    tab(n+1, *fOut); *fOut << "}";
+    
+    /*
+    // Exported functions (DSP only)
+    tab(n+1, *fOut);
+    *fOut << "return { ";
+    *fOut << "getNumInputs" << fKlassName << ": " << "getNumInputs" << fKlassName << ", ";
+    *fOut << "getNumOutputs"<< fKlassName << ": " << "getNumOutputs"<< fKlassName << ", ";
+    *fOut << "instanceInit"<< fKlassName << ": " << "instanceInit"<< fKlassName << ", ";
+    *fOut << "fill"<< fKlassName << ": " << "fill"<< fKlassName;
+    *fOut << " };";
+    
+    tab(n, *fOut); *fOut << "}";
+    
+    // Generate JSON and getDSPSize
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
+    tab(n+1, *fOut);
+    *fOut << "return " << fCodeProducer.getStructSize() << ";";
+    printlines(n+1, fUICode, *fOut);
+    tab(n, *fOut); *fOut << "}";
+     
+    */
 }
 
 void ASMJAVAScriptCodeContainer::produceClass()
@@ -198,7 +298,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     printLibrary(*fOut);
     
     // Sub containers
-    generateSubContainers();
+    //generateSubContainers();
 
     // Global declarations
     tab(n, *fOut);
@@ -218,6 +318,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
         5) MoveVariablesInFront1 and MoveVariablesInFront3 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
         6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
         7) 'buffer" argument is the actual emscripten memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers
+        8) Table generation :
+            - tables (as type kStaticStruct) are treated as 'mydsp' fields
+            - 'mydsp' classInit mathode is change so that method on subcontainers are rewritter, as normal function call
+        9) Pointers are actually integers, so are treated like this
         
     */
     tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
@@ -235,9 +339,49 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
         tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
     
+        // Access for subcontainer externally defined methods
+        tab(n+1, *fOut);
+        tab(n+1, *fOut);
+    
+        /*
+        // Remove variable declaration
+        StaticInitRewriter rewriter;
+        BlockInst* block0 = rewriter.getCode(fStaticInitInstructions);
+         */
+    
+        /*
+        // Generates functions calls as "access" to externally defined methods
+        ForeignContainerWriter foreign(fOut, n+1);
+        fStaticInitInstructions->accept(&foreign);
+        fInitInstructions->accept(&foreign);
+        */
+    
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
+    
+        /*
+        // TODO with subcontainers
+        tab(n+1, *fOut); *fOut << "var abs = global.Math.abs;";
+        tab(n+1, *fOut); *fOut << "var absf = global.Math.abs;";
+        tab(n+1, *fOut); *fOut << "var fabsf = global.Math.abs;";
+        tab(n+1, *fOut); *fOut << "var acosf = global.Math.acos;";
+        tab(n+1, *fOut); *fOut << "var asinf = global.Math.asin;";
+        tab(n+1, *fOut); *fOut << "var atanf = global.Math.atan;";
+        tab(n+1, *fOut); *fOut << "var atan2f = global.Math.atan2;";
+        tab(n+1, *fOut); *fOut << "var ceilf = global.Math.ceil;";
+        tab(n+1, *fOut); *fOut << "var cosf = global.Math.cos;";
+        tab(n+1, *fOut); *fOut << "var expf = global.Math.exp;";
+        tab(n+1, *fOut); *fOut << "var floorf = global.Math.floor;";
+        tab(n+1, *fOut); *fOut << "var logf = global.Math.log;";
+        tab(n+1, *fOut); *fOut << "var max = global.Math.max;";
+        tab(n+1, *fOut); *fOut << "var min = global.Math.min;";
+        tab(n+1, *fOut); *fOut << "var powf = global.Math.pow;";
+        tab(n+1, *fOut); *fOut << "var sinf = global.Math.sin;";
+        tab(n+1, *fOut); *fOut << "var sqrtf = global.Math.sqrt;";
+        tab(n+1, *fOut); *fOut << "var tanf = global.Math.tan;";
+         */
+    
     
         // All mathematical functions (got from math library as variables) have to be first...
         sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
@@ -248,21 +392,58 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
     
+    
+        // Sub containers
+        //generateSubContainers();
+    
+        // Generate subcontainers and allocate their data structure in DSP
+        list<CodeContainer*>::const_iterator it1;
+        int i = 0;
+        for (it1 = fSubContainers.begin(); it1 != fSubContainers.end(); it1++, i++) {
+            (*it1)->produceInternal();
+            stringstream num; num << i;
+            string signame = "sig" + num.str();
+            // Variable type will be changed, so removed it from global table
+            gGlobal->gVarTypeTable.erase(signame);
+            pushDeclare(InstBuilder::genDecStructVar(signame, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt), (*it1)->getStructSize()/4)));
+        }
+        
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
-    
+        
+
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
-        produceInfoFunctions(n+1, "", false);
- 
+        //produceInfoFunctions(n+1, "", false);  // TODO
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
+        tab(n+1, *fOut); *fOut << "}";
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
+        tab(n+1, *fOut); *fOut << "}";
+    
         // Inits
         tab(n+1, *fOut); *fOut << fObjPrefix << "function classInit(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
+            tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
-            generateStaticInit(&fCodeProducer);
+            //generateStaticInit(&fCodeProducer);
+        
+            // Generates 'foreign' funcalls
+            ContainerObjectRemover writer1(fCodeProducer.getFieldTable());
+            BlockInst* block0 = writer1.getCode(fStaticInitInstructions);
+            block0->accept(&fCodeProducer);
+            /*
+            block0 = writer.getCode(fPostStaticInitInstructions);
+            block0->accept(&fCodeProducer);
+            */
+            
+            
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -273,8 +454,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
             fCodeProducer.Tab(n+2);
             // Moves all variables declaration at the beginning of the block
             MoveVariablesInFront1 mover;
-            BlockInst* block = mover.getCode(fInitInstructions); 
-            block->accept(&fCodeProducer);
+            BlockInst* block2 = mover.getCode(fInitInstructions); 
+    
+            //block2->accept(&fCodeProducer);
+    
+            /// 
+            ContainerObjectRemover writer2(fCodeProducer.getFieldTable());
+            BlockInst* block22 = writer2.getCode(block2);
+            block22->accept(&fCodeProducer);
+            
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -328,6 +516,13 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // User interface : prepare the JSON string...
     generateUserInterface(&fCodeProducer);
     
+    // Generate getSubContainers
+    tab(n, *fOut); *fOut << "function getSubContainers" <<  fKlassName << "() {";
+    tab(n+1, *fOut);
+    *fOut << "return " << getSubContainers() << ";";
+    tab(n, *fOut); *fOut << "}";
+    tab(n, *fOut);
+    
     // Generate JSON and getDSPSize
     tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
     tab(n+1, *fOut);
@@ -376,7 +571,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     }
     
     tab(n, *fOut); *fOut << "}" << endl << endl;
- }
+}
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)

@@ -52,6 +52,8 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
+    
+        int getStructSize() { return fCodeProducer.getStructSize(); }
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

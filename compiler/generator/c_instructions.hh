@@ -176,10 +176,11 @@ class CInstVisitor : public TextInstVisitor {
             inst->fInst->accept(this);
         }
 
+        // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
             *fOut << inst->fName << "(";
-            generateFunArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
         }
         
