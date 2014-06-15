@@ -239,6 +239,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
     tab(n+2, *fOut); fCodeProducer.Tab(n+2);
+    
     //generateInit(&fCodeProducer);
     // Moves all variables declaration at the beginning of the block
     MoveVariablesInFront1 mover1;
@@ -288,6 +289,29 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     */
 }
 
+
+/*
+ ASM module description.
+
+     1) all variables have to be declared first, then functions, then export section.
+     2) the DSP data structure fields are not generated. The structure size is computed instead, and memory allocation/deallocation is done
+     outside of the module using emscripten memory functions.
+     3) in compute, 'inputs/outputs' will point to audio buffers allocated outside of the module. Access on this buffers is generated 
+     in an 'adhoc' manner...
+     4) TypingVisitor is used to know value types :
+        - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kIntish, kFloatish or kDoublish
+        and ASMJAVAScriptInstVisitor::visit(CastNumInst* inst) interprets kIntish, kFloatish or kDoublish
+        - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) add the type of result
+     5) MoveVariablesInFront1 and MoveVariablesInFront3 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
+     6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
+     7) 'buffer" argument is the actual emscripten memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers
+     8) Table generation :
+        - tables (as type kStaticStruct) are treated as 'mydsp' fields
+        - 'mydsp' classInit mathode is change so that method on subcontainers are rewritter, as normal function call
+     9) Pointers are actually integers, so are treated like this
+ 
+ */
+
 void ASMJAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
@@ -303,27 +327,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    
-    // ASM module
-    /*
-        1) all variables have to be declared first, then functions, then export section.
-        2) the DSP data structure fields are not generated. The structure size is computed instead, and memory allocation/deallocation is done
-            outside of the module using emscripten memory functions.
-        3) in compute, 'inputs/outputs' will point to audio buffers allocated outside of the module. Access on this buffers is generated 
-            in an 'adhoc' manner...
-        4) TypingVisitor is used to know value types :
-            - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kIntish, kFloatish or kDoublish
-            and ASMJAVAScriptInstVisitor::visit(CastNumInst* inst) interprets kIntish, kFloatish or kDoublish
-            - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) add the type of result
-        5) MoveVariablesInFront1 and MoveVariablesInFront3 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
-        6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
-        7) 'buffer" argument is the actual emscripten memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers
-        8) Table generation :
-            - tables (as type kStaticStruct) are treated as 'mydsp' fields
-            - 'mydsp' classInit mathode is change so that method on subcontainers are rewritter, as normal function call
-        9) Pointers are actually integers, so are treated like this
-        
-    */
     tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
     
         tab(n+1, *fOut);
@@ -382,7 +385,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var tanf = global.Math.tan;";
          */
     
-    
         // All mathematical functions (got from math library as variables) have to be first...
         sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
         fGlobalDeclarationInstructions->fCode.sort(sorter);
@@ -391,7 +393,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Always generated
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
-    
     
         // Sub containers
         //generateSubContainers();
@@ -413,7 +414,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
         
-
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
         //produceInfoFunctions(n+1, "", false);  // TODO
@@ -442,7 +442,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             block0 = writer.getCode(fPostStaticInitInstructions);
             block0->accept(&fCodeProducer);
             */
-            
             
         tab(n+1, *fOut); *fOut << "}";
 

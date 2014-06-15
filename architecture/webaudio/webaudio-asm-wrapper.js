@@ -25,6 +25,10 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
  
     var createDSPFactory = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number']);
  
+    faust.error_msg = null;
+ 
+    faust.getErrorMessage = function() { return faust.error_msg; }
+ 
     // Standard Faust DSP
 
     faust.createDSPFactory = function (code) {
@@ -36,12 +40,12 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var name_ptr = allocate(intArrayFromString("FaustDSP"), 'i8', ALLOC_STACK);
         var error_msg_ptr = allocate(intArrayFromString('', false, 256), 'i8', ALLOC_STACK);
         var factory_code = Pointer_stringify(createDSPFactory(name_ptr, code_ptr, error_msg_ptr));
-        var error_msg = Pointer_stringify(error_msg_ptr);
-        console.log(factory_code);
- 
+        faust.error_msg = Pointer_stringify(error_msg_ptr);
         if (factory_code === "") {
-            alert(error_msg);
+            return null;
         }
+ 
+        console.log(factory_code);
  
         // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
         eval(factory_code);
