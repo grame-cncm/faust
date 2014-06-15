@@ -228,7 +228,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 list<NamedTyped*>::const_iterator it;
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
                     Typed* type = (*it)->fType;
-                    if (type->getType() == Typed::kInt) {
+                    if (type->getType() == Typed::kInt || type->getType() == Typed::kObj_ptr) {
                         *fOut << (*it)->fName << " = " << (*it)->fName << " | 0;";
                     } else {
                         *fOut << (*it)->fName << " = " << "+" << (*it)->fName << ";";

@@ -188,8 +188,6 @@ void CCodeContainer::produceClass()
         tab(n, *fOut);  *fOut << "}";
     }
     
-    tab(n, *fOut);
-    tab(n, *fOut); 
     *fOut << fKlassName << "* " << "new" << fKlassName << "() { ";
         tab(n+1, *fOut); *fOut << fKlassName << "* dsp = " << "(" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "));";
         if (fAllocateInstructions->fCode.size() > 0) {

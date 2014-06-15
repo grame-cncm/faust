@@ -761,7 +761,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 	if (!isSigInt(tsize, &size)) {
 	    stringstream error;
-        error << "error in ScalarCompiler::generateTable() : "
+        error << "error in InstructionsCompiler::generateTable() : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
@@ -826,7 +826,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     if (!isSigInt(tsize, &size)) {
 	    stringstream error;
-        error << "error in ScalarCompiler::generateTable() : "
+        error << "error in InstructionsCompiler::generateStaticTable() : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;

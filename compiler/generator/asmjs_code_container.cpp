@@ -66,57 +66,6 @@ ASMJAVAScriptScalarCodeContainer::ASMJAVAScriptScalarCodeContainer(const string&
 ASMJAVAScriptScalarCodeContainer::~ASMJAVAScriptScalarCodeContainer()
 {}
 
-void ASMJAVAScriptCodeContainer::produceInternal()
-{
-    int n = 0;
-
-    // Global declarations
-    tab(n, *fOut);
-    fCodeProducer.Tab(n);
-    generateGlobalDeclarations(&fCodeProducer);
-
-    tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
-    
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "'use asm';"; 
-        
-        // Fields
-        fCodeProducer.Tab(n+1);
-        generateDeclarations(&fCodeProducer);
-        
-        tab(n+1, *fOut);
-        tab(n+1, *fOut);
-        // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, false);
-    
-        // Inits
-        tab(n+1, *fOut); *fOut << fObjPrefix << "instanceInit" << fKlassName << " = function(dsp, samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); fCodeProducer.Tab(n+2);
-            generateInit(&fCodeProducer);
-        tab(n+1, *fOut); *fOut << "}";
-
-        // Fill
-        string counter = "count";
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "fill" << fKlassName << " = function" << subst("(dsp, $0, output) {", counter);
-            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); fCodeProducer.Tab(n+2);
-            generateComputeBlock(&fCodeProducer);
-            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-            loop->accept(&fCodeProducer);
-        tab(n+1, *fOut); *fOut << "}";
-
-    tab(n, *fOut); *fOut << "}" << endl;
-    
-    // Memory methods (as globals)
-    tab(n, *fOut); *fOut << "new" << fKlassName << " = function() {"
-                        << "return new "<< fKlassName << "()"
-                        << "; }";
-
-    tab(n, *fOut);
-}
-
 // Mathematical fucntion are declared as variables, they have to be generated before any other function (like 'faustpower')
 struct sortDeclareFunctions
 {
@@ -145,6 +94,100 @@ struct sortDeclareFunctions
     }
 };
 
+void ASMJAVAScriptCodeContainer::produceInternal()
+{
+    int n = 0;
+
+    // Global declarations
+    tab(n, *fOut);
+    fCodeProducer.Tab(n);
+ 
+    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "'use asm';"; 
+        tab(n+1, *fOut);
+    
+        // Memory access
+        tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
+        tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
+    
+        // Always generated
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
+        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+            
+        // Global declarations (mathematical functions, global variables...)
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        
+        // All mathematical functions (got from math library as variables) have to be first...
+        sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
+        fGlobalDeclarationInstructions->fCode.sort(sorter);
+        generateGlobalDeclarations(&fCodeProducer);
+        
+        // Always generated
+        tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
+        tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
+        
+        // Fields : compute the structure size to use in 'new'
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
+        
+        // getNumInputs/getNumOutputs
+        tab(n+1, *fOut);
+        // fKlassName used in method naming for subclasses
+        produceInfoFunctions(n+1, fKlassName, false);
+    
+        // Inits
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); fCodeProducer.Tab(n+2);
+            //generateInit(&fCodeProducer);
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront1 mover1;
+            BlockInst* block1 = mover1.getCode(fInitInstructions); 
+            block1->accept(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
+
+        // Fill
+        string counter = "count";
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); fCodeProducer.Tab(n+2);
+     
+            // Generates one single scalar loop and put is the the block
+            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+            fComputeBlockInstructions->pushBackInst(loop);
+            
+            // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
+            MoveVariablesInFront2 mover2;
+            BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
+            block2->accept(&fCodeProducer);
+    
+        // Exported functions (DSP only)
+        tab(n+1, *fOut);
+        *fOut << "return { ";
+        *fOut << "getNumInputs" << fKlassName << ": " << "getNumInputs" << fKlassName << ", ";
+        *fOut << "getNumOutputs"<< fKlassName << ": " << "getNumOutputs"<< fKlassName << ", ";
+        *fOut << "instanceInit"<< fKlassName << ": " << "instanceInit"<< fKlassName << ", ";
+        *fOut << "fill"<< fKlassName << ": " << "fill"<< fKlassName;
+        *fOut << " };";
+        tab(n+1, *fOut); *fOut << "}";
+
+    tab(n, *fOut); *fOut << "}";
+    
+    // Generate JSON and getDSPSize
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
+    tab(n+1, *fOut);
+    *fOut << "return " << fCodeProducer.getStructSize() << ";";
+    printlines(n+1, fUICode, *fOut);
+    tab(n, *fOut); *fOut << "}";
+}
+
 void ASMJAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
@@ -164,7 +207,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // ASM module
     /*
         1) all variables have to be declared first, then functions, then export section.
-        2) the date structure fields are not generated. A DSP structure size is computed instead, and memory allocation/deallocation is done
+        2) the DSP data structure fields are not generated. The structure size is computed instead, and memory allocation/deallocation is done
             outside of the module using emscripten memory functions.
         3) in compute, 'inputs/outputs' will point to audio buffers allocated outside of the module. Access on this buffers is generated 
             in an 'adhoc' manner...
@@ -212,16 +255,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";
-            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
-        tab(n+1, *fOut); *fOut << "}";
-    
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs(dsp) {";
-            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
-        tab(n+1, *fOut); *fOut << "}";
-
+        produceInfoFunctions(n+1, "", false);
+ 
         // Inits
         tab(n+1, *fOut); *fOut << fObjPrefix << "function classInit(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
@@ -293,8 +328,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // User interface : prepare the JSON string...
     generateUserInterface(&fCodeProducer);
     
-    // Generate JSON 
-    tab(n, *fOut);
+    // Generate JSON and getDSPSize
     tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
     tab(n+1, *fOut);
     *fOut << "return " << fCodeProducer.getStructSize() << ";";
