@@ -206,9 +206,9 @@ struct mydsp_poly
     void pitchWheel(int channel, int pitchWheel)
     {}
     
-    void getJSON(char* json)
+    const char* getJSON()
     {
-        strcpy(json, fJSON.c_str());
+        return fJSON.c_str();
     }
     
     void setValue(const char* path, float value)
@@ -238,11 +238,11 @@ extern "C" {
         delete n;
     }
 
-    void mydsp_poly_getJSON(mydsp_poly* n, char* json)
+    const char* mydsp_poly_getJSON(mydsp_poly* n)
     {
-        n->getJSON(json);
+        return n->getJSON();
     }
-
+  
     void mydsp_poly_compute(mydsp_poly* n, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
         n->compute(count, inputs, outputs);
