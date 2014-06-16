@@ -39,6 +39,29 @@
 
 string gFactory; 
 
+inline std::string flatten(const std::string& src)
+{
+    std::stringstream dst;
+    int size = src.size();
+    for (int i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '\n':
+            case '\t':
+            case '\r':
+                break;
+            case ' ':
+                if (!(i + 1 < size && src[i + 1] == ' ')) {
+                    dst << src[i];
+                }
+                break;
+            default:
+                dst << src[i];
+                break;
+        }
+    }
+    return dst.str();
+}
+
 EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg)
 {
     //printf("dsp_content = %s\n", dsp_content);
@@ -60,6 +83,7 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
     */
     try {
         gFactory = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
+        gFactory = flatten(gFactory);
     } catch (...) {
         strncpy(error_msg, "libfaust.js fatal error...", 256);
         gFactory = "";

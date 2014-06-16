@@ -325,6 +325,7 @@ class CodeContainer : public virtual Garbageable {
         StatementInst* pushPostStaticInitMethod(StatementInst* inst) { fPostStaticInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushComputeBlockMethod(StatementInst* inst) { fComputeBlockInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
+        StatementInst* pushOtherComputeMethod(StatementInst* inst) { fComputeFunctions->pushBackInst(inst); return inst; }
 
         StatementInst* pushComputePreDSPMethod(StatementInst* inst)     { return fCurLoop->pushComputePreDSPMethod(inst); }
         StatementInst* pushComputeDSPMethod(StatementInst* inst)        { return fCurLoop->pushComputeDSPMethod(inst); }
@@ -335,6 +336,20 @@ class CodeContainer : public virtual Garbageable {
             list<CodeContainer*>::const_iterator it;
             for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
                 (*it)->produceInternal();
+            }
+        }
+    
+        // merge declaration part
+        void mergeSubContainers()
+        {
+            list<CodeContainer*>::const_iterator it;
+            for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+                InstBuilder::mergeBlock(fExtGlobalDeclarationInstructions, (*it)->fExtGlobalDeclarationInstructions);
+                InstBuilder::mergeBlock(fGlobalDeclarationInstructions, (*it)->fGlobalDeclarationInstructions);
+                InstBuilder::mergeBlock(fDeclarationInstructions, (*it)->fDeclarationInstructions);
+                (*it)->fGlobalDeclarationInstructions->fCode.clear();
+                (*it)->fExtGlobalDeclarationInstructions->fCode.clear();
+                (*it)->fDeclarationInstructions->fCode.clear();
             }
         }
         

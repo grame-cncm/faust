@@ -1715,6 +1715,16 @@ struct InstBuilder
         return subst("$0$1", prefix, T(n));
     }
     */
+    
+    static BlockInst* mergeBlock(BlockInst* dst, BlockInst* src) 
+    {
+        list<StatementInst*>::const_iterator it;
+        BasicCloneVisitor cloner;
+        for (it = src->fCode.begin(); it != src->fCode.end(); it++) {
+            dst->pushBackInst((*it)->clone(&cloner));
+        }
+        return dst;
+    }
 
     // User interface
     static AddMetaDeclareInst* genAddMetaDeclareInst(const string& zone, const string& key, const string& value)

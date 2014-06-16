@@ -116,12 +116,14 @@ void ASMJAVAScriptCodeContainer::produceInternal()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
         tab(n+1, *fOut); *fOut << "}";
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs" << fKlassName << "(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
         tab(n+1, *fOut); *fOut << "}";
     
         // Inits
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
@@ -171,7 +173,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
 }
-*/
+ */
 
 void ASMJAVAScriptCodeContainer::produceInternal()
 {
@@ -182,38 +184,38 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     
     /*
-    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
-    
-    tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << "'use asm';"; 
-    tab(n+1, *fOut);
-    
-    // Memory access
-    tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
-    tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
-    
-    // Always generated
-    tab(n+1, *fOut); 
-    tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
-    tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
-    
-    // Global declarations (mathematical functions, global variables...)
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
-    */
-    
-    /*
-    // All mathematical functions (got from math library as variables) have to be first...
-    sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
-    fGlobalDeclarationInstructions->fCode.sort(sorter);
-    generateGlobalDeclarations(&fCodeProducer);
+     tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
+     
+     tab(n+1, *fOut);
+     tab(n+1, *fOut); *fOut << "'use asm';"; 
+     tab(n+1, *fOut);
+     
+     // Memory access
+     tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
+     tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
+     
+     // Always generated
+     tab(n+1, *fOut); 
+     tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
+     tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+     
+     // Global declarations (mathematical functions, global variables...)
+     tab(n+1, *fOut);
+     fCodeProducer.Tab(n+1);
      */
     
     /*
-    // Always generated
-    tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
-    tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
-    */
+     // All mathematical functions (got from math library as variables) have to be first...
+     sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
+     fGlobalDeclarationInstructions->fCode.sort(sorter);
+     generateGlobalDeclarations(&fCodeProducer);
+     */
+    
+    /*
+     // Always generated
+     tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
+     tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
+     */
     
     // Fields : compute the structure size to use in 'new'
     tab(n+1, *fOut);
@@ -267,28 +269,27 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+1, *fOut); *fOut << "}";
     
     /*
-    // Exported functions (DSP only)
-    tab(n+1, *fOut);
-    *fOut << "return { ";
-    *fOut << "getNumInputs" << fKlassName << ": " << "getNumInputs" << fKlassName << ", ";
-    *fOut << "getNumOutputs"<< fKlassName << ": " << "getNumOutputs"<< fKlassName << ", ";
-    *fOut << "instanceInit"<< fKlassName << ": " << "instanceInit"<< fKlassName << ", ";
-    *fOut << "fill"<< fKlassName << ": " << "fill"<< fKlassName;
-    *fOut << " };";
-    
-    tab(n, *fOut); *fOut << "}";
-    
-    // Generate JSON and getDSPSize
-    tab(n, *fOut);
-    tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
-    tab(n+1, *fOut);
-    *fOut << "return " << fCodeProducer.getStructSize() << ";";
-    printlines(n+1, fUICode, *fOut);
-    tab(n, *fOut); *fOut << "}";
+     // Exported functions (DSP only)
+     tab(n+1, *fOut);
+     *fOut << "return { ";
+     *fOut << "getNumInputs" << fKlassName << ": " << "getNumInputs" << fKlassName << ", ";
+     *fOut << "getNumOutputs"<< fKlassName << ": " << "getNumOutputs"<< fKlassName << ", ";
+     *fOut << "instanceInit"<< fKlassName << ": " << "instanceInit"<< fKlassName << ", ";
+     *fOut << "fill"<< fKlassName << ": " << "fill"<< fKlassName;
+     *fOut << " };";
      
-    */
+     tab(n, *fOut); *fOut << "}";
+     
+     // Generate JSON and getDSPSize
+     tab(n, *fOut);
+     tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
+     tab(n+1, *fOut);
+     *fOut << "return " << fCodeProducer.getStructSize() << ";";
+     printlines(n+1, fUICode, *fOut);
+     tab(n, *fOut); *fOut << "}";
+     
+     */
 }
-
 
 /*
  ASM module description.
@@ -345,19 +346,18 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Access for subcontainer externally defined methods
         tab(n+1, *fOut);
         tab(n+1, *fOut);
-    
-        /*
+        
         // Remove variable declaration
+    /*
         StaticInitRewriter rewriter;
         BlockInst* block0 = rewriter.getCode(fStaticInitInstructions);
-         */
-    
-        /*
+     */
+        
         // Generates functions calls as "access" to externally defined methods
-        ForeignContainerWriter foreign(fOut, n+1);
+        ForeignContainerWriter foreign(fOut, n+1, fKlassName);
         fStaticInitInstructions->accept(&foreign);
         fInitInstructions->accept(&foreign);
-        */
+        
     
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
@@ -384,6 +384,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var sqrtf = global.Math.sqrt;";
         tab(n+1, *fOut); *fOut << "var tanf = global.Math.tan;";
          */
+         
     
         // All mathematical functions (got from math library as variables) have to be first...
         sortDeclareFunctions sorter(fCodeProducer.getMathLibTable());
@@ -395,8 +396,10 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
     
         // Sub containers
+        //mergeSubContainers();
         //generateSubContainers();
     
+        /*
         // Generate subcontainers and allocate their data structure in DSP
         list<CodeContainer*>::const_iterator it1;
         int i = 0;
@@ -408,6 +411,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             gGlobal->gVarTypeTable.erase(signame);
             pushDeclare(InstBuilder::genDecStructVar(signame, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt), (*it1)->getStructSize()/4)));
         }
+         */
         
         // Fields : compute the structure size to use in 'new'
         tab(n+1, *fOut);
@@ -434,10 +438,12 @@ void ASMJAVAScriptCodeContainer::produceClass()
             fCodeProducer.Tab(n+2);
             //generateStaticInit(&fCodeProducer);
         
+        
             // Generates 'foreign' funcalls
             ContainerObjectRemover writer1(fCodeProducer.getFieldTable());
             BlockInst* block0 = writer1.getCode(fStaticInitInstructions);
             block0->accept(&fCodeProducer);
+        
             /*
             block0 = writer.getCode(fPostStaticInitInstructions);
             block0->accept(&fCodeProducer);

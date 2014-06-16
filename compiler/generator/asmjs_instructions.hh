@@ -33,6 +33,15 @@ static inline bool startWith(const string& str, const string& prefix)
     return (str.substr(0, prefix.size()) == prefix);
 }
 
+static inline string startWithRes(const string& str, const string& prefix)
+{   
+    if (str.substr(0, prefix.size()) == prefix) {
+        return str.substr(prefix.size());
+    } else {
+        return "";
+    }
+}
+
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
@@ -188,13 +197,14 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     //fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
                     
                     // KEEP PTR type
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, Typed::getPtrFromType( array_typed->fType->getType()));
-                    
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, Typed::getPtrFromType(array_typed->fType->getType()));
+                    //printf("DeclareVarInst %s offset %d  size %d \n", inst->fAddress->getName().c_str(), fStructSize, array_typed->fSize * 4);
                     fStructSize += array_typed->fSize * 4;
                 } else {
                     if (!is_struct)
                         *fOut << prefix << inst->fAddress->getName();
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
+                    //printf("DeclareVarInst %s offset %d  size %d \n", inst->fAddress->getName().c_str(), fStructSize, 4);
                     fStructSize += 4;
                 }
             }
@@ -281,21 +291,27 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             fTypingVisitor.visit(inst);
             
+            //printf("LoadVarInst %s\n", inst->fAddress->getName().c_str());
+            
             if (fTypingVisitor.fCurType == Typed::kInt
                 || fTypingVisitor.fCurType == Typed::kInt_ptr
-                || fTypingVisitor.fCurType == Typed::kFloat_ptr
-                || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr) {
+               // || fTypingVisitor.fCurType == Typed::kFloat_ptr
+               // || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
+                || fTypingVisitor.fCurType == Typed::kObj_ptr) {
                 *fOut << "(";
                 TextInstVisitor::visit(inst);
                 *fOut << " | 0)";
             } else if (fTypingVisitor.fCurType == Typed::kFloatMacro 
                        || fTypingVisitor.fCurType == Typed::kFloat 
-                       || fTypingVisitor.fCurType == Typed::kDouble) {
+                       || fTypingVisitor.fCurType == Typed::kDouble
+                       || fTypingVisitor.fCurType == Typed::kFloat_ptr
+                       || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr) {
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
             } else {
-                // HACK : completely adhoc code for input/output/count...
+                
+                // HACK : completely adhoc code for input/output/count... (TO CHEK ??)
                 if ((startWith(inst->getName(), "inputs") 
                     || startWith(inst->getName(), "outputs") 
                     || startWith(inst->getName(), "count")
@@ -306,6 +322,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 } else {
                     TextInstVisitor::visit(inst);
                 }
+                 
+                //TextInstVisitor::visit(inst);
             }
         } 
         
@@ -315,7 +333,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             //if (named->getAccess() & Address::kStruct) {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
-                if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
+                if (tmp.second == Typed::kFloatMacro 
+                    || tmp.second == Typed::kFloat 
+                    || tmp.second == Typed::kDouble
+                    || tmp.second == Typed::kFloatMacro_ptr
+                    || tmp.second == Typed::kFloat_ptr
+                    || tmp.second == Typed::kDouble_ptr) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
                 } else {
                     *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
@@ -670,7 +693,7 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
     ContainerObjectRemover(const map <string, pair<int, Typed::VarType> >& field_table) : fFieldTable(field_table)
     {}
     
-    
+    /*
     virtual ValueInst* visit(LoadVarInst* inst)
     { 
         BasicCloneVisitor cloner;
@@ -685,7 +708,7 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
             return inst->clone(&cloner);
         }       
     }
-    
+    */
     
     /*
     virtual Address* visit(NamedAddress* named)
@@ -720,13 +743,14 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
     
 };
 
-/*
+
 struct ForeignContainerWriter : public DispatchVisitor {
     
     int fTab;
     std::ostream* fOut;
     bool fFinishLine;
-    
+    string fKlassName;
+     
     map <string, int> gFunctionSymbolTable;
     
     void Tab(int n) { fTab = n; }
@@ -739,14 +763,17 @@ struct ForeignContainerWriter : public DispatchVisitor {
         }
     }
     
-    ForeignContainerWriter(std::ostream* out, int tab)
-        :fTab(tab), fOut(out), fFinishLine(true)
+    ForeignContainerWriter(std::ostream* out, int tab, const string& klassname)
+        :fTab(tab), fOut(out), fFinishLine(true), fKlassName(klassname)
     {}
     
     virtual void visit(DeclareVarInst* inst)
     {
-        if (startWith(inst->fAddress->getName(), "sig")) {
-            *fOut << "var " << inst->fAddress->getName() << " = " << "foreign." << inst->fAddress->getName();
+        string end;
+        if ((end = startWithRes(inst->fAddress->getName(), "sig")) != "") {
+            *fOut << "var " << inst->fAddress->getName() << " = " << "foreign." << inst->fAddress->getName() << " | 0";
+            //*fOut << "var " << inst->fAddress->getName() << " = " << "foreign." << fKlassName << "SIG" << end << "." << inst->fAddress->getName() << " | 0";
+            //*fOut << "var " << inst->fAddress->getName() << " = " << "foreign.dsp["<< end << "].sig | 0";
             EndLine();
         }
     }
@@ -759,15 +786,24 @@ struct ForeignContainerWriter : public DispatchVisitor {
         } else {
             gFunctionSymbolTable[inst->fName] = 1;
         }
-        
-        if (startWith(inst->fName, "instanceInit") || startWith(inst->fName, "fill")) {
+        string end;
+        if ((end = startWithRes(inst->fName, "instanceInit")) != "") {
             *fOut << "var " << inst->fName << " = " << "foreign." << inst->fName;
+            //*fOut << "var " << inst->fName << " = " << "foreign." << end << "." << inst->fName;
+            //string num = startWithRes(inst->fName, ("instanceInit" + fKlassName + "SIG"));
+            //*fOut << "var " << inst->fName << " = " << "foreign.dsp[" << num << "]" << "." << inst->fName;
+            EndLine();
+        } else if ((end = startWithRes(inst->fName, "fill")) != "") {
+            *fOut << "var " << inst->fName << " = " << "foreign." << inst->fName;
+            //*fOut << "var " << inst->fName << " = " << "foreign." << end << "." << inst->fName;
+            //string num = startWithRes(inst->fName, ("fill" + fKlassName + "SIG"));
+            //*fOut << "var " << inst->fName << " = " << "foreign.dsp[" << num << "]" << "." << inst->fName;
             EndLine();
         }
     }
     
 };
-*/
+
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like 'faustpower')
 struct sortDeclareFunctions
