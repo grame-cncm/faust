@@ -971,7 +971,7 @@ class uiSlider : public QObject, public uiItem
 	int		optimalTick()		{
         
                 if(fStep == 0)
-                    fStep = fMax-fMin;
+                    fStep = (fMax-fMin)/2;
         
 				FAUSTFLOAT x = fStep;
 				while ((fMax-fMin)/x > 50) x*=10;
@@ -1354,6 +1354,7 @@ class QTGUI : public QObject, public GUI
         }
         insert(label.c_str(), box);
         fGroupStack.push(box);
+        box->installEventFilter(fMainWindow);
     }
 
 	void openTab(const char* label)
