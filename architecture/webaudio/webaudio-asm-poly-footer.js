@@ -231,7 +231,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
         
         // Prepare Ins/out buffer tables
         that.dspInChannnels = [];
-        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
         for (i = 0; i < that.numIn; i++) {
             that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
         }
