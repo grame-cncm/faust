@@ -27,7 +27,7 @@ all :
 
 dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
-	$(MAKE) -C architecture/httpdlib/src dynamic
+#	$(MAKE) -C architecture/httpdlib/src dynamic
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
@@ -144,6 +144,7 @@ install :
 	
 install-dynamic:
 	cp compiler/libfaust.$(LIB_EXT) /usr/lib
+#	cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) /usr/lib
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/
