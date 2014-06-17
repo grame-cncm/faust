@@ -10,19 +10,19 @@ system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
+LIB_EXT = dylib
 else
 ARCHFLAGS := 
+CXXFLAGS += -fPIC
+LIB_EXT = so
 endif
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-
-
-
 all : ../libHTTPDFaust.a
 
-dynamic : ../libHTTPDFaust.dylib
+dynamic : ../libHTTPDFaust.$(LIB_EXT)
 
 ../libHTTPDFaust.a : $(objects)
 	rm -f $@
@@ -31,6 +31,9 @@ dynamic : ../libHTTPDFaust.dylib
 
 ../libHTTPDFaust.dylib  :  $(objects)
 	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd`  -macosx_version_min 10.6  -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
+
+../libHTTPDFaust.so  :  $(objects)
+	gcc -shared -fPIC -o libfausthttpd.so $(objects)
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
