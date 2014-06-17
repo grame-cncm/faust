@@ -4,10 +4,11 @@
 # Wrapping resources
 
 HTML_FOOTER=webaudio-asm-footer.html
-CPP_WRAPPER=webaudio-asm.cpp
+CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
 JS_WRAPPER=webaudio-asm-footer.js
 LINKS=""
 SVG=""
+EMCC="NO"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -44,8 +45,13 @@ for p in $@; do
             </div>"
     elif [ $p = "-poly" ]; then
         HTML_FOOTER=webaudio-asm-poly-footer.html
-        CPP_WRAPPER=webaudio-asm-poly.cpp
+        CODE_WRAPPER=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-asm-poly-footer.js
+        # Force emcc compilation for now
+        EMCC=emcc 
+    elif [ $p = "-emcc" ]; then
+        EMCC=emcc
+        CODE_WRAPPER=webaudio-asm.cpp
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -63,21 +69,28 @@ BINARIES=""
 for f in $FILES; do
     name=${f%.dsp}
     
-    # compile the Faust DSP to C++ code
-    faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
-    
-    if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
-        EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
-     else
-	    EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
-	fi
+    # compile the Faust DSP to C++ ou asm.js code
+    if [ $EMCC = emcc ] ; then
+        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    else
+        faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js
+    fi
      
-    # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
-        -s EXPORTED_FUNCTIONS=$EXPORTED
-        
-    # add final footer of JS page
-    echo "}());" >> $name-temp1.js
+    if [ $EMCC = emcc ] ; then
+        # prepare emcc compilation files
+        if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
+            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+        else
+            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
+        fi
+        # compile the C++ code to asm.js
+        emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+            -s EXPORTED_FUNCTIONS=$EXPORTED
+        # add final footer of JS page
+        echo "}());" >> $name-temp1.js
+        # remove intermediate C++  file
+        rm $name.cpp
+    fi
           
     # compose the self-contained HTML page
     echo "<html>" > $name-temp2.html
@@ -87,6 +100,7 @@ for f in $FILES; do
     cat $FAUSTLIB/js/stylesheet.js >> $name-temp2.html
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
+    cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html 
     echo "</head>" >> $name-temp2.html
@@ -99,8 +113,7 @@ for f in $FILES; do
     
     rm $name-temp1.js
     rm $name-temp2.html
-    rm $name.cpp
-
+ 
 	BINARIES="$BINARIES$name.html;"
 
 done
