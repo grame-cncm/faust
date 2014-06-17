@@ -1,6 +1,5 @@
 
 <<includeIntrinsic>>
-
 <<includeclass>>
 
 <!-- WebAudio API -->

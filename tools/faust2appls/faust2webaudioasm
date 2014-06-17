@@ -91,6 +91,8 @@ for f in $FILES; do
         # remove intermediate C++  file
         rm $name.cpp
     fi
+    
+    #java -jar /usr/local/bin/yuicompressor-2.4.8.jar $name-temp1.js -o $name-temp1.js --charset utf-8
           
     # compose the self-contained HTML page
     echo "<html>" > $name-temp2.html
