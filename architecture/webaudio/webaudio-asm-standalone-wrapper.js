@@ -34,7 +34,7 @@ faust.DSP = function (context, buffer_size, handler) {
     that.buffer_size = buffer_size;
     that.handler = handler;
  
-    that.ptr_size = 4; //assuming pointer in emscripten are 32bits
+    that.ptr_size = 4; 
     that.sample_size = 4;
      
      // Memory allocator
@@ -82,19 +82,8 @@ faust.DSP = function (context, buffer_size, handler) {
     that.audio_heap_outputs = that.audio_heap_inputs + (that.maxInputs * that.buffer_size * that.sample_size);
     that.dsp_start = that.audio_heap_outputs + (that.maxOutputs * that.buffer_size * that.sample_size);
  
-    /*
-    console.log(that.audio_heap_ptr_outputs - that.audio_heap_ptr_inputs);
-    console.log(that.audio_heap_inputs - that.audio_heap_ptr_outputs);
-    console.log(that.audio_heap_outputs - that.audio_heap_inputs);
-    console.log(that.dsp_start - that.audio_heap_outputs);
-    console.log(that.dsp_start);
-    */
- 
     that.dsp = that.dsp_start;
- 
-    //console.log(that.factory.getNumInputs(that.dsp));
-    //console.log(that.factory.getNumOutputs(that.dsp));
-    
+   
     that.getNumInputs = function () 
     {
         return that.factory.getNumInputs(that.dsp);
@@ -225,10 +214,7 @@ faust.DSP = function (context, buffer_size, handler) {
         // Get input / output counts
         that.numIn = that.getNumInputs();
         that.numOut = that.getNumOutputs();
- 
-        //console.log("that.numIn %d", that.numIn);
-        //console.log("that.numOut %d", that.numOut);
-            
+        
         // Setup web audio context
         console.log("that.buffer_size %d", that.buffer_size);
         that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
