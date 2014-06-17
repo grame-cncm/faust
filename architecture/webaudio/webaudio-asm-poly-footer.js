@@ -121,6 +121,15 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
     that.destroy = function ()
     {
         DSP_poly_destructor(that.ptr);
+        for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]);
+        }
+        for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i]);
+        }
+        
+        Module._free(that.ins);
+        Module._free(that.outs);
     };
     
     // Connect to another node

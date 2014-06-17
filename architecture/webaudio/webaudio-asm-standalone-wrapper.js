@@ -40,7 +40,7 @@ faust.DSP = function (context, buffer_size, handler) {
      // Memory allocator
     that.maxInputs = 128;
     that.maxOutputs = 128;
-    that.maxBufferSize = 4096;
+    that.maxBufferSize = 8192;
     console.log(getDSPSizemydsp());
     
     /*
@@ -49,8 +49,8 @@ faust.DSP = function (context, buffer_size, handler) {
     size = (size + 1) * 4096;
     */
  
-    // Next valid heap size for ASM code is 4259840 (given by Firefox), use twice of it for the DSP size itself....
-    that.HEAP = new ArrayBuffer(4259840*2);
+    // Next valid heap size for ASM code is 0x1040000 (given by Firefox), use twice of it for the DSP size itself....
+    that.HEAP = new ArrayBuffer(0x1040000*2);
      
     that.HEAP32 = new window.Int32Array(that.HEAP);
     that.HEAPF32 = new window.Float32Array(that.HEAP);
@@ -132,6 +132,11 @@ faust.DSP = function (context, buffer_size, handler) {
                 output[j] = dspOutput[j];
             }
         }
+    };
+ 
+    that.destroy = function ()
+    {
+        // Nothing to do
     };
     
     // Connect to another node
