@@ -42,12 +42,8 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
-static inline float midiToFreq(int note) 
-{
-      return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
-}
-
 struct mydsp_voice : public MapUI {
+    
     mydsp fVoice;
     int fNote;
     
@@ -83,6 +79,11 @@ struct mydsp_poly
                 mixChannel[j] += outChannel[j];
             }
         }
+    }
+    
+    inline float midiToFreq(int note) 
+    {
+        return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
     }
     
     inline void clearOutput(int count, FAUSTFLOAT** mixBuffer) 
@@ -140,8 +141,6 @@ struct mydsp_poly
     
     virtual ~mydsp_poly()
     {
-        printf("~mydsp_poly\n");
-        
         for (int i = 0; i < fNumOutputs; i++) {
             delete[] fNoteOutputs[i];
         }
@@ -207,9 +206,9 @@ struct mydsp_poly
     void pitchWheel(int channel, int pitchWheel)
     {}
     
-    void getJSON(char* json)
+    const char* getJSON()
     {
-        strcpy(json, fJSON.c_str());
+        return fJSON.c_str();
     }
     
     void setValue(const char* path, float value)
@@ -239,11 +238,11 @@ extern "C" {
         delete n;
     }
 
-    void mydsp_poly_getJSON(mydsp_poly* n, char* json)
+    const char* mydsp_poly_getJSON(mydsp_poly* n)
     {
-        n->getJSON(json);
+        return n->getJSON();
     }
-
+  
     void mydsp_poly_compute(mydsp_poly* n, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
         n->compute(count, inputs, outputs);

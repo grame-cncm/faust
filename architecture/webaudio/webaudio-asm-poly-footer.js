@@ -21,7 +21,7 @@ var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
 var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['number']);
-var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', null, ['number','number']);
+var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', 'number', ['number']);
 var DSP_poly_setValue = Module.cwrap('DSP_poly_setValue', null, ['number', 'number', 'number']);
 var DSP_poly_getValue = Module.cwrap('DSP_poly_getValue', 'number', ['number', 'number']);
 var DSP_poly_keyOn = Module.cwrap('DSP_poly_keyOn', null, ['number', 'number', 'number', 'number']);
@@ -151,9 +151,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
     
     that.json = function ()
     {
-        var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
-        DSP_poly_getJSON(that.ptr, jsonPtr);
-        return Pointer_stringify(jsonPtr);
+        return Pointer_stringify(DSP_poly_getJSON(that.ptr));
     }
     
     that.controls = function()
@@ -233,7 +231,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
         
         // Prepare Ins/out buffer tables
         that.dspInChannnels = [];
-        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
         for (i = 0; i < that.numIn; i++) {
             that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
         }

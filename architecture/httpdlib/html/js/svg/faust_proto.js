@@ -1133,15 +1133,12 @@ Makes the UI for the faust application.
 @param {Object} svg The root SVG node.
 @param {Object} raw_json The raw JSON describing the UI to build.
 **/
-_f4u$t.make_ui = function(svg, raw_json) {
+_f4u$t.make_ui = function(svg, raw_json, width, height) {
   var json = eval ("(" + raw_json + ")");
-
   var faust_svg = new _f4u$t.SVG(
     svg,
-    // kludge to prevent scroll bars...
-    $(window).width() - 15,
-    // kludge to prevent scroll bars...
-    $(window).height() - 17,
+    width,
+    height,
     {
       constrain : false,
       title : json["ui"][0].label,
@@ -1154,43 +1151,56 @@ _f4u$t.make_ui = function(svg, raw_json) {
   faust_svg.make();
 }
 
+_f4u$t.assign_parameters_to_values = function(URLParams) {
+  for (var index in URLParams) {
+    var split_index = index.split('.');
+    if (split_index.length != 2) {
+      continue;
+    }
+    if (_f4u$t[split_index[0]]) {
+      if (_f4u$t[split_index[0]][split_index[1]]) {
+        _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
+      }
+    }
+  }
+}
+
 /**
 The main function called to build the faust UI.
 Parses the URL to include any new documents and then builds the UI.
 
-@method make
+@method main
 @for _f4u$t
-@param {Object} svg The root SVG node.
-@param {Object} raw_json The raw JSON describing the UI to build.
+@param {Object} raw_json A raw JSON object describing the UI to build.
+@param {Object} div (optional) The div to place the object in.
 **/
-_f4u$t.main = function(svg, raw_json) {
-  /*
-  // bad idea...disactivates all zoom...
-  if (_f4u$t.detect_mobile_device.any()) {
-    _f4u$t.disable_zoom();
-  }
-  */
-  // make sure that loading of files is synchronous...
+_f4u$t.main = function(raw_json, div, callback) {
+  // first, we parse URL parameters to change UIs' style if necessary
   var URLParams = _f4u$t.parseURLParams(document.URL);
-  if (URLParams) {
-    URLParams.js = URLParams.js || [];
-    URLParams.css = URLParams.css || [];
-    for (var index in URLParams) {
-      var split_index = index.split('.');
-      if (split_index.length != 2) {
-        continue;
-      }
-      if (_f4u$t[split_index[0]]) {
-        if (_f4u$t[split_index[0]][split_index[1]]) {
-          _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
-        }
-      }
-    }
-    _f4u$t.load_css_and_then_js_and_then_build_ui(URLParams.css, URLParams.js, svg, raw_json);
+  // then we assign parameters
+  _f4u$t.assign_parameters_to_values(URLParams);
+  // we make sure all JS and CSS is loaded before we build the UI
+  _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
+  if (!div) {
+    var div = $( "<div />" );
+    $("body").append(div);
   }
-  else {
-    _f4u$t.make_ui(svg, raw_json);
+  var width = $(div).width();
+  if (width == 0) {
+    // HUOM: this "- 15" is a kludge and should dealt with more elegantly
+    width = $(window).width() - 15;
   }
+  var height = $(div).height();
+  if (height == 0) {
+    // HUOM: this "- 17" is a kludge and should dealt with more elegantly
+    height = $(window).height() - 17;
+  }
+  if (callback) {
+    _f4u$t.HANDLER_CALLBACKS.push(callback);
+  }
+  div.svg({onLoad: function (svg) {
+    _f4u$t.make_ui(svg, raw_json, width, height);
+  }});
 }
 
 /**
@@ -1222,42 +1232,10 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
     _f4u$t.controls[dest].value = value; 
   }
     
-  _f4u$t.update = function() {}
   _f4u$t.main_loop = function() {}
 
   faust_svg.defs();
   faust_svg.lm.mom = faust_svg;
   faust_svg.make();
-}
-
-/**
- To be called when used with the emcc based asm.js FaustNode.
- **/
-_f4u$t.make_audio_ui_asm = function(svg, dsp) {
-    var json = eval ("(" + dsp.json() + ")");
-    var faust_svg = new _f4u$t.SVG(
-       svg,
-       // kludge to prevent scroll bars...
-       $(window).width() - 15,
-       // kludge to prevent scroll bars...
-       $(window).height() - 17,
-       {
-       constrain : false,
-       title : json["ui"][0].label,
-       lm : _f4u$t.json_to_ui(json)
-       }
-    );
-    
-    // Set values in the asm.js part...
-    _f4u$t.fausthandler = function(dest, value) {
-       dsp.update(dest, value);
-    }
-     
-    _f4u$t.update = function() {}
-    _f4u$t.main_loop = function() {}
-    
-    faust_svg.defs();
-    faust_svg.lm.mom = faust_svg;
-    faust_svg.make();
 }
 

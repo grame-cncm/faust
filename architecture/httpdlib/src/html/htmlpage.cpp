@@ -142,14 +142,10 @@ void htmlpage::print(std::ostream& out, string s) const
 
 	out << "  </head>" << endl;
 	out << "  <body>" << endl;
-	out << "    <div id=\"faustsvg\">" << endl;
-	out << "    </div>" << endl;
 	out << "    <script type=\"text/javascript\">" << endl;
-	out << "      $('#faustsvg').svg({onLoad: function (svg) {" << endl;
-	out << "        _f4u$t.main(svg, '";
+	out << "      _f4u$t.main('";
 	out << s;
-	out << "');" << endl;
-	out << "      }});" << endl;
+	out << "', null, _f4u$t.faust_server_handler);" << endl;
 	out << "    </script>" << endl;
 	out << "  </body>" << endl;
 	out << "</html>";

@@ -22,12 +22,12 @@ JACK or ALSA applications, as well as CSOUND, LADSPA, MAX/MSP, PD,
 Q, SC and VST plugins. 
 
 
-2/ Organisation of the distribution
+2/ Organization of the distribution
 -----------------------------------
 The Faust distribution can be downloaded at:
 	http://sourceforge.net/projects/faudiostream
 
-It's organisation is the following :
+It's organization is the following :
 
 	architecture/		: the architecture files and libraries 
 						  currently supported
@@ -89,7 +89,7 @@ To list for possible audio targets :
 
 	make help
 
-About 20 different audio plateforms are supported : 
+About 20 different audio platforms are supported : 
 
 - Action Script
 - Alsa
