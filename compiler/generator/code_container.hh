@@ -37,7 +37,6 @@
 #include "property.hh"
 #include "function_builder.hh"
 #include "code_loop.hh"
-#include "fir_to_fir.hh"
 #include "garbageable.hh"
 
 class CodeContainer : public virtual Garbageable {
@@ -239,14 +238,8 @@ class CodeContainer : public virtual Garbageable {
             }
         }
 
-        void generateDeclarations(InstVisitor* visitor)
-        {
-#ifndef _WIN32
-            fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
-#endif
-            handleDeclarations(visitor);
-        }
-        
+        void generateDeclarations(InstVisitor* visitor); // Moved in .cpp
+         
         void handleDeclarations(InstVisitor* visitor)
         {
            if (fDeclarationInstructions->fCode.size() > 0) {

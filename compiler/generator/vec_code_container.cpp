@@ -21,66 +21,13 @@
 
 #include "vec_code_container.hh"
 #include "global.hh"
+#include "fir_to_fir.hh"
 #include "exception.hh"
 
 using namespace std;
 
 void VectorCodeContainer::moveStack2Struct()
 {
-
-    // Analysis to promote stack variables to struct variables
-    struct Stack2StructAnalyser1 : public DispatchVisitor {
-
-        VectorCodeContainer* fContainer;
-        string fName;
-
-        void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            BasicCloneVisitor cloner;
-            string name = inst->fAddress->getName();
-            
-            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
-
-                // Variable moved to the Struct
-                fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
-                
-                // For local thread access (in compute), rewrite the Declare instruction by a Store
-                if (inst->fValue) {
-                    fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
-                }
-                
-                // Mark inst to be removed
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        void visit(NamedAddress* address)
-        {
-            if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                address->fAccess = Address::kStruct;
-            }
-        }
-
-        Stack2StructAnalyser1(VectorCodeContainer* container, const string& name)
-            :fContainer(container), fName(name)
-        {}
-    };
-
-    struct VariableMover {
-
-        static void Move(VectorCodeContainer* container, const string& name)
-        {
-            // Transform stack variables in struct variables
-            Stack2StructAnalyser1 analyser1(container, name);
-            container->fComputeBlockInstructions->accept(&analyser1);
-
-            // Variable access stack ==> struct
-            Stack2StructAnalyser analyser(name);
-            container->transformDAG(&analyser);
-        }
-    };
-    
     // Transform stack variables in struct variables
     VariableMover::Move(this, "tmp");
     VariableMover::Move(this, "Zec");
@@ -157,7 +104,6 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
 StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
 {
     string index = "index";
-    
     
     BlockInst* loop_code = InstBuilder::genBlockInst();
 

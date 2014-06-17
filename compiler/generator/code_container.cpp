@@ -30,6 +30,7 @@
 #include "floats.hh"
 #include "global.hh"
 #include "type_manager.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -496,4 +497,12 @@ BlockInst* CodeContainer::flattenFIR(void)
     // Compute method
     global_block->merge(fComputeBlockInstructions);
     return global_block;
+}
+
+void CodeContainer::generateDeclarations(InstVisitor* visitor)
+{
+#ifndef _WIN32
+    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
+#endif
+    handleDeclarations(visitor);
 }

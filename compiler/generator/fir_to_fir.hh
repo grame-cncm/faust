@@ -23,6 +23,7 @@
 #define _FIR_TO_FIR_H
 
 #include "instructions.hh"
+#include "code_container.hh"
 
 #ifdef _WIN32
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
@@ -30,20 +31,77 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 #endif
 
+
 // Change stack access for struct access
 struct Stack2StructAnalyser : public DispatchVisitor {
-
+    
     string fName;
-
+    
     void visit(NamedAddress* address)
     {
         if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
             address->fAccess = Address::kStruct;
         }
     }
-
+    
     Stack2StructAnalyser(const string& name):fName(name)
     {}
+};
+
+// Analysis to promote stack variables to struct variables
+struct Stack2StructAnalyser1 : public DispatchVisitor {
+    
+    CodeContainer* fContainer;
+    string fName;
+    
+    void visit(DeclareVarInst* inst)
+    {
+        BasicCloneVisitor cloner;
+        string name = inst->fAddress->getName();
+        
+        if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
+            
+            // Variable moved to the Struct
+            fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
+            
+            // For local thread access (in compute), rewrite the Declare instruction by a Store
+            if (inst->fValue) {
+                fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+            }
+            
+            // Mark inst to be removed
+            inst->fAddress->setAccess(Address::kLink);
+        }
+        
+        // The dispatch and possibly rewrite 'value' access
+        DispatchVisitor::visit(inst);
+    }
+    
+    void visit(NamedAddress* address)
+    {
+        if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
+            address->fAccess = Address::kStruct;
+        }
+    }
+    
+    Stack2StructAnalyser1(CodeContainer* container, const string& name)
+        :fContainer(container), fName(name)
+    {}
+    
+};
+
+struct VariableMover {
+    
+    static void Move(CodeContainer* container, const string& name)
+    {
+        // Transform stack variables in struct variables
+        Stack2StructAnalyser1 analyser1(container, name);
+        container->generateComputeBlock(&analyser1);
+        
+        // Variable access stack ==> struct
+        Stack2StructAnalyser analyser2(name);
+        container->transformDAG(&analyser2);
+    }
 };
 
 // Remove all variable declaratiion marked as "Address::kLink"

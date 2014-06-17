@@ -32,45 +32,6 @@ using namespace std;
 
 void WSSCodeContainer::moveCompute2ComputeThread()
 {
-    // Analysis to promote stack variables to struct variables
-    struct Stack2StructAnalyser1 : public DispatchVisitor {
-
-        WSSCodeContainer* fContainer;
-        string fName;
-
-        void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            BasicCloneVisitor cloner;
-            string name = inst->fAddress->getName();
-            
-            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
-
-                // Variable moved to the Struct
-                fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
-
-                // For local access (in compute), rewrite the Declare instruction by a Store
-                if (inst->fValue) {
-                    fContainer->fComputeBlockInstructions->pushBackInst(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
-                }
-                
-                // Mark inst to be removed
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        void visit(NamedAddress* address)
-        {
-            if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                address->fAccess = Address::kStruct;
-            }
-        }
-
-        Stack2StructAnalyser1(WSSCodeContainer* container, const string& name)
-            :fContainer(container), fName(name)
-        {}
-    };
-
     // Move stack variable from "compute" to "computeThread"
     struct Compute2ComputeThread : public DispatchVisitor {
 
@@ -79,7 +40,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
 
         void visit(DeclareVarInst* inst)
         {
-            DispatchVisitor::visit(inst);
+            //DispatchVisitor::visit(inst);
             BasicCloneVisitor cloner;
             
             if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
@@ -90,27 +51,16 @@ void WSSCodeContainer::moveCompute2ComputeThread()
                 // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
             }
+            
+            // The dispatch and possibly rewrite 'value' access
+            DispatchVisitor::visit(inst);
         }
 
         Compute2ComputeThread(WSSCodeContainer* container, const string& name)
             :fContainer(container), fName(name)
         {}
     };
-
-    struct VariableMover {
-
-        static void Move(WSSCodeContainer* container, const string& name)
-        {
-            // Transform stack variables in struct variables
-            Stack2StructAnalyser1 analyser1(container, name);
-            container->fComputeBlockInstructions->accept(&analyser1);
-
-            // Variable access stack ==> struct
-            Stack2StructAnalyser analyser(name);
-            container->transformDAG(&analyser);
-        }
-    };
-
+     
     // Transform stack variables in struct variables
     VariableMover::Move(this, "Rec");
     VariableMover::Move(this, "tmp");
