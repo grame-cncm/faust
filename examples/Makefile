@@ -229,11 +229,11 @@ svg:
 
 webaudio :
 	install -d webaudiodir
-	$(MAKE) DEST='webaudiodir/' ARCH='webaudio.html' EXT='.html' -f Makefile.wacompile
+	$(MAKE) DEST='webaudiodir/' ARCH='webaudio/webaudio.html' EXT='.html' -f Makefile.wacompile
 
 jsaudio :
 	install -d jsaudiodir
-	$(MAKE) DEST='jsaudiodir/' ARCH='webaudio.js'  EXT='.js' -f Makefile.wacompile
+	$(MAKE) DEST='jsaudiodir/' ARCH='webaudio/webaudio.js'  EXT='.js' -f Makefile.wacompile
 
 puredata :
 	install -d puredatadir
