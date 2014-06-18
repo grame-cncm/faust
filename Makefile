@@ -146,6 +146,10 @@ install-dynamic:
 	cp compiler/libfaust.$(LIB_EXT) /usr/lib
 #	cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) /usr/lib
 
+uninstall-dynamic:
+	rm  /usr/lib/libfaust.$(LIB_EXT)
+#	rm /usr/lib/libHTTPDFaust.$(LIB_EXT) /usr/lib
+
 uninstall :
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
