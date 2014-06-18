@@ -20,12 +20,13 @@ ifeq ($(system), Darwin)
     #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 
     LLVM_CONFIG = llvm-config
 else 
-    ARCHFLAGS 	:= 
+    ARCHFLAGS 	:=
     LIBFLAGS	:= --mode=link --tag=CXX
     LLVM_CONFIG = $(word 1,$(wildcard /usr/bin/llvm-config*))
     LIB_EXT     = so
 endif
 
+LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles)
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ifeq ($(system), Darwin)
@@ -61,10 +62,10 @@ endif
 ifeq ($(system), Darwin)
 	CXXFLAGS += -O3
 else
-	CXXFLAGS += -O1
+	CXXFLAGS += -O1 -fPIC
 endif
 
-CXXFLAGS +=  -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
@@ -76,12 +77,11 @@ else
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
 
-ifeq ($(system), Darwin)
-    all : faust libfaust.a
-    dynamic : faust libfaust.$(LIB_EXT)
-else
-    all : faust libfaust.a
-endif
+
+all : faust libfaust.a
+
+dynamic : faust libfaust.$(LIB_EXT)
+
 
 ## On iOS, do not compile LLVM part
 ios: IPHONEOS_DEPLOYMENT_TARGET=5.0
@@ -110,14 +110,17 @@ scheduler.ll : ../architecture/scheduler.cpp
 ifeq ($(system), Darwin)
     libfaust.a : $(objects) libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
+
+    libfaust.dylib : $(objects) libmain.o global.o
+	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ -macosx_version_min 10.6 -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.so
 else	
     libfaust.a : $(objects) libmain.o global.o
 	ar cq $@ $(objects) libmain.o global.o
 	ranlib $@
-endif
 
-libfaust.$(LIB_EXT) : $(objects) libmain.o global.o
-	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o  -lcrypto -lstdc++ `$(LLVM_CONFIG) --ldflags` -lLLVM-`$(LLVM_CONFIG) --version`  -macosx_version_min 10.6 -install_name /usr/local/lib/faust/libfaust.$(LIB_EXT) -o libfaust.$(LIB_EXT)
+    libfaust.so : $(objects) libmain.o global.o
+	gcc -shared -fPIC $(objects) libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ 
+endif
 
 
 .PHONY: clean depend ctags parser
