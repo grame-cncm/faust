@@ -243,7 +243,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
     if (llvm_dsp_factory::gInstance++ == 0) {
         
         // Install a LLVM error handler
-    #if defined(LLVM_33) || defined(LLVM_34)
+    #if defined(LLVM_34)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
     #endif
         if (!llvm_start_multithreaded()) {
@@ -622,7 +622,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     
     if (--llvm_dsp_factory::gInstance == 0) {
         llvm_stop_multithreaded();
-    #if defined(LLVM_33) || defined(LLVM_34)
+    #if defined(LLVM_34)
         LLVMResetFatalErrorHandler();
     #endif
     }
