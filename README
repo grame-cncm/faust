@@ -43,7 +43,16 @@ It's organization is the following :
 						  produce binaries and plugins
 
 
-3/ Compilation and installation
+3.a/ Dependencies
+--------------------------------
+
+The faust2 development branch has dependencies to :
+
+- llvm/clang (> 3.1)
+- openssl
+
+
+3.b/ Compilation and installation
 --------------------------------
 To compile and install the Faust compiler on Linux and MacOSX : 
 

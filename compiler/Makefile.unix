@@ -112,7 +112,7 @@ ifeq ($(system), Darwin)
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
 
     libfaust.dylib : $(objects) libmain.o global.o
-	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ -macosx_version_min 10.6 -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.so
+	libtool -dynamic $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ -macosx_version_min 10.6 -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.dylib
 else	
     libfaust.a : $(objects) libmain.o global.o
 	ar cq $@ $(objects) libmain.o global.o
