@@ -24,6 +24,7 @@
 #include "floats.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "json_instructions.hh"
 
 using namespace std;
 
@@ -519,7 +520,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}" << endl;
     
     // User interface : prepare the JSON string...
-    generateUserInterface(&fCodeProducer);
+    JSONInstVisitor json_visitor;
+    generateUserInterface(&json_visitor);
     
     // Generate getSubContainers
     tab(n, *fOut); *fOut << "function getSubContainers" <<  fKlassName << "() {";
@@ -541,9 +543,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "var pathTable = [];"; 
     map <string, string>::iterator it;
-    map <string, string>& pathTable = fCodeProducer.getPathTable();
     map <string, pair<int, Typed::VarType> >& fieldTable = fCodeProducer.getFieldTable();
-    for (it = pathTable.begin(); it != pathTable.end(); it++) {
+    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
         pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
         tab(n+1, *fOut); *fOut << fObjPrefix << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
     }
@@ -554,7 +555,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "function getJSON" <<  fKlassName << "() {";
         tab(n+1, *fOut);
-        *fOut << "return \""; *fOut << fCodeProducer.getJSON(true); *fOut << "\";";
+        *fOut << "return \""; *fOut << json_visitor.JSON(true); *fOut << "\";";
         printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
     

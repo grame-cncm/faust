@@ -65,12 +65,12 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        virtual void visit(AddMetaDeclareInst* inst) { assert(false); }
-        virtual void visit(OpenboxInst* inst) { assert(false); }
-        virtual void visit(CloseboxInst* inst) { assert(false); }
-        virtual void visit(AddButtonInst* inst) { assert(false); }
-        virtual void visit(AddSliderInst* inst) { assert(false); }
-        virtual void visit(AddBargraphInst* inst) { assert(false); }
+        virtual void visit(AddMetaDeclareInst* inst) {}
+        virtual void visit(OpenboxInst* inst) {}
+        virtual void visit(CloseboxInst* inst) {}
+        virtual void visit(AddButtonInst* inst) {}
+        virtual void visit(AddSliderInst* inst) {}
+        virtual void visit(AddBargraphInst* inst) {}
       
         virtual void visit(LabelInst* inst)
         {

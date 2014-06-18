@@ -43,7 +43,6 @@ struct TypingVisitor : public InstVisitor {
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
                   //  printf("visit(LoadVarInst* inst) %s %d %d\n",  inst->getName().c_str(), fCurType,  Typed::getTypeFromPtr(fCurType));
                     fCurType = Typed::getTypeFromPtr(fCurType);
-                    
                 }
             } else {
                 fCurType = Typed::kNoType;
@@ -66,7 +65,7 @@ struct TypingVisitor : public InstVisitor {
     
         virtual void visit(LoadVarAddressInst* inst)
         {   
-            // Not implemented in JAVA
+            // Not implemented
             assert(false);
         }
    
@@ -134,7 +133,7 @@ struct TypingVisitor : public InstVisitor {
       
         virtual void visit(Select2Inst* inst)
         {
-            // Type in the one of then or else
+            // Type in the one of 'then' or 'else'
             inst->fThen->accept(this);
         }
         

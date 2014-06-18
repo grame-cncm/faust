@@ -26,7 +26,6 @@ using namespace std;
 
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
-#include "../../architecture/faust/gui/JSONUI.h"
 
 static inline bool startWith(const string& str, const string& prefix)
 {
@@ -46,7 +45,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
     
-        JSONUI fJSON;
         TypingVisitor fTypingVisitor;
 
         /*
@@ -60,13 +58,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         int fStructSize;    // Keep the size in bytes of the structure
     
         map <string, pair<int, Typed::VarType> > fFieldTable;  // Table : field_name, <byte offset in structure, type>
-        map <string, string> fPathTable;                       // Table : field_name, complete path
     
     public:
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
-            //:TextInstVisitor(out, ".", tab), fJSON(0,0) 
-            :TextInstVisitor(out, ".", ifloat(), "", tab), fJSON(0,0)
+            :TextInstVisitor(out, ".", ifloat(), "", tab)
         {
             fMathLibTable["abs"] = "global.Math.abs";
             fMathLibTable["absf"] = "global.Math.abs";
@@ -98,77 +94,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {}
     
         int getStructSize() { return fStructSize; }
-        string getJSON(bool flat) { return fJSON.JSON(flat); }
-        map <string, string>& getPathTable() { return fPathTable; }
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
         map <string, string>& getMathLibTable() { return fMathLibTable; }
-
-        virtual void visit(AddMetaDeclareInst* inst)
-        {
-            fJSON.declare(NULL, inst->fKey.c_str(), inst->fValue.c_str());
-        }
-
-        virtual void visit(OpenboxInst* inst)
-        {
-            switch (inst->fOrient) {
-                case 0:
-                    fJSON.openVerticalBox(inst->fName.c_str());
-                    break;
-                case 1:
-                    fJSON.openHorizontalBox(inst->fName.c_str());
-                    break;
-                case 2:
-                    fJSON.openTabBox(inst->fName.c_str());
-                    break;
-            }
-        }
-
-        virtual void visit(CloseboxInst* inst)
-        {
-            fJSON.closeBox();
-        }
-        
-        virtual void visit(AddButtonInst* inst)
-        {
-            if (inst->fType == AddButtonInst::kDefaultButton) {
-                fJSON.addButton(inst->fLabel.c_str(), NULL);
-            } else {
-                fJSON.addCheckButton(inst->fLabel.c_str(), NULL);
-            }
-            
-            fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
-        }
-        
-        virtual void visit(AddSliderInst* inst)
-        {
-            switch (inst->fType) {
-                case AddSliderInst::kHorizontal:
-                    fJSON.addHorizontalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
-                    break;
-                case AddSliderInst::kVertical:
-                    fJSON.addVerticalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
-                    break;
-                case AddSliderInst::kNumEntry:
-                    fJSON.addNumEntry(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
-                    break;
-            }
-            
-            fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
-        }
-
-        virtual void visit(AddBargraphInst* inst)
-        {
-            switch (inst->fType) {
-                case AddBargraphInst::kHorizontal:
-                    fJSON.addHorizontalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
-                    break;
-                case AddBargraphInst::kVertical:
-                    fJSON.addVerticalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
-                    break;
-            }
-            
-            fPathTable[inst->fZone] = fJSON.buildPath(inst->fLabel);
-        }
 
         virtual void visit(LabelInst* inst)
         {
