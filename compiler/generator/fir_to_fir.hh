@@ -73,7 +73,7 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
             inst->fAddress->setAccess(Address::kLink);
         }
         
-        // The dispatch and possibly rewrite 'value' access
+        // Then dispatch and possibly rewrite 'value' access
         DispatchVisitor::visit(inst);
     }
     
@@ -104,7 +104,7 @@ struct VariableMover {
     }
 };
 
-// Remove all variable declaratiion marked as "Address::kLink"
+// Remove all variable declarations marked as "Address::kLink"
 struct RemoverCloneVisitor : public BasicCloneVisitor {
 
     // Rewrite Declare as a no-op (DropInst)

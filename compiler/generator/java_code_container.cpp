@@ -27,8 +27,8 @@
 
 using namespace std;
 
-map <string, string> JAVAInstVisitor::fMathLibTable;
 map <string, int> JAVAInstVisitor::gFunctionSymbolTable;     
+map <string, string> JAVAInstVisitor::gMathLibTable;
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

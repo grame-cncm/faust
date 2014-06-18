@@ -34,35 +34,43 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototye is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;      
-        map <string, string> fMathLibTable;
+        static map <string, int> gFunctionSymbolTable;    
+        static map <string, string> gMathLibTable;
 
     public:
 
         JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab)
         {
-            fMathLibTable["abs"] = "Math.abs";
-            fMathLibTable["absf"] = "Math.abs";
-            fMathLibTable["fabsf"] = "Math.abs";
-            fMathLibTable["acosf"] = "Math.acos";
-            fMathLibTable["asinf"] = "Math.asin";
-            fMathLibTable["atanf"] = "Math.atan";
-            fMathLibTable["atan2f"] = "Math.atan2";
-            fMathLibTable["ceilf"] = "Math.ceil";
-            fMathLibTable["cosf"] = "Math.cos";
-            fMathLibTable["expf"] = "Math.exp";
-            fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
-            fMathLibTable["logf"] = "Math.log";
-            fMathLibTable["log10f"] = "function log10(a) { return Math.log(a)/Math.log(10); }";
-            fMathLibTable["max"] = "Math.max";
-            fMathLibTable["min"] = "Math.min";
-            fMathLibTable["powf"] = "Math.pow";
-            fMathLibTable["roundf"] = "Math.round";
-            fMathLibTable["sinf"] = "Math.sin";
-            fMathLibTable["sqrtf"] = "Math.sqrt";
-            fMathLibTable["tanf"] = "Math.tan";
+            initMathTable();
+        }
+    
+        void initMathTable()
+        {
+            if (gMathLibTable.size()) {
+                return;
+            }
+            gMathLibTable["abs"] = "Math.abs";
+            gMathLibTable["absf"] = "Math.abs";
+            gMathLibTable["fabsf"] = "Math.abs";
+            gMathLibTable["acosf"] = "Math.acos";
+            gMathLibTable["asinf"] = "Math.asin";
+            gMathLibTable["atanf"] = "Math.atan";
+            gMathLibTable["atan2f"] = "Math.atan2";
+            gMathLibTable["ceilf"] = "Math.ceil";
+            gMathLibTable["cosf"] = "Math.cos";
+            gMathLibTable["expf"] = "Math.exp";
+            gMathLibTable["floorf"] = "Math.floor";
+            gMathLibTable["fmodf"] = "function fmod(a, b) { return a % b; }";
+            gMathLibTable["logf"] = "Math.log";
+            gMathLibTable["log10f"] = "function log10(a) { return Math.log(a)/Math.log(10); }";
+            gMathLibTable["max"] = "Math.max";
+            gMathLibTable["min"] = "Math.min";
+            gMathLibTable["powf"] = "Math.pow";
+            gMathLibTable["roundf"] = "Math.round";
+            gMathLibTable["sinf"] = "Math.sin";
+            gMathLibTable["sqrtf"] = "Math.sqrt";
+            gMathLibTable["tanf"] = "Math.tan";
         }
 
         virtual ~JAVAScriptInstVisitor()
@@ -183,7 +191,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             }
             
             // Do not declare Math library functions
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+            if (gMathLibTable.find(inst->fName) != gMathLibTable.end()) {
                 return;
             }
         
@@ -227,7 +235,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
        
         virtual void visit(FunCallInst* inst)
         {
-            string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
             generateFunCall(inst, fun_name);
         }
 

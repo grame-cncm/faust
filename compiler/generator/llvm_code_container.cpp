@@ -31,7 +31,7 @@
 
 using namespace std;
 
-list <string> LLVMInstVisitor::fMathLibTable;
+list <string> LLVMInstVisitor::gMathLibTable;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

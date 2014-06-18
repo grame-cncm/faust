@@ -36,7 +36,8 @@ class JAVAInstVisitor : public TextInstVisitor {
          so that each function prototye is generated as most once in the module.
          */
         static map <string, int> gFunctionSymbolTable;      
-        static map <string, string> fMathLibTable;
+        static map <string, string> gMathLibTable;
+    
         TypingVisitor fTypingVisitor;
    
     public:
@@ -53,75 +54,75 @@ class JAVAInstVisitor : public TextInstVisitor {
         
         void initMathTable()
         {
-            if (fMathLibTable.size()) {
+            if (gMathLibTable.size()) {
                 return;
             }
 
-            fMathLibTable["abs"] = "java.lang.Math.abs";
-            fMathLibTable["absf"] = "(float)java.lang.Math.abs";
+            gMathLibTable["abs"] = "java.lang.Math.abs";
+            gMathLibTable["absf"] = "(float)java.lang.Math.abs";
             
-            fMathLibTable["fabs"] = "java.lang.Math.abs";
-            fMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
+            gMathLibTable["fabs"] = "java.lang.Math.abs";
+            gMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
             
-            fMathLibTable["acos"] = "java.lang.Math.acos";
-            fMathLibTable["acosf"] = "(float)java.lang.Math.acos";
+            gMathLibTable["acos"] = "java.lang.Math.acos";
+            gMathLibTable["acosf"] = "(float)java.lang.Math.acos";
             
-            fMathLibTable["asin"] = "java.lang.Math.asin";
-            fMathLibTable["asinf"] = "(float)java.lang.Math.asin";
+            gMathLibTable["asin"] = "java.lang.Math.asin";
+            gMathLibTable["asinf"] = "(float)java.lang.Math.asin";
             
-            fMathLibTable["atan"] = "java.lang.Math.atan";
-            fMathLibTable["atanf"] = "(float)java.lang.Math.atan";
+            gMathLibTable["atan"] = "java.lang.Math.atan";
+            gMathLibTable["atanf"] = "(float)java.lang.Math.atan";
             
-            fMathLibTable["atan2"] = "java.lang.Math.atan2";
-            fMathLibTable["atan2f"] = "(float)java.lang.Math.atan2";
+            gMathLibTable["atan2"] = "java.lang.Math.atan2";
+            gMathLibTable["atan2f"] = "(float)java.lang.Math.atan2";
             
-            fMathLibTable["ceil"] = "java.lang.Math.ceil";
-            fMathLibTable["ceilf"] = "(float)java.lang.Math.ceil";
+            gMathLibTable["ceil"] = "java.lang.Math.ceil";
+            gMathLibTable["ceilf"] = "(float)java.lang.Math.ceil";
             
-            fMathLibTable["cos"] = "java.lang.Math.cos";
-            fMathLibTable["cosf"] = "(float)java.lang.Math.cos";
+            gMathLibTable["cos"] = "java.lang.Math.cos";
+            gMathLibTable["cosf"] = "(float)java.lang.Math.cos";
             
-            fMathLibTable["cosh"] = "java.lang.Math.cosh";
-            fMathLibTable["coshf"] = "(float)java.lang.Math.cosh";
+            gMathLibTable["cosh"] = "java.lang.Math.cosh";
+            gMathLibTable["coshf"] = "(float)java.lang.Math.cosh";
             
-            fMathLibTable["exp"] = "java.lang.Math.exp";
-            fMathLibTable["expf"] = "(float)java.lang.Math.exp";
+            gMathLibTable["exp"] = "java.lang.Math.exp";
+            gMathLibTable["expf"] = "(float)java.lang.Math.exp";
             
-            fMathLibTable["floor"] = "java.lang.Math.floor";
-            fMathLibTable["floorf"] = "(float)java.lang.Math.floor";
+            gMathLibTable["floor"] = "java.lang.Math.floor";
+            gMathLibTable["floorf"] = "(float)java.lang.Math.floor";
             
-            fMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
-            fMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
+            gMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
+            gMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
             
-            fMathLibTable["log"] = "java.lang.Math.log";
-            fMathLibTable["logf"] = "(float)java.lang.Math.log";
+            gMathLibTable["log"] = "java.lang.Math.log";
+            gMathLibTable["logf"] = "(float)java.lang.Math.log";
             
-            fMathLibTable["log10"] = "java.lang.Math.log10";
-            fMathLibTable["log10f"] = "(float)java.lang.Math.log10";
+            gMathLibTable["log10"] = "java.lang.Math.log10";
+            gMathLibTable["log10f"] = "(float)java.lang.Math.log10";
             
-            fMathLibTable["max"] = "java.lang.Math.max";
-            fMathLibTable["min"] = "java.lang.Math.min";
+            gMathLibTable["max"] = "java.lang.Math.max";
+            gMathLibTable["min"] = "java.lang.Math.min";
             
-            fMathLibTable["pow"] = "java.lang.Math.pow";
-            fMathLibTable["powf"] = "(float)java.lang.Math.pow";
+            gMathLibTable["pow"] = "java.lang.Math.pow";
+            gMathLibTable["powf"] = "(float)java.lang.Math.pow";
             
-            fMathLibTable["round"] = "java.lang.Math.round";
-            fMathLibTable["roundf"] = "(float)java.lang.Math.round";
+            gMathLibTable["round"] = "java.lang.Math.round";
+            gMathLibTable["roundf"] = "(float)java.lang.Math.round";
              
-            fMathLibTable["sin"] = "java.lang.Math.sin";
-            fMathLibTable["sinf"] = "(float)java.lang.Math.sin";
+            gMathLibTable["sin"] = "java.lang.Math.sin";
+            gMathLibTable["sinf"] = "(float)java.lang.Math.sin";
             
-            fMathLibTable["sinh"] = "java.lang.Math.sinh";
-            fMathLibTable["sinhf"] = "(float)java.lang.Math.sinh";
+            gMathLibTable["sinh"] = "java.lang.Math.sinh";
+            gMathLibTable["sinhf"] = "(float)java.lang.Math.sinh";
              
-            fMathLibTable["sqrt"] = "java.lang.Math.sqrt";
-            fMathLibTable["sqrtf"] = "(float)java.lang.Math.sqrt";
+            gMathLibTable["sqrt"] = "java.lang.Math.sqrt";
+            gMathLibTable["sqrtf"] = "(float)java.lang.Math.sqrt";
             
-            fMathLibTable["tan"] = "java.lang.Math.tan";
-            fMathLibTable["tanf"] = "(float)java.lang.Math.tan";
+            gMathLibTable["tan"] = "java.lang.Math.tan";
+            gMathLibTable["tanf"] = "(float)java.lang.Math.tan";
             
-            fMathLibTable["tanh"] = "java.lang.Math.tanh";
-            fMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
+            gMathLibTable["tanh"] = "java.lang.Math.tanh";
+            gMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
         }
 
         virtual ~JAVAInstVisitor()
@@ -245,7 +246,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             }
             
             // Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+            if (gMathLibTable.find(inst->fName) != gMathLibTable.end()) {
                 return;
             }
             
@@ -444,7 +445,7 @@ class JAVAInstVisitor : public TextInstVisitor {
     
         virtual void visit(FunCallInst* inst)
         {
-            string fun_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
             generateFunCall(inst, fun_name);
         }
       

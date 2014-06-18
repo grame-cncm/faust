@@ -774,7 +774,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         map <string, GlobalVariable*> fGlobalStringTable;
         
-        static list <string> fMathLibTable;
+        static list <string> gMathLibTable;
 
     public:
 
@@ -813,72 +813,72 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
             initTypes(module);
             
-            if (fMathLibTable.size()) {
+            if (gMathLibTable.size()) {
                 return;
             }
 
-            fMathLibTable.push_back("abs");
-            fMathLibTable.push_back("absf");
+            gMathLibTable.push_back("abs");
+            gMathLibTable.push_back("absf");
             
-            fMathLibTable.push_back("fabs");
-            fMathLibTable.push_back("fabsf");
+            gMathLibTable.push_back("fabs");
+            gMathLibTable.push_back("fabsf");
             
-            fMathLibTable.push_back("acos");
-            fMathLibTable.push_back("acosf");
+            gMathLibTable.push_back("acos");
+            gMathLibTable.push_back("acosf");
             
-            fMathLibTable.push_back("asin");
-            fMathLibTable.push_back("asinf");
+            gMathLibTable.push_back("asin");
+            gMathLibTable.push_back("asinf");
             
-            fMathLibTable.push_back("atan");
-            fMathLibTable.push_back("atanf");
+            gMathLibTable.push_back("atan");
+            gMathLibTable.push_back("atanf");
             
-            fMathLibTable.push_back("atan2");
-            fMathLibTable.push_back("atan2f");
+            gMathLibTable.push_back("atan2");
+            gMathLibTable.push_back("atan2f");
             
-            fMathLibTable.push_back("ceil");
-            fMathLibTable.push_back("ceilf");
+            gMathLibTable.push_back("ceil");
+            gMathLibTable.push_back("ceilf");
             
-            fMathLibTable.push_back("cos");
-            fMathLibTable.push_back("cosf");
+            gMathLibTable.push_back("cos");
+            gMathLibTable.push_back("cosf");
             
-            fMathLibTable.push_back("cosh");
-            fMathLibTable.push_back("coshf");
+            gMathLibTable.push_back("cosh");
+            gMathLibTable.push_back("coshf");
             
-            fMathLibTable.push_back("exp");
-            fMathLibTable.push_back("expf");
+            gMathLibTable.push_back("exp");
+            gMathLibTable.push_back("expf");
             
-            fMathLibTable.push_back("floor");
-            fMathLibTable.push_back("floorf");
+            gMathLibTable.push_back("floor");
+            gMathLibTable.push_back("floorf");
             
-            fMathLibTable.push_back("fmod");
-            fMathLibTable.push_back("fmodf");
+            gMathLibTable.push_back("fmod");
+            gMathLibTable.push_back("fmodf");
             
-            fMathLibTable.push_back("log");
-            fMathLibTable.push_back("logf");
+            gMathLibTable.push_back("log");
+            gMathLibTable.push_back("logf");
             
-            fMathLibTable.push_back("log10");
-            fMathLibTable.push_back("log10f");
+            gMathLibTable.push_back("log10");
+            gMathLibTable.push_back("log10f");
             
-            fMathLibTable.push_back("pow");
-            fMathLibTable.push_back("powf");
+            gMathLibTable.push_back("pow");
+            gMathLibTable.push_back("powf");
             
-            fMathLibTable.push_back("round");
-            fMathLibTable.push_back("roundf");
+            gMathLibTable.push_back("round");
+            gMathLibTable.push_back("roundf");
              
-            fMathLibTable.push_back("sin");
-            fMathLibTable.push_back("sinf");
+            gMathLibTable.push_back("sin");
+            gMathLibTable.push_back("sinf");
             
-            fMathLibTable.push_back("sinh");
-            fMathLibTable.push_back("sinhf");
+            gMathLibTable.push_back("sinh");
+            gMathLibTable.push_back("sinhf");
              
-            fMathLibTable.push_back("sqrt");
-            fMathLibTable.push_back("sqrtf");
+            gMathLibTable.push_back("sqrt");
+            gMathLibTable.push_back("sqrtf");
             
-            fMathLibTable.push_back("tan");
-            fMathLibTable.push_back("tanf");
+            gMathLibTable.push_back("tan");
+            gMathLibTable.push_back("tanf");
             
-            fMathLibTable.push_back("tanh");
-            fMathLibTable.push_back("tanhf");
+            gMathLibTable.push_back("tanh");
+            gMathLibTable.push_back("tanhf");
         }
 
         LLVMInstVisitor(const string& prefix = "")
@@ -1309,7 +1309,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 
             #if defined(LLVM_33) || defined(LLVM_34)
                 // In order for auto-vectorization to correctly work with vectorizable math functions
-                if (find(fMathLibTable.begin(), fMathLibTable.end(), inst->fName) != fMathLibTable.end()) {
+                if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
                     function->setDoesNotAccessMemory();
                     //printf("inst->fName YES %s\n", inst->fName.c_str());
                 } else {

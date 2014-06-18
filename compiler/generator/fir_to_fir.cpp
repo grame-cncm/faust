@@ -24,6 +24,10 @@
 
 using namespace std;
 
+/*
+ Sort arrays by size.
+*/
+
 static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
 {
     DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
