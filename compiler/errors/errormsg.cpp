@@ -63,14 +63,14 @@ void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << " : " << linenum << ": WARNING : " << msg << boxpp(exp) << endl;
+    error << filename << " : " << linenum << " : WARNING : " << msg << boxpp(exp) << endl;
     gGlobal->gErrorMsg = error.str();
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << " : " << linenum << ": REMARK : " << msg << boxpp(exp) << endl;
+    error << filename << " : " << linenum << " : REMARK : " << msg << boxpp(exp) << endl;
     gGlobal->gErrorMsg = error.str();
 }
 
