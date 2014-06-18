@@ -355,7 +355,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
         } else {
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "Not a closure", val);
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access", exp);
-            throw faustexception("No environment to access\n");
+            throw faustexception("Not a closure, no environment to access\n");
         }
 
 ///////////////////////////////////////////////////////////////////
@@ -507,20 +507,21 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
         if (getBoxType (b, &ins, &outs)) {
             return boxInt(ins);
         } else {
-            cerr << "ERROR : can't evaluate ' : " << *exp << endl;
-            assert(false);
+            stringstream error;
+            error << "ERROR : can't evaluate ' : " << *exp << endl;
+            throw faustexception(error.str());
         }
-
+  
     } else if (isBoxOutputs(exp, body)) {
         int ins, outs;
         Tree b = a2sb(eval(body, visited, localValEnv));
         if (getBoxType (b, &ins, &outs)) {
             return boxInt(outs);
         } else {
-            cerr << "ERROR : can't evaluate ' : " << *exp << endl;
-            assert(false);
+            stringstream error;
+            error << "ERROR : can't evaluate ' : " << *exp << endl;
+            throw faustexception(error.str());
         }
-
 
 	} else if (isBoxSlot(exp)) 		{ 
 		return exp; 
@@ -541,10 +542,11 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxPatternMatcher(exp)) {
 		return exp;
 
-	} else {
-		cerr << "ERROR : EVAL don't intercept : " << *exp << endl;
-		assert(false);
-	}
+    } else {
+        stringstream error;
+        error << "ERROR : EVAL doesn't intercept : " << *exp << endl;
+        throw faustexception(error.str());
+    }
 	return NULL;
 }
 
@@ -705,7 +707,7 @@ static bool isIdentChar(char c)
     return ((c >= 'a') & (c <= 'z')) || ((c >= 'A') & (c <= 'Z')) || ((c >= '0') & (c <= '9')) || (c == '_');
 }
 
-const char* Formats [] = {"%d", "%1d", "%2d", "%3d", "%4d"};
+static const char* Formats [] = {"%d", "%1d", "%2d", "%3d", "%4d"};
 
 static void writeIdentValue(std::string& dst, const std::string& format, const std::string& ident, Tree visited, Tree localValEnv)
 {
@@ -717,7 +719,6 @@ static void writeIdentValue(std::string& dst, const std::string& format, const s
     snprintf(val, 250, Formats[i], n);
     dst += val;
 }
-
 
 /**
  * evallabel replace "...%2i..." occurences in label with value of i
@@ -791,7 +792,6 @@ static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
     //std::cerr << "  ===> " << val << std::endl;
     return val;
 }
-
 
 /**
  * Iterate a parallel construction
@@ -1029,7 +1029,7 @@ static Tree applyList (Tree fun, Tree larg)
          }
  
          // check arity of arg list
-         if (!boxlistOutputs(larg,&outs)) {
+         if (!boxlistOutputs(larg, &outs)) {
          	// we don't know yet the output arity of larg. Therefore we can't
          	// do any arity checking nor add _ to reach the required number of arguments
             // cerr << "warning : can't infere the type of : " << boxpp(larg) << endl;
@@ -1074,7 +1074,7 @@ static Tree applyList (Tree fun, Tree larg)
 		Tree narg; if ( isBoxNumeric(arg,narg) ) { arg =  narg; } 
 		Tree f = eval(body, visited, pushValueDef(id, arg, localValEnv));
 
-		Tree	fname;
+		Tree fname;
 		if (getDefNameProperty(fun, fname)) {
 			stringstream s; s << tree2str(fname); if (!gGlobal->gSimpleNames) s << "(" << boxpp(arg) << ")";
 			setDefNameProperty(f, s.str());
@@ -1114,7 +1114,7 @@ static Tree revEvalList (Tree lexp, Tree visited, Tree localValEnv)
  * @param larg list of expressions
  * @return parallel construction
  */
-static Tree larg2par (Tree larg)
+static Tree larg2par(Tree larg)
 {
 	if (isNil(larg)) {
 		evalerror(yyfilename, -1, "empty list of arguments", larg);
@@ -1258,7 +1258,6 @@ static Tree	evalPattern(Tree pattern, Tree env)
     return patternSimplification(p);
 }
 
-
 static void list2vec(Tree l, vector<Tree>& v)
 {
 	while (!isNil(l)) {
@@ -1319,7 +1318,7 @@ Tree numericBoxSimplification(Tree box)
     int     i;
     double  x;
 
-    if ( ! getBoxType(box, &ins, &outs)) {
+    if (!getBoxType(box, &ins, &outs)) {
         stringstream error;
         error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : " << *box << endl;
         throw faustexception(error.str());
@@ -1366,7 +1365,6 @@ Tree insideBoxSimplification (Tree box)
     prim5	p5;
 
     Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
-
 
     xtended* xt = (xtended*)getUserData(box);
 

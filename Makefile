@@ -27,7 +27,7 @@ all :
 
 dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
-	$(MAKE) -C architecture/httpdlib/src dynamic
+#	$(MAKE) -C architecture/httpdlib/src dynamic
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
@@ -96,7 +96,6 @@ install :
 	mkdir -p $(prefix)/include/faust/osc/
 	mkdir -p $(prefix)/lib/faust
 	install compiler/faust $(prefix)/bin/
-	install compiler/libfaust.a $(prefix)/lib/faust
 	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust) || echo libfaust.$(LIB_EXT) not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
@@ -146,6 +145,9 @@ install :
 	# install webaudio
 	cp -r architecture/webaudio $(prefix)/lib/faust/
 	
+install-dynamic:
+	cp compiler/libfaust.$(LIB_EXT) /usr/lib
+#	cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) /usr/lib
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/
