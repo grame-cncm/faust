@@ -1702,20 +1702,6 @@ class CombinerVisitor : public DispatchVisitor
 struct InstBuilder
 {
 
-    /*
-    static map<string, int> fIDCounters;
-
-    static string getFreshID(const string& prefix)
-    {
-        if (fIDCounters.find(prefix) == fIDCounters.end()) {
-            fIDCounters[prefix] = 0;
-        }
-        int n = fIDCounters[prefix];
-        fIDCounters[prefix] = n+1;
-        return subst("$0$1", prefix, T(n));
-    }
-    */
-    
     static BlockInst* mergeBlock(BlockInst* dst, BlockInst* src) 
     {
         list<StatementInst*>::const_iterator it;

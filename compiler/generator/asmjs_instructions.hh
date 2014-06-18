@@ -304,8 +304,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else if (fTypingVisitor.fCurType == Typed::kFloatMacro 
                        || fTypingVisitor.fCurType == Typed::kFloat 
                        || fTypingVisitor.fCurType == Typed::kDouble
-                       || fTypingVisitor.fCurType == Typed::kFloat_ptr
-                       || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr) {
+                       || fTypingVisitor.fCurType == Typed::kFloat_ptr              // TO CHECK
+                       || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr) {      // TO CHECK
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
@@ -803,7 +803,6 @@ struct ForeignContainerWriter : public DispatchVisitor {
     }
     
 };
-
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like 'faustpower')
 struct sortDeclareFunctions
