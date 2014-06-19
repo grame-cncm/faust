@@ -52,13 +52,13 @@ void yyrestart(FILE *new_file);
  *****************************************************************/
 
 int yyparse();
-struct yy_buffer_state* yy_scan_string (const char *yy_str  ); // In principle YY_BUFFER_STATE
+struct yy_buffer_state* yy_scan_string (const char *yy_str); // In principle YY_BUFFER_STATE
 
 extern int 		yyerr;
 extern int 		yydebug;
 extern FILE*	yyin;
 extern int		yylineno;
-extern const char * yyfilename;
+extern const char* yyfilename;
 
 /**
  * Checks an argument list for containing only 
@@ -243,8 +243,9 @@ Tree SourceReader::parsefile(string fname)
 Tree SourceReader::parsestring(string fname) 
 {
     yyerr = 0;
+    yylineno = 1;
     yy_scan_string(gGlobal->gInputString);
-    // Clear global "inputstring" so that imported files will be correctly parsed with "parsefile"
+    // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
     gGlobal->gInputString = NULL;
     return parse(fname);
 }
