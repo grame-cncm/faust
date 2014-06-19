@@ -355,9 +355,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
      */
         
         // Generates functions calls as "access" to externally defined methods
+        /*
         ForeignContainerWriter foreign(fOut, n+1, fKlassName);
         fStaticInitInstructions->accept(&foreign);
         fInitInstructions->accept(&foreign);
+         */
         
     
         // Global declarations (mathematical functions, global variables...)

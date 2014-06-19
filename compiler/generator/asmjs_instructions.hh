@@ -34,11 +34,7 @@ static inline bool startWith(const string& str, const string& prefix)
 
 static inline string startWithRes(const string& str, const string& prefix)
 {   
-    if (str.substr(0, prefix.size()) == prefix) {
-        return str.substr(prefix.size());
-    } else {
-        return "";
-    }
+    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
 }
 
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
@@ -669,7 +665,6 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
     }
     
 };
-
 
 struct ForeignContainerWriter : public DispatchVisitor {
     

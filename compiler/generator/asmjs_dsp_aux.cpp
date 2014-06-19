@@ -26,16 +26,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#ifndef _WIN32
-#include <libgen.h>
-#endif
 
 #include "asmjs_dsp_aux.hh"
-#include "faust/gui/UIGlue.h"
 #include "libfaust.h"
-#include "dsp_aux.hh"
-#include "timing.hh"
-#include "exception.hh"
 
 string gFactory; 
 

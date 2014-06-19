@@ -23,7 +23,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 
 (function () {
  
-    var createDSPFactory = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number']);
+    var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number']);
  
     faust.error_msg = null;
  
@@ -39,7 +39,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
         var name_ptr = allocate(intArrayFromString("FaustDSP"), 'i8', ALLOC_STACK);
         var error_msg_ptr = allocate(intArrayFromString('', false, 256), 'i8', ALLOC_STACK);
-        var factory_code = Pointer_stringify(createDSPFactory(name_ptr, code_ptr, error_msg_ptr));
+        var factory_code = Pointer_stringify(createAsmCDSPFactoryFromString(name_ptr, code_ptr, error_msg_ptr));
         faust.error_msg = Pointer_stringify(error_msg_ptr);
         if (factory_code === "") {
             return null;
@@ -55,7 +55,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         // 'buffer' is the emscripten global memory context
  
         // Subcontainers
-        /*
+        
         var foreign = {};
         var get_sub_containers_function = eval("getSubContainers" + factory_name); 
         var sub_count = get_sub_containers_function();
@@ -66,6 +66,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             var sub_factory = eval(sub_factory_contructor_name);        
             console.log(sub_factory);
  
+            /*
             // instanceInit
             var instance_init_function_name = "instanceInit" + factory_name + "SIG" + sub.toString();
             console.log(instance_init_function_name);
@@ -79,19 +80,20 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             var fill_init_function = eval("sub_factory." + fill_init_function_name);
             console.log(fill_init_function);
             eval("foreign." + fill_init_function_name + " = " + fill_init_function);
+            */
  
             // allocate sub DSP object
             var sub_getdspsize_function = eval("getDSPSize" + factory_name + "SIG" + sub.toString());
             var sub_dsp_size = sub_getdspsize_function();
             console.log(sub_dsp_size);
-            eval("var sig = Module._malloc(" + sub_dsp_size.toString() + ");");
-            eval("foreign.sig" + sub.toString() + " = " + sig);
+            eval("var sig" + sub.toString() + "= Module._malloc(" + sub_dsp_size.toString() + ");");
+            eval("foreign.sig" + sub.toString() + " = " + sig + sub.toString());
             console.log(foreign);
         }
-        */
+        
         
  
-        var factory = eval(factory_name + "Factory(window, null, buffer)");        
+        var factory = eval(factory_name + "Factory(window, foreign, buffer)");        
         console.log(factory);
  
         var path_table_function = eval("getPathTable" + factory_name); 
