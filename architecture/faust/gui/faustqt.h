@@ -1757,11 +1757,11 @@ class QTGUI : public QObject, public GUI
 				}
 			} else {
 				if (db) {
-			}
 					bargraph = new dbVerticalBargraph(min, max);
 				} else {
 					bargraph = new linVerticalBargraph(min, max);
 				}
+			}
 			new uiBargraph2(this, zone, bargraph, min, max);
 			insert(label, bargraph);
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
