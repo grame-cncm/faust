@@ -19,7 +19,7 @@ var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
 var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', ['number']);
-var DSP_getJSON = Module.cwrap('DSP_getJSON', null, ['number','number']);
+var DSP_getJSON = Module.cwrap('DSP_getJSON', 'number', ['number']);
 var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
 var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
 
@@ -124,12 +124,10 @@ faust.DSP = function (context, buffer_size, handler) {
     {
         DSP_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
     };
-    
+     
     that.json = function ()
     {
-        var jsonPtr = allocate(intArrayFromString(''), 'i8', ALLOC_STACK);
-        DSP_getJSON(that.ptr, jsonPtr);
-        return Pointer_stringify(jsonPtr);
+        return Pointer_stringify(DSP_getJSON(that.ptr));
     }
     
     that.controls = function()
@@ -210,7 +208,7 @@ faust.DSP = function (context, buffer_size, handler) {
     
         // Prepare Ins/out buffer tables
         that.dspInChannnels = [];
-        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.ins * that.ptrsize) >> 2);
+        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
         for (i = 0; i < that.numIn; i++) {
             that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
         }

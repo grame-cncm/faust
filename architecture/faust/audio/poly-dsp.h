@@ -42,12 +42,8 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
-static inline float midiToFreq(int note) 
-{
-      return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
-}
-
 struct mydsp_voice : public MapUI {
+    
     mydsp fVoice;
     int fNote;
     
@@ -83,6 +79,11 @@ struct mydsp_poly
                 mixChannel[j] += outChannel[j];
             }
         }
+    }
+    
+    inline float midiToFreq(int note) 
+    {
+        return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
     }
     
     inline void clearOutput(int count, FAUSTFLOAT** mixBuffer) 
@@ -140,8 +141,6 @@ struct mydsp_poly
     
     virtual ~mydsp_poly()
     {
-        printf("~mydsp_poly\n");
-        
         for (int i = 0; i < fNumOutputs; i++) {
             delete[] fNoteOutputs[i];
         }
@@ -175,7 +174,7 @@ struct mydsp_poly
         return fVoiceTable[0]->fVoice.getNumOutputs();
     }
     
-    void noteOn(int pitch, int velocity)
+    void keyOn(int channel, int pitch, int velocity)
     {
         int voice = getVoice(-1);  // Gets a free voice
         if (voice >= 0) {
@@ -189,7 +188,7 @@ struct mydsp_poly
         }
     }
     
-    void noteOff(int pitch)
+    void keyOff(int channel, int pitch)
     {
         int voice = getVoice(pitch);
         if (voice >= 0) {
@@ -201,9 +200,15 @@ struct mydsp_poly
         }
     }
     
-    void getJSON(char* json)
+    void ctrlChange(int channel, int ctrl, int value)
+    {}
+    
+    void pitchWheel(int channel, int pitchWheel)
+    {}
+    
+    const char* getJSON()
     {
-        strcpy(json, fJSON.c_str());
+        return fJSON.c_str();
     }
     
     void setValue(const char* path, float value)
@@ -233,11 +238,11 @@ extern "C" {
         delete n;
     }
 
-    void mydsp_poly_getJSON(mydsp_poly* n, char* json)
+    const char* mydsp_poly_getJSON(mydsp_poly* n)
     {
-        n->getJSON(json);
+        return n->getJSON();
     }
-
+  
     void mydsp_poly_compute(mydsp_poly* n, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
         n->compute(count, inputs, outputs);
@@ -253,16 +258,26 @@ extern "C" {
         return n->getNumOutputs();
     }
 
-    void mydsp_poly_noteOn(mydsp_poly* n, int channel, int pitch, int velocity)
+    void mydsp_poly_keyOn(mydsp_poly* n, int channel, int pitch, int velocity)
     {
-        n->noteOn(pitch, velocity);
+        n->keyOn(channel, pitch, velocity);
     }
 
-    void mydsp_poly_noteOff(mydsp_poly* n, int channel, int pitch)
+    void mydsp_poly_keyOff(mydsp_poly* n, int channel, int pitch)
     {
-        n->noteOff(pitch);
+        n->keyOff(channel, pitch);
     }
-
+    
+    void mydsp_poly_ctrlChange(mydsp_poly* n, int channel, int ctrl, int value)
+    {
+        n->ctrlChange(channel, ctrl, value);
+    }
+    
+    void mydsp_poly_pitchWheel(mydsp_poly* n, int channel, int pitchWheel)
+    {
+        n->pitchWheel(channel, pitchWheel);
+    }
+    
     void mydsp_poly_setValue(mydsp_poly* n, const char* path, float value)
     {
         n->setValue(path, value);

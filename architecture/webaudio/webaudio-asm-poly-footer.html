@@ -1,6 +1,5 @@
 
 
-<div id = "faustsvg">
 <script>
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
@@ -9,62 +8,63 @@ var max_polyphony = 16;
 var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
-var SVG = null;
 
 function changeBufferSize(buffer_size)
 {
     var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
     console.log(new_buffer_size);
-    startNewDSP(SVG, new_buffer_size);
+    startNewDSP(new_buffer_size);
 }
 
 // MIDI input handling
 
-function noteOn(channel, noteNumber, velocity)
+function keyOn(channel, pitch, velocity)
 {
     if (DSP_poly) {
-        //console.log("noteOn : %d %d %d", channel, noteNumber, velocity);
-        DSP_poly.noteOn(channel, noteNumber, velocity);
+        DSP_poly.keyOn(channel, pitch, velocity);
     }
 }
 
-function noteOff(channel, noteNumber)
+function keyOff(channel, pitch)
 {
     if (DSP_poly) {
-        //console.log("noteOff : %d %d", channel, noteNumber);
-        DSP_poly.noteOff(channel, noteNumber);
+        DSP_poly.keyOff(channel, pitch);
     }
 }
 
 function pitchWheel(channel, pitchWheel)
 {
-    console.log("pitchWheel : %d %d", channel, pitchWheel);
+    if (DSP_poly) {
+        DSP_poly.pitchWheel(channel, pitchWheel);
+    }
 }
 
-function controller(channel, ctrl, value)
+function ctrlChange(channel, ctrl, value)
 {
-    console.log("control : %d %d %d", channel, ctrl, value);
+    if (DSP_poly) {
+        DSP_poly.ctrlChange(channel, ctrl, value);
+    }
 }
 
 function midiMessageReceived(ev) 
 {
     var cmd = ev.data[0] >> 4;
     var channel = ev.data[0] & 0xf;
-    var noteNumber = ev.data[1];
-    var velocity = ev.data[2];
+    var data1 = ev.data[1];
+    var data2 = ev.data[2];
     
     //console.log(ev);
 
     if (channel === 9) {
         return;
-    } else if (cmd === 8 || ((cmd === 9) && (velocity === 0))) { 
-        noteOff(channel, noteNumber);
+    } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) { 
+        keyOff(channel, data1);
     } else if (cmd === 9) {
-        noteOn(channel, noteNumber, velocity);
+        keyOn(channel, data1, data2);
     } else if (cmd === 11) {
-        //controller(channel, noteNumber, velocity);
+        ctrlChange(channel, data1, data2);
     } else if (cmd === 14) {
-        //pitchWheel(((velocity * 128.0 + noteNumber)-8192)/8192.0);
+        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
     }  
 }
 
@@ -118,9 +118,8 @@ function getDevice(device)
     audio_input.connect(DSP_poly.scriptProcessor);
 }
 
-function startDSPAux(svg, buffer_size) 
+function startDSPAux(buffer_size) 
 {
-    SVG = svg;
     activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
@@ -129,25 +128,27 @@ function startDSPAux(svg, buffer_size)
         DSP_poly.stop();
         DSP_poly.destroy();
     }
-    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_incremental_object_value);
+    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_value_at_address);
     DSP_poly.start();
     console.log(DSP_poly.json());
-    _f4u$t.make_audio_ui_asm(svg, DSP_poly);
+    // kludge...ideally, this needs to not be part of the imported JS
+    _f4u$t.main_loop = function() {}
+    _f4u$t.main(DSP_poly.json(), null, DSP_poly.update);
 }
 
-function startDSP(svg) 
+function startDSP() 
 {
-    startDSPAux(svg, 1024);
+    startDSPAux(1024);
 }
 
-function startNewDSP(svg, buffer_size) 
+function startNewDSP(buffer_size) 
 {
-    startDSPAux(svg, buffer_size);
+    startDSPAux(buffer_size);
 }
 
 // Polyphonic instrument
 
-$('#faustsvg').svg({onLoad: startDSP});
+$(startDSP);
 
 </script>
 
