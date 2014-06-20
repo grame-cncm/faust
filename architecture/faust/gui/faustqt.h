@@ -1162,6 +1162,7 @@ class QTGUI : public QObject, public GUI
     std::map<FAUSTFLOAT*, std::string>     fUnit;          // map widget zone to unit string (i.e. "dB")
     std::set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
     std::set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
+    std::set<FAUSTFLOAT*>                  fNumSet;        // set of widget zone to be numerical bargraphs
 
 
     /**
@@ -1213,6 +1214,8 @@ class QTGUI : public QObject, public GUI
 					fKnobSet.insert(zone);
 				} else if (strcmp(value,"led") == 0) {
 					fLedSet.insert(zone);
+				} else if (strcmp(value,"numerical") == 0) {
+					fNumSet.insert(zone);
 				}
 			}
 		}
@@ -1707,22 +1710,27 @@ class QTGUI : public QObject, public GUI
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
 
-        if (fLedSet.count(zone)) {
-            if (db) {
-                bargraph = new dbLED(min, max);
-            } else {
-                bargraph = new LED(min,max);
-            }
-        } else {
-            if (db) {
-                bargraph = new dbHorizontalBargraph(min, max);
-            } else {
-                bargraph = new linHorizontalBargraph(min, max);
-            }
-        }
 
-        new uiBargraph2(this, zone, bargraph, min, max);
-        insert(label, bargraph);
+        if (fNumSet.count(zone)) {
+			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
+        } else {
+			if (fLedSet.count(zone)) {
+				if (db) {
+					bargraph = new dbLED(min, max);
+				} else {
+					bargraph = new LED(min,max);
+				}
+			} else {
+				if (db) {
+					bargraph = new dbHorizontalBargraph(min, max);
+				} else {
+					bargraph = new linHorizontalBargraph(min, max);
+				}
+			}
+
+			new uiBargraph2(this, zone, bargraph, min, max);
+			insert(label, bargraph);
+		}
         closeBox();
         checkForTooltip(zone, bargraph);
     }
@@ -1733,21 +1741,26 @@ class QTGUI : public QObject, public GUI
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
 
-        if (fLedSet.count(zone)) {
-            if (db) {
-                bargraph = new dbLED(min, max);
-            } else {
-                bargraph = new LED(min,max);
-            }
+        if (fNumSet.count(zone)) {
+			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
-            if (db) {
-                bargraph = new dbVerticalBargraph(min, max);
-            } else {
-                bargraph = new linVerticalBargraph(min, max);
-            }
-        }
-        new uiBargraph2(this, zone, bargraph, min, max);
-        insert(label, bargraph);
+			if (fLedSet.count(zone)) {
+				if (db) {
+					bargraph = new dbLED(min, max);
+				} else {
+					bargraph = new LED(min,max);
+				}
+			} else {
+				if (db) {
+			}
+					bargraph = new dbVerticalBargraph(min, max);
+				} else {
+					bargraph = new linVerticalBargraph(min, max);
+				}
+			new uiBargraph2(this, zone, bargraph, min, max);
+			insert(label, bargraph);
+			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
+		}
         closeBox();
         checkForTooltip(zone, bargraph);
     }
