@@ -32,7 +32,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     
         map <string, string> fPathTable;   // Table : field_name, complete path
 
-        JSONInstVisitor():JSONUI(0,0)
+        JSONInstVisitor(int inputs, int outputs):JSONUI(inputs, outputs)
         {}
     
         virtual ~JSONInstVisitor()

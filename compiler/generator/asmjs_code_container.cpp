@@ -522,7 +522,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}" << endl;
     
     // User interface : prepare the JSON string...
-    JSONInstVisitor json_visitor;
+    JSONInstVisitor json_visitor(fNumInputs, fNumOutputs);
     generateUserInterface(&json_visitor);
     
     // Generate getSubContainers
