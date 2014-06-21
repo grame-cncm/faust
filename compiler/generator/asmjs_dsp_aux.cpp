@@ -30,9 +30,7 @@
 #include "asmjs_dsp_aux.hh"
 #include "libfaust.h"
 
-string gFactory; 
-
-inline std::string flatten(const std::string& src)
+static inline std::string flatten(const std::string& src)
 {
     std::stringstream dst;
     int size = src.size();
@@ -57,9 +55,7 @@ inline std::string flatten(const std::string& src)
 
 EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg)
 {
-    //printf("dsp_content = %s\n", dsp_content);
     int argc = 0;
-    
     int argc1 = argc + 5;
  	const char* argv1[32];
     
@@ -69,19 +65,21 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
     argv1[3] = "-o";
     argv1[4] = "asmjs";
     
+    string str;
+    
     /*
     for (int i = 0; i < argc; i++) {
         argv1[i+5] = argv[i];
     }
     */
     try {
-        gFactory = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
-        gFactory = flatten(gFactory);
+        str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
+        //str = flatten(str);
     } catch (...) {
         strncpy(error_msg, "libfaust.js fatal error...", 256);
-        gFactory = "";
+        str = "";
     }
-    printf("error_msg %s\n", error_msg);
-    //printf("factory = %s\n", gFactory.c_str());
-    return gFactory.c_str();
+    char* cstr = (char*)malloc(str.length() + 1);
+    strcpy(cstr, str.c_str());
+    return cstr;
 }

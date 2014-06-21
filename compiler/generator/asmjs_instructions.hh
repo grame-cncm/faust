@@ -197,6 +197,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
+            //printf("visit(DeclareFunInst* inst) %s\n", inst->fName.c_str());
+            
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual") {
@@ -577,6 +579,7 @@ struct MoveVariablesInFront1 : public BasicCloneVisitor {
     
 };
 
+
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
 struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
@@ -603,6 +606,31 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             dst->pushFrontInst(*it);
         }
         BasicCloneVisitor cloner;
+        return dst;
+    }
+    
+};
+
+
+// Moves all variables declaration at the beginning of the block
+struct RenameVariable: public BasicCloneVisitor {
+    
+    /*
+    virtual Address* visit(NamedAddress* named)
+    {   
+        BasicCloneVisitor cloner;
+        
+        if (startWith(named->getName(), "output")) {
+            return new NamedAddress("dsp", Address::kStruct);
+        } else {
+            return named->clone(&cloner);
+        }
+    }
+     */
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
         return dst;
     }
     
@@ -646,7 +674,31 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
             return named->clone(&cloner);
         }
     }
-    */                                                   
+    */        
+    
+    virtual ValueInst* visit(FunCallInst* inst)
+    {
+        string end;
+        if ((end = startWithRes(inst->fName, "fill")) != "") {
+            list<ValueInst*> cloned_args;
+            int size = inst->fArgs.size();
+            for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end() && --size > 0; it++) {
+                cloned_args.push_back((*it)->clone(this));
+            }
+            return new FunCallInst(inst->fName, cloned_args, inst->fMethod, inst->fSize);
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+    
+    virtual Address* visit(NamedAddress* named)
+    {  
+         if (startWith(named->getName(), "sig")) {
+             return new NamedAddress("dsp", named->fAccess);
+         } else {
+             return BasicCloneVisitor::visit(named);
+         }
+    }
     
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
