@@ -225,7 +225,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut);
             fCodeProducer->Tab(n+2);
             // Replace use of "sig" in use of "dsp"
-            DspRenamer renamer1(fCodeProducer->getFieldTable());
+            DspRenamer renamer1;
             BlockInst* block0 = renamer1.getCode(fStaticInitInstructions);
             block0->accept(fCodeProducer);
              
@@ -241,7 +241,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             MoveVariablesInFront1 mover;
             BlockInst* block2 = mover.getCode(fInitInstructions); 
             // Replace use of "sig" in use of "dsp"
-            DspRenamer renamer2(fCodeProducer->getFieldTable());
+            DspRenamer renamer2;
             BlockInst* block3 = renamer2.getCode(block2);
             block3->accept(fCodeProducer);
             

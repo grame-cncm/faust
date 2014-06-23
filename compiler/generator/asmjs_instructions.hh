@@ -101,11 +101,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
-            //bool is_struct = (inst->fAddress->getAccess() & Address::kStruct);  // Do no generate structure variable, since they are in the global HEAP
-            //string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? fObjPrefix : "var ";
-            
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) 
                 || (inst->fAddress->getAccess() & Address::kStaticStruct);  // Do no generate structure variable, since they are in the global HEAP
+            
             string prefix = is_struct ? fObjPrefix : "var ";
          
             if (inst->fValue) {
@@ -184,8 +182,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
-            //printf("visit(DeclareFunInst* inst) %s\n", inst->fName.c_str());
-            
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual") {
@@ -203,8 +199,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             fTypingVisitor.visit(inst);
             
-            //printf("LoadVarInst %s\n", inst->fAddress->getName().c_str());
-            
             if (fTypingVisitor.fCurType == Typed::kInt
                 || fTypingVisitor.fCurType == Typed::kInt_ptr
                 || fTypingVisitor.fCurType == Typed::kFloat_ptr
@@ -220,8 +214,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
             } else {
-                
-                // HACK : completely adhoc code for input/output/count... (TO CHEK ??)
+                // HACK : completely adhoc code for input/output/count...
                 if ((startWith(inst->getName(), "inputs") 
                     || startWith(inst->getName(), "outputs") 
                     || startWith(inst->getName(), "count")
@@ -232,8 +225,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 } else {
                     TextInstVisitor::visit(inst);
                 }
-                 
-                //TextInstVisitor::visit(inst);
             }
         } 
         
@@ -272,7 +263,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
       
         virtual void visit(IndexedAddress* indexed)
         {
-            //printf("IndexedAddress %s\n", indexed->getName().c_str());
             // PTR size is 4 bytes
             
             // HACK : completely adhoc code for input/output...
@@ -291,8 +281,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             //} else if (indexed->getAccess() & Address::kStruct) {
             } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                //printf("IndexedAddress %s %d\n", indexed->getName().c_str(), tmp.second);
-                //if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
+                // if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
                 // KEEP PTR
                 if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
@@ -602,11 +591,8 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
 // Used for subcontainers table generation
 struct DspRenamer : public BasicCloneVisitor {
     
-    map <string, pair<int, Typed::VarType> > fFieldTable;
-    
-    DspRenamer(const map <string, pair<int, Typed::VarType> >& field_table) : fFieldTable(field_table)
+    DspRenamer() 
     {}
- 
     
     virtual Address* visit(NamedAddress* named)
     {  
