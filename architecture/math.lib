@@ -57,6 +57,10 @@ BS          = fvariable(int count, <math.h>);
 
 PI          = 3.1415926535897932385;
 
+// Flush to zero : force a float number under the "maximum subnormal number" to be zero
+// see : http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html
+FTZ(x)      = x * (abs(x) > 1.17549435e-38);
+
 // -- neg and inv functions
 
 neg(x)      = -x;
