@@ -78,22 +78,22 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     fCodeProducer->Tab(n);
       
     // Fields : compute the structure size to use in 'new'
-    tab(n+1, *fOut);
     fCodeProducer->Tab(n+1);
     generateDeclarations(fCodeProducer);
     
     // getNumInputs/getNumOutputs
-    tab(n+1, *fOut);
     // fKlassName used in method naming for subclasses
     //produceInfoFunctions(n+1, fKlassName, false);
     tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs" << fKlassName << "(dsp) {";
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
     tab(n+1, *fOut); *fOut << "}";
+    tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs" << fKlassName << "(dsp) {";
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
     tab(n+1, *fOut); *fOut << "}";
+    tab(n+1, *fOut);
     
     // Inits
     tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
@@ -181,10 +181,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
         tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
     
-        // Access for subcontainer externally defined methods
-        tab(n+1, *fOut);
-        tab(n+1, *fOut);
-    
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
         fCodeProducer->Tab(n+1);
@@ -202,7 +198,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
            
         // Fields : compute the structure size to use in 'new'
-        tab(n+1, *fOut);
         fCodeProducer->Tab(n+1);
         generateDeclarations(fCodeProducer);
     
@@ -216,12 +211,14 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
         tab(n+1, *fOut); *fOut << "}";
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
         tab(n+1, *fOut); *fOut << "}";
     
         // Inits
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function classInit(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
@@ -301,14 +298,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // User interface : prepare the JSON string...
     JSONInstVisitor json_visitor(fNumInputs, fNumOutputs);
     generateUserInterface(&json_visitor);
-    
-    // Generate getSubContainers
-    tab(n, *fOut); *fOut << "function getSubContainers" <<  fKlassName << "() {";
-    tab(n+1, *fOut);
-    *fOut << "return " << getSubContainers() << ";";
-    tab(n, *fOut); *fOut << "}";
-    tab(n, *fOut);
-    
+     
     // Generate JSON and getDSPSize
     tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
     tab(n+1, *fOut);
