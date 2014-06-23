@@ -146,6 +146,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         - tables (as type kStaticStruct) are treated as 'mydsp' fields
         - 'mydsp' classInit method is changed so that method on subcontainers are rewritten as normal function call
         - subcontainer are merged in the global container : fields, functions definition...
+        - use of "sig" variable name are transalte in 'dsp'
         - subcontainer is not allocated/deallocated anymore
      9) pointers are actually integers, so are treated like this
  

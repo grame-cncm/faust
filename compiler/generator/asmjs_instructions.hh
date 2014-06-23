@@ -42,11 +42,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     private:
     
         TypingVisitor fTypingVisitor;
-              /*
-         Global functions names table as a static variable in the visitor
-         so that each function prototye is generated as most once in the module.
-         */
-        map <string, int> gFunctionSymbolTable; 
+        map <string, int> fFunctionSymbolTable; 
         map <string, string> fMathLibTable;
        
         string fObjPrefix;
@@ -170,10 +166,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DeclareFunInst* inst)
         {
             // Already generated
-            if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+            if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
                 return;
             } else {
-                gFunctionSymbolTable[inst->fName] = 1;
+                fFunctionSymbolTable[inst->fName] = 1;
             }
             
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
@@ -267,7 +263,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 indexed->fIndex->accept(this);
                 *fOut << " << 2)";       
                 *fOut << " >> 2]";
-            //} else if (indexed->getAccess() & Address::kStruct) {
             } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 // if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
