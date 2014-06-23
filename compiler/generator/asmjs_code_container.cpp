@@ -225,7 +225,6 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     fCodeProducer->Tab(n+1);
     generateDeclarations(fCodeProducer);
     
-    
     // getNumInputs/getNumOutputs
     tab(n+1, *fOut);
     // fKlassName used in method naming for subclasses
@@ -255,11 +254,11 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     // Fill
     string counter = "count";
     tab(n+1, *fOut);
-    //tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
-    tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0) {", counter);
+    tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
+    //tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0) {", counter);
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
-    //tab(n+2, *fOut); *fOut << "output = output | 0;";
+    tab(n+2, *fOut); *fOut << "output = output | 0;";
     tab(n+2, *fOut); fCodeProducer->Tab(n+2);
     
     // Generates one single scalar loop and put is the the block
@@ -269,10 +268,10 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
     MoveVariablesInFront2 mover2;
     BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
-    RenameVariable renamer1;
-    BlockInst* block3 = renamer1.getCode(block2); 
-    //block2->accept(fCodeProducer);
-    block3->accept(fCodeProducer);
+    block2->accept(fCodeProducer);
+    //RenameVariable renamer1;
+    //BlockInst* block3 = renamer1.getCode(block2); 
+    //block3->accept(fCodeProducer);
     tab(n+1, *fOut); *fOut << "}";
     
     /*
@@ -313,10 +312,10 @@ void ASMJAVAScriptCodeContainer::produceInternal()
      5) MoveVariablesInFront1 and MoveVariablesInFront3 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
      6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
      7) 'buffer" argument is the actual emscripten memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers
-     8) Table generation :
+     8) table generation :
         - tables (as type kStaticStruct) are treated as 'mydsp' fields
         - 'mydsp' classInit mathode is change so that method on subcontainers are rewritter, as normal function call
-     9) Pointers are actually integers, so are treated like this
+     9) pointers are actually integers, so are treated like this
  
  */
 
@@ -407,7 +406,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(fCodeProducer);
     
-        // Always generated
+        // Manually and always generated
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
     

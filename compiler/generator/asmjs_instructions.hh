@@ -220,8 +220,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             
             if (fTypingVisitor.fCurType == Typed::kInt
                 || fTypingVisitor.fCurType == Typed::kInt_ptr
-               // || fTypingVisitor.fCurType == Typed::kFloat_ptr
-               // || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
+                || fTypingVisitor.fCurType == Typed::kFloat_ptr
+                || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
                 || fTypingVisitor.fCurType == Typed::kObj_ptr) {
                 *fOut << "(";
                 TextInstVisitor::visit(inst);
@@ -229,8 +229,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else if (fTypingVisitor.fCurType == Typed::kFloatMacro 
                        || fTypingVisitor.fCurType == Typed::kFloat 
                        || fTypingVisitor.fCurType == Typed::kDouble
-                       || fTypingVisitor.fCurType == Typed::kFloat_ptr              // TO CHECK
-                       || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr) {      // TO CHECK
+                       //|| fTypingVisitor.fCurType == Typed::kFloat_ptr              // TO CHECK
+                       //|| fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
+                       ) {      // TO CHECK
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
@@ -258,16 +259,43 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             //if (named->getAccess() & Address::kStruct) {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
+                switch (tmp.second) {
+                    case Typed::kFloatMacro:
+                    case Typed::kFloat:
+                    case Typed::kDouble:
+                        *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
+                        break;
+                    case Typed::kFloatMacro_ptr: 
+                    case Typed::kFloat_ptr:
+                    case Typed::kDouble_ptr:
+                        *fOut << "dsp + " << tmp.first;
+                        break;
+                    case Typed::kInt:
+                        *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
+                        break;
+                    case Typed::kInt_ptr:
+                        *fOut << "dsp + " << tmp.first;
+                         break;
+                    default:
+                        assert(false);
+                        break;
+                        
+                }
+                /*
                 if (tmp.second == Typed::kFloatMacro 
                     || tmp.second == Typed::kFloat 
-                    || tmp.second == Typed::kDouble
-                    || tmp.second == Typed::kFloatMacro_ptr
-                    || tmp.second == Typed::kFloat_ptr
-                    || tmp.second == Typed::kDouble_ptr) {
+                    || tmp.second == Typed::kDouble) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
-                } else {
+                } else if (tmp.second == Typed::kFloatMacro_ptr
+                           || tmp.second == Typed::kFloat_ptr
+                           || tmp.second == Typed::kDouble_ptr) {
+                    *fOut << "dsp + " << tmp.first;
+                } else if (tmp.second == Typed::kInt) {
                     *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
+                } else {
+                    *fOut << "dsp + " << tmp.first;
                 }
+                 */
             } else {
                 *fOut << named->fName;
             }
@@ -676,6 +704,7 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
     }
     */        
     
+    /*
     virtual ValueInst* visit(FunCallInst* inst)
     {
         string end;
@@ -690,6 +719,7 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
             return BasicCloneVisitor::visit(inst);
         }
     }
+     */
     
     virtual Address* visit(NamedAddress* named)
     {  

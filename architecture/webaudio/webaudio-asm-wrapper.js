@@ -56,6 +56,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
  
         // Subcontainers
         
+ /*
         var foreign = {};
         var get_sub_containers_function = eval("getSubContainers" + factory_name); 
         var sub_count = get_sub_containers_function();
@@ -65,7 +66,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             console.log(sub_factory_contructor_name);
             var sub_factory = eval(sub_factory_contructor_name);        
             console.log(sub_factory);
- 
+ */
             /*
             // instanceInit
             var instance_init_function_name = "instanceInit" + factory_name + "SIG" + sub.toString();
@@ -82,6 +83,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             eval("foreign." + fill_init_function_name + " = " + fill_init_function);
             */
  
+ /*
             // allocate sub DSP object
             var sub_getdspsize_function = eval("getDSPSize" + factory_name + "SIG" + sub.toString());
             var sub_dsp_size = sub_getdspsize_function();
@@ -90,10 +92,10 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             eval("foreign.sig" + sub.toString() + " = " + sig + sub.toString());
             console.log(foreign);
         }
-        
+ */       
         
  
-        var factory = eval(factory_name + "Factory(window, foreign, buffer)");        
+        var factory = eval(factory_name + "Factory(window, null, buffer)");        
         console.log(factory);
  
         var path_table_function = eval("getPathTable" + factory_name); 
