@@ -20,7 +20,7 @@ endif
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-all : ../libHTTPDFaust.a
+all: ../libHTTPDFaust.a
 
 dynamic : ../libHTTPDFaust.$(LIB_EXT)
 
@@ -29,7 +29,7 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	ar cq $@ $(objects)
 	ranlib $@
 
-../libHTTPDFaust.dylib  :  $(objects)
+../libHTTPDFaust.dylib :  $(objects)
 	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd`  -macosx_version_min 10.6  -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
 
 ../libHTTPDFaust.so  :  $(objects)

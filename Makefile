@@ -27,7 +27,7 @@ all :
 
 dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
-#	$(MAKE) -C architecture/httpdlib/src dynamic
+	$(MAKE) -C architecture/httpdlib/src dynamic
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
@@ -124,7 +124,7 @@ install :
 	# install additional binary libraries (osc, http,...)
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available
 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
-	cp architecture/osclib/*.a $(prefix)/lib/faust/
+	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo OSC libraries not available
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available
@@ -148,6 +148,10 @@ install :
 install-dynamic:
 	cp compiler/libfaust.$(LIB_EXT) /usr/lib
 #	cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) /usr/lib
+
+uninstall-dynamic:
+	rm  /usr/lib/libfaust.$(LIB_EXT)
+#	rm /usr/lib/libHTTPDFaust.$(LIB_EXT) /usr/lib
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/
