@@ -81,9 +81,9 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     fCodeProducer->Tab(n+1);
     generateDeclarations(fCodeProducer);
     
-    // getNumInputs/getNumOutputs
     // fKlassName used in method naming for subclasses
-    //produceInfoFunctions(n+1, fKlassName, false);
+    
+    // getNumInputs/getNumOutputs
     tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs" << fKlassName << "(dsp) {";
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
@@ -101,7 +101,6 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
     tab(n+2, *fOut); fCodeProducer->Tab(n+2);
     
-    //generateInit(fCodeProducer);
     // Moves all variables declaration at the beginning of the block
     MoveVariablesInFront1 mover1;
     BlockInst* block1 = mover1.getCode(fInitInstructions); 
@@ -129,7 +128,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
 }
 
 /*
- ASM module description.
+ ASM module description : 
 
      1) all variables have to be declared first, then functions, then export section.
      2) the DSP data structure fields are not generated. The structure size is computed instead, and memory allocation/deallocation is done
@@ -142,10 +141,12 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) add the type of result
      5) MoveVariablesInFront1 and MoveVariablesInFront3 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
      6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
-     7) 'buffer" argument is the actual emscripten memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers
-     8) table generation :
+     7) 'buffer" argument is the actual emscripten memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers.
+     8) subcontainer generation :
         - tables (as type kStaticStruct) are treated as 'mydsp' fields
-        - 'mydsp' classInit mathode is change so that method on subcontainers are rewritter, as normal function call
+        - 'mydsp' classInit method is changed so that method on subcontainers are rewritten as normal function call
+        - subcontainer are merged in the global container : fields, functions definition...
+        - subcontainer is not allocated/deallocated anymore
      9) pointers are actually integers, so are treated like this
  
 */
@@ -206,7 +207,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
         
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
-        //produceInfoFunctions(n+1, "", false);  // TODO
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
@@ -244,7 +244,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             DspRenamer renamer2;
             BlockInst* block3 = renamer2.getCode(block2);
             block3->accept(fCodeProducer);
-            
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -350,15 +349,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // Deallocate static visitor
     delete fCodeProducer;
     fCodeProducer = 0;
-}
-
-// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void ASMJAVAScriptCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{
-    // Input/Output method
-    fCodeProducer->Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), false, isvirtual)->accept(fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), false, isvirtual)->accept(fCodeProducer);
 }
 
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)

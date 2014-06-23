@@ -42,8 +42,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     private:
     
         TypingVisitor fTypingVisitor;
-
-        /*
+              /*
          Global functions names table as a static variable in the visitor
          so that each function prototye is generated as most once in the module.
          */
@@ -101,9 +100,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
-            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) 
-                || (inst->fAddress->getAccess() & Address::kStaticStruct);  // Do no generate structure variable, since they are in the global HEAP
-            
+            // Do no generate structure variable, since they are in the global HEAP
+            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)  || (inst->fAddress->getAccess() & Address::kStaticStruct); 
             string prefix = is_struct ? fObjPrefix : "var ";
          
             if (inst->fValue) {
@@ -115,17 +113,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
                     if (!is_struct)
                         *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
-                    //fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, array_typed->fType->getType());
-                    
-                    // KEEP PTR type
+                    // Keep pointer type
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, Typed::getPtrFromType(array_typed->fType->getType()));
-                    //printf("DeclareVarInst %s offset %d  size %d \n", inst->fAddress->getName().c_str(), fStructSize, array_typed->fSize * 4);
                     fStructSize += array_typed->fSize * 4;
                 } else {
                     if (!is_struct)
                         *fOut << prefix << inst->fAddress->getName();
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
-                    //printf("DeclareVarInst %s offset %d  size %d \n", inst->fAddress->getName().c_str(), fStructSize, 4);
                     fStructSize += 4;
                 }
             }
@@ -240,21 +234,18 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     case Typed::kDouble:
                         *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
                         break;
-                    case Typed::kFloatMacro_ptr: 
-                    case Typed::kFloat_ptr:
-                    case Typed::kDouble_ptr:
-                        *fOut << "dsp + " << tmp.first;
-                        break;
                     case Typed::kInt:
                         *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
                         break;
+                    case Typed::kFloatMacro_ptr: 
+                    case Typed::kFloat_ptr:
+                    case Typed::kDouble_ptr:
                     case Typed::kInt_ptr:
                         *fOut << "dsp + " << tmp.first;
-                         break;
+                        break;
                     default:
                         assert(false);
                         break;
-                        
                 }
             } else {
                 *fOut << named->fName;
@@ -263,8 +254,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
       
         virtual void visit(IndexedAddress* indexed)
         {
-            // PTR size is 4 bytes
-            
             // HACK : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
                 *fOut << "HEAP32[" << indexed->getName() << " + ";  

@@ -31,18 +31,14 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        //ASMJAVAScriptInstVisitor fCodeProducer;
-        static ASMJAVAScriptInstVisitor* fCodeProducer;
+        static ASMJAVAScriptInstVisitor* fCodeProducer; // One static visitor for subcontaine and global container
         std::ostream* fOut;
         string fSuperKlassName;
         string fObjPrefix;
-        
-        void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
-
+ 
     public:
 
         ASMJAVAScriptCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            //:fCodeProducer(out), fOut(out), fSuperKlassName(super), fObjPrefix("")
             :fOut(out), fSuperKlassName(super), fObjPrefix("")
         {
             initializeCodeContainer(numInputs, numOutputs);
