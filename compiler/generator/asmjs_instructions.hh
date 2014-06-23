@@ -572,7 +572,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
 };
 
-// Used for subcontainers table generation
+// Used for subcontainers table generation : rename 'sig' in 'dsp' 
 struct DspRenamer : public BasicCloneVisitor {
     
     DspRenamer() 

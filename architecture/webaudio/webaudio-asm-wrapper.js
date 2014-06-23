@@ -14,8 +14,6 @@
  Additional code : GRAME 2014
 */
 
-/*global webkitAudioContext, Module, HEAPF32, HEAP32, Pointer_stringify, ALLOC_STACK, intArrayFromString, allocate*/
-
 var faust = faust || {};
 
 // Shim AudioContext on webkit
@@ -260,13 +258,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
             var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
             for (i = 0; i < that.numOut; i++) {
                 that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
-                /*
-                // clear output buffer
-                var dspOutput = that.dspOutChannnels[i];
-                for (j = 0; j < that.buffer_size; j++) {
-                    dspOutput[j] = 0.
-                }
-                */
             }
                                     
             // bargraph
@@ -281,22 +272,19 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
     };
  
     faust.deleteDSPInstance = function (that) {
-     
- console.log("faust.deleteDSPInstance ");
- console.log(that);
- that.stop();
+        that.stop();
          
-         for (i = 0; i < that.numIn; i++) { 
+        for (i = 0; i < that.numIn; i++) { 
             Module._free(HEAP32[(that.ins >> 2) + i]); 
-         }
+        }
          
-         for (i = 0; i < that.numOut; i++) { 
+        for (i = 0; i < that.numOut; i++) { 
             Module._free(HEAP32[(that.outs >> 2) + i])
-         }
+        }
          
-         Module._free(that.ins);
-         Module._free(that.outs);
-         Module._free(that.dsp);
+        Module._free(that.ins);
+        Module._free(that.outs);
+        Module._free(that.dsp);
     };
 
 }());
