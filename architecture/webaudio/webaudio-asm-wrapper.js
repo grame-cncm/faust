@@ -50,51 +50,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
         eval(factory_code);
  
-        // Compile the ASM module itself
- 
-        // 'buffer' is the emscripten global memory context
- 
-        // Subcontainers
-        
- /*
-        var foreign = {};
-        var get_sub_containers_function = eval("getSubContainers" + factory_name); 
-        var sub_count = get_sub_containers_function();
-        
-        for (var sub = 0; sub < sub_count; sub++) {
-            var sub_factory_contructor_name = factory_name + "SIG" + sub.toString() + "Factory(window, null, buffer)";
-            console.log(sub_factory_contructor_name);
-            var sub_factory = eval(sub_factory_contructor_name);        
-            console.log(sub_factory);
- */
-            /*
-            // instanceInit
-            var instance_init_function_name = "instanceInit" + factory_name + "SIG" + sub.toString();
-            console.log(instance_init_function_name);
-            var instance_init_function = eval("sub_factory." + instance_init_function_name);
-            console.log(instance_init_function);
-            eval("foreign." + instance_init_function_name + " = " + instance_init_function);
- 
-            // fill
-            var fill_init_function_name = "fill" + factory_name + "SIG" + sub.toString();
-            console.log(fill_init_function_name);
-            var fill_init_function = eval("sub_factory." + fill_init_function_name);
-            console.log(fill_init_function);
-            eval("foreign." + fill_init_function_name + " = " + fill_init_function);
-            */
- 
- /*
-            // allocate sub DSP object
-            var sub_getdspsize_function = eval("getDSPSize" + factory_name + "SIG" + sub.toString());
-            var sub_dsp_size = sub_getdspsize_function();
-            console.log(sub_dsp_size);
-            eval("var sig" + sub.toString() + "= Module._malloc(" + sub_dsp_size.toString() + ");");
-            eval("foreign.sig" + sub.toString() + " = " + sig + sub.toString());
-            console.log(foreign);
-        }
- */       
-        
- 
+        // Compile the ASM module itself : 'buffer' is the emscripten global memory context
         var factory = eval(factory_name + "Factory(window, null, buffer)");        
         console.log(factory);
  

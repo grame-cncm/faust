@@ -67,7 +67,7 @@ faust.DSP = function (context, buffer_size, handler) {
     // input items
     that.inputs_items = [];
      
- // Start of HEAP index
+    // Start of HEAP index
     that.audio_heap_ptr = 0;
      
     that.audio_heap_ptr_inputs = that.audio_heap_ptr; 
@@ -77,38 +77,10 @@ faust.DSP = function (context, buffer_size, handler) {
     that.audio_heap_outputs = that.audio_heap_inputs + (that.maxInputs * that.buffer_size * that.sample_size);
     that.dsp_start = that.audio_heap_outputs + (that.maxOutputs * that.buffer_size * that.sample_size);
      
-    // Start od DSP memory
+    // Start of DSP memory
     that.dsp = that.dsp_start;
  
-    // ASM sub modules
- 
-    var foreign = {};
- 
-    /*
-    var sub_count = getSubContainersmydsp();
- 
-    for (var sub = 0; sub < sub_count; sub++) {
-        var sub_factory_contructor_name = "mydspSIG" + sub.toString() + "Factory(window, null, buffer)";
-        console.log(sub_factory_contructor_name);
-        var sub_factory = eval(sub_factory_contructor_name);        
-        console.log(sub_factory);
-         
-        // allocate sub DSP object
-        var sub_getdspsize_function_name = "getDSPSizemydspSIG" + sub.toString() + "()";
-        var sub_dsp_size = eval(sub_getdspsize_function_name);
-        console.log(sub_dsp_size);
-        var sig = that.dsp;
-        var affectation = "foreign.sig" + sub.toString() + " = sig;";
-        //eval("foreign.sig" + sub.toString() + " = " + sig);
-        console.log(affectation);
-        eval(affectation);
-        console.log(foreign);
-        that.dsp += sub_dsp_size;
-    }
-     */
-  
     // ASM module
-    //that.factory = mydspFactory(window, foreign, that.HEAP);
     that.factory = mydspFactory(window, null, that.HEAP);
     console.log(that.factory);
  

@@ -134,20 +134,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             if (!is_struct)
                 EndLine();
         }
-        
-        /*
-        virtual void generateFunCallArgs(DeclareFunInst* inst)
-        {
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << (*it)->fName;
-                if (i < size - 1) *fOut << ", ";
-            }
-        }
-        */
-  
+    
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
             *fOut << "(";
@@ -228,10 +215,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << " | 0)";
             } else if (fTypingVisitor.fCurType == Typed::kFloatMacro 
                        || fTypingVisitor.fCurType == Typed::kFloat 
-                       || fTypingVisitor.fCurType == Typed::kDouble
-                       //|| fTypingVisitor.fCurType == Typed::kFloat_ptr              // TO CHECK
-                       //|| fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
-                       ) {      // TO CHECK
+                       || fTypingVisitor.fCurType == Typed::kDouble) {      
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
@@ -256,7 +240,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(NamedAddress* named)
         {   
             //printf("NamedAddress %s\n", named->getName().c_str());
-            //if (named->getAccess() & Address::kStruct) {
+            
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
                 switch (tmp.second) {
@@ -281,21 +265,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         break;
                         
                 }
-                /*
-                if (tmp.second == Typed::kFloatMacro 
-                    || tmp.second == Typed::kFloat 
-                    || tmp.second == Typed::kDouble) {
-                    *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
-                } else if (tmp.second == Typed::kFloatMacro_ptr
-                           || tmp.second == Typed::kFloat_ptr
-                           || tmp.second == Typed::kDouble_ptr) {
-                    *fOut << "dsp + " << tmp.first;
-                } else if (tmp.second == Typed::kInt) {
-                    *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
-                } else {
-                    *fOut << "dsp + " << tmp.first;
-                }
-                 */
             } else {
                 *fOut << named->fName;
             }
@@ -513,15 +482,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
             fTypingVisitor.visit(inst);
         }
-       
-        /*
-        // All function calls are casted with the correct function result type
-        virtual void visit(FunCallInst* inst)
-        {
-            generateFunCall(inst, inst->fName);
-        }
-        */
-    
+     
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
@@ -607,7 +568,6 @@ struct MoveVariablesInFront1 : public BasicCloneVisitor {
     
 };
 
-
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
 struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
@@ -639,87 +599,14 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
 };
 
-
-// Moves all variables declaration at the beginning of the block
-struct RenameVariable: public BasicCloneVisitor {
-    
-    /*
-    virtual Address* visit(NamedAddress* named)
-    {   
-        BasicCloneVisitor cloner;
-        
-        if (startWith(named->getName(), "output")) {
-            return new NamedAddress("dsp", Address::kStruct);
-        } else {
-            return named->clone(&cloner);
-        }
-    }
-     */
-    
-    BlockInst* getCode(BlockInst* src)
-    {
-        BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
-        return dst;
-    }
-    
-};
-
 // Used for subcontainers table generation
-struct ContainerObjectRemover : public BasicCloneVisitor {
+struct DspRenamer : public BasicCloneVisitor {
     
     map <string, pair<int, Typed::VarType> > fFieldTable;
     
-    ContainerObjectRemover(const map <string, pair<int, Typed::VarType> >& field_table) : fFieldTable(field_table)
+    DspRenamer(const map <string, pair<int, Typed::VarType> >& field_table) : fFieldTable(field_table)
     {}
-    
-    /*
-    virtual ValueInst* visit(LoadVarInst* inst)
-    { 
-        BasicCloneVisitor cloner;
-        string name = inst->fAddress->getName();
-        
-        if (startWith(name, "sig") && fFieldTable.find(name) != fFieldTable.end()) {
-            pair<int, Typed::VarType> pair = fFieldTable[name];
-            //return InstBuilder::genLoadArrayStructVar(name, InstBuilder::genIntNumInst(pair.first));
-            return InstBuilder::genLoadArrayStructVar(name, InstBuilder::genIntNumInst(0));
-        } else {
-            BasicCloneVisitor cloner;
-            return inst->clone(&cloner);
-        }       
-    }
-    */
-    
-    /*
-    virtual Address* visit(NamedAddress* named)
-    {   
-        BasicCloneVisitor cloner;
-        
-        if (startWith(named->getName(), "sig") && fFieldTable.find(named->getName()) != fFieldTable.end()) {
-            pair<int, Typed::VarType> pair = fFieldTable[named->getName()];
-            printf("sig %d \n", pair.first);
-            return InstBuilder::genIndexedAddress(named->clone(&cloner), InstBuilder::genIntNumInst(pair.first));
-        } else {
-            return named->clone(&cloner);
-        }
-    }
-    */        
-    
-    /*
-    virtual ValueInst* visit(FunCallInst* inst)
-    {
-        string end;
-        if ((end = startWithRes(inst->fName, "fill")) != "") {
-            list<ValueInst*> cloned_args;
-            int size = inst->fArgs.size();
-            for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end() && --size > 0; it++) {
-                cloned_args.push_back((*it)->clone(this));
-            }
-            return new FunCallInst(inst->fName, cloned_args, inst->fMethod, inst->fSize);
-        } else {
-            return BasicCloneVisitor::visit(inst);
-        }
-    }
-     */
+ 
     
     virtual Address* visit(NamedAddress* named)
     {  
@@ -744,66 +631,6 @@ struct ContainerObjectRemover : public BasicCloneVisitor {
     {
         BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
         return dst;
-    }
-    
-};
-
-struct ForeignContainerWriter : public DispatchVisitor {
-    
-    int fTab;
-    std::ostream* fOut;
-    bool fFinishLine;
-    string fKlassName;
-     
-    map <string, int> gFunctionSymbolTable;
-    
-    void Tab(int n) { fTab = n; }
-    
-    void EndLine()
-    {
-        if (fFinishLine) {
-            *fOut << ";";
-            tab(fTab, *fOut);
-        }
-    }
-    
-    ForeignContainerWriter(std::ostream* out, int tab, const string& klassname)
-        :fTab(tab), fOut(out), fFinishLine(true), fKlassName(klassname)
-    {}
-    
-    virtual void visit(DeclareVarInst* inst)
-    {
-        string end;
-        if ((end = startWithRes(inst->fAddress->getName(), "sig")) != "") {
-            *fOut << "var " << inst->fAddress->getName() << " = " << "foreign." << inst->fAddress->getName() << " | 0";
-            //*fOut << "var " << inst->fAddress->getName() << " = " << "foreign." << fKlassName << "SIG" << end << "." << inst->fAddress->getName() << " | 0";
-            //*fOut << "var " << inst->fAddress->getName() << " = " << "foreign.dsp["<< end << "].sig | 0";
-            EndLine();
-        }
-    }
-        
-    virtual void visit(FunCallInst* inst)
-    {
-        // Already generated
-        if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
-            return;
-        } else {
-            gFunctionSymbolTable[inst->fName] = 1;
-        }
-        string end;
-        if ((end = startWithRes(inst->fName, "instanceInit")) != "") {
-            *fOut << "var " << inst->fName << " = " << "foreign." << inst->fName;
-            //*fOut << "var " << inst->fName << " = " << "foreign." << end << "." << inst->fName;
-            //string num = startWithRes(inst->fName, ("instanceInit" + fKlassName + "SIG"));
-            //*fOut << "var " << inst->fName << " = " << "foreign.dsp[" << num << "]" << "." << inst->fName;
-            EndLine();
-        } else if ((end = startWithRes(inst->fName, "fill")) != "") {
-            *fOut << "var " << inst->fName << " = " << "foreign." << inst->fName;
-            //*fOut << "var " << inst->fName << " = " << "foreign." << end << "." << inst->fName;
-            //string num = startWithRes(inst->fName, ("fill" + fKlassName + "SIG"));
-            //*fOut << "var " << inst->fName << " = " << "foreign.dsp[" << num << "]" << "." << inst->fName;
-            EndLine();
-        }
     }
     
 };
