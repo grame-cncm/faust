@@ -74,7 +74,7 @@ _f4u$t.getnumspecs = function(dct) {
   };
 }
 
-_f4u$t.make_rbutton = function(dct) {
+_f4u$t.make_rbutton = function(dct, hash) {
   var numspecs = _f4u$t.getnumspecs(dct);
   var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t.rbutton_inits);
@@ -85,7 +85,7 @@ _f4u$t.make_rbutton = function(dct) {
   options.init = numspecs["init"];
   options.integer = numspecs["integer"];
   options.ndec = numspecs["ndec"];
-  options.address = dct["address"];
+  options.address = hash+dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
   options.orientation = _f4u$t.get_orientation(dct);
@@ -117,17 +117,17 @@ _f4u$t.make_rbutton = function(dct) {
   return lm;
 }
 
-_f4u$t.make_hslider = function(dct) {
-  return _f4u$t.make_slider(_f4u$t.HorizontalSlider, dct);
+_f4u$t.make_hslider = function(dct, hash) {
+  return _f4u$t.make_slider(_f4u$t.HorizontalSlider, dct, hash);
 }
 
-_f4u$t.make_vslider = function(dct) {
-  return _f4u$t.make_slider(_f4u$t.VerticalSlider, dct);
+_f4u$t.make_vslider = function(dct, hash) {
+  return _f4u$t.make_slider(_f4u$t.VerticalSlider, dct, hash);
 }
 
-_f4u$t.make_slider = function(kls, dct) {
+_f4u$t.make_slider = function(kls, dct, hash) {
   if (_f4u$t.has_knob(dct)) {
-    return _f4u$t.make_rbutton(dct);
+    return _f4u$t.make_rbutton(dct, hash);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
   var horizontal = kls == _f4u$t.HorizontalSlider;
@@ -140,7 +140,7 @@ _f4u$t.make_slider = function(kls, dct) {
   options.init = numspecs["init"];
   options.integer = numspecs["integer"];
   options.ndec = numspecs["ndec"];
-  options.address = dct["address"];
+  options.address = hash+dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   options.orientation = _f4u$t.get_orientation(dct);
   options.orientation_mode = _f4u$t.get_orientation_mode(dct);
@@ -188,15 +188,15 @@ _f4u$t.make_slider = function(kls, dct) {
   return lm;
 }
 
-_f4u$t.make_hbargraph = function(dct) {
-  return _f4u$t.make_bargraph(_f4u$t.HorizontalBarGraph, dct);
+_f4u$t.make_hbargraph = function(dct, hash) {
+  return _f4u$t.make_bargraph(_f4u$t.HorizontalBarGraph, dct, hash);
 }
 
-_f4u$t.make_vbargraph = function(dct) {
-  return _f4u$t.make_bargraph(_f4u$t.VerticalBarGraph, dct);
+_f4u$t.make_vbargraph = function(dct, hash) {
+  return _f4u$t.make_bargraph(_f4u$t.VerticalBarGraph, dct, hash);
 }
 
-_f4u$t.make_bargraph = function(kls, dct) {
+_f4u$t.make_bargraph = function(kls, dct, hash) {
   var horizontal = kls == _f4u$t.HorizontalBarGraph;
   var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t[horizontal ? 'hbargraph_inits' : 'vbargraph_inits']);
@@ -204,7 +204,7 @@ _f4u$t.make_bargraph = function(kls, dct) {
   //var numspecs = _f4u$t.getnumspecs(dct);
   options.min = parseFloat(dct["min"]);
   options.max = parseFloat(dct["max"]);
-  options.address = dct["address"];
+  options.address = hash+dct["address"];
   options.unit = _f4u$t.get_unit(dct);
   var size = _f4u$t.get_size(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
@@ -253,21 +253,21 @@ _f4u$t.make_bargraph = function(kls, dct) {
   return lm;
 }
 
-_f4u$t.make_button = function(dct) {
+_f4u$t.make_button = function(dct, hash) {
   var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t.button_inits);
   options.id = id;
   options.label = dct.label;
-  options.address = dct.address;
+  options.address = hash+dct.address;
   options.tooltip = _f4u$t.get_tooltip(dct);
   return new _f4u$t.Button(options);
 }
 
-_f4u$t.make_checkbox = function(dct) {
+_f4u$t.make_checkbox = function(dct, hash) {
   var id = _f4u$t.randString();
   var options = $.extend(true, {}, _f4u$t.checkbox_inits);
   options.id = id;
-  options.address = dct.address;
+  options.address = hash+dct.address;
   options.init = (dct.init == "1" ? true : false);
   var size = _f4u$t.get_size(dct);
   options.tooltip = _f4u$t.get_tooltip(dct);
@@ -288,9 +288,9 @@ _f4u$t.make_checkbox = function(dct) {
   return lm;
 }
 
-_f4u$t.make_nentry = function(dct) {
+_f4u$t.make_nentry = function(dct, hash) {
   if (_f4u$t.has_knob(dct)) {
-    return _f4u$t.make_rbutton(dct);
+    return _f4u$t.make_rbutton(dct, hash);
   }
   var numspecs = _f4u$t.getnumspecs(dct);
   var id = _f4u$t.randString();
@@ -302,7 +302,7 @@ _f4u$t.make_nentry = function(dct) {
     init : numspecs["init"],
     integer : numspecs["integer"],
     ndec : numspecs["ndec"],
-    address : dct["address"],
+    address : hash+dct["address"],
     unit : _f4u$t.get_unit(dct),
     tooltip : _f4u$t.get_tooltip(dct)
   };
@@ -329,15 +329,15 @@ _f4u$t.make_nentry = function(dct) {
   return lm;
 }
 
-_f4u$t.make_hgroup = function(dct) {
-  return _f4u$t.make_group(_f4u$t.X_AXIS, dct);
+_f4u$t.make_hgroup = function(dct, hash) {
+  return _f4u$t.make_group(_f4u$t.X_AXIS, dct, hash);
 }
 
-_f4u$t.make_vgroup = function(dct) {
-  return _f4u$t.make_group(_f4u$t.Y_AXIS, dct);
+_f4u$t.make_vgroup = function(dct, hash) {
+  return _f4u$t.make_group(_f4u$t.Y_AXIS, dct, hash);
 }
 
-_f4u$t.make_group = function(axis, dct) {
+_f4u$t.make_group = function(axis, dct, hash) {
   var internal_options = $.extend(true, {}, _f4u$t.xy(axis, _f4u$t.hgroup_inits, _f4u$t.vgroup_inits));
   internal_options.axis = axis;
 
@@ -350,34 +350,34 @@ _f4u$t.make_group = function(axis, dct) {
 
   for (var i = 0; i < dct["items"].length; i++) {
     if (dct["items"][i]["type"] == "hgroup") {
-      internal_lm.objs.push(_f4u$t.make_hgroup(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_hgroup(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "vgroup") {
-      internal_lm.objs.push(_f4u$t.make_vgroup(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_vgroup(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "tgroup") {
-      internal_lm.objs.push(_f4u$t.make_tgroup(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_tgroup(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "hslider") {
-      internal_lm.objs.push(_f4u$t.make_hslider(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_hslider(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "vslider") {
-      internal_lm.objs.push(_f4u$t.make_vslider(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_vslider(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "hbargraph") {
-      internal_lm.objs.push(_f4u$t.make_hbargraph(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_hbargraph(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "vbargraph") {
-      internal_lm.objs.push(_f4u$t.make_vbargraph(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_vbargraph(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "button") {
-      internal_lm.objs.push(_f4u$t.make_button(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_button(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "checkbox") {
-      internal_lm.objs.push(_f4u$t.make_checkbox(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_checkbox(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "nentry") {
-      internal_lm.objs.push(_f4u$t.make_nentry(dct["items"][i]));
+      internal_lm.objs.push(_f4u$t.make_nentry(dct["items"][i], hash));
     }
     else {
       console.log("UFO: Unidentified Faust Object");
@@ -397,19 +397,19 @@ _f4u$t.make_group = function(axis, dct) {
   return lm;
 }
 
-_f4u$t.make_tgroup = function(dct) {
+_f4u$t.make_tgroup = function(dct, hash) {
   var options = $.extend(true, {}, _f4u$t.tgroup_inits);
   var tg = new _f4u$t.TabGroup(options);
 
   for (var i = 0; i < dct["items"].length; i++) {
     if (dct["items"][i]["type"] == "hgroup") {
-      tg.objs.push(_f4u$t.make_hgroup(dct["items"][i]));
+      tg.objs.push(_f4u$t.make_hgroup(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "vgroup") {
-      tg.objs.push(_f4u$t.make_vgroup(dct["items"][i]));
+      tg.objs.push(_f4u$t.make_vgroup(dct["items"][i], hash));
     }
     else if (dct["items"][i]["type"] == "tgroup") {
-      tg.objs.push(_f4u$t.make_tgroup(dct["items"][i]));
+      tg.objs.push(_f4u$t.make_tgroup(dct["items"][i], hash));
     }
     else {
       console.log("UFO: Unidentified Faust Object");
@@ -419,15 +419,15 @@ _f4u$t.make_tgroup = function(dct) {
   return tg;
 }
 
-_f4u$t.json_to_ui = function(json) {
+_f4u$t.json_to_ui = function(json, hash) {
   if (json["ui"][0]["type"] == "vgroup") {
-    return _f4u$t.make_vgroup(json["ui"][0]);
+    return _f4u$t.make_vgroup(json["ui"][0], hash);
   }
   else if (json["ui"][0]["type"] == "hgroup") {
-    return _f4u$t.make_hgroup(json["ui"][0]);
+    return _f4u$t.make_hgroup(json["ui"][0], hash);
   }
   else if (json["ui"][0]["type"] == "tgroup") {
-    return _f4u$t.make_tgroup(json["ui"][0]);
+    return _f4u$t.make_tgroup(json["ui"][0], hash);
   }
   else {
     console.log("UFO: Unidentified Faust Object");

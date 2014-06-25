@@ -20,10 +20,6 @@ _f4u$t.move_to_ridiculous_negative = function(id) {
   _f4u$t.generic_translate(id, -100000, -100000);
 }
 
-_f4u$t.path_to_id = function (path, id) {
-  _f4u$t.PATHS_TO_IDS[path] = id;
-}
-
 _f4u$t.devnull = function devnull() { }
 
 _f4u$t.generic_translate = function(id, x, y) {

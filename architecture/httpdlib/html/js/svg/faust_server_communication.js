@@ -10,6 +10,10 @@ _f4u$t.faust_server_handler = function(dest, value) {
   _f4u$t.ajax_queue[dest].push({request : dest +"?value=" + value, time : new Date().getTime()});
 }
 
+_f4u$t.server_update_function = function(address, value) {
+  // do nothing - a stub that should be overwritten in toplevel html files
+}
+
 //-----------------------------------------------------------------------------
 // poll current values from the server
 //-----------------------------------------------------------------------------
@@ -26,7 +30,7 @@ _f4u$t.dispatch = function(data) {
         continue;
       }
       var value = Math.round(values[1]*10000)/10000;
-      _f4u$t.update_value_at_address(address, value);
+      _f4u$t.server_update_function(address, value);
     }
   }
 }

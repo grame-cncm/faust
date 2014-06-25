@@ -422,6 +422,9 @@ with DOM ids.
 **/
 _f4u$t.PATHS_TO_IDS = {};
 
+_f4u$t.path_to_id = function (path, id) {
+  _f4u$t.PATHS_TO_IDS[path] = id;
+}
 
 /**
  Rather than using lots of global variables (clutters namespace)
@@ -454,6 +457,60 @@ _f4u$t.magic_color = function() {
   var v = [r,g,b];
   v.sort(function() {return 0.5 - Math.random()}) // shuffles
   return v;
+}
+
+/**
+Returns a random string.
+
+@method rand_string
+@for _f4u$t
+@static
+@param {Number} n (optional) the length of the string to return
+@return {String} a random string
+**/
+_f4u$t.rand_string = function(n)
+{
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  if (!n) {
+    n = 8;
+  }
+
+  for( var i=0; i < n; i++ ) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
+/**
+Returns true if needle is the first part of haystack
+
+@method first_part_matches
+@for _f4u$t
+@static
+@param {String} haystack the string to search
+@param {String} needle the search query
+@return {Boolean} true if needle is the first part of the haystack
+**/
+_f4u$t.first_part_matches = function(haystack, needle) {
+  return haystack.indexOf(needle) == 0;
+}
+
+/**
+Removes needle from the head of haystack.
+
+@method remove_from_head_of_string
+@for _f4u$t
+@static
+@param {String} haystack the string to operate on
+@param {String} needle remove
+@return {String} the modified string without needle
+**/
+_f4u$t.remove_from_head_of_string = function(haystack, needle) {
+  if (_f4u$t.first_part_matches(haystack, needle)) {
+    return haystack.substr(needle.length);
+  }
 }
 
 /**
@@ -1133,7 +1190,7 @@ Makes the UI for the faust application.
 @param {Object} svg The root SVG node.
 @param {Object} raw_json The raw JSON describing the UI to build.
 **/
-_f4u$t.make_ui = function(svg, raw_json, width, height) {
+_f4u$t.make_ui = function(svg, raw_json, width, height, hash) {
   var json = eval ("(" + raw_json + ")");
   var faust_svg = new _f4u$t.SVG(
     svg,
@@ -1142,7 +1199,7 @@ _f4u$t.make_ui = function(svg, raw_json, width, height) {
     {
       constrain : false,
       title : json["ui"][0].label,
-      lm : _f4u$t.json_to_ui(json)
+      lm : _f4u$t.json_to_ui(json, hash)
     }
   );
 
@@ -1175,6 +1232,8 @@ Parses the URL to include any new documents and then builds the UI.
 @param {Object} div (optional) The div to place the object in.
 **/
 _f4u$t.main = function(raw_json, div, callback) {
+  // we create a hash for the object
+  var hash = $(div).attr('id') ? $(div).attr('id') :  _f4u$t.rand_string(8);
   // first, we parse URL parameters to change UIs' style if necessary
   var URLParams = _f4u$t.parseURLParams(document.URL);
   // then we assign parameters
@@ -1184,6 +1243,7 @@ _f4u$t.main = function(raw_json, div, callback) {
   if (!div) {
     var div = $( "<div />" );
     $("body").append(div);
+    $(div).attr('id', hash);
   }
   var width = $(div).width();
   if (width == 0) {
@@ -1196,11 +1256,54 @@ _f4u$t.main = function(raw_json, div, callback) {
     height = $(window).height() - 17;
   }
   if (callback) {
-    _f4u$t.HANDLER_CALLBACKS.push(callback);
+    _f4u$t.HANDLER_CALLBACKS.push(function(address, value) {
+      if (_f4u$t.first_part_matches(address, hash)) {
+        return callback(_f4u$t.remove_from_head_of_string(address, hash), value);
+      }
+    });
   }
   div.svg({onLoad: function (svg) {
-    _f4u$t.make_ui(svg, raw_json, width, height);
+    _f4u$t.make_ui(svg, raw_json, width, height, hash);
   }});
+  return function(address, value) {
+    return _f4u$t.update_value_at_address(hash+address, value);
+  }
+}
+
+/**
+  Deletes all references to this div in internal data structures, including
+  all bindings.  Note that this does NOT delete the div from the page, nor
+  does it delete the div's contents.  This is in case the div contains
+  other information that the person wants to complete.
+  
+  To delete the UI in the div, call _f4u$t.hard_delete()
+**/
+_f4u$t.delete = function(div) {
+  var id = $(div).attr('id');
+  if (!id) {
+    console.log("Can't delete because obj does not exist in the system.");
+    return;
+  }
+  var ids_to_delete = [];
+  var keys_to_delete = []
+  for (var key in _f4u$t.PATHS_TO_IDS) {
+    if (_f4u$t.first_part_matches(key, id)) {
+      ids_to_delete.push(_f4u$t.PATHS_TO_IDS[key]);
+      keys_to_delete.push(key);
+    }
+  }
+  for (var key_to_delete in keys_to_delete) {
+    delete _f4u$t.PATHS_TO_IDS[key_to_delete];
+  }
+  for (var id_to_delete in ids_to_delete) {
+    var slim = _f4u$t.unique(id_to_delete);
+    delete _f4u$t.IDS_TO_ATTRIBUTES[slim];
+  }
+}
+
+_f4u$t.hard_delete = function(div) {
+  _f4u$t.delete(div);
+  $(div).empty();
 }
 
 /**
