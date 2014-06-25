@@ -61,14 +61,14 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
 	argv1[1] = "-lang";
 	argv1[2] = "ajs";
     argv1[3] = "-cn";
-	argv1[4] = name_class;
+    argv1[4] = name_class;
     argv1[5] = "-o";
     argv1[6] = "asmjs";
     
     string str;
     try {
         str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
-        //str = flatten(str);
+        str = flatten(str);
     } catch (...) {
         strncpy(error_msg, "libfaust.js fatal error...", 256);
         str = "";

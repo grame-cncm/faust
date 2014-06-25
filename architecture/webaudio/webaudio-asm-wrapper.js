@@ -197,7 +197,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 
 (function () {
  
-    var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number']);
+    faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number']);
  
     faust.error_msg = null;
     faust.factory_number = 0;
@@ -219,7 +219,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var name_ptr = allocate(intArrayFromString("FaustDSP"), 'i8', ALLOC_STACK);
         var error_msg_ptr = allocate(intArrayFromString('', false, 256), 'i8', ALLOC_STACK);
         var factory_name_ptr = allocate(intArrayFromString(factory_name), 'i8', ALLOC_STACK);
-        var factory_code = Pointer_stringify(createAsmCDSPFactoryFromString(name_ptr, code_ptr, factory_name_ptr, error_msg_ptr));
+        var factory_code = Pointer_stringify(faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, factory_name_ptr, error_msg_ptr));
         faust.error_msg = Pointer_stringify(error_msg_ptr);
         if (factory_code === "") {
             return null;
@@ -247,13 +247,14 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         factory.getDSPSize = function(m) { return getdspsize_function(m); }
  
         factory.factory_name = factory_name;
+        factory.sha_key = sha_key;
         faust.factory_table[sha_key] = factory;
         console.log(sha_key);
  
         return factory;
     };
  
-    faust.deleteDSPFactory = function (factory) {}
+    faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; }
   
     faust.createDSPInstance = function (factory, context, buffer_size, handler) {
         
