@@ -42,16 +42,8 @@ using namespace std;
 extern "C" {
 #endif
 
-// Public C interface using asm.js
-    /*
-    EXPORT string createDSPFactory(const string& sha_key, int argc, const char* argv[], 
-                                     const string& name_app,
-                                     const string& dsp_content, 
-                                     const string& target, 
-                                     string& error_msg, int opt_level);
-    */
-
-    EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg);
+    // Public C interface using asm.js
+    EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, const char* class_name, char* error_msg);
     
 #ifdef __cplusplus
 }

@@ -19,14 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#include "compatibility.hh"
-
 #include <stdio.h>
 #include <list>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
+#include "compatibility.hh"
 #include "asmjs_dsp_aux.hh"
 #include "libfaust.h"
 
@@ -53,25 +52,20 @@ static inline std::string flatten(const std::string& src)
     return dst.str();
 }
 
-EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, char* error_msg)
+EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, const char* name_class, char* error_msg)
 {
-    int argc = 0;
-    int argc1 = argc + 5;
+    int argc1 = 7;
  	const char* argv1[32];
     
     argv1[0] = "faust";
 	argv1[1] = "-lang";
 	argv1[2] = "ajs";
-    argv1[3] = "-o";
-    argv1[4] = "asmjs";
+    argv1[3] = "-cn";
+	argv1[4] = name_class;
+    argv1[5] = "-o";
+    argv1[6] = "asmjs";
     
     string str;
-    
-    /*
-    for (int i = 0; i < argc; i++) {
-        argv1[i+5] = argv[i];
-    }
-    */
     try {
         str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
         //str = flatten(str);
