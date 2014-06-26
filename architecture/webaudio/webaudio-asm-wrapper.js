@@ -256,7 +256,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
  
     faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; }
   
-    faust.createDSPInstance = function (factory, context, buffer_size, handler) {
+    faust.createDSPInstance = function (factory, context, buffer_size) {
         
         var that = {};
  
@@ -264,7 +264,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         that.dsp = Module._malloc(that.factory.getDSPSize());
         faust.context = context;
         that.buffer_size = buffer_size;
-        that.handler = handler;
+        that.handler = null;
  
         // bargraph
         that.ouputs_timer = 5;
@@ -332,7 +332,12 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
                 that.scriptProcessor.connect(node);
             }
         };
-        
+ 
+        that.setHandler = function(handler)
+        {
+            that.handler = handler;
+        };
+      
         // Bind to Web Audio, external API
         that.start = function () 
         {

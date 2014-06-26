@@ -26,13 +26,13 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
  
 // Standard Faust DSP
 
-faust.DSP = function (context, buffer_size, handler) {
+faust.DSP = function (context, buffer_size) {
     var that = {};
     
     faust.context = context;
  
     that.buffer_size = buffer_size;
-    that.handler = handler;
+    that.handler = null;
  
     that.ptr_size = 4; 
     that.sample_size = 4;
@@ -149,6 +149,11 @@ faust.DSP = function (context, buffer_size, handler) {
         } else {
             that.scriptProcessor.connect(node);
         }
+    };
+ 
+    that.setHandler = function (handler)
+    {
+        that.handler = handler;
     };
     
     // Bind to Web Audio, external API
