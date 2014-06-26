@@ -104,7 +104,7 @@ emcc : EXPORTED="['_createAsmCDSPFactoryFromString']"
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
 
 libfaust.js : $(objects) libmain.o global.o
-	$(CXX) -O2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0  -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
+	$(CXX) -O2  -s ASSERTIONS=1 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0  -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o

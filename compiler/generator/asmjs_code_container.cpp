@@ -32,10 +32,10 @@ ASMJAVAScriptInstVisitor* ASMJAVAScriptCodeContainer::fCodeProducer = 0;
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new ASMJAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+    return new ASMJAVAScriptScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -53,15 +53,15 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, c
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for ASMJavaScript\n");
     } else {
-        container = new ASMJAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        container = new ASMJAVAScriptScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
 
     return container;
 }
 
 // Scalar
-ASMJAVAScriptScalarCodeContainer::ASMJAVAScriptScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    :ASMJAVAScriptCodeContainer(name, super, numInputs, numOutputs, out)
+ASMJAVAScriptScalarCodeContainer::ASMJAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
+    :ASMJAVAScriptCodeContainer(name, numInputs, numOutputs, out)
 {
      fSubContainerType = sub_container_type;
 }

@@ -31,15 +31,14 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        static ASMJAVAScriptInstVisitor* fCodeProducer; // One static visitor for subcontaine and global container
+        static ASMJAVAScriptInstVisitor* fCodeProducer; // One static visitor for subcontainers and global container
         std::ostream* fOut;
-        string fSuperKlassName;
         string fObjPrefix;
  
     public:
 
-        ASMJAVAScriptCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :fOut(out), fSuperKlassName(super), fObjPrefix("")
+        ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+            :fOut(out), fObjPrefix("")
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
@@ -55,7 +54,7 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst);
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
 };
 
 class ASMJAVAScriptScalarCodeContainer : public ASMJAVAScriptCodeContainer {
@@ -64,7 +63,7 @@ class ASMJAVAScriptScalarCodeContainer : public ASMJAVAScriptCodeContainer {
 
     public:
 
-        ASMJAVAScriptScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+        ASMJAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~ASMJAVAScriptScalarCodeContainer();
 
         void generateCompute(int tab);

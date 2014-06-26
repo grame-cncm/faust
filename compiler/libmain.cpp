@@ -992,11 +992,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
         } else if (gGlobal->gOutputLang == "js") {
 
-            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         
         } else if (gGlobal->gOutputLang == "ajs") {
 
-            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "fir") {
        
@@ -1364,8 +1364,6 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
     
     string res;
     
-    //printf("compile_faust_asmjs\n");
-    
     try {
         global::allocate();     
         compile_faust_internal(argc, argv, name, input, true);
@@ -1375,8 +1373,6 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
         strncpy(error_msg, e.Message().c_str(), 256);
         res = "";
     }
-    
-    //printf("compile_faust_asmjs OK\n");
     
     // TODO : make the compilation fails the next time...
     //global::destroy();

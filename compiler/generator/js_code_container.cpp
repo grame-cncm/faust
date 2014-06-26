@@ -32,10 +32,10 @@ map <string, string> JAVAScriptInstVisitor::gMathLibTable;
 
 CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new JAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+    return new JAVAScriptScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -53,15 +53,15 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for JavaScript\n");
     } else {
-        container = new JAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        container = new JAVAScriptScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
 
     return container;
 }
 
 // Scalar
-JAVAScriptScalarCodeContainer::JAVAScriptScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    :JAVAScriptCodeContainer(name, super, numInputs, numOutputs, out)
+JAVAScriptScalarCodeContainer::JAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
+    :JAVAScriptCodeContainer(name, numInputs, numOutputs, out)
 {
      fSubContainerType = sub_container_type;
 }

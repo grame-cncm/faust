@@ -33,14 +33,13 @@ class JAVAScriptCodeContainer : public virtual CodeContainer {
 
         JAVAScriptInstVisitor fCodeProducer;
         std::ostream* fOut;
-        string fSuperKlassName;
         
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
 
-        JAVAScriptCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :fCodeProducer(out), fOut(out), fSuperKlassName(super)
+        JAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+            :fCodeProducer(out), fOut(out)
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
@@ -54,7 +53,7 @@ class JAVAScriptCodeContainer : public virtual CodeContainer {
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst);
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
 };
 
 class JAVAScriptScalarCodeContainer : public JAVAScriptCodeContainer {
@@ -63,7 +62,7 @@ class JAVAScriptScalarCodeContainer : public JAVAScriptCodeContainer {
 
     public:
 
-        JAVAScriptScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+        JAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~JAVAScriptScalarCodeContainer();
 
         void generateCompute(int tab);
