@@ -51,7 +51,7 @@ function startDSPAux(buffer_size)
         DSP.stop();
         DSP.destroy();
     }
-    DSP = faust.DSP(audio_context, buffer_size, _f4u$t.update_value_at_address);
+    DSP = faust.DSP(audio_context, buffer_size);
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
@@ -60,7 +60,8 @@ function startDSPAux(buffer_size)
     console.log(DSP.controls());
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
-    _f4u$t.main(DSP.json(), null, DSP.update);
+    var handler = _f4u$t.main(DSP.json(), null, DSP.update);
+    DSP.setHandler(handler);
 }
 
 function startDSP() 

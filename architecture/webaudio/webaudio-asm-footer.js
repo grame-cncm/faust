@@ -30,7 +30,7 @@ faust.DSP = function (context, buffer_size, handler) {
     
     faust.context = context;
     that.buffer_size = buffer_size;
-    that.handler = handler;
+    that.handler = handler ? handler : function(address, value) { };
     
     // bargraph
     that.ouputs_timer = 5;
@@ -116,6 +116,11 @@ faust.DSP = function (context, buffer_size, handler) {
         } else {
             that.scriptProcessor.connect(node);
         }
+    };
+    
+    that.setHandler = function(handler)
+    {
+      that.handler = handler;
     };
     
     // Bind to Web Audio, external API
