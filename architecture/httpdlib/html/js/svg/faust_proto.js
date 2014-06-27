@@ -1232,42 +1232,47 @@ Parses the URL to include any new documents and then builds the UI.
 @param {Object} div (optional) The div to place the object in.
 **/
 _f4u$t.main = function(raw_json, div, callback) {
-  // we create a hash for the object
-  var hash = $(div).attr('id') ? $(div).attr('id') :  _f4u$t.rand_string(8);
-  // first, we parse URL parameters to change UIs' style if necessary
-  var URLParams = _f4u$t.parseURLParams(document.URL);
-  // then we assign parameters
-  _f4u$t.assign_parameters_to_values(URLParams);
-  // we make sure all JS and CSS is loaded before we build the UI
-  _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
-  if (!div) {
-    var div = $( "<div />" );
-    $("body").append(div);
-    $(div).attr('id', hash);
-  }
-  var width = $(div).width();
-  if (width == 0) {
-    // HUOM: this "- 15" is a kludge and should dealt with more elegantly
-    width = $(window).width() - 15;
-  }
-  var height = $(div).height();
-  if (height == 0) {
-    // HUOM: this "- 17" is a kludge and should dealt with more elegantly
-    height = $(window).height() - 17;
-  }
-  if (callback) {
-    _f4u$t.HANDLER_CALLBACKS.push(function(address, value) {
-      if (_f4u$t.first_part_matches(address, hash)) {
-        return callback(_f4u$t.remove_from_head_of_string(address, hash), value);
-      }
-    });
-  }
-  div.svg({onLoad: function (svg) {
-    _f4u$t.make_ui(svg, raw_json, width, height, hash);
-  }});
-  return function(address, value) {
-    return _f4u$t.update_value_at_address(hash+address, value);
-  }
+    
+    if (!div) {
+        div = $( "<div />" );
+        $("body").append(div);
+    }
+    // we create a hash for the object
+    var hash = $(div).attr('id') ? $(div).attr('id') :  _f4u$t.rand_string(8);
+    
+    // keep it in the div
+    $(div).attr('id', hash);  
+    
+    // first, we parse URL parameters to change UIs' style if necessary
+    var URLParams = _f4u$t.parseURLParams(document.URL);
+    // then we assign parameters
+    _f4u$t.assign_parameters_to_values(URLParams);
+    // we make sure all JS and CSS is loaded before we build the UI
+    _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
+    
+    var width = $(div).width();
+    if (width == 0) {
+        // HUOM: this "- 15" is a kludge and should dealt with more elegantly
+        width = $(window).width() - 15;
+    }
+    var height = $(div).height();
+    if (height == 0) {
+        // HUOM: this "- 17" is a kludge and should dealt with more elegantly
+        height = $(window).height() - 17;
+    }
+    if (callback) {
+        _f4u$t.HANDLER_CALLBACKS.push(function(address, value) {
+                                      if (_f4u$t.first_part_matches(address, hash)) {
+                                      return callback(_f4u$t.remove_from_head_of_string(address, hash), value);
+                                      }
+                                      });
+    }
+    div.svg({onLoad: function (svg) {
+            _f4u$t.make_ui(svg, raw_json, width, height, hash);
+            }});
+    return function(address, value) {
+        return _f4u$t.update_value_at_address(hash+address, value);
+    }
 }
 
 /**
