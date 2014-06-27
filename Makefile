@@ -95,13 +95,14 @@ install :
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/
 	mkdir -p $(prefix)/lib/faust
-	install compiler/faust $(prefix)/bin/
+	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
 	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust) || echo libfaust.$(LIB_EXT) not available
+	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-c-dsp.h  $(prefix)/include/faust/
 	chmod gou+r compiler/scheduler.ll
-	cp compiler/scheduler.ll  $(prefix)/lib/faust
+	cp compiler/scheduler.ll $(prefix)/lib/faust
 	
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/
