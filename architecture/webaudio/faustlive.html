@@ -378,13 +378,13 @@
                 dsp_code = reader.result;
                 console.log(dsp_code);
                 
-                if (DSP) {
-                    // Remove the current div in ALT key was pressed
-                    if (intAltKey) {
-                        _f4u$t.hard_delete(faustsvg);
+                // Remove the current div in ALT key was pressed
+                if (intAltKey) {
+                    if (DSP) {
+                         _f4u$t.hard_delete(faustsvg);
+                        DSP.stop();
+                        faust.deleteDSPInstance(DSP);
                     }
-                    DSP.stop();
-                    faust.deleteDSPInstance(DSP);
                 } 
                                     
                 faustsvg = $('<div />');
