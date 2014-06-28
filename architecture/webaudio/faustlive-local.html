@@ -354,9 +354,9 @@
     }
 
     function UploadFile(e) {
-    
-        console.log("UploadFile");
-
+      
+        var intAltKey = e.altKey;
+     
         FileDragHover(e);
         var files = e.target.files || e.dataTransfer.files;
         var file = files[0];
@@ -378,8 +378,10 @@
                 //console.log(dsp_code);
                 
                 if (DSP) {
-                    // Remove the current div
-                    _f4u$t.hard_delete(faustsvg);
+                    // Remove the current div in ALT key was pressed
+                    if (intAltKey) {
+                        _f4u$t.hard_delete(faustsvg);
+                    }
                     DSP.stop();
                     faust.deleteDSPInstance(DSP);
                 } 
@@ -416,7 +418,7 @@
         filedrag1.addEventListener("dragover", FileDragHover, false);
         filedrag1.addEventListener("dragleave", FileDragHover, false);
         filedrag1.addEventListener("drop", UploadFile, false);
-
+     
         /*
         var xx = new XMLHttpRequest();
         if (xx.upload) {

@@ -355,6 +355,8 @@
     }
 
     function UploadFile(e) {
+    
+        var intAltKey = e.altKey;
 
         FileDragHover(e);
         var files = e.target.files || e.dataTransfer.files;
@@ -377,8 +379,10 @@
                 console.log(dsp_code);
                 
                 if (DSP) {
-                     // Remove the current div
-                    _f4u$t.hard_delete(faustsvg);
+                    // Remove the current div in ALT key was pressed
+                    if (intAltKey) {
+                        _f4u$t.hard_delete(faustsvg);
+                    }
                     DSP.stop();
                     faust.deleteDSPInstance(DSP);
                 } 
