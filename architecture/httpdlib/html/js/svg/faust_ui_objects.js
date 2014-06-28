@@ -74,14 +74,12 @@ _f4u$t.UIObject.prototype.get_layout_manager = function() {
   return (this.mom instanceof _f4u$t.LayoutManager ? this.mom : this.mom.get_layout_manager());
 }
 
-_f4u$t.delayed_tooltips = [];
-
-_f4u$t.UIObject.prototype.make_delayed_tooltips = function() {
-  for (var i = 0; i < _f4u$t.delayed_tooltips.length; i++) {
-    _f4u$t.delayed_tooltips[i][0].make_tooltip(
-      _f4u$t.delayed_tooltips[i][1],
-      _f4u$t.delayed_tooltips[i][2],
-      _f4u$t.delayed_tooltips[i][3]
+_f4u$t.UIObject.prototype.make_delayed_tooltips = function(svg) {
+  for (var i = 0; i < svg._delayed_tooltip_list.length; i++) {
+    svg._delayed_tooltip_list[i][0].make_tooltip(
+      svg,
+      svg._delayed_tooltip_list[i][1],
+      svg._delayed_tooltip_list[i][2]
     );
   }
 }
@@ -133,7 +131,7 @@ _f4u$t.UIObject.prototype.make_tooltip_box = function(svg, parent, id) {
 }
 
 _f4u$t.UIObject.prototype.make_delayed_tooltip = function(obj, svg, linked_obj_id, id) {
-  _f4u$t.delayed_tooltips.push([obj, svg, linked_obj_id, id]);
+  svg._delayed_tooltip_list.push([obj, linked_obj_id, id]);
 }
 
 _f4u$t.UIObject.prototype.make_tooltip = function(svg, linked_obj_id, id) {
@@ -1612,11 +1610,12 @@ _f4u$t.SVG.prototype.make = function() {
     },
     true);
   _f4u$t.ROOT = this.title;
+  this.svg._delayed_tooltip_list = [];
   this.lm.populate_objects();
   this.lm.do_spacing(0);
   this.lm.make(this.svg, this.svg);
   this.tooltip_group = this.svg.group(this.svg,'faust_tooltip_group');
-  this.make_delayed_tooltips();
+  this.make_delayed_tooltips(this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
   this.svg.configure(
