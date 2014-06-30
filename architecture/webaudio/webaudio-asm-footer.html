@@ -6,6 +6,7 @@ var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var audio_input = null;
 var DSP = null;
+var faustsvg = null;
 
 function changeBufferSize(buffer_size)
 {
@@ -48,6 +49,7 @@ function startDSPAux(buffer_size)
         if (audio_input) {
             audio_input.disconnect(DSP.scriptProcessor);
         }
+        _f4u$t.hard_delete(faustsvg);
         DSP.stop();
         DSP.destroy();
     }
@@ -60,7 +62,10 @@ function startDSPAux(buffer_size)
     console.log(DSP.controls());
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
-    var handler = _f4u$t.main(DSP.json(), null, DSP.update);
+    
+    faustsvg = $('<div />');
+    $('body').append(faustsvg);
+    var handler = _f4u$t.main(DSP.json(), faustsvg, DSP.update);
     DSP.setHandler(handler);
 }
 
