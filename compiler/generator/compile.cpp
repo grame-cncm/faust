@@ -157,6 +157,16 @@ static string wdel(const string& s)
 
 //================================= BUILD USER INTERFACE METHOD =================================
 
+inline string ptrToHex(Tree ptr)
+{
+    stringstream res; res << hex << ptr; return res.str();
+}
+
+inline string checkNullLabel(Tree t, const string& label)
+{
+    return (label == "") ? ptrToHex(t) : label;
+}
+
 /**
  * Generate buildUserInterface C++ lines of code corresponding 
  * to user interface element t
@@ -192,10 +202,10 @@ void Compiler::generateUserInterfaceTree(Tree t)
 			case 1 : model = "interface->openHorizontalBox(\"$0\");"; break;
 			case 2 : model = "interface->openTabBox(\"$0\");"; break;
 			default :
-					fprintf(stderr, "error in user interface generation 1\n");
+                fprintf(stderr, "error in user interface generation 1\n");
 				exit(1);
 		}
-        fClass->addUICode(subst(model, simplifiedLabel));
+        fClass->addUICode(subst(model, checkNullLabel(t, simplifiedLabel)));
 		generateUserInterfaceElements(elements);
 		fClass->addUICode("interface->closeBox();");
 
@@ -245,57 +255,57 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	if ( isSigButton(sig, path) ) 					{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addButton(\"$0\", &$1);", label, tree2str(varname)));
+		fClass->addUICode(subst("interface->addButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
 
 	} else if ( isSigCheckbox(sig, path) ) 			{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addCheckButton(\"$0\", &$1);", label, tree2str(varname)));
+		fClass->addUICode(subst("interface->addCheckButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
 
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
-				label,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+                                checkNullLabel(varname, label),
+                                tree2str(varname),
+                                T(tree2float(c)),
+                                T(tree2float(x)),
+                                T(tree2float(y)),
+                                T(tree2float(z))));
 
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
-				label,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+                                checkNullLabel(varname, label),
+                                tree2str(varname),
+                                T(tree2float(c)),
+                                T(tree2float(x)),
+                                T(tree2float(y)),
+                                T(tree2float(z))));
 
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
-				label,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+                                checkNullLabel(varname, label),
+                                tree2str(varname),
+                                T(tree2float(c)),
+                                T(tree2float(x)),
+                                T(tree2float(y)),
+                                T(tree2float(z))));
 
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
 		fClass->addUICode(subst("interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
-				label,
-				tree2str(varname),
-				T(tree2float(x)),
-				T(tree2float(y))));
+                                checkNullLabel(varname, label),
+                                tree2str(varname),
+                                T(tree2float(x)),
+                                T(tree2float(y))));
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
 		fClass->addUICode(subst("interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
-                label,
-				tree2str(varname),
-				T(tree2float(x)),
-				T(tree2float(y))));
+                                checkNullLabel(varname, label),
+                                tree2str(varname),
+                                T(tree2float(x)),
+                                T(tree2float(y))));
 
 	} else {
 		fprintf(stderr, "Error in generating widget code\n");
