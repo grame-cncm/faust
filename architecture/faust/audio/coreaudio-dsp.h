@@ -50,6 +50,8 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
+#include <sys/time.h>
+
 /******************************************************************************
 *******************************************************************************
 
@@ -402,7 +404,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             }
             
             AudioValueTranslation pluginAVT;
-            
             CFStringRef inBundleRef = CFSTR("com.apple.audio.CoreAudio");
             
             pluginAVT.mInputData = &inBundleRef;
@@ -423,8 +424,19 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             CFMutableDictionaryRef aggDeviceDict = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             
-            CFStringRef AggregateDeviceNameRef = CFSTR("CoreAudio");
-            CFStringRef AggregateDeviceUIDRef = CFSTR("com.grame.CoreAudio");
+            char buffer1[64];
+            char buffer2[64];
+            
+            // generate "random" name
+            struct timeval fTv1;
+            struct timezone tz;
+            gettimeofday(&fTv1, &tz);
+            
+            sprintf(buffer1, "%d", fTv1.tv_sec + fTv1.tv_usec);
+            sprintf(buffer2, "com.grame.%d", fTv1.tv_sec + fTv1.tv_usec);
+            
+            CFStringRef AggregateDeviceNameRef = CFStringCreateWithCString(kCFAllocatorDefault, buffer1, CFStringGetSystemEncoding());
+            CFStringRef AggregateDeviceUIDRef = CFStringCreateWithCString(kCFAllocatorDefault, buffer2, CFStringGetSystemEncoding());
             
             // add the name of the device to the dictionary
             CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceNameKey), AggregateDeviceNameRef);
