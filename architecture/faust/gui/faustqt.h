@@ -966,34 +966,61 @@ class uiSlider : public QObject, public uiItem
 {
     Q_OBJECT
 
-	int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
-	FAUSTFLOAT	qt2faust (int v)	{ return fMin + v*fStep; }
-	int		optimalTick()		{
-        
-                if(fStep == 0)
-                    fStep = (fMax-fMin)/2;
-        
-				FAUSTFLOAT x = fStep;
-				while ((fMax-fMin)/x > 50) x*=10;
-				while ((fMax-fMin)/x < 10) x/=2;
-				return faust2qt(fMin+x);
-			}
+ public :
+    QSlider* 	fSlider;
+    FAUSTFLOAT	fCur;
+    FAUSTFLOAT	fMin;
+    FAUSTFLOAT	fMax;
+    FAUSTFLOAT	fStep;
+    bool        fLogScale;
+    FAUSTFLOAT	fLogMin;
+    FAUSTFLOAT	fLogDelta;
+
+    const double N = 10000.0;
+
+ protected :
+    int		faust2qt(FAUSTFLOAT x) 	{
+        if (fLogScale) {
+            // in log scale we ignore fStep, we divide the log range in 10000 steps
+            return int(0.5 + N*(log(x)-fLogMin)/fLogDelta );
+        } else {
+            return int(0.5 + (x-fMin)/fStep);
+        }
+    }
+
+    FAUSTFLOAT	qt2faust (int v)	{
+        if (fLogScale) {
+            // in log scale we ignore fStep, we divide the log range in 10000 steps
+            return  exp(v*fLogDelta/N + fLogMin);
+        } else {
+            return fMin + v*fStep;
+        }
+    }
+
+    int optimalTick()		{
+        if(fStep == 0) {
+            fStep = (fMax-fMin)/2000.0;
+        }
+        FAUSTFLOAT x = fStep;
+        while ((fMax-fMin)/x > 50) x*=10;
+        while ((fMax-fMin)/x < 10) x/=2;
+        return faust2qt(fMin+x);
+    }
 
  public :
-	QSlider* 	fSlider;
-	FAUSTFLOAT	fCur;
-	FAUSTFLOAT	fMin;
-	FAUSTFLOAT	fMax;
-	FAUSTFLOAT	fStep;
 
-	uiSlider (GUI* ui, FAUSTFLOAT* zone, QSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
-		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
+    uiSlider (GUI* ui, FAUSTFLOAT* zone, QSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, bool logscale)
+        : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step), fLogScale(logscale)
 	{
-		fSlider->setMinimum(0);
-		fSlider->setMaximum(faust2qt(fMax));
-		fSlider->setValue(faust2qt(fCur));
-		fSlider->setTickInterval(optimalTick());
-		*fZone = fCur;
+        if (fLogScale) {
+            fLogMin = log(fMin);
+            fLogDelta = log(fMax)-fLogMin;
+        }
+        fSlider->setMinimum(0);
+        fSlider->setMaximum(faust2qt(fMax));
+        fSlider->setValue(faust2qt(fCur));
+        if (!fLogScale) { fSlider->setTickInterval(optimalTick()); }
+        *fZone = fCur;
 	}
 
 	virtual void reflectZone()
@@ -1011,42 +1038,73 @@ class uiKnob : public QObject, public uiItem
 {
     Q_OBJECT
 
-	int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
-	FAUSTFLOAT	qt2faust (int v)	{ return fMin + v*fStep; }
-	int		optimalTick()		{
-				FAUSTFLOAT x = fStep;
-				while ((fMax-fMin)/x > 50) x*=10;
-				while ((fMax-fMin)/x < 10) x/=2;
-				return faust2qt(fMin+x);
-			}
+public :
+    QAbstractSlider* 	fSlider;
+    FAUSTFLOAT			fCur;
+    FAUSTFLOAT			fMin;
+    FAUSTFLOAT			fMax;
+    FAUSTFLOAT			fStep;
+    bool                fLogScale;
+    FAUSTFLOAT          fLogMin;
+    FAUSTFLOAT          fLogDelta;
 
- public :
-	QAbstractSlider* 	fSlider;
-	FAUSTFLOAT			fCur;
-	FAUSTFLOAT			fMin;
-	FAUSTFLOAT			fMax;
-	FAUSTFLOAT			fStep;
+    const double N = 10000.0;
 
-	uiKnob (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
-		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
-	{
-		fSlider->setMinimum(0);
-		fSlider->setMaximum(faust2qt(fMax));
-		fSlider->setValue(faust2qt(fCur));
-		//fSlider->setTickInterval(optimalTick());
-		*fZone = fCur;
-	}
+protected:
+//    int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
+//    FAUSTFLOAT	qt2faust (int v)	{ return fMin + v*fStep; }
+//    int		optimalTick()		{
+//        FAUSTFLOAT x = fStep;
+//        while ((fMax-fMin)/x > 50) x*=10;
+//        while ((fMax-fMin)/x < 10) x/=2;
+//        return faust2qt(fMin+x);
+//    }
+    int		faust2qt(FAUSTFLOAT x) 	{
+        if (fLogScale) {
+            // in log scale we ignore fStep, we divide the log range in 10000 steps
+            return int(0.5 + N*(log(x)-fLogMin)/fLogDelta );
+        } else {
+            return int(0.5 + (x-fMin)/fStep);
+        }
+    }
 
-	virtual void reflectZone()
-	{
-		FAUSTFLOAT v = *fZone;
-		fCache = v;
-		fSlider->setValue(faust2qt(v));
-	}
+    FAUSTFLOAT	qt2faust (int v)	{
+        if (fLogScale) {
+            // in log scale we ignore fStep, we divide the log range in 10000 steps
+            return  exp(v*fLogDelta/N + fLogMin);
+        } else {
+            return fMin + v*fStep;
+        }
+    }
 
- public slots :
-	void setValue(int v)		{ modifyZone(qt2faust(v)); }
+public :
+
+    uiKnob (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, bool logscale)
+        : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step), fLogScale(logscale)
+    {
+        if (fLogScale) {
+            fLogMin = log(fMin);
+            fLogDelta = log(fMax)-fLogMin;
+        }
+        fSlider->setMinimum(0);
+        fSlider->setMaximum(faust2qt(fMax));
+        fSlider->setValue(faust2qt(fCur));
+        //fSlider->setTickInterval(optimalTick());
+        *fZone = fCur;
+    }
+
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        fSlider->setValue(faust2qt(v));
+    }
+
+public slots :
+    void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
+
+
 
 class uiBargraph : public QObject, public uiItem
 {
@@ -1167,6 +1225,7 @@ class QTGUI : public QObject, public GUI
     std::set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
     std::set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
     std::set<FAUSTFLOAT*>                  fNumSet;        // set of widget zone to be numerical bargraphs
+    std::set<FAUSTFLOAT*>                  fLogSet;        // set of widget zone to have log UI scale (but linear values)
 
 
     /**
@@ -1209,18 +1268,24 @@ class QTGUI : public QObject, public GUI
 			else if (strcmp(key,"tooltip")==0) {
 				fTooltip[zone] = formatTooltip(30, value) ;
 			}
-			else if (strcmp(key,"unit")==0) {
-				fUnit[zone] = value ;
-			}
-			else if (strcmp(key,"style")==0) {
+            else if (strcmp(key,"unit")==0) {
+                fUnit[zone] = value ;
+            }
+            else if (strcmp(key,"scale")==0) {
+                if (strcmp(value,"log") == 0) {
+                    std::cout << "logarithmic scale for zone " << zone << std::endl;
+                    fLogSet.insert(zone);
+                }
+            }
+            else if (strcmp(key,"style")==0) {
 			// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
 				if (strcmp(value,"knob") == 0) {
 					fKnobSet.insert(zone);
 				} else if (strcmp(value,"led") == 0) {
 					fLedSet.insert(zone);
-				} else if (strcmp(value,"numerical") == 0) {
-					fNumSet.insert(zone);
-				}
+                } else if (strcmp(value,"numerical") == 0) {
+                    fNumSet.insert(zone);
+                }
 			}
 		}
 	}
@@ -1277,6 +1342,14 @@ class QTGUI : public QObject, public GUI
         if (fTooltip.count(zone)) {
             widget->setToolTip(fTooltip[zone].c_str());
         }
+    }
+
+    /**
+    * Check if a log scale is required
+    */
+    bool hasLogScale(FAUSTFLOAT* zone)
+    {
+        return fLogSet.count(zone) > 0;
     }
 
     /**
@@ -1628,7 +1701,7 @@ class QTGUI : public QObject, public GUI
 	{
 		openVerticalBox(label);
 		QAbstractSlider* 	w = new QDial(); //qsynthKnob();
-		uiKnob*	c = new uiKnob(this, zone, w, init, min, max, step);
+        uiKnob*	c = new uiKnob(this, zone, w, init, min, max, step, hasLogScale(zone));
 		insert(label, w);
 		w->setStyle(new qsynthDialVokiStyle());
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
@@ -1648,7 +1721,7 @@ class QTGUI : public QObject, public GUI
 	{
 		openHorizontalBox(label);
 		QAbstractSlider* 	w = new QDial(); //new qsynthKnob();
-		uiKnob*	c = new uiKnob(this, zone, w, init, min, max, step);
+        uiKnob*	c = new uiKnob(this, zone, w, init, min, max, step, hasLogScale(zone));
 		insert(label, w);
 		w->setStyle(new qsynthDialVokiStyle());
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
@@ -1674,7 +1747,7 @@ class QTGUI : public QObject, public GUI
         w->setMinimumHeight(160);
         w->setMinimumWidth(34);
 		//w->setTickPosition(QSlider::TicksBothSides);
-		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
+        uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, hasLogScale(zone));
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		addNumDisplay(0, zone, init, min, max, step);
@@ -1693,7 +1766,7 @@ class QTGUI : public QObject, public GUI
         w->setMinimumHeight(34);
         w->setMinimumWidth(160);
 		//w->setTickPosition(QSlider::TicksBothSides);
-		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
+        uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, hasLogScale(zone));
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		addNumDisplay(0, zone, init, min, max, step);
