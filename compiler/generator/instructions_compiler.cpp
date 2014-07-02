@@ -1449,6 +1449,16 @@ Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
 
 //================================= BUILD USER INTERFACE METHOD =================================
 
+inline string ptrToHex(Tree ptr)
+{
+    stringstream res; res << hex << ptr; return res.str();
+}
+
+inline string checkNullLabel(Tree t, const string& label)
+{
+    return (label == "") ? ptrToHex(t) : label;
+}
+
 /**
  * Generate buildUserInterface C++ lines of code corresponding
  * to user interface element t
@@ -1476,7 +1486,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
             }
         }
 
-        pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, simplifiedLabel));
+        pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, checkNullLabel(t, simplifiedLabel)));
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(InstBuilder::genCloseboxInst());
 
@@ -1522,30 +1532,30 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
     }
 
 	if (isSigButton(sig, path)) 					{
-        pushUserInterfaceMethod(InstBuilder::genAddButtonInst(label, tree2str(varname)));
+        pushUserInterfaceMethod(InstBuilder::genAddButtonInst(checkNullLabel(varname, label), tree2str(varname)));
 
 	} else if (isSigCheckbox(sig, path)) 			{
-        pushUserInterfaceMethod(InstBuilder::genAddCheckbuttonInst(label, tree2str(varname)));
+        pushUserInterfaceMethod(InstBuilder::genAddCheckbuttonInst(checkNullLabel(varname, label), tree2str(varname)));
 
 	} else if (isSigVSlider(sig, path,c,x,y,z))	{
         pushUserInterfaceMethod(
-            InstBuilder::genAddVerticalSliderInst(label, tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
+            InstBuilder::genAddVerticalSliderInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
 	} else if (isSigHSlider(sig, path,c,x,y,z))	{
         pushUserInterfaceMethod(
-            InstBuilder::genAddHorizontalSliderInst(label, tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
+            InstBuilder::genAddHorizontalSliderInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
 	} else if (isSigNumEntry(sig, path,c,x,y,z))	{
         pushUserInterfaceMethod(
-            InstBuilder::genAddNumEntryInst(label, tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
+            InstBuilder::genAddNumEntryInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
 	} else if (isSigVBargraph(sig, path,x,y,z))	{
         pushUserInterfaceMethod(
-            InstBuilder::genAddVerticalBargraphInst(label, tree2str(varname),  tree2float(x), tree2float(y)));
+            InstBuilder::genAddVerticalBargraphInst(checkNullLabel(varname, label), tree2str(varname),  tree2float(x), tree2float(y)));
 
 	} else if (isSigHBargraph(sig, path,x,y,z))	{
  	    pushUserInterfaceMethod(
-            InstBuilder::genAddHorizontalBargraphInst(label, tree2str(varname), tree2float(x), tree2float(y)));
+            InstBuilder::genAddHorizontalBargraphInst(checkNullLabel(varname, label), tree2str(varname), tree2float(x), tree2float(y)));
 
 	} else {
 		throw faustexception("ERROR in generating widget code\n");
