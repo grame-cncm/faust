@@ -1286,18 +1286,22 @@ with {
 
   freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
 
+  // FIXME: Should be logarithmic:
   f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob]
        [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
        200, 50, 1000, 1));
 
+  // FIXME: Should be logarithmic:
   t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob]
           [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
 	  3, 1, 8, 0.1));
 
+  // FIXME: Should be logarithmic:
   t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob]
           [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
 	  2, 1, 8, 0.1));
 
+  // FIXME: Should be logarithmic:
   f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
        [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
        6000, 1500, 0.49*fsmax, 1));
@@ -1315,6 +1319,7 @@ with {
 
   eq1_group(x) = fdn_group(hgroup("[3] RM Peaking Equalizer 1", x));
 
+  // FIXME: Should be logarithmic:
   eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob]
        [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 1]",
        315, 40, 2500, 1));
@@ -1329,9 +1334,10 @@ with {
 
   eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
 
+  // FIXME: Should be logarithmic:
   eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob]
        [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 2]",
-       315, 40, 2500, 1));
+       1500, 160, 10000, 1));
 
   eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob]
        [tooltip: Peak level in dB of second-order Regalia-Mitra peaking equalizer section 2]",
