@@ -29,12 +29,12 @@ var DSP_poly_keyOff = Module.cwrap('DSP_poly_keyOff', null, ['number', 'number',
 var DSP_poly_ctrlChange = Module.cwrap('DSP_poly_ctrlChange', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_pitchWheel = Module.cwrap('DSP_poly_pitchWheel', null, ['number', 'number', 'number']);
 
-faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
+faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     var that = {};
     
     faust.context = context;
     that.buffer_size = buffer_size;
-    that.handler = handler;
+    that.handler = null;
     
     // bargraph
     that.ouputs_timer = 5;
@@ -132,6 +132,12 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, handler) {
             that.scriptProcessor.connect(node);
         }
     };
+    
+    
+    that.setHandler = function (handler)
+    {
+        that.handler = handler;
+    }
     
     // Bind to Web Audio, external API
     that.start = function () 

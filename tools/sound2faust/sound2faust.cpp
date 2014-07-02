@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
             *dst << "};" << std::endl;
         }
         
-        // And generates one multi-channels processor
+        // Generates one multi-channels processor
         *dst << RemoveEnding(base_name) << " = ";
         
         sep = '(';
@@ -142,6 +142,10 @@ int main(int argc, char *argv[])
         
         *dst << ");" << std::endl;
         
+        // And generate tables
+        for (int chan = 0; chan < snd_info.channels; chan++) {
+            *dst << RemoveEnding(base_name) << "_rtable_" << chan <<"(r) = (" << RemoveEnding(base_name) << "_" << chan << ",r):rdtable;" << endl;
+        }
     }
        
     dst->flush();

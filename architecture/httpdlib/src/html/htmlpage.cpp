@@ -143,7 +143,7 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "  </head>" << endl;
 	out << "  <body>" << endl;
 	out << "    <script type=\"text/javascript\">" << endl;
-	out << "      _f4u$t.main('";
+	out << "      _f4u$t.server_update_function = _f4u$t.main('";
 	out << s;
 	out << "', null, _f4u$t.faust_server_handler);" << endl;
 	out << "    </script>" << endl;

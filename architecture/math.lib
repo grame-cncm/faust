@@ -44,6 +44,7 @@ declare license "LGPL with exception";
 //
 // History
 // ----------
+// 20/06/2014	[SL]	added FTZ function
 // 22/06/2013	[YO]	added float|double|quad variants of some foreign functions
 // 28/06/2005	[YO]	postfixed functions with 'f' to force float version
 //						instead of double

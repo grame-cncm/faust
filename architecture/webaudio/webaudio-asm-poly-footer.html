@@ -128,12 +128,13 @@ function startDSPAux(buffer_size)
         DSP_poly.stop();
         DSP_poly.destroy();
     }
-    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony, _f4u$t.update_value_at_address);
+    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony);
     DSP_poly.start();
     console.log(DSP_poly.json());
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
-    _f4u$t.main(DSP_poly.json(), null, DSP_poly.update);
+    var handler = _f4u$t.main(DSP_poly.json(), null, DSP_poly.update);
+    DSP_poly.setHandler(handler);
 }
 
 function startDSP() 

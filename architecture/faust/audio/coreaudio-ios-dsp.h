@@ -244,6 +244,10 @@ void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 i
 
 int TiPhoneCoreAudioRenderer::SetupMixing()
 {
+    OSStatus err;
+    
+    /*
+    01/07/2014 : cause iRig to fail, so deactivated for now...
     CFStringRef route;
     UInt32 routesize = sizeof(route);
     OSStatus err  = AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &routesize, &route);
@@ -255,6 +259,7 @@ int TiPhoneCoreAudioRenderer::SetupMixing()
             AudioSessionSetProperty(kAudioSessionProperty_OverrideAudioRoute, sizeof(newRoute), &newRoute);
         }
     }
+    */
     
     UInt32 allowMixing = true;
     err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
