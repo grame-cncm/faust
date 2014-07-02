@@ -58,9 +58,10 @@
 #define minValue minimum
 #define maxValue maximum
 
-
-///using namespace std;
-
+static inline bool startWith(const std::string& str, const std::string& prefix)
+{
+    return (str.substr(0, prefix.size()) == prefix);
+}
 
 //==============================BEGIN QSYNTHKNOB=====================================
 //
@@ -1248,12 +1249,12 @@ class QTGUI : public QObject, public GUI
     * label (without options) and an amount of stack adjustement (in case additional
     * containers were pushed on the stack).
     */
-
+    
     int checkLabelOptions(QWidget* widget, const std::string& fullLabel, std::string& simplifiedLabel)
     {
         std::map<std::string, std::string> metadata;
         extractMetadata(fullLabel, simplifiedLabel, metadata);
-
+   
         if (metadata.count("tooltip")) {
             widget->setToolTip(metadata["tooltip"].c_str());
         }
@@ -1291,6 +1292,8 @@ class QTGUI : public QObject, public GUI
         extractMetadata(fulllabel, label, metadata);
   		layout->setMargin(5);
 		QWidget* box;
+        
+        label = startWith(label, "0x") ? "" : label;
         
         if(fGroupStack.empty())
         {
