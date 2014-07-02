@@ -197,8 +197,8 @@ linear2db(x)	= 20*log10(x);
 // 			noise : Noise generator
 //-----------------------------------------------
 
-random 		= +(12345) ~ *(1103515245);
-RANDMAX		= 2147483647.0;
+random 		= +(12345) ~ *(1103515245); // "linear congruential"
+RANDMAX		= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
 
 noise 		= random / RANDMAX;
 
