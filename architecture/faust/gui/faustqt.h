@@ -977,7 +977,7 @@ class uiSlider : public QObject, public uiItem
     FAUSTFLOAT	fLogMin;
     FAUSTFLOAT	fLogDelta;
 
-    const double N = 10000.0;
+    const double N;
 
  protected :
     int		faust2qt(FAUSTFLOAT x) 	{
@@ -1011,7 +1011,7 @@ class uiSlider : public QObject, public uiItem
  public :
 
     uiSlider (GUI* ui, FAUSTFLOAT* zone, QSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, bool logscale)
-        : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step), fLogScale(logscale)
+        : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step), fLogScale(logscale), N(10000.0)
 	{
         if (fLogScale) {
             fLogMin = log(fMin);
@@ -1049,7 +1049,7 @@ public :
     FAUSTFLOAT          fLogMin;
     FAUSTFLOAT          fLogDelta;
 
-    const double N = 10000.0;
+    const double N;
 
 protected:
 //    int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
@@ -1081,7 +1081,7 @@ protected:
 public :
 
     uiKnob (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, bool logscale)
-        : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step), fLogScale(logscale)
+        : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step), fLogScale(logscale), N(10000.0)
     {
         if (fLogScale) {
             fLogMin = log(fMin);
