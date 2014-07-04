@@ -116,7 +116,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
- * Destroy all Faust DSP factory kept in the library cache. Beware : all kept factory pointer (in local variables of so...) thus become invalid.
+ * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
  * 
  */                                 
 void deleteAllDSPFactories();

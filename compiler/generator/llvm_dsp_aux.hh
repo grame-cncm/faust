@@ -44,10 +44,21 @@ struct Meta;
 
 class llvm_dsp_factory;
 
-typedef class SMARTP<llvm_dsp_factory>	Sllvm_dsp_factory;
+typedef class SMARTP<llvm_dsp_factory> Sllvm_dsp_factory;
 
-#define FactoryTableType   map< Sllvm_dsp_factory, list<llvm_dsp_aux*> >
-#define FactoryTableIt     FactoryTableType::iterator
+struct FactoryTableType : public map< Sllvm_dsp_factory, list<llvm_dsp_aux*> > 
+{
+    FactoryTableType() 
+    { 
+        //printf("FactoryTableType\n"); 
+    }
+    virtual ~FactoryTableType() 
+    { 
+        //printf("~FactoryTableType\n"); 
+    }
+};
+
+#define FactoryTableIt FactoryTableType::iterator
 
 class llvm_dsp_factory : public smartable {
 
