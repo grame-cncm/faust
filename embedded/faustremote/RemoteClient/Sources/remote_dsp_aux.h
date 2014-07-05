@@ -77,16 +77,16 @@ extern "C"
     
     struct remote_DNS {
         
-        static void    cleanupMachineList(std::map<string, member> clients_list);
+        static void cleanupMachineList(std::map<string, member> clients_list);
         
         static void errorHandler(int num, const char *m, const char *path);
         
         static int pingHandler(const char *path, const char *types, lo_arg ** argv,
-                        int argc, void *data, void *user_data);
+                               int argc, void *data, void *user_data);
         
-        lo_server_thread    fLoThread;
+        lo_server_thread fLoThread;
         
-        std::map<string, member>        fClients;
+        std::map<string, member> fClients;
         
         TMutex fLocker;
         

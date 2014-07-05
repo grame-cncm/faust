@@ -100,6 +100,12 @@ extern "C"
     void deleteRemoteDSPFactory(remote_dsp_factory* factory);
     
     /**
+     * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
+     * 
+     */                                 
+    void deleteAllRemoteDSPFactories();
+    
+    /**
      * Call global declarations with the given meta object.
      * 
      * @param factory - the Faust DSP factory
@@ -166,8 +172,8 @@ extern "C"
      *                  --NJ_partial ==> default is 'false'
      * @param sampling_rate - NetJack slave sampling rate
      * @param buffer_size - NetJack slave buffer size
-     * @param error_callback - Error callback
-     * @param error_callback_arg - Error callback argument
+     * @param error_callback - error callback
+     * @param error_callback_arg - error callback argument
      * @param error - the error value to be filled
      * 
      * @return the remote DSP instance on success, otherwise a null pointer.
@@ -197,7 +203,7 @@ extern "C"
     /**
      * For a machine on the network that does Remote Processing, get the list of all currently available DSP factories.
      * @param ip_server - IP of remote machine
-     * @param port_server - Port on which the Remote Server started
+     * @param port_server - port on which the Remote Server started
      * @param factories_list - vector to be filled with <name_factory, shakey_factory>
      *
      * @return true if no error was encountered.
