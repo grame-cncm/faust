@@ -97,6 +97,7 @@ install :
 	mkdir -p $(prefix)/lib/faust
 	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
 	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust) || echo libfaust.$(LIB_EXT) not available
+	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/faust) || echo libfaust.a not available
 	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/

@@ -152,9 +152,9 @@ sawtooth_demo = signal with {
 [tooltip: Percentange frequency-shift up or down for third detuned oscillator]",
     +0.1,-10,10,0.01));
   portamento = knob_group(
-    vslider("[5] Portamento [unit:sec] [style:knob]
+    vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-      0.1,0.01,1,0.001));
+      0.1,0.001,10,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   tone = (amp/3) * 
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
@@ -270,9 +270,9 @@ virtual_analog_oscillator_demo = signal with {
       [tooltip: Percentange frequency-shift up or down for third detuned oscillator]",
     +0.1,-10,10,0.01));
   portamento = knob_group(
-    vslider("[5] Portamento [unit:sec] [style:knob]
+    vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-      0.1,0.01,1,0.001));
+      0.1,0.001,10,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
 };
 
@@ -350,9 +350,9 @@ oscrs_demo = signal with {
      49,1,88,0.01) : pianokey2hz);
   pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // (also defined in effect.lib)
   portamento = osc_group(
-    hslider("[3] Portamento [unit:sec]
+    hslider("[3] Portamento [unit:sec] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-      0.1,0,1,0.001));
+      0.1,0.001,10,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   signal = amp * oscrs(sfreq);
 };

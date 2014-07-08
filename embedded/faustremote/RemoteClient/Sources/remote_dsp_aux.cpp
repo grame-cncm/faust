@@ -24,7 +24,6 @@
 #include "faust/gui/ControlUI.h"
 #include "../../../../compiler/generator/llvm-c-dsp.h"
 #include "../../../../compiler/libfaust.h"
-
 #include "../../utilities.h"
 #include <errno.h>
 #include <libgen.h>
@@ -401,9 +400,11 @@ EXPORT void deleteAllRemoteDSPFactories()
 {
     FactoryTableIt it;
     for (it = remote_dsp_factory::gFactoryTable.begin(); it != remote_dsp_factory::gFactoryTable.end(); it++) {
-        // Force deletion of factory...
-        delete (*it).first;
+        // Decrement counter up to one...
+        while (((*it).first)->refs() > 1) { ((*it).first)->removeReference(); }
     }
+    // Then clear the table thus finally deleting all ref = 1 smart pointers
+    remote_dsp_factory::gFactoryTable.clear();
 }
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
@@ -915,7 +916,7 @@ void remote_DNS::errorHandler(int num, const char *msg, const char *path)
 /* catch any incoming messages and display them. returning 1 means that the
  * message has not been fully handled and the server should try other methods */
 int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
-                 int argc, void *data, void *user_data)
+                            int argc, void *data, void *user_data)
 {
     remote_DNS* dns = (remote_DNS*)user_data;
     
@@ -927,13 +928,11 @@ int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
     convert << messageSender.pid;
     string key = messageSender.hostname + ":" + convert.str();
     
-    if (dns->fLocker.Lock())
-    {
-        if(dns->fClients[key].timetag.sec == 0)
+    if (dns->fLocker.Lock()) {
+        if (dns->fClients[key].timetag.sec == 0)
             printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
             
         printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
-        
         dns->fClients[key] = messageSender;
         gDNS->fLocker.Unlock();
     }
@@ -1047,11 +1046,3 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
     
     return isSuccessfull;
 }
-
-
-
-
-
-
-
-

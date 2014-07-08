@@ -171,6 +171,8 @@ int main(int argc, char *argv[])
         
         std::string error_msg3;
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
+        //deleteDSPFactory(factory3);
+        //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         factory4 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         if (factory3) {
             DSP = createDSPInstance(factory3);

@@ -232,34 +232,39 @@ faust.DSP = function (context, buffer_size) {
         that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
         that.scriptProcessor.onaudioprocess = that.compute;
         
-        // allocate memory for input / output arrays
-        that.ins = that.audio_heap_ptr_inputs; 
-        
-        // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
-        for (i = 0; i < that.numIn; i++) { 
-            // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
-            that.HEAP32[(that.ins >> 2) + i] = that.audio_heap_inputs + ((that.buffer_size * that.sample_size) * i);
+        if (that.numIn > 0) {
+ 
+            that.ins = that.audio_heap_ptr_inputs; 
+            
+            // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
+            for (i = 0; i < that.numIn; i++) { 
+                // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                that.HEAP32[(that.ins >> 2) + i] = that.audio_heap_inputs + ((that.buffer_size * that.sample_size) * i);
+            }
+     
+            // Prepare Ins/out buffer tables
+            that.dspInChannnels = [];
+            var dspInChans = that.HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptr_size) >> 2);
+            for (i = 0; i < that.numIn; i++) {
+                that.dspInChannnels[i] = that.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptr_size) >> 2);
+            }
         }
         
-        that.outs = that.audio_heap_ptr_outputs; 
-        
-        // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
-        for (i = 0; i < that.numOut; i++) { 
-            // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
-            that.HEAP32[(that.outs >> 2) + i] = that.audio_heap_outputs + ((that.buffer_size * that.sample_size) * i);
-        }
-    
-        // Prepare Ins/out buffer tables
-        that.dspInChannnels = [];
-        var dspInChans = that.HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptr_size) >> 2);
-        for (i = 0; i < that.numIn; i++) {
-            that.dspInChannnels[i] = that.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptr_size) >> 2);
-        }
-       
-        that.dspOutChannnels = [];
-        var dspOutChans = that.HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptr_size) >> 2);
-        for (i = 0; i < that.numOut; i++) {
-            that.dspOutChannnels[i] = that.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptr_size) >> 2);
+        if (that.numOut > 0) {
+ 
+            that.outs = that.audio_heap_ptr_outputs; 
+            
+            // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
+            for (i = 0; i < that.numOut; i++) { 
+                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                that.HEAP32[(that.outs >> 2) + i] = that.audio_heap_outputs + ((that.buffer_size * that.sample_size) * i);
+            }
+          
+            that.dspOutChannnels = [];
+            var dspOutChans = that.HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptr_size) >> 2);
+            for (i = 0; i < that.numOut; i++) {
+                that.dspOutChannnels[i] = that.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptr_size) >> 2);
+            }
         }
                                 
         // bargraph
@@ -271,6 +276,7 @@ faust.DSP = function (context, buffer_size) {
     
     that.init();
     return that;
- }
+}
+ 
 }());
 

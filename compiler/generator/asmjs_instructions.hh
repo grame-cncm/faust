@@ -220,8 +220,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(NamedAddress* named)
         {   
-            //printf("NamedAddress %s\n", named->getName().c_str());
-            
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
                 switch (tmp.second) {
@@ -265,8 +263,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << " >> 2]";
             } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                // if (tmp.second == Typed::kFloatMacro || tmp.second == Typed::kFloat || tmp.second == Typed::kDouble) {
-                // KEEP PTR
                 if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";

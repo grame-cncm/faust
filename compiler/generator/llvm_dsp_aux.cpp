@@ -860,7 +860,7 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
             llvm_dsp_factory::gFactoryTable.erase(factory);
         } else {
             sfactory->removeReference();
-        }
+         }
     }
 }
 
@@ -868,12 +868,13 @@ EXPORT void deleteAllDSPFactories()
 {
     FactoryTableIt it;
     for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
-        // Force deletion of factory...
-        delete (*it).first;
+        // Decrement counter up to one...
+        while (((*it).first)->refs() > 1) { ((*it).first)->removeReference(); }
     }
+    // Then clear the table thus finally deleting all ref = 1 smart pointers
+    llvm_dsp_factory::gFactoryTable.clear();
 }
     
-
 // Bitcode <==> string
 
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, const string& target, int opt_level)

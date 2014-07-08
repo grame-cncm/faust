@@ -337,9 +337,9 @@ class CodeContainer : public virtual Garbageable {
         {
             list<CodeContainer*>::const_iterator it;
             for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-                InstBuilder::mergeBlock(fExtGlobalDeclarationInstructions, (*it)->fExtGlobalDeclarationInstructions);
-                InstBuilder::mergeBlock(fGlobalDeclarationInstructions, (*it)->fGlobalDeclarationInstructions);
-                InstBuilder::mergeBlock(fDeclarationInstructions, (*it)->fDeclarationInstructions);
+                fExtGlobalDeclarationInstructions->merge((*it)->fExtGlobalDeclarationInstructions);
+                fGlobalDeclarationInstructions->merge((*it)->fGlobalDeclarationInstructions);
+                fDeclarationInstructions->merge((*it)->fDeclarationInstructions);
                 (*it)->fGlobalDeclarationInstructions->fCode.clear();
                 (*it)->fExtGlobalDeclarationInstructions->fCode.clear();
                 (*it)->fDeclarationInstructions->fCode.clear();
