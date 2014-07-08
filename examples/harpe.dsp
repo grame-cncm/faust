@@ -48,7 +48,7 @@ harpe(N) = 	hand <: par(i, N, position((i+0.5)/N)
 	with {
 		lvl  = hslider("level [unit:f][osc:/accxyz/0 -10 10]", 0.5, 0, 1, 0.01)^2;
 		att  = hslider("attenuation [osc:/1/fader3]", 0.005, 0, 0.01, 0.001);
-		hand = hslider("hand[osc:/accxyz/1 -10 10]", 0, 0, 1, 0.01):smooth(0.9);
+		hand = hslider("hand[osc:/accxyz/1 0 20]", 0, 0, 1, 0.01):smooth(0.9);
 		pan(p) = _ <: *(sqrt(1-p)), *(sqrt(p));
 		position(a,x) = (min(x,x') < a) & (a < max(x, x'));
 		smooth(c) = *(1.0-c) : + ~ *(c);

@@ -250,8 +250,8 @@ inline bool Semaphore::try_wait()
 #endif
 
 #ifdef __APPLE__
-//#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
-#include <MacTypes.h>
+#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+//#include <MacTypes.h>
 #include <libkern/OSAtomic.h>
 #endif
 
