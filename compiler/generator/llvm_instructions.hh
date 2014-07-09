@@ -2272,6 +2272,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
                 return generateScalarSelect(opcode, comp_value, genFloat(fModule, 1.0f, size), genFloat(fModule, 0.0f, size), size);
+            } else if (opcode >= kAND && opcode < kXOR) {
+                // Logical operations work on integers, so cast both operands here
+                return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst,
+                                            fBuilder->CreateFPToSI(arg1, getInt32Ty(fModule, size)),
+                                            fBuilder->CreateFPToSI(arg2, getInt32Ty(fModule, size)));
             } else {
                 return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
             }
@@ -2282,6 +2287,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
                 return generateScalarSelect(opcode, comp_value, genDouble(fModule, 1.0, size), genDouble(fModule, 0.0, size), size);
+            } else if (opcode >= kAND && opcode < kXOR) {
+                // Logical operations work on integers, so cast both operands here
+                return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst,
+                                             fBuilder->CreateFPToSI(arg1, getInt32Ty(fModule, size)),
+                                             fBuilder->CreateFPToSI(arg2, getInt32Ty(fModule, size)));
             } else {
                 return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
             }

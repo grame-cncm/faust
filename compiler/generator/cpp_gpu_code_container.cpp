@@ -172,7 +172,6 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
         tab(n+1, *fOut);
-
         if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {

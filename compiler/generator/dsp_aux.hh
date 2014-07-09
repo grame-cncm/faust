@@ -42,7 +42,6 @@ EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, cons
 
 EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
