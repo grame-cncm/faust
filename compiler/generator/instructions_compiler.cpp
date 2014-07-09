@@ -657,8 +657,11 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, 
     ValueInst* val1 = CS(arg1);
     ValueInst* val2 = CS(arg2);
 
+    // Logical operations work on integers, so cast both operands here
+    if (opcode >= kAND && opcode < kXOR) {
+        res = InstBuilder::genBinopInst(opcode, InstBuilder::genCastNumIntInst(val1), InstBuilder::genCastNumIntInst(val2));
     // Arguments and expected result type analysis, add the required "cast" when needed
-    if (t1 == kReal) {
+    } else if (t1 == kReal) {
         res = (t2 == kReal) 
             ? InstBuilder::genBinopInst(opcode, val1, val2) 
             : InstBuilder::genBinopInst(opcode, val1, InstBuilder::genCastNumFloatInst(val2));
