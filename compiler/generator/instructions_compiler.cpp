@@ -659,20 +659,22 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, 
 
     // Logical operations work on integers, so cast both operands here
     if (opcode >= kAND && opcode < kXOR) {
-        res = InstBuilder::genBinopInst(opcode, InstBuilder::genCastNumIntInst(val1), InstBuilder::genCastNumIntInst(val2));
-    // Arguments and expected result type analysis, add the required "cast" when needed
-    } else if (t1 == kReal) {
-        res = (t2 == kReal) 
-            ? InstBuilder::genBinopInst(opcode, val1, val2) 
-            : InstBuilder::genBinopInst(opcode, val1, InstBuilder::genCastNumFloatInst(val2));
-    } else if (t2 == kReal) {
-        res = InstBuilder::genBinopInst(opcode, InstBuilder::genCastNumFloatInst(val1), val2);
+        res = InstBuilder::genBinopInst(opcode, 
+                                        ((t1 == kReal) ? InstBuilder::genCastNumIntInst(val1) : val1), 
+                                        ((t2 == kReal) ? InstBuilder::genCastNumIntInst(val2) : val2));
+        res = (t3 == kReal) ? InstBuilder::genCastNumFloatInst(res) : res;
+    // One of arg1 or arg2 is kReal, operation is done on kReal
+    } else if ((t1 == kReal) || (t2 == kReal)) {
+        res = InstBuilder::genBinopInst(opcode, 
+                                        ((t1 == kReal) ? val1 : InstBuilder::genCastNumFloatInst(val1)), 
+                                        ((t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2)));
+        res = (t3 == kReal) ? res : InstBuilder::genCastNumIntInst(res);
+    // kInt operation
     } else {
         res = InstBuilder::genBinopInst(opcode, val1, val2);
+        res = (t3 == kReal) ? InstBuilder::genCastNumFloatInst(res) : res;
     }
-    
-    res = (t3 == kReal) ? InstBuilder::genCastNumFloatInst(res) : InstBuilder::genCastNumIntInst(res);
-    assert(res);
+     
     return generateCacheCode(sig, res);
 }
 
@@ -704,7 +706,6 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
     pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
  
-    // TODO : asm.js
     return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
 }
 
