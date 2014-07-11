@@ -1215,7 +1215,7 @@ public slots :
 
     void updateZone(int)
     {
-        double x = currentData().toDouble();
+        double x = itemData(currentIndex()).toDouble();
         *fZone = x;
     }
 };
