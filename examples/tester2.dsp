@@ -20,6 +20,7 @@ pink	= f : (+ ~ g) with {
 // User interface
 //----------------
 smooth(c)	= *(1-c) : +~*(c);
+transition(n) = \(old,new).(if(old<new, min(old+1.0/n,new), max(old-1.0/n,new))) ~ _;
 
 vol  = hslider("[2] volume [unit:dB]", -96, -96, 0, 1): db2linear : smooth(0.999);
 freq = hslider("[1] freq [unit:Hz][scale:log]", 440, 40, 20000, 1);
@@ -30,6 +31,6 @@ testsignal	= noise, pink(noise), osci(freq): select3(wave);
 
 process 	= vgroup( "Stereo Audio Tester", 
 				testsignal*vol 
-				<: par(i, 2, *(dest & (i+1))) 
+				<: par(i, 2, *((dest & (i+1)) != 0 : transition(4410))) 
 			);
 
