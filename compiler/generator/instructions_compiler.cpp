@@ -1535,29 +1535,36 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
         }
     }
 
-	if (isSigButton(sig, path)) 					{
+	if (isSigButton(sig, path)) {
+        fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddButtonInst(checkNullLabel(varname, label), tree2str(varname)));
 
-	} else if (isSigCheckbox(sig, path)) 			{
+	} else if (isSigCheckbox(sig, path)) {
+        fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddCheckbuttonInst(checkNullLabel(varname, label), tree2str(varname)));
 
-	} else if (isSigVSlider(sig, path,c,x,y,z))	{
+	} else if (isSigVSlider(sig, path,c,x,y,z)) {
+        fContainer->incUIActiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddVerticalSliderInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
 	} else if (isSigHSlider(sig, path,c,x,y,z))	{
+        fContainer->incUIActiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddHorizontalSliderInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
-	} else if (isSigNumEntry(sig, path,c,x,y,z))	{
+	} else if (isSigNumEntry(sig, path,c,x,y,z)) {
+        fContainer->incUIActiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddNumEntryInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
 	} else if (isSigVBargraph(sig, path,x,y,z))	{
+        fContainer->incUIPassiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddVerticalBargraphInst(checkNullLabel(varname, label), tree2str(varname),  tree2float(x), tree2float(y)));
 
 	} else if (isSigHBargraph(sig, path,x,y,z))	{
+        fContainer->incUIPassiveCount();
  	    pushUserInterfaceMethod(
             InstBuilder::genAddHorizontalBargraphInst(checkNullLabel(varname, label), tree2str(varname), tree2float(x), tree2float(y)));
 
@@ -1623,44 +1630,44 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 
 	} else if (isSigVSlider(sig, path,c,x,y,z))	{
 		fContainer->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
-				pathlabel,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+                                pathlabel,
+                                tree2str(varname),
+                                T(tree2float(c)),
+                                T(tree2float(x)),
+                                T(tree2float(y)),
+                                T(tree2float(z))));
 
 	} else if (isSigHSlider(sig, path,c,x,y,z))	{
 		fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
-				pathlabel,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+                                pathlabel,
+                                tree2str(varname),
+                                T(tree2float(c)),
+                                T(tree2float(x)),
+                                T(tree2float(y)),
+                                T(tree2float(z))));
 
 	} else if (isSigNumEntry(sig, path,c,x,y,z))	{
 		fContainer->addUIMacro(subst("FAUST_ADDNUMENTRY(\"$0\", $1, $2, $3, $4, $5);",
-				pathlabel,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+                                pathlabel,
+                                tree2str(varname),
+                                T(tree2float(c)),
+                                T(tree2float(x)),
+                                T(tree2float(y)),
+                                T(tree2float(z))));
 
 	} else if (isSigVBargraph(sig, path,x,y,z))	{
 		fContainer->addUIMacro(subst("FAUST_ADDVERTICALBARGRAPH(\"$0\", $1, $2, $3);",
-				pathlabel,
-				tree2str(varname),
-				T(tree2float(x)),
-				T(tree2float(y))));
+                                pathlabel,
+                                tree2str(varname),
+                                T(tree2float(x)),
+                                T(tree2float(y))));
 
 	} else if (isSigHBargraph(sig, path,x,y,z))	{
 		fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALBARGRAPH(\"$0\", $1, $2, $3);",
-				pathlabel,
-				tree2str(varname),
-				T(tree2float(x)),
-				T(tree2float(y))));
+                                pathlabel,
+                                tree2str(varname),
+                                T(tree2float(x)),
+                                T(tree2float(y))));
 
 	} else {
 	     throw faustexception("ERROR in generating widget code\n");

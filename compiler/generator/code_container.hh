@@ -97,9 +97,6 @@ class CodeContainer : public virtual Garbageable {
         int fSubContainerType;
         string fFullCount;
 
-        void incUIActiveCount()    { fNumActives++; }
-        void incUIPassiveCount()   { fNumPassives++; }
-
         void merge(set<string>& dst, set<string>& src)
         {
             set<string>::iterator i;
@@ -363,7 +360,10 @@ class CodeContainer : public virtual Garbageable {
         virtual void dump(ostream* dst) {}
     
         virtual int getStructSize() { assert(false); return 0; }
-
+    
+        void incUIActiveCount()    { fNumActives++; }
+        void incUIPassiveCount()   { fNumPassives++; }
+ 
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
