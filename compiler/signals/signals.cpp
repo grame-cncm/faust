@@ -104,7 +104,12 @@ bool isSigDocAccessTbl   (Tree t, Tree& tbl, Tree& ridx)        { return isTree(
 Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(gGlobal->SIGSELECT2, sigIntCast(selector), s1, s2); }
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)				{ return isTree(t, gGlobal->SIGSELECT2, selector, s1, s2); }
 
-Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(gGlobal->SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
+//  "select3" expresses with "select2"
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)
+{
+    return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
+           sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
+}
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, gGlobal->SIGSELECT3, selector, s1, s2, s3); }
 
 // Arithmetical operations

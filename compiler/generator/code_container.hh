@@ -44,7 +44,7 @@ class CodeContainer : public virtual Garbageable {
     protected:
 
         list <CodeContainer*> fSubContainers;
-        CodeContainer* fParentContainer;     ///< Container in which this Container is embedded, void if toplevel Container
+        CodeContainer* fParentContainer;     ///< Container in which this Container is embedded, null if toplevel Container
 
         int fNumInputs;
         int fNumOutputs;
@@ -97,13 +97,10 @@ class CodeContainer : public virtual Garbageable {
         int fSubContainerType;
         string fFullCount;
 
-        void incUIActiveCount()    { fNumActives++; }
-        void incUIPassiveCount()   { fNumPassives++; }
-
         void merge(set<string>& dst, set<string>& src)
         {
             set<string>::iterator i;
-            for (i = src.begin(); i != src.end(); i++)  dst.insert(*i);
+            for (i = src.begin(); i != src.end(); i++) dst.insert(*i);
         }
 
         void collectIncludeFile(set<string>& S)
@@ -161,11 +158,11 @@ class CodeContainer : public virtual Garbageable {
         void setInputs(int inputs)      { fNumInputs = inputs; }
         void setOutputs(int outputs)    { fNumOutputs = outputs; }
 
-        void setInputRate(int channel, int rate) { fInputRates[channel] = rate;}
-        void setOutputRate(int channel, int rate) { fOutputRates[channel] = rate;}
+        void setInputRate(int channel, int rate) { fInputRates[channel] = rate; }
+        void setOutputRate(int channel, int rate) { fOutputRates[channel] = rate; }
 
-        int getInputRate(int channel) { return fInputRates[channel];}
-        int getOutputRate(int channel) { return fOutputRates[channel];}
+        int getInputRate(int channel) { return fInputRates[channel]; }
+        int getOutputRate(int channel) { return fOutputRates[channel]; }
 
         void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
 
@@ -363,7 +360,10 @@ class CodeContainer : public virtual Garbageable {
         virtual void dump(ostream* dst) {}
     
         virtual int getStructSize() { assert(false); return 0; }
-
+    
+        void incUIActiveCount()    { fNumActives++; }
+        void incUIPassiveCount()   { fNumPassives++; }
+ 
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
