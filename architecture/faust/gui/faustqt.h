@@ -38,9 +38,14 @@
 #include <QtWidgets>
 #endif
 #include <QApplication>
+#include <QLabel>
+#include <QComboBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/ValueConverter.h"
+#include "faust/gui/SimpleParser.h"
 
 #include <sstream>
 #if defined(HTTPCTRL) && defined(QRCODECTRL) 
@@ -52,7 +57,7 @@
 #include <arpa/inet.h>
 
 #define STYLESHEET "QPushButton {background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #B0B0B0, stop: 1 #404040); border: 2px solid grey; border-radius: 6px; margin-top: 1ex; } QPushButton:hover { border: 2px solid orange; } QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, stop: 1 #B0B0B0); } QGroupBox, QMainWindow { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); border: 2px solid gray; border-radius: 5px; margin-top: 3ex; font-size:10pt; font-weight:bold; color: white; } QGroupBox::title, QMainWindow::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 5px; } QSlider::groove:vertical { background: red; position: absolute; left: 13px; right: 13px; } QSlider::handle:vertical { height: 40px; width: 30px; background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: 0 -5px; /* expand outside the groove */ border-radius: 5px; } QSlider::add-page:vertical { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange); } QSlider::sub-page:vertical { background: grey; }  QSlider::groove:horizontal { background: red; position: absolute; top: 14px; bottom: 14px; }  QSlider::handle:horizontal { width: 40px; background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: -5px 0; border-radius: 5px; } QSlider::sub-page:horizontal { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange); } QSlider::add-page:horizontal { background: grey; }QTabWidget::pane {border-top: 2px solid orange; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); } QTabWidget::tab-bar { left: 5px; }  QTabBar::tab { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #909090, stop: 0.4 #888888, stop: 0.5 #808080, stop: 1.0 #909090); border: 2px solid #808080; border-bottom-color: orange; border-top-left-radius: 4px; border-top-right-radius: 4px; min-width: 8ex; padding: 2px; }  QTabBar::tab:selected, QTabBar::tab:hover { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #D0D0D0, stop: 0.4 #A0A0A0, stop: 0.5 #808080, stop: 1.0 #A0A0A0); } QTabBar::tab:selected { border-color: orange; border-bottom-color: #A0A0A0; } QTabBar::tab:!selected { margin-top: 2px; }"
-
+//#define STYLESHEET ""
 //----------------------------------
 
 // for compatibility
@@ -922,6 +927,11 @@ static void extractMetadata(const std::string& fulllabel, std::string& label, st
 *******************************************************************************
 *******************************************************************************/
 
+
+/**
+ * A push button that controls/reflects the value (O/1)
+ * of a zone.
+ */
 class uiButton : public QObject, public uiItem
 {
     Q_OBJECT
@@ -944,6 +954,11 @@ class uiButton : public QObject, public uiItem
 	void released()		{ modifyZone(0.0); }
 };
 
+
+/**
+ * A checkbox that controls/reflects the value (O/1)
+ * of a zone.
+ */
 class uiCheckButton : public QObject, public uiItem
 {
     Q_OBJECT
@@ -965,6 +980,11 @@ class uiCheckButton : public QObject, public uiItem
 };
 	
 
+
+/**
+ * A slider that controls/reflects the value (min..max)
+ * of a zone.
+ */
 class uiSlider : public QObject, public uiItem
 {
     Q_OBJECT
@@ -1016,46 +1036,204 @@ public slots :
 };
 
 
-/*
-class uiBargraph : public QObject, public uiItem
+/**
+ * A zone setter, an object that sets a zone with a predefined value
+ * every time the set(bool) method is called. The boolean parameter
+ * is here for compatibility with some signals and is ignored.
+ */
+class ZoneSetter : public QObject
 {
     Q_OBJECT
+    FAUSTFLOAT  fValue;
+    FAUSTFLOAT* fZone;
+public:
+    explicit ZoneSetter(FAUSTFLOAT v, FAUSTFLOAT* z, QObject *parent = 0):
+        QObject(parent), fValue(v), fZone(z)
+    {}
 
-    int     faust2qt(FAUSTFLOAT x)   { return int(0.5 + (x-fMin)/(fMax-fMin)*fStep); }
+public slots:
+    void set(bool){
+        *fZone = fValue;
+//        qDebug() << "setting " << fValue << " --> " << fZone;
+    }
+};
 
- public :
-    QProgressBar*   fBar;
-    FAUSTFLOAT      fMin;
-    FAUSTFLOAT      fMax;
-    int             fStep;
 
-    uiBargraph (GUI* ui, FAUSTFLOAT* zone, QProgressBar* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
-        : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024)
+/**
+ * A set of mutually exclusive radio buttons vertically
+ * layed out. The names and values used for the radio buttons
+ * are described in the string mdescr with the following syntax
+ * "{'foo':3.14; 'faa':-0.34; ... 'fii':10.5}"
+ */
+class uiRadioButtons : public QGroupBox, public uiItem
+{
+    Q_OBJECT
+    vector<double>          fValues;
+    vector<QRadioButton*>   fButtons;
+
+public :
+
+    uiRadioButtons (GUI* ui, FAUSTFLOAT* z, const char* label,
+                    FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
+                    bool vertical, const char* mdescr, QWidget* parent)
+        : QGroupBox(label, parent),  uiItem(ui, z)
     {
-        fBar->setRange(0, fStep);
-        fBar->setValue(0);
-        *fZone = 0;
+        vector<string>  names;
+        vector<double>  values;
+
+        if (parseMenuList(mdescr, names, values)) {
+
+            QBoxLayout*    l;
+            if (vertical) {
+                l = new QVBoxLayout(this);
+            } else {
+                l = new QHBoxLayout(this);
+            }
+            l->setSpacing(5);
+
+            QRadioButton*   defaultbutton = 0;
+            double          mindelta = FLT_MAX;
+
+            for (unsigned int i = 0; i < names.size(); i++) {
+                double v = values[i];
+                if ( (v >= lo) && (v <= hi) ) {
+
+                    // It is a valid value included in slider's range
+                    QRadioButton*   b = new QRadioButton(QString(names[i].c_str()), this);
+                    ZoneSetter*     s = new ZoneSetter(v,z,b);
+                    fValues.push_back(v);
+                    fButtons.push_back(b);
+                    connect(b,SIGNAL(clicked(bool)), s, SLOT(set(bool)));
+                    l->addWidget(b);
+
+                    // Check if this item is a good candidate to represent the current value
+                    double delta = fabs(cur-v);
+                    if (delta < mindelta) {
+                        mindelta = delta;
+                        defaultbutton = b;
+                    }
+                }
+            }
+            // check the best candidate to represent the current value
+            if (defaultbutton) { defaultbutton->setChecked(true); }
+            setLayout(l);
+        }
+        *fZone = cur;
     }
 
     virtual void reflectZone()
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-        int x = faust2qt(v);
-        //std::cout << "update *" << fBar << " = " << x << std::endl;
-        fBar->setValue(x);
+
+        // select closest value
+        int             defaultitem = -1;
+        double          mindelta = FLT_MAX;
+
+        for (unsigned int i=0; i<fValues.size(); i++) {
+            double delta = fabs(fValues[i]-v);
+            if (delta < mindelta) {
+                mindelta = delta;
+                defaultitem = i;
+            }
+        }
+        if (defaultitem > -1) { fButtons[defaultitem]->setChecked(true); }
     }
 };
-*/
 
-class uiBargraph2 : public QObject, public uiItem
+
+
+
+/**
+ * A popup menu. The names and values used for the menu items
+ * are described in the string mdescr with the following syntax
+ * "{'foo':3.14; 'faa':-0.34; ... 'fii':10.5}"
+ */
+class uiMenu : public QComboBox, public uiItem
+{
+    Q_OBJECT
+    vector<double>  fValues;
+
+public :
+
+    uiMenu (GUI* ui, FAUSTFLOAT* z, const char* /*label*/,
+            FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
+            const char* mdescr, QWidget* parent)
+        : QComboBox(parent),  uiItem(ui, z)
+    {
+        vector<string>  names;
+        vector<double>  values;
+
+        if (parseMenuList(mdescr, names, values)) {
+
+            int     defaultitem = -1;
+            double  mindelta = FLT_MAX;
+
+            for (unsigned int i = 0; i < names.size(); i++) {
+                double v = values[i];
+                if ( (v >= lo) && (v <= hi) ) {
+
+                    // It is a valid value : add corresponding menu item
+                    addItem(QString(names[i].c_str()), v);
+                    fValues.push_back(v);
+
+                    // Check if this item is a good candidate to represent the current value
+                    double delta = fabs(cur-v);
+                    if (delta < mindelta) {
+                        mindelta = delta;
+                        defaultitem = count()-1;
+                    }
+                }
+            }
+            // check the best candidate to represent the current value
+            if (defaultitem > -1) { setCurrentIndex(defaultitem); }
+        }
+        connect(this,SIGNAL(activated(int)), this, SLOT(updateZone(int)));
+        *fZone = cur;
+    }
+
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+
+        // search closest value
+        int             defaultitem = -1;
+        double          mindelta = FLT_MAX;
+
+        for (unsigned int i=0; i<fValues.size(); i++) {
+            double delta = fabs(fValues[i]-v);
+            if (delta < mindelta) {
+                mindelta = delta;
+                defaultitem = i;
+            }
+        }
+        if (defaultitem > -1) { setCurrentIndex(defaultitem); }
+    }
+
+public slots :
+
+    void updateZone(int)
+    {
+        double x = itemData(currentIndex()).toDouble();
+        *fZone = x;
+    }
+};
+
+
+
+
+/**
+ * A bargraph representing the value of a zone
+ */
+class uiBargraph : public QObject, public uiItem
 {
     Q_OBJECT
 
  public :
     AbstractDisplay*   fBar;
 
-    uiBargraph2 (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
+    uiBargraph (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
         : uiItem(ui, zone), fBar(bar)
     {
         fBar->setRange(lo, hi);
@@ -1071,6 +1249,11 @@ class uiBargraph2 : public QObject, public uiItem
     }
 };
 
+
+/**
+ * A numerical entry that controls/reflects the value (min..max)
+ * of a zone.
+ */
 class uiNumEntry : public QObject, public uiItem
 {
     Q_OBJECT
@@ -1131,15 +1314,30 @@ class QTGUI : public QObject, public GUI
     
     QPixmap                 fQrCode;
 
-    std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
-    std::map<FAUSTFLOAT*, std::string>     fTooltip;       // map widget zone with tooltip strings
-    std::map<FAUSTFLOAT*, std::string>     fUnit;          // map widget zone to unit string (i.e. "dB")
-    std::set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
-    std::set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
-    std::set<FAUSTFLOAT*>                  fNumSet;        // set of widget zone to be numerical bargraphs
-    std::set<FAUSTFLOAT*>                  fLogSet;        // set of widget zone having a log UI scale
-    std::set<FAUSTFLOAT*>                  fExpSet;        // set of widget zone having an exp UI scale
+    std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;            // map widget zone with widget size coef
+    std::map<FAUSTFLOAT*, std::string>     fTooltip;            // map widget zone with tooltip strings
+    std::map<FAUSTFLOAT*, std::string>     fUnit;               // map widget zone to unit string (i.e. "dB")
+    std::map<FAUSTFLOAT*, std::string>     fRadioDescription;   // map zone to {'low':440; ...; 'hi':1000.0}
+    std::map<FAUSTFLOAT*, std::string>     fMenuDescription;    // map zone to {'low':440; ...; 'hi':1000.0}
+    std::set<FAUSTFLOAT*>                  fKnobSet;            // set of widget zone to be knobs
+    std::set<FAUSTFLOAT*>                  fLedSet;             // set of widget zone to be LEDs
+    std::set<FAUSTFLOAT*>                  fNumSet;             // set of widget zone to be numerical bargraphs
+    std::set<FAUSTFLOAT*>                  fLogSet;             // set of widget zone having a log UI scale
+    std::set<FAUSTFLOAT*>                  fExpSet;             // set of widget zone having an exp UI scale
 
+    void clearMetadata()
+    {
+        fGuiSize.clear();
+        fTooltip.clear();
+        fUnit.clear();
+        fRadioDescription.clear();
+        fMenuDescription.clear();
+        fKnobSet.clear();
+        fLedSet.clear();
+        fNumSet.clear();
+        fLogSet.clear();
+        fExpSet.clear();
+    }
 
     /**
     * Format tooltip string by replacing some white spaces by
@@ -1162,55 +1360,20 @@ class QTGUI : public QObject, public GUI
 		return ss;
 	}
 
-    /**
-    * Analyses the widget zone metadata declarations and takes
-    * appropriate actions
-    */
-    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
-    {
-		if (zone == 0) {
-			// special zone 0 means group metadata
-			if (strcmp(key,"tooltip")==0) {
-				// only group tooltip are currently implemented
-				gGroupTooltip = formatTooltip(30, value);
-			}
-		} else {
-			if (strcmp(key,"size")==0) {
-				fGuiSize[zone]=atof(value);
-			}
-			else if (strcmp(key,"tooltip")==0) {
-				fTooltip[zone] = formatTooltip(30, value) ;
-			}
-            else if (strcmp(key,"unit")==0) {
-                fUnit[zone] = value ;
-            }
-            else if (strcmp(key,"scale")==0) {
-                if (strcmp(value,"log") == 0) {
-                    fLogSet.insert(zone);
-                } else if (strcmp(value,"exp") == 0) {
-                    fExpSet.insert(zone);
-                }
-            }
-            else if (strcmp(key,"style")==0) {
-			// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
-				if (strcmp(value,"knob") == 0) {
-					fKnobSet.insert(zone);
-				} else if (strcmp(value,"led") == 0) {
-					fLedSet.insert(zone);
-                } else if (strcmp(value,"numerical") == 0) {
-                    fNumSet.insert(zone);
-                }
-			}
-		}
-	}
-
 	bool isTabContext()
 	{
 		//return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 	}
 
-	void insert(const char* label, QWidget* widget)
+
+    /**
+    * Insert a widget into the parent widget (the top of
+    * the stack group). The label is used if this group is
+    * a tab.
+    */
+
+    void insert(const char* label, QWidget* widget)
 	{
         
 		if (!fGroupStack.empty()) {
@@ -1391,6 +1554,56 @@ class QTGUI : public QObject, public GUI
 
 	virtual ~QTGUI() {}
 
+
+    /**
+    * Analyses the widget zone metadata declarations and takes
+    * appropriate actions
+    */
+    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
+    {
+        if (zone == 0) {
+            // special zone 0 means group metadata
+            if (strcmp(key,"tooltip")==0) {
+                // only group tooltip are currently implemented
+                gGroupTooltip = formatTooltip(30, value);
+            }
+        } else {
+            if (strcmp(key,"size")==0) {
+                fGuiSize[zone]=atof(value);
+            }
+            else if (strcmp(key,"tooltip")==0) {
+                fTooltip[zone] = formatTooltip(30, value) ;
+            }
+            else if (strcmp(key,"unit")==0) {
+                fUnit[zone] = value ;
+            }
+            else if (strcmp(key,"scale")==0) {
+                if (strcmp(value,"log") == 0) {
+                    fLogSet.insert(zone);
+                } else if (strcmp(value,"exp") == 0) {
+                    fExpSet.insert(zone);
+                }
+            }
+            else if (strcmp(key,"style")==0) {
+            // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
+                if (strcmp(value,"knob") == 0) {
+                    fKnobSet.insert(zone);
+                } else if (strcmp(value,"led") == 0) {
+                    fLedSet.insert(zone);
+                } else if (strcmp(value,"numerical") == 0) {
+                    fNumSet.insert(zone);
+                } else {
+                    const char* p = value;
+                    if (parseWord(p,"radio")) {
+                        fRadioDescription[zone] = string(p);
+                    } else if (parseWord(p,"menu")) {
+                        fMenuDescription[zone] = string(p);
+                    }
+                }
+            }
+        }
+    }
+
 #if defined(HTTPCTRL) && defined(QRCODECTRL)
     
     //
@@ -1518,10 +1731,15 @@ class QTGUI : public QObject, public GUI
         fMainWindow->show();
         
 	}
-    
-	// ------------------------- Groups -----------------------------------
 
-	virtual void openHorizontalBox(const char* label) { 
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // OPEN AND CLOSE GROUPS
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    virtual void openHorizontalBox(const char* label) {
 		openBox(label, new QHBoxLayout());
 	}
 
@@ -1530,6 +1748,7 @@ class QTGUI : public QObject, public GUI
     }
 
     virtual void openFrameBox(const char* ) 		{ }
+
 	virtual void openTabBox(const char* label) 		{ 
 		openTab(label);
 	}
@@ -1541,9 +1760,14 @@ class QTGUI : public QObject, public GUI
 		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
 	}
 
-	// ------------------------- active widgets -----------------------------------
 
-	virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // ADD BUTTONS AND CHECKBOX
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)
 	{
 		QAbstractButton* 	w = new QPushButton(label);
 		w->setAttribute(Qt::WA_MacNoClickThrough);
@@ -1553,6 +1777,7 @@ class QTGUI : public QObject, public GUI
 		QObject::connect(w, SIGNAL(pressed()), c, SLOT(pressed()));
 		QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
         checkForTooltip(zone, w);
+        clearMetadata();
 	}
 
     virtual void addToggleButton(const char*, FAUSTFLOAT*)
@@ -1566,7 +1791,15 @@ class QTGUI : public QObject, public GUI
 		insert(label, w);
 		QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
         checkForTooltip(zone, w);
+        clearMetadata();
 	}
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // ADD NUMERICAL ENTRY
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
@@ -1583,6 +1816,7 @@ class QTGUI : public QObject, public GUI
         QObject::connect(w, SIGNAL(valueChanged(double)), c, SLOT(setValue(double)));
         if (label && label[0]) closeBox();
         checkForTooltip(zone, w);
+        clearMetadata();
     }
 
     // special num entry without buttons
@@ -1608,11 +1842,13 @@ class QTGUI : public QObject, public GUI
         QObject::connect(w, SIGNAL(valueChanged(double)), c, SLOT(setValue(double)));
         if (label && label[0]) closeBox();
         checkForTooltip(zone, w);
+        clearMetadata();
     }
+
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
-	// KNOBS
+    // ADD KNOBS
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1634,6 +1870,7 @@ class QTGUI : public QObject, public GUI
 
 		closeBox();
         checkForTooltip(zone, w);
+        clearMetadata();
 	}
 
 	virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -1647,11 +1884,13 @@ class QTGUI : public QObject, public GUI
 		addNumDisplay(0, zone, init, min, max, step);
 		closeBox();
         checkForTooltip(zone, w);
+        clearMetadata();
 	}
+
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
-	// SLIDERS
+    // ADD SLIDERS
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1660,7 +1899,13 @@ class QTGUI : public QObject, public GUI
 		if (isKnob(zone)) {
 			addVerticalKnob(label, zone, init, min, max, step);
 			return;
-		}
+        } else if (fRadioDescription.count(zone)) {
+            addVerticalRadioButtons(label,zone,init,min,max,step,fRadioDescription[zone].c_str());
+            return;
+        } else if (fMenuDescription.count(zone)) {
+            addMenu(label,zone,init,min,max,step,fMenuDescription[zone].c_str());
+            return;
+        }
 		openVerticalBox(label);
 		QSlider* 	w = new QSlider(Qt::Vertical);
         w->setMinimumHeight(160);
@@ -1672,6 +1917,7 @@ class QTGUI : public QObject, public GUI
 		addNumDisplay(0, zone, init, min, max, step);
 		closeBox();
         checkForTooltip(zone, w);
+        clearMetadata();
 	}
 
 	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -1679,7 +1925,13 @@ class QTGUI : public QObject, public GUI
 		if (isKnob(zone)) {
 			addHorizontalKnob(label, zone, init, min, max, step);
 			return;
-		}
+        } else if (fRadioDescription.count(zone)) {
+            addHorizontalRadioButtons(label,zone,init,min,max,step,fRadioDescription[zone].c_str());
+            return;
+        } else if (fMenuDescription.count(zone)) {
+            addMenu(label,zone,init,min,max,step,fMenuDescription[zone].c_str());
+            return;
+        }
 		openHorizontalBox(label);
 		QSlider* 	w = new QSlider(Qt::Horizontal);
         w->setMinimumHeight(34);
@@ -1691,19 +1943,55 @@ class QTGUI : public QObject, public GUI
 		addNumDisplay(0, zone, init, min, max, step);
 		closeBox();
         checkForTooltip(zone, w);
+        clearMetadata();
 	}
 
-	// ------------------------- passive widgets -----------------------------------
 
-    virtual void addNumDisplay(const char*, FAUSTFLOAT*, int)
-    {}
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // ADD RADIO-BUTTONS AND MENUS
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	virtual void addTextDisplay(const char*, FAUSTFLOAT*, const char* [], FAUSTFLOAT, FAUSTFLOAT)
-    {}
+    virtual void addVerticalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                 FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
+    {
+        uiRadioButtons* w = new uiRadioButtons(this,zone,label,init,min,max,step,true,mdescr,0);
+        insert(label, w);
+        checkForTooltip(zone, w);
+        clearMetadata();
+    }
+
+    virtual void addHorizontalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                 FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
+    {
+        uiRadioButtons* w = new uiRadioButtons(this,zone,label,init,min,max,step,false,mdescr,0);
+        insert(label, w);
+        checkForTooltip(zone, w);
+        clearMetadata();
+    }
+
+
+    virtual void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                         FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
+    {
+        if (label && label[0]) openVerticalBox(label);
+        uiMenu* w = new uiMenu(this,zone,label,init,min,max,step,mdescr,0);
+        insert(label, w);
+        checkForTooltip(zone, w);
+        if (label && label[0]) closeBox();
+        clearMetadata();
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // ADD BARGRAPHS
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     virtual void addHorizontalBargraph(const char* label , FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        AbstractDisplay*  bargraph;
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
 
@@ -1711,7 +1999,8 @@ class QTGUI : public QObject, public GUI
         if (fNumSet.count(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
-			if (fLedSet.count(zone)) {
+            AbstractDisplay*  bargraph;
+            if (fLedSet.count(zone)) {
 				if (db) {
 					bargraph = new dbLED(min, max);
 				} else {
@@ -1725,11 +2014,12 @@ class QTGUI : public QObject, public GUI
 				}
 			}
 
-			new uiBargraph2(this, zone, bargraph, min, max);
+            new uiBargraph(this, zone, bargraph, min, max);
 			insert(label, bargraph);
-		}
+            checkForTooltip(zone, bargraph);
+        }
         closeBox();
-        checkForTooltip(zone, bargraph);
+        clearMetadata();
     }
 
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -1745,7 +2035,7 @@ class QTGUI : public QObject, public GUI
 				if (db) {
 					bargraph = new dbLED(min, max);
 				} else {
-					bargraph = new LED(min,max);
+                    bargraph = new LED(min, max);
 				}
 			} else {
 				if (db) {
@@ -1754,14 +2044,14 @@ class QTGUI : public QObject, public GUI
 					bargraph = new linVerticalBargraph(min, max);
 				}
 			}
-			new uiBargraph2(this, zone, bargraph, min, max);
+            new uiBargraph(this, zone, bargraph, min, max);
 			insert(label, bargraph);
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
-		}
+            checkForTooltip(zone, bargraph);
+        }
         closeBox();
-        checkForTooltip(zone, bargraph);
+        clearMetadata();
     }
-
 };
 
 #endif

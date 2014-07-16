@@ -602,6 +602,47 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    mdepth = select2(vibr,depth,2); // Improve "ease of use"
 };
 
+//---------------------------- vocoder -------------------------
+// A very simple vocoder where the spectrum of the modulation signal
+// is analyzed using a filter bank.
+//
+// USAGE: 
+// 		vocoder(nBands,att,rel,BWRatio,source,excitation) : _;
+//
+// where
+// nBands = Number of vocoder bands
+// att = Attack time in seconds
+// rel = Release time in seconds
+// BWRatio = Coefficient to adjust the bandwidth of each band (0.1 - 2)
+// source = Modulation signal
+// excitation = Excitation/Carrier signal
+  
+oneVocoderBand(band,bandsNumb,bwRatio,bandGain,x) = x : resonbp(bandFreq,bandQ,bandGain) with{
+	bandFreq = 25*pow(2,(band+1)*(9/bandsNumb));
+	BW = (bandFreq - 25*pow(2,(band)*(9/bandsNumb)))*bwRatio;
+	bandQ = bandFreq/BW;
+};
+
+vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : amp_follower_ud(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
+
+//---------------------------- vocoder_demo -------------------------
+// Use example of the vocoder function where an impulse train is used 
+// as excitation.
+// USAGE: 
+// 		_ : vocoder_demo : _;
+
+vocoder_demo = hgroup("My Vocoder",_,impTrain(freq)*gain : vocoder(bands,att,rel,BWRatio) <: _,_) with{
+	bands = 32;
+	impTrain = component("oscillator.lib").lf_imptrain;
+	vocoderGroup(x) = vgroup("Vocoder",x);
+	att = vocoderGroup(hslider("[0] Attack [style:knob] [tooltip: Attack time in seconds]",5,0.1,100,0.1)*0.001);
+	rel = vocoderGroup(hslider("[1] Release [style:knob] [tooltip: Release time in seconds]",5,0.1,100,0.1)*0.001);
+	BWRatio = vocoderGroup(hslider("[2] BW [style:knob] [tooltip: Coefficient to adjust the bandwidth of each band]",0.5,0.1,2,0.001));
+	excitGroup(x) = vgroup("Excitation",x);
+	freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
+	gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : smooth(0.999));
+};
+
 //------------------------- stereo_width(w) ---------------------------
 // Stereo Width effect using the Blumlein Shuffler technique.
 //
@@ -911,9 +952,66 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
     rev2N( 16, 12,0.7);
 };
 
-//-------------------------------- freeverb --------------------------------
-// Freeverb is a widely used, free, open-source Schroeder reverb contributed
-// by ``Jezar at Dreampoint.'' See <faust_distribution>/examples/freeverb.dsp
+//---------------------------- mono_freeverb, stereo_freeverb -------------------------
+// A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that 
+// is extensively used in the free-software world. It uses four Schroeder allpasses in 
+// series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each 
+//audio channel, and is said to be especially well tuned. 
+//
+// USAGE: 
+// 		_ : mono_freeverb(fb1, fb2, damp, spread) : _;
+// or
+// 		_,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
+//
+// where
+// fb1 = coefficient of the lowpass comb filters (0-1)
+// fb2 = coefficient of the allpass comb filters (0-1)
+// damp = damping of the lowpass comb filter (0-1)
+// spread = spatial spread in number of samples (for stereo)
+
+mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp)) :> seq(i,4,allpass_comb(1024, allpasstuningL(i)+spread, -fb2))
+with{
+	origSR = 44100;
+	
+	// Filters parameters 
+	combtuningL(0) = 1116*SR/origSR : int;
+	combtuningL(1) = 1188*SR/origSR : int;
+	combtuningL(2) = 1277*SR/origSR : int;
+	combtuningL(3) = 1356*SR/origSR : int;
+	combtuningL(4) = 1422*SR/origSR : int;
+	combtuningL(5) = 1491*SR/origSR : int;
+	combtuningL(6) = 1557*SR/origSR : int;
+	combtuningL(7) = 1617*SR/origSR : int;
+
+	allpasstuningL(0) = 556*SR/origSR : int;
+	allpasstuningL(1) = 441*SR/origSR : int;
+	allpasstuningL(2) = 341*SR/origSR : int;
+	allpasstuningL(3) = 225*SR/origSR : int;
+	// Lowpass Feedback Combfiler: 
+	// https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
+	lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+};
+
+stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
+
+//---------------------------- freeverb_demo -------------------------
+// USAGE: _,_ : freeverb_demo : _,_;
+//
+
+freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), *(1-g), *(1-g) :> _,_ with{
+	scaleroom   = 0.28;
+	offsetroom  = 0.7;
+	allpassfeed = 0.5;
+	scaledamp   = 0.4;
+	fixedgain   = 0.1;
+	origSR = 44100;
+	parameters(x) = hgroup("Freeverb",x);
+	knobGroup(x) = parameters(vgroup("[0]",x));
+	damping = knobGroup(vslider("[0] Damp [style: knob] [tooltip: Somehow control the density of the reverb.]",0.5, 0, 1, 0.025)*scaledamp*origSR/SR);
+	combfeed = knobGroup(vslider("[1] RoomSize [style: knob] [tooltip: The room size between 0 and 1 with 1 for the largest room.]", 0.5, 0, 1, 0.025)*scaleroom*origSR/SR + offsetroom);
+	spatSpread = knobGroup(vslider("[2] Stereo Spread [style: knob] [tooltip: Spatial spread between 0 and 1 with 1 for maximum spread.]",0.5,0,1,0.01)*46*SR/origSR : int);
+	g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the signal between 0 and 1 with 1 for the maximum amount of reverb.]", 0.3333, 0, 1, 0.025));
+};
 
 //=============== Feedback Delay Network (FDN) Reverberators  ==============
 
