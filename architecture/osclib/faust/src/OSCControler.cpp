@@ -129,7 +129,7 @@ void OSCControler::run ()
 		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		
         // starts the network services
-		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
+		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDestAddress());
 
 		// and outputs a message on the osc output port
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
@@ -147,7 +147,7 @@ void OSCControler::run ()
 }
 
 //--------------------------------------------------------------------------
-const char*	OSCControler::getRootName()		{ return fFactory->root()->getName(); }
+const char*	OSCControler::getRootName() const { return fFactory->root()->getName(); }
 
 //--------------------------------------------------------------------------
 void OSCControler::quit ()
