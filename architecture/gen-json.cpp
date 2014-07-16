@@ -17,6 +17,7 @@
  ************************************************************************/
 
 #include <cmath>
+#include <string.h>
 
 #include "faust/gui/GUI.h"
 #include "faust/audio/dsp.h"
