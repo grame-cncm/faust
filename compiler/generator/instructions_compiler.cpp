@@ -976,13 +976,13 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
     int t1 = getCertifiedSigType(s1)->nature();
     int t2 = getCertifiedSigType(s2)->nature();
      
-     ::Type type = getCertifiedSigType(s1);
-     
-     if (type->variability() == kSamp && (!dynamic_cast<SimpleValueInst*>(val1) || !dynamic_cast<SimpleValueInst*>(val2))) {
-         return generateSelect2WithIf(sig, t0, t1, t2, cond, val1, val2, type);
-     } else {
-         return generateSelect2WithSelect(sig, t0, t1, t2, cond, val1, val2);
-     }
+    ::Type type = getCertifiedSigType(s1);
+    
+    if (type->variability() == kSamp && (!dynamic_cast<SimpleValueInst*>(val1) || !dynamic_cast<SimpleValueInst*>(val2))) {
+        return generateSelect2WithIf(sig, t0, t1, t2, cond, val1, val2, type);
+    } else {
+        return generateSelect2WithSelect(sig, t0, t1, t2, cond, val1, val2);
+    }
 }
 
 ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2)
@@ -990,7 +990,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int
     if (t1 == kReal) {
         return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, (t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2), val1));
     } else {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, val2, ((t2 == kReal)) ? InstBuilder::genCastNumFloatInst(val1) : val1));
+        return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, val2, (t2 == kReal) ? InstBuilder::genCastNumFloatInst(val1) : val1));
     }
 }
 
@@ -1050,6 +1050,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1,
 ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
     // Done at signal level
+    assert(false);
     return InstBuilder::genNullInst();
 }
 
