@@ -50,6 +50,7 @@ class OSCListener : public osc::OscPacketListener, public smartable
 	UdpListeningReceiveSocket *fSocket;	///< the udp socket listener
 	MessageProcessor * fMsgHandler;
 	bool	fRunning;
+	bool	fSetDest;
 	int		fPort;
 
 	public:
