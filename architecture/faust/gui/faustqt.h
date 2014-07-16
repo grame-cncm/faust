@@ -1013,7 +1013,6 @@ class uiSlider : public QObject, public uiItem
 		else if (scale == kExp) 	{ fConverter = new ExpValueConverter(0, 10000, fMin, fMax); }
         else 						{ fConverter = new LinearValueConverter(0, 10000, fMin, fMax); }
         
-        
         fSlider->setMinimum(0);
         fSlider->setMaximum(10000);
         fSlider->setValue(int(0.5+fConverter->faust2ui(fCur)));
@@ -1037,39 +1036,6 @@ class uiSlider : public QObject, public uiItem
 };
 
 
-<<<<<<< HEAD
-/*
- class uiBargraph : public QObject, public uiItem
- {
- Q_OBJECT
- 
- int     faust2qt(FAUSTFLOAT x)   { return int(0.5 + (x-fMin)/(fMax-fMin)*fStep); }
- 
- public :
- QProgressBar*   fBar;
- FAUSTFLOAT      fMin;
- FAUSTFLOAT      fMax;
- int             fStep;
- 
- uiBargraph (GUI* ui, FAUSTFLOAT* zone, QProgressBar* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
- : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024)
- {
- fBar->setRange(0, fStep);
- fBar->setValue(0);
- *fZone = 0;
- }
- 
- virtual void reflectZone()
- {
- FAUSTFLOAT v = *fZone;
- fCache = v;
- int x = faust2qt(v);
- //std::cout << "update *" << fBar << " = " << x << std::endl;
- fBar->setValue(x);
- }
- };
- */
-=======
 /**
  * A zone setter, an object that sets a zone with a predefined value
  * every time the set(bool) method is called. The boolean parameter
@@ -1082,13 +1048,13 @@ class ZoneSetter : public QObject
     FAUSTFLOAT* fZone;
 public:
     explicit ZoneSetter(FAUSTFLOAT v, FAUSTFLOAT* z, QObject *parent = 0):
-        QObject(parent), fValue(v), fZone(z)
+    QObject(parent), fValue(v), fZone(z)
     {}
-
-public slots:
+    
+    public slots:
     void set(bool){
         *fZone = fValue;
-//        qDebug() << "setting " << fValue << " --> " << fZone;
+        //        qDebug() << "setting " << fValue << " --> " << fZone;
     }
 };
 
@@ -1104,19 +1070,19 @@ class uiRadioButtons : public QGroupBox, public uiItem
     Q_OBJECT
     vector<double>          fValues;
     vector<QRadioButton*>   fButtons;
-
-public :
-
+    
+    public :
+    
     uiRadioButtons (GUI* ui, FAUSTFLOAT* z, const char* label,
                     FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
                     bool vertical, const char* mdescr, QWidget* parent)
-        : QGroupBox(label, parent),  uiItem(ui, z)
+    : QGroupBox(label, parent),  uiItem(ui, z)
     {
         vector<string>  names;
         vector<double>  values;
-
+        
         if (parseMenuList(mdescr, names, values)) {
-
+            
             QBoxLayout*    l;
             if (vertical) {
                 l = new QVBoxLayout(this);
@@ -1124,14 +1090,14 @@ public :
                 l = new QHBoxLayout(this);
             }
             l->setSpacing(5);
-
+            
             QRadioButton*   defaultbutton = 0;
             double          mindelta = FLT_MAX;
-
+            
             for (unsigned int i = 0; i < names.size(); i++) {
                 double v = values[i];
                 if ( (v >= lo) && (v <= hi) ) {
-
+                    
                     // It is a valid value included in slider's range
                     QRadioButton*   b = new QRadioButton(QString(names[i].c_str()), this);
                     ZoneSetter*     s = new ZoneSetter(v,z,b);
@@ -1139,7 +1105,7 @@ public :
                     fButtons.push_back(b);
                     connect(b,SIGNAL(clicked(bool)), s, SLOT(set(bool)));
                     l->addWidget(b);
-
+                    
                     // Check if this item is a good candidate to represent the current value
                     double delta = fabs(cur-v);
                     if (delta < mindelta) {
@@ -1154,16 +1120,16 @@ public :
         }
         *fZone = cur;
     }
-
+    
     virtual void reflectZone()
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-
+        
         // select closest value
         int             defaultitem = -1;
         double          mindelta = FLT_MAX;
-
+        
         for (unsigned int i=0; i<fValues.size(); i++) {
             double delta = fabs(fValues[i]-v);
             if (delta < mindelta) {
@@ -1174,7 +1140,6 @@ public :
         if (defaultitem > -1) { fButtons[defaultitem]->setChecked(true); }
     }
 };
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 
 
 
@@ -1188,30 +1153,30 @@ class uiMenu : public QComboBox, public uiItem
 {
     Q_OBJECT
     vector<double>  fValues;
-
-public :
-
+    
+    public :
+    
     uiMenu (GUI* ui, FAUSTFLOAT* z, const char* /*label*/,
             FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
             const char* mdescr, QWidget* parent)
-        : QComboBox(parent),  uiItem(ui, z)
+    : QComboBox(parent),  uiItem(ui, z)
     {
         vector<string>  names;
         vector<double>  values;
-
+        
         if (parseMenuList(mdescr, names, values)) {
-
+            
             int     defaultitem = -1;
             double  mindelta = FLT_MAX;
-
+            
             for (unsigned int i = 0; i < names.size(); i++) {
                 double v = values[i];
                 if ( (v >= lo) && (v <= hi) ) {
-
+                    
                     // It is a valid value : add corresponding menu item
                     addItem(QString(names[i].c_str()), v);
                     fValues.push_back(v);
-
+                    
                     // Check if this item is a good candidate to represent the current value
                     double delta = fabs(cur-v);
                     if (delta < mindelta) {
@@ -1226,16 +1191,16 @@ public :
         connect(this,SIGNAL(activated(int)), this, SLOT(updateZone(int)));
         *fZone = cur;
     }
-
+    
     virtual void reflectZone()
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-
+        
         // search closest value
         int             defaultitem = -1;
         double          mindelta = FLT_MAX;
-
+        
         for (unsigned int i=0; i<fValues.size(); i++) {
             double delta = fabs(fValues[i]-v);
             if (delta < mindelta) {
@@ -1245,9 +1210,9 @@ public :
         }
         if (defaultitem > -1) { setCurrentIndex(defaultitem); }
     }
-
-public slots :
-
+    
+    public slots :
+    
     void updateZone(int)
     {
         double x = itemData(currentIndex()).toDouble();
@@ -1267,15 +1232,9 @@ class uiBargraph : public QObject, public uiItem
     
     public :
     AbstractDisplay*   fBar;
-<<<<<<< HEAD
     
-    uiBargraph2 (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
-    : uiItem(ui, zone), fBar(bar)
-=======
-
     uiBargraph (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
-        : uiItem(ui, zone), fBar(bar)
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    : uiItem(ui, zone), fBar(bar)
     {
         fBar->setRange(lo, hi);
         fBar->setValue(lo);
@@ -1354,20 +1313,7 @@ class QTGUI : public QObject, public GUI
     QMainWindow*            fMainWindow;
     
     QPixmap                 fQrCode;
-<<<<<<< HEAD
     
-    std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
-    std::map<FAUSTFLOAT*, std::string>     fTooltip;       // map widget zone with tooltip strings
-    std::map<FAUSTFLOAT*, std::string>     fUnit;          // map widget zone to unit string (i.e. "dB")
-    std::set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
-    std::set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
-    std::set<FAUSTFLOAT*>                  fNumSet;        // set of widget zone to be numerical bargraphs
-    std::set<FAUSTFLOAT*>                  fLogSet;        // set of widget zone having a log UI scale
-    std::set<FAUSTFLOAT*>                  fExpSet;        // set of widget zone having an exp UI scale
-    
-    
-=======
-
     std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;            // map widget zone with widget size coef
     std::map<FAUSTFLOAT*, std::string>     fTooltip;            // map widget zone with tooltip strings
     std::map<FAUSTFLOAT*, std::string>     fUnit;               // map widget zone to unit string (i.e. "dB")
@@ -1378,7 +1324,7 @@ class QTGUI : public QObject, public GUI
     std::set<FAUSTFLOAT*>                  fNumSet;             // set of widget zone to be numerical bargraphs
     std::set<FAUSTFLOAT*>                  fLogSet;             // set of widget zone having a log UI scale
     std::set<FAUSTFLOAT*>                  fExpSet;             // set of widget zone having an exp UI scale
-
+    
     void clearMetadata()
     {
         fGuiSize.clear();
@@ -1392,8 +1338,7 @@ class QTGUI : public QObject, public GUI
         fLogSet.clear();
         fExpSet.clear();
     }
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    
     /**
      * Format tooltip string by replacing some white spaces by
      * return characters so that line width doesn't exceed n.
@@ -1414,72 +1359,21 @@ class QTGUI : public QObject, public GUI
 		}
 		return ss;
 	}
-<<<<<<< HEAD
     
-    /**
-     * Analyses the widget zone metadata declarations and takes
-     * appropriate actions
-     */
-    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
-    {
-		if (zone == 0) {
-			// special zone 0 means group metadata
-			if (strcmp(key,"tooltip")==0) {
-				// only group tooltip are currently implemented
-				gGroupTooltip = formatTooltip(30, value);
-			}
-		} else {
-			if (strcmp(key,"size")==0) {
-				fGuiSize[zone]=atof(value);
-			}
-			else if (strcmp(key,"tooltip")==0) {
-				fTooltip[zone] = formatTooltip(30, value) ;
-			}
-            else if (strcmp(key,"unit")==0) {
-                fUnit[zone] = value ;
-            }
-            else if (strcmp(key,"scale")==0) {
-                if (strcmp(value,"log") == 0) {
-                    fLogSet.insert(zone);
-                } else if (strcmp(value,"exp") == 0) {
-                    fExpSet.insert(zone);
-                }
-            }
-            else if (strcmp(key,"style")==0) {
-                // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
-				if (strcmp(value,"knob") == 0) {
-					fKnobSet.insert(zone);
-				} else if (strcmp(value,"led") == 0) {
-					fLedSet.insert(zone);
-                } else if (strcmp(value,"numerical") == 0) {
-                    fNumSet.insert(zone);
-                }
-			}
-		}
-	}
-    
-=======
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 	bool isTabContext()
 	{
 		//return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 	}
-<<<<<<< HEAD
     
-	void insert(const char* label, QWidget* widget)
-=======
-
-
+    
     /**
-    * Insert a widget into the parent widget (the top of
-    * the stack group). The label is used if this group is
-    * a tab.
-    */
-
+     * Insert a widget into the parent widget (the top of
+     * the stack group). The label is used if this group is
+     * a tab.
+     */
+    
     void insert(const char* label, QWidget* widget)
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 	{
         
 		if (!fGroupStack.empty()) {
@@ -1659,15 +1553,12 @@ public:
     }
     
 	virtual ~QTGUI() {}
-<<<<<<< HEAD
     
-=======
-
-
+    
     /**
-    * Analyses the widget zone metadata declarations and takes
-    * appropriate actions
-    */
+     * Analyses the widget zone metadata declarations and takes
+     * appropriate actions
+     */
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
     {
         if (zone == 0) {
@@ -1694,7 +1585,7 @@ public:
                 }
             }
             else if (strcmp(key,"style")==0) {
-            // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
+                // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
                 if (strcmp(value,"knob") == 0) {
                     fKnobSet.insert(zone);
                 } else if (strcmp(value,"led") == 0) {
@@ -1712,8 +1603,7 @@ public:
             }
         }
     }
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    
 #if defined(HTTPCTRL) && defined(QRCODECTRL)
     
     //
@@ -1841,22 +1731,15 @@ public:
         fMainWindow->show();
         
 	}
-<<<<<<< HEAD
     
-	// ------------------------- Groups -----------------------------------
     
-	virtual void openHorizontalBox(const char* label) { 
-=======
-
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // OPEN AND CLOSE GROUPS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    
     virtual void openHorizontalBox(const char* label) {
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 		openBox(label, new QHBoxLayout());
 	}
     
@@ -1865,7 +1748,7 @@ public:
     }
     
     virtual void openFrameBox(const char* ) 		{ }
-
+    
 	virtual void openTabBox(const char* label) 		{ 
 		openTab(label);
 	}
@@ -1876,22 +1759,15 @@ public:
 		fGroupStack.pop();
 		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
 	}
-<<<<<<< HEAD
     
-	// ------------------------- active widgets -----------------------------------
     
-	virtual void addButton(const char* label, FAUSTFLOAT* zone)
-=======
-
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // ADD BUTTONS AND CHECKBOX
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 	{
 		QAbstractButton* 	w = new QPushButton(label);
 		w->setAttribute(Qt::WA_MacNoClickThrough);
@@ -1917,18 +1793,14 @@ public:
         checkForTooltip(zone, w);
         clearMetadata();
 	}
-<<<<<<< HEAD
     
-=======
-
-
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // ADD NUMERICAL ENTRY
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         if (isKnob(zone)) {
@@ -1972,12 +1844,8 @@ public:
         checkForTooltip(zone, w);
         clearMetadata();
     }
-<<<<<<< HEAD
     
-=======
-
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
     // ADD KNOBS
@@ -2018,12 +1886,8 @@ public:
         checkForTooltip(zone, w);
         clearMetadata();
 	}
-<<<<<<< HEAD
     
-=======
-
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
     // ADD SLIDERS
@@ -2081,44 +1945,33 @@ public:
         checkForTooltip(zone, w);
         clearMetadata();
 	}
-<<<<<<< HEAD
     
-	// ------------------------- passive widgets -----------------------------------
     
-    virtual void addNumDisplay(const char*, FAUSTFLOAT*, int)
-    {}
-    
-	virtual void addTextDisplay(const char*, FAUSTFLOAT*, const char* [], FAUSTFLOAT, FAUSTFLOAT)
-    {}
-    
-=======
-
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // ADD RADIO-BUTTONS AND MENUS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    
     virtual void addVerticalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-                                 FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
+                                         FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
         uiRadioButtons* w = new uiRadioButtons(this,zone,label,init,min,max,step,true,mdescr,0);
         insert(label, w);
         checkForTooltip(zone, w);
         clearMetadata();
     }
-
+    
     virtual void addHorizontalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-                                 FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
+                                           FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
         uiRadioButtons* w = new uiRadioButtons(this,zone,label,init,min,max,step,false,mdescr,0);
         insert(label, w);
         checkForTooltip(zone, w);
         clearMetadata();
     }
-
-
+    
+    
     virtual void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
@@ -2129,15 +1982,14 @@ public:
         if (label && label[0]) closeBox();
         clearMetadata();
     }
-
-
+    
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // ADD BARGRAPHS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
+    
     virtual void addHorizontalBargraph(const char* label , FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         openVerticalBox(label);
@@ -2161,13 +2013,8 @@ public:
 					bargraph = new linHorizontalBargraph(min, max);
 				}
 			}
-<<<<<<< HEAD
             
-			new uiBargraph2(this, zone, bargraph, min, max);
-=======
-
             new uiBargraph(this, zone, bargraph, min, max);
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 			insert(label, bargraph);
             checkForTooltip(zone, bargraph);
         }
@@ -2205,10 +2052,6 @@ public:
         closeBox();
         clearMetadata();
     }
-<<<<<<< HEAD
-    
-=======
->>>>>>> fadacf309b8883d25b29fbcd12a6412575304378
 };
 
 #endif
