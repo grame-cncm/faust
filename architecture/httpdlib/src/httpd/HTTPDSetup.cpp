@@ -45,7 +45,7 @@ bool HTTPDSetup::start(MessageProcessor* mp, int& tcpport )
 {
 	int port = tcpport;
 	bool done = false;
-	fServer = new HTTPDServer (mp, port);
+	fServer = new HTTPDServer (mp);
 	do {
 		done = fServer->start(port);
 		if (!done) {

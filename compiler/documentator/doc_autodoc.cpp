@@ -183,6 +183,7 @@ static void initDocAutodocKeySet() {
 }
 
 
+#if 0
 /** 
  * Simple trace function.
  */
@@ -196,4 +197,4 @@ static void printDocAutodocStringMapContent() {
 			cout << i++ << ".\tgGlobal->gDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
 	}
 }
-
+#endif
