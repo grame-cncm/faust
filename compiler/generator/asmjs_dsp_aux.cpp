@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <list>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -28,6 +27,7 @@
 #include "compatibility.hh"
 #include "asmjs_dsp_aux.hh"
 #include "libfaust.h"
+
 
 static inline std::string flatten(const std::string& src)
 {

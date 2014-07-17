@@ -27,13 +27,11 @@
 #endif
 
 #include <string>
-#include <map>
-#include <vector>
-#include <utility>
+#include <cstdlib>
+
 #include "faust/gui/CUI.h"
 #include "faust/audio/dsp.h"
 #include "export.hh"
-#include "libfaust.h"
 #include "smartpointer.h"
 
 using namespace std;
