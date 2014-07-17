@@ -292,14 +292,9 @@ class JAVAInstVisitor : public TextInstVisitor {
             TextInstVisitor::visit(inst);
         }
     
-        bool isBoolOpcode(int o)
-        {
-            return o == kGT || o == kLT || o == kLE || o == kEQ || o == kNE;
-        }
-
         virtual void visit(BinopInst* inst)
         {
-            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+            if (isBoolOpcode(inst->fOpcode)) {
                 *fOut << "(";
                 inst->fInst1->accept(this);
                 *fOut << " ";

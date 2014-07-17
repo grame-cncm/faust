@@ -316,7 +316,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
            
         virtual void visit(BinopInst* inst)
         {
-            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+            if (isBoolOpcode(inst->fOpcode)) {
                 *fOut << "(";
                 inst->fInst1->accept(this);
                 *fOut << " ";

@@ -663,7 +663,7 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     ValueInst* v2 = CS(a2);
    
     // Logical operations work on kInt, so cast both operands here
-    if (opcode >= kAND && opcode < kXOR) {
+    if (isLogicalOpcode(opcode)) {
         res = int2type(t3, InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2)));
     // One of a1 or a2 is kReal, operation is done on kReal
     } else if ((t1 == kReal) || (t2 == kReal)) {
@@ -1003,7 +1003,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType 
       
     /* 
     generateSelect2WithIf only called for kSamp code for now 
-    (othersiwe generated "sel" variables are not correctly handled in -sch mode when they are moved from "compute" to "computeThread").
+    (otherwise generated "sel" variables are not correctly handled in -sch mode when they are moved from "compute" to "computeThread").
     */
     pushComputeDSPMethod(var);
     pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));

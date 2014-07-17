@@ -86,4 +86,8 @@ enum {
 	kAND, kOR, kXOR
 };
 
+
+bool isBoolOpcode(int o);
+bool isLogicalOpcode(int o);
+
 #endif

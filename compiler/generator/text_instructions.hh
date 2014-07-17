@@ -41,7 +41,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
         string fObjectAccess;
-
+    
     public:
 
         TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)

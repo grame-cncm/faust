@@ -2269,7 +2269,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LlvmValue generateBinOpFloat(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
-            if (opcode >= kGT && opcode < kAND) {
+            if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
                 return generateScalarSelect(opcode, comp_value, genFloat(fModule, 1.0f, size), genFloat(fModule, 0.0f, size), size);
             } else {
@@ -2279,7 +2279,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LlvmValue generateBinOpDouble(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
-            if (opcode >= kGT && opcode < kAND) {
+            if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
                 return generateScalarSelect(opcode, comp_value, genDouble(fModule, 1.0, size), genDouble(fModule, 0.0, size), size);
             } else {
@@ -2289,7 +2289,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LlvmValue generateBinOpInt32(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
-            if (opcode >= kGT && opcode < kAND) {
+            if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmIntInst, arg1, arg2);
                 return generateScalarSelect(opcode, comp_value, genInt32(fModule, 1, size), genInt32(fModule, 0, size), size);
             } else {

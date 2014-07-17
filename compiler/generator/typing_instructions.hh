@@ -91,7 +91,7 @@ struct TypingVisitor : public InstVisitor {
     
         virtual void visit(BinopInst* inst)
         {
-            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+            if (isBoolOpcode(inst->fOpcode)) {
                 fCurType = Typed::kBool;
             } else {
                 

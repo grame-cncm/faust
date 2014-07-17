@@ -113,3 +113,13 @@ BinOp* gBinOpLateqTable[] = {
 	new BinOp("\\vee","or_vec","or_scal","or", "or", 0, 0, &orNode, &isZero, &isZero, 7),
 	new BinOp("\\veebar","xor_vec","xor_scal", "xor", "xor", 0, 0, &xorNode, &noNtrl, &noNtrl, 8)
 };
+
+bool isBoolOpcode(int o)
+{
+    return (o >= kGT && o <= kNE);
+}
+
+bool isLogicalOpcode(int o)
+{
+    return (o >= kAND && o <= kXOR);
+}
