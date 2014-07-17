@@ -158,6 +158,7 @@ void OccMarkup::setOcc(Tree t, Occurences* occ)
 }
 
 
+#if 0
 
 /**
  * return the position of a signal in the current recursive environment
@@ -171,3 +172,4 @@ static int position (Tree env, Tree t, int p)
 	if (hd(env) == t) return p;
 	else return position (tl(env), t, p+1);
 }
+#endif

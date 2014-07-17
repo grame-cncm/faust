@@ -154,7 +154,7 @@ ostream& boxpp::print (ostream& fout) const
 
     Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg,
             body, fun, args, abstr, genv, vis, lenv, ldef, slot,
-            ident, rules, filename;
+            ident, rules;
 
     const char* str;
 

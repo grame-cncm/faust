@@ -67,7 +67,7 @@ class OSCUI : public GUI
 	
  public:
 
-    OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL) : GUI() 
+    OSCUI(const char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL) : GUI() 
     { 
 		fCtrl = new oscfaust::OSCControler(argc, argv, this, io, errCallback, arg); 
         //		fCtrl->opengroup(applicationname);
@@ -112,6 +112,9 @@ class OSCUI : public GUI
     }
 	const char* getRootName()							{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
+    int	getUDPOut()                 { return fCtrl->getUDPOut(); }
+    int	getUDPErr()                 { return fCtrl->getUDPErr(); }
+    const char* getDestAddress()            {return fCtrl->getDestAddress();}
 };
 
 const char* OSCUI::tr(const char* label) const
