@@ -1440,7 +1440,7 @@ void InstructionsCompiler::addUIWidget(Tree path, Tree widget)
 
 /**
  * Remove fake root folder if not needed (that is if the UI
- * is completely enclosed in one folder
+ * is completely enclosed in one folder)
  */
 Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
 {
@@ -1474,15 +1474,16 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
 
 	if (isUiFolder(t, label, elements)) {
 		const int orient = tree2int(left(label));
-		const char* str = tree2str(right(label));
-
+		//const char* str = tree2str(right(label));
+        string str = "";  // Empty labels will be renamed with a 0xABCD (address) that is ignored and not displayed by UI architectures
+   
         // extract metadata from group label str resulting in a simplifiedLabel
 		// and metadata declarations for fictive zone at address 0
-        string  simplifiedLabel;
+        string simplifiedLabel;
         map<string, set<string> > metadata;
         extractMetadata(str, simplifiedLabel, metadata);
 
-         // add metadata if any
+        // add metadata if any
         for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
             const string& key = i->first;
             const set<string>& values = i->second;
