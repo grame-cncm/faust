@@ -54,6 +54,12 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
     return InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat());
 }
 
+static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
+static inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }
+
+static inline ValueInst* int2type(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastNumInst(val, genBasicFIRTyped(type)) : val; }
+static inline ValueInst* float2type(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumInst(val, genBasicFIRTyped(type)); }
+
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0),
             tree(subst("$0", gGlobal->gMasterName))), gGlobal->nil)), fDescription(0),
@@ -625,7 +631,6 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
  	string vperm = getFreshID("M");
 	string vtemp = getFreshID("T");
-
     Typed::VarType type = ctType(getCertifiedSigType(sig));
 
     // Table declaration
@@ -647,32 +652,25 @@ ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg) { return InstB
  BINARY OPERATION
  *****************************************************************************/
 
-ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
+ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tree a2)
 {
-    int t1 = getCertifiedSigType(arg1)->nature();
-    int t2 = getCertifiedSigType(arg2)->nature();
+    int t1 = getCertifiedSigType(a1)->nature();
+    int t2 = getCertifiedSigType(a2)->nature();
     int t3 = getCertifiedSigType(sig)->nature();
 
-    ValueInst* res = NULL;
-    ValueInst* val1 = CS(arg1);
-    ValueInst* val2 = CS(arg2);
-
-    // Logical operations work on integers, so cast both operands here
+    ValueInst* res;
+    ValueInst* v1 = CS(a1);
+    ValueInst* v2 = CS(a2);
+   
+    // Logical operations work on kInt, so cast both operands here
     if (opcode >= kAND && opcode < kXOR) {
-        res = InstBuilder::genBinopInst(opcode, 
-                                        ((t1 == kReal) ? InstBuilder::genCastNumIntInst(val1) : val1), 
-                                        ((t2 == kReal) ? InstBuilder::genCastNumIntInst(val2) : val2));
-        res = (t3 == kReal) ? InstBuilder::genCastNumFloatInst(res) : res;
-    // One of arg1 or arg2 is kReal, operation is done on kReal
+        res = int2type(t3, InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2)));
+    // One of a1 or a2 is kReal, operation is done on kReal
     } else if ((t1 == kReal) || (t2 == kReal)) {
-        res = InstBuilder::genBinopInst(opcode, 
-                                        ((t1 == kReal) ? val1 : InstBuilder::genCastNumFloatInst(val1)), 
-                                        ((t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2)));
-        res = (t3 == kReal) ? res : InstBuilder::genCastNumIntInst(res);
+        res = float2type(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
     // kInt operation
     } else {
-        res = InstBuilder::genBinopInst(opcode, val1, val2);
-        res = (t3 == kReal) ? InstBuilder::genCastNumFloatInst(res) : res;
+        res = int2type(t3, InstBuilder::genBinopInst(opcode, v1, v2));
     }
      
     return generateCacheCode(sig, res);
@@ -878,13 +876,10 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     // Check types and possibly cast written value
     int table_type = getCertifiedSigType(tbl)->nature();
     int date_type = getCertifiedSigType(data)->nature();
-    ValueInst* casted_data = CS(data);
-    
-    if (table_type != date_type) {
-        casted_data = InstBuilder::genCastNumInst(casted_data, genBasicFIRTyped(table_type));
-    }
-    
-    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), CS(idx), casted_data));
+     
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), 
+                                                             CS(idx), 
+                                                             (table_type != date_type) ? InstBuilder::genCastNumInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
 
     // Return table access
     return InstBuilder::genLoadStructVar(load_value->fAddress->getName());
@@ -969,58 +964,43 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
     ValueInst* cond = CS(sel);
-    ValueInst* val1 = CS(s1);
-    ValueInst* val2 = CS(s2);
+    ValueInst* v1 = CS(s1);
+    ValueInst* v2 = CS(s2);
     
-    int t0 = getCertifiedSigType(sel)->nature();
     int t1 = getCertifiedSigType(s1)->nature();
     int t2 = getCertifiedSigType(s2)->nature();
      
     ::Type type = getCertifiedSigType(s1);
     
-    if (type->variability() == kSamp && (!dynamic_cast<SimpleValueInst*>(val1) || !dynamic_cast<SimpleValueInst*>(val2))) {
-        return generateSelect2WithIf(sig, t0, t1, t2, cond, val1, val2, type);
+    // Type promotion
+    if ((t1 == kReal) || (t2 == kReal)) {
+        v1 = promote2real(t1, v1);
+        v2 = promote2real(t2, v2);
+    }
+    
+    if (type->variability() == kSamp && (!dynamic_cast<SimpleValueInst*>(v1) || !dynamic_cast<SimpleValueInst*>(v2))) {
+        return generateSelect2WithIf(sig, (((t1 == kReal) || (t2 == kReal)) ? itfloat() : Typed::kInt), cond, v1, v2);
     } else {
-        return generateSelect2WithSelect(sig, t0, t1, t2, cond, val1, val2);
+        return generateSelect2WithSelect(sig, cond, v1, v2);
     }
 }
 
-ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2)
+ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, ValueInst* sel, ValueInst* v1, ValueInst* v2)
 {
-    if (t1 == kReal) {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, (t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2), val1));
-    } else {
-        return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, val2, (t2 == kReal) ? InstBuilder::genCastNumFloatInst(val1) : val1));
-    }
+    return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, v2, v1));
 }
 
-ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2, ::Type type)
+ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* sel, ValueInst* v1, ValueInst* v2)
 {
-    ValueInst* cond = (t0 == kReal) ? InstBuilder::genNotEqual(sel, InstBuilder::genRealNumInst(itfloat(), 0)) : InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
+    ValueInst* cond = InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
+    string vname = (type == Typed::kInt) ? getFreshID("iSel") : getFreshID("fSel");
+    BlockInst* block1 = InstBuilder::genBlockInst();
+    BlockInst* block2 = InstBuilder::genBlockInst();
     
-    string vname = getFreshID("sel");
-    DeclareVarInst* var;
-    
-    list<StatementInst*> block1_inst;
-    list<StatementInst*> block2_inst;
-    
-    if (t1 == kReal) {
-        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
-        block2_inst.push_back(InstBuilder::genStoreStackVar(vname, ((t2 == kReal) ? val2 : InstBuilder::genCastNumFloatInst(val2))));
-        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), InstBuilder::genTypedZero(itfloat()));
-    } else if (t2 == kReal) {
-        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumFloatInst(val1)));
-        block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
-        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), InstBuilder::genTypedZero(itfloat()));
-    } else {
-        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
-        block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
-        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genTypedZero(Typed::kInt));
-    }
-    
-    BlockInst* block1 = InstBuilder::genBlockInst(block1_inst);
-    BlockInst* block2 = InstBuilder::genBlockInst(block2_inst);
-    
+    block1->pushBackInst(InstBuilder::genStoreStackVar(vname, v1));
+    block2->pushBackInst(InstBuilder::genStoreStackVar(vname, v2));
+    DeclareVarInst* var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(type), InstBuilder::genTypedZero(type));
+      
     /* 
     generateSelect2WithIf only called for kSamp code for now 
     (othersiwe generated "sel" variables are not correctly handled in -sch mode when they are moved from "compute" to "computeThread").

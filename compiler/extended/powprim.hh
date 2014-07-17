@@ -31,6 +31,8 @@ class PowPrim : public xtended
  public:
 
  	PowPrim() : xtended("pow") {}
+    
+    static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
 
 	virtual unsigned int arity () { return 2; }
 
@@ -101,12 +103,7 @@ class PowPrim : public xtended
             list<ValueInst*>::const_iterator it2 = args.begin();
     
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
-                if (((*it1)->nature() == kInt)) {
-                    // Possibly cast arguments
-                    casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(itfloat())));
-                } else {
-                    casted_args.push_back((*it2));
-                }
+                casted_args.push_back(promote2real((*it1)->nature(), (*it2))); 
             }
     
             return container->pushFunction(subst("pow$0", isuffix()), result_type, arg_types, casted_args);
