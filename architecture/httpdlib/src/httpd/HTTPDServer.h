@@ -60,7 +60,6 @@ class MessageProcessor;
 class HTTPDServer
 {
 	MessageProcessor*	fProcessor;
-	int					fPort;
 	struct MHD_Daemon *	fServer;
 	bool				fDebug;
 	
@@ -69,7 +68,7 @@ class HTTPDServer
 	const char* getMIMEType (const std::string& page);
 
 	public:
-				 HTTPDServer(MessageProcessor* mp, int port);
+				 HTTPDServer(MessageProcessor* mp);
 		virtual ~HTTPDServer();
 
 		/// \brief starts the httpd server

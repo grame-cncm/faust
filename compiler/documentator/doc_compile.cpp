@@ -53,9 +53,6 @@
 
 extern bool		getSigListNickName(Tree t, Tree& id);
 
-static const unsigned int MAX_RIGHT_MEMBER	= 20;
-static const unsigned int MAX_SUB_EXPR		= 10;
-
 
 /*****************************************************************************
 						getFreshID
