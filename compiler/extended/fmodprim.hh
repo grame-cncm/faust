@@ -32,24 +32,24 @@ class FmodPrim : public xtended
 
  	FmodPrim() : xtended("fmod") {}
 
-	virtual unsigned int 	arity () { return 2; }
+	virtual unsigned int arity () { return 2; }
 
-	virtual bool	needCache ()	{ return true; }
+	virtual bool needCache ()	{ return true; }
 
-	virtual ::Type 	infereSigType (const vector< ::Type>& args)
+	virtual ::Type infereSigType (const vector< ::Type>& args)
 	{
 		assert (args.size() == arity());
 		return floatCast(args[0]|args[1]);
 	}
 
-	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
 		assert (args.size() == arity());
 		return max(args[0], args[1]);
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) {
+	virtual Tree computeSigOutput (const vector<Tree>& args) {
 		num n,m;
 		assert (args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
@@ -72,7 +72,7 @@ class FmodPrim : public xtended
         return container->pushFunction(subst("fmod$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());

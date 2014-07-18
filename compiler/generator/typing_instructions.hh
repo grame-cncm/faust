@@ -41,27 +41,12 @@ struct TypingVisitor : public InstVisitor {
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-                  //  printf("visit(LoadVarInst* inst) %s %d %d\n",  inst->getName().c_str(), fCurType,  Typed::getTypeFromPtr(fCurType));
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
             } else {
                 fCurType = Typed::kNoType;
             }
         }
-    
-        /*
-        // KEEP PTR
-        virtual void visit(LoadVarInst* inst)
-        {
-            NamedAddress 
-            printf("visit(LoadVarInst* inst) %s\n", inst->getName().c_str());
-            if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
-                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
-            } else {
-                fCurType = Typed::kNoType;
-            }
-        }
-         */
     
         virtual void visit(LoadVarAddressInst* inst)
         {   

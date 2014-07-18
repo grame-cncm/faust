@@ -45,7 +45,7 @@ class MaxPrim : public xtended
 		return castInterval(types[0]|types[1], max(i,j));
 	}
 
-	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder(const vector<int>& args)
 	{
@@ -94,11 +94,7 @@ class MaxPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         
-        if (result->nature() == kInt) {
-            result_type = Typed::kInt; 
-        } else {
-            result_type = itfloat();
-        }
+        result_type = (result->nature() == kInt) ? Typed::kInt : itfloat();
         
         // generates code compatible with overloaded max
 		int n0 = types[0]->nature();
@@ -175,7 +171,7 @@ class MaxPrim : public xtended
         }
     }
   	
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());

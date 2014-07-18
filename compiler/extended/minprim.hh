@@ -94,12 +94,8 @@ class MinPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         
-        if (result->nature() == kInt) {
-            result_type = Typed::kInt; 
-        } else {
-            result_type = itfloat();
-        }
-        
+        result_type = (result->nature() == kInt) ? Typed::kInt : itfloat();
+         
         // generates code compatible with overloaded min
 		int n0 = types[0]->nature();
 		int n1 = types[1]->nature();
