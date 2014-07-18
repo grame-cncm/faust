@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 #endif
 	interface->run();
 
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     

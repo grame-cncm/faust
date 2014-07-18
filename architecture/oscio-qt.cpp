@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
 	oscinterface->run();
 	interface->run();	
     
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     
