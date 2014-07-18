@@ -57,12 +57,6 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
 static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
 static inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }
 
-static inline ValueInst* int2type(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastNumInst(val, genBasicFIRTyped(type)) : val; }
-static inline ValueInst* float2type(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumInst(val, genBasicFIRTyped(type)); }
-
-static inline ValueInst* cast2type(int type, ValueInst* val) { return InstBuilder::genCastNumInst(val, genBasicFIRTyped(type)); }
-
-
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0),
             tree(subst("$0", gGlobal->gMasterName))), gGlobal->nil)), fDescription(0),

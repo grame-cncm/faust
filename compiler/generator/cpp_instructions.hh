@@ -35,13 +35,36 @@ class CPPInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototye is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;     
+        static map <string, int> gFunctionSymbolTable;
  
     public:
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, "->", tab)
-        {}
+        {
+            // Mark all math.h functions as generated...
+            gFunctionSymbolTable["abs"] = 1;
+            gFunctionSymbolTable["absf"] = 1;
+            gFunctionSymbolTable["fabsf"] = 1;
+            gFunctionSymbolTable["acosf"] = 1;
+            gFunctionSymbolTable["asinf"] = 1;
+            gFunctionSymbolTable["atanf"] = 1;
+            gFunctionSymbolTable["atan2f"] = 1;
+            gFunctionSymbolTable["ceilf"] = 1;
+            gFunctionSymbolTable["cosf"] = 1;
+            gFunctionSymbolTable["expf"] = 1;
+            gFunctionSymbolTable["floorf"] = 1;
+            gFunctionSymbolTable["fmodf"] = 1;
+            gFunctionSymbolTable["logf"] = 1;
+            gFunctionSymbolTable["log10f"] = 1;
+            gFunctionSymbolTable["max"] = 1;
+            gFunctionSymbolTable["min"] = 1;
+            gFunctionSymbolTable["powf"] = 1;
+            gFunctionSymbolTable["roundf"] = 1;
+            gFunctionSymbolTable["sinf"] = 1;
+            gFunctionSymbolTable["sqrtf"] = 1;
+            gFunctionSymbolTable["tanf"] = 1;
+        }
 
         virtual ~CPPInstVisitor()
         {}
@@ -145,7 +168,7 @@ class CPPInstVisitor : public TextInstVisitor {
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
-
+            
             // Prototype arguments
             if (inst->fType->fAttribute & FunTyped::kVirtual) {
                 *fOut << "virtual ";

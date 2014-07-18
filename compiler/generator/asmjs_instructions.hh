@@ -27,16 +27,6 @@ using namespace std;
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
-static inline bool startWith(const string& str, const string& prefix)
-{
-    return (str.substr(0, prefix.size()) == prefix);
-}
-
-static inline string startWithRes(const string& str, const string& prefix)
-{   
-    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
-}
-
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
@@ -151,7 +141,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     if (type->getType() == Typed::kInt || type->getType() == Typed::kObj_ptr) {
                         *fOut << (*it)->fName << " = " << (*it)->fName << " | 0;";
                     } else {
-                        *fOut << (*it)->fName << " = " << "+" << (*it)->fName << ";";
+                        *fOut << (*it)->fName << " = +" << (*it)->fName << ";";
                     }
                     tab(fTab, *fOut); 
                 }
