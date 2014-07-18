@@ -148,6 +148,10 @@ class CInstVisitor : public TextInstVisitor {
             }
       
             // Prototype
+            if (inst->fType->fAttribute & FunTyped::kInline) {
+                *fOut << "inline ";
+            }
+            
             if (inst->fType->fAttribute & FunTyped::kLocal) {
                 *fOut << "static ";
             }

@@ -478,7 +478,8 @@ struct FunTyped : public Typed {
     enum FunAttribute {
         kDefault = 0x1,
         kLocal = 0x2,
-        kVirtual = 0x4
+        kVirtual = 0x4,
+        kInline = 0x8
     };
 
     list<NamedTyped*> fArgsTypes;

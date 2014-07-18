@@ -170,10 +170,14 @@ class CPPInstVisitor : public TextInstVisitor {
             }
             
             // Prototype arguments
+            if (inst->fType->fAttribute & FunTyped::kInline) {
+                *fOut << "inline ";
+            }
+            
             if (inst->fType->fAttribute & FunTyped::kVirtual) {
                 *fOut << "virtual ";
             }
-            
+                       
             // Prototype
             *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
             generateFunDefArgs(inst);
