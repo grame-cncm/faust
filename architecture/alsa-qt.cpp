@@ -93,7 +93,7 @@ int main(int argc, char *argv[] )
     
     QApplication myApp(argc, argv);
 
-	GUI* interface = new QTGUI();
+	QTGUI* interface = new QTGUI();
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
@@ -123,7 +123,7 @@ int main(int argc, char *argv[] )
 #endif
 	interface->run();
 	
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     

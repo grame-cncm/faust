@@ -22,8 +22,10 @@ PATH=$PATH:/usr/local/bin
 
 if [[ $(uname) == Darwin ]]; then
     LIB="-I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib"
+    EXT=".dylib"
 else
     LIB="-I/usr/include/csound -shared -fPIC"
+    EXT=".so"
 fi
 
 
@@ -66,10 +68,11 @@ done
 for SRC in $FILES; do
 	opname=`basename ${SRC%.dsp}`
     faust  -i -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
-    ${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS  $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
+    ${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS  $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}""$EXT"
     rm "$SRC.cpp"
-    BINARIES="$BINARIES${SRC%.dsp}.dylib;"
+    BINARIES="$BINARIES${SRC%.dsp}""$EXT;"
 done
 
 # return the binaries names
 echo "$BINARIES"
+
