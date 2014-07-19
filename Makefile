@@ -100,8 +100,8 @@ install :
 	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/faust) || echo libfaust.a not available
 	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
-	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
-	cp compiler/generator/llvm-c-dsp.h  $(prefix)/include/faust/
+	cp compiler/generator/llvm_backend/llvm-dsp.h  $(prefix)/include/faust/
+	cp compiler/generator/llvm_backend/llvm-c-dsp.h  $(prefix)/include/faust/
 	chmod gou+r compiler/scheduler.ll
 	cp compiler/scheduler.ll $(prefix)/lib/faust
 	
