@@ -27,16 +27,6 @@ using namespace std;
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
-static inline bool startWith(const string& str, const string& prefix)
-{
-    return (str.substr(0, prefix.size()) == prefix);
-}
-
-static inline string startWithRes(const string& str, const string& prefix)
-{   
-    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
-}
-
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
@@ -151,7 +141,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     if (type->getType() == Typed::kInt || type->getType() == Typed::kObj_ptr) {
                         *fOut << (*it)->fName << " = " << (*it)->fName << " | 0;";
                     } else {
-                        *fOut << (*it)->fName << " = " << "+" << (*it)->fName << ";";
+                        *fOut << (*it)->fName << " = +" << (*it)->fName << ";";
                     }
                     tab(fTab, *fOut); 
                 }
@@ -316,7 +306,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
            
         virtual void visit(BinopInst* inst)
         {
-            if (inst->fOpcode >= kGT && inst->fOpcode < kAND) {
+            if (isBoolOpcode(inst->fOpcode)) {
                 *fOut << "(";
                 inst->fInst1->accept(this);
                 *fOut << " ";
@@ -332,7 +322,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst2->accept(&fTypingVisitor);
                 Typed::VarType type2 = fTypingVisitor.fCurType;
                 
-                if (type1 == Typed::kInt && type2 == Typed::kInt) {
+                if ((type1 == Typed::kInt && type2 == Typed::kInt) 
+                    || (type1 == Typed::kInt && type2 == Typed::kBool)
+                    || (type1 == Typed::kBool && type2 == Typed::kInt)
+                    || (type1 == Typed::kBool && type2 == Typed::kBool))
+                    {
                     // Special case of 32 bits integer multiply
                     if (inst->fOpcode == kMul) {
                         *fOut << "(imul(";
@@ -349,64 +343,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         inst->fInst2->accept(this);
                         *fOut << " | 0)";
                     }
-                } else if (type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
-                    *fOut << "+(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << ")";
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kInt) {
-                    *fOut << "+(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this); 
-                    *fOut << ")";
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) 
-                            && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
-                    *fOut << "+(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << ")";
-                } else if (type1 == Typed::kInt && type2 == Typed::kBool) {
-                    *fOut << "(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << " | 0)";
-                } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
-                    *fOut << "(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << " | 0)";
-                } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                    *fOut << "(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << " | 0)";
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kBool) {
-                    *fOut << "+(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << ")";
-                } else if (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
+                } else if ((type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) 
+                           || ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kInt)
+                           || ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) 
+                               && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble))
+                           || ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kBool)
+                           || (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)))
+                           {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";

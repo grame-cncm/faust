@@ -33,6 +33,18 @@ using namespace std;
 #include <sstream>
 #include <fstream>
 
+
+static inline bool startWith(const string& str, const string& prefix)
+{
+    return (str.substr(0, prefix.size()) == prefix);
+}
+
+static inline string startWithRes(const string& str, const string& prefix)
+{   
+    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
+}
+
+
 class TextInstVisitor : public InstVisitor, public StringTypeManager {
 
     protected:
@@ -41,7 +53,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
         string fObjectAccess;
-
+    
     public:
 
         TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)

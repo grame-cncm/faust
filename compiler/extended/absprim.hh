@@ -70,26 +70,6 @@ class AbsPrim : public xtended
 			return tree(symbol(), args[0]);
 		}
 	}
-
-    /*
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
-    {
-        assert(args.size() == arity());
-		assert(types.size() == arity());
-        
-        Typed::VarType result_type;
-        vector<Typed::VarType> arg_types;
-        list<ValueInst*> casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        ::Type t = infereSigType(types);
-		if (t->nature() == kReal) {
-            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
-        } else {
-            return container->pushFunction("abs", result_type, arg_types, args);
-        }
-    }
-    */
     
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {

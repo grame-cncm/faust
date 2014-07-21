@@ -32,23 +32,23 @@ class CosPrim : public xtended
 
  	CosPrim() : xtended("cos") {}
 
-	virtual unsigned int 	arity () { return 1; }
+	virtual unsigned int arity () { return 1; }
 
-	virtual bool	needCache ()	{ return true; }
+	virtual bool needCache ()	{ return true; }
 
-	virtual ::Type 	infereSigType (const vector< ::Type>& args)
+	virtual ::Type infereSigType (const vector< ::Type>& args)
 	{
 		assert (args.size() == 1);
 		return castInterval(floatCast(args[0]), interval(-1,1));
 	}
 
-	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
 		return args[0];
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) {
+	virtual Tree computeSigOutput (const vector<Tree>& args) {
 		num n;
 		if (isNum(args[0],n)) {
 			return tree(cos(double(n)));
@@ -70,7 +70,7 @@ class CosPrim : public xtended
         return container->pushFunction(subst("cos$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());

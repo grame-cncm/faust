@@ -78,9 +78,10 @@ class InstructionsCompiler : public virtual Garbageable {
         ValueInst* generateButtonAux(Tree sig, Tree path, const string& name);
         ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
         ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
-
-        ValueInst* generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2);
-        ValueInst* generateSelect2WithIf(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2, ::Type type);
+   
+        ValueInst* generateSelect2WithSelect(Tree sig, ValueInst* sel, ValueInst* val1, ValueInst* val2);
+        ValueInst* generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* sel, ValueInst* val1, ValueInst* val2);
+    
 
         /* wrapper functions to access code container */
         StatementInst* pushInitMethod(StatementInst* inst)              { return fContainer->pushInitMethod(inst); }

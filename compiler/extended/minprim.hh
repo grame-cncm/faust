@@ -94,12 +94,8 @@ class MinPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         
-        if (result->nature() == kInt) {
-            result_type = Typed::kInt; 
-        } else {
-            result_type = itfloat();
-        }
-        
+        result_type = (result->nature() == kInt) ? Typed::kInt : itfloat();
+         
         // generates code compatible with overloaded min
 		int n0 = types[0]->nature();
 		int n1 = types[1]->nature();
@@ -118,7 +114,7 @@ class MinPrim : public xtended
                 list<ValueInst*>::const_iterator it2 = args.begin();
                 casted_args.push_back((*it2));
                 it2++;
-                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(itfloat())));
+                casted_args.push_back(InstBuilder::genCastNumFloatInst(*it2));
                 return container->pushFunction("min", result_type, arg_types, casted_args);
             }
         } else if (n1 == kReal) {
@@ -130,7 +126,7 @@ class MinPrim : public xtended
             
             // prepare args values
             list<ValueInst*>::const_iterator it2 = args.begin();
-            casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(itfloat())));
+            casted_args.push_back(InstBuilder::genCastNumFloatInst(*it2));
             it2++;
             casted_args.push_back((*it2));
             return container->pushFunction("min", result_type, arg_types, casted_args);
@@ -153,23 +149,23 @@ class MinPrim : public xtended
                     list<ValueInst*>::const_iterator it2 = args.begin();
                     casted_args.push_back((*it2));
                     it2++;
-                    casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                    casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                     return container->pushFunction("min", result_type, arg_types, casted_args);
                 }
             } else if (b1 == kNum) {
                 assert(b0 == kBool);    // first is boolean, cast to int
                 // prepare args values
                 list<ValueInst*>::const_iterator it2 = args.begin();
-                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                 it2++;
                 casted_args.push_back((*it2));
                 return container->pushFunction("min", result_type, arg_types, casted_args);
             } else {
                 assert(b0 == kBool); assert(b1 == kBool);   // both are booleans, cast both
                 list<ValueInst*>::const_iterator it2 = args.begin();
-                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                 it2++;
-                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                 return container->pushFunction("min", result_type, arg_types, casted_args);
             }
         }
