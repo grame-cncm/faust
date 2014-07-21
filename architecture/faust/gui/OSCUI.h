@@ -112,6 +112,9 @@ class OSCUI : public GUI
     }
 	const char* getRootName()							{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
+    int	getUDPOut()                 { return fCtrl->getUDPOut(); }
+    int	getUDPErr()                 { return fCtrl->getUDPErr(); }
+    const char* getDestAddress()            {return fCtrl->getDestAddress();}
 };
 
 const char* OSCUI::tr(const char* label) const
