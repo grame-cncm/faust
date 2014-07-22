@@ -35,29 +35,18 @@ Compile a list of FAUST signals into a C++ class .
 ******************************************************************************
 *****************************************************************************/
 
-
-
 #include "timing.hh"
 #include "compile.hh"
 #include "floats.hh"
 #include "sigtype.hh"
 
 #include <stdio.h>
-//#include <iostream>
-
 #include "sigprint.hh"
 #include "ppsig.hh"
 
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "privatise.hh"
-//#include "factorize.hh"
-
-//#include "grouper.hh"
-//#include "sigvisitor.hh"
-
-
-
 
 /*****************************************************************************
 ******************************************************************************
@@ -70,9 +59,6 @@ Compile a list of FAUST signals into a C++ class .
 extern int 		gDetailsSwitch;
 extern string 	gMasterName;
 
-
-
-
 /*****************************************************************************
 ******************************************************************************
 
@@ -82,27 +68,22 @@ extern string 	gMasterName;
 *****************************************************************************/
 
 
-
-
-
-
-
 /*****************************************************************************
 							   constructor
 *****************************************************************************/
 
 Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
-		: fClass(new Klass(name, super, numInputs, numOutputs, vec)),
-		  fNeedToDeleteClass(true), 
-		  fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", gMasterName))))),
-		  fDescription(0)
+                : fClass(new Klass(name, super, numInputs, numOutputs, vec)),
+                fNeedToDeleteClass(true), 
+                fUIRoot(uiFolder(cons(tree(0), tree("")))),
+                fDescription(0)
 {}
 
 Compiler::Compiler(Klass* k)
-		: fClass(k),
-		  fNeedToDeleteClass(false), 
-		  fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", gMasterName))))),
-		  fDescription(0)
+                : fClass(k),
+                  fNeedToDeleteClass(false), 
+                  fUIRoot(uiFolder(cons(tree(0), tree("")))),
+                  fDescription(0)
 {}
 
 
@@ -110,8 +91,6 @@ Compiler::~Compiler()
 { 
 	if (fNeedToDeleteClass) delete fClass;
 }
-
-
 
 /*****************************************************************************
 							user interface elements
@@ -125,10 +104,9 @@ void Compiler::addUIWidget(Tree path, Tree widget)
 	fUIRoot = putSubFolder(fUIRoot, path, widget);
 }
 
-
 /**
  * Remove fake root folder if not needed (that is if the UI
- * is completely enclosed in one folder
+ * is completely enclosed in one folder)
  */
 Tree Compiler::prepareUserInterfaceTree(Tree t)
 {
@@ -154,7 +132,6 @@ static string wdel(const string& s)
     return s.substr(i,j-i);
 }
 
-
 //================================= BUILD USER INTERFACE METHOD =================================
 
 inline string ptrToHex(Tree ptr)
@@ -177,8 +154,8 @@ void Compiler::generateUserInterfaceTree(Tree t)
 
 	if (isUiFolder(t, label, elements)) {
 		const int orient = tree2int(left(label));
-		//const char * 	str = tree2str(right(label));
-        string str = "";    // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI architectures
+        // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI architectures
+        const char* str = tree2str(right(label));  
         const char* model;
 
         // extract metadata from group label str resulting in a simplifiedLabel
@@ -195,9 +172,8 @@ void Compiler::generateUserInterfaceTree(Tree t)
                 fClass->addUICode(subst("interface->declare($0, \"$1\", \"$2\");", "0", wdel(key) ,wdel(*j)));
             }
         }
+        
         //-----------------
-
-
 		switch (orient) {
 			case 0 : model = "interface->openVerticalBox(\"$0\");"; break;
 			case 1 : model = "interface->openHorizontalBox(\"$0\");"; break;
@@ -343,7 +319,6 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 	}
 }
 
-
 /**
  * Iterate generateMacroInterfaceTree on a list of user interface elements
  */
@@ -354,7 +329,6 @@ void Compiler::generateMacroInterfaceElements(const string& pathname, Tree eleme
 		elements = tl(elements);
 	}
 }
-
 
 /**
  * Generate user interface macros corresponding 
