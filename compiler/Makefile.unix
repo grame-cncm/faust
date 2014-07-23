@@ -63,6 +63,10 @@ ifeq ($(LLVM_VERSION), 3.4.1)
     LLVM_VERSION = LLVM_34
 endif
 
+ifeq ($(LLVM_VERSION), 3.4.2)
+    LLVM_VERSION = LLVM_34
+endif
+
 ifeq ($(system), Darwin)
 	CXXFLAGS += -O3
 else

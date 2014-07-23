@@ -392,7 +392,7 @@ bpf = environment
 stereoize(p) = S(inputs(p), outputs(p))
 	with {
 	  // degenerated processor with no outputs
-		S(n,0) = !,! : 0,0; 		// juste in case, probably a rare case
+		S(n,0) = !,! : 0,0; 		// just in case, probably a rare case
 
 	  // processors with no inputs
 		S(0,1) = !,! : p <: _,_; 	// add two fake inputs and split output
