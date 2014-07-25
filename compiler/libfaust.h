@@ -23,6 +23,7 @@
 #define __LIB_FAUST__
 
 #include <string.h>
+#include <vector>
 #include "export.hh"
 
 namespace llvm
@@ -35,8 +36,11 @@ namespace llvm
 using namespace llvm;
 
 typedef struct LLVMResult {
-    llvm::Module*       fModule;
-    llvm::LLVMContext*  fContext;
+    
+    llvm::Module* fModule;
+    llvm::LLVMContext* fContext;
+    std::vector<std::string> fPathnameList;
+    
 } LLVMResult;
 
 /*

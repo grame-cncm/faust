@@ -135,6 +135,8 @@ class llvm_dsp_factory : public smartable {
     
         std::string getName();
     
+        std::vector<std::string> getLibraryList() { return fResult->fPathnameList; }
+    
         static FactoryTableType gFactoryTable;
        
 };

@@ -656,7 +656,7 @@ string llvm_dsp_factory::getName()
     MyMeta metadata;
     metadataDSPFactory (&metadata);
     return (fExtName != "") ? fExtName : metadata.name;
- }
+}
   
 // Instance 
 
