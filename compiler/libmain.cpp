@@ -907,9 +907,6 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
         for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << std::endl;
         cout << "---------------------------\n";
         cout << endl;
-        if (gGlobal->gLLVMResult) {
-            gGlobal->gLLVMResult->fPathnameList = pathnames;
-        }
     }
 
     return process;
@@ -946,6 +943,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp->compileMultiSignal(signals);
             LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
             gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile.c_str());
+            gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
              
             // Possibly link with additional LLVM modules
             char error[256];
