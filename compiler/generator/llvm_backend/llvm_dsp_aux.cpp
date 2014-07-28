@@ -865,6 +865,21 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
     }
 }
 
+EXPORT std::string getName(llvm_dsp_factory* factory)
+{
+    return factory->getName();
+}
+
+EXPORT std::string getSHAKey(llvm_dsp_factory* factory)
+{
+    return factory->getSHAKey();
+}
+
+EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory)
+{
+    return factory->getLibraryList();
+}
+
 EXPORT void deleteAllDSPFactories()
 {
     FactoryTableIt it;
