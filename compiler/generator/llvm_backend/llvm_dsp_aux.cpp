@@ -151,12 +151,13 @@ EXPORT bool link_modules(Module* dst, Module* src, char* error_msg)
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
 {
-    int argc1 = argc + 3;
+    int argc1 = argc + 4;
  	const char* argv1[32];
     
     argv1[0] = "faust";
 	argv1[1] = "-lang";
-	argv1[2] = "llvm";
+    argv1[2] = "llvm";
+    argv1[3] = "-flist";
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
     }
