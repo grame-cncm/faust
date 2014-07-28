@@ -1436,9 +1436,9 @@ inline string ptrToHex(Tree ptr)
     stringstream res; res << hex << ptr; return res.str();
 }
 
-inline string checkNullLabel(Tree t, const string& label)
+inline string checkNullLabel(Tree t, const string& label, bool bargraph = false)
 {
-    return (label == "") ? ptrToHex(t) : label;
+    return (label == "") ? (bargraph ? ptrToHex(t) : "0x00") : label;
 }
 
 /**
@@ -1540,12 +1540,12 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 	} else if (isSigVBargraph(sig, path,x,y,z))	{
         fContainer->incUIPassiveCount();
         pushUserInterfaceMethod(
-            InstBuilder::genAddVerticalBargraphInst(checkNullLabel(varname, label), tree2str(varname),  tree2float(x), tree2float(y)));
+            InstBuilder::genAddVerticalBargraphInst(checkNullLabel(varname, label, true), tree2str(varname),  tree2float(x), tree2float(y)));
 
 	} else if (isSigHBargraph(sig, path,x,y,z))	{
         fContainer->incUIPassiveCount();
  	    pushUserInterfaceMethod(
-            InstBuilder::genAddHorizontalBargraphInst(checkNullLabel(varname, label), tree2str(varname), tree2float(x), tree2float(y)));
+            InstBuilder::genAddHorizontalBargraphInst(checkNullLabel(varname, label, true), tree2str(varname), tree2float(x), tree2float(y)));
 
 	} else {
 		throw faustexception("ERROR in generating widget code\n");

@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "../../TMutex.h"
+#include "TMutex.h"
 
 #include <sstream>
 #include <iostream>

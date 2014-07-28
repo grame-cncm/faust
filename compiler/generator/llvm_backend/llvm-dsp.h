@@ -39,32 +39,7 @@
 
 /* Opaque type */
 
-class llvm_dsp_factory {
-    
-    public:
-    
-        /**
-         * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
-         * the DSP 'filename' given in createDSPFactoryFromFile or the DSP 'name_app' given in createDSPFactoryFromString.
-         *
-         * @return the name as a string.
-         */
-        std::string getName();
-    
-        /**
-         * Get the SHA Key of the DSP factory.
-         *
-         * @return the SHA key as a string.
-         */
-        std::string getSHAKey();
-    
-        /**
-         * Get the list of library dependancies of the DSP factory.
-         *
-         * @return the list as a vector of strings.
-         */
-        std::vector<std::string> getLibraryList();
-};
+class llvm_dsp_factory {};
 
 /**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
@@ -121,6 +96,34 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
  * @param factory - the DSP factory to be deleted.
  */                                 
 void deleteDSPFactory(llvm_dsp_factory* factory);
+
+/**
+ * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
+ * the DSP 'filename' given in createDSPFactoryFromFile or the DSP 'name_app' given in createDSPFactoryFromString.
+ *
+ * @param factory - the DSP factory.
+ * 
+ * @return the name as a string.
+ */
+std::string getName(llvm_dsp_factory* factory);
+
+/**
+ * Get the SHA Key of the DSP factory.
+ *
+ * @param factory - the DSP factory.
+ * 
+ * @return the SHA key as a string.
+ */
+std::string getSHAKey(llvm_dsp_factory* factory);
+
+/**
+ * Get the list of library dependancies of the DSP factory.
+ *
+ * @param factory - the DSP factory.
+ * 
+ * @return the list as a vector of strings.
+ */
+std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
 /**
  * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.

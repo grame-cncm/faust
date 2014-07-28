@@ -33,7 +33,7 @@
 //-------------------------------------------------------------------------
 
 #include "Server.h"
-#include "../utilities.h"
+#include "utilities.h"
 
 int main(int argc, char* argv[])
 {

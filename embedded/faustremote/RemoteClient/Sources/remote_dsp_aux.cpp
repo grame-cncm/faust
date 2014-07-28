@@ -22,9 +22,9 @@
 #include <sstream>
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
-#include "../../../../compiler/generator/llvm-c-dsp.h"
-#include "../../../../compiler/libfaust.h"
-#include "../../utilities.h"
+#include "llvm-c-dsp.h"
+#include "libfaust.h"
+#include "utilities.h"
 #include <errno.h>
 #include <libgen.h>
 
