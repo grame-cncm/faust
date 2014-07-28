@@ -1302,7 +1302,7 @@ class uiNumEntry : public QObject, public uiItem
  *******************************************************************************
  *******************************************************************************/
 
-class QTGUI : public QObject, public GUI
+class QTGUI : public QWidget, public GUI
 {
     Q_OBJECT
     
@@ -1311,6 +1311,7 @@ class QTGUI : public QObject, public GUI
     std::stack<QWidget* > 	fGroupStack;
     
     QMainWindow*            fMainWindow;
+    QVBoxLayout*            fGeneralLayout;
     
     QPixmap                 fQrCode;
     
@@ -1453,25 +1454,26 @@ class QTGUI : public QObject, public GUI
         if(fGroupStack.empty())
         {
             if (isTabContext()) {
-                box = new QWidget(fMainWindow);
+                box = new QWidget(this);
                 // set background color
                 QPalette pal = box->palette();
                 pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150));
                 box->setPalette(pal);
                 
             } else  if (label.size()>0) {
-                QGroupBox* group = new QGroupBox(fMainWindow);
+                QGroupBox* group = new QGroupBox(this);
                 group->setTitle(label.c_str());
                 box = group;
                 
             } else {
                 // no label here we use simple widget
                 layout->setMargin(0);
-                box = new QWidget(fMainWindow);
+                box = new QWidget(this);
             }
             
-            fMainWindow->setCentralWidget(box);
             box->setLayout(layout);
+            fGeneralLayout->addWidget(box);
+
             /*if (metadata.count("tooltip")) {
              box->setToolTip(metadata["tooltip"].c_str());
              }*/
@@ -1512,7 +1514,6 @@ class QTGUI : public QObject, public GUI
         }
         insert(label.c_str(), box);
         fGroupStack.push(box);
-        box->installEventFilter(fMainWindow);
     }
     
 	void openTab(const char* label)
@@ -1520,8 +1521,8 @@ class QTGUI : public QObject, public GUI
 		QTabWidget* group;
         
         if(fGroupStack.empty()){
-            group = new QTabWidget(fMainWindow);
-            fMainWindow->setCentralWidget(group);
+            group = new QTabWidget(this);
+            fGeneralLayout->addWidget(group);
         }
         else{
             group = new QTabWidget();
@@ -1541,17 +1542,28 @@ class QTGUI : public QObject, public GUI
     
 public:
     
-    QTGUI() : fTimer(0){
-        fMainWindow = new QMainWindow();
-    }
-    QTGUI(QMainWindow* win, const char* label){
+
+    QTGUI(QWidget* parent) : QWidget(parent){
+        fGeneralLayout = new QVBoxLayout;
+        setLayout(fGeneralLayout);
+        QWidget::show();
         
+        fMainWindow = NULL;        
         fTimer = 0;
-        
-        fMainWindow = win;
-        fMainWindow->setWindowTitle(label);
     }
-    
+
+    QTGUI():QWidget(){
+        
+        fGeneralLayout = new QVBoxLayout;
+        setLayout(fGeneralLayout);
+        QWidget::show();
+
+        fTimer = 0;
+
+        fMainWindow = new QMainWindow;
+        fMainWindow->setCentralWidget(this);
+    }
+
 	virtual ~QTGUI() {}
 
     QString styleSheet(){
@@ -1741,9 +1753,14 @@ public:
      		QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
      		fTimer->start(100);
 		}
+<<<<<<< HEAD
         
         fMainWindow->show();
+=======
+>>>>>>> 2261d74538d89f376b732eae95343d3147467de4
         
+        if(fMainWindow)
+            fMainWindow->show();
 	}
     
     
