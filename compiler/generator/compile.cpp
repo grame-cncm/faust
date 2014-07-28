@@ -139,9 +139,9 @@ inline string ptrToHex(Tree ptr)
     stringstream res; res << hex << ptr; return res.str();
 }
 
-inline string checkNullLabel(Tree t, const string& label)
+inline string checkNullLabel(Tree t, const string& label, bool bargraph = false)
 {
-    return (label == "") ? ptrToHex(t) : label;
+    return (label == "") ? (bargraph ? ptrToHex(t) : "0x00") : label;
 }
 
 /**
@@ -271,7 +271,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
 		fClass->addUICode(subst("interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
-                                checkNullLabel(varname, label),
+                                checkNullLabel(varname, label, true),
                                 tree2str(varname),
                                 T(tree2float(x)),
                                 T(tree2float(y))));
@@ -279,7 +279,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
 		fClass->addUICode(subst("interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
-                                checkNullLabel(varname, label),
+                                checkNullLabel(varname, label, true),
                                 tree2str(varname),
                                 T(tree2float(x)),
                                 T(tree2float(y))));
