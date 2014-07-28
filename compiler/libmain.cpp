@@ -376,7 +376,6 @@ static const char* gArchFile = 0;
 static bool gExportDSP = false;
 
 static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
-static bool gPrintFileListSwitch = false;
 static bool gLLVMOut = true;
 
 //-- command line tools
@@ -580,7 +579,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
-            gPrintFileListSwitch = true;
+            gGlobal->gPrintFileListSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
@@ -899,12 +898,18 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
     endTiming("evaluation");
 
-    if (gPrintFileListSwitch) {
-        cout << "******* ";
+    if (gGlobal->gPrintFileListSwitch) {
+        cout << "---------------------------\n";
+        cout << "List of file dependencies :\n";
+        cout << "---------------------------\n";
         // print the pathnames of the files used to evaluate process
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << ' ';
+        for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << std::endl;
+        cout << "---------------------------\n";
         cout << endl;
+        if (gGlobal->gLLVMResult) {
+            gGlobal->gLLVMResult->fPathnameList = pathnames;
+        }
     }
 
     return process;
@@ -1201,8 +1206,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     gPrintDocSwitch = false;
     gBalancedSwitch = 0;
     gArchFile = 0;
-    gPrintFileListSwitch = false;
-    //gOutputLang = 0;
+    gGlobal->gPrintFileListSwitch = false;
   
     /****************************************************************
      1 - process command line

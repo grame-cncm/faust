@@ -272,9 +272,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachinePtrSize = sizeof(void*);
     
     gMachineMaxStackSize = MAX_STACK_SIZE;
-    
     gInPlace = false;
-    
     gOutputLang = "";
 }
 

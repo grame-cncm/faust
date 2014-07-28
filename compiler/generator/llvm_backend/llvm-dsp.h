@@ -57,6 +57,13 @@ class llvm_dsp_factory {
          * @return the SHA key as a string.
          */
         std::string getSHAKey();
+    
+        /**
+         * Get the list of library dependancies of the DSP factory.
+         *
+         * @return the list as a vector of strings.
+         */
+        std::vector<std::string> getLibraryList();
 };
 
 /**
