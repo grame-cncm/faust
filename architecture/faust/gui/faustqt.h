@@ -1753,12 +1753,7 @@ public:
      		QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
      		fTimer->start(100);
 		}
-<<<<<<< HEAD
-        
-        fMainWindow->show();
-=======
->>>>>>> 2261d74538d89f376b732eae95343d3147467de4
-        
+
         if(fMainWindow)
             fMainWindow->show();
 	}
