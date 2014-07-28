@@ -159,7 +159,7 @@ LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const 
     argv1[2] = "llvm";
     argv1[3] = "-flist";
     for (int i = 0; i < argc; i++) {
-        argv1[i+3] = argv[i];
+        argv1[i+4] = argv[i];
     }
     
     return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
