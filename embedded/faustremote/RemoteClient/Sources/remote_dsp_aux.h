@@ -39,7 +39,7 @@
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
 #include "JsonParser.h"
-#include "../../../../compiler/generator/smartpointer.h"
+#include "smartpointer.h"
 
 #include "lo/lo.h"
 
