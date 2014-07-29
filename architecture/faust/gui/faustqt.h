@@ -1542,16 +1542,16 @@ class QTGUI : public QWidget, public GUI
     
 public:
     
+
     QTGUI(QWidget* parent) : QWidget(parent){
         fGeneralLayout = new QVBoxLayout;
         setLayout(fGeneralLayout);
         QWidget::show();
         
-        fMainWindow = NULL;
-        
+        fMainWindow = NULL;        
         fTimer = 0;
     }
-    
+
     QTGUI():QWidget(){
         
         fGeneralLayout = new QVBoxLayout;
@@ -1563,7 +1563,7 @@ public:
         fMainWindow = new QMainWindow;
         fMainWindow->setCentralWidget(this);
     }
-    
+
 	virtual ~QTGUI() {}
 
     QString styleSheet(){
@@ -1753,7 +1753,7 @@ public:
      		QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
      		fTimer->start(100);
 		}
-        
+
         if(fMainWindow)
             fMainWindow->show();
 	}
