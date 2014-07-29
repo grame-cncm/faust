@@ -25,7 +25,7 @@
 #endif
 
 #include "faust/audio/netjack-dsp.h"
-#include "faust/llvm-dsp.h"
+#include "llvm-dsp.h"
 #include "TMutex.h"
 
 #define POSTBUFFERSIZE 512
