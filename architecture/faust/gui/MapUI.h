@@ -86,7 +86,7 @@ class MapUI : public PathUI
         void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {};
         
-        // setters
+        // set/get
         void setValue(const std::string& path, float value)
         {
             *fZoneMap[path] = value;
@@ -97,7 +97,17 @@ class MapUI : public PathUI
             return *fZoneMap[path];
         }
     
-        std::map<std::string, FAUSTFLOAT*>& getMap() {return fZoneMap; }
+        // map access 
+        std::map<std::string, FAUSTFLOAT*>& getMap() { return fZoneMap; }
+        
+        int getParamsCount() { return fZoneMap.size(); }
+        
+        std::string getParamPath(int index) 
+        { 
+            std::map<std::string, FAUSTFLOAT*>::iterator it = fZoneMap.begin();
+            while (index-- > 0 && it++ != fZoneMap.end()) {}
+            return (*it).first;
+        }
 };
 
 #endif
