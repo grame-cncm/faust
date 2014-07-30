@@ -282,7 +282,7 @@ ostream& boxpp::print (ostream& fout) const
     
         fout << "waveform";
         char sep = '{';
-        for (size_t i=0; i<box->arity(); i++) {
+        for (int i=0; i<box->arity(); i++) {
             fout << sep << boxpp(box->branch(i));
             sep = ',';
         }
