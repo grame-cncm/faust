@@ -273,6 +273,8 @@ ifstream* open_arch_stream(const char* filename)
         TRY_OPEN(filename);
     }
 
+    if (err != 0) cerr << "ERROR : cannot change back directory to '" << old << "' : " <<  strerror(errno) << endl;
+
 	return 0;
 }
 
@@ -348,9 +350,11 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
 		fullpath += '/';
 		fullpath += filename;
         err = chdir(olddir);
+        if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
         return f;
     }
     err = chdir(olddir);
+    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
     return 0;
 }
 
@@ -387,6 +391,7 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
         }
     }
     err = chdir(olddir);
+    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
     return 0;
 }
 
