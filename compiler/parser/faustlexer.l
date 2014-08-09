@@ -16,6 +16,7 @@ WSPACE   [ \t\n]
 TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 %option yylineno
+%option nounput
 %x comment
 %x doc
 %x lst
