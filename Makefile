@@ -58,6 +58,7 @@ help :
 	@echo "make or make all : compile the Faust compiler"
 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
 	@echo "make sound2faust : compile sound to DSP file converter"
+	@echo "make remote : compile remote components used by FaustLive"
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
