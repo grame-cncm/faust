@@ -1,2 +1,2 @@
 // test compilation multirate
-process = down(10,_) : ^(2) : up(10,_) ;
+process = down(_,10) : ^(2) : up(_,10) ;
