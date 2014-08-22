@@ -39,7 +39,16 @@ static bool CheckParameters(int argc, const char* argv[])
              || strcmp(argv[i], "-ps") == 0
              || strcmp(argv[i], "-svg") == 0
              || strcmp(argv[i], "-mdoc") == 0
-             || strcmp(argv[i], "-xml") == 0)) {
+             || strcmp(argv[i], "-xml") == 0)
+             || strcmp(argv[i], "-lang") == 0
+             || strcmp(argv[i], "c") == 0
+             || strcmp(argv[i], "cpp") == 0
+             || strcmp(argv[i], "java") == 0
+             || strcmp(argv[i], "js") == 0
+             || strcmp(argv[i], "ajs") == 0
+             || strcmp(argv[i], "llvm") == 0
+             || strcmp(argv[i], "fir") == 0)
+        {
             return true;
         }
     }
@@ -99,7 +108,6 @@ EXPORT string expandDSPFromString(const string& name_app,
 EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
 {
     if (CheckParameters(argc, argv)) {
-         
         int argc1 = argc + 2;
         const char* argv1[32];
         
@@ -114,6 +122,7 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
         error_msg = error_msg_aux;
         return true;
     } else {
+        error_msg = "Incorrect compiler parameter";
         return false;
     }
 }
@@ -121,7 +130,6 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
     if (CheckParameters(argc, argv)) {
-       
         int argc1 = argc + 1;
         const char* argv1[32];
         
@@ -135,6 +143,7 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
         error_msg = error_msg_aux;
         return true;
     } else {
+        error_msg = "Incorrect compiler parameter";
         return false;
     }
 }
@@ -181,39 +190,16 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
 
 EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
 {
-    if (CheckParameters(argc, argv)) {
-    
-        int argc1 = argc + 2;
-        const char* argv1[32];
-        
-        argv1[0] = "faust";
-        argv1[1] = filename;
-        for (int i = 0; i < argc; i++) {
-            argv1[i+2] = argv[i];
-        }
-        
-        compile_faust(argc1, argv1, "", "", error_msg, false);
-        return true;
-    } else {
-        return false;
-    }
+    string error_msg_aux;
+    bool res = generateAuxFilesFromFile(filename, argc, argv, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    return res;
 }
 
 EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
-    if (CheckParameters(argc, argv)) {
-    
-        int argc1 = argc + 1;
-        const char* argv1[32];
-        
-        argv1[0] = "faust";
-        for (int i = 0; i < argc; i++) {
-            argv1[i+1] = argv[i];
-        }
-        
-        compile_faust(argc1, argv1, name_app, dsp_content, error_msg, false);
-        return true;
-    } else {
-        return false;
-    }
+    string error_msg_aux;
+    bool res = generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    return res;
 }
