@@ -93,6 +93,8 @@
 #include <llvm/Support/TargetSelect.h>
 #endif
 
+#define MAX_OPT_LEVEL 4
+
 using namespace llvm;
 
 int llvm_dsp_factory::gInstance = 0;
@@ -251,19 +253,24 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
             printf("llvm_start_multithreaded error...\n");
         }
     }
-
-    // Keep given name
-    fExtName = name_app;
     
-    fSHAKey = sha_key;
-    fOptLevel = opt_level;
-    fTarget = target;
-    
-    Init();
-    char error_msg_aux[512];
-    fClassName = getParam(argc, argv, "-cn", "mydsp");
-    fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
-    error_msg = error_msg_aux;
+    if (opt_level >=0 && opt_level <= MAX_OPT_LEVEL) {
+        // Keep given name
+        fExtName = name_app;
+        
+        fSHAKey = sha_key;
+        fOptLevel = opt_level;
+        fTarget = target;
+        
+        Init();
+        char error_msg_aux[512];
+        fClassName = getParam(argc, argv, "-cn", "mydsp");
+        fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+        error_msg = error_msg_aux;
+    } else {
+        fResult = NULL;
+        error_msg = "Incorrect LLVM optimisation level";
+    }
 }
 
 void llvm_dsp_factory::Init()
