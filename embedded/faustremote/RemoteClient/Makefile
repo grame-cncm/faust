@@ -8,7 +8,7 @@ os 	:= $(shell uname)
 system	?= $(shell uname -s)
 
 PREFIX ?= /usr/local
-INCPATH = -I. -I../ -I../../../architecture -I../../../compiler -I../../../compiler/generator/ -I../../../compiler/generator/llvm_backend -I/usr/include -I/opt/local/include -F/Library/
+INCPATH = -I. -I../ -I../../../architecture -I../../../compiler -I../../../compiler/generator/ -I../../../compiler/generator/llvm -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
