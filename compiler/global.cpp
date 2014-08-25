@@ -45,6 +45,8 @@
 #include "binop.hh"
 #include "instructions.hh"
 
+#include "asmjs_instructions.hh"
+
 // Parser
 extern FILE* yyin;
 extern const char * yyfilename;
@@ -274,6 +276,8 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gInPlace = false;
     gOutputLang = "";
+    
+    gASMJSVisitor = 0; // Will be (possibly) allocated in 
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built

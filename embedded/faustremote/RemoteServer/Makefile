@@ -1,7 +1,7 @@
 CC            = gcc -O3
 CXX           = g++ -O3
 DEFINE	      = D_REENTRANT	 
-INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator/llvm_backend -I/usr/include -I/opt/local/include 
+INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator/llvm -I/usr/include -I/opt/local/include 
 LINK          = g++
 LLVM_CONFIG   = llvm-config
 LIBS          = ../../../compiler/libfaust.a -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lncurses -ldl -llo

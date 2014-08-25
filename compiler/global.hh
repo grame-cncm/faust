@@ -53,6 +53,8 @@ class Garbageable;
 
 struct LLVMResult;
 
+class ASMJAVAScriptInstVisitor;
+
 struct comp_str
 {
     bool operator()(Tree s1, Tree s2) const
@@ -413,6 +415,8 @@ struct global {
     bool gInPlace;  // add cache to input for correct in-place computations
     
     string gOutputLang;
+    
+    ASMJAVAScriptInstVisitor* gASMJSVisitor;
    
     // GC
     static list<Garbageable*> gObjectTable;
