@@ -52,7 +52,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "0.93b"
+#define FAUSTGEN_VERSION "0.94b"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -300,7 +300,8 @@ class faustgen : public MspCpp5<faustgen> {
           
         // Process the signal data with the Faust module
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
-          
+        
+        void init(double samplerate);
 };
 
 #endif
