@@ -300,6 +300,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 
         pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         if (gGlobal->gOutputLang == "ajs") {
+            // Use cast to "keep" result type
             return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(name, args), getTypeASM(result));
         } else {
             return InstBuilder::genFunCallInst(name, args);

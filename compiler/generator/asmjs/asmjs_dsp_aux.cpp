@@ -28,7 +28,6 @@
 #include "asmjs_dsp_aux.hh"
 #include "libfaust.h"
 
-
 static inline std::string flatten(const std::string& src)
 {
     std::stringstream dst;

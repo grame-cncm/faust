@@ -28,7 +28,17 @@
 
 using namespace std;
 
-ASMJAVAScriptInstVisitor* ASMJAVAScriptCodeContainer::fCodeProducer = 0;
+ASMJAVAScriptCodeContainer::ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+            :fOut(out), fObjPrefix("")
+{
+    initializeCodeContainer(numInputs, numOutputs);
+    fKlassName = name;
+    
+    // Allocate static visitor
+    if (!gGlobal->gASMJSVisitor) {
+        gGlobal->gASMJSVisitor = new ASMJAVAScriptInstVisitor(fOut);
+    }
+}
 
 CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -69,17 +79,19 @@ ASMJAVAScriptScalarCodeContainer::ASMJAVAScriptScalarCodeContainer(const string&
 ASMJAVAScriptScalarCodeContainer::~ASMJAVAScriptScalarCodeContainer()
 {}
 
+int ASMJAVAScriptCodeContainer::getStructSize() { return gGlobal->gASMJSVisitor->getStructSize(); }
+
 void ASMJAVAScriptCodeContainer::produceInternal()
 {
     int n = 0;
     
     // Global declarations
     tab(n, *fOut);
-    fCodeProducer->Tab(n);
+    gGlobal->gASMJSVisitor->Tab(n);
       
     // Fields : compute the structure size to use in 'new'
-    fCodeProducer->Tab(n+1);
-    generateDeclarations(fCodeProducer);
+    gGlobal->gASMJSVisitor->Tab(n+1);
+    generateDeclarations(gGlobal->gASMJSVisitor);
     
     // fKlassName used in method naming for subclasses
     
@@ -99,12 +111,12 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
-    tab(n+2, *fOut); fCodeProducer->Tab(n+2);
+    tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
     // Moves all variables declaration at the beginning of the block
     MoveVariablesInFront1 mover1;
     BlockInst* block1 = mover1.getCode(fInitInstructions); 
-    block1->accept(fCodeProducer);
+    block1->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
     
     // Fill
@@ -114,7 +126,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
     tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
     tab(n+2, *fOut); *fOut << "output = output | 0;";
-    tab(n+2, *fOut); fCodeProducer->Tab(n+2);
+    tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
     // Generates one single scalar loop and put is the the block
     ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
@@ -123,7 +135,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
     MoveVariablesInFront2 mover2;
     BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
-    block2->accept(fCodeProducer);
+    block2->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
 }
 
@@ -154,12 +166,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
 void ASMJAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
-    
-    // Allocate static visitor
-    if (!fCodeProducer) {
-        fCodeProducer = new ASMJAVAScriptInstVisitor(fOut);
-    }
-
+   
     generateSR();
 
     // Libraries
@@ -167,7 +174,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
  
     // Global declarations
     tab(n, *fOut);
-    fCodeProducer->Tab(n);
+    gGlobal->gASMJSVisitor->Tab(n);
     tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
     
         tab(n+1, *fOut);
@@ -185,23 +192,23 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
-        fCodeProducer->Tab(n+1);
+        gGlobal->gASMJSVisitor->Tab(n+1);
            
         // Sub containers : before functions generation
         mergeSubContainers();
     
         // All mathematical functions (got from math library as variables) have to be first...
-        sortDeclareFunctions sorter(fCodeProducer->getMathLibTable());
+        sortDeclareFunctions sorter(gGlobal->gASMJSVisitor->getMathLibTable());
         fGlobalDeclarationInstructions->fCode.sort(sorter);
-        generateGlobalDeclarations(fCodeProducer);
+        generateGlobalDeclarations(gGlobal->gASMJSVisitor);
     
         // Manually and always generated
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
            
         // Fields : compute the structure size to use in 'new'
-        fCodeProducer->Tab(n+1);
-        generateDeclarations(fCodeProducer);
+        gGlobal->gASMJSVisitor->Tab(n+1);
+        generateDeclarations(gGlobal->gASMJSVisitor);
     
         // After field declaration...
         generateSubContainers();
@@ -224,11 +231,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
-            fCodeProducer->Tab(n+2);
+            gGlobal->gASMJSVisitor->Tab(n+2);
             // Replace use of "sig" in use of "dsp"
             DspRenamer renamer1;
             BlockInst* block0 = renamer1.getCode(fStaticInitInstructions);
-            block0->accept(fCodeProducer);
+            block0->accept(gGlobal->gASMJSVisitor);
              
         tab(n+1, *fOut); *fOut << "}";
 
@@ -237,14 +244,14 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
-            fCodeProducer->Tab(n+2);
+            gGlobal->gASMJSVisitor->Tab(n+2);
             // Moves all variables declaration at the beginning of the block
             MoveVariablesInFront1 mover;
             BlockInst* block2 = mover.getCode(fInitInstructions); 
             // Replace use of "sig" in use of "dsp"
             DspRenamer renamer2;
             BlockInst* block3 = renamer2.getCode(block2);
-            block3->accept(fCodeProducer);
+            block3->accept(gGlobal->gASMJSVisitor);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -276,9 +283,9 @@ void ASMJAVAScriptCodeContainer::produceClass()
         generateCompute(n);
 
         // Possibly generate separated functions
-        fCodeProducer->Tab(n+1);
+        gGlobal->gASMJSVisitor->Tab(n+1);
         tab(n+1, *fOut);
-        generateComputeFunctions(fCodeProducer);
+        generateComputeFunctions(gGlobal->gASMJSVisitor);
     
         // Exported functions (DSP only)
         tab(n+1, *fOut);
@@ -302,7 +309,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // Generate JSON and getDSPSize
     tab(n, *fOut); *fOut << "function getDSPSize" <<  fKlassName << "() {";
     tab(n+1, *fOut);
-    *fOut << "return " << fCodeProducer->getStructSize() << ";";
+    *fOut << "return " << gGlobal->gASMJSVisitor->getStructSize() << ";";
     printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
     tab(n, *fOut);
@@ -312,7 +319,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "var pathTable = [];"; 
     map <string, string>::iterator it;
-    map <string, pair<int, Typed::VarType> >& fieldTable = fCodeProducer->getFieldTable();
+    map <string, pair<int, Typed::VarType> >& fieldTable = gGlobal->gASMJSVisitor->getFieldTable();
     for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
         pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
         tab(n+1, *fOut); *fOut << fObjPrefix << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
@@ -346,10 +353,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
     }
     
     tab(n, *fOut); *fOut << "}" << endl << endl;
-    
-    // Deallocate static visitor
-    delete fCodeProducer;
-    fCodeProducer = 0;
 }
 
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
@@ -361,7 +364,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
         tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
         tab(n+2, *fOut);
-        fCodeProducer->Tab(n+2);
+        gGlobal->gASMJSVisitor->Tab(n+2);
     
         // Generates one single scalar loop and put is the the block
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
@@ -370,7 +373,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions); 
-        block->accept(fCodeProducer);
+        block->accept(gGlobal->gASMJSVisitor);
            
     tab(n+1, *fOut); *fOut << "}";
 }

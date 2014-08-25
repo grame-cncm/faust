@@ -89,7 +89,7 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, b
 
 void CPPCodeContainer::produceMetadata(int tabs)
 {
-    tab(tabs, *fOut); *fOut   << "void static metadata(Meta* m) { ";
+    tab(tabs, *fOut); *fOut << "void static metadata(Meta* m) { ";
 
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
