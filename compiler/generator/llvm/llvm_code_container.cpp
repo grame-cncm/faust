@@ -50,7 +50,7 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
     fBuilder = new IRBuilder<>(getContext());
     fAllocaBuilder = new IRBuilder<>(getContext());
 
-#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
     fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #else
     fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
@@ -177,7 +177,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fResult->fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #elif defined(LLVM_32) 
@@ -618,7 +618,7 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
     if (filename != "") {
         std::string err;
         
-    #if defined(LLVM_34)
+    #if defined(LLVM_34) || defined(LLVM_35)
         raw_fd_ostream out(filename.c_str(), err, sys::fs::F_Binary);
     #else
         raw_fd_ostream out(filename.c_str(), err, raw_fd_ostream::F_Binary);

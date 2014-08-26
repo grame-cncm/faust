@@ -41,7 +41,7 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -61,7 +61,7 @@ using namespace std;
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Analysis/Verifier.h>
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/IR/IRBuilder.h>
 #elif defined(LLVM_32) 
 #include <llvm/IRBuilder.h>
@@ -89,7 +89,7 @@ using namespace std;
     #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, name);
 #endif
 
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
     #include <llvm/Support/TargetSelect.h>
     #define VECTOR_OF_TYPES vector<llvm::Type*>
     #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
@@ -300,7 +300,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
             fModule->addTypeName(name, struct_type);
         #endif
-        #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+        #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
             StructType* struct_type = StructType::create(fModule->getContext(), name);
             struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
         #endif
@@ -934,7 +934,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
                 GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::PrivateLinkage, 0, str);
-            #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+            #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
                 gvar_array_string0->setInitializer(ConstantDataArray::getString(fModule->getContext(), str, true));
             #else
                 gvar_array_string0->setInitializer(ConstantArray::get(fModule->getContext(), str, true));
@@ -1307,7 +1307,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
                 
-            #if defined(LLVM_33) || defined(LLVM_34)
+            #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
                 // In order for auto-vectorization to correctly work with vectorizable math functions
                 if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
                     function->setDoesNotAccessMemory();

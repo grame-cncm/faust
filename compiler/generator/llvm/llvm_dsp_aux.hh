@@ -98,7 +98,7 @@ class llvm_dsp_factory : public smartable {
         
         static int gInstance;
     
-    #if defined(LLVM_33) || defined(LLVM_34)
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
                    
