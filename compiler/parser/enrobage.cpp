@@ -218,7 +218,7 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
 ifstream* open_arch_stream(const char* filename)
 {
 	char	buffer[FAUST_PATH_MAX];
-    char*	old = getcwd (buffer, FAUST_PATH_MAX);
+    char*	old = getcwd(buffer, FAUST_PATH_MAX);
 	int		err;
 
     TRY_OPEN(filename);
@@ -352,11 +352,16 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
     char olddirbuffer[FAUST_PATH_MAX];
     char newdirbuffer[FAUST_PATH_MAX];
     
-    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
 
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
-		fullpath = getcwd (newdirbuffer, FAUST_PATH_MAX);
+        char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
+        if (!newdir) {
+            cerr << "ERROR : getcwd '" << strerror(errno) << endl;
+            return 0;
+        }
+		fullpath = newdir;
 		fullpath += '/';
 		fullpath += filename;
         err = chdir(olddir);
@@ -387,12 +392,17 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
     char olddirbuffer[FAUST_PATH_MAX];
     char newdirbuffer[FAUST_PATH_MAX];
     
-    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
     
     if (chdir(dir.c_str()) == 0) {
         if (chdir(path) == 0) {            
             FILE* f = fopen(filename, "r");
-			fullpath = getcwd (newdirbuffer, FAUST_PATH_MAX);
+            char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
+            if (!newdir) {
+                cerr << "ERROR : getcwd '" << strerror(errno) << endl;
+                return 0;
+            }
+			fullpath = newdir;
 			fullpath += '/';
 			fullpath += filename;
             err = chdir(olddir);
@@ -429,8 +439,13 @@ static void buildFullPathname(string& fullpath, const char* filename)
 	if (isAbsolutePathname(filename)) {
 		fullpath = filename;
 	} else {
-		fullpath = getcwd (old, FAUST_PATH_MAX);
-		fullpath += '/';
+        char* newdir = getcwd(old, FAUST_PATH_MAX);
+        if (!newdir) {
+            cerr << "ERROR : getcwd '" << strerror(errno) << endl;
+            return;
+        }
+        fullpath = newdir;
+    	fullpath += '/';
 		fullpath += filename;
 	}
 }
