@@ -72,7 +72,7 @@ ifeq ($(LLVM_VERSION), 3.5.0)
 endif
 
 ifeq ($(system), Darwin)
-	CXXFLAGS += -O3
+	CXXFLAGS += -g
 else
 	CXXFLAGS += -O1 -fPIC
 endif
@@ -116,7 +116,7 @@ emcc : EXPORTED="['_createAsmCDSPFactoryFromString']"
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
 
 libfaust.js : $(objects) libmain.o global.o
-	$(CXX) -O2  -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
+	$(CXX) -O2 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
@@ -127,7 +127,7 @@ global.o : global.cpp
 main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
-faust : $(objects) main.o libmain.o global.o scheduler.ll
+faust : $(objects) main.o libmain.o global.o 
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -o faust
 
 scheduler.ll : ../architecture/scheduler.cpp
