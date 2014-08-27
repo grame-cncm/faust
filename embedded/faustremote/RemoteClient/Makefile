@@ -12,7 +12,7 @@ INCPATH = -I. -I../ -I../../../architecture -I../../../compiler -I../../../compi
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= $(INCPATH) -O3 -arch i386 -arch x86_64
+	CXXFLAGS	= $(INCPATH) -O3 -arch x86_64
 	LIB_EXT     = dylib
 else 
 	ARCHFLAGS	:= 
