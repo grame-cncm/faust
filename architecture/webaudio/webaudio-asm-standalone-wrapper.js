@@ -141,13 +141,22 @@ faust.DSP = function (context, buffer_size) {
         // Nothing to do
     };
     
-    // Connect to another node
+    // Connect/disconnect to another node
     that.connect = function (node) 
     {
         if (node.scriptProcessor) {
             that.scriptProcessor.connect(node.scriptProcessor);
         } else {
             that.scriptProcessor.connect(node);
+        }
+    };
+
+    that.disconnect = function (node) 
+    {
+        if (node.scriptProcessor) {
+            that.scriptProcessor.disconnect(node.scriptProcessor);
+        } else {
+            that.scriptProcessor.disconnect(node);
         }
     };
  
