@@ -356,7 +356,7 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
 
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
-        char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
+	    char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
         if (!newdir) {
             cerr << "ERROR : getcwd '" << strerror(errno) << endl;
             return 0;

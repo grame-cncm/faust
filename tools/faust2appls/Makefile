@@ -51,6 +51,7 @@ install:
 	install faust2netjackconsole $(dest)
 	install faust2vst $(dest)
 	install faust2vsti $(dest)
+	install faust2w32vst $(dest)
 	install faust2ios $(dest)
 	install faust2lv2 $(dest)
 	install faust2lv2synth $(dest)
@@ -105,6 +106,7 @@ uninstall:
 	rm -f $(dest)/faust2netjackconsole
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2vsti
+	rm -f $(dest)/faust2w32vst
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2lv2synth
