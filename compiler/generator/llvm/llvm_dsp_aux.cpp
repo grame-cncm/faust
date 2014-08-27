@@ -39,7 +39,7 @@
 #include "timing.hh"
 #include "exception.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IRReader/IRReader.h>
@@ -66,7 +66,7 @@
  */
 #if defined(LLVM_32)
 #include <llvm/DataLayout.h>
-#elif !defined(LLVM_33) && !defined(LLVM_34)
+#elif !defined(LLVM_33) && !defined(LLVM_34) && !defined(LLVM_35)
 #ifndef _WIN32
 #include <llvm/Target/TargetData.h>
 #endif
@@ -89,7 +89,7 @@
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/Support/TargetSelect.h>
 #endif
 
@@ -128,7 +128,7 @@ EXPORT Module* load_single_module(const string filename, LLVMContext* context)
     if (module) {
         return module;
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
         err.print("ParseIRFile failed :", errs());
     #else
         err.Print("ParseIRFile failed :", errs());
@@ -181,7 +181,7 @@ void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
     string err;
     
-#if defined(LLVM_34)
+#if defined(LLVM_34) || defined(LLVM_35)
     raw_fd_ostream out(bit_code_path.c_str(), err, sys::fs::F_Binary);
 #else
     raw_fd_ostream out(bit_code_path.c_str(), err, raw_fd_ostream::F_Binary);
@@ -205,7 +205,7 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
 void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 {
     string err;
-#if defined(LLVM_34)
+#if defined(LLVM_34) || defined(LLVM_35)
     raw_fd_ostream out(ir_code_path.c_str(), err, sys::fs::F_Binary);
 #else
     raw_fd_ostream out(ir_code_path.c_str(), err, raw_fd_ostream::F_Binary);
@@ -230,7 +230,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fResult->fContext = context;
 }
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 void llvm_dsp_factory::LLVMFatalErrorHandler(const char* reason)
 {
     throw faustexception(reason);
@@ -246,7 +246,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
     if (llvm_dsp_factory::gInstance++ == 0) {
         
         // Install a LLVM error handler
-    #if defined(LLVM_34)
+    #if defined(LLVM_34) || defined(LLVM_35)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
     #endif
         if (!llvm_start_multithreaded()) {
@@ -292,7 +292,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
@@ -630,7 +630,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     
     if (--llvm_dsp_factory::gInstance == 0) {
         llvm_stop_multithreaded();
-    #if defined(LLVM_34)
+    #if defined(LLVM_34) || defined(LLVM_35)
         LLVMResetFatalErrorHandler();
     #endif
     }
@@ -975,7 +975,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const str
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
-        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
             err.print("readDSPFactoryFromIRAux failed :", errs());
         #else
             err.Print("readDSPFactoryFromIRAux failed :", errs());

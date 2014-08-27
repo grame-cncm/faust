@@ -1096,6 +1096,11 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     }
 }
 
+inline void faustgen::init(double samplerate)
+{
+    fDSP->init(samplerate);
+}
+
 // Display source code
 void faustgen::display_dsp_source()
 {
@@ -1188,7 +1193,7 @@ void faustgen::create_dsp(bool init)
             }
         }
    
-        setupIO(&faustgen::perform, fDSP->getNumInputs(), fDSP->getNumOutputs(), init); 
+        setupIO(&faustgen::perform, &faustgen::init, fDSP->getNumInputs(), fDSP->getNumOutputs(), init); 
         
         // Possibly restart IO
         if (dspstate) {

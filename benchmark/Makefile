@@ -29,6 +29,11 @@ CXX = /opt/local/libexec/llvm-3.4/bin/clang++
 LLC = /opt/local/libexec/llvm-3.4/bin/llc
 endif
 
+ifeq ($(LLVM_VERSION), 3.5)
+LLVM_VERSION  = LLVM_35
+CXX = /opt/local/libexec/llvm-3.5/bin/clang++
+LLC = /opt/local/libexec/llvm-3.5/bin/llc
+endif
 
 ifeq ($(system), Darwin)
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math '
