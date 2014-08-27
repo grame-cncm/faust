@@ -29,6 +29,8 @@
 #include <assert.h>
 #include <pthread.h>
 
+#include <curl/curl.h>
+
 #include "TMutex.h"
 
 #include <sstream>
@@ -44,7 +46,6 @@
 #include "lo/lo.h"
 
 #include <jack/net.h>
-#include <curl/curl.h>
 
 #define	EXPORT __attribute__ ((visibility("default")))
 
@@ -129,6 +130,8 @@ extern "C"
         
         map<string,string>  fMetadatas; //Metadatas extracted from json
         vector<itemInfo*>   fUiItems;   //Items extracted from json
+        
+        string      generate_sha1(const string& dsp_content);
         
     public: 
         

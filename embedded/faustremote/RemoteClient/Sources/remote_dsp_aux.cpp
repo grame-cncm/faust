@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <libgen.h>
 
+#include <openssl/sha.h>
+
 FactoryTableType remote_dsp_factory::gFactoryTable;
 
 // Standard Callback to store a server response in stringstream
@@ -247,6 +249,25 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(
     }
 }
 
+string remote_dsp_factory::generate_sha1(const string& dsp_content)
+{
+    // compute SHA1 key
+    unsigned char obuf[20];
+    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
+    
+	// convert SHA1 key into hexadecimal string
+    string sha1key;
+    for (int i = 0; i < 20; i++) {
+    	const char* H = "0123456789ABCDEF";
+    	char c1 = H[(obuf[i] >> 4)];
+    	char c2 = H[(obuf[i] & 15)];
+        sha1key += c1;
+        sha1key += c2;
+    }
+    
+    return sha1key;
+}
+
 //---------FACTORY
 
 static bool getFactory(const string& sha_key, FactoryTableIt& res)
@@ -354,17 +375,25 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
             argv1[argc1++] = argv[i];
         }
     }
-     
+    
 //    EXPAND DSP
+    stringstream ss;
+    ss<<port_server;
     
     std::string expanded_dsp;
     char sha_key_aux[256];
+    expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux);
     
-    if ((expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux)) == "") {
+    string sha_key = sha_key_aux;
+    sha_key += " " + ss.str();
+    sha_key += " " + ip_server;
+    
+    sha_key = generate_sha1(sha_key);
+    
+    if (expanded_dsp == "") {
         return 0; 
     } else {
         FactoryTableIt it;
-        string sha_key = sha_key_aux;
         if (getFactory(sha_key, it)) {
             Sremote_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
@@ -929,10 +958,10 @@ int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
     string key = messageSender.hostname + ":" + convert.str();
     
     if (dns->fLocker.Lock()) {
-        if (dns->fClients[key].timetag.sec == 0)
-            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
+//        if (dns->fClients[key].timetag.sec == 0)
+//            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
             
-        printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
+//        printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
         dns->fClients[key] = messageSender;
         gDNS->fLocker.Unlock();
     }
