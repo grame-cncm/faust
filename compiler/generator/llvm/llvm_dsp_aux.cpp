@@ -1256,10 +1256,8 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
-    }
-}
+    return (factory) ? reinterpret_cast<llvm_dsp*>(factory->createDSPInstance()) : 0;
+ }
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
