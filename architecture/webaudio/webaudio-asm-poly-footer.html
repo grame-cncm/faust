@@ -133,6 +133,8 @@ function startDSPAux(buffer_size)
     DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony);
     DSP_poly.start();
     console.log(DSP_poly.json());
+    
+    // Setup UI
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
     

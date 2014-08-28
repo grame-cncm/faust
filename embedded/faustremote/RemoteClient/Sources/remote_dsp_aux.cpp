@@ -975,7 +975,6 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 {
     if (gDNS && gDNS->fLocker.Lock()) {
         
-        
         for(map<string, member>::iterator it=gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
             
             member iterMem = it->second;
@@ -1003,7 +1002,6 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
                 (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
                 
             }
-
         }
         
         gDNS->fLocker.Unlock();
