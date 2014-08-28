@@ -130,9 +130,7 @@ extern "C"
         
         map<string,string>  fMetadatas; //Metadatas extracted from json
         vector<itemInfo*>   fUiItems;   //Items extracted from json
-        
-        string      generate_sha1(const string& dsp_content);
-        
+         
     public: 
         
         void        decodeJson(const string& json);

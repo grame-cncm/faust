@@ -28,8 +28,6 @@
 #include <errno.h>
 #include <libgen.h>
 
-#include <openssl/sha.h>
-
 FactoryTableType remote_dsp_factory::gFactoryTable;
 
 // Standard Callback to store a server response in stringstream
@@ -249,25 +247,6 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(
     }
 }
 
-string remote_dsp_factory::generate_sha1(const string& dsp_content)
-{
-    // compute SHA1 key
-    unsigned char obuf[20];
-    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
-    
-	// convert SHA1 key into hexadecimal string
-    string sha1key;
-    for (int i = 0; i < 20; i++) {
-    	const char* H = "0123456789ABCDEF";
-    	char c1 = H[(obuf[i] >> 4)];
-    	char c2 = H[(obuf[i] & 15)];
-        sha1key += c1;
-        sha1key += c2;
-    }
-    
-    return sha1key;
-}
-
 //---------FACTORY
 
 static bool getFactory(const string& sha_key, FactoryTableIt& res)
@@ -388,7 +367,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     sha_key += " " + ss.str();
     sha_key += " " + ip_server;
     
-    sha_key = generate_sha1(sha_key);
+    sha_key = generateSha1(sha_key);
     
     if (expanded_dsp == "") {
         return 0; 

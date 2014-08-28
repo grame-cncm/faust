@@ -297,6 +297,8 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
+EXPORT void generateCSha1(const char* data, char* key);
+
 #ifdef __cplusplus
 }
 #endif

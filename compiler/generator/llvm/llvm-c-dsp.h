@@ -301,6 +301,15 @@ extern "C"
      */ 
     void deleteCDSPInstance(llvm_dsp* dsp);
     
+    /**
+     * Compute a SHA1 hey from a string
+     * 
+     * @param data - the string to be converted in SHA1 key
+     * @param key - a 20 character buffer to be filled with the computed key 
+     *
+     */ 
+    void generateCSha1(const char* data, char* key);
+    
 #ifdef __cplusplus
 }
 #endif
