@@ -334,58 +334,53 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
 {
-    // Use for it's possible 'side effects', that is generating SVG, XML... files
-    char error_msg_aux[256];
-    generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
-    
-//  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
-    
-    int argc1 = 0;
-    const char* argv1[argc];
-    
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i],"-tg") != 0 && 
-           strcmp(argv[i],"-sg") != 0 &&
-           strcmp(argv[i],"-svg") != 0 &&
-           strcmp(argv[i],"-ps") != 0 &&
-           strcmp(argv[i],"-mdoc") != 0 &&
-           strcmp(argv[i],"-xml") != 0)
-        {
-            argv1[argc1++] = argv[i];
-        }
-    }
-    
-//    EXPAND DSP
+    // Compute SHA1 key using the non-expanded version, IP and port
     stringstream ss;
-    ss<<port_server;
+    ss << port_server;
     
-    std::string expanded_dsp;
-    char sha_key_aux[256];
-    expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux);
+    string sha_key = generateSha1(dsp_content + " " + ss.str() + " " + ip_server); 
+    FactoryTableIt it;
     
-    string sha_key = sha_key_aux;
-    sha_key += " " + ss.str();
-    sha_key += " " + ip_server;
-    
-    sha_key = generateSha1(sha_key);
-    
-    if (expanded_dsp == "") {
-        return 0; 
+    if (getFactory(sha_key, it)) {
+        Sremote_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
     } else {
-        FactoryTableIt it;
-        if (getFactory(sha_key, it)) {
-            Sremote_dsp_factory sfactory = (*it).first;
-            sfactory->addReference();
-            return sfactory;
-        } else  {
-            remote_dsp_factory* factory = new remote_dsp_factory();
-            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
-                remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
-                return factory;
-            } else {
-                delete factory;
-                return 0;
+    
+        // Use for it's possible 'side effects', that is generating SVG, XML... files
+        char error_msg_aux[256];
+        generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
+        
+        //  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
+        int argc1 = 0;
+        const char* argv1[argc];
+        
+        for (int i = 0; i < argc; i++) {
+            if (strcmp(argv[i],"-tg") != 0 && 
+               strcmp(argv[i],"-sg") != 0 &&
+               strcmp(argv[i],"-svg") != 0 &&
+               strcmp(argv[i],"-ps") != 0 &&
+               strcmp(argv[i],"-mdoc") != 0 &&
+               strcmp(argv[i],"-xml") != 0)
+            {
+                argv1[argc1++] = argv[i];
             }
+        }
+
+        char sha_key_aux[256];
+        std::string expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux);
+        
+        if (expanded_dsp == "") {
+            return 0; 
+        }
+    
+        remote_dsp_factory* factory = new remote_dsp_factory();
+        if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
+            remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
+            return factory;
+        } else {
+            delete factory;
+            return 0;
         }
     }
 }
