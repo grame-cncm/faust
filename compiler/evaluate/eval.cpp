@@ -1037,16 +1037,16 @@ static Tree applyList (Tree fun, Tree larg)
          }
 		
 		if (outs > ins) {
-			cerr << "too much arguments : " << outs << ", instead of : " << ins << endl;
-            cerr << "when applying : " << boxpp(fun) << endl
-                 << "           to : " << boxpp(larg) << endl;
-			assert(false);
+            stringstream error;
+			error << "too much arguments : " << outs << ", instead of : " << ins << endl;
+            error << "when applying : " << boxpp(fun) << endl
+            << "to : " << boxpp(larg) << endl;
+            throw faustexception(error.str());
 		}
 		
-        if (    (outs == 1)
-            &&
-                (  ( isBoxPrim2(fun, &p2) && (p2 != sigPrefix) )
-                || ( getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix() ) ) ) {
+        if ((outs == 1)
+            && (( isBoxPrim2(fun, &p2) && (p2 != sigPrefix))
+            || (getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix()))) {
             // special case : /(3) ==> _,3 : /
             Tree larg2 = concat(nwires(ins-outs), larg);
             return boxSeq(larg2par(larg2), fun);
