@@ -614,12 +614,12 @@ static bool isBoxNumeric (Tree in, Tree& out)
             Tree lsignals = boxPropagateSig(gGlobal->nil, v , makeSigInputList(numInputs) );
             Tree res = simplify(hd(lsignals));
             if (isSigReal(res, &x)) 	{
-            out = boxReal(x);
-            return true;
+                out = boxReal(x);
+                return true;
             }
             if (isSigInt(res, &i))  	{
-            out = boxInt(i);
-            return true;
+                out = boxInt(i);
+                return true;
             }
         }
         return false;
@@ -782,9 +782,9 @@ static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
             }
 
         } else {
-
-            std::cerr << "internal error in evallabel : undefined state " << state << std::endl;
-            exit(1);
+            stringstream error;
+            error << "internal error in evallabel : undefined state " << state << std::endl;
+            throw faustexception(error.str());
         }
     }
 
