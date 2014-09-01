@@ -222,15 +222,11 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     }
 }
 
-llvm_dsp* faustgen_factory::create_dsp_default(int ins, int outs)
-{
-    return new default_llvm_dsp(ins, outs);
-}
-
 llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
 {
     llvm_dsp* dsp = 0;
     Max_Meta meta;
+    string error;
     
     // Factory already allocated
     if (fDSPfactory) {
@@ -262,9 +258,10 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
     }
 
     // Otherwise creates default DSP keeping the same input/output number
-    dsp = create_dsp_default(m_siginlets, m_sigoutlets);
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
+    dsp = createDSPInstance(fDSPfactory);
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
- 
+  
  end:
     
     assert(dsp);

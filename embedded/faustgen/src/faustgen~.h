@@ -52,7 +52,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "0.94b"
+#define FAUSTGEN_VERSION "0.95b"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -69,38 +69,9 @@
 #endif
 
 #define LLVM_OPTIMIZATION 3
+#define DEFAULT_CODE "process = _,_;"
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
-
-class default_llvm_dsp : public llvm_dsp {
-
-    private:
-    
-        int fNumInputs;
-        int fNumOutputs;
-               
-    public:
-    
-        default_llvm_dsp(int ins, int outs):fNumInputs(ins), fNumOutputs(outs)
-        {}
-      
-        virtual int getNumInputs() { return fNumInputs; }
-        virtual int getNumOutputs() { return fNumOutputs; }
-
-        void classInit(int samplingFreq) {}
-        virtual void init(int samplingFreq) {}
-
-        virtual void buildUserInterface(UI* ui) {}
-    
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-        {
-            // Write null buffers to outs
-            for (int i = 0; i < fNumOutputs; i++) {
-                 memset(output[i], 0, sizeof(t_sample) * count);
-            }
-        }
-     
-};
 
 //===================
 // Faust DSP Factory
@@ -156,7 +127,6 @@ class faustgen_factory {
             
         llvm_dsp_factory* create_factory_from_bitcode();
         llvm_dsp_factory* create_factory_from_sourcecode(faustgen* instance);
-        llvm_dsp* create_dsp_default(int ins, int outs);
         llvm_dsp* create_dsp_aux(faustgen* instance);
      
         void free_dsp_factory();
