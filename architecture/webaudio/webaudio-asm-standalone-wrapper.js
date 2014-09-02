@@ -41,10 +41,10 @@ faust.mydsp = function (context, buffer_size) {
     that.maxInputs = 128;
     that.maxOutputs = 128;
     that.maxBufferSize = 8192;
-    console.log(getDSPSizemydsp());
+    console.log(getSizemydsp());
     
     /*
-    var size = getDSPSizemydsp() + (that.maxInputs + that.maxOutputs) * that.ptr_size + (that.maxInputs + that.maxOutputs) * that.maxBufferSize * that.sample_size;
+    var size = getSizemydsp() + (that.maxInputs + that.maxOutputs) * that.ptr_size + (that.maxInputs + that.maxOutputs) * that.maxBufferSize * that.sample_size;
     size = window.Math.floor(size/4096);
     size = (size + 1) * 4096;
     */

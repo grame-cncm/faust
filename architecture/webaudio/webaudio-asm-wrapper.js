@@ -243,8 +243,8 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var metadata_function = eval("metadata" + factory_name);
         factory.metadata = function(m) { return metadata_function(m); }
  
-        var getdspsize_function = eval("getDSPSize" + factory_name);
-        factory.getDSPSize = function(m) { return getdspsize_function(m); }
+        var getdspsize_function = eval("getSize" + factory_name);
+        factory.getSize = function(m) { return getdspsize_function(m); }
  
         factory.factory_name = factory_name;
         factory.sha_key = sha_key;
@@ -261,7 +261,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
         var that = {};
  
         that.factory = factory;
-        that.dsp = Module._malloc(that.factory.getDSPSize());
+        that.dsp = Module._malloc(that.factory.getSize());
         faust.context = context;
         that.buffer_size = buffer_size;
         that.handler = null;
