@@ -26,7 +26,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
  
 // Standard Faust DSP
 
-faust.DSP = function (context, buffer_size) {
+faust.mydsp = function (context, buffer_size) {
     var that = {};
     
     faust.context = context;
