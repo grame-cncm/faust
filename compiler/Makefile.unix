@@ -72,7 +72,8 @@ ifeq ($(LLVM_VERSION), 3.5.0)
 endif
 
 ifeq ($(system), Darwin)
-	CXXFLAGS += -g
+    #CXXFLAGS += -g
+    CXXFLAGS += -O3
 else
 	CXXFLAGS += -O1 -fPIC
 endif

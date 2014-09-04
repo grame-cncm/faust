@@ -22,8 +22,6 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 <<includeIntrinsic>>
 <<includeclass>>
 
-(function () {
- 
 // Standard Faust DSP
 
 faust.mydsp = function (context, buffer_size) {
@@ -286,6 +284,4 @@ faust.mydsp = function (context, buffer_size) {
     that.init();
     return that;
 }
- 
-}());
 
