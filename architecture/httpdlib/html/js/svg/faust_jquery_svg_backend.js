@@ -58,3 +58,7 @@ _f4u$t.make_radial_gradient = function(svg, defs, gradient, stops, cx, cy, r, fx
   opts = opts ? opts : {};
   svg.radialGradient(defs, gradient, stops, cx, cy, r, fx, fy, opts);
 }
+
+_f4u$t.svg_remove = function(svg, dummy) {
+  svg.remove(dummy);
+}
