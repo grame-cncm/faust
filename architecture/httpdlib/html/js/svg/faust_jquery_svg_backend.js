@@ -62,3 +62,9 @@ _f4u$t.make_radial_gradient = function(svg, defs, gradient, stops, cx, cy, r, fx
 _f4u$t.svg_remove = function(svg, dummy) {
   svg.remove(dummy);
 }
+
+_f4u$t.add_svg_and_onload_to_div = function(div, raw_json, width, height, hash) {
+  div.svg({onLoad: function (svg) {
+          _f4u$t.make_ui(svg, raw_json, width, height, hash);
+          }});
+}

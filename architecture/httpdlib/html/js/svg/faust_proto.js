@@ -1251,9 +1251,9 @@ _f4u$t.main = function(raw_json, div, callback) {
                                       }
                                       });
     }
-    div.svg({onLoad: function (svg) {
-            _f4u$t.make_ui(svg, raw_json, width, height, hash);
-            }});
+
+    _f4u$t.add_svg_and_onload_to_div(div, raw_json, width, height, hash);
+
     return function(address, value) {
         return _f4u$t.update_value_at_address(hash+address, value);
     }
