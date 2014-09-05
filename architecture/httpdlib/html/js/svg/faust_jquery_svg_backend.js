@@ -48,3 +48,13 @@ _f4u$t.configure_svg = function(svg, opts, wipe) {
 _f4u$t.get_svg_defs = function(svg) {
   return svg.defs();
 }
+
+_f4u$t.make_linear_gradient = function(svg, defs, gradient, stops, x1, x2, y1, y2, opts) {
+  opts = opts ? opts : {};
+  svg.linearGradient(defs, gradient, stops, x1, x2, y1, y2, opts);
+}
+
+_f4u$t.make_radial_gradient = function(svg, defs, gradient, stops, cx, cy, r, fx, fy, opts) {
+  opts = opts ? opts : {};
+  svg.radialGradient(defs, gradient, stops, cx, cy, r, fx, fy, opts);
+}

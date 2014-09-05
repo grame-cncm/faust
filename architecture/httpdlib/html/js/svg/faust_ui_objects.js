@@ -1591,7 +1591,8 @@ _f4u$t.SVG.prototype.get_y_offset = function() {
 _f4u$t.SVG.prototype.defs = function() {
   var defs = _f4u$t.get_svg_defs(this.svg);
   for (var gradient in _f4u$t.linear_gradient_inits) {
-    this.svg.linearGradient(
+    _f4u$t.make_linear_gradient(
+      this.svg,
       defs,
       gradient,
       _f4u$t.linear_gradient_inits[gradient]['stops'],
@@ -1604,7 +1605,8 @@ _f4u$t.SVG.prototype.defs = function() {
   }
 
   for (var gradient in _f4u$t.radial_gradient_inits) {
-    this.svg.radialGradient(
+    _f4u$t.make_radial_gradient(
+      this.svg,
       defs,
       gradient,
       _f4u$t.radial_gradient_inits[gradient]['stops'],
