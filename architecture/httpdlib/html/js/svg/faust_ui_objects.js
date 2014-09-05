@@ -353,7 +353,8 @@ _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
     this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
     this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
   ]);
-  var mgroove = svg.path(
+  var mgroove = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -420,7 +421,8 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
     this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // outside X
     this.r() * Math.sin(_f4u$t.d2r(startp)) + yo// outside Y
   ]);
-  var meter = svg.path(
+  var meter = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -489,7 +491,8 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
   var origin = [this.r(), this.r()];
   var full_id = 'faust_rbutton_anchor_'+id;
 
-  var anchor = svg.path(
+  var anchor = _f4u$t.make_path(
+    svg,
     parent,
     "M 0 0L0 1L1 1L1 0L0 0",
     {
@@ -920,7 +923,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   var xo = (dims[0] - w) / 2.0;
   var mouseup = '_f4u$t.change_checkbox("'+full_id+'")';
   //var touchup = '_f4u$t.touch_checkbox("'+full_id+'")';
-  var box = svg.path(
+  var box = _f4u$t.make_path(
+    svg,
     parent,
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
     {
@@ -1147,7 +1151,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
   var mouseup = _f4u$t.nentry_up_minus;
 
   var d = "M"+x0+" "+y+"L"+x1+" "+y;
-  var minus = svg.path(
+  var minus = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -1179,7 +1184,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
   var mousedown = _f4u$t.nentry_down_plus;
   var mouseup = _f4u$t.nentry_up_plus;
 
-  var plus = svg.path(
+  var plus = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -1382,7 +1388,8 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
 // only for debugging
 _f4u$t.LayoutManager.prototype.make_dim_cross = function(svg, parent) {
   var dims = this.dims();
-  svg.path(
+  _f4u$t.make_path(
+    svg,
     parent,
     "M0 0L"+dims[0]+' '+dims[1]
   );

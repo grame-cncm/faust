@@ -30,3 +30,8 @@ _f4u$t.make_g = function(svg, parent, id, opts) {
   opts = opts ? opts : {};
   return svg.group(parent, id, opts);
 }
+
+_f4u$t.make_path = function(svg, parent, d, opts) {
+  opts = opts ? opts : {};
+  return svg.path(parent, d, opts);
+}
