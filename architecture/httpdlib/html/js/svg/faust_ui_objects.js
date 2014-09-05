@@ -1522,7 +1522,6 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
 _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
   // we evenly space buttons across x axis
   // was a bug...
-  //var g = svg.group('faust_tabgroup_tabbar_'+this.id, parent);
   var g = _f4u$t.make_g(svg, parent, 'faust_tabgroup_tabbar_'+this.id);
 
   var running_count = 0;
