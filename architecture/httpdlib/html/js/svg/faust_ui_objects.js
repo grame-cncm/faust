@@ -10,14 +10,14 @@ _f4u$t.UIObject = function() {
   this.y = 0.0;
 }
 
-_f4u$t.UIObject.prototype.make_group = function(svg, parent, id) {
+_f4u$t.UIObject.prototype.make_group = function(svg, parent, id, opts) {
+  opts = opts ? opts : {};
+  opts.transform = 'translate('+this.x+','+this.y+')';
   var out = _f4u$t.make_g(
     svg,
     parent,
     id,
-    {
-      transform: 'translate('+this.x+','+this.y+')'
-    });
+    opts);
 
   return out;
 }
@@ -1039,16 +1039,14 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
   var full_id = 'faust_button_box_'+id;
   var mousedown = '_f4u$t.button_down("'+full_id+'")';
   var mouseup = '_f4u$t.button_up("'+full_id+'")';
-  var g = this.make_group(svg, parent, id);
+  var g = this.make_group(svg, parent, id,
+    {
+      onmousedown : mousedown,
+      //ontouchstart : mousedown,
+      onmouseup : mouseup,
+      //ontouchend : mouseup
+    });
 
-  svg.configure(g,
-  {
-    onmousedown : mousedown,
-    //ontouchstart : mousedown,
-    onmouseup : mouseup,
-    //ontouchend : mouseup
-  },
-  false);
   _f4u$t.initiate_button(
     id,
     _f4u$t.color_to_rgb(this.fill_off),
