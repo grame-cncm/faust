@@ -1589,7 +1589,7 @@ _f4u$t.SVG.prototype.get_y_offset = function() {
 }
 
 _f4u$t.SVG.prototype.defs = function() {
-  var defs = this.svg.defs();
+  var defs = _f4u$t.get_svg_defs(this.svg);
   for (var gradient in _f4u$t.linear_gradient_inits) {
     this.svg.linearGradient(
       defs,
