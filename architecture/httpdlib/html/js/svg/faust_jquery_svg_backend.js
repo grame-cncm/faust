@@ -25,3 +25,8 @@ _f4u$t.make_circle = function(svg, parent, cx, cy, radius, opts) {
   opts = opts ? opts : {};
   return svg.circle(parent,cx,cy,radius,opts);
 }
+
+_f4u$t.make_g = function(svg, parent, id, opts) {
+  opts = opts ? opts : {};
+  return svg.group(parent, id, opts);
+}

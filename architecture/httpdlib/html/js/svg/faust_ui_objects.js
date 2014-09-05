@@ -11,7 +11,8 @@ _f4u$t.UIObject = function() {
 }
 
 _f4u$t.UIObject.prototype.make_group = function(svg, parent, id) {
-  var out = svg.group(
+  var out = _f4u$t.make_g(
+    svg,
     parent,
     id,
     {
@@ -1514,7 +1515,9 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
 
 _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
   // we evenly space buttons across x axis
-  var g = svg.group('faust_tabgroup_tabbar_'+this.id, parent);
+  // was a bug...
+  //var g = svg.group('faust_tabgroup_tabbar_'+this.id, parent);
+  var g = _f4u$t.make_g(svg, parent, 'faust_tabgroup_tabbar_'+this.id);
 
   var running_count = 0;
   for (var i = 0; i < this.objs.length; i++) {
@@ -1621,7 +1624,7 @@ _f4u$t.SVG.prototype.make = function() {
   this.lm.populate_objects();
   this.lm.do_spacing(0);
   this.lm.make(this.svg, this.svg);
-  this.tooltip_group = this.svg.group(this.svg,'faust_tooltip_group');
+  this.tooltip_group = _f4u$t.make_g(this.svg, this.svg,'faust_tooltip_group');
   this.make_delayed_tooltips(this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
