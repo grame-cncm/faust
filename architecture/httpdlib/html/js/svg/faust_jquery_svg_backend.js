@@ -35,3 +35,8 @@ _f4u$t.make_path = function(svg, parent, d, opts) {
   opts = opts ? opts : {};
   return svg.path(parent, d, opts);
 }
+
+_f4u$t.make_line = function(svg, parent, x1, y1, x2, y2, opts) {
+  opts = opts ? opts : {};
+  return svg.line(parent, x1, y1, x2, y2, opts);
+}

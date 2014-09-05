@@ -465,7 +465,8 @@ _f4u$t.RotatingButton.prototype.make_handle = function(svg, parent, id) {
   var origin = [this.r(), this.r()];
   var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
   var mousedown = _f4u$t.activate_rbutton;
-  var handle = svg.line(
+  var handle = _f4u$t.make_line(
+    svg,
     parent,
     origin[0],
     origin[1],
