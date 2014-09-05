@@ -40,3 +40,7 @@ _f4u$t.make_line = function(svg, parent, x1, y1, x2, y2, opts) {
   opts = opts ? opts : {};
   return svg.line(parent, x1, y1, x2, y2, opts);
 }
+
+_f4u$t.configure_svg = function(svg, opts, wipe) {
+  svg.configure(opts, wipe ? wipe : false);
+}

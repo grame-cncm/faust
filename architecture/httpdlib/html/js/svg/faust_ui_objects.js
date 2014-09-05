@@ -1619,7 +1619,8 @@ _f4u$t.SVG.prototype.defs = function() {
 }
 
 _f4u$t.SVG.prototype.make = function() {
-  this.svg.configure(
+  _f4u$t.configure_svg(
+    this.svg,
     {
       width : this.w+'px',
       height : this.h+'px'
@@ -1634,7 +1635,8 @@ _f4u$t.SVG.prototype.make = function() {
   this.make_delayed_tooltips(this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
-  this.svg.configure(
+  _f4u$t.configure_svg(
+    this.svg,
     {
       viewBox: '0 0 '+viewport_dims[0]+' '+viewport_dims[1],
       width : this.w+'px',
