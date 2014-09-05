@@ -16,3 +16,7 @@ _f4u$t.make_rectangle_via_path = function(svg, parent, rf, x, y, w, h, ops) {
   return rect;
 }
 
+_f4u$t.make_text = function(svg, parent, x, y, text, opts) {
+  opts = opts ? opts : {};
+  return svg.text(parent,x,y,text,opts);
+}

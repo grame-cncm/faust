@@ -95,7 +95,8 @@ _f4u$t.UIObject.prototype.tooltip_text_dims = function() {
 _f4u$t.UIObject.prototype.make_tooltip_text = function(svg, parent, id) {
   var text = this.tooltip_text();
   var full_id = 'faust_tooltip_text_'+id;
-  var tttext = svg.text(
+  var tttext = _f4u$t.make_text(
+    svg,
     parent,
     0,
     0,
@@ -193,7 +194,8 @@ _f4u$t.ValueBox.prototype.make_box = function(svg, parent) {
 _f4u$t.ValueBox.prototype.make_value = function(svg, parent) {
   var id = this.id;
   var mousedown = this.keysink ? '_f4u$t.rotating_button_key_sink("'+id+'")' : '_f4u$t.devnull()';
-  var vv = svg.text(
+  var vv = _f4u$t.make_text(
+    svg,
     parent,
     _f4u$t.xy(this.get_layout_manager().axis, 4, this.width  / 2.0),
     this.height - 4,
@@ -246,7 +248,8 @@ _f4u$t.Label.prototype.make = function(svg, parent) {
   var id = this.id;
 
   var label = this.label_text();
-  var vl = svg.text(
+  var vl = _f4u$t.make_text(
+    svg,
     parent,
     0,
     this.dims()[_f4u$t.Y_AXIS],
@@ -1006,7 +1009,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
 }
 
 _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
-  var vl = svg.text(
+  var vl = _f4u$t.make_text(
+    svg,
     parent,
     0,
     0,
@@ -1465,7 +1469,8 @@ _f4u$t.TabGroup.prototype.do_spacing = function(leaf) {
 
 _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, badidstr) {
   var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
-  var vl = svg.text(
+  var vl = _f4u$t.make_text(
+    svg,
     parent,
     0,
     0,
