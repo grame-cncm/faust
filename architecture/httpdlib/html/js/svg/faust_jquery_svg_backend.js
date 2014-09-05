@@ -20,3 +20,8 @@ _f4u$t.make_text = function(svg, parent, x, y, text, opts) {
   opts = opts ? opts : {};
   return svg.text(parent,x,y,text,opts);
 }
+
+_f4u$t.make_circle = function(svg, parent, cx, cy, radius, opts) {
+  opts = opts ? opts : {};
+  return svg.circle(parent,cx,cy,radius,opts);
+}

@@ -373,7 +373,8 @@ _f4u$t.RotatingButton.prototype.make_dot = function(svg, parent, id, rot) {
   var mousedown = _f4u$t.activate_rbutton;
   var xo = this.r();
   var yo = this.r();
-  var dot = svg.circle(
+  var dot = _f4u$t.make_circle(
+    svg,
     parent,
     this.r() * (this.kp + 1) * 0.5 * Math.cos(_f4u$t.d2r(rot * 45)) + xo,
     this.r() * (this.kp + 1) * 0.5 * Math.sin(_f4u$t.d2r(rot * 45)) + yo,
@@ -437,7 +438,8 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
 _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
   var mousedown = _f4u$t.activate_rbutton;
   var full_id = 'faust_rbutton_groove_'+id;
-  var groove = svg.circle(
+  var groove = _f4u$t.make_circle(
+    svg,
     parent,
     this.r(),
     this.r(),
