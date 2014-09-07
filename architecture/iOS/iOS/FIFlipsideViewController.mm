@@ -26,7 +26,6 @@
 @synthesize bufferSize = _bufferSize;
 @synthesize openWidgetPanel = _openWidgetPanel;
 
-
 - (void)awakeFromNib
 {
     self.contentSizeForViewInPopover = CGSizeMake(320.0, 480.0);
@@ -43,26 +42,19 @@
 
 - (void)viewDidLoad
 {
-    int tmp = 0;
     [super viewDidLoad];
     
     // Read user preferences
     _sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
-    if (_sampleRate == 0) _sampleRate = 44100;
-    
     _bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
-    if (_bufferSize == 0) _bufferSize = 256;
+    _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     
-    tmp = [[NSUserDefaults standardUserDefaults] integerForKey:@"openWidgetPanel"];
-    if (tmp == 0) _openWidgetPanel = YES;
-    else _openWidgetPanel = (BOOL)(tmp - 1);
-        
     // Update UI
     _sampleRateSlider.value = [self sampleRateToSliderValue:_sampleRate];
     _sampleRateLabel.text = [NSString stringWithFormat:@"%i Hz", _sampleRate];
     
     _bufferSizeSlider.value = [self bufferSizeToSliderValue:_bufferSize];
-    _bufferSizeLabel.text = [NSString stringWithFormat:@"%i", _bufferSize];
+    _bufferSizeLabel.text = [NSString stringWithFormat:@"%i frames", _bufferSize];
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
     
@@ -118,12 +110,12 @@
 
 - (IBAction)done:(id)sender
 {
-    int tmp = (int)(_openWidgetPanel) + 1;
     
     // Write user preferences
     [[NSUserDefaults standardUserDefaults] setInteger:_sampleRate forKey:@"sampleRate"];
     [[NSUserDefaults standardUserDefaults] setInteger:_bufferSize forKey:@"bufferSize"];
-    [[NSUserDefaults standardUserDefaults] setInteger:tmp forKey:@"openWidgetPanel"];
+    [[NSUserDefaults standardUserDefaults] setBool:_openWidgetPanel forKey:@"openWidgetPanel"];
+    
 	[[NSUserDefaults standardUserDefaults] synchronize];
         
     // Update preferences
@@ -143,7 +135,7 @@
 - (IBAction)bufferSizeSliderMoved:(id)sender
 {
     _bufferSize = [self sliderValueToBufferSize:(int)floor(((UISlider*)sender).value)];
-    _bufferSizeLabel.text = [NSString stringWithFormat:@"%i", _bufferSize];
+    _bufferSizeLabel.text = [NSString stringWithFormat:@"%i frames", _bufferSize];
 }
 
 - (IBAction)openWidgetPanelSwitchMoved:(id)sender

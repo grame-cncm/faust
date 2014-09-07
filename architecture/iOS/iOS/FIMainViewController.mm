@@ -75,8 +75,6 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 - (void)viewDidLoad
 {
-    int tmp = 0;
-    
     // General UI initializations
     _widgetPreferencesView.hidden = YES;
     _viewLoaded = NO;
@@ -90,7 +88,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP.metadata(&metadata);
     
     // Read parameters values
-    const char* home = getenv ("HOME");
+    const char* home = getenv("HOME");
     if (home == 0) {
         home = ".";
     }
@@ -100,20 +98,14 @@ static void jack_shutdown_callback(const char* message, void* arg)
     } else {
         _name = [[[NSProcessInfo processInfo] processName] UTF8String];
     }
-       
+    
     interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
     finterface = new FUI();
     
-    // Read audio user preferences
+    // Read user preferences
     sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
-    if (sampleRate == 0) sampleRate = 44100;
-    
     bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
-    if (bufferSize == 0) bufferSize = 256;
-    
-    tmp = [[NSUserDefaults standardUserDefaults] integerForKey:@"openWidgetPanel"];
-    if (tmp == 0) openWidgetPanel = YES;
-    else openWidgetPanel = (BOOL)(tmp - 1);
+    openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     
     [self openAudio];
     [self displayTitle];
@@ -125,12 +117,13 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
+    
     [self updateGui];
     
     // Notification when device orientation changed
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
-                                                 name:UIDeviceOrientationDidChangeNotification object:nil];
+                                        name:UIDeviceOrientationDidChangeNotification object:nil];
     
     // Abstract layout is the layout computed without regarding screen dimensions. To be displayed, we adapt it to the device and orientition
     interface->saveAbstractLayout();
@@ -255,7 +248,7 @@ error:
     {
         UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
                                                             message:errorString delegate:self
-                                                  cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                                                            cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alertView show];
         [alertView release];
     }
@@ -742,6 +735,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 #endif
 }
 
+
 // Locked box : box currently zoomed in
 - (void)zoomToLockedBox
 {
@@ -933,7 +927,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     [self updateGui];
 }
 
-
 #pragma mark - Audio
 
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate
@@ -1053,6 +1046,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // If no uiCocoaItem found, it's an error so we don't show the window
     if (!_selectedWidget) return;
+    
+    // SL : 04/09/14 was affed for the SF concert ? deactivated for now
+    
+    /*
+    // If widget is hidden we don't show the window
+    if (_selectedWidget->getHideOnGUI()) return;
+    */
     
     // Otherwise, set it selected (for selection display)
     _selectedWidget->setSelected(YES);

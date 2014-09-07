@@ -8,6 +8,7 @@ var max_polyphony = 16;
 var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
+var faustsvg = null;
 
 function changeBufferSize(buffer_size)
 {
@@ -125,15 +126,21 @@ function startDSPAux(buffer_size)
         if (audio_input) {
             audio_input.disconnect(DSP_poly.scriptProcessor);
         }
+        _f4u$t.hard_delete(faustsvg);
         DSP_poly.stop();
         DSP_poly.destroy();
     }
     DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony);
     DSP_poly.start();
+    
     console.log(DSP_poly.json());
+    
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
-    var handler = _f4u$t.main(DSP_poly.json(), null, DSP_poly.update);
+    
+    faustsvg = $('<div />');
+    $('body').append(faustsvg);
+    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.update);
     DSP_poly.setHandler(handler);
 }
 
@@ -164,7 +171,6 @@ $(startDSP);
     <option value = 2048> 2048 </option>
     <option value = 4096> 4096 </option>
     <option value = 8192> 8192 </option>
-    <option value = 16384> 16384 </option>
   </select>
 </form>
 </center>
