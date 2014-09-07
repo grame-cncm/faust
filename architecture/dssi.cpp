@@ -433,7 +433,7 @@ private:
     // Helper methods:
     void updateControlZones();
     void runImpl(unsigned long, snd_seq_event_t *, unsigned long);
-    void addSamples(int);
+    void addSamples(size_t);
 
     // Helpers for UI building:
     // TODO organize this a bit better later...
@@ -843,10 +843,10 @@ void Plugin::runImpl(unsigned long sampleCount, snd_seq_event_t *events, unsigne
     }
 }
 
-void Plugin::addSamples(int samples)
+void Plugin::addSamples(size_t samples)
 {
     size_t i;
-    int j;
+    size_t j;
     size_t v;
 
     // TODO this isn't very efficient right now...
