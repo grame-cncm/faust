@@ -397,7 +397,7 @@
 					
 					var myId = i + "." + numberColumns;
 					console.log("rows " + numberRows + " columns " + numberColumns+ "ID " +myId);
-					h.setAttribute('id', "d"+myId);
+					h.setAttribute('id', myId);
 					newCell.appendChild(h);
 				
 					InitEventHandler(h);
@@ -405,7 +405,28 @@
 			}
 			
 			function deleteColumn(){
-				$('#componentTable tr').find('td:last-child').remove();
+
+				var lastElements = $('#componentTable tr').find('td:last-child');
+				
+				for(var k=0; k<lastElements.length; k++){
+
+					if(k == 0)
+						lastElements[k].remove();
+					else if(lastElements.id != ""){
+					
+						var sender = lastElements[k]
+						
+						while (sender && sender.nodeName != "SPAN")
+    	  					sender = sender.childNodes[0];
+					
+						deleteDivContent(sender);
+						lastElements[k].remove();
+					}
+					else{
+						lastElements[k].remove();
+					}
+				}
+			
 			}
 			
 			function addRow(){
@@ -436,7 +457,7 @@
 					
 					console.log("myId = "+myId);
 					
-					h.setAttribute('id', "d"+myId);
+					h.setAttribute('id', myId);
 					h.setAttribute('zozo', "dndZone");
 					newCell.appendChild(h);
 				
@@ -500,11 +521,12 @@
           			if(window.myArray[i].ID == sender.id && window.myArray[i].Source != ""){
         				myDSP = window.myArray[i].DSP;
             				
-            				
+            			console.log("Deleting  div = " + sender.id);
                			_f4u$t.hard_delete(faustDiv);
-
+						faustDiv.removeClass("hasSVG");
+        				
         				myDSP.stop();
-	         			faust.deleteDSPInstance(myDSP);
+	         			//faust.deleteDSPInstance(myDSP);
                 		myDSP = null;
             		}	
 				} 			
@@ -528,7 +550,7 @@
 	            _f4u$t.main_loop = function() {}
       					
             	var handler = _f4u$t.main(DSP.json(), faustDiv, DSP.update);
-                
+   
                 console.log(DSP.json());
                 
     	    	DSP.setHandler(handler);
@@ -548,9 +570,8 @@
 				if(sender.childNodes[0].nodeName == "#text")
 					sender.childNodes[0].remove();
 // 				Search for parent span to modify its content
-	    		while (sender && sender.nodeName != "SPAN"){
+	    		while (sender && sender.nodeName != "SPAN")
     	  			sender = sender.parentNode;
-				}
 
         		FileDragHover(e);
 		        var files = e.target.files || e.dataTransfer.files;
@@ -565,9 +586,8 @@
 					
 		            var ext = file.name.split('.').pop();
 
-        	    	if (ext == "dsp"){
+        	    	if (ext == "dsp")
             	    	reader.readAsText(file);  
-            		}
 
 					var dsp_code = null;
 	    	        reader.onloadend = function(e) {
@@ -586,9 +606,8 @@
             		    window.myArray.push(myMapItem);
             		};
 	        	}
-		        else {
+		        else
     		        alert("DSP file is too big!");
-        		}
     		}
     
    			function InitEventHandler(element){
@@ -609,13 +628,45 @@
     			addColumn();
     			
     			window.myArray = new Array();
+    			
+    			InitEventHandler(document.getElementById('recursiveSpan'));
+    			
    		 	}
 
 		    window.onload = Init;
 		    
+		    function CleanTable(sender){
+		    	
+		    	var tableRef = document.getElementById('componentTable');
+		
+				var numberColumns = tableRef.rows[0].cells.length;
+				var numberRows = tableRef.rows.length;
+		    	
+				for(var j=0; j<numberColumns; j++){
+		
+					for(var i=1; i<numberRows; i++){
+					
+						var element = tableRef.rows[i].cells[j];
+				
+						element = element.childNodes[0];
+					
+						for(var k=0; k<window.myArray.length; k++){			
+							if(window.myArray[k].ID == element.id)
+								deleteDivContent(element);	
+						}
+					}
+				}	
+			
+						
+				$('#componentTable').remove();
+				$('#recursiveCell').remove();
+				$('#rc').remove();
+				$('#sc').remove();
+		    }
+		    
 			function createComponent(){
 			
-				var component_code = "stereoize(p) = S(inputs(p), outputs(p))\n\
+				var finalCode = "stereoize(p) = S(inputs(p), outputs(p))\n\
 				with {\n\
 				  // degenerated processor with no outputs\n\
 				S(n,0) = !,! : 0,0; 		// just in case, probably a rare case\n\
@@ -637,65 +688,75 @@
 			S(n,m) = _,_ <: p,p :> _,_;	// we are sure this works if n or p are odd\n\
 			};\n\
 			\n\
+			recursivize(p,q) = (_,_,_,_ :> stereoize(p)) ~ stereoize(q);\n\
 			";
 
-				var tableRef = document.getElementById('componentTable');
+				var recursivizeCode = "";
 
-				component_code += "process =";
+				var tableRef = document.getElementById('componentTable');
 		
 				var stringArray = new Array();
 		
 				var numberColumns = tableRef.rows[0].cells.length;
 				var numberRows = tableRef.rows.length;
+
+				var component_code = "";
 		
-				console.log("Columns = " + numberColumns);
-				console.log("Rows = " + numberRows);
+			for(var j=0; j<numberColumns; j++){
 		
-		for(var j=0; j<numberColumns; j++){
+				var columnCode = "stereoize((";
 		
-			var columnCode = "stereoize((";
-		
-			for(var i=1; i<numberRows; i++){
+				for(var i=1; i<numberRows; i++){
 			
-				console.log("i = " + i + " j = "+j);
+					console.log("i = " + i + " j = "+j);
 			
-				if(i != 1)
-					columnCode += ",";
-			
-				var element = tableRef.rows[i].cells[j];
+					var element = tableRef.rows[i].cells[j];
 				
-				element = element.childNodes[0];
-			
-				console.log("Element Name = "+ element.nodeName);
-			
-				console.log("Window Array Size = " + window.myArray.length);
-			
-				for(var k=0; k<window.myArray.length; k++){
+					element = element.childNodes[0];
+					
+					for(var k=0; k<window.myArray.length; k++){
 				
-					if(window.myArray[k].ID == element.id){
-						console.log("Array ID = " + window.myArray[k].ID + "element ID = " + element.id);
-						columnCode += "environment{"+ window.myArray[k].Source + "}.process";		
-					}
-				}	
+						if(window.myArray[k].ID == element.id){
+									
+							if(i != 1)
+								columnCode += ",";
+						
+							columnCode += "vgroup(\"[" + i + "]component"+window.myArray[k].ID + "\",environment{" + window.myArray[k].Source+ "}.process)";			
+						}
+						else if(window.myArray[k].ID == 'recursiveSpan')
+							recursivizeCode = "vgroup(\"componentRecursive\",environment{" + window.myArray[k].Source+ "}.process)";	
+					}	
+				}
+				columnCode += "))";
+				
+				if(columnCode != "stereoize(())"){
+					stringArray.push(columnCode);
+				}
 			}
-			columnCode += "))";
-			stringArray.push(columnCode);
+		
+			for(var i=0; i<stringArray.length; i++){
+				if(i != 0)
+					component_code += ":";
+				
+				component_code+="(" + stringArray[i] + ")";
+			}
+		
+			finalCode += "process = ";
+			
+			if(recursivizeCode != "")
+				finalCode += "recursivize(" + recursivizeCode + "," + component_code + ")";
+			else
+				finalCode += component_code;
+			
+			finalCode+=";";
+		
+			console.log(finalCode);
+			
+			CleanTable();
+			
+			createDSP(finalCode, $('#superContainer'));
+		
 		}
-		
-		for(var i=0; i<stringArray.length; i++){
-			if(i != 0){
-				component_code += ":";
-			}
-			component_code+="(" + stringArray[i] + ")";
-		}
-		
-		component_code+=";";
-		
-		console.log(component_code);
-		
-		createDSP(component_code, $('body'));
-		
-			}
 	</script>
 </head>
 <!-- <body bgcolor= black>  -->
@@ -704,13 +765,13 @@
 <br />
 <br />
 <br />
-<div class="compositionName">
+<div id="rc" class="compositionName">
     Recursive composition
 </div>
 <table id="recursiveCell">
 	<tr>
 		<td>
-			<span id="recursiveSpan" zozo= "dndZone">
+			<span id="recursiveSpan" zozo= "dndZone" src="">
 				Drop Your Faust DSP
 			</span>
 		</td>
@@ -718,11 +779,13 @@
 </table>
 <br />
 <br />
-<div class="compositionName">
+<div id="sc" class="compositionName">
     Sequential composition
 </div>
+<div id="superContainer">
 <table id="componentTable">
 </table>
+</div>
 <br />
 <br />
 <br />
