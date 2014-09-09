@@ -214,7 +214,7 @@ _f4u$t.ValueBox.prototype.make_value = function(svg, parent) {
 
 _f4u$t.ValueBox.prototype.make = function(svg, parent) {
   var id = this.id;
-  var g = this.make_group(svg, parent, id);
+  var g = this.make_group(svg, parent, id+"_vbox");
 
   this.make_box(svg, g, id);
   this.make_value(svg, g, id);

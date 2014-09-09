@@ -1160,7 +1160,7 @@ _f4u$t.get_text_bbox = function(svg, text, kls) {
   if (!kls) {
     kls = 'faust-label';
   }
-  var dummy = _f4u$t.make_text(svg,0,0,text, {'class' : kls});
+  var dummy = _f4u$t.make_text(svg,null,0,0,text, {'class' : kls});
   var bbox = dummy.getBBox();
   _f4u$t.svg_remove(svg, dummy);
   return bbox;
