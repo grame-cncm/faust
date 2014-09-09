@@ -11,11 +11,17 @@
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
-void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
+void extractMetadata(const string& realfulllabel, string& label, map<string, set<string> >& metadata)
 {
     enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
     int state = kLabel; int deep = 0;
     string key, value;
+    string fulllabel;
+
+    // preprocess labels by replacing control characters (< space) with space
+    for (size_t i=0; i < realfulllabel.size(); i++) {
+        fulllabel += std::max(' ', realfulllabel[i]);
+    }
 
     for (size_t i=0; i < fulllabel.size(); i++) {
         char c = fulllabel[i];
