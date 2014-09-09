@@ -63,6 +63,8 @@ hexa/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
 	echo " " >> $@
 	cat ../html/js/svg/faust_proto.js >> $@
 	echo " " >> $@
+	cat ../html/js/svg/faust_jquery_svg_backend.js >> $@
+	echo " " >> $@
 	cat ../html/js/svg/faust_mobile.js >> $@
 	echo " " >> $@
 	cat ../html/js/svg/faust_ui_inits.js >> $@
