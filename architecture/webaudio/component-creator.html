@@ -14,6 +14,7 @@
     body {
         margin: 3em 3em 1em 1em;
         background-color: #000000;
+        text-align: center;
     }
 
     /* WEBKIT */
@@ -336,6 +337,7 @@
 		color: #CECECE;
 		border: 2px solid #FF7F00;
 		border-radius: 40px; 
+		text-align: center;
 	}
 	
 	.compositionName{
@@ -632,6 +634,10 @@
     			InitEventHandler(document.getElementById('recursiveSpan'));
     			
    		 	}
+   		 	
+   		 	function Reload() {
+    			location.reload()
+   		 	}
 
 		    window.onload = Init;
 		    
@@ -755,7 +761,16 @@
 			CleanTable();
 			
 			createDSP(finalCode, $('#superContainer'));
-		
+
+			$('#buttonZone').remove();
+			
+			var reloadButton=document.createElement('input');
+			reloadButton.setAttribute('type', "submit");
+			reloadButton.setAttribute('value', "Create New Component");
+			reloadButton.setAttribute('onClick',"Reload()");
+			reloadButton.setAttribute('class', "blackButtons");
+			
+			document.body.appendChild(reloadButton);
 		}
 	</script>
 </head>
