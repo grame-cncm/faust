@@ -29,6 +29,19 @@
 {
     [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleBlackOpaque;
     
+    [UIApplication sharedApplication].idleTimerDisabled = YES;
+    
+    // Default setting that have to be in coherence with what is defined in Interface Builder
+    NSDictionary *appDefaults = [NSDictionary dictionaryWithObjectsAndKeys:
+                                [NSNumber numberWithInteger:44100], @"sampleRate",
+                                [NSNumber numberWithInteger:256], @"bufferSize",
+                                [NSNumber numberWithBool:TRUE], @"openWidgetPanel",
+                                [NSNumber numberWithBool:TRUE], @"concertUI",nil];
+    
+    
+    [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
+
+    
     return YES;
 }
 

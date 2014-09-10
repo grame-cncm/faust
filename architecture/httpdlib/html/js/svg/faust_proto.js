@@ -1160,20 +1160,16 @@ _f4u$t.get_text_bbox = function(svg, text, kls) {
   if (!kls) {
     kls = 'faust-label';
   }
-  var dummy = svg.text(0,0,text, {'class' : kls});
+  var dummy = _f4u$t.make_text(svg,null,0,0,text, {'class' : kls});
   var bbox = dummy.getBBox();
-  svg.remove(dummy);
+  _f4u$t.svg_remove(svg, dummy);
   return bbox;
-}
-
-_f4u$t.make_rectangle_via_rect = function(svg, parent, rf, x, y, w, h, ops) {
-  return svg.rect(parent, x, y, w, h, rf, rf, ops);
 }
 
 _f4u$t.make_rectangle_via_path = function(svg, parent, rf, x, y, w, h, ops) {
   var d = "M{0} {7}L{1} {7}C{2} {7} {2} {7} {2} {3}L{2} {4}C{2} {5} {2} {5} {1} {5}L{0} {5}C{6} {5} {6} {5} {6} {4}L{6} {3}C{6} {7} {6} {7} {0} {7}";
   d = d.format([rf + x, w - rf + x, w + x, rf + y, h - rf + y, h + y, x, y]);
-  var rect = svg.path(
+  var rect = _f4u$t.make_path(
     parent,
     d,
     ops
@@ -1267,9 +1263,9 @@ _f4u$t.main = function(raw_json, div, callback) {
                                       }
                                       });
     }
-    div.svg({onLoad: function (svg) {
-            _f4u$t.make_ui(svg, raw_json, width, height, hash);
-            }});
+
+    _f4u$t.add_svg_and_onload_to_div(div, raw_json, width, height, hash);
+
     return function(address, value) {
         return _f4u$t.update_value_at_address(hash+address, value);
     }
