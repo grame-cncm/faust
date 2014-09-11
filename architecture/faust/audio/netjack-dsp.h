@@ -37,6 +37,7 @@
 #ifndef __netjack_dsp__
 #define __netjack_dsp__
 
+#include <stdio.h>
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 #include "faust/gui/ControlUI.h"
