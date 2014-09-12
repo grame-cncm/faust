@@ -40,6 +40,7 @@ install:
 	install faust2plot $(dest)
 	install faust2png $(dest)
 	install faust2puredata $(dest)
+	install faust2w32puredata $(dest)
 	install faust2svg $(dest)
 	install faust2supercollider $(dest)
 	install ../faust2sc-1.0.0/faust2sc $(dest)
@@ -93,6 +94,7 @@ uninstall:
 	rm -f $(dest)/faust2plot
 	rm -f $(dest)/faust2png
 	rm -f $(dest)/faust2puredata
+	rm -f $(dest)/faust2w32puredata
 	rm -f $(dest)/faust2svg
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2sc
