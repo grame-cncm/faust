@@ -11,15 +11,17 @@
 
 #------------------------------------------------------------------------------
 # mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
+# the exact prefix should be specified in the environment variable MINGW
 
-CROSS="i686-w64-mingw32-"
-CXX="${CROSS}g++"
+: ${MINGWPREFIX="i686-w64-mingw32-"}
+CXX="${MINGWPREFIX}g++"
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
 
 
 #-------------------------------------------------------------------
 # Compiler settings
 
-CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math"
+CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
 LIB="-I/usr/include/pd -shared /usr/include/pd/pd.dll"
 EXT="~.dll"
 
@@ -32,23 +34,10 @@ EXT="~.dll"
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
 #PHASE 2 : dispatch command arguments
 for p in $@; do
     if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
+    	OMP="-fopenmp"
     fi
   
     if [ "$p" = -icc ]; then
