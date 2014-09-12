@@ -17,11 +17,15 @@ VST=/usr/local/lib/vstsdk2.4
 VSTSRC="$VST/public.sdk/source/vst2.x/audioeffect.cpp $VST/public.sdk/source/vst2.x/audioeffectx.cpp $VST/public.sdk/source/vst2.x/vstplugmain.cpp "
 
 #------------------------------------------------------------------------------
-# 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
-CROSS="i686-w64-mingw32-"
-CXX="${CROSS}g++"
-DLLWRAP="${CROSS}dllwrap --target=i386-mingw32"
-STRIP="${CROSS}strip"
+# mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
+# It must be in the PATH and the exact prefix should be specified in 
+# the environment variable MINGWPREFIX
+
+: ${MINGWPREFIX="i686-w64-mingw32-"}
+CXX="${MINGWPREFIX}g++"
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
+DLLWRAP="${MINGWPREFIX}dllwrap --target=i386-mingw32"
+STRIP="${MINGWPREFIX}strip"
 
 
 #-----------------------------------------------------------------------------
