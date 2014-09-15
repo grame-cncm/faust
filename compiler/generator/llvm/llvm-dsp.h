@@ -224,6 +224,9 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
  */
 void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
+llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
+
 /**
  * Call global declarations with the given meta object.
  * 

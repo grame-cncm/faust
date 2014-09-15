@@ -182,6 +182,13 @@ int main(int argc, char *argv[])
             return 1;
         }
         
+        std::string res = writeDSPFactoryToMachine(factory3);
+        printf("writeDSPFactoryToMachine : %s", res.c_str());
+        
+        std::string machine_code = writeDSPFactoryToMachine(factory3);
+        printf("writeDSPFactoryToMachine : %s", machine_code.c_str());
+        factory3 = readDSPFactoryFromMachine(machine_code);
+        
         /*
         meta;
         DSP->buildUserInterface(&json);
