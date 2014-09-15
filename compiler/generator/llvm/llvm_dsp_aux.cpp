@@ -216,6 +216,38 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
     out.flush();
 }
 
+std::string llvm_dsp_factory::writeDSPFactoryToMachine()
+{ 
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+    return fObjectCache->getMachineCode(); 
+#else
+    return "";
+#endif
+}
+
+void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_code_path)
+{
+#if defined(LLVM_34) || defined(LLVM_35)
+    string err;
+    raw_fd_ostream out(machine_code_path.c_str(), err, sys::fs::F_Binary);
+    out << fObjectCache->getMachineCode(); 
+    out.flush();
+#endif
+}
+
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
+{
+    // Restoring the cache
+    fObjectCache = new FaustObjectCache(machine_code);
+    
+    // Creates module and context
+    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
+    fResult->fContext = new LLVMContext();
+    fResult->fModule = new Module("Faust LLVM backend", *fResult->fContext);
+}
+#endif
+
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
     fSHAKey = sha_key;
@@ -228,6 +260,10 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
     fResult->fContext = context;
+    
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)    
+    fObjectCache = NULL;
+#endif
 }
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
@@ -262,6 +298,10 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         fOptLevel = opt_level;
         fTarget = target;
         
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)    
+        fObjectCache = NULL;
+    #endif
+        
         Init();
         char error_msg_aux[512];
         fClassName = getParam(argc, argv, "-cn", "mydsp");
@@ -293,6 +333,40 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 }
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+
+class FaustObjectCache : public ObjectCache {
+
+    private:
+    
+        string fMachineCode;
+        
+    public:
+    
+        FaustObjectCache() 
+        {}
+        FaustObjectCache(const string& machine_code) : fMachineCode(machine_code)
+        {}
+        
+        virtual ~FaustObjectCache() 
+        {}
+        
+        void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj) 
+        {
+            printf("FaustObjectCache::notifyObjectCompiled\n");
+            raw_string_ostream out(fMachineCode);
+            out << Obj->getBuffer();
+            out.flush();
+        }
+        
+        MemoryBuffer* getObject(const Module* M)
+        {
+            printf("FaustObjectCache::getObject\n");
+            return MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+        }
+        
+        string getMachineCode() { return fMachineCode; }
+        
+};
 
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
@@ -344,113 +418,129 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
     
-    // First check is Faust compilation succeeded... (valid LLVM module)
-    if (!fResult || !fResult->fModule) {
-        return false;
-    }
-     
-    InitializeAllTargets();
-    InitializeAllTargetMCs();
-  
-    InitializeNativeTarget();
-    InitializeNativeTargetAsmPrinter();
-    InitializeNativeTargetAsmParser();
-
-    // Initialize passes
-    PassRegistry &Registry = *PassRegistry::getPassRegistry();
+    // Restoring from machine code
+    if (fObjectCache) {
     
-    initializeCodeGen(Registry);
-    initializeCore(Registry);
-    initializeScalarOpts(Registry);
-    initializeObjCARCOpts(Registry);
-    initializeVectorization(Registry);
-    initializeIPO(Registry);
-    initializeAnalysis(Registry);
-    initializeIPA(Registry);
-    initializeTransformUtils(Registry);
-    initializeInstCombine(Registry);
-    initializeInstrumentation(Registry);
-    initializeTarget(Registry);
-    
-    string err;
-      
-    if (fTarget != "") {
-        fResult->fModule->setTargetTriple(fTarget);
+        // JIT
+        EngineBuilder builder(module);
+        builder.setEngineKind(EngineKind::JIT);
+        builder.setUseMCJIT(true);
+        TargetMachine* tm = builder.selectTarget();
+        fJIT = builder.create(tm);
+        
     } else {
-        fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-    }
+    
+        // First check is Faust compilation succeeded... (valid LLVM module)
+        if (!fResult || !fResult->fModule) {
+            return false;
+        }
+         
+        InitializeAllTargets();
+        InitializeAllTargetMCs();
+      
+        InitializeNativeTarget();
+        InitializeNativeTargetAsmPrinter();
+        InitializeNativeTargetAsmParser();
 
-    EngineBuilder builder(fResult->fModule);
-    builder.setOptLevel(CodeGenOpt::Aggressive);
-    builder.setEngineKind(EngineKind::JIT);
-    // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
-    builder.setUseMCJIT(true);
-    //builder.setUseMCJIT(false);
-    builder.setCodeModel(CodeModel::JITDefault);
-    builder.setMCPU(llvm::sys::getHostCPUName());
-    
-    TargetOptions targetOptions;
-    targetOptions.NoFramePointerElim = true;
-    targetOptions.LessPreciseFPMADOption = true;
-    targetOptions.UnsafeFPMath = true;
-    targetOptions.NoInfsFPMath = true;
-    targetOptions.NoNaNsFPMath = true;
-    targetOptions.GuaranteedTailCallOpt = true;
-     
-    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
-       targetOptions.PrintMachineCode = true;
-    }
-    
-    builder.setTargetOptions(targetOptions);
-    TargetMachine* tm = builder.selectTarget();
-    
-    PassManager pm;
-    FunctionPassManager fpm(fResult->fModule);
-  
-    // Add an appropriate TargetLibraryInfo pass for the module's triple.
-    TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
-    pm.add(tli);
-    
-    const string &ModuleDataLayout = fResult->fModule->getDataLayout();
-    DataLayout* td = new DataLayout(ModuleDataLayout);
-    pm.add(td);
-  
-    // Add internal analysis passes from the target machine (mandatory for vectorization to work)
-    tm->addAnalysisPasses(pm);
-    
-    if (fOptLevel > 0) {
-        AddOptimizationPasses(pm, fpm, fOptLevel, 0);
-    }
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-        fResult->fModule->dump();
-    }
-   
-    fpm.doInitialization();
-    for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
-        fpm.run(*F);
-    }
-    fpm.doFinalization();
-    
-    pm.add(createVerifierPass());
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-        tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
-    }
-    
-    // Now that we have all of the passes ready, run them.
-    pm.run(*fResult->fModule);
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-        fResult->fModule->dump();
-    }
-    
-    fJIT = builder.create(tm);
-    if (!fJIT) {
-        endTiming("initJIT");
-        return false;
+        // Initialize passes
+        PassRegistry &Registry = *PassRegistry::getPassRegistry();
+        
+        initializeCodeGen(Registry);
+        initializeCore(Registry);
+        initializeScalarOpts(Registry);
+        initializeObjCARCOpts(Registry);
+        initializeVectorization(Registry);
+        initializeIPO(Registry);
+        initializeAnalysis(Registry);
+        initializeIPA(Registry);
+        initializeTransformUtils(Registry);
+        initializeInstCombine(Registry);
+        initializeInstrumentation(Registry);
+        initializeTarget(Registry);
+        
+        string err;
+          
+        if (fTarget != "") {
+            fResult->fModule->setTargetTriple(fTarget);
+        } else {
+            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+        }
+
+        EngineBuilder builder(fResult->fModule);
+        builder.setOptLevel(CodeGenOpt::Aggressive);
+        builder.setEngineKind(EngineKind::JIT);
+        // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
+        builder.setUseMCJIT(true);
+        //builder.setUseMCJIT(false);
+        builder.setCodeModel(CodeModel::JITDefault);
+        builder.setMCPU(llvm::sys::getHostCPUName());
+        
+        TargetOptions targetOptions;
+        targetOptions.NoFramePointerElim = true;
+        targetOptions.LessPreciseFPMADOption = true;
+        targetOptions.UnsafeFPMath = true;
+        targetOptions.NoInfsFPMath = true;
+        targetOptions.NoNaNsFPMath = true;
+        targetOptions.GuaranteedTailCallOpt = true;
+         
+        string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
+           targetOptions.PrintMachineCode = true;
+        }
+        
+        builder.setTargetOptions(targetOptions);
+        TargetMachine* tm = builder.selectTarget();
+        
+        PassManager pm;
+        FunctionPassManager fpm(fResult->fModule);
+      
+        // Add an appropriate TargetLibraryInfo pass for the module's triple.
+        TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
+        pm.add(tli);
+        
+        const string &ModuleDataLayout = fResult->fModule->getDataLayout();
+        DataLayout* td = new DataLayout(ModuleDataLayout);
+        pm.add(td);
+      
+        // Add internal analysis passes from the target machine (mandatory for vectorization to work)
+        tm->addAnalysisPasses(pm);
+        
+        if (fOptLevel > 0) {
+            AddOptimizationPasses(pm, fpm, fOptLevel, 0);
+        }
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+            fResult->fModule->dump();
+        }
+       
+        fpm.doInitialization();
+        for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
+            fpm.run(*F);
+        }
+        fpm.doFinalization();
+        
+        pm.add(createVerifierPass());
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
+            tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
+        }
+        
+        // Now that we have all of the passes ready, run them.
+        pm.run(*fResult->fModule);
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+            fResult->fModule->dump();
+        }
+        
+        fJIT = builder.create(tm);
+        if (!fJIT) {
+            endTiming("initJIT");
+            return false;
+        }
+        
+        fObjectCache = new FaustObjectCache();
+        fJIT->setObjectCache(fObjectCache);
     }
     
     // Run static constructors.
@@ -617,6 +707,9 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 llvm_dsp_factory::~llvm_dsp_factory()
 {
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+    delete fObjectCache;
+#endif
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fResult->fModule is kept and deleted by fJIT
@@ -1015,6 +1108,58 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
         factory->writeDSPFactoryToIRFile(ir_code_path);
     }
 }
+
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(const string& machine_code)
+{
+    string sha_key = generateSha1(machine_code);
+    FactoryTableIt it;
+    
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    } else {
+        string error_msg;
+        llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, machine_code), error_msg);
+        llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
+        return factory;
+    }
+}
+
+// machine <==> string
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
+{
+    // Set object cache with machine_code, launch JIT compilation
+    return readDSPFactoryFromMachineAux(MemoryBuffer::getMemBuffer(StringRef(machine_code)));
+}
+
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
+{
+    return factory->writeDSPFactoryToMachine();
+}
+
+// machine <==> file
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
+{
+    OwningPtr<MemoryBuffer> buffer;
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
+        printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
+        return 0;
+    } else {
+        return readDSPFactoryFromMachineAux(buffer.get());
+    }
+}
+
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path)
+{
+    if (factory) {
+        factory->writeDSPFactoryToMachineFile(ir_code_path);
+    }
+}
+
+#endif
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
 {

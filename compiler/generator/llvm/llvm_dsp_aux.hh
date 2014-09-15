@@ -60,6 +60,8 @@ struct FactoryTableType : public map< Sllvm_dsp_factory, list<llvm_dsp_aux*> >
 
 #define FactoryTableIt FactoryTableType::iterator
 
+class FaustObjectCache;
+
 class llvm_dsp_factory : public smartable {
 
     friend class llvm_dsp_aux;
@@ -67,6 +69,9 @@ class llvm_dsp_factory : public smartable {
     private:
 
         ExecutionEngine* fJIT;
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+        FaustObjectCache* fObjectCache;
+    #endif
         LLVMResult* fResult;
      
         int fOptLevel;
@@ -110,6 +115,10 @@ class llvm_dsp_factory : public smartable {
                         std::string& error_msg, int opt_level = 3);
               
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
+        
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+        llvm_dsp_factory(const string& sha_key, const std::string& machine_code);
+    #endif
       
         virtual ~llvm_dsp_factory();
       
@@ -124,6 +133,10 @@ class llvm_dsp_factory : public smartable {
         std::string writeDSPFactoryToIR();
         
         void writeDSPFactoryToIRFile(const std::string& ir_code_path);
+        
+        std::string writeDSPFactoryToMachine();
+        
+        void writeDSPFactoryToMachineFile(const std::string& machine_code_path);
         
         bool initJIT(std::string& error_msg);
         
@@ -217,6 +230,16 @@ EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
+
+// machine <==> string
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
+
+// machine <==> file
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path);
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 

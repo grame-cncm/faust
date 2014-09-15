@@ -354,7 +354,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib/faust,
 					/opt/local/lib/,
-					"/opt/local/libexec/llvm-3.3/lib",
+					"/opt/local/libexec/llvm-3.4/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -517,7 +517,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib/faust,
 					/opt/local/lib/,
-					"/opt/local/libexec/llvm-3.3/lib",
+					"/opt/local/libexec/llvm-3.4/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = (
