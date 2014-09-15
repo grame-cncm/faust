@@ -86,6 +86,10 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
 
+#if defined(LLVM_34) || defined(LLVM_35)
+#include "llvm/ExecutionEngine/ObjectCache.h"
+#endif
+
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
@@ -107,6 +111,44 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     }
     return def;
 }
+
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+
+class FaustObjectCache : public ObjectCache {
+
+    private:
+    
+        string fMachineCode;
+        
+    public:
+    
+        FaustObjectCache() 
+        {}
+        FaustObjectCache(const string& machine_code) : fMachineCode(machine_code)
+        {}
+        
+        virtual ~FaustObjectCache() 
+        {}
+        
+        void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj) 
+        {
+            printf("FaustObjectCache::notifyObjectCompiled\n");
+            raw_string_ostream out(fMachineCode);
+            out << Obj->getBuffer();
+            out.flush();
+        }
+        
+        MemoryBuffer* getObject(const Module* M)
+        {
+            printf("FaustObjectCache::getObject\n");
+            return MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+        }
+        
+        string getMachineCode() { return fMachineCode; }
+        
+};
+
+#endif
         
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
@@ -333,41 +375,6 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 }
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
-
-class FaustObjectCache : public ObjectCache {
-
-    private:
-    
-        string fMachineCode;
-        
-    public:
-    
-        FaustObjectCache() 
-        {}
-        FaustObjectCache(const string& machine_code) : fMachineCode(machine_code)
-        {}
-        
-        virtual ~FaustObjectCache() 
-        {}
-        
-        void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj) 
-        {
-            printf("FaustObjectCache::notifyObjectCompiled\n");
-            raw_string_ostream out(fMachineCode);
-            out << Obj->getBuffer();
-            out.flush();
-        }
-        
-        MemoryBuffer* getObject(const Module* M)
-        {
-            printf("FaustObjectCache::getObject\n");
-            return MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
-        }
-        
-        string getMachineCode() { return fMachineCode; }
-        
-};
-
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
 /// duplicates llvm-gcc behaviour.
@@ -422,7 +429,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     if (fObjectCache) {
     
         // JIT
-        EngineBuilder builder(module);
+        EngineBuilder builder(fResult->fModule);
         builder.setEngineKind(EngineKind::JIT);
         builder.setUseMCJIT(true);
         TargetMachine* tm = builder.selectTarget();
@@ -1111,9 +1118,9 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(const string& machine_code)
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
 {
-    string sha_key = generateSha1(machine_code);
+    string sha_key = generateSha1(buffer->getBuffer().str());
     FactoryTableIt it;
     
     if (getFactory(sha_key, it)) {
@@ -1122,7 +1129,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(const string& machine_code
         return sfactory;
     } else {
         string error_msg;
-        llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, machine_code), error_msg);
+        llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, buffer->getBuffer().str()), error_msg);
         llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
         return factory;
     }
@@ -1144,7 +1151,7 @@ EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
 {
     OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
@@ -1155,7 +1162,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path)
 {
     if (factory) {
-        factory->writeDSPFactoryToMachineFile(ir_code_path);
+        factory->writeDSPFactoryToMachineFile(machine_code_path);
     }
 }
 
