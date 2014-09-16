@@ -302,6 +302,14 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code_path, const char* target, int opt_level);
+
+EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, int opt_level);
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
+
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);

@@ -224,8 +224,45 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
  */
 void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
+/**
+ * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all 
+ * allocated factories so that the compilation of same DSP code (that is the same machine code string) will return 
+ * the same (reference counted) factory pointer.
+ * 
+ * @param machine_code - the machine code string
+ *
+ * @return the Faust DSP factory on success, otherwise a null pointer.
+ */
 llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+
+/**
+ * Write a Faust DSP factory into a machine code string.
+ * 
+ * @param factory - the Faust DSP factory
+ *
+ * @return the machine code as a string.
+ */
 std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
+
+/**
+ * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
+ * allocated factories so that the compilation of same DSP code (that is the same machine code file) will return 
+ * the same (reference counted) factory pointer.
+ * 
+ * @param machine_code_path - the machine code file pathname
+ *
+ * @return the Faust DSP factory on success, otherwise a null pointer.
+ */
+llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+
+/**
+ * Write a Faust DSP factory into a machine code file.
+ * 
+ * @param factory - the Faust DSP factory
+ * @param machine_code_path - the machine code file pathname.
+ *
+ */
+void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path);
 
 /**
  * Call global declarations with the given meta object.

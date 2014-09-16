@@ -1142,7 +1142,6 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
 {
-    // Set object cache with machine_code, launch JIT compilation
     return readDSPFactoryFromMachineAux(MemoryBuffer::getMemBuffer(StringRef(machine_code)));
 }
 
@@ -1362,6 +1361,35 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 {
     if (factory) {
         writeDSPFactoryToIRFile(factory, ir_code_path);
+    }
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
+{
+    return readDSPFactoryFromMachine(machine_code);
+}
+
+EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string str = writeDSPFactoryToMachine(factory);
+        char* cstr = (char*)malloc(str.length() + 1);
+        strcpy(cstr, str.c_str());
+        return cstr;
+    } else {
+        return NULL;
+    }
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
+{
+    return readDSPFactoryFromMachineFile(machine_code_path);
+}
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path)
+{
+    if (factory) {
+        writeDSPFactoryToMachineFile(factory, machine_code_path);
     }
 }
 
