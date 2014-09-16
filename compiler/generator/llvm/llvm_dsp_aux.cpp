@@ -122,9 +122,7 @@ class FaustObjectCache : public ObjectCache {
         
     public:
     
-        FaustObjectCache() :fMachineCode("")
-        {}
-        FaustObjectCache(const string& machine_code) : fMachineCode(machine_code)
+        FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
         {}
         
         virtual ~FaustObjectCache() 
@@ -132,19 +130,13 @@ class FaustObjectCache : public ObjectCache {
         
         void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj) 
         {
-            //printf("notifyObjectCompiled: fMachineCode size %d\n", fMachineCode.size());
             fMachineCode = Obj->getBuffer().str();
         }
         
         MemoryBuffer* getObject(const Module* M)
         {
-            if (fMachineCode == "") {
-                return NULL;
-            } else {
-                //printf("getObject : fMachineCode size %d\n", fMachineCode.size());
-                return MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
-            }
-        }
+            return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+         }
         
         string getMachineCode() { return fMachineCode; }
         
@@ -152,14 +144,12 @@ class FaustObjectCache : public ObjectCache {
 
 #endif
 
-        
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
     return (void*)fJIT->getFunctionAddress(function);
 #else
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
-    
     if (fun_ptr) {
         return fJIT->getPointerToFunction(fun_ptr);
     } else {
@@ -288,8 +278,8 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
 {
-    fClassName = "mydsp";
-    fExtName = "ModuleDSP";
+    Init();
+    fSHAKey = sha_key;
    
     // Restoring the cache
     fObjectCache = new FaustObjectCache(machine_code);
@@ -303,13 +293,11 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
+    Init();
     fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = target;
-    fClassName = "mydsp";
-    fExtName = "ModuleDSP";
-    
-    Init();
+ 
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
     fResult->fContext = context;
@@ -332,6 +320,8 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
                                     const string& target, 
                                     string& error_msg, int opt_level)
 {
+    Init();
+    
     if (llvm_dsp_factory::gInstance++ == 0) {
         
         // Install a LLVM error handler
@@ -355,7 +345,6 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         fObjectCache = NULL;
     #endif
         
-        Init();
         char error_msg_aux[512];
         fClassName = getParam(argc, argv, "-cn", "mydsp");
         fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
@@ -376,6 +365,8 @@ void llvm_dsp_factory::Init()
     fBuildUserInterface = 0;
     fInit = 0;
     fCompute = 0;
+    fClassName = "mydsp";
+    fExtName = "ModuleDSP";
 }
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
