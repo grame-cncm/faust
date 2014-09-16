@@ -1142,13 +1142,11 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
 {
-    printf("readDSPFactoryFromMachine \n");
     return readDSPFactoryFromMachineAux(MemoryBuffer::getMemBuffer(StringRef(machine_code)));
 }
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
 {
-    printf("writeDSPFactoryToMachine \n");
     return factory->writeDSPFactoryToMachine();
 }
 
