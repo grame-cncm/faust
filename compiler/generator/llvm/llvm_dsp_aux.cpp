@@ -122,7 +122,7 @@ class FaustObjectCache : public ObjectCache {
         
     public:
     
-        FaustObjectCache() 
+        FaustObjectCache() :fMachineCode("")
         {}
         FaustObjectCache(const string& machine_code) : fMachineCode(machine_code)
         {}
@@ -132,16 +132,18 @@ class FaustObjectCache : public ObjectCache {
         
         void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj) 
         {
-            printf("FaustObjectCache::notifyObjectCompiled\n");
-            raw_string_ostream out(fMachineCode);
-            out << Obj->getBuffer();
-            out.flush();
+            //printf("notifyObjectCompiled: fMachineCode size %d\n", fMachineCode.size());
+            fMachineCode = Obj->getBuffer().str();
         }
         
         MemoryBuffer* getObject(const Module* M)
         {
-            printf("FaustObjectCache::getObject\n");
-            return MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+            if (fMachineCode == "") {
+                return NULL;
+            } else {
+                //printf("getObject : fMachineCode size %d\n", fMachineCode.size());
+                return MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+            }
         }
         
         string getMachineCode() { return fMachineCode; }
@@ -149,10 +151,15 @@ class FaustObjectCache : public ObjectCache {
 };
 
 #endif
+
         
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+    return (void*)fJIT->getFunctionAddress(function);
+#else
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
+    
     if (fun_ptr) {
         return fJIT->getPointerToFunction(fun_ptr);
     } else {
@@ -160,6 +167,7 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
         error << "LoadOptimize : getPointerToFunction failed for " << function;
         throw faustexception(error.str());
     }
+#endif
 }
 
 EXPORT Module* load_single_module(const string filename, LLVMContext* context)
@@ -280,6 +288,9 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
 {
+    fClassName = "mydsp";
+    fExtName = "ModuleDSP";
+   
     // Restoring the cache
     fObjectCache = new FaustObjectCache(machine_code);
     
@@ -425,6 +436,13 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
     
+    //InitializeAllTargets();
+    //InitializeAllTargetMCs();
+      
+    InitializeNativeTarget();
+    InitializeNativeTargetAsmPrinter();
+    InitializeNativeTargetAsmParser();
+    
     // Restoring from machine code
     if (fObjectCache) {
     
@@ -434,21 +452,16 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         builder.setUseMCJIT(true);
         TargetMachine* tm = builder.selectTarget();
         fJIT = builder.create(tm);
-        
+        fJIT->setObjectCache(fObjectCache);
+        fJIT->finalizeObject();
+          
     } else {
     
         // First check is Faust compilation succeeded... (valid LLVM module)
         if (!fResult || !fResult->fModule) {
             return false;
         }
-         
-        InitializeAllTargets();
-        InitializeAllTargetMCs();
-      
-        InitializeNativeTarget();
-        InitializeNativeTargetAsmPrinter();
-        InitializeNativeTargetAsmParser();
-
+    
         // Initialize passes
         PassRegistry &Registry = *PassRegistry::getPassRegistry();
         
