@@ -273,6 +273,13 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
     assert(dsp);
     m_siginlets = dsp->getNumInputs();
     m_sigoutlets = dsp->getNumOutputs();
+    
+    // Prepare JSON
+    JSONUI builder(m_siginlets, m_sigoutlets);
+    metadataDSPFactory(fDSPfactory, &builder);
+    dsp->buildUserInterface(&builder);
+    fJSON = builder.JSON();
+    
     return dsp;
 }
 

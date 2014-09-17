@@ -40,6 +40,7 @@
 #include <map> 
 
 #include "faust/llvm-dsp.h"
+#include "faust/gui/JSONUI.h"
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -104,10 +105,11 @@ class faustgen_factory {
         faustgen* fUpdateInstance;      // the instance that inited an update
         
         string fName;                   // name of the DSP group
+        string fJSON;                   // JSON
            
         t_systhread_mutex fDSPMutex;    // mutex to protect RT audio thread when recompiling DSP
      
-        vector<string> fCompileOptions; // Faust compiler options i
+        vector<string> fCompileOptions; // Faust compiler options
         
         int m_siginlets;
         int m_sigoutlets;
@@ -147,6 +149,8 @@ class faustgen_factory {
         void librarypath(long inlet, t_symbol* s);
         
         char* get_sourcecode() { return *fSourceCode; }
+        
+        const char* get_json() { return fJSON.c_str(); }
         
         void update_sourcecode(int size, char* source_code, faustgen* instance);
         
