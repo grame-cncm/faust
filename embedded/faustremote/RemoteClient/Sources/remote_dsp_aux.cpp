@@ -50,6 +50,8 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
     
     if (curl) {
         
+        printf("cURL with request = %s and ip = %s\n", finalRequest.c_str(), ip.c_str());
+        
         std::ostringstream oss;
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -64,6 +66,7 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
         CURLcode res = curl_easy_perform(curl);
         
         if (res != CURLE_OK) {
+            printf("Easy perform error\n");
             errorCode = ERROR_CURL_CONNECTION;
         } else{
             
@@ -76,6 +79,8 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
                 isInitSuccessfull = true;
             }
             else if(respcode == 400){
+                
+                printf("INFO Failed\n");
                 
 //                Is String Int ?
                 bool isInt = true;
@@ -188,20 +193,21 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
 // Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop(){
     
-//    CURL *curl = curl_easy_init();
-//    
-//    printf("fIndex = %s\n", fSHAKey.c_str());
-//    printf("fIP = %s\n", fServerIP.c_str());
-//        
-//    // The index of the factory to delete has to be sent
-//    string finalRequest = string("factoryKey=") + fSHAKey;
-//    string ip = fServerIP + string("/DeleteFactory");
-//        
-//    string response("");
-//    int errorCode;
-//    if(!send_request(ip, finalRequest, response, errorCode)){
-//        printf("curl_easy_perform() failed: %s\n", response.c_str());
-//    }
+    CURL *curl = curl_easy_init();
+    
+    printf("fIndex = %s\n", fSHAKey.c_str());
+        
+    // The index of the factory to delete has to be sent
+    string finalRequest = string("shaKey=") + fSHAKey;
+    string ip = fServerIP + string("/DeleteFactory");
+        
+        printf("ip = %s\n", ip.c_str());
+    
+    string response("");
+    int errorCode;
+    if(!send_request(ip, finalRequest, response, errorCode)){
+        printf("curl_easy_perform() failed: %s || code %i\n", response.c_str(), errorCode);
+    }
 }
 
 // Decoding JSON from a string to
@@ -341,7 +347,21 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     string sha_key = generateSha1(dsp_content + " " + ss.str() + " " + ip_server); 
     FactoryTableIt it;
     
-    if (getFactory(sha_key, it)) {
+//    CE SERAIT BIEN DE TESTER ICI SI LA FACTORY EXISTE TOUJOURS POUR POTENTIELLEMENT NE PAS LA RÉUTILISER SI N'EXISTE PLUS. PB = CLÉ SHA CALCULEE DIFFEREMMENT ENTRE CLIENT ET SERVER...
+    
+    vector<pair<string, string> > factories_list;
+    getRemoteFactoriesAvailable("localhost", 5555, &factories_list);
+    
+    bool factoryStillExisting = false;
+    
+    for(int i=0; i<factories_list.size(); i++){
+        if(sha_key == factories_list[i].second.c_str()){
+           factoryStillExisting = true;
+            break;
+        }
+    }
+    
+    if (getFactory(sha_key, it) && factoryStillExisting) {
         Sremote_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;
@@ -376,6 +396,9 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
         remote_dsp_factory* factory = new remote_dsp_factory();
         if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
+            
+            printf("Factory pushed in fFactory Table\n");
+            
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         } else {
@@ -387,16 +410,27 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 {
-    FactoryTableIt it;
-    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
-        Sremote_dsp_factory sfactory = (*it).first;
-        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
-            // Last use, remove from the global table, pointer will be deleted
-            remote_dsp_factory::gFactoryTable.erase(factory);
-        } else {
-            sfactory->removeReference();
-        }
-    }
+    
+    printf("Delete remote DSP Factory\n");
+//    
+//    FactoryTableIt it;
+//    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
+//        Sremote_dsp_factory sfactory = (*it).first;
+//        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
+//            // Last use, remove from the global table, pointer will be deleted
+//            remote_dsp_factory::gFactoryTable.erase(factory);
+//        } else {
+//            sfactory->removeReference();
+//        }
+//    }
+    factory->stop();
+//    
+//    string finalRequest = "shaKey="+factory->key();
+//    
+//    string response;
+//    int errorCode;
+//    if(send_request("http://192.168.1.174:7777/DeleteFactory", finalRequest, response, errorCode))
+//        printf("Factory Well Well deleted\n");
 }
 
 EXPORT void deleteAllRemoteDSPFactories()
