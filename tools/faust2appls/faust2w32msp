@@ -16,10 +16,14 @@ EXT="~.mxe"
 
 #------------------------------------------------------------------------------
 # 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
-CROSS="/usr/bin/i586-mingw32msvc-"
-CXX="${CROSS}g++"
-DLLWRAP="${CROSS}dllwrap --target=i386-mingw32 -mno-cygwin"
-STRIP="${CROSS}strip"
+# It must be in the PATH and the exact prefix should be specified in 
+# the environment variable MINGWPREFIX
+
+: ${MINGWPREFIX="i686-w64-mingw32-"}
+CXX="${MINGWPREFIX}g++"
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
+DLLWRAP="${MINGWPREFIX}dllwrap --target=i386-mingw32"
+STRIP="${MINGWPREFIX}strip"
 
 
 #-----------------------------------------------------------------------------
