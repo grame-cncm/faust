@@ -70,7 +70,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION        "2.0.a27"
+#define FAUSTVERSION        "2.0.a28"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;

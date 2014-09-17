@@ -181,6 +181,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     string decoded_bitcode = base64_decode(*fBitCode, fBitCodeSize);
     return readDSPFactoryFromBitcode(decoded_bitcode, getTarget());
+    
+    /*
+    // Alternate model using machine code
+    return readDSPFactoryFromMachine(decoded_bitcode);
+    */
+    
     /*
     // Alternate model using LLVM IR
     return readDSPFactoryFromIR(*fBitCode, getTarget());
@@ -424,16 +430,17 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     // Save bitcode
     if (fDSPfactory) {
         string bitcode = writeDSPFactoryToBitcode(fDSPfactory);
+        
+        // Alternate model using LLVM IR
+        // string ircode = writeDSPFactoryToIR(fDSPfactory);
+    
+        // Alternate model using machine code
+        //string machinecode = writeDSPFactoryToMachine(fDSPfactory);
+        
         string encoded_bitcode = base64_encode((const unsigned char*)bitcode.c_str(), bitcode.size());
         dictionary_appendlong(d, gensym("bitcode_size"), encoded_bitcode.size());
         dictionary_appendstring(d, gensym("bitcode"), encoded_bitcode.c_str());  
     }
-    /*
-    // Alternate model using LLVM IR
-    string ircode = writeDSPFactoryToIR(fDSPfactory);
-    dictionary_appendlong(d, gensym("bitcode_size"), ircode.size());
-    dictionary_appendstring(d, gensym("bitcode"), ircode.c_str()); 
-    */ 
 }
 
 bool faustgen_factory::try_open_svg()

@@ -174,6 +174,13 @@ int main(int argc, char *argv[])
         //deleteDSPFactory(factory3);
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         factory4 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
+        
+        for (int i = 0; i < 10; i++) {
+            std::string machine_code = writeDSPFactoryToMachine(factory3);
+            printf("writeDSPFactoryToMachine %d\n", i);
+            factory3 = readDSPFactoryFromMachine(machine_code);
+        }
+        
         if (factory3) {
             DSP = createDSPInstance(factory3);
             assert(DSP);
@@ -182,6 +189,7 @@ int main(int argc, char *argv[])
             return 1;
         }
         
+       
         /*
         meta;
         DSP->buildUserInterface(&json);
