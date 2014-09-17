@@ -347,10 +347,8 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     string sha_key = generateSha1(dsp_content + " " + ss.str() + " " + ip_server); 
     FactoryTableIt it;
     
-//    CE SERAIT BIEN DE TESTER ICI SI LA FACTORY EXISTE TOUJOURS POUR POTENTIELLEMENT NE PAS LA RÉUTILISER SI N'EXISTE PLUS. PB = CLÉ SHA CALCULEE DIFFEREMMENT ENTRE CLIENT ET SERVER...
-    
     vector<pair<string, string> > factories_list;
-    getRemoteFactoriesAvailable("localhost", 5555, &factories_list);
+    getRemoteFactoriesAvailable(ip_server, port_server, &factories_list);
     
     bool factoryStillExisting = false;
     
