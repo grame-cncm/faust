@@ -1364,6 +1364,7 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
     }
 }
 
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
 {
     return readDSPFactoryFromMachine(machine_code);
@@ -1392,6 +1393,7 @@ EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char*
         writeDSPFactoryToMachineFile(factory, machine_code_path);
     }
 }
+#endif
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
 {

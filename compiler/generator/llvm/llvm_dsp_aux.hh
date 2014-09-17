@@ -236,10 +236,12 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_co
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
 
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path);
+#endif
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
@@ -302,6 +304,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code_path, const char* target, int opt_level);
 
 EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
@@ -309,6 +312,7 @@ EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, int opt_level);
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
+#endif
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
