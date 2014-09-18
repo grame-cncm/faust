@@ -26,10 +26,7 @@ all :
 	
 
 dynamic :
-<<<<<<< HEAD
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
-=======
->>>>>>> master
 	$(MAKE) -C architecture/httpdlib/src dynamic
 
 httpd :
