@@ -34,6 +34,15 @@
 #include <llvm/Support/Host.h>
 #endif
 
+#if defined(LLVM_35)
+#include <llvm/Support/FileSystem.h>
+#define sysfs_binary_flag sys::fs::F_None
+#elif defined(LLVM_34)
+#define sysfs_binary_flag sys::fs::F_Binary
+#else
+#define sysfs_binary_flag raw_fd_ostream::F_Binary
+#endif
+
 using namespace std;
 using namespace llvm;
 

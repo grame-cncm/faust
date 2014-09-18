@@ -59,7 +59,11 @@ using namespace std;
 #include <llvm-c/BitWriter.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Support/raw_ostream.h>
+#ifdef LLVM_35
+#include <llvm/IR/Verifier.h>
+#else
 #include <llvm/Analysis/Verifier.h>
+#endif
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/IR/IRBuilder.h>

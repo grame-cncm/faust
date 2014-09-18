@@ -74,12 +74,20 @@
 
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/PassManager.h>
+#ifdef LLVM_35
+#include <llvm/IR/Verifier.h>
+#else
 #include <llvm/Analysis/Verifier.h>
+#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
+#ifdef LLVM_35
+#include <llvm/Linker/Linker.h>
+#else
 #include <llvm/Linker.h>
+#endif
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Assembly/PrintModulePass.h>
@@ -95,6 +103,15 @@
 #endif
 #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/Support/TargetSelect.h>
+#endif
+
+#if defined(LLVM_35)
+#include <llvm/Support/FileSystem.h>
+#define sysfs_binary_flag sys::fs::F_None
+#elif defined(LLVM_34)
+#define sysfs_binary_flag sys::fs::F_Binary
+#else
+#define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
 #define MAX_OPT_LEVEL 4
@@ -221,11 +238,7 @@ void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
     string err;
     
-#if defined(LLVM_34) || defined(LLVM_35)
-    raw_fd_ostream out(bit_code_path.c_str(), err, sys::fs::F_Binary);
-#else
-    raw_fd_ostream out(bit_code_path.c_str(), err, raw_fd_ostream::F_Binary);
-#endif
+    raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
     
     WriteBitcodeToFile(fResult->fModule, out);
 }
@@ -245,11 +258,7 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
 void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 {
     string err;
-#if defined(LLVM_34) || defined(LLVM_35)
-    raw_fd_ostream out(ir_code_path.c_str(), err, sys::fs::F_Binary);
-#else
-    raw_fd_ostream out(ir_code_path.c_str(), err, raw_fd_ostream::F_Binary);
-#endif
+    raw_fd_ostream out(ir_code_path.c_str(), err, sysfs_binary_flag);
     PassManager PM;
     PM.add(createPrintModulePass(&out));
     PM.run(*fResult->fModule);
@@ -269,7 +278,7 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 {
 #if defined(LLVM_34) || defined(LLVM_35)
     string err;
-    raw_fd_ostream out(machine_code_path.c_str(), err, sys::fs::F_Binary);
+    raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
     out << fObjectCache->getMachineCode(); 
     out.flush();
 #endif

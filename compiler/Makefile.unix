@@ -69,6 +69,7 @@ endif
 
 ifeq ($(LLVM_VERSION), 3.5.0)
     LLVM_VERSION = LLVM_35
+    CXXFLAGS += -std=gnu++11
 endif
 
 ifeq ($(system), Darwin)
