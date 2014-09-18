@@ -35,6 +35,7 @@
 #ifndef __poly_dsp__
 #define __poly_dsp__
 
+#include <stdio.h>
 #include <string>
 #include <math.h>
 

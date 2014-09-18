@@ -1,53 +1,50 @@
 QPushButton{
-background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-stop: 0 #811453, stop: 1 #702963);
 min-width : 80px;
 border: 2px solid grey;
 border-radius: 6px;
 margin-top: 1ex;
+background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #811453, stop: 1 #702963);
+color: white;
 }
-    
+
 QPushButton:hover{
 border: 2px solid orange;
 }
-    
+
 QPushButton:pressed{
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #811453, stop: 1 #702963);
+background-color: orange;
+border-color: grey;
 }
 
 QGroupBox{
-subcontrol: .QGroupBox
+subcontrol: .QGroupBox;
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #003366, stop: 1 #22427C);
-# border: 2px solid gray;
-border-radius: 5px;
 margin-top: 3ex;
-font-size:10pt;
-font-weight:bold;
-color: dark grey;
+border-radius: 5px;
+font-size: 10pt;
+font-weight: bold;
 color: white;
 }
-    
+
 QGroupBox::title {
 subcontrol-origin: margin;
 subcontrol-position: top center;
 padding: 0 5px;
 color: white;
 }
-    
-QMainWindow {
+
+QMainWindow, QDialog{
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #003366, stop: 1 #22427C);
-border: 2px solid gray;
 border-radius: 5px;
 margin-top: 3ex;
 font-size:10pt;
 font-weight:bold;
-color: dark grey;
 color: white;
-}
-    
+}  
+
 QPlainTextEdit, QTextEdit{
 background-color: transparent;
-border: 2px #702963;
+border: 2px solid #702963;
 border-radius: 5px;
 top: 3px;
 margin-top: 3ex;
@@ -55,50 +52,42 @@ font-size:12pt;
 font-weight:bold;
 color: white;
 }
-    
-    
-QLabel{
-color : white;
-}
 
 QTextBrowser {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #003366, stop: 1 #22427C);
-min-height:30px;
-color: white;
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #003366, stop: 1 #22427C);
+	color: white;
 }
     
-QTextBrowser:link{
-text-decoration: underline;
-color: white;
-font: Menlo;
-font-size: 14px
+QTextBrowser:document{
+	text-decoration: underline;
+	color: white;
+	font: Menlo;
+	font-size: 14px
 }
 
-QString:link {
-color: rgb(215, 208, 100);
-}
-QString:visited {
-color: rgb(215, 208, 100);
+QLabel{
+color : white;
+background: transparent;
 }
 
 QSlider::groove:vertical {
 background: red;
-position: absolute;
+position: absolute; 
 left: 13px; right: 13px;
 }
-    
+
 QSlider::handle:vertical {
 height: 40px;
 width: 30px;
 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);
 margin: 0 -5px;
 border-radius: 5px;
-}
-    
+} 
+
 QSlider::add-page:vertical {
 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange);
 }
-    
+
 QSlider::sub-page:vertical {
 background: grey;
 }
@@ -108,7 +97,7 @@ background: red;
 position: absolute;
 top: 14px; bottom: 14px;
 }
-    
+
 QSlider::handle:horizontal {
 width: 40px;
 background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #6A455D, stop : 0.05 #811453, stop: 0.3 #811453, stop : 0.90 #6A455D, stop: 0.91 #702963);
@@ -119,7 +108,7 @@ border-radius: 5px;
 QSlider::sub-page:horizontal {
 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange);
 }
-    
+
 QSlider::add-page:horizontal {
 background: grey;
 }
@@ -135,9 +124,7 @@ left: 5px;
 }
     
 QTabBar::tab {
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #003366, stop: 0.4 #22427C,
-stop: 0.5 #003366, stop: 1.0 #22427C);
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #003366, stop: 0.4 #22427C, stop: 0.5 #003366, stop: 1.0 #22427C);
 border: 2px solid #808080;
 color : white;
 border-bottom-color: #702963;
@@ -161,7 +148,19 @@ border-bottom-color: #22427C;
 QTabBar::tab:!selected {
 margin-top: 2px;
 }
-    
-QListWidget{                
+
+QListWidget{
 background-color: transparent;
 }
+
+QListWidget::item{                
+	color: white;
+}
+
+QStatusBar{
+	background-color: transparent;
+	border: 0px; 
+	padding:0px 0px 0px 0px; 
+	margin:0px;
+}
+
