@@ -17,6 +17,9 @@ all :
 	$(MAKE) -C architecture/osclib
 	
 
+dynamic :
+	$(MAKE) -C architecture/httpdlib/src dynamic
+
 httpd :
 	$(MAKE) -C architecture/httpdlib/src
 
