@@ -433,9 +433,11 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
     
-    //InitializeAllTargets();
-    //InitializeAllTargetMCs();
+    // For multiple target support
+    InitializeAllTargets();
+    InitializeAllTargetMCs();
       
+    // For host target support
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
@@ -663,7 +665,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     if (fOptLevel > 3) {
     
     #if defined(LLVM_32) 
-        printf("Vectorize\n");
         Builder.LoopVectorize = true;
         //Builder.Vectorize = true;
     #elif defined(LLVM_31)
