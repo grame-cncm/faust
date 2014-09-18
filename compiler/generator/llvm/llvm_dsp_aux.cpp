@@ -98,10 +98,7 @@
 #include "llvm/ExecutionEngine/ObjectCache.h"
 #endif
 
-#ifdef LLVM_29
-#include <llvm/Target/TargetSelect.h>
-#endif
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/Support/TargetSelect.h>
 #endif
 
@@ -619,23 +616,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     builder.setUseMCJIT(false);
     builder.setMCPU(llvm::sys::getHostCPUName());
        
-#ifndef LLVM_30
     TargetMachine* tm = builder.selectTarget();
-#endif
-    //tm->Options.PrintMachineCode = 1;
-    /*
-    SmallVector<string, 4> attrs;
-    attrs.push_back("sse");
-    attrs.push_back("sse2");
-    attrs.push_back("sse3");
-    attrs.push_back("enable-unsafe-fp-math");
-    builder.setMAttrs(attrs);
-    */
-#ifdef LLVM_30
-    fJIT = builder.create();
-#else
     fJIT = builder.create(tm);
-#endif
     
     if (!fJIT) {
         endTiming("initJIT");

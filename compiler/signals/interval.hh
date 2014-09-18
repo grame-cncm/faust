@@ -59,7 +59,6 @@ inline ostream& operator<<(ostream& dst, const interval& i)
 	}
 }
 
-
 inline interval reunion(const interval& x, const interval& y)
 {
 	if (x.valid & y.valid) {

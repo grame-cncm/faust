@@ -28,12 +28,6 @@
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
-#ifdef LLVM_28
-#include <llvm/System/Host.h>
-#else
-#include <llvm/Support/Host.h>
-#endif
-
 #if defined(LLVM_35)
 #include <llvm/Support/FileSystem.h>
 #define sysfs_binary_flag sys::fs::F_None

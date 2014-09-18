@@ -6,15 +6,6 @@ all :  $(appl)
 
 LLVM_VERSION = $(shell llvm-config --version)
 
-ifeq ($(LLVM_VERSION), 2.9)
-LLVM_VERSION  = LLVM_29
-endif
-
-ifeq ($(LLVM_VERSION), 3.0)
-LLVM_VERSION  = LLVM_30
-LLVM_PREFIX = /opt/local/libexec/llvm-3.0/bin
-endif
-
 ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
 LLVM_PREFIX = /opt/local/libexec/llvm-3.1/bin

@@ -59,6 +59,8 @@ using namespace std;
 #include <llvm-c/BitWriter.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Host.h>
+
 #ifdef LLVM_35
 #include <llvm/IR/Verifier.h>
 #else
@@ -74,26 +76,7 @@ using namespace std;
 #include <llvm/Support/IRBuilder.h>
 #endif
 
-#ifdef LLVM_28
-#include <llvm/System/Host.h>
-#else
-#include <llvm/Support/Host.h>
-#endif
-
-#if defined(LLVM_29) || defined(LLVM_28)
-    #include <llvm/Target/TargetSelect.h>
-    #define VECTOR_OF_TYPES vector<const llvm::Type*>
-    #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
-    #define LLVM_TYPE const llvm::Type*
-    #define MAKE_VECTOR_OF_TYPES(vec) vec
-    #define MAKE_IXD(beg, end) beg, end
-    #define MAKE_ARGS(args) args
-    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end())
-    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
-    #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, name);
-#endif
-
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
     #include <llvm/Support/TargetSelect.h>
     #define VECTOR_OF_TYPES vector<llvm::Type*>
     #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
@@ -257,7 +240,6 @@ struct LLVMTypeHelper {
             return fTypeMap[basic_typed->fType];
         } else if (named_typed) {
             // Used for internal structures (RWTable... etc...)
-            string full_name = "struct.dsp" + named_typed->fName;
             LLVM_TYPE type = module->getTypeByName("struct.dsp" + named_typed->fName);
             assert(type);
             return PointerType::get(type, 0);
@@ -300,11 +282,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
         {
-        #if defined(LLVM_29) || defined(LLVM_28)
-            StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
-            fModule->addTypeName(name, struct_type);
-        #endif
-        #if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
             StructType* struct_type = StructType::create(fModule->getContext(), name);
             struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
         #endif
@@ -1381,11 +1359,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 Value* vector = UndefValue::get(VectorType::get(load->getType(), size));
                 Value* idx = genInt32(fModule, 0);
                 vector = fBuilder->CreateInsertElement(vector, load, idx);
-                #ifdef LLVM_28
-                    std::vector<Constant*> args(16);
-                #else
-                    SmallVector<Constant*, 16> args;
-                #endif
+                SmallVector<Constant*, 16> args;
                 for (int i = 0; i < size; i++) {
                     args.push_back(static_cast<Constant*>(genInt32(fModule, 0)));
                 }

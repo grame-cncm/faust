@@ -18,11 +18,6 @@ FAUSTINC := $(if $(wildcard $(ck14)),$(FAUST_INC_PATH),$(FAUSTINC))
 
 LLVM_VERSION = $(shell llvm-config --version)
 
-ifeq ($(LLVM_VERSION), 3.0)
-LLVM_VERSION  = LLVM_30
-CLANG = /opt/local/libexec/llvm-3.0/bin/clang++
-endif
-
 ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
 CLANG = /opt/local/libexec/llvm-3.1/bin/clang++
