@@ -19,15 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 // SVGDev.cpp
 
 #include "SVGDev.h"
 #include "global.hh"
+#include "exception.hh"
 
-#include "stdio.h"
+#include <stdio.h>
 #include <iostream>
+#include <sstream>
+
 using namespace std;
 
 static char* xmlcode(const char* name, char* name2)
@@ -55,8 +56,9 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 {
 	double gScale = 0.5;
 	if ((fic_repr = fopen(ficName,"w+")) == NULL) {
-		cout<<"Impossible to create or open "<<ficName<<endl;
-        return;
+        stringstream error;
+		error << "Impossible to create or open " << ficName << endl;
+        throw faustexception(error.str());
 	}
 
 	// representation file:
