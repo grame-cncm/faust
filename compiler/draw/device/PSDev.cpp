@@ -19,15 +19,14 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 // PSDev.cpp
 
-#include "PSDev.h"
-#include "string.h"
-#include "math.h"
-#include "compatibility.hh"
+#include <string.h>
+#include <math.h>
 #include <iostream>
+
+#include "compatibility.hh"
+#include "PSDev.h"
 
 using namespace std;
 

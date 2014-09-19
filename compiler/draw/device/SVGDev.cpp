@@ -19,13 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 // SVGDev.cpp
 
 #include "SVGDev.h"
-#include "stdio.h"
+#include <stdio.h>
 #include <iostream>
+
 using namespace std;
 
 extern bool gShadowBlur;
