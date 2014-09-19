@@ -55,7 +55,8 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 {
 	double gScale = 0.5;
 	if ((fic_repr = fopen(ficName,"w+")) == NULL) {
-		cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl;
+		cout<<"Impossible to create or open "<<ficName<<endl;
+        return;
 	}
 
 	// representation file:
