@@ -55,7 +55,8 @@ PSDev::PSDev(const char* ficName, double largeur, double hauteur)
 {
 	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) { 
 	//if ((fic_repr = fopen(ficName,"w+")) == NULL) { 
-		cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl; 
+		cout<<"Impossible to create or open "<<ficName<<endl;
+        return;
 	}
 
 	if(largeur<hauteur)
