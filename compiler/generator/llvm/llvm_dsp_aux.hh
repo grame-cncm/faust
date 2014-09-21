@@ -49,13 +49,9 @@ typedef class SMARTP<llvm_dsp_factory> Sllvm_dsp_factory;
 struct FactoryTableType : public map< Sllvm_dsp_factory, list<llvm_dsp_aux*> > 
 {
     FactoryTableType() 
-    { 
-        //printf("FactoryTableType\n"); 
-    }
+    {}
     virtual ~FactoryTableType() 
-    { 
-        //printf("~FactoryTableType\n"); 
-    }
+    {}
 };
 
 #define FactoryTableIt FactoryTableType::iterator
