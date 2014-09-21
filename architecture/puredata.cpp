@@ -101,11 +101,27 @@ public:
   virtual void run();
 };
 
-static std::string mangle(const char *s)
+#define sym(name) xsym(name)
+#define xsym(name) #name
+
+static std::string mangle(int nelems, const char *s)
 {
   const char *s0 = s;
   std::string t = "";
   if (!s) return t;
+  // Get rid of bogus "0x00" labels in recent Faust revisions. Also, for
+  // backward compatibility with old Faust versions, make sure that default
+  // toplevel groups and explicit toplevel groups with an empty label are
+  // treated alike (these both return "0x00" labels in the latest Faust, but
+  // would be treated inconsistently in earlier versions).
+  if (!*s || strcmp(s, "0x00") == 0) {
+    if (nelems == 0)
+      // toplevel group with empty label, map to dsp name
+      s = sym(mydsp);
+    else
+      // empty label
+      s = "";
+  }
   while (*s)
     if (isalnum(*s))
       t += *(s++);
@@ -169,7 +185,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label)
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(nelems, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = NULL;
@@ -187,7 +203,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(nelems, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -206,7 +222,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(nelems, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -225,7 +241,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(nelems, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -255,17 +271,17 @@ void PdUI::addVerticalBargraph(const char* label, float* zone, float min, float 
 void PdUI::openTabBox(const char* label)
 {
   if (!path.empty()) path += "/";
-  path += mangle(label);
+  path += mangle(nelems, label);
 }
 void PdUI::openHorizontalBox(const char* label)
 {
   if (!path.empty()) path += "/";
-  path += mangle(label);
+  path += mangle(nelems, label);
 }
 void PdUI::openVerticalBox(const char* label)
 {
   if (!path.empty()) path += "/";
-  path += mangle(label);
+  path += mangle(nelems, label);
 }
 void PdUI::closeBox()
 {
@@ -296,8 +312,6 @@ void PdUI::run() {}
 
 #define faust_setup(name) xfaust_setup(name)
 #define xfaust_setup(name) name ## _tilde_setup(void)
-#define sym(name) xsym(name)
-#define xsym(name) #name
 
 // time for "active" toggle xfades in secs
 #define XFADE_TIME 0.1f
