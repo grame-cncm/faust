@@ -22,7 +22,7 @@
 
 /* Pure architecture for Faust. This is similar to the Q architecture, but
    uses double precision for the audio buffers and control variables. See
-   http://pure-lang.googlecode.com for a Pure module which can load these
+   http://purelang.bitbucket.org for a Pure module which can load these
    extensions. */
 
 #include <stdlib.h>
