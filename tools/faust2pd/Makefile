@@ -1,7 +1,7 @@
 
 # Package name and version number:
 dist = faust2pd-$(version)
-version = 2.5
+version = 2.9
 
 # Default installation prefix:
 prefix = /usr/local
@@ -27,7 +27,7 @@ endif
 
 DESTDIR=
 
-DISTFILES = Makefile COPYING ChangeLog README config.guess *.pure *.pd examples/README examples/*/Makefile examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml
+DISTFILES = Makefile COPYING ChangeLog README config.guess *.pure *.pd examples/README debian/* examples/*/Makefile examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml pd/*.h
 SEDFILES = README
 
 .PHONY: all examples clean distclean realclean install uninstall
@@ -52,7 +52,7 @@ realclean:
 # as of pure-0.21, we can compile the script to an executable
 faust2pd$(EXE): faust2pd.pure faustxml.pure
 	sed -e 's?@version@?$(version)?' < $< > xx$<
-	pure -c xx$< -o $@
+	pure $(PUREC_FLAGS) -I. -c xx$< -o $@
 	rm -f xx$<
 
 # install faust2pd
@@ -87,7 +87,7 @@ datesubst = sed -e "s?@version@?$(version)?g" -e "s?|today|?$(date)?g" < $(1) > 
 
 dist:
 	rm -rf $(dist)
-	mkdir $(dist) && mkdir $(dist)/examples
+	mkdir $(dist) && mkdir $(dist)/debian && mkdir $(dist)/pd && mkdir $(dist)/examples
 	for x in basic faust seqdemo synth; do mkdir $(dist)/examples/$$x; done
 	for x in $(DISTFILES); do ln -sf $$PWD/$$x $(dist)/$$x; done
 	for x in $(SEDFILES); do rm -f $(dist)/$$x; $(call datesubst,$$PWD/$$x,$(dist)/$$x); done
@@ -99,6 +99,18 @@ distcheck: dist
 	tar xfz $(dist).tar.gz
 	cd $(dist) && make all examples && make install install-pd DESTDIR=./BUILD
 	rm -rf $(dist)
+
+# Debian packaging
+
+debsrc = $(shell echo $(dist) | sed -e 's/-$(version)/_$(version)/').orig.tar.gz
+
+deb: $(debsrc) dist
+	tar xfz $(dist).tar.gz
+	cd $(dist) && debuild $(DEBUILD_FLAGS)
+	rm -rf $(dist)
+
+$(debsrc):
+	wget -nv https://bitbucket.org/purelang/pure-lang/downloads/$(dist).tar.gz -O $@
 
 # Generate the documentation.
 

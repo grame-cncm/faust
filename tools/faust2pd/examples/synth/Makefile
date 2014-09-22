@@ -17,6 +17,11 @@ ifneq "$(findstring -mingw,$(host))" ""
 DLL = .dll
 PDLIB = -Wl,--enable-auto-import -lpd
 endif
+ifneq "$(findstring -darwin,$(host))" ""
+# OSX
+DLL = .pd_darwin
+shared = -dynamiclib -Wl,-undefined -Wl,dynamic_lookup
+endif
 ifneq "$(findstring x86_64-,$(host))" ""
 # 64 bit, needs -fPIC flag
 EXTRA_CFLAGS += -fPIC
@@ -26,13 +31,7 @@ ifneq "$(findstring x86,$(host))" ""
 EXTRA_CFLAGS += -msse -ffast-math
 endif
 
-# Try to figure out the Pd include directory.
-pdincdir = $(strip $(shell pkg-config pd --cflags-only-I 2>/dev/null))
-ifeq "$(pdincdir)" ""
-# Try some common locations.
-pdincdir = $(addprefix -I,$(shell ls -d /usr/local/include/pdextended /usr/local/include/pd /usr/include/pdextended /usr/include/pd 2>/dev/null))
-endif
-EXTRA_CFLAGS += $(pdincdir)
+EXTRA_CFLAGS += -I ../../pd
 
 # Define the desired number of voices for synth (.syn) plugins here:
 NVOICES = 8

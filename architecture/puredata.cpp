@@ -67,11 +67,12 @@ struct ui_elem_t {
 class PdUI : public UI
 {
 public:
-  int nelems;
+  const char *name;
+  int nelems, level;
   ui_elem_t *elems;
 		
   PdUI();
-  PdUI(const char *s);
+  PdUI(const char *nm, const char *s);
   virtual ~PdUI();
 
 protected:
@@ -101,11 +102,24 @@ public:
   virtual void run();
 };
 
-static std::string mangle(const char *s)
+static std::string mangle(const char *name, int level, const char *s)
 {
   const char *s0 = s;
   std::string t = "";
   if (!s) return t;
+  // Get rid of bogus "0x00" labels in recent Faust revisions. Also, for
+  // backward compatibility with old Faust versions, make sure that default
+  // toplevel groups and explicit toplevel groups with an empty label are
+  // treated alike (these both return "0x00" labels in the latest Faust, but
+  // would be treated inconsistently in earlier versions).
+  if (!*s || strcmp(s, "0x00") == 0) {
+    if (level == 0)
+      // toplevel group with empty label, map to dsp name
+      s = name;
+    else
+      // empty label
+      s = "";
+  }
   while (*s)
     if (isalnum(*s))
       t += *(s++);
@@ -140,15 +154,17 @@ static std::string pathcat(std::string path, std::string label)
 
 PdUI::PdUI()
 {
-  nelems = 0;
+  nelems = level = 0;
   elems = NULL;
+  name = "";
   path = "";
 }
 
-PdUI::PdUI(const char *s)
+PdUI::PdUI(const char *nm, const char *s)
 {
-  nelems = 0;
+  nelems = level = 0;
   elems = NULL;
+  name = nm?nm:"";
   path = s?s:"";
 }
 
@@ -169,7 +185,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label)
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(name, level, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = NULL;
@@ -187,7 +203,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(name, level, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -206,7 +222,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(name, level, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -225,7 +241,7 @@ inline void PdUI::add_elem(ui_elem_type_t type, const char *label, float *zone,
     elems = elems1;
   else
     return;
-  std::string s = pathcat(path, mangle(label));
+  std::string s = pathcat(path, mangle(name, level, label));
   elems[nelems].type = type;
   elems[nelems].label = strdup(s.c_str());
   elems[nelems].zone = zone;
@@ -255,23 +271,27 @@ void PdUI::addVerticalBargraph(const char* label, float* zone, float min, float 
 void PdUI::openTabBox(const char* label)
 {
   if (!path.empty()) path += "/";
-  path += mangle(label);
+  path += mangle(name, level, label);
+  level++;
 }
 void PdUI::openHorizontalBox(const char* label)
 {
   if (!path.empty()) path += "/";
-  path += mangle(label);
+  path += mangle(name, level, label);
+  level++;
 }
 void PdUI::openVerticalBox(const char* label)
 {
   if (!path.empty()) path += "/";
-  path += mangle(label);
+  path += mangle(name, level, label);
+  level++;
 }
 void PdUI::closeBox()
 {
   int pos = path.rfind("/");
   if (pos < 0) pos = 0;
   path.erase(pos);
+  level--;
 }
 
 void PdUI::run() {}
@@ -294,10 +314,10 @@ void PdUI::run() {}
 #include <string>
 #include "m_pd.h"
 
-#define faust_setup(name) xfaust_setup(name)
-#define xfaust_setup(name) name ## _tilde_setup(void)
 #define sym(name) xsym(name)
 #define xsym(name) #name
+#define faust_setup(name) xfaust_setup(name)
+#define xfaust_setup(name) name ## _tilde_setup(void)
 
 // time for "active" toggle xfades in secs
 #define XFADE_TIME 0.1f
@@ -555,7 +575,7 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
   x->inputs = x->outputs = x->buf = NULL;
     x->label = new std::string(sym(mydsp) "~");
   x->dsp = new mydsp();
-  x->ui = new PdUI(id?id->s_name:NULL);
+  x->ui = new PdUI(sym(mydsp), id?id->s_name:NULL);
   if (!x->dsp || !x->ui || !x->label) goto error;
   if (id) {
     *x->label += " ";

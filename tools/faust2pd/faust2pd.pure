@@ -90,7 +90,7 @@ obj_str f	= str f otherwise;
 /* Construct dsp and synth patches. */
 
 comment y	= [text 0 (y+10) $ sprintf "Generated %s by faust2pd v%s. \
-See http://faust.grame.fr and http://pure-lang.googlecode.com."
+See http://faust.grame.fr and http://purelang.bitbucket.org."
 		   (strftime "%c" (localtime time),version)];
 
 make_dsp (name,descr,version,in,out,layout)
