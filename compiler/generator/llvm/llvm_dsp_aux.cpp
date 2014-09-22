@@ -126,7 +126,7 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     return def;
 }
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
 
 class FaustObjectCache : public ObjectCache {
 
@@ -160,7 +160,7 @@ class FaustObjectCache : public ObjectCache {
 
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
     return (void*)fJIT->getFunctionAddress(function);
 #else
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
@@ -264,7 +264,7 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 
 std::string llvm_dsp_factory::writeDSPFactoryToMachine()
 { 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
     return fObjectCache->getMachineCode(); 
 #else
     return "";
@@ -281,7 +281,7 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 #endif
 }
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
 {
     Init();
@@ -308,7 +308,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fResult->fModule = module;
     fResult->fContext = context;
     
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)    
+#if defined(LLVM_34) || defined(LLVM_35)    
     fObjectCache = NULL;
 #endif
 }
@@ -347,7 +347,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         fOptLevel = opt_level;
         fTarget = target;
         
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)    
+    #if defined(LLVM_34) || defined(LLVM_35)    
         fObjectCache = NULL;
     #endif
         
@@ -710,7 +710,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 llvm_dsp_factory::~llvm_dsp_factory()
 {
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
     delete fObjectCache;
 #endif
     if (fJIT) {
@@ -1112,7 +1112,7 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
     }
 }
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
 
 static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
 {
@@ -1356,7 +1356,7 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
     }
 }
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
 {
     return readDSPFactoryFromMachine(machine_code);
