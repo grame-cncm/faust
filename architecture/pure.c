@@ -27,7 +27,7 @@
    can then be compiled to LLVM bitcode using an LLVM-capable C compiler such
    as clang, llvm-gcc, or gcc with the dragonegg plugin. The resulting bitcode
    module can then be loaded with Pure's built-in Faust bitcode linker. Please
-   check the Pure manual at http://pure-lang.googlecode.com for details. */
+   check the Pure manual at http://purelang.bitbucket.org for details. */
 
 #include <stdlib.h>
 #include <math.h>
