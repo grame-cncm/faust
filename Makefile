@@ -103,8 +103,8 @@ install :
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/
-	chmod gou+r compiler/scheduler.ll
-	cp compiler/scheduler.ll $(prefix)/lib/faust
+	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
+	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
 	
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/
