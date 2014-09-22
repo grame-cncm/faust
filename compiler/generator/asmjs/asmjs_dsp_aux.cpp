@@ -31,8 +31,8 @@
 static inline std::string flatten(const std::string& src)
 {
     std::stringstream dst;
-    int size = src.size();
-    for (int i = 0; i < src.size(); i++) {
+    size_t size = src.size();
+    for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
             case '\n':
             case '\t':

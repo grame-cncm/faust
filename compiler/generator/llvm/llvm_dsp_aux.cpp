@@ -1273,7 +1273,7 @@ EXPORT const char** getAllCDSPFactories()
     vector<string> sha_key_list1 = getAllDSPFactories();
     const char** sha_key_list2 = (const char**)malloc(sizeof(char*) * (sha_key_list1.size() + 1));
     
-    int i;
+    size_t i;
     for (i = 0; i < sha_key_list1.size(); i++) {
         string sha_key1 = sha_key_list1[i];
         char* sha_key2 = (char*)malloc(sizeof(char) * (sha_key1.length() + 1));

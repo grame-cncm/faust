@@ -159,7 +159,7 @@ static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* e
 //Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
-    for (int i = 0; i < options.size(); i++){
+    for (size_t i = 0; i < options.size(); i++){
         if (key == options[i]){
             position = i;
             return true;
@@ -191,7 +191,7 @@ static void addKeyValueIfExisting(vector<string>& options, vector<string>& newop
     int position = 0;
     
     if (addKeyIfExisting(options, newoptions, key, "", position)) {
-        if (position+1 < options.size() && options[position+1][0] != '-') {
+        if (position+1 < int(options.size()) && options[position+1][0] != '-') {
             newoptions.push_back(options[position+1]);
             options.erase(options.begin()+position+1);
             position--;
@@ -298,7 +298,7 @@ EXPORT string reorganize_compilation_options(int argc, const char* argv[])
     
     string res3;
     string sep;
-    for (int i = 0; i < res2.size(); i++) {
+    for (size_t i = 0; i < res2.size(); i++) {
         res3 = res3 + sep + res2[i];
         sep = " ";
     }
@@ -1383,7 +1383,7 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
 
 static bool start_with(const char* string, const char* key)
 {
-    for (int i = 0; i < strlen(key); i++) {
+    for (size_t i = 0; i < strlen(key); i++) {
         if (string[i] != key[i]) return false;
     }
     return true;
