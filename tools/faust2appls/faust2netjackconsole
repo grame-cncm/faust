@@ -27,7 +27,7 @@ for p in $@; do
     if [ $p = "-osc" ]; then
 	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -L$HTTPLIB -lHTTPDFaust -lmicrohttpd"
+	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -36,7 +36,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"
 	fi
 done
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
