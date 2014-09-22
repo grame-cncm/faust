@@ -139,6 +139,9 @@ static std::string normpath(std::string path)
     path.erase(pos, 1);
     pos = path.find("//");
   }
+  size_t len = path.length();
+  if (len > 1 && path[len-1] == '/')
+    path.erase(len-1, 1);
   return path;
 }
 
@@ -625,7 +628,7 @@ extern "C" void faust_setup(mydsp)
   s_hslider = gensym((char*)"hslider");
   s_nentry = gensym((char*)"nentry");
   s_vbargraph = gensym((char*)"vbargraph");
-  s_hbargraph = gensym((char*)"hbargrap");
+  s_hbargraph = gensym((char*)"hbargraph");
   /* give some indication that we're loaded and ready to go */
   mydsp dsp = mydsp();
   post("[faust] %s: %d inputs, %d outputs", sym(mydsp) "~",
