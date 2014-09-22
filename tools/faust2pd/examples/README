@@ -9,4 +9,4 @@
 
 - seqdemo/seqdemo.pd: A step sequencer example. The sound generation is done
   with Faust dsps, the sequencer is implemented in Pure. (This needs pd-pure
-  to run, get it at http://pure-lang.googlecode.com/.)
+  to run, get it at http://purelang.bitbucket.org/.)
