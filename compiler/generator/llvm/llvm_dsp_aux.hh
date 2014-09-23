@@ -115,7 +115,7 @@ class llvm_dsp_factory : public smartable {
         
     //#if defined(LLVM_34) || defined(LLVM_35)
     #if defined(LLVM_35)
-      llvm_dsp_factory(const string& sha_key, const std::string& machine_code);
+        llvm_dsp_factory(const string& sha_key, const std::string& machine_code);
     #endif
       
         virtual ~llvm_dsp_factory();

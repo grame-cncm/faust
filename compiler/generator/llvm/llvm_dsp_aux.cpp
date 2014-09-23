@@ -1125,8 +1125,9 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
     }
 }
 
-#if defined(LLVM_34) || defined(LLVM_35)
-
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    
 static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
 {
     string sha_key = generateSha1(buffer->getBuffer().str());
@@ -1369,7 +1370,9 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
     }
 }
 
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
 {
     return readDSPFactoryFromMachine(machine_code);
