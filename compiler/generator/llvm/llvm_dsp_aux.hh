@@ -65,7 +65,8 @@ class llvm_dsp_factory : public smartable {
     private:
 
         ExecutionEngine* fJIT;
-    #if defined(LLVM_34) || defined(LLVM_35)
+    //#if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_35)
         FaustObjectCache* fObjectCache;
     #endif
         LLVMResult* fResult;

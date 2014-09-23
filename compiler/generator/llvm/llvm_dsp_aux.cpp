@@ -264,7 +264,8 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 
 std::string llvm_dsp_factory::writeDSPFactoryToMachine()
 { 
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
     return fObjectCache->getMachineCode(); 
 #else
     return "";
@@ -273,7 +274,8 @@ std::string llvm_dsp_factory::writeDSPFactoryToMachine()
 
 void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_code_path)
 {
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
     string err;
     raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
     out << fObjectCache->getMachineCode(); 
@@ -281,7 +283,8 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 #endif
 }
 
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
 {
     Init();
@@ -308,7 +311,8 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     fResult->fModule = module;
     fResult->fContext = context;
     
-#if defined(LLVM_34) || defined(LLVM_35)    
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
     fObjectCache = NULL;
 #endif
 }
@@ -347,7 +351,8 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         fOptLevel = opt_level;
         fTarget = target;
         
-    #if defined(LLVM_34) || defined(LLVM_35)    
+    //#if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_35)
         fObjectCache = NULL;
     #endif
         
@@ -443,7 +448,9 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     InitializeNativeTargetAsmParser();
     
     // Restoring from machine code
-    if (fObjectCache) {
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+      if (fObjectCache) {
     
         // JIT
         EngineBuilder builder(fResult->fModule);
@@ -455,7 +462,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fJIT->finalizeObject();
           
     } else {
-    
+#endif
         // First check is Faust compilation succeeded... (valid LLVM module)
         if (!fResult || !fResult->fModule) {
             return false;
@@ -558,9 +565,12 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             return false;
         }
         
+    //#if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_35)
         fObjectCache = new FaustObjectCache();
         fJIT->setObjectCache(fObjectCache);
     }
+    #endif
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
@@ -710,7 +720,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 llvm_dsp_factory::~llvm_dsp_factory()
 {
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
     delete fObjectCache;
 #endif
     if (fJIT) {
