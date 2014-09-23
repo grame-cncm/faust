@@ -62,6 +62,7 @@
 #endif
 
 #include "faust/gui/UI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/audio/dsp.h"
 #include "faust/misc.h"
 
@@ -138,6 +139,7 @@ typedef struct faust
     void** args;
     mspUI* dspUI;
     mydsp* dsp;
+    string m_json;                
 } t_faust;
 
 void *faust_class;
@@ -471,6 +473,12 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 
     x->dsp->init(long(sys_getsr()));
     x->dsp->buildUserInterface(x->dspUI);
+    
+    // Prepare JSON
+    JSONUI builder(x->dsp->getNumInputs(), x->dsp->getNumOutputs());
+    x->dsp->metadata(&builder);
+    x->dsp->buildUserInterface(&builder);
+    x->m_json = builder.JSON();
 
     x->args = (void**)calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
 
