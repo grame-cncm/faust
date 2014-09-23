@@ -148,6 +148,8 @@ class faustgen_factory {
         void write(long inlet, t_symbol* s);
         void librarypath(long inlet, t_symbol* s);
         
+        void json(long inlet, t_symbol* s);
+        
         char* get_sourcecode() { return *fSourceCode; }
         
         const char* get_json() { return fJSON.c_str(); }
@@ -256,8 +258,11 @@ class faustgen : public MspCpp5<faustgen> {
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        
         void librarypath(long inlet, t_symbol* s);
         
+        void json(long inlet, t_symbol* s);
+  
         void mute(long inlet, long mute);
          
         // Called when saving the Max patcher
@@ -276,6 +281,7 @@ class faustgen : public MspCpp5<faustgen> {
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
         
         void init(double samplerate);
+       
 };
 
 #endif

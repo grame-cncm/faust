@@ -596,6 +596,7 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
             (*it)->update_sourcecode();
         }
+        
     } else {
         post("DSP code has not been changed...");
     }
@@ -606,6 +607,11 @@ void faustgen_factory::librarypath(long inlet, t_symbol* s)
     if (s != gensym("")) {
         add_library_path(getFolderFromPath(s->s_name));
     }
+}
+
+void faustgen_factory::json(long inlet, t_symbol* s)
+{
+    
 }
 
 void faustgen_factory::read(long inlet, t_symbol* s)
@@ -998,6 +1004,11 @@ void faustgen::librarypath(long inlet, t_symbol* s)
     fDSPfactory->librarypath(inlet, s);
 }
 
+void faustgen::json(long inlet, t_symbol* s)
+{
+    fDSPfactory->json(inlet, s);
+}
+
 // Called when saving the Max patcher, this function saves the necessary data inside the json file (faust sourcecode)
 void faustgen::appendtodictionary(t_dictionary* d)
 {
@@ -1085,6 +1096,13 @@ void faustgen::update_sourcecode()
     // Create a new DSP instance
     create_dsp(false);
     
+    /*
+    // notify JSON
+    t_atom json;
+    atom_setobj(&json, (void*)fDSPfactory->get_json());
+    out_anything(gensym("json"), 1, &json);
+    */
+    
     // Faustgen~ state is modified...
     set_dirty();
 }
@@ -1147,6 +1165,8 @@ void faustgen::display_dsp_params()
     if (fDSPUI.itemsCount() > 0) {
         post("------------------");
     }
+    
+    post("JSON : %s", fDSPfactory->get_json());
 }
 
 void faustgen::display_svg()
@@ -1284,6 +1304,7 @@ int main(void)
     REGISTER_METHOD_DEFSYM(faustgen, read);
     REGISTER_METHOD_DEFSYM(faustgen, write);
     REGISTER_METHOD_DEFSYM(faustgen, librarypath);
+    REGISTER_METHOD_DEFSYM(faustgen, json);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);

@@ -213,7 +213,7 @@ public:
 	static void destroy(t_object * x);
 	
 	void setupIO(unsigned int numinlets, unsigned int numoutlets);
-	
+    
 	// C++ operator overload to treat MaxCpp5 objects as t_objects
 	operator t_object & () { return m_ob; }
 };
@@ -238,7 +238,9 @@ public:
 	static t_class * makeMaxClass(const char * name);
 	static void * create(t_symbol * sym, long ac, t_atom * av);
 	static void destroy(t_object * x);
-	
+    
+    void out_anything(t_symbol *s, short ac, t_atom *av);
+   
 	void setupIO(maxmethodperform meth, maxmethodinit init, unsigned int siginlets, unsigned int sigoutlets, bool initialize);
 	
     // 32 bits
@@ -285,6 +287,7 @@ template<typename T> void MaxCpp5<T>::destroy(t_object * x) {
 	sysmem_freeptr(t->m_inletproxy);
 }
 
+
 template<typename T> void MaxCpp5<T>::setupIO(unsigned int numinlets, unsigned int numoutlets) {
 	if (numinlets > 0) {
 		m_inlets = (long)numinlets - 1;
@@ -330,6 +333,10 @@ template<typename T> void MspCpp5<T>::destroy(t_object * x) {
 	t->~T();
 }
 
+template<typename T> void MspCpp5<T>::out_anything(t_symbol *s, short ac, t_atom *av) {
+	outlet_anything(outlet_nth((t_object*)this, m_sigoutlets), s, ac, av);
+}
+
 template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodinit init, unsigned int siginlets, unsigned int sigoutlets, bool initialize) {
     m_perform = meth;
     m_init = init;
@@ -366,6 +373,9 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
             for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
                 outlet_append((t_object*)this, NULL, gensym("signal"));
             }
+            
+            // Additional output
+            // outlet_append((t_object*)this, NULL, NULL);
         } else if (sigoutlets < m_sigoutlets) {
             for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
                 outlet_delete(outlet_nth((t_object*)this, i-1));
