@@ -126,7 +126,8 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     return def;
 }
 
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
 
 class FaustObjectCache : public ObjectCache {
 
@@ -160,7 +161,8 @@ class FaustObjectCache : public ObjectCache {
 
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
     return (void*)fJIT->getFunctionAddress(function);
 #else
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
