@@ -27,6 +27,7 @@ all :
 
 dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
+	$(MAKE) -C architecture/osclib dynamic
 	$(MAKE) -C architecture/httpdlib/src dynamic
 
 httpd :
@@ -125,9 +126,10 @@ install :
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/
 	# install additional binary libraries (osc, http,...)
-	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available
-	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
-	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo OSC libraries not available
+	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust.a not available
+	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust.$(LIB_EXT) not available	
+	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo libOSCFaust.a not available
+	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp architecture/osclib/*.$(LIB_EXT) $(prefix)/lib/faust/) || echo libOSCFaust.$(LIB_EXT) not available
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available

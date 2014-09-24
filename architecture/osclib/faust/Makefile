@@ -38,7 +38,7 @@ depend :
 	
 clean :
 	rm -f $(objects)
-	rm -f libOSCFaust.a
+	rm -f libOSCFaust.a libOSCFaust*.dylib
 	
 
 
