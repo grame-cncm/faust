@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
  
+#include <sstream>
 #include "uitree.hh"
 #include "exception.hh"
 #include "global.hh"
@@ -201,3 +202,15 @@ AJOUTER (Dossier[(l1,d1)...(ln,dn)], (lx,dx)) -> Dossier[(l1,d1)...(lx,dx)...(ln
 
 AJOUTER (Dossier[(l1,d1)...(lx,dx)...(ln,dn)], (lx,dx')) -> Dossier[(l1,d1)...(lx,dx')...(ln,dn)]
 */
+
+
+// Handle empty labels in a consistent way
+string ptrToHex(Tree ptr)
+{
+    stringstream res; res << hex << ptr; return res.str();
+}
+
+string checkNullLabel(Tree t, const string& label, bool bargraph)
+{
+    return (label == "") ? (bargraph ? ptrToHex(t) : string("0x00")) : label;
+}
