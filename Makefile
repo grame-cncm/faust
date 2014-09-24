@@ -14,6 +14,14 @@ CROSS=i586-mingw32msvc-
 
 MAKEFILE := Makefile.unix
 
+system	?= $(shell uname -s)
+
+ifeq ($(system), Darwin)
+LIB_EXT = dylib
+else
+LIB_EXT = so
+endif
+
 prefix := $(DESTDIR)$(PREFIX)
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -23,12 +31,12 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
-	
 
 dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
 	$(MAKE) -C architecture/osclib dynamic
 	$(MAKE) -C architecture/httpdlib/src dynamic
+	$(MAKE) -C architecture/osclib dynamic
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
@@ -56,8 +64,9 @@ sound2faust:
 help :
 	@echo "Usage : 'make; sudo make install'"
 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
-	@echo "make or make all : compile the Faust compiler"
+	@echo "make or make all : compile the Faust compiler and osc support library"
 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
+	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
 	@echo "make sound2faust : compile sound to DSP file converter"
 	@echo "make remote : compile remote components used by FaustLive"
 	@echo "make parser : generate the parser from the lex and yacc files"
@@ -126,10 +135,13 @@ install :
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/
 	# install additional binary libraries (osc, http,...)
-	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust.a not available
-	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust.$(LIB_EXT) not available	
-	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo libOSCFaust.a not available
-	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp architecture/osclib/*.$(LIB_EXT) $(prefix)/lib/faust/) || echo libOSCFaust.$(LIB_EXT) not available
+
+	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
+	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
+		
+	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo OSC static libraries not available
+	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp architecture/osclib/*.$(LIB_EXT) $(prefix)/lib/faust/ && cp architecture/osclib/liboscpack.a $(prefix)/lib/faust/) || echo OSC dynamic libraries not available
+
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available

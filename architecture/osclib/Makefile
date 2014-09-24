@@ -26,7 +26,7 @@ libOSCFaust.a : faust/libOSCFaust.a
 libOSCFaust.$(VERSION).dylib : faust/libOSCFaust.$(VERSION).dylib
 	cp faust/libOSCFaust.$(VERSION).dylib $@
 	ln -s libOSCFaust.$(VERSION).dylib libOSCFaust.$(SOVERSION).dylib
-	ln -s libOSCFaust.$(VERSION).dylib libOSCFaust.dylib
+	ln -s libOSCFaust.$(SOVERSION).dylib libOSCFaust.dylib
 	
 oscpack/liboscpack.a:
 	make -C oscpack
