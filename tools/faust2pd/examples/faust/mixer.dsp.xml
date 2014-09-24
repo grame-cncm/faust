@@ -1,0 +1,377 @@
+
+<faust>
+	<name>mixer</name>
+	<author>Grame</author>
+	<copyright>(c)GRAME 2006</copyright>
+	<license>BSD</license>
+	<version>1.0</version>
+	<classname>mydsp</classname>
+	<inputs>8</inputs>
+	<outputs>2</outputs>
+	<ui>
+		<activewidgets>
+			<count>25</count>
+			<widget type="vslider" id="1">
+				<label>dB</label>
+				<varname>fslider8</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="2">
+				<label>dB</label>
+				<varname>fslider7</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="4">
+				<label>mute</label>
+				<varname>fcheckbox7</varname>
+			</widget>
+			<widget type="nentry" id="5">
+				<label></label>
+				<varname>fentry7</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="6">
+				<label>dB</label>
+				<varname>fslider6</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="8">
+				<label>mute</label>
+				<varname>fcheckbox6</varname>
+			</widget>
+			<widget type="nentry" id="9">
+				<label></label>
+				<varname>fentry6</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="10">
+				<label>dB</label>
+				<varname>fslider5</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="12">
+				<label>mute</label>
+				<varname>fcheckbox5</varname>
+			</widget>
+			<widget type="nentry" id="13">
+				<label></label>
+				<varname>fentry5</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="14">
+				<label>dB</label>
+				<varname>fslider4</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="16">
+				<label>mute</label>
+				<varname>fcheckbox4</varname>
+			</widget>
+			<widget type="nentry" id="17">
+				<label></label>
+				<varname>fentry4</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="18">
+				<label>dB</label>
+				<varname>fslider3</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="20">
+				<label>mute</label>
+				<varname>fcheckbox3</varname>
+			</widget>
+			<widget type="nentry" id="21">
+				<label></label>
+				<varname>fentry3</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="22">
+				<label>dB</label>
+				<varname>fslider2</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="24">
+				<label>mute</label>
+				<varname>fcheckbox2</varname>
+			</widget>
+			<widget type="nentry" id="25">
+				<label></label>
+				<varname>fentry2</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="26">
+				<label>dB</label>
+				<varname>fslider1</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="28">
+				<label>mute</label>
+				<varname>fcheckbox1</varname>
+			</widget>
+			<widget type="nentry" id="29">
+				<label></label>
+				<varname>fentry1</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="vslider" id="30">
+				<label>dB</label>
+				<varname>fslider0</varname>
+				<init>0.0f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="checkbox" id="32">
+				<label>mute</label>
+				<varname>fcheckbox0</varname>
+			</widget>
+			<widget type="nentry" id="33">
+				<label></label>
+				<varname>fentry0</varname>
+				<init>0.0f</init>
+				<min>-8.0f</min>
+				<max>8.0f</max>
+				<step>1.0f</step>
+			</widget>
+		</activewidgets>
+		
+		<passivewidgets>
+			<count>8</count>
+			<widget type="vbargraph" id="3">
+				<label>meter</label>
+				<varname>fbargraph7</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="7">
+				<label>meter</label>
+				<varname>fbargraph6</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="11">
+				<label>meter</label>
+				<varname>fbargraph5</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="15">
+				<label>meter</label>
+				<varname>fbargraph4</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="19">
+				<label>meter</label>
+				<varname>fbargraph3</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="23">
+				<label>meter</label>
+				<varname>fbargraph2</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="27">
+				<label>meter</label>
+				<varname>fbargraph1</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+			<widget type="vbargraph" id="31">
+				<label>meter</label>
+				<varname>fbargraph0</varname>
+				<min>0.0f</min>
+				<max>1.0f</max>
+			</widget>
+		</passivewidgets>
+		
+		<layout>
+			<group type="hgroup">
+				<label>mixer</label>
+				<group type="hgroup">
+					<label>stereo out</label>
+					<group type="vgroup">
+						<label>fader</label>
+						<widgetref id="1" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 0</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="2" />
+						</group>
+						<widgetref id="3" />
+					</group>
+					<widgetref id="4" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="5" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 1</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="6" />
+						</group>
+						<widgetref id="7" />
+					</group>
+					<widgetref id="8" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="9" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 2</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="10" />
+						</group>
+						<widgetref id="11" />
+					</group>
+					<widgetref id="12" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="13" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 3</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="14" />
+						</group>
+						<widgetref id="15" />
+					</group>
+					<widgetref id="16" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="17" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 4</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="18" />
+						</group>
+						<widgetref id="19" />
+					</group>
+					<widgetref id="20" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="21" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 5</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="22" />
+						</group>
+						<widgetref id="23" />
+					</group>
+					<widgetref id="24" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="25" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 6</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="26" />
+						</group>
+						<widgetref id="27" />
+					</group>
+					<widgetref id="28" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="29" />
+					</group>
+				</group>
+				<group type="vgroup">
+					<label>voice 7</label>
+					<group type="hgroup">
+						<label></label>
+						<group type="vgroup">
+							<label>fader</label>
+							<widgetref id="30" />
+						</group>
+						<widgetref id="31" />
+					</group>
+					<widgetref id="32" />
+					<group type="vgroup">
+						<label>panpot</label>
+						<widgetref id="33" />
+					</group>
+				</group>
+			</group>
+		</layout>
+	</ui>
+</faust>

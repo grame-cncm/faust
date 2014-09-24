@@ -1,0 +1,626 @@
+
+<faust>
+	<name>matrix</name>
+	<author>Grame</author>
+	<copyright>(c)GRAME 2006</copyright>
+	<license>BSD</license>
+	<version>1.0</version>
+	<classname>mydsp</classname>
+	<inputs>8</inputs>
+	<outputs>8</outputs>
+	<ui>
+		<activewidgets>
+			<count>64</count>
+			<widget type="vslider" id="1">
+				<label>Input 0</label>
+				<varname>fslider7</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="2">
+				<label>Input 1</label>
+				<varname>fslider6</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="3">
+				<label>Input 2</label>
+				<varname>fslider5</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="4">
+				<label>Input 3</label>
+				<varname>fslider4</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="5">
+				<label>Input 4</label>
+				<varname>fslider3</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="6">
+				<label>Input 5</label>
+				<varname>fslider2</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="7">
+				<label>Input 6</label>
+				<varname>fslider1</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="8">
+				<label>Input 7</label>
+				<varname>fslider0</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="9">
+				<label>Input 0</label>
+				<varname>fslider15</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="10">
+				<label>Input 1</label>
+				<varname>fslider14</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="11">
+				<label>Input 2</label>
+				<varname>fslider13</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="12">
+				<label>Input 3</label>
+				<varname>fslider12</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="13">
+				<label>Input 4</label>
+				<varname>fslider11</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="14">
+				<label>Input 5</label>
+				<varname>fslider10</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="15">
+				<label>Input 6</label>
+				<varname>fslider9</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="16">
+				<label>Input 7</label>
+				<varname>fslider8</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="17">
+				<label>Input 0</label>
+				<varname>fslider23</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="18">
+				<label>Input 1</label>
+				<varname>fslider22</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="19">
+				<label>Input 2</label>
+				<varname>fslider21</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="20">
+				<label>Input 3</label>
+				<varname>fslider20</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="21">
+				<label>Input 4</label>
+				<varname>fslider19</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="22">
+				<label>Input 5</label>
+				<varname>fslider18</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="23">
+				<label>Input 6</label>
+				<varname>fslider17</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="24">
+				<label>Input 7</label>
+				<varname>fslider16</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="25">
+				<label>Input 0</label>
+				<varname>fslider31</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="26">
+				<label>Input 1</label>
+				<varname>fslider30</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="27">
+				<label>Input 2</label>
+				<varname>fslider29</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="28">
+				<label>Input 3</label>
+				<varname>fslider28</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="29">
+				<label>Input 4</label>
+				<varname>fslider27</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="30">
+				<label>Input 5</label>
+				<varname>fslider26</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="31">
+				<label>Input 6</label>
+				<varname>fslider25</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="32">
+				<label>Input 7</label>
+				<varname>fslider24</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="33">
+				<label>Input 0</label>
+				<varname>fslider39</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="34">
+				<label>Input 1</label>
+				<varname>fslider38</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="35">
+				<label>Input 2</label>
+				<varname>fslider37</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="36">
+				<label>Input 3</label>
+				<varname>fslider36</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="37">
+				<label>Input 4</label>
+				<varname>fslider35</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="38">
+				<label>Input 5</label>
+				<varname>fslider34</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="39">
+				<label>Input 6</label>
+				<varname>fslider33</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="40">
+				<label>Input 7</label>
+				<varname>fslider32</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="41">
+				<label>Input 0</label>
+				<varname>fslider47</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="42">
+				<label>Input 1</label>
+				<varname>fslider46</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="43">
+				<label>Input 2</label>
+				<varname>fslider45</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="44">
+				<label>Input 3</label>
+				<varname>fslider44</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="45">
+				<label>Input 4</label>
+				<varname>fslider43</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="46">
+				<label>Input 5</label>
+				<varname>fslider42</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="47">
+				<label>Input 6</label>
+				<varname>fslider41</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="48">
+				<label>Input 7</label>
+				<varname>fslider40</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="49">
+				<label>Input 0</label>
+				<varname>fslider55</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="50">
+				<label>Input 1</label>
+				<varname>fslider54</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="51">
+				<label>Input 2</label>
+				<varname>fslider53</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="52">
+				<label>Input 3</label>
+				<varname>fslider52</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="53">
+				<label>Input 4</label>
+				<varname>fslider51</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="54">
+				<label>Input 5</label>
+				<varname>fslider50</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="55">
+				<label>Input 6</label>
+				<varname>fslider49</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="56">
+				<label>Input 7</label>
+				<varname>fslider48</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="57">
+				<label>Input 0</label>
+				<varname>fslider63</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="58">
+				<label>Input 1</label>
+				<varname>fslider62</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="59">
+				<label>Input 2</label>
+				<varname>fslider61</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="60">
+				<label>Input 3</label>
+				<varname>fslider60</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="61">
+				<label>Input 4</label>
+				<varname>fslider59</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="62">
+				<label>Input 5</label>
+				<varname>fslider58</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="63">
+				<label>Input 6</label>
+				<varname>fslider57</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+			<widget type="vslider" id="64">
+				<label>Input 7</label>
+				<varname>fslider56</varname>
+				<init>-1e+01f</init>
+				<min>-96.0f</min>
+				<max>4.0f</max>
+				<step>0.1f</step>
+			</widget>
+		</activewidgets>
+		
+		<passivewidgets>
+			<count>0</count>
+		</passivewidgets>
+		
+		<layout>
+			<group type="tgroup">
+				<label>Matrix 8 x 8</label>
+				<group type="hgroup">
+					<label>Output 0</label>
+					<widgetref id="1" />
+					<widgetref id="2" />
+					<widgetref id="3" />
+					<widgetref id="4" />
+					<widgetref id="5" />
+					<widgetref id="6" />
+					<widgetref id="7" />
+					<widgetref id="8" />
+				</group>
+				<group type="hgroup">
+					<label>Output 1</label>
+					<widgetref id="9" />
+					<widgetref id="10" />
+					<widgetref id="11" />
+					<widgetref id="12" />
+					<widgetref id="13" />
+					<widgetref id="14" />
+					<widgetref id="15" />
+					<widgetref id="16" />
+				</group>
+				<group type="hgroup">
+					<label>Output 2</label>
+					<widgetref id="17" />
+					<widgetref id="18" />
+					<widgetref id="19" />
+					<widgetref id="20" />
+					<widgetref id="21" />
+					<widgetref id="22" />
+					<widgetref id="23" />
+					<widgetref id="24" />
+				</group>
+				<group type="hgroup">
+					<label>Output 3</label>
+					<widgetref id="25" />
+					<widgetref id="26" />
+					<widgetref id="27" />
+					<widgetref id="28" />
+					<widgetref id="29" />
+					<widgetref id="30" />
+					<widgetref id="31" />
+					<widgetref id="32" />
+				</group>
+				<group type="hgroup">
+					<label>Output 4</label>
+					<widgetref id="33" />
+					<widgetref id="34" />
+					<widgetref id="35" />
+					<widgetref id="36" />
+					<widgetref id="37" />
+					<widgetref id="38" />
+					<widgetref id="39" />
+					<widgetref id="40" />
+				</group>
+				<group type="hgroup">
+					<label>Output 5</label>
+					<widgetref id="41" />
+					<widgetref id="42" />
+					<widgetref id="43" />
+					<widgetref id="44" />
+					<widgetref id="45" />
+					<widgetref id="46" />
+					<widgetref id="47" />
+					<widgetref id="48" />
+				</group>
+				<group type="hgroup">
+					<label>Output 6</label>
+					<widgetref id="49" />
+					<widgetref id="50" />
+					<widgetref id="51" />
+					<widgetref id="52" />
+					<widgetref id="53" />
+					<widgetref id="54" />
+					<widgetref id="55" />
+					<widgetref id="56" />
+				</group>
+				<group type="hgroup">
+					<label>Output 7</label>
+					<widgetref id="57" />
+					<widgetref id="58" />
+					<widgetref id="59" />
+					<widgetref id="60" />
+					<widgetref id="61" />
+					<widgetref id="62" />
+					<widgetref id="63" />
+					<widgetref id="64" />
+				</group>
+			</group>
+		</layout>
+	</ui>
+</faust>

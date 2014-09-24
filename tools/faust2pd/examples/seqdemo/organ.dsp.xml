@@ -1,0 +1,109 @@
+
+<faust>
+	<name>organ -- a simple additive synth</name>
+	<author>Albert Graef</author>
+	<copyright></copyright>
+	<license></license>
+	<version>1.0</version>
+	<classname>mydsp</classname>
+	<inputs>0</inputs>
+	<outputs>2</outputs>
+	<ui>
+		<activewidgets>
+			<count>9</count>
+			<widget type="hslider" id="1">
+				<label>attack</label>
+				<varname>fslider3</varname>
+				<init>0.01f</init>
+				<min>0.0f</min>
+				<max>1.0f</max>
+				<step>0.001f</step>
+			</widget>
+			<widget type="hslider" id="2">
+				<label>decay</label>
+				<varname>fslider2</varname>
+				<init>0.3f</init>
+				<min>0.0f</min>
+				<max>1.0f</max>
+				<step>0.001f</step>
+			</widget>
+			<widget type="hslider" id="3">
+				<label>release</label>
+				<varname>fslider1</varname>
+				<init>0.2f</init>
+				<min>0.0f</min>
+				<max>1.0f</max>
+				<step>0.001f</step>
+			</widget>
+			<widget type="hslider" id="4">
+				<label>sustain</label>
+				<varname>fslider0</varname>
+				<init>0.5f</init>
+				<min>0.0f</min>
+				<max>1.0f</max>
+				<step>0.01f</step>
+			</widget>
+			<widget type="hslider" id="5">
+				<label>pan</label>
+				<varname>fslider4</varname>
+				<init>0.5f</init>
+				<min>0.0f</min>
+				<max>1.0f</max>
+				<step>0.01f</step>
+			</widget>
+			<widget type="hslider" id="6">
+				<label>vol</label>
+				<varname>fslider5</varname>
+				<init>0.3f</init>
+				<min>0.0f</min>
+				<max>1e+01f</max>
+				<step>0.01f</step>
+			</widget>
+			<widget type="nentry" id="7">
+				<label>freq</label>
+				<varname>fentry0</varname>
+				<init>4.4e+02f</init>
+				<min>2e+01f</min>
+				<max>2e+04f</max>
+				<step>1.0f</step>
+			</widget>
+			<widget type="nentry" id="8">
+				<label>gain</label>
+				<varname>fentry1</varname>
+				<init>0.3f</init>
+				<min>0.0f</min>
+				<max>1e+01f</max>
+				<step>0.01f</step>
+			</widget>
+			<widget type="button" id="9">
+				<label>gate</label>
+				<varname>fbutton0</varname>
+			</widget>
+		</activewidgets>
+		
+		<passivewidgets>
+			<count>0</count>
+		</passivewidgets>
+		
+		<layout>
+			<group type="vgroup">
+				<label></label>
+				<group type="vgroup">
+					<label>1-adsr</label>
+					<widgetref id="1" />
+					<widgetref id="2" />
+					<widgetref id="3" />
+					<widgetref id="4" />
+				</group>
+				<group type="vgroup">
+					<label>2-master</label>
+					<widgetref id="5" />
+					<widgetref id="6" />
+				</group>
+				<widgetref id="7" />
+				<widgetref id="8" />
+				<widgetref id="9" />
+			</group>
+		</layout>
+	</ui>
+</faust>

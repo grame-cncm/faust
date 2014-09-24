@@ -1,0 +1,19 @@
+#N canvas 504 432 439 260 10;
+#X obj 15 14 loadbang;
+#X obj 15 129 outlet;
+#X obj 66 40 r faust-timer;
+#X obj 15 86 metro 40;
+#X obj 185 15 r \$1-active;
+#X msg 217 69 stop;
+#X obj 185 42 select 1 0;
+#X text 12 164 Logic for regular updates of passive controls. Creation
+argument is the \$0 of the parent. Sends a bang message every 40 ms
+\, while the unit is active. The timer value can be changed by sending
+a value to the faust-timer receiver.;
+#X connect 0 0 3 0;
+#X connect 2 0 3 1;
+#X connect 3 0 1 0;
+#X connect 4 0 6 0;
+#X connect 5 0 3 0;
+#X connect 6 0 3 0;
+#X connect 6 1 5 0;
