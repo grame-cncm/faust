@@ -2,11 +2,6 @@ system	:= $(shell uname -s)
 
 LLVM_VERSION = $(shell llvm-config --version)
 
-ifeq ($(LLVM_VERSION), 3.0)
-LLVM_VERSION  = LLVM_30
-CXX = /opt/local/libexec/llvm-3.0/bin/clang++
-endif
-
 ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
 CXX = /opt/local/libexec/llvm-3.1/bin/clang++
@@ -29,6 +24,11 @@ CXX = /opt/local/libexec/llvm-3.4/bin/clang++
 LLC = /opt/local/libexec/llvm-3.4/bin/llc
 endif
 
+ifeq ($(LLVM_VERSION), 3.5)
+LLVM_VERSION  = LLVM_35
+CXX = /opt/local/libexec/llvm-3.5/bin/clang++
+LLC = /opt/local/libexec/llvm-3.5/bin/llc
+endif
 
 ifeq ($(system), Darwin)
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math '

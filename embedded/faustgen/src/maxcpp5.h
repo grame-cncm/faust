@@ -213,7 +213,7 @@ public:
 	static void destroy(t_object * x);
 	
 	void setupIO(unsigned int numinlets, unsigned int numoutlets);
-	
+    
 	// C++ operator overload to treat MaxCpp5 objects as t_objects
 	operator t_object & () { return m_ob; }
 };
@@ -221,12 +221,16 @@ public:
 // Inherit from this one for audio objects
 template <typename T>
 class MspCpp5 : public MaxCppBase<T> {
+
 public:
-	typedef void (T::*maxmethodperform)(int vs, t_sample ** inputs, long numins, t_sample ** outputs, long numouts);
-	
-	t_pxobject m_ob;
-	unsigned int m_siginlets, m_sigoutlets;
-	maxmethodperform m_perform;
+    
+    typedef void (T::*maxmethodperform)(int vs, t_sample ** inputs, long numins, t_sample ** outputs, long numouts);
+    typedef void (T::*maxmethodinit)(double samplerate);
+
+    t_pxobject m_ob;
+    unsigned int m_siginlets, m_sigoutlets;
+    maxmethodperform m_perform;
+    maxmethodinit m_init;
     
     MspCpp5():m_siginlets(0), m_sigoutlets(0)
     {}
@@ -234,8 +238,10 @@ public:
 	static t_class * makeMaxClass(const char * name);
 	static void * create(t_symbol * sym, long ac, t_atom * av);
 	static void destroy(t_object * x);
-	
-	void setupIO(maxmethodperform meth, unsigned int siginlets, unsigned int sigoutlets, bool initialize);
+    
+    void out_anything(t_symbol *s, short ac, t_atom *av);
+   
+	void setupIO(maxmethodperform meth, maxmethodinit init, unsigned int siginlets, unsigned int sigoutlets, bool initialize);
 	
     // 32 bits
 	static void internal_dsp_32(MspCpp5<T> * x, t_signal **sp, short *count);
@@ -280,6 +286,7 @@ template<typename T> void MaxCpp5<T>::destroy(t_object * x) {
 	sysmem_freeptr(t->m_outlet);
 	sysmem_freeptr(t->m_inletproxy);
 }
+
 
 template<typename T> void MaxCpp5<T>::setupIO(unsigned int numinlets, unsigned int numoutlets) {
 	if (numinlets > 0) {
@@ -326,8 +333,13 @@ template<typename T> void MspCpp5<T>::destroy(t_object * x) {
 	t->~T();
 }
 
-template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, unsigned int siginlets, unsigned int sigoutlets, bool initialize) {
-	m_perform = meth;
+template<typename T> void MspCpp5<T>::out_anything(t_symbol *s, short ac, t_atom *av) {
+	outlet_anything(outlet_nth((t_object*)this, m_sigoutlets), s, ac, av);
+}
+
+template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodinit init, unsigned int siginlets, unsigned int sigoutlets, bool initialize) {
+    m_perform = meth;
+    m_init = init;
     
     if (siginlets > MAX_CPP_MAX_DSP_SIGNALS) {
         post("Error : siginlets %d > MAX_CPP_MAX_DSP_SIGNALS", siginlets);
@@ -361,6 +373,9 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, unsigned in
             for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
                 outlet_append((t_object*)this, NULL, gensym("signal"));
             }
+            
+            // Additional output
+            // outlet_append((t_object*)this, NULL, NULL);
         } else if (sigoutlets < m_sigoutlets) {
             for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
                 outlet_delete(outlet_nth((t_object*)this, i-1));
@@ -394,13 +409,15 @@ template<typename T> void MspCpp5<T>::internal_dsp_32(MspCpp5<T> * x, t_signal *
 }
 
 template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T> * x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags) {
+    T* self = (T*)x;	
+    ((self)->*(self->m_init))(samplerate);
     object_method(dsp64, gensym("dsp_add64"), x, MspCpp5<T>::internal_perform_64, 0, NULL);
 }
 
 template<typename T> t_int * MspCpp5<T>::internal_perform_32(t_int * w) {
 	PerformData * pdata = (PerformData *)(w+1);
 	MspCpp5<T> * x = pdata->x;
-	T * self = pdata->x;
+	T* self = pdata->x;
 	if (!x->m_ob.z_disabled) {
 		// forward this to the user dsp routine:
         AVOIDDENORMALS;
@@ -411,7 +428,7 @@ template<typename T> t_int * MspCpp5<T>::internal_perform_32(t_int * w) {
 
 template<typename T> void MspCpp5<T>::internal_perform_64(MspCpp5<T> * x, t_object *dsp64, double **ins, long numins, 
     double **outs, long numouts, long sampleframes, long flags, void *userparam) {
-    T * self = (T *)x;	
+    T* self = (T*)x;	
     AVOIDDENORMALS;
     ((self)->*(self->m_perform))(sampleframes, ins, numins, outs, numouts);
 }

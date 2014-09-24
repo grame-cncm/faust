@@ -18,11 +18,6 @@ FAUSTINC := $(if $(wildcard $(ck14)),$(FAUST_INC_PATH),$(FAUSTINC))
 
 LLVM_VERSION = $(shell llvm-config --version)
 
-ifeq ($(LLVM_VERSION), 3.0)
-LLVM_VERSION  = LLVM_30
-CLANG = /opt/local/libexec/llvm-3.0/bin/clang++
-endif
-
 ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
 CLANG = /opt/local/libexec/llvm-3.1/bin/clang++
@@ -41,6 +36,11 @@ endif
 ifeq ($(LLVM_VERSION), 3.4)
 LLVM_VERSION  = LLVM_34
 CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
+endif
+
+ifeq ($(LLVM_VERSION), 3.5)
+LLVM_VERSION  = LLVM_35
+CLANG = /opt/local/libexec/llvm-3.5/bin/clang++
 endif
 
 ifeq ($(OSC),1)
@@ -346,7 +346,9 @@ iphonenet :
 faust-tools: 
 	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/faust/libfaust.a  `llvm-config --ldflags --libs all` -lcrypto -o bench-llvm
 	$(CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
-	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a $(LIB)/faust/libHTTPDFaust.a  -lcrypto -o faust-jack-gtk
+	#llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a $(LIB)/faust/libHTTPDFaust.a  -lcrypto -o faust-jack-gtk
+	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -L/usr/local/lib/faust -lfaust $(LIB)/faust/libHTTPDFaust.a  -lcrypto -o faust-jack-gtk
+
 
 	llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -lcrypto -o faust-netjack-gtk
 

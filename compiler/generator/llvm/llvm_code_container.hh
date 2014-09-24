@@ -28,10 +28,13 @@
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
-#ifdef LLVM_28
-#include <llvm/System/Host.h>
+#if defined(LLVM_35)
+#include <llvm/Support/FileSystem.h>
+#define sysfs_binary_flag sys::fs::F_None
+#elif defined(LLVM_34)
+#define sysfs_binary_flag sys::fs::F_Binary
 #else
-#include <llvm/Support/Host.h>
+#define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
 using namespace std;

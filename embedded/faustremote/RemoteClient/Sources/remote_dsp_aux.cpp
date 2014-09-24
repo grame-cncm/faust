@@ -50,6 +50,8 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
     
     if (curl) {
         
+        printf("cURL with request = %s and ip = %s\n", finalRequest.c_str(), ip.c_str());
+        
         std::ostringstream oss;
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
@@ -64,6 +66,7 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
         CURLcode res = curl_easy_perform(curl);
         
         if (res != CURLE_OK) {
+            printf("Easy perform error\n");
             errorCode = ERROR_CURL_CONNECTION;
         } else{
             
@@ -76,6 +79,8 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
                 isInitSuccessfull = true;
             }
             else if(respcode == 400){
+                
+                printf("INFO Failed\n");
                 
 //                Is String Int ?
                 bool isInt = true;
@@ -188,20 +193,21 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
 // Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop(){
     
-//    CURL *curl = curl_easy_init();
-//    
-//    printf("fIndex = %s\n", fSHAKey.c_str());
-//    printf("fIP = %s\n", fServerIP.c_str());
-//        
-//    // The index of the factory to delete has to be sent
-//    string finalRequest = string("factoryKey=") + fSHAKey;
-//    string ip = fServerIP + string("/DeleteFactory");
-//        
-//    string response("");
-//    int errorCode;
-//    if(!send_request(ip, finalRequest, response, errorCode)){
-//        printf("curl_easy_perform() failed: %s\n", response.c_str());
-//    }
+    CURL *curl = curl_easy_init();
+    
+    printf("fIndex = %s\n", fSHAKey.c_str());
+        
+    // The index of the factory to delete has to be sent
+    string finalRequest = string("shaKey=") + fSHAKey;
+    string ip = fServerIP + string("/DeleteFactory");
+        
+        printf("ip = %s\n", ip.c_str());
+    
+    string response("");
+    int errorCode;
+    if(!send_request(ip, finalRequest, response, errorCode)){
+        printf("curl_easy_perform() failed: %s || code %i\n", response.c_str(), errorCode);
+    }
 }
 
 // Decoding JSON from a string to
@@ -334,66 +340,95 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
 {
-    // Use for it's possible 'side effects', that is generating SVG, XML... files
-    char error_msg_aux[256];
-    generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
+    // Compute SHA1 key using the non-expanded version, IP and port
+    stringstream ss;
+    ss << port_server;
     
-//  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
+    string sha_key = generateSha1(dsp_content + " " + ss.str() + " " + ip_server); 
+    FactoryTableIt it;
     
-    int argc1 = 0;
-    const char* argv1[argc];
+    vector<pair<string, string> > factories_list;
+    getRemoteFactoriesAvailable(ip_server, port_server, &factories_list);
     
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i],"-tg") != 0 && 
-           strcmp(argv[i],"-sg") != 0 &&
-           strcmp(argv[i],"-svg") != 0 &&
-           strcmp(argv[i],"-ps") != 0 &&
-           strcmp(argv[i],"-mdoc") != 0 &&
-           strcmp(argv[i],"-xml") != 0)
-        {
-            argv1[argc1++] = argv[i];
+    bool factoryStillExisting = false;
+    
+    for(int i=0; i<factories_list.size(); i++){
+        if(sha_key == factories_list[i].second.c_str()){
+           factoryStillExisting = true;
+            break;
         }
     }
-     
-//    EXPAND DSP
     
-    std::string expanded_dsp;
-    char sha_key_aux[256];
-    
-    if ((expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux)) == "") {
-        return 0; 
+    if (getFactory(sha_key, it) && factoryStillExisting) {
+        Sremote_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
     } else {
-        FactoryTableIt it;
-        string sha_key = sha_key_aux;
-        if (getFactory(sha_key, it)) {
-            Sremote_dsp_factory sfactory = (*it).first;
-            sfactory->addReference();
-            return sfactory;
-        } else  {
-            remote_dsp_factory* factory = new remote_dsp_factory();
-            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
-                remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
-                return factory;
-            } else {
-                delete factory;
-                return 0;
+    
+        // Use for it's possible 'side effects', that is generating SVG, XML... files
+        char error_msg_aux[256];
+        generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
+        
+        //  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
+        int argc1 = 0;
+        const char* argv1[argc];
+        
+        for (int i = 0; i < argc; i++) {
+            if (strcmp(argv[i],"-tg") != 0 && 
+               strcmp(argv[i],"-sg") != 0 &&
+               strcmp(argv[i],"-svg") != 0 &&
+               strcmp(argv[i],"-ps") != 0 &&
+               strcmp(argv[i],"-mdoc") != 0 &&
+               strcmp(argv[i],"-xml") != 0)
+            {
+                argv1[argc1++] = argv[i];
             }
+        }
+
+        char sha_key_aux[256];
+        std::string expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux);
+        
+        if (expanded_dsp == "") {
+            return 0; 
+        }
+    
+        remote_dsp_factory* factory = new remote_dsp_factory();
+        if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
+            
+            printf("Factory pushed in fFactory Table\n");
+            
+            remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
+            return factory;
+        } else {
+            delete factory;
+            return 0;
         }
     }
 }
 
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 {
-    FactoryTableIt it;
-    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
-        Sremote_dsp_factory sfactory = (*it).first;
-        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
-            // Last use, remove from the global table, pointer will be deleted
-            remote_dsp_factory::gFactoryTable.erase(factory);
-        } else {
-            sfactory->removeReference();
-        }
-    }
+    
+    printf("Delete remote DSP Factory\n");
+//    
+//    FactoryTableIt it;
+//    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
+//        Sremote_dsp_factory sfactory = (*it).first;
+//        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
+//            // Last use, remove from the global table, pointer will be deleted
+//            remote_dsp_factory::gFactoryTable.erase(factory);
+//        } else {
+//            sfactory->removeReference();
+//        }
+//    }
+    factory->stop();
+//    
+//    string finalRequest = "shaKey="+factory->key();
+//    
+//    string response;
+//    int errorCode;
+//    if(send_request("http://192.168.1.174:7777/DeleteFactory", finalRequest, response, errorCode))
+//        printf("Factory Well Well deleted\n");
 }
 
 EXPORT void deleteAllRemoteDSPFactories()
@@ -929,10 +964,10 @@ int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
     string key = messageSender.hostname + ":" + convert.str();
     
     if (dns->fLocker.Lock()) {
-        if (dns->fClients[key].timetag.sec == 0)
-            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
+//        if (dns->fClients[key].timetag.sec == 0)
+//            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
             
-        printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
+//        printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
         dns->fClients[key] = messageSender;
         gDNS->fLocker.Unlock();
     }
@@ -945,7 +980,6 @@ int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
 EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList)
 {
     if (gDNS && gDNS->fLocker.Lock()) {
-        
         
         for(map<string, member>::iterator it=gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
             
@@ -974,7 +1008,6 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
                 (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
                 
             }
-
         }
         
         gDNS->fLocker.Unlock();

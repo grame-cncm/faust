@@ -100,7 +100,7 @@ extern "C"
     void deleteRemoteDSPFactory(remote_dsp_factory* factory);
     
     /**
-     * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
+     * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables or so...) thus become invalid.
      * 
      */                                 
     void deleteAllRemoteDSPFactories();

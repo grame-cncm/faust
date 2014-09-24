@@ -70,7 +70,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION        "2.0.a26"
+#define FAUSTVERSION        "2.0.a28"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;
@@ -159,7 +159,7 @@ static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* e
 //Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
-    for (int i = 0; i < options.size(); i++){
+    for (size_t i = 0; i < options.size(); i++){
         if (key == options[i]){
             position = i;
             return true;
@@ -191,7 +191,7 @@ static void addKeyValueIfExisting(vector<string>& options, vector<string>& newop
     int position = 0;
     
     if (addKeyIfExisting(options, newoptions, key, "", position)) {
-        if (position+1 < options.size() && options[position+1][0] != '-') {
+        if (position+1 < int(options.size()) && options[position+1][0] != '-') {
             newoptions.push_back(options[position+1]);
             options.erase(options.begin()+position+1);
             position--;
@@ -298,7 +298,7 @@ EXPORT string reorganize_compilation_options(int argc, const char* argv[])
     
     string res3;
     string sep;
-    for (int i = 0; i < res2.size(); i++) {
+    for (size_t i = 0; i < res2.size(); i++) {
         res3 = res3 + sep + res2[i];
         sep = " ";
     }
@@ -306,7 +306,7 @@ EXPORT string reorganize_compilation_options(int argc, const char* argv[])
     return "\"" + res3 + "\"";
 }
 
-EXPORT string generate_sha1(const string& dsp_content)
+EXPORT string generateSha1(const string& dsp_content)
 {
     // compute SHA1 key
     unsigned char obuf[20];
@@ -1383,7 +1383,7 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
 
 static bool start_with(const char* string, const char* key)
 {
-    for (int i = 0; i < strlen(key); i++) {
+    for (size_t i = 0; i < strlen(key); i++) {
         if (string[i] != key[i]) return false;
     }
     return true;
@@ -1393,7 +1393,7 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
 {
     // If input is already expanded, return it directly
     if (start_with(input, COMPILATION_OPTIONS)) {
-        string key = generate_sha1(input);
+        string key = generateSha1(input);
         strncpy(sha_key, key.c_str(), key.size());
         return input;
     }
@@ -1410,7 +1410,7 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     try {
         global::allocate();       
         res = expand_dsp_internal(argc, argv, name, input);
-        strcpy(sha_key, generate_sha1(res).c_str());
+        strcpy(sha_key, generateSha1(res).c_str());
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);

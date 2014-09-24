@@ -1,4 +1,4 @@
-version := 2.0.a26
+version := 2.0.a28
 
 system	?= $(shell uname -s)
 
@@ -58,6 +58,7 @@ help :
 	@echo "make or make all : compile the Faust compiler"
 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
 	@echo "make sound2faust : compile sound to DSP file converter"
+	@echo "make remote : compile remote components used by FaustLive"
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
@@ -100,10 +101,10 @@ install :
 	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/faust) || echo libfaust.a not available
 	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
-	cp compiler/generator/llvm_backend/llvm-dsp.h  $(prefix)/include/faust/
-	cp compiler/generator/llvm_backend/llvm-c-dsp.h  $(prefix)/include/faust/
-	chmod gou+r compiler/scheduler.ll
-	cp compiler/scheduler.ll $(prefix)/lib/faust
+	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/
+	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/
+	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
+	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
 	
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/

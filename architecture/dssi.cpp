@@ -68,6 +68,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <iostream>
 #include <stack>
 #include <string>
 #include <map>
@@ -207,7 +208,7 @@ DSSI_Program_Descriptor g_program_descriptor;
 std::vector<LADSPA_PortDescriptor> g_port_descriptors;
 std::vector<LADSPA_PortRangeHint> g_port_range_hints;
 std::vector<const char*> g_port_names;
-std::string g_name;
+const char* g_name;
 
 ////////////////////////////////////////////////////////////////////////////////
 // The enclosed code is from ladspa.cpp 
@@ -432,7 +433,7 @@ private:
     // Helper methods:
     void updateControlZones();
     void runImpl(unsigned long, snd_seq_event_t *, unsigned long);
-    void addSamples(int);
+    void addSamples(size_t);
 
     // Helpers for UI building:
     // TODO organize this a bit better later...
@@ -842,10 +843,10 @@ void Plugin::runImpl(unsigned long sampleCount, snd_seq_event_t *events, unsigne
     }
 }
 
-void Plugin::addSamples(int samples)
+void Plugin::addSamples(size_t samples)
 {
     size_t i;
-    int j;
+    size_t j;
     size_t v;
 
     // TODO this isn't very efficient right now...
@@ -1185,9 +1186,9 @@ extern "C"
             // Fill the descriptors:
             // TODO figure out strdup with const strings
             g_ladspa_descriptor->UniqueID = 0;
-            g_ladspa_descriptor->Label = get_metadata_if_exists("name", g_name.c_str());
+            g_ladspa_descriptor->Label = get_metadata_if_exists("name", g_name);
             g_ladspa_descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-            g_ladspa_descriptor->Name = get_metadata_if_exists("name", g_name.c_str());
+            g_ladspa_descriptor->Name = get_metadata_if_exists("name", g_name);
             g_ladspa_descriptor->Maker = get_metadata_if_exists("author", "Maker");
             g_ladspa_descriptor->Copyright = get_metadata_if_exists("copyright", "Copyright");
             g_ladspa_descriptor->PortCount = g_port_descriptors.size();
@@ -1218,7 +1219,7 @@ extern "C"
             // Program description (TODO if we eventually support multiple programs we will need to handle this differently)
             g_program_descriptor.Bank = 0;
             g_program_descriptor.Program = 0;
-            g_program_descriptor.Name = get_metadata_if_exists("name", g_name.c_str());
+            g_program_descriptor.Name = get_metadata_if_exists("name", g_name);
 
             delete temp_mydsp;
             delete temp_descriptor_ui;

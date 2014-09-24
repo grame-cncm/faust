@@ -22,8 +22,7 @@
 #ifndef __COMPATIBILITY__
 #define __COMPATIBILITY__
 
-//#define LLVM_BUILD (defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34))
-#define LLVM_BUILD (LLVM_30 || LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34)
+#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35)
 
 #ifdef _WIN32
 #include <time.h>

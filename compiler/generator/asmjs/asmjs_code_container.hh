@@ -31,18 +31,13 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        static ASMJAVAScriptInstVisitor* fCodeProducer; // One static visitor for subcontainers and global container
+        // One gASMJSVisitor static visitor for subcontainers and global container moved in global
         std::ostream* fOut;
         string fObjPrefix;
  
     public:
 
-        ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-            :fOut(out), fObjPrefix("")
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-        }
+        ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
         virtual ~ASMJAVAScriptCodeContainer()
         {}
 
@@ -50,7 +45,7 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
     
-        int getStructSize() { return fCodeProducer->getStructSize(); }
+        int getStructSize(); 
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

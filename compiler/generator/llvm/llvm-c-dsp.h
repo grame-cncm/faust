@@ -200,6 +200,46 @@ extern "C"
     void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
     
     /**
+     * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all 
+     * allocated factories so that the compilation of same DSP code (that is the same machine code string) will return 
+     * the same (reference counted) factory pointer.
+     * 
+     * @param machine_code - the machine code string
+     *
+     * @return the Faust DSP factory on success, otherwise a null pointer.
+     */
+    llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
+
+    /**
+     * Write a Faust DSP factory into a machine code string.
+     * 
+     * @param factory - the Faust DSP factory
+     *
+     * @return the machine code as a string.
+     */
+    const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+
+    /**
+     * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
+     * allocated factories so that the compilation of same DSP code (that is the same machine code file) will return 
+     * the same (reference counted) factory pointer.
+     * 
+     * @param machine_code_path - the machine code file pathname
+     *
+     * @return the Faust DSP factory on success, otherwise a null pointer.
+     */
+    llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
+
+    /**
+     * Write a Faust DSP factory into a machine code file.
+     * 
+     * @param factory - the Faust DSP factory
+     * @param machine_code_path - the machine code file pathname.
+     *
+     */
+    void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
+    
+    /**
      * Call global declarations with the given meta object.
      * 
      * @param factory - the Faust DSP factory
@@ -300,6 +340,15 @@ extern "C"
      * @param dsp - the DSP instance to be deleted.
      */ 
     void deleteCDSPInstance(llvm_dsp* dsp);
+    
+    /**
+     * Compute a SHA1 hey from a string
+     * 
+     * @param data - the string to be converted in SHA1 key
+     * @param key - a 20 character buffer to be filled with the computed key 
+     *
+     */ 
+    void generateCSha1(const char* data, char* key);
     
 #ifdef __cplusplus
 }

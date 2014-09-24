@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2010-2013 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2010-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -40,6 +40,7 @@
 #include <map> 
 
 #include "faust/llvm-dsp.h"
+#include "faust/gui/JSONUI.h"
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -52,7 +53,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "0.93b"
+#define FAUSTGEN_VERSION "0.96b"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -69,38 +70,9 @@
 #endif
 
 #define LLVM_OPTIMIZATION 3
+#define DEFAULT_CODE "process = _,_;"
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
-
-class default_llvm_dsp : public llvm_dsp {
-
-    private:
-    
-        int fNumInputs;
-        int fNumOutputs;
-               
-    public:
-    
-        default_llvm_dsp(int ins, int outs):fNumInputs(ins), fNumOutputs(outs)
-        {}
-      
-        virtual int getNumInputs() { return fNumInputs; }
-        virtual int getNumOutputs() { return fNumOutputs; }
-
-        void classInit(int samplingFreq) {}
-        virtual void init(int samplingFreq) {}
-
-        virtual void buildUserInterface(UI* ui) {}
-    
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-        {
-            // Write null buffers to outs
-            for (int i = 0; i < fNumOutputs; i++) {
-                 memset(output[i], 0, sizeof(t_sample) * count);
-            }
-        }
-     
-};
 
 //===================
 // Faust DSP Factory
@@ -133,10 +105,11 @@ class faustgen_factory {
         faustgen* fUpdateInstance;      // the instance that inited an update
         
         string fName;                   // name of the DSP group
+        string fJSON;                   // JSON
            
         t_systhread_mutex fDSPMutex;    // mutex to protect RT audio thread when recompiling DSP
      
-        vector<string> fCompileOptions; // Faust compiler options i
+        vector<string> fCompileOptions; // Faust compiler options
         
         int m_siginlets;
         int m_sigoutlets;
@@ -156,7 +129,6 @@ class faustgen_factory {
             
         llvm_dsp_factory* create_factory_from_bitcode();
         llvm_dsp_factory* create_factory_from_sourcecode(faustgen* instance);
-        llvm_dsp* create_dsp_default(int ins, int outs);
         llvm_dsp* create_dsp_aux(faustgen* instance);
      
         void free_dsp_factory();
@@ -176,7 +148,11 @@ class faustgen_factory {
         void write(long inlet, t_symbol* s);
         void librarypath(long inlet, t_symbol* s);
         
+        void json(long inlet, t_symbol* s);
+        
         char* get_sourcecode() { return *fSourceCode; }
+        
+        const char* get_json() { return fJSON.c_str(); }
         
         void update_sourcecode(int size, char* source_code, faustgen* instance);
         
@@ -282,8 +258,11 @@ class faustgen : public MspCpp5<faustgen> {
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        
         void librarypath(long inlet, t_symbol* s);
         
+        void json(long inlet, t_symbol* s);
+  
         void mute(long inlet, long mute);
          
         // Called when saving the Max patcher
@@ -300,7 +279,9 @@ class faustgen : public MspCpp5<faustgen> {
           
         // Process the signal data with the Faust module
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
-          
+        
+        void init(double samplerate);
+       
 };
 
 #endif

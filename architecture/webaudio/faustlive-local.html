@@ -340,21 +340,23 @@
         audio_input.connect(DSP.scriptProcessor);
     }
 
-    function FileDragHover(e) {
+    function FileDragHover(e) 
+    {
         e.stopPropagation();
         e.preventDefault();
         e.target.className = (e.type == "dragover" ? "hover" : "");
     }
 
-    function FileSelectHandler(e) {
+    function FileSelectHandler(e) 
+    {
         FileDragHover(e);
         var files = e.target.files || e.dataTransfer.files;
         f = files[0];
         UploadFile(f);
     }
 
-    function UploadFile(e) {
-      
+    function UploadFile(e) 
+    {
         var intAltKey = e.altKey;
      
         FileDragHover(e);
@@ -386,18 +388,21 @@
                         DSP = null;
                     }
                 } 
-                                    
+                
+                // Create a DSP factory from the dsp code
                 factory = faust.createDSPFactory(dsp_code);
                 if (!factory) {
                     alert(faust.getErrorMessage());
                     return;
                 }
                 
+                // Then creates one DSP instance
                 DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
                 if (DSP.getNumInputs() > 0) {
                     activateAudioInput();
                 }
                 
+                // Setup UI
                 _f4u$t.main_loop = function() {}
                 
                 faustsvg = $('<div />');
@@ -407,6 +412,7 @@
                 
                 console.log(DSP.getNumInputs());
                 console.log(DSP.getNumOutputs());
+                
                 DSP.start();
             };
         }  else {
@@ -414,20 +420,12 @@
         }
     }
     
-    function Init() {
+    function Init() 
+    {
         var filedrag1 = document.getElementById("filedrag");
         filedrag1.addEventListener("dragover", FileDragHover, false);
         filedrag1.addEventListener("dragleave", FileDragHover, false);
         filedrag1.addEventListener("drop", UploadFile, false);
-     
-        /*
-        var xx = new XMLHttpRequest();
-        if (xx.upload) {
-            filedrag1.addEventListener("dragover", FileDragHover, false);
-            filedrag1.addEventListener("dragleave", FileDragHover, false);
-            filedrag1.addEventListener("drop", UploadFile, false);
-        }
-        */
     }
 
     if (window.File && window.FileList && window.FileReader) {

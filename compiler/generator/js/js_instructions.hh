@@ -32,7 +32,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
 
         /*
          Global functions names table as a static variable in the visitor
-         so that each function prototye is generated as most once in the module.
+         so that each function prototype is generated as most once in the module.
          */
         static map <string, int> gFunctionSymbolTable;    
         static map <string, string> gMathLibTable;

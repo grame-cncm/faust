@@ -3,9 +3,9 @@
 faust2pd: Pd Patch Generator for Faust
 ======================================
 
-Version 2.5, October 20, 2011
+Version @version@, |today|
 
-Albert Graef <Dr.Graef@t-online.de>
+Albert Graef <aggraef@gmail.com>
 
 This package contains software which makes it easier to use Faust DSPs with Pd
 and the Pure programming language. The main component is the faust2pd script
@@ -33,7 +33,7 @@ As of version 2.1, the faust2pd script is now compiled to a native executable
 before installation. This makes the program start up much faster, which is a
 big advantage because most xml files don't take long to be processed.
 
-.. _Pure: http://pure-lang.googlecode.com
+.. _Pure: http://purelang.bitbucket.org
 
 .. contents::
 .. sectnum::
@@ -41,7 +41,7 @@ big advantage because most xml files don't take long to be processed.
 Copying
 =======
 
-Copyright (c) 2009-2011 by Albert Graef.
+Copyright (c) 2009-2014 by Albert Graef.
 
 faust2pd is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
@@ -84,7 +84,7 @@ Installation
 ============
 
 Get the latest source from
-http://pure-lang.googlecode.com/files/faust2pd-2.5.tar.gz.
+https://bitbucket.org/purelang/pure-lang/downloads/faust2pd-@version@.tar.gz.
 
 Run ``make`` and ``make install`` to compile and install the faust2pd program
 on your system. You can set the installation prefix by running make as ``make
@@ -291,7 +291,7 @@ patches illustrating how Faust units are used in Pd.
   multitimbral synth, built with Faust units, in an automatic fashion using a
   pattern sequencer programmed in Pure. This example requires the Pure
   interpreter as well as the pd-pure plugin available from
-  http://pure-lang.googlecode.com.
+  http://purelang.bitbucket.org.
 
 Wrapping DSPs with faust2pd
 ===========================
@@ -356,7 +356,7 @@ work around these limitations.
   milliseconds to the ``faust-delay`` receiver. If you need interactive
   control over the switching time then it is better to use checkboxes instead,
   or you can have faust2pd automatically substitute checkboxes for all buttons
-  in a patch by invoking it with the -f a.k.a. --fake-buttons option.
+  in a patch by invoking it with the -b a.k.a. --fake-buttons option.
 
 - Sliders in Pd do not display their value in numeric form so it may be hard
   to figure out what the current value is. Therefore faust2pd has an option -s

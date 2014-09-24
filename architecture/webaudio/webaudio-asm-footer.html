@@ -60,6 +60,7 @@ function startDSPAux(buffer_size)
     DSP.start();
     console.log(DSP.json());
     console.log(DSP.controls());
+    
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
     

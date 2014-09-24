@@ -93,10 +93,10 @@ private:
 	std::vector<Voice*> m_voices;
 
 	// Occupied voices - map note to voice index
-	typedef struct voice_node {
+	struct voice_node {
 		VstInt32 note;
 		int voice;
-	} voice_node;
+	};
 
 	std::list<voice_node*> m_playingVoices;
 

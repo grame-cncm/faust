@@ -250,8 +250,8 @@ inline bool Semaphore::try_wait()
 #endif
 
 #ifdef __APPLE__
-//#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
-#include <MacTypes.h>
+#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+//#include <MacTypes.h>
 #include <libkern/OSAtomic.h>
 #endif
 
@@ -652,7 +652,7 @@ static INLINE int Range(int min, int max, int val)
     }
 }
 
-#if defined(LLVM_34) || defined(LLVM_33) || defined(LLVM_32) || defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
+#if defined(LLVM_35) || defined(LLVM_34) || defined(LLVM_33) || defined(LLVM_32) || defined(LLVM_31)
     extern "C" void computeThreadExternal(void* dsp, int num_thread) __attribute__((weak_import));
 #else
     void computeThreadExternal(void* dsp, int num_thread);

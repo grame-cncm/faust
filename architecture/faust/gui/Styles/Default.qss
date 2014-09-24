@@ -22,8 +22,6 @@ border-color: #811453;
 
 QGroupBox{
 subcontrol: .QGroupBox;
-border: 2px solid gray;
-border-radius: 5px;
 margin-top: 3ex;
 font-size: 10pt;
 font-weight: bold;

@@ -25,7 +25,7 @@
 using namespace std;
 
 #include "instructions.hh"
-#include "../../architecture/faust/gui/JSONUI.h"
+#include "faust/gui/JSONUI.h"
 #include <string>
 
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {

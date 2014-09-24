@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2010-2013 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2010-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -181,6 +181,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     string decoded_bitcode = base64_decode(*fBitCode, fBitCodeSize);
     return readDSPFactoryFromBitcode(decoded_bitcode, getTarget());
+    
+    /*
+    // Alternate model using machine code
+    return readDSPFactoryFromMachine(decoded_bitcode);
+    */
+    
     /*
     // Alternate model using LLVM IR
     return readDSPFactoryFromIR(*fBitCode, getTarget());
@@ -222,15 +228,11 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     }
 }
 
-llvm_dsp* faustgen_factory::create_dsp_default(int ins, int outs)
-{
-    return new default_llvm_dsp(ins, outs);
-}
-
 llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
 {
     llvm_dsp* dsp = 0;
     Max_Meta meta;
+    string error;
     
     // Factory already allocated
     if (fDSPfactory) {
@@ -262,14 +264,22 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
     }
 
     // Otherwise creates default DSP keeping the same input/output number
-    dsp = create_dsp_default(m_siginlets, m_sigoutlets);
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
+    dsp = createDSPInstance(fDSPfactory);
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
- 
+  
  end:
     
     assert(dsp);
     m_siginlets = dsp->getNumInputs();
     m_sigoutlets = dsp->getNumOutputs();
+    
+    // Prepare JSON
+    JSONUI builder(m_siginlets, m_sigoutlets);
+    metadataDSPFactory(fDSPfactory, &builder);
+    dsp->buildUserInterface(&builder);
+    fJSON = builder.JSON();
+    
     return dsp;
 }
 
@@ -427,16 +437,17 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     // Save bitcode
     if (fDSPfactory) {
         string bitcode = writeDSPFactoryToBitcode(fDSPfactory);
+        
+        // Alternate model using LLVM IR
+        // string ircode = writeDSPFactoryToIR(fDSPfactory);
+    
+        // Alternate model using machine code
+        //string machinecode = writeDSPFactoryToMachine(fDSPfactory);
+        
         string encoded_bitcode = base64_encode((const unsigned char*)bitcode.c_str(), bitcode.size());
         dictionary_appendlong(d, gensym("bitcode_size"), encoded_bitcode.size());
         dictionary_appendstring(d, gensym("bitcode"), encoded_bitcode.c_str());  
     }
-    /*
-    // Alternate model using LLVM IR
-    string ircode = writeDSPFactoryToIR(fDSPfactory);
-    dictionary_appendlong(d, gensym("bitcode_size"), ircode.size());
-    dictionary_appendstring(d, gensym("bitcode"), ircode.c_str()); 
-    */ 
 }
 
 bool faustgen_factory::try_open_svg()
@@ -585,6 +596,7 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
             (*it)->update_sourcecode();
         }
+        
     } else {
         post("DSP code has not been changed...");
     }
@@ -595,6 +607,11 @@ void faustgen_factory::librarypath(long inlet, t_symbol* s)
     if (s != gensym("")) {
         add_library_path(getFolderFromPath(s->s_name));
     }
+}
+
+void faustgen_factory::json(long inlet, t_symbol* s)
+{
+    
 }
 
 void faustgen_factory::read(long inlet, t_symbol* s)
@@ -987,6 +1004,11 @@ void faustgen::librarypath(long inlet, t_symbol* s)
     fDSPfactory->librarypath(inlet, s);
 }
 
+void faustgen::json(long inlet, t_symbol* s)
+{
+    fDSPfactory->json(inlet, s);
+}
+
 // Called when saving the Max patcher, this function saves the necessary data inside the json file (faust sourcecode)
 void faustgen::appendtodictionary(t_dictionary* d)
 {
@@ -1074,6 +1096,13 @@ void faustgen::update_sourcecode()
     // Create a new DSP instance
     create_dsp(false);
     
+    /*
+    // notify JSON
+    t_atom json;
+    atom_setobj(&json, (void*)fDSPfactory->get_json());
+    out_anything(gensym("json"), 1, &json);
+    */
+    
     // Faustgen~ state is modified...
     set_dirty();
 }
@@ -1094,6 +1123,11 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             memset(outputs[i], 0, sizeof(t_sample) * vs);
         }
     }
+}
+
+inline void faustgen::init(double samplerate)
+{
+    fDSP->init(samplerate);
 }
 
 // Display source code
@@ -1131,6 +1165,8 @@ void faustgen::display_dsp_params()
     if (fDSPUI.itemsCount() > 0) {
         post("------------------");
     }
+    
+    post("JSON : %s", fDSPfactory->get_json());
 }
 
 void faustgen::display_svg()
@@ -1188,7 +1224,7 @@ void faustgen::create_dsp(bool init)
             }
         }
    
-        setupIO(&faustgen::perform, fDSP->getNumInputs(), fDSP->getNumOutputs(), init); 
+        setupIO(&faustgen::perform, &faustgen::init, fDSP->getNumInputs(), fDSP->getNumOutputs(), init); 
         
         // Possibly restart IO
         if (dspstate) {
@@ -1268,6 +1304,7 @@ int main(void)
     REGISTER_METHOD_DEFSYM(faustgen, read);
     REGISTER_METHOD_DEFSYM(faustgen, write);
     REGISTER_METHOD_DEFSYM(faustgen, librarypath);
+    REGISTER_METHOD_DEFSYM(faustgen, json);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);

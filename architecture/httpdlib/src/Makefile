@@ -30,10 +30,10 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	ranlib $@
 
 ../libHTTPDFaust.dylib :  $(objects)
-	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd`  -macosx_version_min 10.6  -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
+	c++ -dynamiclib $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
-	gcc -shared -fPIC -o libfausthttpd.so $(objects)
+	gcc -shared -fPIC -o $@ $(objects)
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
@@ -41,7 +41,7 @@ depend :
 clean :
 	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
 	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
-	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib
+	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib ../libHTTPDFaust.so
 	
 
 hexa/jsscripts.o : hexa/jsscripts.cpp
@@ -62,6 +62,8 @@ hexa/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
 	cat ../html/js/svg/jquerysvg/jquery.svgdom.min.js >> $@
 	echo " " >> $@
 	cat ../html/js/svg/faust_proto.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_jquery_svg_backend.js >> $@
 	echo " " >> $@
 	cat ../html/js/svg/faust_mobile.js >> $@
 	echo " " >> $@

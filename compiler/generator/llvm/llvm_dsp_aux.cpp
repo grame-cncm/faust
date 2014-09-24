@@ -39,7 +39,7 @@
 #include "timing.hh"
 #include "exception.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IRReader/IRReader.h>
@@ -66,7 +66,7 @@
  */
 #if defined(LLVM_32)
 #include <llvm/DataLayout.h>
-#elif !defined(LLVM_33) && !defined(LLVM_34)
+#elif !defined(LLVM_33) && !defined(LLVM_34) && !defined(LLVM_35)
 #ifndef _WIN32
 #include <llvm/Target/TargetData.h>
 #endif
@@ -74,24 +74,44 @@
 
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/PassManager.h>
+#ifdef LLVM_35
+#include <llvm/IR/Verifier.h>
+#else
 #include <llvm/Analysis/Verifier.h>
+#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
+#ifdef LLVM_35
+#include <llvm/Linker/Linker.h>
+#else
 #include <llvm/Linker.h>
+#endif
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
 
-#ifdef LLVM_29
-#include <llvm/Target/TargetSelect.h>
+#if defined(LLVM_34) || defined(LLVM_35)
+#include "llvm/ExecutionEngine/ObjectCache.h"
 #endif
-#if defined(LLVM_30) || defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+
+#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/Support/TargetSelect.h>
 #endif
+
+#if defined(LLVM_35)
+#include <llvm/Support/FileSystem.h>
+#define sysfs_binary_flag sys::fs::F_None
+#elif defined(LLVM_34)
+#define sysfs_binary_flag sys::fs::F_Binary
+#else
+#define sysfs_binary_flag raw_fd_ostream::F_Binary
+#endif
+
+#define MAX_OPT_LEVEL 4
 
 using namespace llvm;
 
@@ -105,9 +125,46 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     }
     return def;
 }
+
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+
+class FaustObjectCache : public ObjectCache {
+
+    private:
+    
+        string fMachineCode;
         
+    public:
+    
+        FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
+        {}
+        
+        virtual ~FaustObjectCache() 
+        {}
+        
+        void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj) 
+        {
+            fMachineCode = Obj->getBuffer().str();
+        }
+        
+        MemoryBuffer* getObject(const Module* M)
+        {
+            return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+         }
+        
+        string getMachineCode() { return fMachineCode; }
+        
+};
+
+#endif
+
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    return (void*)fJIT->getFunctionAddress(function);
+#else
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
     if (fun_ptr) {
         return fJIT->getPointerToFunction(fun_ptr);
@@ -116,6 +173,7 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
         error << "LoadOptimize : getPointerToFunction failed for " << function;
         throw faustexception(error.str());
     }
+#endif
 }
 
 EXPORT Module* load_single_module(const string filename, LLVMContext* context)
@@ -126,7 +184,7 @@ EXPORT Module* load_single_module(const string filename, LLVMContext* context)
     if (module) {
         return module;
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
         err.print("ParseIRFile failed :", errs());
     #else
         err.Print("ParseIRFile failed :", errs());
@@ -179,11 +237,7 @@ void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
     string err;
     
-#if defined(LLVM_34)
-    raw_fd_ostream out(bit_code_path.c_str(), err, sys::fs::F_Binary);
-#else
-    raw_fd_ostream out(bit_code_path.c_str(), err, raw_fd_ostream::F_Binary);
-#endif
+    raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
     
     WriteBitcodeToFile(fResult->fModule, out);
 }
@@ -203,32 +257,69 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
 void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 {
     string err;
-#if defined(LLVM_34)
-    raw_fd_ostream out(ir_code_path.c_str(), err, sys::fs::F_Binary);
-#else
-    raw_fd_ostream out(ir_code_path.c_str(), err, raw_fd_ostream::F_Binary);
-#endif
+    raw_fd_ostream out(ir_code_path.c_str(), err, sysfs_binary_flag);
     PassManager PM;
     PM.add(createPrintModulePass(&out));
     PM.run(*fResult->fModule);
     out.flush();
 }
 
+std::string llvm_dsp_factory::writeDSPFactoryToMachine()
+{ 
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    return fObjectCache->getMachineCode(); 
+#else
+    return "";
+#endif
+}
+
+void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_code_path)
+{
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    string err;
+    raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
+    out << fObjectCache->getMachineCode(); 
+    out.flush();
+#endif
+}
+
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
+{
+    Init();
+    fSHAKey = sha_key;
+   
+    // Restoring the cache
+    fObjectCache = new FaustObjectCache(machine_code);
+    
+    // Creates module and context
+    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
+    fResult->fContext = new LLVMContext();
+    fResult->fModule = new Module("Faust LLVM backend", *fResult->fContext);
+}
+#endif
+
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
+    Init();
     fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = target;
-    fClassName = "mydsp";
-    fExtName = "ModuleDSP";
-    
-    Init();
+ 
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
     fResult->fContext = context;
+    
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    fObjectCache = NULL;
+#endif
 }
 
-#if defined(LLVM_33) || defined(LLVM_34)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 void llvm_dsp_factory::LLVMFatalErrorHandler(const char* reason)
 {
     throw faustexception(reason);
@@ -241,29 +332,40 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
                                     const string& target, 
                                     string& error_msg, int opt_level)
 {
+    Init();
+    
     if (llvm_dsp_factory::gInstance++ == 0) {
         
         // Install a LLVM error handler
-    #if defined(LLVM_34)
+    #if defined(LLVM_34) || defined(LLVM_35)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
     #endif
         if (!llvm_start_multithreaded()) {
             printf("llvm_start_multithreaded error...\n");
         }
     }
-
-    // Keep given name
-    fExtName = name_app;
     
-    fSHAKey = sha_key;
-    fOptLevel = opt_level;
-    fTarget = target;
-    
-    Init();
-    char error_msg_aux[512];
-    fClassName = getParam(argc, argv, "-cn", "mydsp");
-    fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
-    error_msg = error_msg_aux;
+    if (opt_level >=0 && opt_level <= MAX_OPT_LEVEL) {
+        // Keep given name
+        fExtName = name_app;
+        
+        fSHAKey = sha_key;
+        fOptLevel = opt_level;
+        fTarget = target;
+        
+    //#if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_35)
+        fObjectCache = NULL;
+    #endif
+        
+        char error_msg_aux[512];
+        fClassName = getParam(argc, argv, "-cn", "mydsp");
+        fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+        error_msg = error_msg_aux;
+    } else {
+        fResult = NULL;
+        error_msg = "Incorrect LLVM optimisation level";
+    }
 }
 
 void llvm_dsp_factory::Init()
@@ -276,6 +378,8 @@ void llvm_dsp_factory::Init()
     fBuildUserInterface = 0;
     fInit = 0;
     fCompute = 0;
+    fClassName = "mydsp";
+    fExtName = "ModuleDSP";
 }
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
@@ -285,8 +389,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
-#if defined(LLVM_33) || defined(LLVM_34)
-
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
 /// duplicates llvm-gcc behaviour.
@@ -337,114 +440,139 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
     
-    // First check is Faust compilation succeeded... (valid LLVM module)
-    if (!fResult || !fResult->fModule) {
-        return false;
-    }
-     
+    // For multiple target support
     InitializeAllTargets();
     InitializeAllTargetMCs();
-  
+      
+    // For host target support
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
-
-    // Initialize passes
-    PassRegistry &Registry = *PassRegistry::getPassRegistry();
     
-    initializeCodeGen(Registry);
-    initializeCore(Registry);
-    initializeScalarOpts(Registry);
-    initializeObjCARCOpts(Registry);
-    initializeVectorization(Registry);
-    initializeIPO(Registry);
-    initializeAnalysis(Registry);
-    initializeIPA(Registry);
-    initializeTransformUtils(Registry);
-    initializeInstCombine(Registry);
-    initializeInstrumentation(Registry);
-    initializeTarget(Registry);
+    // Restoring from machine code
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+      if (fObjectCache) {
     
-    string err;
-      
-    if (fTarget != "") {
-        fResult->fModule->setTargetTriple(fTarget);
+        // JIT
+        EngineBuilder builder(fResult->fModule);
+        builder.setEngineKind(EngineKind::JIT);
+        builder.setUseMCJIT(true);
+        TargetMachine* tm = builder.selectTarget();
+        fJIT = builder.create(tm);
+        fJIT->setObjectCache(fObjectCache);
+        fJIT->finalizeObject();
+          
     } else {
-        fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-    }
+#endif
+        // First check is Faust compilation succeeded... (valid LLVM module)
+        if (!fResult || !fResult->fModule) {
+            return false;
+        }
+    
+        // Initialize passes
+        PassRegistry &Registry = *PassRegistry::getPassRegistry();
+        
+        initializeCodeGen(Registry);
+        initializeCore(Registry);
+        initializeScalarOpts(Registry);
+        initializeObjCARCOpts(Registry);
+        initializeVectorization(Registry);
+        initializeIPO(Registry);
+        initializeAnalysis(Registry);
+        initializeIPA(Registry);
+        initializeTransformUtils(Registry);
+        initializeInstCombine(Registry);
+        initializeInstrumentation(Registry);
+        initializeTarget(Registry);
+        
+        string err;
+          
+        if (fTarget != "") {
+            fResult->fModule->setTargetTriple(fTarget);
+        } else {
+            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+        }
 
-    EngineBuilder builder(fResult->fModule);
-    builder.setOptLevel(CodeGenOpt::Aggressive);
-    builder.setEngineKind(EngineKind::JIT);
-    // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
-    builder.setUseMCJIT(true);
-    //builder.setUseMCJIT(false);
-    builder.setCodeModel(CodeModel::JITDefault);
-    builder.setMCPU(llvm::sys::getHostCPUName());
-    
-    TargetOptions targetOptions;
-    targetOptions.NoFramePointerElim = true;
-    targetOptions.LessPreciseFPMADOption = true;
-    targetOptions.UnsafeFPMath = true;
-    targetOptions.NoInfsFPMath = true;
-    targetOptions.NoNaNsFPMath = true;
-    targetOptions.GuaranteedTailCallOpt = true;
-     
-    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
-       targetOptions.PrintMachineCode = true;
+        EngineBuilder builder(fResult->fModule);
+        builder.setOptLevel(CodeGenOpt::Aggressive);
+        builder.setEngineKind(EngineKind::JIT);
+        // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
+        builder.setUseMCJIT(true);
+        //builder.setUseMCJIT(false);
+        builder.setCodeModel(CodeModel::JITDefault);
+        builder.setMCPU(llvm::sys::getHostCPUName());
+        
+        TargetOptions targetOptions;
+        targetOptions.NoFramePointerElim = true;
+        targetOptions.LessPreciseFPMADOption = true;
+        targetOptions.UnsafeFPMath = true;
+        targetOptions.NoInfsFPMath = true;
+        targetOptions.NoNaNsFPMath = true;
+        targetOptions.GuaranteedTailCallOpt = true;
+         
+        string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
+           targetOptions.PrintMachineCode = true;
+        }
+        
+        builder.setTargetOptions(targetOptions);
+        TargetMachine* tm = builder.selectTarget();
+        
+        PassManager pm;
+        FunctionPassManager fpm(fResult->fModule);
+      
+        // Add an appropriate TargetLibraryInfo pass for the module's triple.
+        TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
+        pm.add(tli);
+        
+        const string &ModuleDataLayout = fResult->fModule->getDataLayout();
+        DataLayout* td = new DataLayout(ModuleDataLayout);
+        pm.add(td);
+      
+        // Add internal analysis passes from the target machine (mandatory for vectorization to work)
+        tm->addAnalysisPasses(pm);
+        
+        if (fOptLevel > 0) {
+            AddOptimizationPasses(pm, fpm, fOptLevel, 0);
+        }
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+            fResult->fModule->dump();
+        }
+       
+        fpm.doInitialization();
+        for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
+            fpm.run(*F);
+        }
+        fpm.doFinalization();
+        
+        pm.add(createVerifierPass());
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
+            tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
+        }
+        
+        // Now that we have all of the passes ready, run them.
+        pm.run(*fResult->fModule);
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+            fResult->fModule->dump();
+        }
+        
+        fJIT = builder.create(tm);
+        if (!fJIT) {
+            endTiming("initJIT");
+            return false;
+        }
+        
+    //#if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_35)
+        fObjectCache = new FaustObjectCache();
+        fJIT->setObjectCache(fObjectCache);
     }
-    
-    builder.setTargetOptions(targetOptions);
-    TargetMachine* tm = builder.selectTarget();
-    
-    PassManager pm;
-    FunctionPassManager fpm(fResult->fModule);
-  
-    // Add an appropriate TargetLibraryInfo pass for the module's triple.
-    TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
-    pm.add(tli);
-    
-    const string &ModuleDataLayout = fResult->fModule->getDataLayout();
-    DataLayout* td = new DataLayout(ModuleDataLayout);
-    pm.add(td);
-  
-    // Add internal analysis passes from the target machine (mandatory for vectorization to work)
-    tm->addAnalysisPasses(pm);
-    
-    if (fOptLevel > 0) {
-        AddOptimizationPasses(pm, fpm, fOptLevel, 0);
-    }
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-        fResult->fModule->dump();
-    }
-   
-    fpm.doInitialization();
-    for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
-        fpm.run(*F);
-    }
-    fpm.doFinalization();
-    
-    pm.add(createVerifierPass());
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-        tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
-    }
-    
-    // Now that we have all of the passes ready, run them.
-    pm.run(*fResult->fModule);
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-        fResult->fModule->dump();
-    }
-    
-    fJIT = builder.create(tm);
-    if (!fJIT) {
-        endTiming("initJIT");
-        return false;
-    }
+    #endif
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
@@ -502,23 +630,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     builder.setUseMCJIT(false);
     builder.setMCPU(llvm::sys::getHostCPUName());
        
-#ifndef LLVM_30
     TargetMachine* tm = builder.selectTarget();
-#endif
-    //tm->Options.PrintMachineCode = 1;
-    /*
-    SmallVector<string, 4> attrs;
-    attrs.push_back("sse");
-    attrs.push_back("sse2");
-    attrs.push_back("sse3");
-    attrs.push_back("enable-unsafe-fp-math");
-    builder.setMAttrs(attrs);
-    */
-#ifdef LLVM_30
-    fJIT = builder.create();
-#else
     fJIT = builder.create(tm);
-#endif
     
     if (!fJIT) {
         endTiming("initJIT");
@@ -564,7 +677,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     if (fOptLevel > 3) {
     
     #if defined(LLVM_32) 
-        printf("Vectorize\n");
         Builder.LoopVectorize = true;
         //Builder.Vectorize = true;
     #elif defined(LLVM_31)
@@ -610,6 +722,10 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 llvm_dsp_factory::~llvm_dsp_factory()
 {
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    delete fObjectCache;
+#endif
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fResult->fModule is kept and deleted by fJIT
@@ -623,7 +739,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     
     if (--llvm_dsp_factory::gInstance == 0) {
         llvm_stop_multithreaded();
-    #if defined(LLVM_34)
+    #if defined(LLVM_34) || defined(LLVM_35)
         LLVMResetFatalErrorHandler();
     #endif
     }
@@ -817,7 +933,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     }
     */
     
-    string sha_key = generate_sha1(reorganize_compilation_options(argc, argv) + dsp_content);
+    string sha_key = generateSha1(reorganize_compilation_options(argc, argv) + dsp_content);
     FactoryTableIt it;
     llvm_dsp_factory* factory = 0;
     
@@ -861,7 +977,7 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
             llvm_dsp_factory::gFactoryTable.erase(factory);
         } else {
             sfactory->removeReference();
-         }
+        }
     }
 }
 
@@ -895,7 +1011,7 @@ EXPORT void deleteAllDSPFactories()
 
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
-    string sha_key = generate_sha1(buffer->getBuffer().str());
+    string sha_key = generateSha1(buffer->getBuffer().str());
     FactoryTableIt it;
     
     if (getFactory(sha_key, it)) {
@@ -924,7 +1040,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const
 
 EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
-    return factory->writeDSPFactoryToBitcode();
+    return (factory) ? factory->writeDSPFactoryToBitcode() : "";
 }
 
 // Bitcode <==> file
@@ -941,14 +1057,16 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
 
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
 {
-    factory->writeDSPFactoryToBitcodeFile(bit_code_path);
+    if (factory) {
+        factory->writeDSPFactoryToBitcodeFile(bit_code_path);
+    }
 }
 
 // IR <==> string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
-    string sha_key = generate_sha1(buffer->getBuffer().str());
+    string sha_key = generateSha1(buffer->getBuffer().str());
     FactoryTableIt it;
     
     if (getFactory(sha_key, it)) {
@@ -968,7 +1086,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const str
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
-        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34)
+        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
             err.print("readDSPFactoryFromIRAux failed :", errs());
         #else
             err.Print("readDSPFactoryFromIRAux failed :", errs());
@@ -985,7 +1103,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const strin
 
 EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
-    return factory->writeDSPFactoryToIR();
+    return (factory) ? factory->writeDSPFactoryToIR() : "";
 }
 
 // IR <==> file
@@ -1002,12 +1120,68 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
 {
-    factory->writeDSPFactoryToIRFile(ir_code_path);
+    if (factory) {
+        factory->writeDSPFactoryToIRFile(ir_code_path);
+    }
 }
+
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+    
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
+{
+    string sha_key = generateSha1(buffer->getBuffer().str());
+    FactoryTableIt it;
+    
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    } else {
+        string error_msg;
+        llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, buffer->getBuffer().str()), error_msg);
+        llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
+        return factory;
+    }
+}
+
+// machine <==> string
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
+{
+    return readDSPFactoryFromMachineAux(MemoryBuffer::getMemBuffer(StringRef(machine_code)));
+}
+
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
+{
+    return factory->writeDSPFactoryToMachine();
+}
+
+// machine <==> file
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
+{
+    OwningPtr<MemoryBuffer> buffer;
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
+        printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
+        return 0;
+    } else {
+        return readDSPFactoryFromMachineAux(buffer.get());
+    }
+}
+
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path)
+{
+    if (factory) {
+        factory->writeDSPFactoryToMachineFile(machine_code_path);
+    }
+}
+
+#endif
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
 {
-    factory->metadataDSPFactory(m);
+    if (factory && m) {
+        factory->metadataDSPFactory(m);
+    }
 }
 
 // Instance
@@ -1026,15 +1200,17 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
 {
-    FactoryTableIt it;
-    llvm_dsp_aux* dsp_aux = reinterpret_cast<llvm_dsp_aux*>(dsp);
-    llvm_dsp_factory* factory = dsp_aux->getFactory();
-    
-    it = llvm_dsp_factory::gFactoryTable.find(factory);
-    assert(it != llvm_dsp_factory::gFactoryTable.end());
-    (*it).second.remove(dsp_aux);
-     
-    delete dsp_aux; 
+    if (dsp) {
+        FactoryTableIt it;
+        llvm_dsp_aux* dsp_aux = reinterpret_cast<llvm_dsp_aux*>(dsp);
+        llvm_dsp_factory* factory = dsp_aux->getFactory();
+        
+        it = llvm_dsp_factory::gFactoryTable.find(factory);
+        assert(it != llvm_dsp_factory::gFactoryTable.end());
+        (*it).second.remove(dsp_aux);
+         
+        delete dsp_aux; 
+    }
 }
 
 EXPORT void llvm_dsp::metadata(Meta* m)
@@ -1111,7 +1287,7 @@ EXPORT const char** getAllCDSPFactories()
     vector<string> sha_key_list1 = getAllDSPFactories();
     const char** sha_key_list2 = (const char**)malloc(sizeof(char*) * (sha_key_list1.size() + 1));
     
-    int i;
+    size_t i;
     for (i = 0; i < sha_key_list1.size(); i++) {
         string sha_key1 = sha_key_list1[i];
         char* sha_key2 = (char*)malloc(sizeof(char) * (sha_key1.length() + 1));
@@ -1126,7 +1302,9 @@ EXPORT const char** getAllCDSPFactories()
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
 {
-    deleteDSPFactory(factory);
+    if (factory) {
+        deleteDSPFactory(factory);
+    }
 }
 
 EXPORT void deleteAllCDSPFactories()
@@ -1141,10 +1319,14 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
 
 EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
-    string str = writeDSPFactoryToBitcode(factory);
-    char* cstr = (char*)malloc(str.length() + 1);
-    strcpy(cstr, str.c_str());
-    return cstr;
+    if (factory) {
+        string str = writeDSPFactoryToBitcode(factory);
+        char* cstr = (char*)malloc(str.length() + 1);
+        strcpy(cstr, str.c_str());
+        return cstr;
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level)
@@ -1154,7 +1336,9 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_pat
 
 EXPORT void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path)
 {
-    writeDSPFactoryToBitcodeFile(factory, bit_code_path);
+    if (factory) {
+        writeDSPFactoryToBitcodeFile(factory, bit_code_path);
+    }
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level)
@@ -1164,10 +1348,14 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
 
 EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
-    string str = writeDSPFactoryToIR(factory);
-    char* cstr = (char*)malloc(str.length() + 1);
-    strcpy(cstr, str.c_str());
-    return cstr;
+    if (factory) {
+        string str = writeDSPFactoryToIR(factory);
+        char* cstr = (char*)malloc(str.length() + 1);
+        strcpy(cstr, str.c_str());
+        return cstr;
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level)
@@ -1177,52 +1365,105 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path)
 {
-    writeDSPFactoryToIRFile(factory, ir_code_path);
+    if (factory) {
+        writeDSPFactoryToIRFile(factory, ir_code_path);
+    }
 }
+
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
+{
+    return readDSPFactoryFromMachine(machine_code);
+}
+
+EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string str = writeDSPFactoryToMachine(factory);
+        char* cstr = (char*)malloc(str.length() + 1);
+        strcpy(cstr, str.c_str());
+        return cstr;
+    } else {
+        return NULL;
+    }
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
+{
+    return readDSPFactoryFromMachineFile(machine_code_path);
+}
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path)
+{
+    if (factory) {
+        writeDSPFactoryToMachineFile(factory, machine_code_path);
+    }
+}
+#endif
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
 {
-    factory->metadataDSPFactory(glue);
+    if (factory) {
+        factory->metadataDSPFactory(glue);
+    }
 }
 
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 {
-    reinterpret_cast<llvm_dsp_aux*>(dsp)->metadata(glue);
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->metadata(glue);
+    }
 }
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
-    return reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumInputs();
+    return (dsp) ? reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumInputs(): 0;
 }
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
 {
-    return reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumOutputs();
+    return (dsp) ? reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumOutputs() : 0;
 }
 
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq)
 {
-    reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingFreq);
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingFreq);
+    }
 }
 
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 {
-    reinterpret_cast<llvm_dsp_aux*>(dsp)->buildUserInterface(glue);
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->buildUserInterface(glue);
+    }
 }
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
+    }
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {
-    return reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
-}
+    return (factory) ? reinterpret_cast<llvm_dsp*>(factory->createDSPInstance()) : 0;
+ }
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
-    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+    if (dsp) {
+        delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+    }
+}
+
+EXPORT void generateCSha1(const char* data, char* key)
+{
+    string res = generateSha1(data);
+    strncpy(key, res.c_str(), 20);
 }
 
 #endif // LLVM_BUILD

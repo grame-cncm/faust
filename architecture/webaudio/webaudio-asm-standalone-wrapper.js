@@ -22,11 +22,9 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 <<includeIntrinsic>>
 <<includeclass>>
 
-(function () {
- 
 // Standard Faust DSP
 
-faust.DSP = function (context, buffer_size) {
+faust.mydsp = function (context, buffer_size) {
     var that = {};
     
     faust.context = context;
@@ -41,10 +39,10 @@ faust.DSP = function (context, buffer_size) {
     that.maxInputs = 128;
     that.maxOutputs = 128;
     that.maxBufferSize = 8192;
-    console.log(getDSPSizemydsp());
+    console.log(getSizemydsp());
     
     /*
-    var size = getDSPSizemydsp() + (that.maxInputs + that.maxOutputs) * that.ptr_size + (that.maxInputs + that.maxOutputs) * that.maxBufferSize * that.sample_size;
+    var size = getSizemydsp() + (that.maxInputs + that.maxOutputs) * that.ptr_size + (that.maxInputs + that.maxOutputs) * that.maxBufferSize * that.sample_size;
     size = window.Math.floor(size/4096);
     size = (size + 1) * 4096;
     */
@@ -141,13 +139,22 @@ faust.DSP = function (context, buffer_size) {
         // Nothing to do
     };
     
-    // Connect to another node
+    // Connect/disconnect to another node
     that.connect = function (node) 
     {
         if (node.scriptProcessor) {
             that.scriptProcessor.connect(node.scriptProcessor);
         } else {
             that.scriptProcessor.connect(node);
+        }
+    };
+
+    that.disconnect = function (node) 
+    {
+        if (node.scriptProcessor) {
+            that.scriptProcessor.disconnect(node.scriptProcessor);
+        } else {
+            that.scriptProcessor.disconnect(node);
         }
     };
  
@@ -277,6 +284,4 @@ faust.DSP = function (context, buffer_size) {
     that.init();
     return that;
 }
- 
-}());
 
