@@ -24,6 +24,7 @@
 #ifndef _UITREE_
 #define _UITREE_
 
+#include <string>
 #include "tlib.hh"
 
 Tree  	uiFolder(Tree label, Tree elements=nil);
@@ -46,6 +47,8 @@ inline Tree uiLabel (Tree t)	{ return t->branch(0); }
 	
 Tree putSubFolder(Tree folder, Tree path, Tree item);
 
+std::string ptrToHex(Tree ptr);
+std::string checkNullLabel(Tree t, const std::string& label, bool bargraph = false);
 
 #endif
 
