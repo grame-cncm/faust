@@ -12,10 +12,20 @@ else
 ARCHFLAGS := 
 endif
 
+ifeq ($(MODE), SHARED)
+TARGET=libOSCFaust.$(VERSION).dylib
+else
+TARGET=libOSCFaust.a
+endif
+
+
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-all : libOSCFaust.a
+all : $(TARGET)
+
+libOSCFaust.$(VERSION).dylib : $(objects)
+	c++ -dynamiclib $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.a : $(objects)
 	rm -f $@
@@ -75,6 +85,7 @@ src/osc/OSCListener.o: faust/osc/Message.h faust/osc/smartpointer.h src/osc/OSCL
 src/osc/OSCListener.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
 src/osc/OSCListener.o: ../oscpack/osc/OscPacketListener.h ../oscpack/osc/OscReceivedElements.h
 src/osc/OSCListener.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/PacketListener.h
+src/osc/OSCListener.o: src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h
 src/osc/OSCListener.o: ../oscpack/osc/OscReceivedElements.h ../oscpack/ip/IpEndpointName.h
 src/osc/OSCSetup.o: src/osc/OSCSetup.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h
 src/osc/OSCSetup.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h
