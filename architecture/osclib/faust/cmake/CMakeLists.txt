@@ -9,7 +9,7 @@ set (TARGET	OSCFaust)
 #######################################
 # versions management
 set (version 0.93)
-set (SOVERS 1)
+set (SOVERS 0)
 
 #######################################
 # Options disabled by default

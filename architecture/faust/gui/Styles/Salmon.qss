@@ -17,7 +17,6 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FFE4C4, s
 QGroupBox{
 subcontrol: .QGroupBox
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4, stop: 1 #FEC3AC);
-border: 2px solid gray;
 border-radius: 5px;
 margin-top: 3ex;
 font-size:10pt;
@@ -33,9 +32,8 @@ padding: 0 5px;
 color: black;
 }
     
-QMainWindow {
+QMainWindow, QDialog {
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4,stop: 1 #FEC3AC);
-border: 2px solid gray;
 border-radius: 5px;
 margin-top: 3ex;
 font-size:10pt;
@@ -54,10 +52,6 @@ font-size:12pt;
 font-weight:bold;
 color: black;
 }
-    
-QLabel{
-color : black;
-}
 
 QTextBrowser {
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4,stop: 1 #FEC3AC);
@@ -70,7 +64,12 @@ color: white;
 font: Menlo;
 font-size: 14px
 }
-    
+      
+QLabel{
+	color : black;
+	background: transparent;
+}
+  
 QSlider::groove:vertical {
 background: red;
 position: absolute;
@@ -146,4 +145,15 @@ margin-top: 2px;
     
 QListWidget{     
 background-color: transparent;
+}
+
+QListWidget::item{                
+	color: color;
+}
+
+QStatusBar{
+	background-color: transparent;
+	border: 0px; 
+	padding:0px 0px 0px 0px; 
+	margin:0px;
 }
