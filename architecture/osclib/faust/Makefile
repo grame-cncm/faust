@@ -12,10 +12,20 @@ else
 ARCHFLAGS := 
 endif
 
+ifeq ($(MODE), SHARED)
+TARGET=libOSCFaust.$(VERSION).dylib
+else
+TARGET=libOSCFaust.a
+endif
+
+
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
-all : libOSCFaust.a
+all : $(TARGET)
+
+libOSCFaust.$(VERSION).dylib : $(objects)
+	c++ -dynamiclib $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.a : $(objects)
 	rm -f $@
