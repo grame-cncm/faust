@@ -134,15 +134,6 @@ static string wdel(const string& s)
 
 //================================= BUILD USER INTERFACE METHOD =================================
 
-inline string ptrToHex(Tree ptr)
-{
-    stringstream res; res << hex << ptr; return res.str();
-}
-
-inline string checkNullLabel(Tree t, const string& label, bool bargraph = false)
-{
-    return (label == "") ? (bargraph ? ptrToHex(t) : "0x00") : label;
-}
 
 /**
  * Generate buildUserInterface C++ lines of code corresponding 
