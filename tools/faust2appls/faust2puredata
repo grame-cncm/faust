@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to puredata                 #
-#               (c) Grame, 2009                                     #
+#               (c) Grame, 2009-2014                                #
 #                                                                   #
 #####################################################################
 
@@ -38,6 +38,8 @@ for p in $@; do
     	ignore=" "
     elif [ $p = "-arch32" ]; then
 	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-poly" ]; then
+	F2PDPOLY="-n 8"
     elif [ $p = "-arch64" ]; then
 	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
@@ -103,7 +105,7 @@ for p in $FILES; do
 			${CXX=g++} $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
 		fi		
         if [ $(which faust2pd) ]; then
-        	faust2pd -s $f.xml
+        	faust2pd -s $F2PDPOLY $f.xml
         fi
     ) > /dev/null
 
