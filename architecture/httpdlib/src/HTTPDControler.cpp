@@ -83,8 +83,8 @@ static bool getNetInfos(string& name, string& ip)
 
 
 //--------------------------------------------------------------------------
-HTTPDControler::HTTPDControler (int argc, char *argv[], const char* applicationname)
-	: fTCPPort(kTCPBasePort), fJson(0)
+HTTPDControler::HTTPDControler (int argc, char *argv[], const char* applicationname, bool init)
+	: fTCPPort(kTCPBasePort), fJson(0), fInit(init)
 {
 	fTCPPort = getPortOption (argc, argv, kPortOpt, fTCPPort);
 	fFactory = new FaustFactory();
@@ -114,21 +114,21 @@ const char* HTTPDControler::versionstr()	{ return kVersionStr; }
 // Add a node in the current group (top of the group stack)
 template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone, float init, float min, float max, float step)
 {
-	fFactory->addnode (label, zone, init, min, max);
+	fFactory->addnode (label, zone, init, min, max, fInit);
 	fJson->addnode<float> (type, label, init, min, max, step, fCurrentMeta);
 	fHtml->addnode (type, label, init, min, max, step);
 	fCurrentMeta.clear();
 }
 template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone, float min, float max)
 {
-	fFactory->addnode (label, zone, min, max);
+	fFactory->addnode (label, zone, min, max, fInit);
 	fJson->addnode<float> (type, label, min, max, fCurrentMeta);
 	fHtml->addnode (type, label, min, max);
 	fCurrentMeta.clear();
 }
 template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone)
 {
-	fFactory->addnode (label, zone, 0.f, 0.f, 1.f);
+	fFactory->addnode (label, zone, 0.f, 0.f, 1.f, fInit);
 	fJson->addnode<float> (type, label, fCurrentMeta);
 	fHtml->addnode (type, label);
 	fCurrentMeta.clear();
@@ -136,7 +136,7 @@ template<> void HTTPDControler::addnode<float> (const char* type, const char* la
 
 template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone, double min, double max)
 {
-	fFactory->addnode (label, zone, min, max);
+	fFactory->addnode (label, zone, min, max, fInit);
 	fJson->addnode<double> (type, label, min, max, fCurrentMeta);
 	fHtml->addnode (type, label, min, max);
 	fCurrentMeta.clear();
@@ -144,14 +144,14 @@ template<> void HTTPDControler::addnode<double> (const char* type, const char* l
 
 template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone, double init, double min, double max, double step)
 {
-	fFactory->addnode (label, zone, init, min, max);
+	fFactory->addnode (label, zone, init, min, max, fInit);
 	fJson->addnode<double> (type, label, init, min, max, step, fCurrentMeta);
 	fHtml->addnode (type, label, init, min, max, step);
 	fCurrentMeta.clear();
 }
 template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone)
 {
-	fFactory->addnode (label, zone, 0., 0., 1.);
+	fFactory->addnode (label, zone, 0., 0., 1., fInit);
 	fJson->addnode<double> (type, label, fCurrentMeta);
 	fHtml->addnode (type, label);
 	fCurrentMeta.clear();

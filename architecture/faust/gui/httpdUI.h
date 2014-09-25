@@ -44,9 +44,9 @@ class httpdUI : public UI
 
  public:
 		
-	httpdUI(const char* applicationname, int argc, char *argv[]) 
+	httpdUI(const char* applicationname, int argc, char *argv[], bool init = true) 
     { 
-		fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname); 
+		fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname, init); 
 	}
 	
 	virtual ~httpdUI() { delete fCtrl; }
