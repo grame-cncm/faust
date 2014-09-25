@@ -55,6 +55,8 @@ class OSCControler
 	OSCIO*			fIO;				// hack for OSC IO support (actually only relayed to the factory)
 	FaustFactory *	fFactory;			// a factory to build the memory represetnatin
 
+    bool            fInit;
+    
 	public:
 		/*
 			base udp port is chosen in an unassigned range from IANA PORT NUMBERS (last updated 2011-01-24)
@@ -63,7 +65,7 @@ class OSCControler
 		*/
 		enum { kUDPBasePort = 5510};
             
-        OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL);
+        OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
 
         virtual ~OSCControler ();
 	
@@ -72,7 +74,7 @@ class OSCControler
 		//--------------------------------------------------------------------------
 		// Add a node in the current group (top of the group stack)
 		template <typename T> void addnode (const char* label, T* zone, T init, T min, T max)
-							{ fFactory->addnode (label, zone, init, min, max); }
+							{ fFactory->addnode (label, zone, init, min, max, fInit); }
 		
 		//--------------------------------------------------------------------------
 		// This method is used for alias messages. The arguments imin and imax allow

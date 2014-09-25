@@ -67,9 +67,9 @@ class OSCUI : public GUI
 	
  public:
 
-    OSCUI(const char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL) : GUI() 
+    OSCUI(const char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true) : GUI() 
     { 
-		fCtrl = new oscfaust::OSCControler(argc, argv, this, io, errCallback, arg); 
+		fCtrl = new oscfaust::OSCControler(argc, argv, this, io, errCallback, arg, init); 
         //		fCtrl->opengroup(applicationname);
 	}
     
