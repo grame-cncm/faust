@@ -65,27 +65,36 @@ template <typename C> class FaustNode : public MessageDriven
 
 
 	protected:
-		FaustNode(const char *name, C* zone, C min, C max, const char* prefix) 
+		FaustNode(const char *name, C* zone, C min, C max, const char* prefix, bool initZone) 
 			: MessageDriven (name, prefix), fZone(zone), fMapping(min, max, min, max) 
-			{ *zone = min; }
+			{ 
+                if(initZone)
+                    *zone = min; 
+            }
 
-		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix)
+		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix, bool initZone)
 			: MessageDriven (name, prefix), fZone(zone), fMapping(min, max, min, max) 
-			{ *zone = init; }
+			{ 
+                if(initZone)
+                    *zone = init; 
+            }
 			
-		FaustNode(const char *name, C* zone,  C imin, C imax, C init, C min, C max, const char* prefix) 
+		FaustNode(const char *name, C* zone,  C imin, C imax, C init, C min, C max, const char* prefix, bool initZone) 
 			: MessageDriven (name, prefix), fZone(zone), fMapping(imin, imax, min, max) 
-			{ *zone = init; }
+			{ 
+                if(initZone)
+                    *zone = init; 
+            }
 		virtual ~FaustNode() {}
 
 	public:
 		typedef SMARTP<FaustNode<C> > SFaustNode;
-		static SFaustNode create (const char* name, C* zone, C min, C max, const char* prefix)
-							{ return new FaustNode(name, zone, min, max, prefix); }
-		static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix)	
-							{ return new FaustNode(name, zone, init, min, max, prefix); }
-		static SFaustNode create (const char* name, C* zone, C imin, C imax, C init, C min, C max, const char* prefix)	
-							{ return new FaustNode(name, zone, imin, imax, init, min, max, prefix); }
+		static SFaustNode create (const char* name, C* zone, C min, C max, const char* prefix, bool initZone)
+							{ return new FaustNode(name, zone, min, max, prefix, initZone); }
+		static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix, bool initZone)	
+							{ return new FaustNode(name, zone, init, min, max, prefix, initZone); }
+		static SFaustNode create (const char* name, C* zone, C imin, C imax, C init, C min, C max, const char* prefix, bool initZone)	
+							{ return new FaustNode(name, zone, imin, imax, init, min, max, prefix, initZone); }
 
 
 		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg )	///< handler for the 'accept' message
