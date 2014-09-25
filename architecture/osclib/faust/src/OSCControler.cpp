@@ -87,8 +87,8 @@ static bool getXmitOption (int argc, char *argv[], const std::string& option, bo
 
 
 //--------------------------------------------------------------------------
-OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg)
-	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io)
+OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
+	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io), fInit(init)
 {
 	fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
 	fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);

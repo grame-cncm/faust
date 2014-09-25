@@ -27,7 +27,7 @@ endif
 
 DESTDIR=
 
-DISTFILES = Makefile COPYING ChangeLog README config.guess *.pure *.pd examples/README debian/* examples/*/Makefile examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml pd/*.h
+DISTFILES = Makefile COPYING ChangeLog README config.guess *.pure *.pd examples/README debian/* examples/*/Makefile examples/*/*.cpp examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml pd/*.h
 SEDFILES = README
 
 .PHONY: all examples clean distclean realclean install uninstall

@@ -268,6 +268,7 @@ parse_prop s
 parse_type s::string = eval $ "faustxml::"+s;
 
 using system;
+check_label 0 nm "0x00" = nm;
 check_label 0 nm "" = nm;
 check_label _ _ "" = "";
 check_label _ _ s = s otherwise;
