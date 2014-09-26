@@ -140,8 +140,8 @@ install :
 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
 		
 	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo OSC static libraries not available
-	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/*.$(LIB_EXT) $(prefix)/lib/faust/) || echo OSC dynamic libraries not available
-
+	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/*.$(LIB_EXT)* $(prefix)/lib/faust/ && cp architecture/osclib/liboscpack.a $(prefix)/lib/faust/) || echo OSC dynamic libraries not available
+	
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available

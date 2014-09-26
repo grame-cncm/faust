@@ -11,6 +11,7 @@ ifeq ($(system), Linux)
 subprojects := ip ip/posix osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
 ARCHFLAGS 	:= 
+CXXFLAGS += -fPIC
 
 else
 subprojects := ip ip/win32 osc
