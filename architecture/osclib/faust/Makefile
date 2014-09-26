@@ -18,6 +18,7 @@ ifeq ($(system), Darwin)
 TARGET=libOSCFaust.$(VERSION).dylib
 else
 TARGET=libOSCFaust.so.$(VERSION)
+SONAME=libOSCFaust.so.$(SOVERSION)
 endif
 else
 TARGET=libOSCFaust.a
@@ -33,7 +34,7 @@ libOSCFaust.$(VERSION).dylib : $(objects)
 	c++ -dynamiclib $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.so.$(VERSION) : $(objects)
-	c++ -shared -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
+	c++ -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
 
 libOSCFaust.a : $(objects)
 	rm -f $@

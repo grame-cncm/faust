@@ -51,7 +51,7 @@ faust/libOSCFaust.a:
 	make -C faust
 	
 faust/$(TARGET):
-	make -C faust VERSION=$(VERSION) MODE=SHARED
+	make -C faust VERSION=$(VERSION) SOVERSION=$(SOVERSION) MODE=SHARED
 	
 clean :
 	rm -f liboscpack.a libOSCFaust.a
