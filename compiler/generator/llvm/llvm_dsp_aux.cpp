@@ -896,7 +896,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
 {
 	string base = basename((char*)filename.c_str());
 
-    int pos = filename.find(".dsp");
+    size_t pos = filename.find(".dsp");
     
     if (pos != string::npos) {
         return createDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, target, error_msg, opt_level);
