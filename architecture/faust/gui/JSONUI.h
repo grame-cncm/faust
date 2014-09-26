@@ -49,7 +49,7 @@ class JSONUI : public PathUI, public Meta
             if (fMetaAux.size() > 0) {
                 tab(tab_val, fUI); fUI << "\"meta\": [";
                 std::string sep = "";
-                for (int i = 0; i < fMetaAux.size(); i++) {
+                for (size_t i = 0; i < fMetaAux.size(); i++) {
                     fUI << sep;
                     tab(tab_val + 1, fUI); fUI << "{ " << "\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\"}";
                     sep = ",";

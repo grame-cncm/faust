@@ -1375,8 +1375,7 @@ class QTGUI : public QWidget, public GUI
     
     void insert(const char* label, QWidget* widget)
 	{
-        
-		if (!fGroupStack.empty()) {
+        if (!fGroupStack.empty()) {
 			QWidget* mother = fGroupStack.top();
 			QTabWidget*	tab = dynamic_cast<QTabWidget*>(mother);
 			if (tab) {

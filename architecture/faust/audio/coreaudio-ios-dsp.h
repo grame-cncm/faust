@@ -646,16 +646,16 @@ int TiPhoneCoreAudioRenderer::Stop()
 class iosaudio : public audio {
     
     TiPhoneCoreAudioRenderer fAudioDevice;
-	int fSampleRate, fFramesPerBuf;
+	int fSampleRate, fBufferSize;
     
 public:
-    iosaudio(int srate, int fpb) : fSampleRate(srate), fFramesPerBuf(fpb) {}
+    iosaudio(int srate, int fpb) : fSampleRate(srate), fBufferSize(fpb) {}
 	virtual ~iosaudio() { fAudioDevice.Close(); }
     
 	virtual bool init(const char* /*name*/, dsp* DSP) 
     {
     	DSP->init(fSampleRate);
-		if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
+		if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
 			printf("Cannot open iOS audio device\n");
     		return false;
 		}
@@ -676,7 +676,7 @@ public:
 		fAudioDevice.Stop();
 	}
     
-    virtual int get_buffer_size() { return fFramesPerBuf; }
+    virtual int get_buffer_size() { return fBufferSize; }
     virtual int get_sample_rate() { return fSampleRate; }
     
 };
