@@ -10,10 +10,15 @@ ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
 ARCHFLAGS := 
+CXXFLAGS += -fPIC
 endif
 
 ifeq ($(MODE), SHARED)
+ifeq ($(system), Darwin)
 TARGET=libOSCFaust.$(VERSION).dylib
+else
+TARGET=libOSCFaust.so.$(VERSION)
+endif
 else
 TARGET=libOSCFaust.a
 endif
@@ -27,6 +32,9 @@ all : $(TARGET)
 libOSCFaust.$(VERSION).dylib : $(objects)
 	c++ -dynamiclib $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
+libOSCFaust.so.$(VERSION) : $(objects)
+	c++ -shared -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
+
 libOSCFaust.a : $(objects)
 	rm -f $@
 	ar cq $@ $(objects)
@@ -38,7 +46,7 @@ depend :
 	
 clean :
 	rm -f $(objects)
-	rm -f libOSCFaust.a
+	rm -f libOSCFaust.a libOSCFaust*.dylib libOSCFaust.so*
 	
 
 
