@@ -30,7 +30,7 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	ranlib $@
 
 ../libHTTPDFaust.dylib :  $(objects)
-	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd`  -macosx_version_min 10.6  -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
+	c++ -dynamiclib $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
 	gcc -shared -fPIC -o $@ $(objects)
