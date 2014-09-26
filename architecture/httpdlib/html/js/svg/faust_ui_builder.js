@@ -1,3 +1,7 @@
+_f4u$t.check_label = function(label) {
+  return (label.substring(0, 2) == "0x") ? "" : label;
+}
+
 _f4u$t.meta_info = function(dct, prop, def, fn) {
   if (!dct['meta']) {
     return def;
@@ -106,7 +110,7 @@ _f4u$t.make_rbutton = function(dct, hash) {
 
   /* make faust ui objects */
   var rbutton = new _f4u$t.RotatingButton(options);
-  var label = new _f4u$t.Label({label : dct["label"], id : id+"label", mom : null});
+  var label = new _f4u$t.Label({label : _f4u$t.check_label(dct["label"]), id : id+"label", mom : null});
   var vbox = new _f4u$t.ValueBox(vbox_options);
 
   var lm = new _f4u$t.LayoutManager(lm_options);
@@ -155,7 +159,7 @@ _f4u$t.make_slider = function(kls, dct, hash) {
 
   /* make faust ui objects */
   var slider = new kls(options);
-  var label = new _f4u$t.Label({label : dct["label"], id : id+"label", mom : null});
+  var label = new _f4u$t.Label({label : _f4u$t.check_label(dct["label"]), id : id+"label", mom : null});
   var vbox = new _f4u$t.ValueBox(vbox_options);
 
   var lm = 0;
@@ -219,7 +223,7 @@ _f4u$t.make_bargraph = function(kls, dct, hash) {
 
   /* make faust ui objects */
   var bargraph = new kls(options);
-  var label = new _f4u$t.Label({label : dct["label"], id : id+"_label", mom : null});
+  var label = new _f4u$t.Label({label : _f4u$t.check_label(dct["label"]), id : id+"_label", mom : null});
   var vbox = new _f4u$t.ValueBox(vbox_options);
 
   var lm = 0;
@@ -279,7 +283,7 @@ _f4u$t.make_checkbox = function(dct, hash) {
 
   /* make faust ui objects */
   var checkbox = new _f4u$t.CheckBox(options);
-  var label = new _f4u$t.Label({label : dct["label"], id : id+"_label", mom : null});
+  var label = new _f4u$t.Label({label : _f4u$t.check_label(dct["label"]), id : id+"_label", mom : null});
 
   var lm = new _f4u$t.LayoutManager(lm_options);
   lm.objs.push(checkbox);
@@ -318,7 +322,7 @@ _f4u$t.make_nentry = function(dct, hash) {
   lm_options.stretchable = [false, false];
 
   /* make faust ui objects */
-  var label = new _f4u$t.Label({label : dct["label"], id : id+"_label", mom : null});
+  var label = new _f4u$t.Label({label : _f4u$t.check_label(dct["label"]), id : id+"_label", mom : null});
   var vbox = new _f4u$t.ValueBox(vbox_options);
 
   var lm = new _f4u$t.LayoutManager(lm_options);
@@ -384,7 +388,7 @@ _f4u$t.make_group = function(axis, dct, hash) {
     }
   }
 
-  var label = new _f4u$t.Label({label : dct["label"], id : id+"_label", mom : null});
+  var label = new _f4u$t.Label({label : _f4u$t.check_label(dct["label"]), id : id+"_label", mom : null});
 
   var options = $.extend(true, {}, _f4u$t.vgroup_inits);
   // needed for tab group
