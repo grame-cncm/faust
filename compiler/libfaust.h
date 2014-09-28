@@ -86,7 +86,7 @@ EXPORT llvm::Module* load_single_module(const std::string filename, llvm::LLVMCo
 
 EXPORT bool link_modules(llvm::Module* dst, llvm::Module* src, char* error_message);
 
-EXPORT std::string generateSha1(const std::string& dsp_content);
+EXPORT std::string generateSHA1(const std::string& dsp_content);
 
 EXPORT std::string path_to_content(const std::string& path);
 

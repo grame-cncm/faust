@@ -344,7 +344,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     stringstream ss;
     ss << port_server;
     
-    string sha_key = generateSha1(dsp_content + " " + ss.str() + " " + ip_server); 
+    string sha_key = generateSHA1(dsp_content + " " + ss.str() + " " + ip_server); 
     FactoryTableIt it;
     
     vector<pair<string, string> > factories_list;

@@ -377,7 +377,7 @@ void deleteDSPInstance(llvm_dsp* dsp);
  *
  * @return the computed SHA1 key.
  */ 
-std::string generateSha1(const std::string& data);
+std::string generateSHA1(const std::string& data);
 
 /*!
  @}

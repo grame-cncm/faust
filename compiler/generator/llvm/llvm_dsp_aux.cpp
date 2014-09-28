@@ -952,7 +952,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     }
     */
     
-    string sha_key = generateSha1(reorganize_compilation_options(argc, argv) + dsp_content);
+    string sha_key = generateSHA1(reorganize_compilation_options(argc, argv) + dsp_content);
     FactoryTableIt it;
     llvm_dsp_factory* factory = 0;
     
@@ -1030,7 +1030,7 @@ EXPORT void deleteAllDSPFactories()
 
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
-    string sha_key = generateSha1(buffer->getBuffer().str());
+    string sha_key = generateSHA1(buffer->getBuffer().str());
     FactoryTableIt it;
     
     if (getFactory(sha_key, it)) {
@@ -1085,7 +1085,7 @@ EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
-    string sha_key = generateSha1(buffer->getBuffer().str());
+    string sha_key = generateSHA1(buffer->getBuffer().str());
     FactoryTableIt it;
     
     if (getFactory(sha_key, it)) {
@@ -1149,7 +1149,7 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
     
 static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
 {
-    string sha_key = generateSha1(buffer->getBuffer().str());
+    string sha_key = generateSHA1(buffer->getBuffer().str());
     FactoryTableIt it;
     
     if (getFactory(sha_key, it)) {
@@ -1479,9 +1479,9 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
     }
 }
 
-EXPORT void generateCSha1(const char* data, char* key)
+EXPORT void generateCSHA1(const char* data, char* key)
 {
-    string res = generateSha1(data);
+    string res = generateSHA1(data);
     strncpy(key, res.c_str(), 20);
 }
 
