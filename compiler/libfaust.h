@@ -43,6 +43,9 @@ typedef struct LLVMResult {
     
 } LLVMResult;
 
+
+#define LVVM_BACKEND_NAME "Faust LLVM backend"
+
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
 */

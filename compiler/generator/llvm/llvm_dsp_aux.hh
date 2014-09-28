@@ -63,6 +63,8 @@ class llvm_dsp_factory : public smartable {
     friend class llvm_dsp_aux;
 
     private:
+    
+        int getOptlevel();
 
         ExecutionEngine* fJIT;
     //#if defined(LLVM_34) || defined(LLVM_35)

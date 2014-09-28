@@ -149,7 +149,7 @@ std::vector<std::string> getAllDSPFactories();
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a LLVM bitcode string.
@@ -169,7 +169,7 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  */
-llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a LLVM bitcode file.
@@ -191,7 +191,7 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) string.
@@ -213,7 +213,7 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
  *
  * @return the Faust DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) file.

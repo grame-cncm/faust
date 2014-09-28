@@ -180,7 +180,7 @@ void faustgen_factory::free_dsp_factory()
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     string decoded_bitcode = base64_decode(*fBitCode, fBitCodeSize);
-    return readDSPFactoryFromBitcode(decoded_bitcode, getTarget());
+    return readDSPFactoryFromBitcode(decoded_bitcode, getTarget(), LLVM_OPTIMIZATION);
     
     /*
     // Alternate model using machine code
@@ -189,7 +189,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
     
     /*
     // Alternate model using LLVM IR
-    return readDSPFactoryFromIR(*fBitCode, getTarget());
+    return readDSPFactoryFromIR(*fBitCode, getTarget(), LLVM_OPTIMIZATION);
     */
 }
 

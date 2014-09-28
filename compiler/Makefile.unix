@@ -538,12 +538,12 @@ draw/device/PSDev.o: draw/device/PSDev.h draw/device/device.h garbageable.hh tli
 draw/device/PSDev.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 draw/device/PSDev.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
 draw/device/PSDev.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
-draw/device/PSDev.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
+draw/device/PSDev.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh errors/exception.hh
 draw/device/SVGDev.o: draw/device/SVGDev.h draw/device/device.h garbageable.hh global.hh parser/sourcereader.hh
 draw/device/SVGDev.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/device/SVGDev.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh
 draw/device/SVGDev.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-draw/device/SVGDev.o: evaluate/loopDetector.hh tlib/occurrences.hh
+draw/device/SVGDev.o: evaluate/loopDetector.hh tlib/occurrences.hh errors/exception.hh
 draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h garbageable.hh
 draw/schema/collector.o: draw/schema/schema.h draw/device/device.h garbageable.hh
@@ -570,7 +570,7 @@ generator/asmjs/asmjs_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh 
 generator/asmjs/asmjs_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
 generator/asmjs/asmjs_code_container.o: generator/asmjs/asmjs_instructions.hh generator/text_instructions.hh
 generator/asmjs/asmjs_code_container.o: generator/type_manager.hh generator/typing_instructions.hh errors/exception.hh
-generator/asmjs/asmjs_code_container.o: generator/json_instructions.hh ../architecture/faust/gui/JSONUI.h
+generator/asmjs/asmjs_code_container.o: generator/json_instructions.hh
 generator/asmjs/asmjs_dsp_aux.o: tlib/compatibility.hh generator/asmjs/asmjs_dsp_aux.hh export.hh
 generator/asmjs/asmjs_dsp_aux.o: generator/smartpointer.h libfaust.h
 generator/c/c_code_container.o: generator/c/c_code_container.hh generator/code_container.hh generator/instructions.hh

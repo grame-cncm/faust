@@ -59,7 +59,6 @@
 #include <llvm/Support/IRReader.h>
 #endif
 
-
 /* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
  * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
  * 3.3.
@@ -94,7 +93,8 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
 
-#if defined(LLVM_34) || defined(LLVM_35)
+//#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_35)
 #include "llvm/ExecutionEngine/ObjectCache.h"
 #endif
 
@@ -236,9 +236,7 @@ string llvm_dsp_factory::writeDSPFactoryToBitcode()
 void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
     string err;
-    
     raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
-    
     WriteBitcodeToFile(fResult->fModule, out);
 }
 
@@ -298,7 +296,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
     // Creates module and context
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fContext = new LLVMContext();
-    fResult->fModule = new Module("Faust LLVM backend", *fResult->fContext);
+    fResult->fModule = new Module(LVVM_BACKEND_NAME, *fResult->fContext);
 }
 #endif
 
@@ -389,6 +387,21 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
+int llvm_dsp_factory::getOptlevel()
+{
+    NamedMDNode* meta_data = fResult->fModule->getOrInsertNamedMetadata("OptLevel");
+    if (meta_data->getNumOperands() > 0) {
+        MDNode* node = meta_data->getOperand(0);
+        return (node) ? atoi(static_cast<MDString*>(node->getOperand(0))->getString().data()) : -1;
+    } else {
+        char opt_level[32];
+        sprintf(opt_level, "%d", fOptLevel);
+        Value* values[] = { MDString::get(fResult->fModule->getContext(), opt_level) };
+        meta_data->addOperand(MDNode::get(fResult->fModule->getContext(), values));
+        return -1;
+    }
+}
+
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
@@ -419,7 +432,7 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
         Builder.Inliner = createAlwaysInlinerPass();
     }
       
-    Builder.DisableUnrollLoops = OptLevel == 0;
+    Builder.DisableUnrollLoops = (OptLevel == 0);
 #if defined(LLVM_33)   
     Builder.DisableSimplifyLibCalls = false;
 #endif
@@ -452,7 +465,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     // Restoring from machine code
 //#if defined(LLVM_34) || defined(LLVM_35)
 #if defined(LLVM_35)
-      if (fObjectCache) {
+    if (fObjectCache) {
     
         // JIT
         EngineBuilder builder(fResult->fModule);
@@ -485,8 +498,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
-        
-        string err;
           
         if (fTarget != "") {
             fResult->fModule->setTargetTriple(fTarget);
@@ -520,52 +531,64 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         builder.setTargetOptions(targetOptions);
         TargetMachine* tm = builder.selectTarget();
         
-        PassManager pm;
-        FunctionPassManager fpm(fResult->fModule);
-      
-        // Add an appropriate TargetLibraryInfo pass for the module's triple.
-        TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
-        pm.add(tli);
-        
-        const string &ModuleDataLayout = fResult->fModule->getDataLayout();
-        DataLayout* td = new DataLayout(ModuleDataLayout);
-        pm.add(td);
-      
-        // Add internal analysis passes from the target machine (mandatory for vectorization to work)
-        tm->addAnalysisPasses(pm);
-        
-        if (fOptLevel > 0) {
-            AddOptimizationPasses(pm, fpm, fOptLevel, 0);
-        }
-        
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-            fResult->fModule->dump();
-        }
-       
-        fpm.doInitialization();
-        for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
-            fpm.run(*F);
-        }
-        fpm.doFinalization();
-        
-        pm.add(createVerifierPass());
-        
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-            tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
-        }
-        
-        // Now that we have all of the passes ready, run them.
-        pm.run(*fResult->fModule);
-        
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-            fResult->fModule->dump();
-        }
-        
         fJIT = builder.create(tm);
         if (!fJIT) {
             endTiming("initJIT");
             return false;
         }
+        
+        int optlevel = getOptlevel();
+        
+        if ((optlevel == -1) || (fOptLevel > optlevel)) {
+            PassManager pm;
+            FunctionPassManager fpm(fResult->fModule);
+          
+            // Add an appropriate TargetLibraryInfo pass for the module's triple.
+            TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
+            pm.add(tli);
+            
+            const string &ModuleDataLayout = fResult->fModule->getDataLayout();
+            DataLayout* td = new DataLayout(ModuleDataLayout);
+            pm.add(td);
+          
+            // Add internal analysis passes from the target machine (mandatory for vectorization to work)
+            tm->addAnalysisPasses(pm);
+            
+            if (fOptLevel > 0) {
+                AddOptimizationPasses(pm, fpm, fOptLevel, 0);
+            }
+            
+            if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+                fResult->fModule->dump();
+            }
+           
+            fpm.doInitialization();
+            for (Module::iterator F = fResult->fModule->begin(), E = fResult->fModule->end(); F != E; ++F) {
+                fpm.run(*F);
+            }
+            fpm.doFinalization();
+            
+            pm.add(createVerifierPass());
+            
+            if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
+                tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
+            }
+            
+            // Now that we have all of the passes ready, run them.
+            pm.run(*fResult->fModule);
+            
+            if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+                fResult->fModule->dump();
+            }
+        }
+        
+        /*
+        fJIT = builder.create(tm);
+        if (!fJIT) {
+            endTiming("initJIT");
+            return false;
+        }
+        */
         
     //#if defined(LLVM_34) || defined(LLVM_35)
     #if defined(LLVM_35)
@@ -621,7 +644,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     #endif
     }
 
-    string err;
     EngineBuilder builder(fResult->fModule);
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
@@ -640,65 +662,69 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
-    
     fJIT->DisableLazyCompilation(true);
+    
 #if defined(LLVM_32) 
     fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
 #else
     fResult->fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
 #endif
-    
-    // Set up the optimizer pipeline. Start with registering info about how the
-    // target lays out data structures.
-    PassManager pm;
-    FunctionPassManager fpm(fResult->fModule);
-#if defined(LLVM_32)    
-    // TODO
-#else
-    pm.add(new TargetData(*fJIT->getTargetData()));
-    fpm.add(new TargetData(*fJIT->getTargetData()));
-#endif
 
-    // Taken from LLVM Opt.cpp
-    PassManagerBuilder Builder;
-    Builder.OptLevel = fOptLevel;
-
-    if (fOptLevel > 1) {
-        unsigned threshold = 225;
-        if (fOptLevel > 2) {
-            threshold = 275;
-        }
-        Builder.Inliner = createFunctionInliningPass(threshold);
-    } else {
-        Builder.Inliner = createAlwaysInlinerPass();
-    }
+    int optlevel = getOptlevel();
     
-    // We use '4' to activate the auto-vectorizer
-    if (fOptLevel > 3) {
-    
-    #if defined(LLVM_32) 
-        Builder.LoopVectorize = true;
-        //Builder.Vectorize = true;
-    #elif defined(LLVM_31)
-        Builder.Vectorize = true;
+    if ((optlevel == -1) || (fOptLevel > optlevel)) {
+        // Set up the optimizer pipeline. Start with registering info about how the
+        // target lays out data structures.
+        PassManager pm;
+        FunctionPassManager fpm(fResult->fModule);
+    #if defined(LLVM_32)    
+        // TODO
+    #else
+        pm.add(new TargetData(*fJIT->getTargetData()));
+        fpm.add(new TargetData(*fJIT->getTargetData()));
     #endif
-    }
-      
-    Builder.DisableUnrollLoops = (fOptLevel == 0);
-    Builder.populateFunctionPassManager(fpm);
-    Builder.populateModulePassManager(pm);
-    
-    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-        fResult->fModule->dump();
-    }
-    
-    // Now that we have all of the passes ready, run them.
-    pm.run(*fResult->fModule);
-    
-    if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-        fResult->fModule->dump();
+
+        // Taken from LLVM Opt.cpp
+        PassManagerBuilder Builder;
+        Builder.OptLevel = fOptLevel;
+
+        if (fOptLevel > 1) {
+            unsigned threshold = 225;
+            if (fOptLevel > 2) {
+                threshold = 275;
+            }
+            Builder.Inliner = createFunctionInliningPass(threshold);
+        } else {
+            Builder.Inliner = createAlwaysInlinerPass();
+        }
+        
+        // We use '4' to activate the auto-vectorizer
+        if (fOptLevel > 3) {
+        
+        #if defined(LLVM_32) 
+            Builder.LoopVectorize = true;
+            //Builder.Vectorize = true;
+        #elif defined(LLVM_31)
+            Builder.Vectorize = true;
+        #endif
+        }
+          
+        Builder.DisableUnrollLoops = (fOptLevel == 0);
+        Builder.populateFunctionPassManager(fpm);
+        Builder.populateModulePassManager(pm);
+        
+        string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+            fResult->fModule->dump();
+        }
+        
+        // Now that we have all of the passes ready, run them.
+        pm.run(*fResult->fModule);
+        
+        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
+            fResult->fModule->dump();
+        }
     }
      
     try {

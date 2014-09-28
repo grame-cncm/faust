@@ -238,9 +238,8 @@ void Description::addGroup(int level, Tree t)
 
 	if (isUiFolder(t, label, elements)) {
 
-		const int	orient = tree2int(left(label));
-		const char* str = tree2str(right(label));
-
+		const int orient = tree2int(left(label));
+	
 		addLayoutLine(level, subst("<group type=\"$0\">", groupnames[orient]));
         addLayoutLine(level+1, subst("<label>$0</label>", checkNullLabel(t, xmlize(tree2str(right(label))), false) ));
         while (!isNil(elements)) {
