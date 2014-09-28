@@ -585,14 +585,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             }
         }
         
-        /*
-        fJIT = builder.create(tm);
-        if (!fJIT) {
-            endTiming("initJIT");
-            return false;
-        }
-        */
-        
     #if defined(LLVM_34) || defined(LLVM_35)
     //#if defined(LLVM_35)
         fObjectCache = new FaustObjectCache();
@@ -650,8 +642,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     EngineBuilder builder(fResult->fModule);
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
-    // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
-    //builder.setUseMCJIT(true);
     builder.setUseMCJIT(false);
     builder.setMCPU(llvm::sys::getHostCPUName());
        
