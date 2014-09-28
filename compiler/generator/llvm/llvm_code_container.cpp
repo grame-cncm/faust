@@ -417,7 +417,7 @@ void LLVMCodeContainer::generateInitFun()
     assert(llvm_classInit);
     CallInst* call_inst1 = CREATE_CALL1(llvm_classInit, params1, "", return_block2);
     call_inst1->setCallingConv(CallingConv::C);
-
+  
     vector<Value*> params2;
     params2.push_back(arg1);
     params2.push_back(arg2);

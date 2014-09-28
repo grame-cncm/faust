@@ -175,19 +175,20 @@ int main(int argc, char *argv[])
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         factory4 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         
-        
+        /*
         for (int i = 0; i < 10; i++) {
             std::string machine_code = writeDSPFactoryToMachine(factory3);
             printf("writeDSPFactoryToMachine %d\n", i);
             factory3 = readDSPFactoryFromMachine(machine_code);
         }
-        /*
+        */
+        
         for (int i = 0; i < 10; i++) {
             writeDSPFactoryToMachineFile(factory3, "/Users/letz/machinecode");
             printf("writeDSPFactoryToMachineFile %d\n", i);
             factory3 = readDSPFactoryFromMachineFile("/Users/letz/machinecode");
         }
-        */
+        
         
         if (factory3) {
             DSP = createDSPInstance(factory3);

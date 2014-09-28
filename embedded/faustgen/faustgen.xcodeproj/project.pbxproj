@@ -369,9 +369,10 @@
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
-					/opt/local/lib/libcrypto.a,
 					"-Wl,-U,_object_method_imp",
 					"-Wl,-U,_object_new_imp",
+					/opt/local/lib/libcrypto.a,
+					"-lncurses",
 					"-lfaust",
 					"-lLLVMInstrumentation",
 					"-lLLVMIRReader",
@@ -471,7 +472,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.93b;
+				PRODUCT_VERSION = 0.96b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -534,6 +535,7 @@
 					"-Wl,-U,_object_new_imp",
 					"-Wl,-U,_object_method_imp",
 					/opt/local/lib/libcrypto.a,
+					"-lncurses",
 					"-lfaust",
 					"-lLLVMInstrumentation",
 					"-lLLVMIRReader",
@@ -633,7 +635,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.93b;
+				PRODUCT_VERSION = 0.96b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -778,7 +780,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.93b;
+				PRODUCT_VERSION = 0.96b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -926,7 +928,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.93b;
+				PRODUCT_VERSION = 0.96b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
