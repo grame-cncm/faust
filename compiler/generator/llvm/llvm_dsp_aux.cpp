@@ -462,6 +462,9 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
     
+    // For ObjectCache to work...
+    LLVMLinkInMCJIT();
+    
     // Restoring from machine code
 //#if defined(LLVM_34) || defined(LLVM_35)
 #if defined(LLVM_35)
