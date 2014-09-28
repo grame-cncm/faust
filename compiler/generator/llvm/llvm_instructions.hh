@@ -378,6 +378,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             Value* ptr_size = GetElementPtrInst::Create(ConstantPointerNull::get(dsp_type_ptr), genInt64(fModule, 1), "ptr_size", entry_func_llvm_create_dsp);
             CastInst* size_inst = new PtrToIntInst(ptr_size, fBuilder->getInt64Ty(), "size", entry_func_llvm_create_dsp);
             CallInst* call_inst1 = CallInst::Create(func_malloc, size_inst, "", entry_func_llvm_create_dsp);
+
             call_inst1->setCallingConv(CallingConv::C);
             CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
             // Only for global object
@@ -915,7 +916,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
-                GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::PrivateLinkage, 0, str);
+                GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::InternalLinkage, 0, str);
             #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
                 gvar_array_string0->setInitializer(ConstantDataArray::getString(fModule->getContext(), str, true));
             #else
@@ -1213,7 +1214,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 
             } else if (inst->fAddress->getAccess() & Address::kGlobal || inst->fAddress->getAccess() & Address::kStaticStruct) {
                 if (!fModule->getGlobalVariable(name, true)) {
-                    GlobalVariable* global_var = new GlobalVariable(*fModule, convertFIRType(fModule, inst->fType), false, GlobalValue::PrivateLinkage, 0, name);
+                    GlobalVariable* global_var = new GlobalVariable(*fModule, convertFIRType(fModule, inst->fType), false, GlobalValue::InternalLinkage, 0, name);
 
                     // Declaration with a value
                     if (inst->fValue) {
