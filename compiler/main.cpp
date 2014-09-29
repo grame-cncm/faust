@@ -194,6 +194,13 @@ static string makeDrawPathNoExt()
     }
 }
 
+#ifdef WIN32
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#ifndef __MINGW32__
+#define PATH_MAX _MAX_PATH
+#endif
+#endif
+
 bool process_cmdline(int argc, char* argv[])
 {
 	int	i=1; int err=0;

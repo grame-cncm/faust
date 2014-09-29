@@ -54,20 +54,7 @@ int main(int argc, char *argv[])
     }
      
     snd_info.format = 0;
-#ifndef _WIN32
     soundfile = sf_open(argv[1], SFM_READ, &snd_info);
-#else
-	printf("ARGV 1 = %s\n", argv[1]);
-	char *dir = new char[_MAX_DIR];
-	char* ext = new char[_MAX_EXT];
-	_splitpath(argv[1], NULL, dir, base_name, ext);
-	string fullPath(dir);
-	fullPath += "\\";
-	fullPath += base_name;
-	fullPath += ext;
-	printf("FullPath = %s\n", fullPath.c_str());
-	soundfile = sf_open(fullPath.c_str(), SFM_READ, &snd_info);
-#endif
     
     if (soundfile == NULL) { 
         printf("soundfile '%s' cannot be opened\n", base_name);

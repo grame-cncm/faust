@@ -15,6 +15,11 @@ else
 ARCHFLAGS 	:= 
 endif
 
+## On Windows (mingw32) we must link against the socket library.
+ifneq ($(findstring MINGW32, $(system)),)
+LIBS = -lwsock32
+endif
+
 CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -22,7 +27,7 @@ CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"
 all : faust
 
 faust : $(objects)
-	$(CXX) $(CXXFLAGS) $(objects) -o faust
+	$(CXX) $(CXXFLAGS) $(objects) -o faust $(LIBS)
 
 
 .PHONY: clean depend ctags parser

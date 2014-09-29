@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include <errno.h>
 
 using namespace std;

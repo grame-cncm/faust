@@ -446,34 +446,6 @@ static void buildFullPathname(string& fullpath, const char* filename)
  *  place its full pathname in the string <fullpath>
  */
 
-#ifdef WIN32
-FILE* fopensearch(const char* filename, string& fullpath)
-{   
-    FILE* f;
-    char* envpath;
-
-    if ((f = fopen(filename, "r"))) { 
-    	buildFullPathname(fullpath, filename); 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
-    	return f;
-    }
-    if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {
-        return f;
-    }
-    if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gFaustSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gFaustSuperSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    return 0;
-}
-#else
 FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
@@ -527,7 +499,6 @@ FILE* fopensearch(const char* filename, string& fullpath)
     }
     return 0;
 }
-#endif
 
 
 /** 

@@ -25,18 +25,14 @@
 
 
 #ifdef WIN32
-#if !defined(INT) & !defined(FLOAT)
 #include <windows.h>
-#else
-#include <io.h>
-#endif
 #include <time.h>
 #include <assert.h>
 
 #undef min
 #undef max
 
-#define int64_t __int64
+//#define int64_t __int64
 #define YY_NO_UNISTD_H 1
 
 struct timezone 
@@ -47,15 +43,15 @@ struct timezone
 
 #define alarm(x)
 #define strdup _strdup
-#define isatty _isatty
-#define fileno _fileno
 #define snprintf _snprintf
+extern "C" {
 double  rint(double nr);
 int		gettimeofday(struct timeval *tv, struct timezone *tz);
-bool	chdir(const char* path);
+int chdir(const char *path);
 int		mkdir(const char* path, unsigned int attribute);
-char*	getcwd(char* str, unsigned int size);
+char*	getcwd(char* str, int size);
 int		isatty(int file);
+}
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
 
