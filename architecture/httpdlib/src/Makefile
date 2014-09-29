@@ -11,11 +11,36 @@ system	?= $(shell uname -s)
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 LIB_EXT = dylib
+# Darwin/OS X: default installation name prefix for the dynamic library. This
+# defaults to the installation prefix (a fixed path) if we have one, but
+# depending on usage (plugin or executable) you may want to keep it empty or
+# use some generic prefix such as @loader_path/ instead (see below).
+ifneq ($(PREFIX),)
+INSTALL_PREFIX = $(PREFIX)/lib/faust/
+endif
+ifneq ($(INSTALL_PREFIX),)
+INSTALL_NAME = -install_name "$(INSTALL_PREFIX)libHTTPDFaust.dylib"
+endif
 else
 ARCHFLAGS := 
 CXXFLAGS += -fPIC
 LIB_EXT = so
 endif
+
+# Here are some useful alternative options for the installation name prefix
+# (cf., e.g., https://wincent.com/wiki/@executable_path,_@load_path_and_@rpath):
+
+# @executable_path: Useful if the dylib is distributed with an application
+# (add path relative to the main executable if needed):
+#INSTALL_PREFIX = @executable_path/
+
+# @loader_path (OS X 10.4+): Useful if the dylib is distributed with a plugin
+# (add path relative to the plugin if needed):
+#INSTALL_PREFIX = @loader_path/
+
+# @rpath (OS X 10.5+): Useful if the dylib is distributed with an application
+# which has an rpath coded into it:
+#INSTALL_PREFIX = @rpath/
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -30,7 +55,7 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	ranlib $@
 
 ../libHTTPDFaust.dylib :  $(objects)
-	c++ -dynamiclib $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
+	c++ -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
 	gcc -shared -fPIC -o $@ $(objects)

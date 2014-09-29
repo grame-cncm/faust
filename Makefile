@@ -25,7 +25,7 @@ all :
 	$(MAKE) -C architecture/osclib
 
 dynamic :
-	$(MAKE) -C architecture/httpdlib/src dynamic
+	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
 	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
 httpd :
