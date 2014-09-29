@@ -6,6 +6,30 @@ VPATH = $(subprojects)
 
 system	?= $(shell uname -s)
 
+# Darwin/OS X: default installation name prefix for the dynamic library. This
+# defaults to the installation prefix (a fixed path) if we have one, but
+# depending on usage (plugin or executable) you may want to keep it empty or
+# use some generic prefix such as @loader_path/ instead (see below).
+
+ifneq ($(PREFIX),)
+INSTALL_PREFIX = $(PREFIX)/lib/faust/
+endif
+
+# Here are some useful alternative options for the installation name prefix
+# (cf., e.g., https://wincent.com/wiki/@executable_path,_@load_path_and_@rpath):
+
+# @executable_path: Useful if the dylib is distributed with an application
+# (add path relative to the main executable if needed):
+#INSTALL_PREFIX = @executable_path/
+
+# @loader_path (OS X 10.4+): Useful if the dylib is distributed with a plugin
+# (add path relative to the plugin if needed):
+#INSTALL_PREFIX = @loader_path/
+
+# @rpath (OS X 10.5+): Useful if the dylib is distributed with an application
+# which has an rpath coded into it:
+#INSTALL_PREFIX = @rpath/
+
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
@@ -16,6 +40,10 @@ endif
 ifeq ($(MODE), SHARED)
 ifeq ($(system), Darwin)
 TARGET=libOSCFaust.$(VERSION).dylib
+SONAME=libOSCFaust.$(SOVERSION).dylib
+ifneq ($(INSTALL_PREFIX),)
+INSTALL_NAME = -install_name "$(INSTALL_PREFIX)$(SONAME)"
+endif
 else
 TARGET=libOSCFaust.so.$(VERSION)
 SONAME=libOSCFaust.so.$(SOVERSION)
@@ -31,7 +59,7 @@ CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(sub
 all : $(TARGET)
 
 libOSCFaust.$(VERSION).dylib : $(objects)
-	c++ -dynamiclib $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
+	c++ -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.so.$(VERSION) : $(objects)
 	c++ -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
