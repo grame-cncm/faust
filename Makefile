@@ -36,7 +36,7 @@ dynamic :
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
 	$(MAKE) -C architecture/osclib dynamic
 	$(MAKE) -C architecture/httpdlib/src dynamic
-	$(MAKE) -C architecture/osclib dynamic
+	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
