@@ -5,11 +5,20 @@
 %{
 #include "tree.hh"
 #include "faustparser.hpp"
+#if defined(WIN32) && !defined(__MINGW32__)
+// We don't want to include compatibility.hh here, since it pulls in whole lot
+// of unneeded stuff which breaks other things, so here's some stuff to make
+// MSVC happy.
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+#define YY_NO_UNISTD_H
+#else
 #include "compatibility.hh"
 #include "errormsg.hh"
 
 #define YY_FATAL_ERROR lexerror
-
+#endif
 %}
 
 DIGIT    [0-9]

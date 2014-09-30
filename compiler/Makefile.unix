@@ -28,10 +28,19 @@ else
     LIBFLAGS	:= --mode=link --tag=CXX
     LLVM_CONFIG = $(word 1,$(wildcard /usr/bin/llvm-config*))
     LIB_EXT     = so
-endif
+endif 
 
 LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles)
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
+
+## On Windows (mingw32) we must link against the socket library.
+ifneq ($(findstring MINGW32, $(system)),)
+LIBS = -lwsock32
+endif
+
+CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
+##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
+CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 ifeq ($(system), Darwin)
     LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++

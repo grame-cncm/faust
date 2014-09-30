@@ -795,15 +795,24 @@ char *yytext;
 #line 6 "parser/faustlexer.l"
 #include "tree.hh"
 #include "faustparser.hpp"
+#if defined(WIN32) && !defined(__MINGW32__)
+// We don't want to include compatibility.hh here, since it pulls in whole lot
+// of unneeded stuff which breaks other things, so here's some stuff to make
+// MSVC happy.
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+#define YY_NO_UNISTD_H
+#else
 #include "compatibility.hh"
 #include "errormsg.hh"
 
 #define YY_FATAL_ERROR lexerror
+#endif
 
 
 
-
-#line 807 "parser/faustlexer.cpp"
+#line 816 "parser/faustlexer.cpp"
 
 #define INITIAL 0
 #define comment 1
@@ -986,11 +995,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 30 "parser/faustlexer.l"
+#line 39 "parser/faustlexer.l"
 
 
 
-#line 994 "parser/faustlexer.cpp"
+#line 1003 "parser/faustlexer.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -1085,732 +1094,732 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 33 "parser/faustlexer.l"
+#line 42 "parser/faustlexer.l"
 BEGIN(comment);
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 34 "parser/faustlexer.l"
+#line 43 "parser/faustlexer.l"
 /* eat anything that's not a '*' 		*/
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 35 "parser/faustlexer.l"
+#line 44 "parser/faustlexer.l"
 /* eat up '*'s not followed by '/'s 	*/
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 36 "parser/faustlexer.l"
+#line 45 "parser/faustlexer.l"
 /* no need to increment yylineno here 	*/
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 37 "parser/faustlexer.l"
+#line 46 "parser/faustlexer.l"
 /* no need to increment yylineno here 	*/
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 38 "parser/faustlexer.l"
+#line 47 "parser/faustlexer.l"
 /* no need to increment yylineno here 	*/
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 39 "parser/faustlexer.l"
+#line 48 "parser/faustlexer.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 41 "parser/faustlexer.l"
+#line 50 "parser/faustlexer.l"
 { BEGIN(doc); return BDOC; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 42 "parser/faustlexer.l"
+#line 51 "parser/faustlexer.l"
 return DOCCHAR; /* char by char, may be slow ?? */
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 43 "parser/faustlexer.l"
+#line 52 "parser/faustlexer.l"
 return DOCCHAR; /* keep newline chars */
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 44 "parser/faustlexer.l"
+#line 53 "parser/faustlexer.l"
 return NOTICE;  /* autoclosing tag */
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 45 "parser/faustlexer.l"
+#line 54 "parser/faustlexer.l"
 return NOTICE;  /* autoclosing tag */
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 46 "parser/faustlexer.l"
+#line 55 "parser/faustlexer.l"
 { BEGIN(lst);		return BLST; } /* autoclosing tag */
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 47 "parser/faustlexer.l"
+#line 56 "parser/faustlexer.l"
 { BEGIN(INITIAL); 	return BEQN; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 48 "parser/faustlexer.l"
+#line 57 "parser/faustlexer.l"
 { BEGIN(doc); 		return EEQN; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 49 "parser/faustlexer.l"
+#line 58 "parser/faustlexer.l"
 { BEGIN(INITIAL); 	return BDGM; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 50 "parser/faustlexer.l"
+#line 59 "parser/faustlexer.l"
 { BEGIN(doc); 		return EDGM; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 51 "parser/faustlexer.l"
+#line 60 "parser/faustlexer.l"
 { BEGIN(INITIAL); 	return BMETADATA; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 52 "parser/faustlexer.l"
+#line 61 "parser/faustlexer.l"
 { BEGIN(doc); 		return EMETADATA; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 53 "parser/faustlexer.l"
+#line 62 "parser/faustlexer.l"
 { BEGIN(INITIAL); 	return EDOC; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 55 "parser/faustlexer.l"
+#line 64 "parser/faustlexer.l"
 return LSTTRUE;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 56 "parser/faustlexer.l"
+#line 65 "parser/faustlexer.l"
 return LSTFALSE;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 57 "parser/faustlexer.l"
+#line 66 "parser/faustlexer.l"
 return LSTDEPENDENCIES;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 58 "parser/faustlexer.l"
+#line 67 "parser/faustlexer.l"
 return LSTMDOCTAGS;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 59 "parser/faustlexer.l"
+#line 68 "parser/faustlexer.l"
 return LSTDISTRIBUTED;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 60 "parser/faustlexer.l"
+#line 69 "parser/faustlexer.l"
 return LSTEQ;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 61 "parser/faustlexer.l"
+#line 70 "parser/faustlexer.l"
 return LSTQ;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 62 "parser/faustlexer.l"
+#line 71 "parser/faustlexer.l"
 { BEGIN(doc); 	return ELST; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 65 "parser/faustlexer.l"
+#line 74 "parser/faustlexer.l"
 return INT;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 67 "parser/faustlexer.l"
+#line 76 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 68 "parser/faustlexer.l"
+#line 77 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 69 "parser/faustlexer.l"
+#line 78 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 70 "parser/faustlexer.l"
+#line 79 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 71 "parser/faustlexer.l"
+#line 80 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 72 "parser/faustlexer.l"
+#line 81 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 73 "parser/faustlexer.l"
+#line 82 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 74 "parser/faustlexer.l"
+#line 83 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 75 "parser/faustlexer.l"
+#line 84 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 76 "parser/faustlexer.l"
+#line 85 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 77 "parser/faustlexer.l"
+#line 86 "parser/faustlexer.l"
 return FLOAT;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 79 "parser/faustlexer.l"
+#line 88 "parser/faustlexer.l"
 return SEQ;
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 80 "parser/faustlexer.l"
+#line 89 "parser/faustlexer.l"
 return PAR;
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 81 "parser/faustlexer.l"
+#line 90 "parser/faustlexer.l"
 return SPLIT;
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 82 "parser/faustlexer.l"
+#line 91 "parser/faustlexer.l"
 return MIX;
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 83 "parser/faustlexer.l"
+#line 92 "parser/faustlexer.l"
 return MIX;
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 84 "parser/faustlexer.l"
+#line 93 "parser/faustlexer.l"
 return REC;
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 86 "parser/faustlexer.l"
+#line 95 "parser/faustlexer.l"
 return ADD;
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 87 "parser/faustlexer.l"
+#line 96 "parser/faustlexer.l"
 return SUB;
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 88 "parser/faustlexer.l"
+#line 97 "parser/faustlexer.l"
 return MUL;
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 89 "parser/faustlexer.l"
+#line 98 "parser/faustlexer.l"
 return DIV;
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 90 "parser/faustlexer.l"
+#line 99 "parser/faustlexer.l"
 return MOD;
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 91 "parser/faustlexer.l"
+#line 100 "parser/faustlexer.l"
 return FDELAY;
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 92 "parser/faustlexer.l"
+#line 101 "parser/faustlexer.l"
 return DELAY1;
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 94 "parser/faustlexer.l"
+#line 103 "parser/faustlexer.l"
 return AND;
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 95 "parser/faustlexer.l"
+#line 104 "parser/faustlexer.l"
 return OR;
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 96 "parser/faustlexer.l"
+#line 105 "parser/faustlexer.l"
 return XOR;
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 98 "parser/faustlexer.l"
+#line 107 "parser/faustlexer.l"
 return LSH;
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 99 "parser/faustlexer.l"
+#line 108 "parser/faustlexer.l"
 return RSH;
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 101 "parser/faustlexer.l"
+#line 110 "parser/faustlexer.l"
 return LT;
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 102 "parser/faustlexer.l"
+#line 111 "parser/faustlexer.l"
 return LE;
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 103 "parser/faustlexer.l"
+#line 112 "parser/faustlexer.l"
 return GT;
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 104 "parser/faustlexer.l"
+#line 113 "parser/faustlexer.l"
 return GE;
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 105 "parser/faustlexer.l"
+#line 114 "parser/faustlexer.l"
 return EQ;
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 106 "parser/faustlexer.l"
+#line 115 "parser/faustlexer.l"
 return NE;
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 108 "parser/faustlexer.l"
+#line 117 "parser/faustlexer.l"
 return WIRE;
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 109 "parser/faustlexer.l"
+#line 118 "parser/faustlexer.l"
 return CUT;
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 111 "parser/faustlexer.l"
+#line 120 "parser/faustlexer.l"
 return ENDDEF;
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 112 "parser/faustlexer.l"
+#line 121 "parser/faustlexer.l"
 return DEF;
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 113 "parser/faustlexer.l"
+#line 122 "parser/faustlexer.l"
 return LPAR;
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 114 "parser/faustlexer.l"
+#line 123 "parser/faustlexer.l"
 return RPAR;
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 115 "parser/faustlexer.l"
+#line 124 "parser/faustlexer.l"
 return LBRAQ;
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 116 "parser/faustlexer.l"
+#line 125 "parser/faustlexer.l"
 return RBRAQ;
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 117 "parser/faustlexer.l"
+#line 126 "parser/faustlexer.l"
 return LCROC;
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 118 "parser/faustlexer.l"
+#line 127 "parser/faustlexer.l"
 return RCROC;
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 120 "parser/faustlexer.l"
+#line 129 "parser/faustlexer.l"
 return LAMBDA;
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 121 "parser/faustlexer.l"
+#line 130 "parser/faustlexer.l"
 return DOT;
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 122 "parser/faustlexer.l"
+#line 131 "parser/faustlexer.l"
 return WITH;
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 124 "parser/faustlexer.l"
+#line 133 "parser/faustlexer.l"
 return MEM;
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 125 "parser/faustlexer.l"
+#line 134 "parser/faustlexer.l"
 return PREFIX;
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 127 "parser/faustlexer.l"
+#line 136 "parser/faustlexer.l"
 return INTCAST;
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 128 "parser/faustlexer.l"
+#line 137 "parser/faustlexer.l"
 return FLOATCAST;
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 130 "parser/faustlexer.l"
+#line 139 "parser/faustlexer.l"
 return RDTBL;
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 131 "parser/faustlexer.l"
+#line 140 "parser/faustlexer.l"
 return RWTBL;
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 133 "parser/faustlexer.l"
+#line 142 "parser/faustlexer.l"
 return SELECT2;
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 134 "parser/faustlexer.l"
+#line 143 "parser/faustlexer.l"
 return SELECT3;
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 136 "parser/faustlexer.l"
+#line 145 "parser/faustlexer.l"
 return FFUNCTION; 
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 137 "parser/faustlexer.l"
+#line 146 "parser/faustlexer.l"
 return FCONSTANT; 
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 138 "parser/faustlexer.l"
+#line 147 "parser/faustlexer.l"
 return FVARIABLE; 
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 140 "parser/faustlexer.l"
+#line 149 "parser/faustlexer.l"
 return BUTTON;
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 141 "parser/faustlexer.l"
+#line 150 "parser/faustlexer.l"
 return CHECKBOX;
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 142 "parser/faustlexer.l"
+#line 151 "parser/faustlexer.l"
 return VSLIDER;
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 143 "parser/faustlexer.l"
+#line 152 "parser/faustlexer.l"
 return HSLIDER;
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 144 "parser/faustlexer.l"
+#line 153 "parser/faustlexer.l"
 return NENTRY;
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 145 "parser/faustlexer.l"
+#line 154 "parser/faustlexer.l"
 return VGROUP;
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 146 "parser/faustlexer.l"
+#line 155 "parser/faustlexer.l"
 return HGROUP;
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 147 "parser/faustlexer.l"
+#line 156 "parser/faustlexer.l"
 return TGROUP;
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 148 "parser/faustlexer.l"
+#line 157 "parser/faustlexer.l"
 return VBARGRAPH;
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 149 "parser/faustlexer.l"
+#line 158 "parser/faustlexer.l"
 return HBARGRAPH;
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 150 "parser/faustlexer.l"
+#line 159 "parser/faustlexer.l"
 return ATTACH;
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 152 "parser/faustlexer.l"
+#line 161 "parser/faustlexer.l"
 return ACOS;
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 153 "parser/faustlexer.l"
+#line 162 "parser/faustlexer.l"
 return ASIN;
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 154 "parser/faustlexer.l"
+#line 163 "parser/faustlexer.l"
 return ATAN;
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 155 "parser/faustlexer.l"
+#line 164 "parser/faustlexer.l"
 return ATAN2;
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 157 "parser/faustlexer.l"
+#line 166 "parser/faustlexer.l"
 return COS;
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 158 "parser/faustlexer.l"
+#line 167 "parser/faustlexer.l"
 return SIN;
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 159 "parser/faustlexer.l"
+#line 168 "parser/faustlexer.l"
 return TAN;
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 161 "parser/faustlexer.l"
+#line 170 "parser/faustlexer.l"
 return EXP;
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 162 "parser/faustlexer.l"
+#line 171 "parser/faustlexer.l"
 return LOG;
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 163 "parser/faustlexer.l"
+#line 172 "parser/faustlexer.l"
 return LOG10;
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 164 "parser/faustlexer.l"
+#line 173 "parser/faustlexer.l"
 return POWOP;
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 165 "parser/faustlexer.l"
+#line 174 "parser/faustlexer.l"
 return POWFUN;
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 166 "parser/faustlexer.l"
+#line 175 "parser/faustlexer.l"
 return SQRT;
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 168 "parser/faustlexer.l"
+#line 177 "parser/faustlexer.l"
 return ABS;
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 169 "parser/faustlexer.l"
+#line 178 "parser/faustlexer.l"
 return MIN;
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 170 "parser/faustlexer.l"
+#line 179 "parser/faustlexer.l"
 return MAX;
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 172 "parser/faustlexer.l"
+#line 181 "parser/faustlexer.l"
 return FMOD;
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 173 "parser/faustlexer.l"
+#line 182 "parser/faustlexer.l"
 return REMAINDER;
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 175 "parser/faustlexer.l"
+#line 184 "parser/faustlexer.l"
 return FLOOR;
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 176 "parser/faustlexer.l"
+#line 185 "parser/faustlexer.l"
 return CEIL;
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 177 "parser/faustlexer.l"
+#line 186 "parser/faustlexer.l"
 return RINT;
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 179 "parser/faustlexer.l"
+#line 188 "parser/faustlexer.l"
 return ISEQ;
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 180 "parser/faustlexer.l"
+#line 189 "parser/faustlexer.l"
 return IPAR;
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 181 "parser/faustlexer.l"
+#line 190 "parser/faustlexer.l"
 return ISUM;
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
-#line 182 "parser/faustlexer.l"
+#line 191 "parser/faustlexer.l"
 return IPROD;
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 184 "parser/faustlexer.l"
+#line 193 "parser/faustlexer.l"
 return INPUTS;
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 185 "parser/faustlexer.l"
+#line 194 "parser/faustlexer.l"
 return OUTPUTS;
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 187 "parser/faustlexer.l"
+#line 196 "parser/faustlexer.l"
 return IMPORT;
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
-#line 188 "parser/faustlexer.l"
+#line 197 "parser/faustlexer.l"
 return COMPONENT;
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 189 "parser/faustlexer.l"
+#line 198 "parser/faustlexer.l"
 return LIBRARY;
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
-#line 190 "parser/faustlexer.l"
+#line 199 "parser/faustlexer.l"
 return ENVIRONMENT;
 	YY_BREAK
 case 131:
 YY_RULE_SETUP
-#line 192 "parser/faustlexer.l"
+#line 201 "parser/faustlexer.l"
 return WAVEFORM;
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 194 "parser/faustlexer.l"
+#line 203 "parser/faustlexer.l"
 return DECLARE;
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 196 "parser/faustlexer.l"
+#line 205 "parser/faustlexer.l"
 return CASE;
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 197 "parser/faustlexer.l"
+#line 206 "parser/faustlexer.l"
 return ARROW;
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 199 "parser/faustlexer.l"
+#line 208 "parser/faustlexer.l"
 return IDENT;
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 200 "parser/faustlexer.l"
+#line 209 "parser/faustlexer.l"
 return IDENT;
 	YY_BREAK
 case 137:
 /* rule 137 can match eol */
 YY_RULE_SETUP
-#line 202 "parser/faustlexer.l"
+#line 211 "parser/faustlexer.l"
 return STRING;
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 204 "parser/faustlexer.l"
+#line 213 "parser/faustlexer.l"
 return FSTRING;
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 205 "parser/faustlexer.l"
+#line 214 "parser/faustlexer.l"
 return FSTRING;
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 208 "parser/faustlexer.l"
+#line 217 "parser/faustlexer.l"
 /* eat up one-line comments */
 	YY_BREAK
 case 141:
 /* rule 141 can match eol */
 YY_RULE_SETUP
-#line 210 "parser/faustlexer.l"
+#line 219 "parser/faustlexer.l"
 /* eat up whitespace */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(comment):
 case YY_STATE_EOF(doc):
 case YY_STATE_EOF(lst):
-#line 212 "parser/faustlexer.l"
+#line 221 "parser/faustlexer.l"
 yyterminate();
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 214 "parser/faustlexer.l"
+#line 223 "parser/faustlexer.l"
 printf("extra text is : %s\n", yytext); return EXTRA;
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-#line 217 "parser/faustlexer.l"
+#line 226 "parser/faustlexer.l"
 ECHO;
 	YY_BREAK
-#line 1814 "parser/faustlexer.cpp"
+#line 1823 "parser/faustlexer.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2773,7 +2782,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 217 "parser/faustlexer.l"
+#line 226 "parser/faustlexer.l"
 
 
 int yywrap() { return 1; }

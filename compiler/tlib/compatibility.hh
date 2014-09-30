@@ -24,14 +24,12 @@
 
 #define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35)
 
-#ifdef _WIN32
+#ifdef WIN32
+#include <windows.h>
 #include <time.h>
 #include <assert.h>
 
 #define PATH_MAX 512
-//#define PATH_MAX MAX_PATH
-
-//#define int64_t __int64
 #define YY_NO_UNISTD_H 1
 
 struct timezone 
@@ -42,15 +40,15 @@ struct timezone
 
 #define alarm(x)
 #define strdup _strdup
-#define isatty _isatty
-#define fileno _fileno
 #define snprintf _snprintf
-//double  rint(double nr);
+extern "C" {
+double  rint(double nr);
 int		gettimeofday(struct timeval *tv, struct timezone *tz);
-bool	chdir(const char* path);
+int chdir(const char *path);
 int		mkdir(const char* path, unsigned int attribute);
-char*	getcwd(char* str, unsigned int size);
+char*	getcwd(char* str, int size);
 int		isatty(int file);
+}
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
 char*   realpath(const char *path, char resolved_path[PATH_MAX]);

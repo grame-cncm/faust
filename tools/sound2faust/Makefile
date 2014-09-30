@@ -4,9 +4,16 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
+system	?= $(shell uname -s)
+
+## On Windows (mingw32) we must link against the socket library.
+ifneq ($(findstring MINGW32, $(system)),)
+LIBS = -lwsock32
+endif
+
 sound2faust : sound2faust.cpp
 
-	g++ -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags --static --libs sndfile` -o sound2faust
+	g++ -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags --static --libs sndfile` -o sound2faust $(LIBS)
 
 static:
 

@@ -50,8 +50,8 @@
 #ifndef     __NODE__
 #define     __NODE__
 
-#ifdef _WIN32
-//#define int64_t __int64
+#if defined(WIN32) && !defined(__MINGW32__)
+#define int64_t __int64
 #endif
 
 #include <iostream>

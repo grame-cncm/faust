@@ -70,8 +70,7 @@
 	int	isatty(int file){ return 0; }
 
 #if defined(_MBCS) || __MINGW32__
-#include <iostream>
-	bool chdir(const char* path)
+	int chdir(const char* path)
 	{
 		return !SetCurrentDirectory(path);
 	}
@@ -89,7 +88,7 @@
         }
 	}
 
-	char* getcwd(char* str, unsigned int size)
+	char* getcwd(char* str, int size)
 	{
 		GetCurrentDirectory(size, str);
 		return str;
