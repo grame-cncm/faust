@@ -1,0 +1,171 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to ros                      #
+#               (c) Grame, 2014                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+
+ARCHFILE="jack-ros.cpp"
+ARCHLIB="-L/usr/local/lib -ljack"
+PATH=$PATH:/usr/local/bin
+
+CUR=$(pwd)
+#-------------------------------------------------------------------------------
+# Search for qmake or qmake-qt4
+
+QMAKE=$(which qmake-qt4 || echo qmake) 
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		# we ignore -icc when compiling for QT
+		TOTO=""
+		#CXX=icpc
+		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCDEFS="DEFINES += OSCCTRL"
+		 OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
+	elif [ "$p" = "-httpd" ]; then
+		HTTPDEFS="DEFINES += HTTPCTRL"
+		HTTPLIBS="-L$FAUSTLIB -L$HTTPLIB -lHTTPDFaust -lmicrohttpd -lqrencode"
+	elif [ "$p" = "-qrcode" ]; then # requires -httpd
+		QRDEFS="DEFINES += QRCODECTRL"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+echo $FILES
+
+
+
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+	if [ $SYS_VERSION -gt 12 ]
+	then
+	    SPEC="-spec macx-clang"
+	    CLANGOPT="CONFIG+=c++11"
+	else
+	    SPEC="-spec macx-g++"
+	    CLANGOPT=""
+	fi
+    EXT=".app"
+fi
+
+
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+
+    # Create catkin workspace and packages for ROS
+
+    if [ ! -d $HOME/faust_ws ]
+    then
+    	mkdir -p $HOME/faust_ws/src
+    	cd $HOME/faust_ws/src
+	    catkin_init_workspace
+    	cd $HOME/faust_ws
+	    catkin_make
+
+	cd $HOME/faust_ws/src
+	     catkin_create_pkg faust_msgs roscpp message_runtime message_generation std_msgs
+
+	cd $HOME/faust_ws/src/faust_msgs
+            sed -i '/^#/ d' CMakeLists.txt 
+    	    sed -i '4,26 d' CMakeLists.txt
+    	    sed -i '4ifind_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)' CMakeLists.txt
+    	    sed -i '6iadd_message_files(FILES ParamFaust.msg)\' CMakeLists.txt
+    	    sed -i '8igenerate_messages(DEPENDENCIES std_msgs)' CMakeLists.txt
+    	    sed -i '10icatkin_package(CATKIN_DEPENDS message_runtime)' CMakeLists.txt
+    	    sed -i '12iinclude_directories(${catkin_INCLUDE_DIRS})' CMakeLists.txt
+    	    sed -i '13,21 d' CMakeLists.txt
+
+	cd $HOME/faust_ws/src/faust_msgs
+    	    mkdir msg
+    	cd msg
+    	    >ParamFaust.msg
+    	    echo 'string parameter' > ParamFaust.msg
+    	    echo 'float32 value' >> ParamFaust.msg
+    fi
+
+for p in $FILES; do
+
+    	f=$(basename "$p")
+     	name="${f%.dsp}"
+	echo $name
+	
+	cd $HOME/faust_ws/src
+	    if [ ! -d $HOME/faust_ws/src/$name ]
+	    then
+	    	catkin_create_pkg $name roscpp faust_msgs
+	    fi
+	
+	PACK_PATH=$HOME/faust_ws/src/$name
+	
+	cd $PACK_PATH
+	    sed -i '/^#/ d' CMakeLists.txt 
+    	    #sed -i '4iset(CMAKE_AUTOMOC ON)' CMakeLists.txt
+    	    sed -i '4iset(CMAKE_INCLUDE_CURRENT_DIR ON)' CMakeLists.txt
+    	    sed -i '5iset(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})' CMakeLists.txt
+    	    sed -i '6i\ ' CMakeLists.txt
+    	    sed -i '7i\ ' CMakeLists.txt
+    	    sed -i '8iinclude_directories(${catkin_INCLUDE_DIRS})' CMakeLists.txt
+    	    sed -i '9i\ ' CMakeLists.txt
+    	    sed -i '14,30d' CMakeLists.txt
+    	    sed -i '15iadd_executable(${PROJECT_NAME} src/${PROJECT_NAME}.cpp)' CMakeLists.txt
+	    sed -i '17itarget_link_libraries(${PROJECT_NAME} jack ${catkin_LIBRARIES} pthread)' CMakeLists.txt
+	    sed -i '18,28d' CMakeLists.txt
+	    
+    	# compile faust to c++
+    	cd $CUR
+    	echo $CUR
+    	faust -i -a $ARCHFILE -o "$PACK_PATH/src/$name.cpp" $p
+    
+done	
+
+cd $PACK_PATH/src
+
+ls
+
