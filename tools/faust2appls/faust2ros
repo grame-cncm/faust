@@ -126,7 +126,6 @@ fi
     	    mkdir msg
     	cd msg
     	    >ParamFaust.msg
-    	    echo 'string parameter' > ParamFaust.msg
     	    echo 'float32 value' >> ParamFaust.msg
     fi
 
