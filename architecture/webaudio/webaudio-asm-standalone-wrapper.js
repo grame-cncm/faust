@@ -47,8 +47,8 @@ faust.mydsp = function (context, buffer_size) {
     size = (size + 1) * 4096;
     */
  
-    // Next valid heap size for ASM code is 0x1040000 (given by Firefox), use twice of it for the DSP size itself....
-    that.HEAP = new ArrayBuffer(0x1040000*2);
+    // Next valid heap size for ASM code is 0x3000000 (given by Firefox), use twice of it for the DSP size itself....
+    that.HEAP = new ArrayBuffer(0x3000000*2);
     var buffer = that.HEAP;
     
     that.HEAP32 = new window.Int32Array(that.HEAP);
@@ -245,7 +245,7 @@ faust.mydsp = function (context, buffer_size) {
             
             // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
             for (i = 0; i < that.numIn; i++) { 
-                // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 that.HEAP32[(that.ins >> 2) + i] = that.audio_heap_inputs + ((that.buffer_size * that.sample_size) * i);
             }
      
@@ -263,7 +263,7 @@ faust.mydsp = function (context, buffer_size) {
             
             // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
             for (i = 0; i < that.numOut; i++) { 
-                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 that.HEAP32[(that.outs >> 2) + i] = that.audio_heap_outputs + ((that.buffer_size * that.sample_size) * i);
             }
           

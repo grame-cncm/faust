@@ -212,11 +212,18 @@ faust.createDSPFactory = function (code) {
         return factory;
     }
     
+    // Allocate strings on the HEAP
     var factory_name = "mydsp" + faust.factory_number++;
-    var code_ptr = allocate(intArrayFromString(code), 'i8', ALLOC_STACK);
-    var name_ptr = allocate(intArrayFromString("FaustDSP"), 'i8', ALLOC_STACK);
-    var error_msg_ptr = allocate(intArrayFromString('', false, 256), 'i8', ALLOC_STACK);
-    var factory_name_ptr = allocate(intArrayFromString(factory_name), 'i8', ALLOC_STACK);
+    var code_ptr = Module._malloc(code.length + 1);
+    var name = "FaustDSP";
+    var name_ptr = Module._malloc(name.length + 1);
+    var error_msg_ptr = Module._malloc(256);
+    var factory_name_ptr = Module._malloc(factory_name.length + 1);
+    
+    Module.writeStringToMemory(name, name_ptr);
+    Module.writeStringToMemory(code, code_ptr);
+    Module.writeStringToMemory(factory_name, factory_name_ptr);
+    
     var factory_code = Pointer_stringify(faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, factory_name_ptr, error_msg_ptr));
     faust.error_msg = Pointer_stringify(error_msg_ptr);
     if (factory_code === "") {
@@ -248,7 +255,13 @@ faust.createDSPFactory = function (code) {
     factory.sha_key = sha_key;
     faust.factory_table[sha_key] = factory;
     console.log(sha_key);
-
+    
+    /// Free strings
+    Module._free(code_ptr);
+    Module._free(name_ptr);
+    Module._free(error_msg_ptr);
+    Module._free(factory_name_ptr);
+    
     return factory;
 };
 
@@ -430,7 +443,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
              
             // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
             for (i = 0; i < that.numIn; i++) { 
-                // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
             }
 
@@ -448,7 +461,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
              
             // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
             for (i = 0; i < that.numOut; i++) { 
-                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
             }
          

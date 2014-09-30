@@ -243,7 +243,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
         
         // Assign to our array of pointer elements an array of 32bit floats, one for each channel. Currently we assume pointers are 32bits
         for (i = 0; i < that.numIn; i++) { 
-            // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+            // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
             HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
         }
         
@@ -252,7 +252,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
         
         // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
         for (i = 0; i < that.numOut; i++) { 
-            // assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+            // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
             HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
         }
         
