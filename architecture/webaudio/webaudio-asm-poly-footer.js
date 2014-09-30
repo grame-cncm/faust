@@ -83,8 +83,10 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
             that.ouputs_timer = 5;
             var i;
             for (i = 0; i < that.ouputs_items.length; i++) {
-                var pathPtr = allocate(intArrayFromString(that.ouputs_items[i]), 'i8', ALLOC_STACK);
+                var pathPtr = Module._malloc(that.ouputs_items[i].length + 1);
+                Module.writeStringToMemory(that.ouputs_items[i], pathPtr);
                 that.handler(that.ouputs_items[i], DSP_poly_getValue(that.ptr, pathPtr));
+                Module._free(pathPtr);
             }
         }
     };
@@ -160,7 +162,10 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     
     that.update = function (path, val) 
     {
-        DSP_poly_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
+        var pathPtr = Module._malloc(path.length + 1);
+        Module.writeStringToMemory(path, pathPtr);
+        DSP_poly_setValue(that.ptr, pathPtr, val);
+        Module._free(pathPtr);
     };
     
     that.json = function ()

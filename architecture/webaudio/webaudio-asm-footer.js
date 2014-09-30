@@ -59,8 +59,10 @@ faust.DSP = function (context, buffer_size) {
             that.ouputs_timer = 5;
             var i;
             for (i = 0; i < that.ouputs_items.length; i++) {
-                var pathPtr = allocate(intArrayFromString(that.ouputs_items[i]), 'i8', ALLOC_STACK);
+                var pathPtr = Module._malloc(that.ouputs_items[i].length + 1);
+                Module.writeStringToMemory(that.ouputs_items[i], pathPtr);
                 that.handler(that.ouputs_items[i], DSP_getValue(that.ptr, pathPtr));
+                Module._free(pathPtr);
             }
         }
     };
@@ -136,7 +138,10 @@ faust.DSP = function (context, buffer_size) {
     
     that.update = function (path, val) 
     {
-        DSP_setValue(that.ptr, allocate(intArrayFromString(path), 'i8', ALLOC_STACK), val);
+        var pathPtr = Module._malloc(path.length + 1);
+        Module.writeStringToMemory(path, pathPtr);
+        DSP_setValue(that.ptr, pathPtr, val);
+        Module._free(pathPtr);
     };
      
     that.json = function ()
