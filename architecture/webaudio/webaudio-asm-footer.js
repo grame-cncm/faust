@@ -32,6 +32,9 @@ faust.DSP = function (context, buffer_size) {
     that.buffer_size = buffer_size;
     that.handler = null;
     
+    // Path string
+    that.pathPtr = Module._malloc(512);
+    
     // bargraph
     that.ouputs_timer = 5;
     that.ouputs_items = [];
@@ -59,10 +62,8 @@ faust.DSP = function (context, buffer_size) {
             that.ouputs_timer = 5;
             var i;
             for (i = 0; i < that.ouputs_items.length; i++) {
-                var pathPtr = Module._malloc(that.ouputs_items[i].length + 1);
                 Module.writeStringToMemory(that.ouputs_items[i], pathPtr);
-                that.handler(that.ouputs_items[i], DSP_getValue(that.ptr, pathPtr));
-                Module._free(pathPtr);
+                that.handler(that.ouputs_items[i], DSP_getValue(that.ptr, that.pathPtr));
             }
         }
     };
@@ -99,6 +100,16 @@ faust.DSP = function (context, buffer_size) {
     that.destroy = function ()
     {
         DSP_destructor(that.ptr);
+        for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]);
+        }
+        for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i]);
+        }
+        
+        Module._free(that.ins);
+        Module._free(that.outs);
+        Module._free(that.pathPtr);
     };
     
     // Connect/disconnect to another node
@@ -138,10 +149,8 @@ faust.DSP = function (context, buffer_size) {
     
     that.update = function (path, val) 
     {
-        var pathPtr = Module._malloc(path.length + 1);
-        Module.writeStringToMemory(path, pathPtr);
-        DSP_setValue(that.ptr, pathPtr, val);
-        Module._free(pathPtr);
+        Module.writeStringToMemory(path, that.pathPtr);
+        DSP_setValue(that.ptr, that.pathPtr, val);
     };
      
     that.json = function ()
@@ -212,7 +221,7 @@ faust.DSP = function (context, buffer_size) {
         
         // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
         for (i = 0; i < that.numIn; i++) { 
-            // assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
+            // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
             HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
         }
         
