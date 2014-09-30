@@ -146,6 +146,7 @@ for p in $FILES; do
 	
 	cd $PACK_PATH
 	    sed -i '/^#/ d' CMakeLists.txt 
+    	    #sed -i '4iset(CMAKE_AUTOMOC ON)' CMakeLists.txt
     	    sed -i '4iset(CMAKE_INCLUDE_CURRENT_DIR ON)' CMakeLists.txt
     	    sed -i '5iset(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})' CMakeLists.txt
     	    sed -i '6ifind_package(PkgConfig REQUIRED)' CMakeLists.txt
