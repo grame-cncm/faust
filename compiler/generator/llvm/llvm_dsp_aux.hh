@@ -176,7 +176,7 @@ class llvm_dsp_aux : public dsp {
     
         virtual void init(int samplingFreq);
       
-        virtual void buildUserInterface(UI* interface);
+        virtual void buildUserInterface(UI* ui_interface);
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
@@ -257,7 +257,7 @@ class EXPORT llvm_dsp : public dsp {
     
         virtual void init(int samplingFreq);
       
-        virtual void buildUserInterface(UI* interface);
+        virtual void buildUserInterface(UI* ui_interface);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
@@ -326,7 +326,7 @@ EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 
-EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
+EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 

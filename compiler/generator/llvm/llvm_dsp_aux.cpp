@@ -836,10 +836,10 @@ void llvm_dsp_aux::init(int samplingFreq)
     fDSPFactory->fInit(fDSP, samplingFreq);
 }
 
-void llvm_dsp_aux::buildUserInterface(UI* interface)
+void llvm_dsp_aux::buildUserInterface(UI* ui_interface)
 {
     UIGlue glue;
-    buildUIGlue(&glue, interface);
+    buildUIGlue(&glue, ui_interface);
     fDSPFactory->fBuildUserInterface(fDSP, &glue);
 }
 
@@ -1252,9 +1252,9 @@ EXPORT void llvm_dsp::init(int samplingFreq)
     reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingFreq);
 }
 
-EXPORT void llvm_dsp::buildUserInterface(UI* interface)
+EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
-    reinterpret_cast<llvm_dsp_aux*>(this)->buildUserInterface(interface);
+    reinterpret_cast<llvm_dsp_aux*>(this)->buildUserInterface(ui_interface);
 }
 
 EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)

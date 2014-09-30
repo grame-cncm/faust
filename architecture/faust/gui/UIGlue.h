@@ -36,79 +36,79 @@ extern "C" {
 
 static void openTabBoxGlue(void* cpp_interface, const char* label)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openTabBox(label);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->openTabBox(label);
 }
 
 static void openHorizontalBoxGlue(void* cpp_interface, const char* label)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openHorizontalBox(label);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->openHorizontalBox(label);
 }
 
 static void openVerticalBoxGlue(void* cpp_interface, const char* label)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openVerticalBox(label);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->openVerticalBox(label);
 }
 
 static void closeBoxGlue(void* cpp_interface)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->closeBox();
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->closeBox();
 }
 
 static void addButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addButton(label, zone);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addButton(label, zone);
 }
 
 static void addCheckButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addCheckButton(label, zone);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addCheckButton(label, zone);
 }
 
 static void addVerticalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalSlider(label, zone, init, min, max, step);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addVerticalSlider(label, zone, init, min, max, step);
 }
 
 static void addHorizontalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalSlider(label, zone, init, min, max, step);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addHorizontalSlider(label, zone, init, min, max, step);
 }
 
 static void addNumEntryGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addNumEntry(label, zone, init, min, max, step);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addNumEntry(label, zone, init, min, max, step);
 }
 
 static void addHorizontalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalBargraph(label, zone, min, max);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addHorizontalBargraph(label, zone, min, max);
 }
 
 static void addVerticalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalBargraph(label, zone, min, max);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->addVerticalBargraph(label, zone, min, max);
 }
 
 static void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const char* value)
 {
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->declare(zone, key, value);
+    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    ui_interface->declare(zone, key, value);
 }
 
-inline void buildUIGlue(UIGlue* glue, UI* interface)
+inline void buildUIGlue(UIGlue* glue, UI* ui_interface)
 {
-    glue->uiInterface = interface;
+    glue->uiInterface = ui_interface;
     glue->openTabBox = openTabBoxGlue;
     glue->openHorizontalBox = openHorizontalBoxGlue;
     glue->openVerticalBox = openVerticalBoxGlue;
@@ -129,8 +129,8 @@ inline void buildUIGlue(UIGlue* glue, UI* interface)
 
 static void declareMetaGlue(void* cpp_interface, const char* key, const char* value)
 {
-    Meta* interface = static_cast<Meta*>(cpp_interface);
-    interface->declare(key, value);
+    Meta* ui_interface = static_cast<Meta*>(cpp_interface);
+    ui_interface->declare(key, value);
 }
 
 inline void buildMetaGlue(MetaGlue* glue, Meta* meta)
