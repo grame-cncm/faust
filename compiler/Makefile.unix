@@ -135,7 +135,7 @@ main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
 faust : $(objects) main.o libmain.o global.o 
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lpthread -o faust
 
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll

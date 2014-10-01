@@ -48,7 +48,11 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Bitcode/ReaderWriter.h>
+#ifdef LLVM_35
+#include <system_error>
+#else
 #include <llvm/Support/system_error.h>
+#endif
 #include <llvm/ADT/Triple.h>
 #include <llvm/Target/TargetLibraryInfo.h>
 #include <llvm/Support/TargetRegistry.h>
@@ -81,21 +85,29 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
-#include <llvm/Support/PassNameParser.h>
 #ifdef LLVM_35
+#include <llvm/IR/LegacyPassNameParser.h>
 #include <llvm/Linker/Linker.h>
 #else
+#include <llvm/Support/PassNameParser.h>
 #include <llvm/Linker.h>
 #endif
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
+#ifdef LLVM_35
+#include <llvm/IR/IRPrintingPasses.h>
+#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+#else
 #include <llvm/Assembly/PrintModulePass.h>
+#define llvmcreatePrintModulePass(out) createPrintModulePass(&out)
+#endif
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
 
 //#if defined(LLVM_34) || defined(LLVM_35)
 #if defined(LLVM_35)
 #include "llvm/ExecutionEngine/ObjectCache.h"
+#define OwningPtr std::unique_ptr
 #endif
 
 #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
@@ -246,7 +258,7 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
     string res;
     raw_string_ostream out(res);
     PassManager PM;
-    PM.add(createPrintModulePass(&out));
+    PM.add(llvmcreatePrintModulePass(out));
     PM.run(*fResult->fModule);
     out.flush();
     return res;
@@ -257,7 +269,7 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
     string err;
     raw_fd_ostream out(ir_code_path.c_str(), err, sysfs_binary_flag);
     PassManager PM;
-    PM.add(createPrintModulePass(&out));
+    PM.add(llvmcreatePrintModulePass(out));
     PM.run(*fResult->fModule);
     out.flush();
 }
@@ -338,9 +350,11 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
     #if defined(LLVM_34) || defined(LLVM_35)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
     #endif
+    #ifndef LLVM_35 // In LLVM 3.5 this is gone.
         if (!llvm_start_multithreaded()) {
             printf("llvm_start_multithreaded error...\n");
         }
+    #endif
     }
     
     if (opt_level >=0 && opt_level <= MAX_OPT_LEVEL) {
@@ -550,9 +564,14 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
             pm.add(tli);
             
+#ifndef LLVM_35
+	    // XXXFIXME: LLVM 3.5 doesn't support this any more. It doesn't
+	    // seem to be necessary either, as the target data from the module
+	    // is used, which should be set up properly at this point? -ag
             const string &ModuleDataLayout = fResult->fModule->getDataLayout();
             DataLayout* td = new DataLayout(ModuleDataLayout);
             pm.add(td);
+#endif
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
             tm->addAnalysisPasses(pm);
@@ -757,7 +776,9 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
     
     if (--llvm_dsp_factory::gInstance == 0) {
+    #ifndef LLVM_35 // In LLVM 3.5 this is gone.
         llvm_stop_multithreaded();
+    #endif
     #if defined(LLVM_34) || defined(LLVM_35)
         LLVMResetFatalErrorHandler();
     #endif
@@ -1028,6 +1049,22 @@ EXPORT void deleteAllDSPFactories()
     
 // Bitcode <==> string
 
+#ifdef LLVM_35
+// LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
+static llvm::Module *ParseBitcodeFile(llvm::MemoryBuffer *Buffer,
+				      llvm::LLVMContext& Context,
+				      std::string *ErrMsg)
+{
+  using namespace llvm;
+  ErrorOr<Module *> ModuleOrErr = parseBitcodeFile(Buffer, Context);
+  if (error_code EC = ModuleOrErr.getError()) {
+    if (ErrMsg) *ErrMsg = EC.message();
+    return 0;
+  } else
+  return ModuleOrErr.get();
+}
+#endif
+
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, const string& target, int opt_level)
 {
     string sha_key = generateSHA1(buffer->getBuffer().str());
@@ -1065,13 +1102,23 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 // Bitcode <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, int opt_level)
 {
+#ifdef LLVM_35
+    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
+    if (error_code ec = buffer.getError()) {
+        printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
+        return 0;
+    } else {
+        return readDSPFactoryFromBitcodeAux(buffer->get(), target, opt_level);
+    }
+#else
     OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
         return readDSPFactoryFromBitcodeAux(buffer.get(), target, opt_level);
     }
+#endif
 }
 
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
@@ -1128,13 +1175,23 @@ EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 // IR <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, int opt_level)
 {
+#ifdef LLVM_35
+    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
+    if (error_code ec = buffer.getError()) {
+        printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
+        return 0;
+    } else {
+        return readDSPFactoryFromIRAux(buffer->get(), target, opt_level);
+    }
+#else
     OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
         return readDSPFactoryFromIRAux(buffer.get(), target, opt_level);
     }
+#endif
 }
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
@@ -1178,13 +1235,23 @@ EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
 {
+#ifdef LLVM_35
+    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
+    if (error_code ec = buffer.getError()) {
+        printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
+        return 0;
+    } else {
+        return readDSPFactoryFromMachineAux(buffer->get());
+    }
+#else
     OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
         return readDSPFactoryFromMachineAux(buffer.get());
     }
+#endif
 }
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path)
