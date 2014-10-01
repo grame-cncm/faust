@@ -1057,7 +1057,7 @@ static llvm::Module *ParseBitcodeFile(llvm::MemoryBuffer *Buffer,
 {
   using namespace llvm;
   ErrorOr<Module *> ModuleOrErr = parseBitcodeFile(Buffer, Context);
-  if (error_code EC = ModuleOrErr.getError()) {
+  if (std::error_code EC = ModuleOrErr.getError()) {
     if (ErrMsg) *ErrMsg = EC.message();
     return 0;
   } else
@@ -1104,7 +1104,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
 {
 #ifdef LLVM_35
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
-    if (error_code ec = buffer.getError()) {
+    if (std::error_code ec = buffer.getError()) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
@@ -1112,7 +1112,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
     }
 #else
     OwningPtr<MemoryBuffer> buffer;
-    if (error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
@@ -1177,7 +1177,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
 {
 #ifdef LLVM_35
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
-    if (error_code ec = buffer.getError()) {
+    if (std::error_code ec = buffer.getError()) {
         printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
@@ -1185,7 +1185,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
     }
 #else
     OwningPtr<MemoryBuffer> buffer;
-    if (error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
@@ -1237,7 +1237,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
 {
 #ifdef LLVM_35
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
-    if (error_code ec = buffer.getError()) {
+    if (std::error_code ec = buffer.getError()) {
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
@@ -1245,7 +1245,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
     }
 #else
     OwningPtr<MemoryBuffer> buffer;
-    if (error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
+    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return 0;
     } else {
