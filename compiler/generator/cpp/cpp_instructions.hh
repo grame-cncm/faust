@@ -384,7 +384,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                 case Typed::kInt: {
                     string res = generateNameVec();
-                    //*fOut << fTypeDirectTable[Typed::kInt] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    // *fOut << fTypeDirectTable[Typed::kInt] << " " << res << "[" << inst->fSize << "]"; EndLine();
                     switch (fCurType) {
 
                         case Typed::kInt:
