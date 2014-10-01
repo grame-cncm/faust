@@ -451,7 +451,9 @@ static schema* generateInsideSchema(Tree t)
 	else {
 
         stringstream error;
-        error << "Internal Error, box expression not recognized : " << t->print(error) << endl;
+        error << "Internal Error, box expression not recognized : ";
+        t->print(error);
+        error << endl;
         throw faustexception(error.str());
 
 	}
