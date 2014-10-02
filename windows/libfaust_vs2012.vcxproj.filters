@@ -67,11 +67,11 @@
     <Filter Include="generator\java">
       <UniqueIdentifier>{3564c25f-9c67-41f4-a93c-10f5d8f1e530}</UniqueIdentifier>
     </Filter>
-    <Filter Include="generator\js">
-      <UniqueIdentifier>{4c291a9c-8c8c-498a-82f6-e4c304435915}</UniqueIdentifier>
-    </Filter>
     <Filter Include="generator\llvm">
       <UniqueIdentifier>{28014d46-de30-4362-a2ec-4310cc2e98c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="generator\js">
+      <UniqueIdentifier>{4c291a9c-8c8c-498a-82f6-e4c304435915}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
