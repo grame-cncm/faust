@@ -521,6 +521,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         } else {
             fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
         }
+        
+        printf("llvm::sys::getProcessTriple %s\n", llvm::sys::getProcessTriple().c_str());
 
         EngineBuilder builder(fResult->fModule);
         builder.setOptLevel(CodeGenOpt::Aggressive);
