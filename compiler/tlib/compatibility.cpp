@@ -21,6 +21,7 @@
  
 #include "compatibility.hh"
 #include "math.h"
+#include <string>
 
 #if defined(__MINGW32__) || defined (_WIN32)
 // Simulate some Unix fonctions on Windows
@@ -199,7 +200,11 @@
 		char ext[_MAX_EXT];
 
 		_splitpath(fullpath, drive, dir, fname, ext);
-		return fname;
+
+		std::string fullname = fullpath;
+		size_t pos = fullname.rfind(fname);
+
+		return (char*)&fullpath[pos];
 	}
 
 #endif
