@@ -77,13 +77,6 @@ using namespace std;
 
 extern bool gTimingSwitch;
 
-// Globals to transfer results in thread based evaluation
-static Tree gProcessTree = 0;
-static Tree gLsignalsTree = 0;
-static int gNumInputs = 0;
-static int gNumOutputs = 0;
-static string gErrorMessage = "";
-
 typedef void* (*compile_fun)(void* arg);
 
 #ifdef _WIN32 
@@ -330,9 +323,9 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 static void* thread_evaluateBlockDiagram(void* arg) 
 {   
     try {
-        gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gNumInputs, gNumOutputs);
+        gGlobal->gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
     } catch (faustexception& e) {
-        gErrorMessage = e.Message();
+        gGlobal->gErrorMessage = e.Message();
     }
     return 0;
 }
@@ -340,9 +333,9 @@ static void* thread_evaluateBlockDiagram(void* arg)
 static void* thread_boxPropagateSig(void* arg)
 {
     try {
-        gLsignalsTree = boxPropagateSig(gGlobal->nil, gProcessTree, makeSigInputList(gNumInputs));
+        gGlobal->gLsignalsTree = boxPropagateSig(gGlobal->nil, gGlobal->gProcessTree, makeSigInputList(gGlobal->gNumInputs));
     } catch (faustexception& e) {
-        gErrorMessage = e.Message();
+        gGlobal->gErrorMessage = e.Message();
     }
     return 0;
 }
@@ -361,22 +354,6 @@ int yyerr;
 /****************************************************************
  				Command line tools and arguments
 *****************************************************************/
-
-//-- command line arguments
-
-static bool	gHelpSwitch = false;
-static bool	gVersionSwitch = false;
-static bool gGraphSwitch = false;
-static bool gDrawPSSwitch = false;
-static bool gDrawSVGSwitch = false;
-static bool gPrintXMLSwitch = false;
-static bool gPrintDocSwitch = false;
-static int gBalancedSwitch = 0;
-static const char* gArchFile = 0;
-static bool gExportDSP = false;
-
-static int gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
-static bool gLLVMOut = true;
 
 //-- command line tools
 
@@ -405,7 +382,7 @@ static bool process_cmdline(int argc, const char* argv[])
 	while (i < argc) {
 
 		if (isCmd(argv[i], "-h", "--help")) {
-			gHelpSwitch = true;
+			gGlobal->gHelpSwitch = true;
 			i += 1;
             
         } else if (isCmd(argv[i], "-lang", "--language") && (i+1 < argc)) {
@@ -413,7 +390,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 2;
             
         } else if (isCmd(argv[i], "-v", "--version")) {
-			gVersionSwitch = true;
+			gGlobal->gVersionSwitch = true;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-d", "--details")) {
@@ -421,7 +398,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 1;
 
 		} else if (isCmd(argv[i], "-a", "--architecture") && (i+1 < argc)) {
-			gArchFile = argv[i+1];
+			gGlobal->gArchFile = argv[i+1];
 			i += 2;
 
 		} else if (isCmd(argv[i], "-o") && (i+1 < argc)) {
@@ -429,15 +406,15 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 2;
 
 		} else if (isCmd(argv[i], "-ps", "--postscript")) {
-			gDrawPSSwitch = true;
+			gGlobal->gDrawPSSwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-xml", "--xml")) {
-            gPrintXMLSwitch = true;
+            gGlobal->gPrintXMLSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-tg", "--task-graph")) {
-            gGraphSwitch = true;
+            gGlobal->gGraphSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
@@ -449,7 +426,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
 
 		} else if (isCmd(argv[i], "-svg", "--svg")) {
-			gDrawSVGSwitch = true;
+			gGlobal->gDrawSVGSwitch = true;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-f", "--fold") && (i+1 < argc)) {
@@ -465,15 +442,15 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 1;
 
 		} else if (isCmd(argv[i], "-lb", "--left-balanced")) {
-			gBalancedSwitch = 0;
+			gGlobal->gBalancedSwitch = 0;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-mb", "--mid-balanced")) {
-			gBalancedSwitch = 1;
+			gGlobal->gBalancedSwitch = 1;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-rb", "--right-balanced")) {
-			gBalancedSwitch = 2;
+			gGlobal->gBalancedSwitch = 2;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
@@ -546,7 +523,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			i += 1;
 
         } else if (isCmd(argv[i], "-t", "--timeout") && (i+1 < argc)) {
-            gTimeout = atoi(argv[i+1]);
+            gGlobal->gTimeout = atoi(argv[i+1]);
             i += 2;
             
         } else if (isCmd(argv[i], "-time", "--compilation-time")) {
@@ -567,7 +544,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
-            gPrintDocSwitch = true;
+            gGlobal->gPrintDocSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang") && (i+1 < argc)) {
@@ -595,7 +572,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
         
         } else if (isCmd(argv[i], "-e", "--export-dsp")) {
-            gExportDSP = true;
+            gGlobal->gExportDSP = true;
             i += 1;
          
         } else if (isCmd(argv[i], "-I", "--import-dir")) {
@@ -880,10 +857,10 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
     if (gGlobal->gDetailsSwitch) { cout << "process = " << boxpp(process) << ";\n"; }
 
-    if (gDrawPSSwitch || gDrawSVGSwitch) {
+    if (gGlobal->gDrawPSSwitch || gGlobal->gDrawSVGSwitch) {
         string projname = makeDrawPathNoExt();
-        if (gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
-        if (gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
+        if (gGlobal->gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
+        if (gGlobal->gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
     }
 
     if (!getBoxType(process, &numInputs, &numOutputs)) {
@@ -936,8 +913,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp = new InstructionsCompiler(container);
         }
 
-        if (gPrintXMLSwitch) comp->setDescription(new Description());
-        if (gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
          
         if (generate) {
             comp->compileMultiSignal(signals);
@@ -953,7 +930,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 throw faustexception(llvm_error.str());
             }
             
-            if (gLLVMOut && gGlobal->gOutputFile == "") {
+            if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
             }
             
@@ -1026,8 +1003,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp = new InstructionsCompiler(container);
         }
 
-        if (gPrintXMLSwitch) comp->setDescription(new Description());
-        if (gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
 
         comp->compileMultiSignal(signals);
 
@@ -1036,13 +1013,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          ****************************************************************/
         ifstream* enrobage;
          
-        if (gArchFile) {
+        if (gGlobal->gArchFile) {
         
             // Keep current directory
             char current_directory[FAUST_PATH_MAX];
             getcwd(current_directory, FAUST_PATH_MAX);
             
-            if ((enrobage = open_arch_stream(gArchFile))) {
+            if ((enrobage = open_arch_stream(gGlobal->gArchFile))) {
                 
                 if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                     printheader(*dst);
@@ -1092,7 +1069,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                  
             } else {
                 stringstream error;
-                error << "ERROR : can't open architecture file " << gArchFile << endl;
+                error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
                 throw faustexception(error.str());
             }
             
@@ -1121,7 +1098,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
      1 - generate XML description (if required)
     *****************************************************************/
   
-    if (gPrintXMLSwitch) {
+    if (gGlobal->gPrintXMLSwitch) {
         Description* D = comp->getDescription(); assert(D);
         ofstream xout(subst("$0.xml", makeDrawPath()).c_str());
       
@@ -1142,7 +1119,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
      2 - generate documentation from Faust comments (if required)
     *****************************************************************/
 
-    if (gPrintDocSwitch) {
+    if (gGlobal->gPrintDocSwitch) {
         if (gGlobal->gLatexDocSwitch) {
             printDoc(subst("$0-mdoc", makeDrawPathNoExt()).c_str(), "tex", FAUSTVERSION);
         }
@@ -1152,7 +1129,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
      3 - generate the task graph file in dot format
     *****************************************************************/
 
-    if (gGraphSwitch) {
+    if (gGlobal->gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
         container->printGraphDotFormat(dotfile);
     }
@@ -1184,26 +1161,17 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
     
     call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
-    if (!gProcessTree) {
-        throw faustexception(gErrorMessage);
+    if (!gGlobal->gProcessTree) {
+        throw faustexception(gGlobal->gErrorMessage);
     }
     stringstream out;
     out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
-    out << "process = " << boxpp(gProcessTree) << ';' << endl;
+    out << "process = " << boxpp(gGlobal->gProcessTree) << ';' << endl;
     return out.str();
 }
 
 void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input, bool generate)
 {
-    gHelpSwitch = false;
-    gVersionSwitch = false;
-    gGraphSwitch = false;
-    gDrawPSSwitch = false;
-    gDrawSVGSwitch = false;
-    gPrintXMLSwitch = false;
-    gPrintDocSwitch = false;
-    gBalancedSwitch = 0;
-    gArchFile = 0;
     gGlobal->gPrintFileListSwitch = false;
   
     /****************************************************************
@@ -1211,17 +1179,17 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     *****************************************************************/
     process_cmdline(argc, argv);
     
-    if (gHelpSwitch) { 
+    if (gGlobal->gHelpSwitch) { 
         printhelp(); 
         throw faustexception("");
     }
-    if (gVersionSwitch) { 
+    if (gGlobal->gVersionSwitch) { 
         printversion(); 
         throw faustexception("");
     }
 
 #ifndef WIN32
-    alarm(gTimeout);
+    alarm(gGlobal->gTimeout);
 #endif
 
     /****************************************************************
@@ -1243,14 +1211,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
     
     call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
-    if (!gProcessTree) {
-        throw faustexception(gErrorMessage);
+    if (!gGlobal->gProcessTree) {
+        throw faustexception(gGlobal->gErrorMessage);
     }
-    Tree process = gProcessTree;
-    int numInputs = gNumInputs;
-    int numOutputs = gNumOutputs;
+    Tree process = gGlobal->gProcessTree;
+    int numInputs = gGlobal->gNumInputs;
+    int numOutputs = gGlobal->gNumOutputs;
     
-    if (gExportDSP) {
+    if (gGlobal->gExportDSP) {
         ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
         out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
         out << "process = " << boxpp(process) << ';' << endl;
@@ -1265,10 +1233,10 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     //Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
     
     call_fun(thread_boxPropagateSig); // In a thread with more stack size...
-    if (!gLsignalsTree) {
-        throw faustexception(gErrorMessage);
+    if (!gGlobal->gLsignalsTree) {
+        throw faustexception(gGlobal->gErrorMessage);
     }
-    Tree lsignals = gLsignalsTree;
+    Tree lsignals = gGlobal->gLsignalsTree;
  
     if (gGlobal->gDetailsSwitch) {
         cout << "output signals are : " << endl;
@@ -1296,21 +1264,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
 
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
-    gLLVMOut = false;
     gGlobal = NULL;
-    
-    gProcessTree = 0;
-    gLsignalsTree = 0;
-    gNumInputs = 0;
-    gNumOutputs = 0;
-    gErrorMessage = "";
-
     LLVMResult* res;
     
     try {
     
         // Compile module
         global::allocate();
+        gGlobal->gLLVMOut = false;
         compile_faust_internal(argc, argv, name, input, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
@@ -1328,19 +1289,12 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
 {
-    gLLVMOut = true;
     gGlobal = NULL;
-    
-    gProcessTree = 0;
-    gLsignalsTree = 0;
-    gNumInputs = 0;
-    gNumOutputs = 0;
-    gErrorMessage = "";
-    
     int res;
     
     try {
-        global::allocate();     
+        global::allocate();  
+        gGlobal->gLLVMOut = true;   
         compile_faust_internal(argc, argv, name, input, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
         res = 0;
@@ -1355,19 +1309,12 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
 
 EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
 {
-    gLLVMOut = true;
     gGlobal = NULL;
-    
-    gProcessTree = 0;
-    gLsignalsTree = 0;
-    gNumInputs = 0;
-    gNumOutputs = 0;
-    gErrorMessage = "";
-    
     string res;
     
     try {
-        global::allocate();     
+        global::allocate(); 
+        gGlobal->gLLVMOut = true;    
         compile_faust_internal(argc, argv, name, input, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
         res = dynamic_cast<stringstream*>(gGlobal->gStringResult)->str();
@@ -1400,12 +1347,6 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
         
     string res;
     gGlobal = NULL;
-    
-    gProcessTree = 0;
-    gLsignalsTree = 0;
-    gNumInputs = 0;
-    gNumOutputs = 0;
-    gErrorMessage = "";
     
     try {
         global::allocate();       

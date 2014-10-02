@@ -853,6 +853,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     }
         
     create_dsp(true);
+    
+    create_ui();
 }
 
 // Called upon deleting the object inside the patcher
@@ -873,6 +875,34 @@ void faustgen::free_dsp()
     deleteDSPInstance(fDSP);
     fDSPUI.clear();
     fDSP = 0;
+}
+
+void faustgen::create_ui()
+{
+    
+    t_object *patcher, *toggle, *metro, *slider1, *slider2;
+    t_max_err err = object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
+    toggle = newobject_sprintf(patcher, "@maxclass toggle @patching_position %.2f %.2f", 10., 10.);
+    metro = newobject_sprintf(patcher, "@maxclass newobj @text \"metro 400 \" @patching_position %.2f %.2f", 50., 50);
+    
+    slider1 = newobject_sprintf(patcher, "@maxclass slider @Orientation Horizontal @patching_position %.2f %.2f", 100., 100.);
+    slider1 = newobject_sprintf(patcher, "@maxclass slider @Orientation Vertical @patching_position %.2f %.2f", 150., 150.);
+    
+    
+    
+    /*
+    t_dictionary *d;
+    t_object *o;
+    char text[4];
+    strncpy_zero(text, "foo", 4);
+    d = dictionary_sprintf("@maxclass comment @varname _name \
+        @text \"%s\" @patching_rect %.2f %.2f %.2f %.2f \
+        @fontsize %f @textcolor %f %f %f 1.0 \
+        @fontname %s @bgcolor 0.001 0.001 0.001 0.",
+        text, 20.0, 20.0, 200.0, 24.0,
+        18, 0.9, 0.9, 0.9, "Arial");
+    o = newobject_fromdictionary((t_object*)&m_ob, d);
+    */
 }
 
 static bool check_digit(const string& name)

@@ -232,6 +232,8 @@ class faustgen : public MspCpp5<faustgen> {
         t_pxobject* check_dac();
         
         bool allocate_factory(const string& effect_name);
+        
+        void create_ui();
        
     public:
         

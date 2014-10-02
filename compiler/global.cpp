@@ -277,7 +277,28 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gInPlace = false;
     gOutputLang = "";
     
-    gASMJSVisitor = 0; // Will be (possibly) allocated in 
+    gASMJSVisitor = 0; // Will be (possibly) allocated in ASMJS backend
+    
+    gHelpSwitch = false;
+    gVersionSwitch = false;
+    gGraphSwitch = false;
+    gDrawPSSwitch = false;
+    gDrawSVGSwitch = false;
+    gPrintXMLSwitch = false;
+    gPrintDocSwitch = false;
+    gBalancedSwitch = 0;
+    gArchFile = 0;
+    gExportDSP = false;
+
+    gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
+    gLLVMOut = true;
+    
+    // Globals to transfer results in thread based evaluation
+    gProcessTree = 0;
+    gLsignalsTree = 0;
+    gNumInputs = 0;
+    gNumOutputs = 0;
+    string gErrorMessage = "";
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built

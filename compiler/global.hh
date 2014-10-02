@@ -417,6 +417,27 @@ struct global {
     string gOutputLang;
     
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
+    
+    bool gHelpSwitch;
+    bool gVersionSwitch;
+    bool gGraphSwitch;
+    bool gDrawPSSwitch;
+    bool gDrawSVGSwitch;
+    bool gPrintXMLSwitch;
+    bool gPrintDocSwitch;
+    int gBalancedSwitch;
+    const char* gArchFile;
+    bool gExportDSP;
+
+    int gTimeout;   // time out to abort compiler (in seconds)
+    bool gLLVMOut;
+    
+    // Globals to transfer results in thread based evaluation
+    Tree gProcessTree;
+    Tree gLsignalsTree;
+    int gNumInputs;
+    int gNumOutputs;
+    string gErrorMessage;
    
     // GC
     static list<Garbageable*> gObjectTable;
