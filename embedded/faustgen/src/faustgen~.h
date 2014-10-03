@@ -48,6 +48,7 @@
 #endif
 
 #include "mspUI.h"
+#include "JSONBuilder.h"
 #include "jpatcher_api.h"
 #include "jgraphics.h"
 #include "ext_drag.h"
@@ -234,6 +235,7 @@ class faustgen : public MspCpp5<faustgen> {
         bool allocate_factory(const string& effect_name);
         
         void create_ui();
+        t_dictionary* json_reader(const char* jsontext);
        
     public:
         

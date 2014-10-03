@@ -854,7 +854,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
         
     create_dsp(true);
     
-    create_ui();
+    //create_ui();
 }
 
 // Called upon deleting the object inside the patcher
@@ -877,19 +877,62 @@ void faustgen::free_dsp()
     fDSP = 0;
 }
 
+t_dictionary* faustgen::json_reader(const char* jsontext)
+{
+    t_dictionary *d = NULL;
+    t_max_err err;
+    t_atom result[1];
+    t_object *jsonreader = (t_object*)object_new(_sym_nobox, _sym_jsonreader);
+    
+    err = (t_max_err)object_method(jsonreader, _sym_parse, jsontext, result);
+    if (!err) {
+        t_object *ro = (t_object*)atom_getobj(result);
+        if (ro) {
+                if (object_classname_compare(ro, _sym_dictionary)) {
+                    d = (t_dictionary*)ro;
+                } else {
+                    object_free(ro);
+                }
+        }
+    }
+    object_free(jsonreader);
+    return d;
+}
+
 void faustgen::create_ui()
 {
+    JSONBuilder ui_builder;
+    fDSP->buildUserInterface(&ui_builder);
+    t_dictionary* d = json_reader(ui_builder.getUI().c_str());
+    post("t_dictionary* d %d", d);
     
+    t_object *patcher;
+    t_max_err err = object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
+    t_object* obj = newobject_fromdictionary(patcher, d);
+    post("obj  %x", obj);
+    
+    /*
     t_object *patcher, *toggle, *metro, *slider1, *slider2;
+     
+    //t_object *patcher, 
+   
     t_max_err err = object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
     toggle = newobject_sprintf(patcher, "@maxclass toggle @patching_position %.2f %.2f", 10., 10.);
     metro = newobject_sprintf(patcher, "@maxclass newobj @text \"metro 400 \" @patching_position %.2f %.2f", 50., 50);
     
     slider1 = newobject_sprintf(patcher, "@maxclass slider @Orientation Horizontal @patching_position %.2f %.2f", 100., 100.);
     slider1 = newobject_sprintf(patcher, "@maxclass slider @Orientation Vertical @patching_position %.2f %.2f", 150., 150.);
-    
-    
-    
+     
+     t_object *box, *obj;
+    object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
+    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box))  {
+        obj = jbox_get_object(box);
+        if (obj)
+            post("%s",object_classname(obj)->s_name);
+        else
+            post("box with NULL object");
+    }
+    */
     /*
     t_dictionary *d;
     t_object *o;
