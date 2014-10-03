@@ -47,6 +47,8 @@
 
 #include "asmjs_instructions.hh"
 
+#include <limits.h>
+
 // Parser
 extern FILE* yyin;
 extern const char * yyfilename;
