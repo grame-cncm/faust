@@ -36,6 +36,7 @@ LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
 LIBS = -lwsock32
+EXE = .exe
 endif
 
 CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 

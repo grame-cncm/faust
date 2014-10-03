@@ -19,7 +19,12 @@ system	?= $(shell uname -s)
 ifeq ($(system), Darwin)
 LIB_EXT = dylib
 else
+ifneq ($(findstring MINGW32, $(system)),)
+LIB_EXT = dll
+EXE = .exe
+else
 LIB_EXT = so
+endif
 endif
 
 prefix := $(DESTDIR)$(PREFIX)
@@ -172,7 +177,7 @@ uninstall-dynamic:
 uninstall :
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
-	rm -f $(prefix)/bin/faust
+	rm -f $(prefix)/bin/faust$(EXE)
 	make -C tools/faust2appls uninstall
 
 # make a faust distribution .zip file

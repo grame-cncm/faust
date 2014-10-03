@@ -34,7 +34,9 @@ ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
 ARCHFLAGS := 
+ifeq ($(findstring MINGW32, $(system)),)
 CXXFLAGS += -fPIC
+endif
 endif
 
 ifeq ($(MODE), SHARED)
@@ -45,8 +47,13 @@ ifneq ($(INSTALL_PREFIX),)
 INSTALL_NAME = -install_name "$(INSTALL_PREFIX)$(SONAME)"
 endif
 else
+ifneq ($(findstring MINGW32, $(system)),)
+TARGET=libOSCFaust-$(VERSION).dll
+SONAME=libOSCFaust-$(SOVERSION).dll
+else
 TARGET=libOSCFaust.so.$(VERSION)
 SONAME=libOSCFaust.so.$(SOVERSION)
+endif
 endif
 else
 TARGET=libOSCFaust.a
@@ -64,6 +71,9 @@ libOSCFaust.$(VERSION).dylib : $(objects)
 libOSCFaust.so.$(VERSION) : $(objects)
 	c++ -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
 
+libOSCFaust-$(VERSION).dll : $(objects)
+	c++ -shared $(ARCHFLAGS) $(objects) -L.. -loscpack -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
+
 libOSCFaust.a : $(objects)
 	rm -f $@
 	ar cq $@ $(objects)
@@ -75,7 +85,7 @@ depend :
 	
 clean :
 	rm -f $(objects)
-	rm -f libOSCFaust.a libOSCFaust*.dylib libOSCFaust.so*
+	rm -f libOSCFaust.a libOSCFaust*.dylib libOSCFaust.so* libOSCFaust*.dll
 	
 
 
