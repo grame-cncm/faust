@@ -27,7 +27,11 @@
 #include <unistd.h>
 #include <iostream>
 #include <sstream>
+#ifdef __MINGW32__
+#include <winsock2.h>
+#else
 #include <netdb.h>
+#endif
 
 #include "HTTPDControler.h"
 #include "FaustFactory.h"

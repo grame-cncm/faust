@@ -18,6 +18,7 @@ endif
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
 LIBS = -lwsock32
+EXE = .exe
 endif
 
 CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
@@ -37,7 +38,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) faust$(EXE) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :

@@ -20,10 +20,16 @@ TARGET = libOSCFaust.$(VERSION).$(LIB_EXT)
 LIB_SONAME = libOSCFaust.$(SOVERSION).$(LIB_EXT)
 else
 ARCHFLAGS := 
+ifneq ($(findstring MINGW32, $(system)),)
+LIB_EXT = dll
+TARGET = libOSCFaust-$(VERSION).$(LIB_EXT)
+LIB_SONAME = libOSCFaust-$(SOVERSION).$(LIB_EXT)
+else
 CXXFLAGS += -fPIC
 LIB_EXT = so
 TARGET = libOSCFaust.$(LIB_EXT).$(VERSION)
 LIB_SONAME = libOSCFaust.$(LIB_EXT).$(SOVERSION)
+endif
 endif
 
 LIB_NAME = libOSCFaust.$(LIB_EXT)
@@ -55,7 +61,7 @@ faust/$(TARGET):
 	
 clean :
 	rm -f liboscpack.a libOSCFaust.a
-	rm -f libOSCFaust*.dylib libOSCFaust.so*
+	rm -f libOSCFaust*.dylib libOSCFaust.so* libOSCFaust*.dll
 	make -C oscpack clean
 	make -C faust clean
 
