@@ -157,7 +157,7 @@ int HTTPDServer::page (struct MHD_Connection *connection, const char * page)
 
 	int fd;
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	int fhd;
 	fd = _sopen_s(&fhd, file.c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD);
 #else

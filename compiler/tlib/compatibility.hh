@@ -29,7 +29,12 @@
 #include <time.h>
 #include <assert.h>
 
+#ifdef __MINGW32__
+// mingw has PATH_MAX defined in limits.h. Make sure that it's included.
+#include <limits.h>
+#else
 #define PATH_MAX 512
+#endif
 #define YY_NO_UNISTD_H 1
 
 struct timezone 

@@ -26,16 +26,21 @@ ifeq ($(system), Darwin)
 else 
     ARCHFLAGS 	:=
     LIBFLAGS	:= --mode=link --tag=CXX
+ifneq ($(findstring MINGW32, $(system)),)
+    LLVM_CONFIG = llvm-config
+    LIB_EXT     = dll
+else
     LLVM_CONFIG = $(word 1,$(wildcard /usr/bin/llvm-config*))
     LIB_EXT     = so
-endif 
+endif
+endif
 
 LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles)
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
-LIBS = -lwsock32
+LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto`
 EXE = .exe
 endif
 
@@ -82,7 +87,11 @@ ifeq ($(system), Darwin)
     #CXXFLAGS += -g
     CXXFLAGS += -O3
 else
+ifneq ($(findstring MINGW32, $(system)),)
+	CXXFLAGS += -O1 -I/usr/include
+else
 	CXXFLAGS += -O1 -fPIC
+endif
 endif
 
 CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
@@ -136,7 +145,11 @@ main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
 faust : $(objects) main.o libmain.o global.o 
+ifneq ($(findstring MINGW32, $(system)),)
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread -o faust
+else
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lpthread -o faust
+endif
 
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
@@ -148,12 +161,21 @@ ifeq ($(system), Darwin)
     libfaust.dylib : $(objects) libmain.o global.o
 	c++ -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.dylib
 else	
+ifneq ($(findstring MINGW32, $(system)),)
+    libfaust.a : $(objects) libmain.o global.o
+	ar cq $@ $(objects) libmain.o global.o
+	ranlib $@
+
+    libfaust.dll : $(objects) libmain.o global.o
+	g++ -shared $(objects) libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS)
+else
     libfaust.a : $(objects) libmain.o global.o
 	ar cq $@ $(objects) libmain.o global.o
 	ranlib $@
 
     libfaust.so : $(objects) libmain.o global.o
 	gcc -shared -fPIC $(objects) libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ 
+endif
 endif
 
 
@@ -164,7 +186,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) main.o libmain.o global.o faust libfaust.a libfaust.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) main.o libmain.o global.o faust$(EXE) libfaust.a libfaust.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :

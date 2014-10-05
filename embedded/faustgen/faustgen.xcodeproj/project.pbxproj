@@ -50,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		4B179CE6160C7230004418BF /* faust-quick-reference.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = "faust-quick-reference.pdf"; path = "../../documentation/faust-quick-reference.pdf"; sourceTree = SOURCE_ROOT; };
+		4B3555FD19DF02BE0050EF56 /* JSONBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JSONBuilder.h; path = src/JSONBuilder.h; sourceTree = SOURCE_ROOT; };
 		4B3E914516569775006952CC /* effect.lib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = effect.lib; path = ../../architecture/effect.lib; sourceTree = SOURCE_ROOT; };
 		4B3E914616569775006952CC /* filter.lib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = filter.lib; path = ../../architecture/filter.lib; sourceTree = SOURCE_ROOT; };
 		4B3E914716569775006952CC /* math.lib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = math.lib; path = ../../architecture/math.lib; sourceTree = SOURCE_ROOT; };
@@ -125,6 +126,7 @@
 		08FB77ADFE841716C02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				4B3555FD19DF02BE0050EF56 /* JSONBuilder.h */,
 				4B5A3C4A15F4042D007317F4 /* maxcpp5.h */,
 				4B5A3C4B15F4042D007317F4 /* mspUI.h */,
 				4BE5E41415F1569F00AFD014 /* base64.cpp */,

@@ -130,8 +130,6 @@
 
 #endif
 
-#if !defined(__MINGW32__)
-
 	typedef union
 	{
 		double value;
@@ -176,11 +174,15 @@
         (d) = sh_u.value;					\
 	} while (0)
 
+#if !defined(__MINGW32__)
+
 	double rint(double nr){
     double f = floor(nr);
     double c = ceil(nr);
     return (((c -nr) >= (nr - f)) ? f : c);
 	}
+
+#endif
 
 	
     char *realpath(const char *path, char resolved_path[MAX_PATH])
@@ -206,8 +208,6 @@
 
 		return (char*)&fullpath[pos];
 	}
-
-#endif
 
 #if(_MSC_VER <= 1700)
     double remainder(double x, double p)

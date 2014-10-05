@@ -34,6 +34,13 @@ size_t cache_line_size()
     return line_size;
 }
 
+#elif defined(__MINGW32__)
+
+// MinGW doesn't have GetLogicalProcessorInformation() and friends in its
+// libraries.
+#include <stdlib.h>
+size_t cache_line_size() { return 0; }
+
 #elif defined(_WIN32)
 
 #include <stdlib.h>
