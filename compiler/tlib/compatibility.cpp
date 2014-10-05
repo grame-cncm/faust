@@ -22,6 +22,7 @@
 #include "compatibility.hh"
 #include "math.h"
 #include <string>
+#include <stdint.h>
 
 #if defined(__MINGW32__) || defined (_WIN32)
 // Simulate some Unix fonctions on Windows
@@ -41,7 +42,7 @@
 	int gettimeofday(struct timeval *tv, struct timezone *tz)
 	{
 	  FILETIME ft;
-	  unsigned __int64 tmpres = 0;
+	  uint64_t tmpres = 0;
 	  static int tzflag;
 
 	  if (NULL != tv) {
