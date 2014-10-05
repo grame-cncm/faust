@@ -44,8 +44,11 @@ struct timezone
 };
 
 #define alarm(x)
+#ifndef __MINGW32__
+// mingw has these in its headers.
 #define strdup _strdup
 #define snprintf _snprintf
+#endif
 extern "C" {
 double  rint(double nr);
 int		gettimeofday(struct timeval *tv, struct timezone *tz);
@@ -64,8 +67,6 @@ char*	basename(const char* fullpath);
 #define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)
 #endif
 
-//#define sprintf sprintf_s
-#define snprintf _snprintf
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
 #define FAUST_PATH_MAX 1024
 
