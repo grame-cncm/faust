@@ -853,8 +853,6 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     }
         
     create_dsp(true);
-    
-    //create_ui();
 }
 
 // Called upon deleting the object inside the patcher
@@ -1169,13 +1167,6 @@ void faustgen::update_sourcecode()
     // Create a new DSP instance
     create_dsp(false);
     
-    /*
-    // notify JSON
-    t_atom json;
-    atom_setobj(&json, (void*)fDSPfactory->get_json());
-    out_anything(gensym("json"), 1, &json);
-    */
-    
     // Faustgen~ state is modified...
     set_dirty();
 }
@@ -1283,6 +1274,9 @@ void faustgen::create_dsp(bool init)
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
         
+        // send JSON to JS script
+        exec_jsui();
+        
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
             
@@ -1335,6 +1329,25 @@ t_pxobject* faustgen::check_dac()
     }
     
     return 0;
+}
+
+void faustgen::exec_jsui()
+{
+    t_object *patcher, *box, *obj;
+    object_obex_lookup(this, gensym("#P"), &patcher);
+    
+    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
+        obj = jbox_get_object(box);
+        if (obj) {
+            // Notify JSON
+            if (strcmp(object_classname(obj)->s_name, "js") == 0) {
+                t_atom json;
+                atom_setsym(&json, gensym(fDSPfactory->get_json()));
+                object_method_typed(obj, gensym("anything"), 1, &json, 0);
+                post("Generate UI from JSON...");
+            }
+        }
+    }
 }
 
 void faustgen::dsp_status(const char* mess)
