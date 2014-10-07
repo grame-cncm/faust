@@ -14,11 +14,11 @@ endif
 
 sound2faust : sound2faust.cpp
 
-	g++ -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags --static --libs sndfile` -o sound2faust $(LIBS)
+	$(CXX) -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags --static --libs sndfile` -o sound2faust $(LIBS)
 
 static:
 
-	g++ -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags  sndfile`  /usr/local/lib/libsndfile.a -o sound2faust
+	$(CXX) -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags  sndfile`  /usr/local/lib/libsndfile.a -o sound2faust
 
 install :
 

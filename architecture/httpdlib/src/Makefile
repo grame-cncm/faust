@@ -59,13 +59,13 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	ranlib $@
 
 ../libHTTPDFaust.dylib :  $(objects)
-	c++ -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
+	$(CXX) -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
-	gcc -shared -fPIC -o $@ $(objects)
+	$(CXX) -shared -fPIC -o $@ $(objects)
 
 ../libHTTPDFaust.dll  :  $(objects)
-	g++ -shared -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
+	$(CXX) -shared -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
