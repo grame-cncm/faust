@@ -25,11 +25,13 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
+.PHONY: all dynamic httpd win32 sound2faust
+
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
 
-dynamic :
+dynamic : all httpd
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
 	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
