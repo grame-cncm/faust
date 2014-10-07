@@ -18,7 +18,7 @@ ifeq ($(system), Darwin)
     ARCHFLAGS 	:=  -arch i386 -arch x86_64
     LIBFLAGS	:=
     CXX 		= clang++
-    CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
+    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
     LIB_EXT     = dylib
     ## --analyze   -Wall -pedantic
     #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 

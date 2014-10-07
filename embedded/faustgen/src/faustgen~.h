@@ -231,7 +231,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         void dsp_status(const char* mess);
         t_pxobject* check_dac();
-        void exec_jsui();
+        void create_jsui();
         
         bool allocate_factory(const string& effect_name);
         

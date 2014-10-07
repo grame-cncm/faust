@@ -1167,7 +1167,7 @@ void faustgen::update_sourcecode()
     // Create a new DSP instance
     create_dsp(false);
     
-    // Faustgen~ state is modified...
+    // faustgen~ state is modified...
     set_dirty();
 }
 
@@ -1275,7 +1275,7 @@ void faustgen::create_dsp(bool init)
         fDSP->buildUserInterface(&fDSPUI);
         
         // send JSON to JS script
-        exec_jsui();
+        create_jsui();
         
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
@@ -1331,7 +1331,7 @@ t_pxobject* faustgen::check_dac()
     return 0;
 }
 
-void faustgen::exec_jsui()
+void faustgen::create_jsui()
 {
     t_object *patcher, *box, *obj;
     object_obex_lookup(this, gensym("#P"), &patcher);
