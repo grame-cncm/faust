@@ -38,11 +38,21 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all dynamic httpd remote win32 ios emcc sound2faust
+.PHONY: all world dynamic httpd remote win32 ios emcc sound2faust
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+
+# make world: This builds all the common targets for a fairly complete Faust
+# installation: Faust compiler and library, sound2faust utility, OSC and HTTPD
+# libraries (both static and dynamic). Most of the extra targets require
+# additional dependencies and hence aren't built by default; please check the
+# Faust README for details. This target may be built in parallel (make -j).
+# NOTE: Once the remote target is readily supported on most platforms, it
+# should be added here. Currently this requires jack2 from git which isn't
+# usually installed on most systems, so we skip this target for now.
+world : all sound2faust httpd dynamic
 
 dynamic : all httpd
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
