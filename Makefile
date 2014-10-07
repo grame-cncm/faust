@@ -25,11 +25,18 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all dynamic httpd win32 sound2faust
+.PHONY: all world dynamic httpd win32 sound2faust
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+
+# make world: This builds all the common targets for a fairly complete Faust
+# installation: Faust compiler, sound2faust utility, OSC and HTTPD libraries
+# (both static and dynamic). Most of the extra targets require additional
+# dependencies and hence aren't built by default; please check the Faust
+# README for details. This target may be built in parallel (make -j).
+world : all sound2faust httpd dynamic
 
 dynamic : all httpd
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
