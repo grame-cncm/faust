@@ -183,11 +183,13 @@ int main(int argc, char *argv[])
         }
         */
         
+        /*
         for (int i = 0; i < 10; i++) {
             writeDSPFactoryToMachineFile(factory3, "/Users/letz/machinecode");
             printf("writeDSPFactoryToMachineFile %d\n", i);
             factory3 = readDSPFactoryFromMachineFile("/Users/letz/machinecode");
         }
+        */
         
         
         if (factory3) {

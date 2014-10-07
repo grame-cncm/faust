@@ -34,6 +34,7 @@
 #define faustgen_mspUI_h
 
 #include "faust/gui/UI.h"
+#include <math.h>
 #include <string>
 #include <map>
 
@@ -121,15 +122,64 @@ class mspSlider : public mspUIObject {
 };
 
 /*--------------------------------------------------------------------------*/
+class mspBargraph : public mspUIObject {
+    
+    private:
+        
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        FAUSTFLOAT fCurrent;
+        
+    public:
+        
+        mspBargraph(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        :mspUIObject(label,zone),fMin(min),fMax(max),fCurrent(*zone) {}
+        virtual ~mspBargraph() {}
+        
+        void toString(char* buffer)
+        {
+            stringstream s; 
+            s << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
+            strcpy(buffer, s.str().c_str());
+        }
+        
+        virtual FAUSTFLOAT getValue() 
+        { 
+            if (*fZone != fCurrent) {
+                fCurrent = *fZone;
+                return fCurrent;
+            } else {
+                return NAN; 
+            }
+        }
+};
+
+/*--------------------------------------------------------------------------*/
 class mspUI : public UI
 {
 
     private:
         
-        map<string, mspUIObject*> fUITable;
+        map<string, mspUIObject*> fUITable1;       // Table using labels
+        map<string, mspUIObject*> fUITable2;       // Table using complete path
+        map<string, mspUIObject*> fUITable3;       // Table with bargraph
+         
         map<const char*, const char*> fDeclareTable;
+        std::vector<std::string> fControlsLevel;
+        
+        std::string buildPath(const std::string& label) 
+        {
+            std::string res = "/";
+            for (size_t i = 0; i < fControlsLevel.size(); i++) {
+                res += fControlsLevel[i];
+                res += "/";
+            }
+            res += label;
+            replace(res.begin(), res.end(), ' ', '_');
+            return res;
+        }
     
-        string CreateLabel(const char* label)
+        string createLabel(const char* label)
         {
             map<const char*, const char*>::reverse_iterator it;
             if (fDeclareTable.size() > 0) {
@@ -158,13 +208,25 @@ class mspUI : public UI
             clear();
         }
         
-        void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(CreateLabel(label), zone);}
+        void addButton(const char* label, FAUSTFLOAT* zone) 
+        {
+            mspUIObject* obj = new mspButton(createLabel(label), zone);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj;
+        }
         
-        void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(CreateLabel(label), zone);}
+        void addCheckButton(const char* label, FAUSTFLOAT* zone) 
+        {
+            mspUIObject* obj = new mspCheckButton(createLabel(label), zone);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj; 
+        }
         
         void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
+            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj; 
         }
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -179,17 +241,26 @@ class mspUI : public UI
         
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
+            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj;
         }
         
-        // To be implemented
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+        {   
+            fUITable3[buildPath(label)] = new mspBargraph(createLabel(label), zone, min, max);
+            fDeclareTable.clear();
+        }
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+        {
+            fUITable3[buildPath(label)] = new mspBargraph(createLabel(label), zone, min, max);
+            fDeclareTable.clear();
+        }
     
-        void openTabBox(const char* label) {fDeclareTable.clear();}
-        void openHorizontalBox(const char* label) {fDeclareTable.clear();}
-        void openVerticalBox(const char* label) {fDeclareTable.clear();}
-        void closeBox() {fDeclareTable.clear();}
+        void openTabBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
+        void openHorizontalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
+        void openVerticalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
+        void closeBox() {fControlsLevel.pop_back(); fDeclareTable.clear();}
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
@@ -198,29 +269,39 @@ class mspUI : public UI
        
         bool isValue(string name) 
         {
-            return fUITable.count(name);
+            return (fUITable1.count(name) || fUITable2.count(name));
+        }
+        bool isBargraphValue(string name) 
+        {
+            return fUITable3.count(name);
         }
         bool setValue(string name, FAUSTFLOAT f)
         {
-            if (fUITable.count(name)) {
-                fUITable[name]->setValue(f);
+            if (fUITable1.count(name)) {
+                fUITable1[name]->setValue(f);
+                return true;
+            } else if (fUITable2.count(name)) {
+                fUITable2[name]->setValue(f);
                 return true;
             } else {
                 return false;
             }
         }
-          
-        iterator begin()	{ return fUITable.begin(); }
-        iterator end()		{ return fUITable.end(); }
         
-        int itemsCount() { return fUITable.size(); }
+        FAUSTFLOAT getBargraphValue(string name) { return fUITable3[name]->getValue(); }
+          
+        iterator begin()	{ return fUITable1.begin(); }
+        iterator end()		{ return fUITable1.end(); }
+        
+        int itemsCount() { return fUITable1.size(); }
         void clear() 
         { 
             iterator it;
             for (it = begin(); it != end(); it++) {
                 delete (*it).second;
             }
-            fUITable.clear(); 
+            fUITable1.clear(); 
+            fUITable2.clear(); 
         }
     
 };

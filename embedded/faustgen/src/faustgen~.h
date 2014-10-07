@@ -48,7 +48,6 @@
 #endif
 
 #include "mspUI.h"
-#include "JSONBuilder.h"
 #include "jpatcher_api.h"
 #include "jgraphics.h"
 #include "ext_drag.h"
@@ -200,6 +199,7 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
+        map<string, t_object*> fBargraphTable;
 
         mspUI fDSPUI;               // DSP UI
         
@@ -231,10 +231,11 @@ class faustgen : public MspCpp5<faustgen> {
         
         void dsp_status(const char* mess);
         t_pxobject* check_dac();
+        void create_jsui();
+        void update_bargraph();
         
         bool allocate_factory(const string& effect_name);
         
-        void create_ui();
         t_dictionary* json_reader(const char* jsontext);
        
     public:
