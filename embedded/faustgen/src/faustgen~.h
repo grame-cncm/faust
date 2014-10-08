@@ -270,8 +270,8 @@ class faustgen : public MspCpp5<faustgen> {
   
         void mute(long inlet, long mute);
          
-        // Called when saving the Max patcher
-        // This function saves the necessary data inside the json file (faust sourcecode)
+        // Called when saving the Max patcher, this function saves the necessary 
+        // data inside the json file (faust sourcecode)
         void appendtodictionary(t_dictionary* d);
         
         void getfromdictionary(t_dictionary* d);

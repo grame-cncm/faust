@@ -1303,7 +1303,7 @@ void faustgen::create_jsui()
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
         t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
-        if (scriptingname && scriptingname != gensym("") && fDSPUI.isBargraphValue(scriptingname->s_name)) {
+        if (scriptingname && fDSPUI.isBargraphValue(scriptingname->s_name)) {
             fBargraphTable[scriptingname->s_name] = obj;
         }
     }

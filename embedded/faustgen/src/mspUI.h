@@ -27,7 +27,7 @@
 //  mspUI.h for faustgen
 //
 //  Created by Martin Di Rollo on 18/04/12.
-//  Copyright (c) 2012 Grame. All rights reserved.
+//  Copyright (c) 2012-2014 Grame. All rights reserved.
 //
 
 #ifndef faustgen_mspUI_h
@@ -162,7 +162,7 @@ class mspUI : public UI
         
         map<string, mspUIObject*> fUITable1;       // Table using labels
         map<string, mspUIObject*> fUITable2;       // Table using complete path
-        map<string, mspUIObject*> fUITable3;       // Table with bargraph
+        map<string, mspUIObject*> fUITable3;       // Table containing bargraph
          
         map<const char*, const char*> fDeclareTable;
         std::vector<std::string> fControlsLevel;
