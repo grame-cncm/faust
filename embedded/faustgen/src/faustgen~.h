@@ -263,9 +263,7 @@ class faustgen : public MspCpp5<faustgen> {
         void write(long inlet, t_symbol* s);
         
         void librarypath(long inlet, t_symbol* s);
-        
-        void json(long inlet, t_symbol* s);
-  
+   
         void mute(long inlet, long mute);
          
         // Called when saving the Max patcher, this function saves the necessary 

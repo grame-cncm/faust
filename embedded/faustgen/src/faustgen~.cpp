@@ -1352,7 +1352,6 @@ int main(void)
     REGISTER_METHOD_DEFSYM(faustgen, read);
     REGISTER_METHOD_DEFSYM(faustgen, write);
     REGISTER_METHOD_DEFSYM(faustgen, librarypath);
-    REGISTER_METHOD_DEFSYM(faustgen, json);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);
