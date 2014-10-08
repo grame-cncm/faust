@@ -609,11 +609,6 @@ void faustgen_factory::librarypath(long inlet, t_symbol* s)
     }
 }
 
-void faustgen_factory::json(long inlet, t_symbol* s)
-{
-    
-}
-
 void faustgen_factory::read(long inlet, t_symbol* s)
 {
     char filename[MAX_FILENAME_CHARS];
@@ -1023,11 +1018,6 @@ void faustgen::write(long inlet, t_symbol* s)
 void faustgen::librarypath(long inlet, t_symbol* s)
 {
     fDSPfactory->librarypath(inlet, s);
-}
-
-void faustgen::json(long inlet, t_symbol* s)
-{
-    fDSPfactory->json(inlet, s);
 }
 
 // Called when saving the Max patcher, this function saves the necessary data inside the json file (faust sourcecode)
