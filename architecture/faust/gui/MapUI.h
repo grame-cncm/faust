@@ -31,19 +31,19 @@ class MapUI : public PathUI
         void openTabBox(const char* label)
         {
             fControlsLevel.push_back(label);
-        };
+        }
         void openHorizontalBox(const char* label)
         {
             fControlsLevel.push_back(label);
-        };
+        }
         void openVerticalBox(const char* label)
         {
             fControlsLevel.push_back(label);
-        };
+        }
         void closeBox()
         {
             fControlsLevel.pop_back();
-        };
+        }
         
         // -- active widgets
         void insertMap(std::string label, FAUSTFLOAT* zone)
@@ -54,37 +54,37 @@ class MapUI : public PathUI
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         
         // -- passive widgets
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         
         // -- metadata declarations
         void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-        {};
+        {}
         
         // set/get
         void setValue(const std::string& path, float value)
