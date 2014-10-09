@@ -1,4 +1,4 @@
-version := 0.9.68
+version := 0.9.70
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -11,7 +11,12 @@ system	?= $(shell uname -s)
 ifeq ($(system), Darwin)
 LIB_EXT = dylib
 else
+ifneq ($(findstring MINGW32, $(system)),)
+LIB_EXT = dll
+EXE = .exe
+else
 LIB_EXT = so
+endif
 endif
 
 prefix := $(DESTDIR)$(PREFIX)
@@ -20,11 +25,20 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
+.PHONY: all world dynamic httpd win32 sound2faust
+
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
 
-dynamic :
+# make world: This builds all the common targets for a fairly complete Faust
+# installation: Faust compiler, sound2faust utility, OSC and HTTPD libraries
+# (both static and dynamic). Most of the extra targets require additional
+# dependencies and hence aren't built by default; please check the Faust
+# README for details. This target may be built in parallel (make -j).
+world : all sound2faust httpd dynamic
+
+dynamic : all httpd
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
 	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
@@ -99,11 +113,11 @@ install :
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/
 	# install additional binary libraries (osc, http,...)
-	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
-	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
+	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/) || echo libHTTPDFaust not available	
+	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/) || echo libHTTPDFaust not available	
 		
-	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/faust/) || echo OSC static libraries not available
-	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/*.$(LIB_EXT)* $(prefix)/lib/faust/ && cp architecture/osclib/liboscpack.a $(prefix)/lib/faust/) || echo OSC dynamic libraries not available
+	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/*.a $(prefix)/lib/) || echo OSC static libraries not available
+	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/*.$(LIB_EXT)* $(prefix)/lib/) || echo OSC dynamic libraries not available
 	
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
@@ -125,7 +139,7 @@ install :
 uninstall :
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
-	rm -f $(prefix)/bin/faust
+	rm -f $(prefix)/bin/faust$(EXE)
 	make -C tools/faust2appls uninstall
 
 # make a faust distribution .zip file

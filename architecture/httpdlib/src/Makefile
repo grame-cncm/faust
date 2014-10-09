@@ -9,22 +9,26 @@ VPATH = $(subprojects)
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-ARCHFLAGS :=  -arch i386 -arch x86_64
+##ARCHFLAGS :=  -arch i386 -arch x86_64
 LIB_EXT = dylib
 # Darwin/OS X: default installation name prefix for the dynamic library. This
 # defaults to the installation prefix (a fixed path) if we have one, but
 # depending on usage (plugin or executable) you may want to keep it empty or
 # use some generic prefix such as @loader_path/ instead (see below).
 ifneq ($(PREFIX),)
-INSTALL_PREFIX = $(PREFIX)/lib/faust/
+INSTALL_PREFIX = $(PREFIX)/lib/
 endif
 ifneq ($(INSTALL_PREFIX),)
 INSTALL_NAME = -install_name "$(INSTALL_PREFIX)libHTTPDFaust.dylib"
 endif
 else
 ARCHFLAGS := 
+ifneq ($(findstring MINGW32, $(system)),)
+LIB_EXT = dll
+else
 CXXFLAGS += -fPIC
 LIB_EXT = so
+endif
 endif
 
 # Here are some useful alternative options for the installation name prefix
@@ -55,10 +59,13 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	ranlib $@
 
 ../libHTTPDFaust.dylib :  $(objects)
-	c++ -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
+	$(CXX) -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
-	gcc -shared -fPIC -o $@ $(objects)
+	$(CXX) -shared -fPIC -o $@ $(objects)
+
+../libHTTPDFaust.dll  :  $(objects)
+	$(CXX) -shared -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
@@ -66,7 +73,7 @@ depend :
 clean :
 	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
 	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
-	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib ../libHTTPDFaust.so
+	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib ../libHTTPDFaust.so ../libHTTPDFaust.dll
 	
 
 hexa/jsscripts.o : hexa/jsscripts.cpp

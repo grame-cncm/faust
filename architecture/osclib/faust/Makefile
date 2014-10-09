@@ -12,7 +12,7 @@ system	?= $(shell uname -s)
 # use some generic prefix such as @loader_path/ instead (see below).
 
 ifneq ($(PREFIX),)
-INSTALL_PREFIX = $(PREFIX)/lib/faust/
+INSTALL_PREFIX = $(PREFIX)/lib/
 endif
 
 # Here are some useful alternative options for the installation name prefix
@@ -34,7 +34,9 @@ ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
 ARCHFLAGS := 
+ifeq ($(findstring MINGW32, $(system)),)
 CXXFLAGS += -fPIC
+endif
 endif
 
 ifeq ($(MODE), SHARED)
@@ -45,8 +47,13 @@ ifneq ($(INSTALL_PREFIX),)
 INSTALL_NAME = -install_name "$(INSTALL_PREFIX)$(SONAME)"
 endif
 else
+ifneq ($(findstring MINGW32, $(system)),)
+TARGET=libOSCFaust-$(VERSION).dll
+SONAME=libOSCFaust-$(SOVERSION).dll
+else
 TARGET=libOSCFaust.so.$(VERSION)
 SONAME=libOSCFaust.so.$(SOVERSION)
+endif
 endif
 else
 TARGET=libOSCFaust.a
@@ -59,10 +66,13 @@ CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(sub
 all : $(TARGET)
 
 libOSCFaust.$(VERSION).dylib : $(objects)
-	c++ -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
+	$(CXX) -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) ../liboscpack.a -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.so.$(VERSION) : $(objects)
-	c++ -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
+	$(CXX) -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) ../liboscpack.a -o libOSCFaust.so.$(VERSION)
+
+libOSCFaust-$(VERSION).dll : $(objects)
+	$(CXX) -shared $(ARCHFLAGS) $(objects) ../liboscpack.a -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
 
 libOSCFaust.a : $(objects)
 	rm -f $@
@@ -75,7 +85,7 @@ depend :
 	
 clean :
 	rm -f $(objects)
-	rm -f libOSCFaust.a libOSCFaust*.dylib libOSCFaust.so*
+	rm -f libOSCFaust.a libOSCFaust*.dylib libOSCFaust.so* libOSCFaust*.dll
 	
 
 

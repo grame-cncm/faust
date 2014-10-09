@@ -40,6 +40,7 @@ install:
 	install faust2plot $(dest)
 	install faust2png $(dest)
 	install faust2puredata $(dest)
+	install faust2w32puredata $(dest)
 	install faust2ros $(dest)
 	install faust2rosgtk $(dest)
 	install faust2svg $(dest)
@@ -57,8 +58,6 @@ install:
 	install faust2ios $(dest)
 	install faust2lv2 $(dest)
 	install faust2lv2synth $(dest)
-	install faust2javaswing $(dest)
-	install faust2webaudio $(dest)
 	install faust2alsaconsole $(dest)
 	install faust2rpialsaconsole $(dest)
 	install faust2rpinetjackconsole $(dest)
@@ -97,6 +96,7 @@ uninstall:
 	rm -f $(dest)/faust2plot
 	rm -f $(dest)/faust2png
 	rm -f $(dest)/faust2puredata
+	rm -f $(dest)/faust2w32puredata
 	rm -f $(dest)/faust2ros
 	rm -f $(dest)/faust2rosgtk
 	rm -f $(dest)/faust2svg
@@ -114,8 +114,6 @@ uninstall:
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2lv2synth
-	rm -f $(dest)/faust2javaswing
-	rm -f $(dest)/faust2webaudio
 	rm -f $(dest)/faust2alsaconsole
 	rm -f $(dest)/faust2rpialsaconsole
 	rm -f $(dest)/faust2rpinetjackconsole
