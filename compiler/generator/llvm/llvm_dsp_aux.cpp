@@ -948,16 +948,53 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
     } 
 }
 
+
+
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, 
                                                     int argc, const char* argv[], 
                                                     const string& target, 
                                                     string& error_msg, int opt_level)
 {
-    /*
+
+//    ----- Filtrate Options for file generation ----------      //
+    int numberArg = argc;
+ 
+    for(int i=0; i<argc; i++){
+        if(strcmp(argv[i],"-svg") == 0 || 
+           strcmp(argv[i],"-ps") == 0  || 
+           strcmp(argv[i],"-tg") == 0  || 
+           strcmp(argv[i],"-sg") == 0 || 
+           strcmp(argv[i],"-mdoc") == 0 || 
+           strcmp(argv[i],"-mdlang") == 0  || 
+           strcmp(argv[i],"-stripdoc") == 0  || 
+           strcmp(argv[i],"-xml") == 0  )
+            numberArg--;
+    }
+
+    const char* arguments[numberArg];
+    
+    int i = 0;
+    for(int j=0; j<numberArg; j++){
+        while(strcmp(argv[i],"-svg") == 0 || 
+              strcmp(argv[i],"-ps") == 0  || 
+              strcmp(argv[i],"-tg") == 0  || 
+              strcmp(argv[i],"-sg") == 0 || 
+              strcmp(argv[i],"-mdoc") == 0 || 
+              strcmp(argv[i],"-mdlang") == 0  || 
+              strcmp(argv[i],"-stripdoc") == 0  || 
+              strcmp(argv[i],"-xml") == 0  )
+            i++;
+        
+        arguments[j] = argv[i];
+
+        i++;
+    }
+    
+//    --------- Reuse of compile DSP ------------------------    //
     string expanded_dsp;
     string sha_key;
     
-    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, numberArg, arguments, sha_key, error_msg)) == "") {
         return 0; 
     } else {
         FactoryTableIt it;
@@ -966,15 +1003,15 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             Sllvm_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
+        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, numberArg, arguments, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
             return 0;
         }
     }
-    */
     
+    /*
     string sha_key = generateSHA1(reorganize_compilation_options(argc, argv) + dsp_content);
     FactoryTableIt it;
     llvm_dsp_factory* factory = 0;
@@ -988,7 +1025,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         return factory;
     } else {
         return 0;
-    }
+    }*/
 }
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromSHAKey(const string& sha_key)
