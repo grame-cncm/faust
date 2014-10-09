@@ -9,14 +9,14 @@ VPATH = $(subprojects)
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-ARCHFLAGS :=  -arch i386 -arch x86_64
+##ARCHFLAGS :=  -arch i386 -arch x86_64
 LIB_EXT = dylib
 # Darwin/OS X: default installation name prefix for the dynamic library. This
 # defaults to the installation prefix (a fixed path) if we have one, but
 # depending on usage (plugin or executable) you may want to keep it empty or
 # use some generic prefix such as @loader_path/ instead (see below).
 ifneq ($(PREFIX),)
-INSTALL_PREFIX = $(PREFIX)/lib/faust/
+INSTALL_PREFIX = $(PREFIX)/lib/
 endif
 ifneq ($(INSTALL_PREFIX),)
 INSTALL_NAME = -install_name "$(INSTALL_PREFIX)libHTTPDFaust.dylib"
