@@ -128,8 +128,8 @@ install :
 	mkdir -p $(prefix)/include/faust/osc/
 	mkdir -p $(prefix)/lib/faust
 	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
-	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/faust) || echo libfaust.$(LIB_EXT) not available
-	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/faust) || echo libfaust.a not available
+	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
+	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/
@@ -176,7 +176,7 @@ install :
 	# install sound converter
 	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled	
 	#install faustremote
-	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/faust/) || echo remote not compiled
+	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
 	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
 	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/
 	# install webaudio
@@ -191,6 +191,9 @@ uninstall-dynamic:
 #	rm /usr/lib/libHTTPDFaust.$(LIB_EXT) /usr/lib
 
 uninstall :
+	rm -rf $(prefix)/lib/libfaust*
+	rm -rf $(prefix)/lib/libHTTPDFaust*
+	rm -rf $(prefix)/lib/libOSCFaust*
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust$(EXE)
