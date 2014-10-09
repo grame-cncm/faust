@@ -477,7 +477,9 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     InitializeNativeTargetAsmParser();
     
     // For ObjectCache to work...
+#if defined(LLVM_35)
     LLVMLinkInMCJIT();
+#endif
     
     // Restoring from machine code
 //#if defined(LLVM_34) || defined(LLVM_35)
@@ -521,9 +523,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         } else {
             fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
         }
-        
-        printf("llvm::sys::getProcessTriple %s\n", llvm::sys::getProcessTriple().c_str());
-
+     
         EngineBuilder builder(fResult->fModule);
         builder.setOptLevel(CodeGenOpt::Aggressive);
         builder.setEngineKind(EngineKind::JIT);

@@ -18,7 +18,7 @@ ifeq ($(system), Darwin)
     ARCHFLAGS 	:=  -arch i386 -arch x86_64
     LIBFLAGS	:=
     CXX 		= clang++
-    CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
+    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
     LIB_EXT     = dylib
     ## --analyze   -Wall -pedantic
     #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 
@@ -159,7 +159,7 @@ ifeq ($(system), Darwin)
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
 
     libfaust.dylib : $(objects) libmain.o global.o
-	c++ -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.dylib
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/faust/libfaust.dylib -o libfaust.dylib
 else	
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libmain.o global.o
@@ -167,14 +167,14 @@ ifneq ($(findstring MINGW32, $(system)),)
 	ranlib $@
 
     libfaust.dll : $(objects) libmain.o global.o
-	g++ -shared $(objects) libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread
+	$(CXX) -shared $(objects) libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread
 else
     libfaust.a : $(objects) libmain.o global.o
 	ar cq $@ $(objects) libmain.o global.o
 	ranlib $@
 
     libfaust.so : $(objects) libmain.o global.o
-	gcc -shared -fPIC $(objects) libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ 
+	$(CXX) -shared -fPIC $(objects) libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ 
 endif
 endif
 

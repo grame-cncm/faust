@@ -48,7 +48,6 @@
 #endif
 
 #include "mspUI.h"
-#include "JSONBuilder.h"
 #include "jpatcher_api.h"
 #include "jgraphics.h"
 #include "ext_drag.h"
@@ -149,8 +148,6 @@ class faustgen_factory {
         void write(long inlet, t_symbol* s);
         void librarypath(long inlet, t_symbol* s);
         
-        void json(long inlet, t_symbol* s);
-        
         char* get_sourcecode() { return *fSourceCode; }
         
         const char* get_json() { return fJSON.c_str(); }
@@ -200,6 +197,7 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
+        map<string, t_object*> fBargraphTable;
 
         mspUI fDSPUI;               // DSP UI
         
@@ -231,10 +229,11 @@ class faustgen : public MspCpp5<faustgen> {
         
         void dsp_status(const char* mess);
         t_pxobject* check_dac();
+        void create_jsui();
+        void update_bargraph();
         
         bool allocate_factory(const string& effect_name);
         
-        void create_ui();
         t_dictionary* json_reader(const char* jsontext);
        
     public:
@@ -264,13 +263,11 @@ class faustgen : public MspCpp5<faustgen> {
         void write(long inlet, t_symbol* s);
         
         void librarypath(long inlet, t_symbol* s);
-        
-        void json(long inlet, t_symbol* s);
-  
+   
         void mute(long inlet, long mute);
          
-        // Called when saving the Max patcher
-        // This function saves the necessary data inside the json file (faust sourcecode)
+        // Called when saving the Max patcher, this function saves the necessary 
+        // data inside the json file (faust sourcecode)
         void appendtodictionary(t_dictionary* d);
         
         void getfromdictionary(t_dictionary* d);

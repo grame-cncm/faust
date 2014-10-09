@@ -609,11 +609,6 @@ void faustgen_factory::librarypath(long inlet, t_symbol* s)
     }
 }
 
-void faustgen_factory::json(long inlet, t_symbol* s)
-{
-    
-}
-
 void faustgen_factory::read(long inlet, t_symbol* s)
 {
     char filename[MAX_FILENAME_CHARS];
@@ -853,8 +848,6 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     }
         
     create_dsp(true);
-    
-    //create_ui();
 }
 
 // Called upon deleting the object inside the patcher
@@ -899,55 +892,6 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
     return d;
 }
 
-void faustgen::create_ui()
-{
-    JSONBuilder ui_builder;
-    fDSP->buildUserInterface(&ui_builder);
-    t_dictionary* d = json_reader(ui_builder.getUI().c_str());
-    post("t_dictionary* d %d", d);
-    
-    t_object *patcher;
-    t_max_err err = object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
-    t_object* obj = newobject_fromdictionary(patcher, d);
-    post("obj  %x", obj);
-    
-    /*
-    t_object *patcher, *toggle, *metro, *slider1, *slider2;
-     
-    //t_object *patcher, 
-   
-    t_max_err err = object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
-    toggle = newobject_sprintf(patcher, "@maxclass toggle @patching_position %.2f %.2f", 10., 10.);
-    metro = newobject_sprintf(patcher, "@maxclass newobj @text \"metro 400 \" @patching_position %.2f %.2f", 50., 50);
-    
-    slider1 = newobject_sprintf(patcher, "@maxclass slider @Orientation Horizontal @patching_position %.2f %.2f", 100., 100.);
-    slider1 = newobject_sprintf(patcher, "@maxclass slider @Orientation Vertical @patching_position %.2f %.2f", 150., 150.);
-     
-     t_object *box, *obj;
-    object_obex_lookup((t_object*)&m_ob, gensym("#P"), &patcher);
-    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box))  {
-        obj = jbox_get_object(box);
-        if (obj)
-            post("%s",object_classname(obj)->s_name);
-        else
-            post("box with NULL object");
-    }
-    */
-    /*
-    t_dictionary *d;
-    t_object *o;
-    char text[4];
-    strncpy_zero(text, "foo", 4);
-    d = dictionary_sprintf("@maxclass comment @varname _name \
-        @text \"%s\" @patching_rect %.2f %.2f %.2f %.2f \
-        @fontsize %f @textcolor %f %f %f 1.0 \
-        @fontname %s @bgcolor 0.001 0.001 0.001 0.",
-        text, 20.0, 20.0, 200.0, 24.0,
-        18, 0.9, 0.9, 0.9, "Arial");
-    o = newobject_fromdictionary((t_object*)&m_ob, d);
-    */
-}
-
 static bool check_digit(const string& name)
 {
     for (int i = name.size() - 1; i >= 0; i--) {
@@ -969,14 +913,13 @@ static int count_digit(const string& name)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    bool res = false;
     string name = string((s)->s_name);
-
+   
     if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
     if (ac == 0 && fDSPUI.isValue(name)) {
-        
+      
         float off = 0.0f;
         float on = 1.0f;
         fDSPUI.setValue(name, off);
@@ -989,6 +932,12 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         return;
     }
     
+    // Standard parameter
+    float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+    if (fDSPUI.setValue(name, value)) { // Doesn't have any effect if name is unknown
+        return;
+    }
+        
     // List of values
     if (check_digit(name)) {
         
@@ -1043,16 +992,10 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                     sprintf(param_name, "%s  %s", prefix.c_str(), num_val.str().c_str());
                     break;
             }
-            
-            res = fDSPUI.setValue(param_name, value); // Doesn't have any effect if name is unknown
-        }
-    // Standard parameter
-    } else {
-        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
-    }
     
-    if (!res) {
+            fDSPUI.setValue(param_name, value); // Doesn't have any effect if name is unknown
+        }
+    } else {
         post("Unknown parameter : %s", (s)->s_name);
     }
 }	
@@ -1075,11 +1018,6 @@ void faustgen::write(long inlet, t_symbol* s)
 void faustgen::librarypath(long inlet, t_symbol* s)
 {
     fDSPfactory->librarypath(inlet, s);
-}
-
-void faustgen::json(long inlet, t_symbol* s)
-{
-    fDSPfactory->json(inlet, s);
 }
 
 // Called when saving the Max patcher, this function saves the necessary data inside the json file (faust sourcecode)
@@ -1169,14 +1107,7 @@ void faustgen::update_sourcecode()
     // Create a new DSP instance
     create_dsp(false);
     
-    /*
-    // notify JSON
-    t_atom json;
-    atom_setobj(&json, (void*)fDSPfactory->get_json());
-    out_anything(gensym("json"), 1, &json);
-    */
-    
-    // Faustgen~ state is modified...
+    // faustgen~ state is modified...
     set_dirty();
 }
 
@@ -1187,6 +1118,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
+            update_bargraph();
         }
     
         fDSPfactory->unlock();
@@ -1283,6 +1215,9 @@ void faustgen::create_dsp(bool init)
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
         
+        // send JSON to JS script
+        create_jsui();
+        
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
             
@@ -1337,6 +1272,46 @@ t_pxobject* faustgen::check_dac()
     return 0;
 }
 
+void faustgen::create_jsui()
+{
+    t_object *patcher, *box, *obj;
+    object_obex_lookup(this, gensym("#P"), &patcher);
+    
+    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
+        obj = jbox_get_object(box);
+        // Notify JSON
+        if (obj && strcmp(object_classname(obj)->s_name, "js") == 0) {
+            t_atom json;
+            atom_setsym(&json, gensym(fDSPfactory->get_json()));
+            object_method_typed(obj, gensym("anything"), 1, &json, 0);
+            post("Generate UI from JSON...");
+        }
+    }
+        
+    // Keep all bargraph
+    fBargraphTable.clear();
+    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
+        obj = jbox_get_object(box);
+        t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
+        if (scriptingname && fDSPUI.isBargraphValue(scriptingname->s_name)) {
+            fBargraphTable[scriptingname->s_name] = obj;
+        }
+    }
+}
+
+void faustgen::update_bargraph()
+{
+    map<string, t_object*>::iterator it;
+    for (it = fBargraphTable.begin(); it != fBargraphTable.end(); it++) {
+        FAUSTFLOAT value = fDSPUI.getBargraphValue((*it).first);
+        if (value != NAN) {
+            t_atom at_value;
+            atom_setfloat(&at_value, value);
+            object_method_typed((*it).second, gensym("float"), 1, &at_value, 0);
+        }
+    }
+}
+
 void faustgen::dsp_status(const char* mess)
  {
     t_pxobject* dac = 0;
@@ -1377,7 +1352,6 @@ int main(void)
     REGISTER_METHOD_DEFSYM(faustgen, read);
     REGISTER_METHOD_DEFSYM(faustgen, write);
     REGISTER_METHOD_DEFSYM(faustgen, librarypath);
-    REGISTER_METHOD_DEFSYM(faustgen, json);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);

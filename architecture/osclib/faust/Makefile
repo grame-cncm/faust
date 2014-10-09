@@ -66,13 +66,13 @@ CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(sub
 all : $(TARGET)
 
 libOSCFaust.$(VERSION).dylib : $(objects)
-	c++ -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
+	$(CXX) -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.so.$(VERSION) : $(objects)
-	c++ -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
+	$(CXX) -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
 
 libOSCFaust-$(VERSION).dll : $(objects)
-	c++ -shared $(ARCHFLAGS) $(objects) -L.. -loscpack -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
+	$(CXX) -shared $(ARCHFLAGS) $(objects) -L.. -loscpack -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
 
 libOSCFaust.a : $(objects)
 	rm -f $@
