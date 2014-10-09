@@ -96,6 +96,7 @@ using namespace std;
 #include "ext.h"
 #include "ext_obex.h"
 #include "z_dsp.h"
+#include "jpatcher_api.h"
 #include <string.h>
 
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
