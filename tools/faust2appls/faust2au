@@ -49,10 +49,10 @@ elif [ "$p" = -icc ]; then
 ignore=" "
 elif [ $p = "-osc" ]; then
 OSCDEFS="DEFINES += OSCCTRL"
-OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+OSCLIBS="-lOSCFaust"
 elif [ "$p" = "-httpd" ]; then
 HTTPDEFS="DEFINES += HTTPCTRL"
-HTTPLIBS="-L$FLIB -L$HTTPLIB -lHTTPDFaust -lmicrohttpd"
+HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
 elif [ ${p:0:1} = "-" ]; then
 OPTIONS="$OPTIONS $p"
 elif [[ -f "$p" ]]; then
