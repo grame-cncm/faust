@@ -134,7 +134,7 @@ typedef struct faust
 {
     t_pxobject m_ob;
     t_atom *m_seen, *m_want;
-    map<string, t_object*> m_bargraph_table;
+    map<string, t_object*> m_output_table;
     short m_where;
     bool m_mute;
     void** args;
@@ -371,9 +371,13 @@ class mspUI : public UI
         {
             return (fUITable1.count(name) || fUITable2.count(name));
         }
-        bool isBargraphValue(string name) 
+        bool isOutputValue(string name) 
         {
             return fUITable3.count(name);
+        }
+        bool isInputValue(string name) 
+        {
+            return fUITable2.count(name);
         }
         bool setValue(string name, FAUSTFLOAT f)
         {
@@ -388,7 +392,7 @@ class mspUI : public UI
             }
         }
         
-        FAUSTFLOAT getBargraphValue(string name) { return fUITable3[name]->getValue(); }
+        FAUSTFLOAT getOutputValue(string name) { return fUITable3[name]->getValue(); }
           
         iterator begin1()	{ return fUITable1.begin(); }
         iterator end1()		{ return fUITable1.end(); }
@@ -534,22 +538,22 @@ void faust_create_jsui(t_faust* x)
         }
     }
         
-    // Keep all bargraph
-    x->m_bargraph_table.clear();
+    // Keep all outputs
+    x->m_output_table.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
         t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
-        if (scriptingname && x->dspUI->isBargraphValue(scriptingname->s_name)) {
-            x->m_bargraph_table[scriptingname->s_name] = obj;
+        if (scriptingname && x->dspUI->isOutputValue(scriptingname->s_name)) {
+            x->m_output_table[scriptingname->s_name] = obj;
         }
     }
 }
 
-void faust_update_bargraph(t_faust* x)
+void faust_update_outputs(t_faust* x)
 {
     map<string, t_object*>::iterator it;
-    for (it =  x->m_bargraph_table.begin(); it != x->m_bargraph_table.end(); it++) {
-        FAUSTFLOAT value = x->dspUI->getBargraphValue((*it).first);
+    for (it =  x->m_output_table.begin(); it != x->m_output_table.end(); it++) {
+        FAUSTFLOAT value = x->dspUI->isOutputValue((*it).first);
         if (value != NAN) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
@@ -652,7 +656,7 @@ t_int *faust_perform(t_int *w)
         }
     } else {
         x->dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset+x->dsp->getNumInputs()]));
-        faust_update_bargraph(x);
+        faust_update_outputs(x);
     }
 	return (w + (x->dsp->getNumInputs()+x->dsp->getNumOutputs()) + 2 + 1);
 }
