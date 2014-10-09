@@ -107,7 +107,7 @@ EXPORT string expandDSPFromString(const string& name_app,
 
 EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
 {
-    if (CheckParameters(argc, argv)) {
+//    if (CheckParameters(argc, argv)) {
         int argc1 = argc + 2;
         const char* argv1[32];
         
@@ -118,18 +118,21 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
         }
         
         char error_msg_aux[512];
-        compile_faust(argc1, argv1, "", "", error_msg_aux, false);
-        error_msg = error_msg_aux;
-        return true;
-    } else {
-        error_msg = "Incorrect compiler parameter";
-        return false;
-    }
+        if(!compile_faust(argc1, argv1, "", "", error_msg_aux, false))
+            return true;
+        else{
+            error_msg = error_msg_aux;
+            return false;
+        }
+//    } else {
+//        error_msg = "Incorrect compiler parameter";
+//        return false;
+//    }
 }
 
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
-    if (CheckParameters(argc, argv)) {
+//    if (CheckParameters(argc, argv)) {
         int argc1 = argc + 1;
         const char* argv1[32];
         
@@ -139,13 +142,16 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
         }
      
         char error_msg_aux[512];
-        compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux, false);
-        error_msg = error_msg_aux;
-        return true;
-    } else {
-        error_msg = "Incorrect compiler parameter";
-        return false;
-    }
+        if(!compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux, false))
+            return true;
+        else{
+            error_msg = error_msg_aux;
+            return false;
+        }
+//    } else {
+//        error_msg = "Incorrect compiler parameter";
+//        return false;
+//    }
 }
 
 EXPORT const char* expandCDSPFromFile(const char* filename, 

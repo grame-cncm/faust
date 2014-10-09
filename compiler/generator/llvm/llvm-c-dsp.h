@@ -63,7 +63,7 @@ extern "C"
      *
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters
+     * @param argv - the array of parameters (Warning : aux file generation options will be filtrated (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param error_msg - the error string to be filled, has to be 256 characters long
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
@@ -82,7 +82,7 @@ extern "C"
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
      * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters
+     * @param argv - the array of parameters (Warning : aux file generation options will be filtrated (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param error_msg - the error string to be filled, has to be 256 characters long
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
