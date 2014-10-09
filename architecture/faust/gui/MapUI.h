@@ -66,7 +66,7 @@ class MapUI : public PathUI
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
             insertMap(buildPath(label), zone);
-        };
+        }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
             insertMap(buildPath(label), zone);

@@ -96,12 +96,13 @@ using namespace std;
 #include "ext.h"
 #include "ext_obex.h"
 #include "z_dsp.h"
+#include "jpatcher_api.h"
 #include <string.h>
 
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.53"
+#define EXTERNAL_VERSION "0.54"
 
 class mspUI;
 
@@ -136,12 +137,13 @@ typedef struct faust
 {
     t_pxobject m_ob;
     t_atom *m_seen, *m_want;
+    map<string, t_object*> m_output_table;
     short m_where;
     bool m_mute;
     void** args;
     mspUI* dspUI;
     mydsp* dsp;
-    string m_json; 
+    char* m_json;
 } t_faust;
 
 void *faust_class;
@@ -162,6 +164,7 @@ class mspUIObject {
 		virtual ~mspUIObject() {}
 
 		virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0,1.0,f);}
+        virtual FAUSTFLOAT getValue() { return *fZone; }
 		virtual void toString(char* buffer) {}
 		virtual string getName() {return fLabel;}
 };
@@ -221,6 +224,39 @@ class mspSlider : public mspUIObject {
 };
 
 /*--------------------------------------------------------------------------*/
+class mspBargraph : public mspUIObject {
+    
+    private:
+        
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        FAUSTFLOAT fCurrent;
+        
+    public:
+        
+        mspBargraph(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        :mspUIObject(label,zone),fMin(min),fMax(max),fCurrent(*zone) {}
+        virtual ~mspBargraph() {}
+        
+        void toString(char* buffer)
+        {
+            stringstream s; 
+            s << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
+            strcpy(buffer, s.str().c_str());
+        }
+        
+        virtual FAUSTFLOAT getValue() 
+        { 
+            if (*fZone != fCurrent) {
+                fCurrent = *fZone;
+                return fCurrent;
+            } else {
+                return NAN; 
+            }
+        }
+};
+
+/*--------------------------------------------------------------------------*/
 
 #define MULTI_SIZE  256
 
@@ -228,14 +264,30 @@ class mspUI : public UI
 {
 	private:
 
-		map<string, mspUIObject*> fUITable;
+        map<string, mspUIObject*> fUITable1;       // Table using labels
+        map<string, mspUIObject*> fUITable2;       // Table using complete path
+        map<string, mspUIObject*> fUITable3;       // Table containing bargraph
+       
         map<const char*, const char*> fDeclareTable;
+        std::vector<std::string> fControlsLevel;
         
         FAUSTFLOAT* fMultiTable[MULTI_SIZE];
         int fMultiIndex;
         int fMultiControl;
+        
+        std::string buildPath(const std::string& label) 
+        {
+            std::string res = "/";
+            for (size_t i = 0; i < fControlsLevel.size(); i++) {
+                res += fControlsLevel[i];
+                res += "/";
+            }
+            res += label;
+            replace(res.begin(), res.end(), ' ', '_');
+            return res;
+        }
     
-        string CreateLabel(const char* label)
+        string createLabel(const char* label)
         {
             map<const char*, const char*>::reverse_iterator it;
             if (fDeclareTable.size() > 0) {
@@ -270,13 +322,25 @@ class mspUI : public UI
             clear();
    		}
       
-		void addButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspButton(CreateLabel(label), zone);}
-
-		void addCheckButton(const char* label, FAUSTFLOAT* zone) {fUITable[string(label)] = new mspCheckButton(CreateLabel(label), zone);}
-
-		void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+		void addButton(const char* label, FAUSTFLOAT* zone) 
         {
-            fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
+            mspUIObject* obj = new mspButton(createLabel(label), zone);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj;
+        }
+        
+        void addCheckButton(const char* label, FAUSTFLOAT* zone) 
+        {
+            mspUIObject* obj = new mspCheckButton(createLabel(label), zone);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj; 
+        }
+        
+        void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj; 
         }
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -288,20 +352,29 @@ class mspUI : public UI
         {
             addSlider(label, zone, init, min, max, step);
         }
-
-		void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-		{
-			fUITable[string(label)] = new mspSlider(CreateLabel(label), zone, init, min, max, step);
-		}
         
-        // To be implemented
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
-		void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {fDeclareTable.clear();}
-          
-        void openTabBox(const char* label) {fDeclareTable.clear();}
-		void openHorizontalBox(const char* label) {fDeclareTable.clear();}
-		void openVerticalBox(const char* label) {fDeclareTable.clear();}
-		void closeBox() {fDeclareTable.clear();}
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
+            fUITable1[string(label)] = obj;
+            fUITable2[buildPath(label)] = obj;
+        }
+        
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+        {   
+            fUITable3[buildPath(label)] = new mspBargraph(createLabel(label), zone, min, max);
+            fDeclareTable.clear();
+        }
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+        {
+            fUITable3[buildPath(label)] = new mspBargraph(createLabel(label), zone, min, max);
+            fDeclareTable.clear();
+        }
+    
+        void openTabBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
+        void openHorizontalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
+        void openVerticalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
+        void closeBox() {fControlsLevel.pop_back(); fDeclareTable.clear();}
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
@@ -333,29 +406,45 @@ class mspUI : public UI
     
         bool isValue(string name) 
         {
-            return fUITable.count(name);
+            return (fUITable1.count(name) || fUITable2.count(name));
         }
-
-		bool setValue(string name, FAUSTFLOAT f)
-		{
-			if (fUITable.count(name)) {
-                fUITable[name]->setValue(f);
+        bool isOutputValue(string name) 
+        {
+            return fUITable3.count(name);
+        }
+        bool isInputValue(string name) 
+        {
+            return fUITable2.count(name);
+        }
+        bool setValue(string name, FAUSTFLOAT f)
+        {
+            if (fUITable1.count(name)) {
+                fUITable1[name]->setValue(f);
+                return true;
+            } else if (fUITable2.count(name)) {
+                fUITable2[name]->setValue(f);
                 return true;
             } else {
                 return false;
             }
-		}
-		iterator begin()	{ return fUITable.begin(); }
-		iterator end()		{ return fUITable.end(); }
+        }
+		FAUSTFLOAT getOutputValue(string name) { return fUITable3[name]->getValue(); }
+          
+        iterator begin1()	{ return fUITable1.begin(); }
+        iterator end1()		{ return fUITable1.end(); }
+        
+        iterator begin2()	{ return fUITable2.begin(); }
+        iterator end2()		{ return fUITable2.end(); }
 
-        int itemsCount() { return fUITable.size(); }
+        int itemsCount() { return fUITable1.size(); }
         void clear() 
         { 
             iterator it;
-            for (it = begin(); it != end(); it++) {
+            for (it = begin1(); it != end1(); it++) {
                 delete (*it).second;
             }
-            fUITable.clear(); 
+            fUITable1.clear(); 
+            fUITable2.clear(); 
         }
 };
 
@@ -379,9 +468,8 @@ static int count_digit(const string& name)
 
 void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
-    bool res = false;
     string name = string((s)->s_name);
-    
+     
     if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
@@ -397,6 +485,12 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         av[0].a_w.w_float = off;
         faust_method(obj, s, 1, av);
         
+        return;
+    }
+    
+    // Standard parameter
+    float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+    if (obj->dspUI->setValue(name, value)) { // Doesn't have any effect if name is unknown
         return;
     }
     
@@ -455,17 +549,51 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
                     break;
             }
             
-            //printf("param_name = %s value = %f\n", param_name, value);
-            res = obj->dspUI->setValue(param_name, value); // Doesn't have any effect if name is unknown
+            obj->dspUI->setValue(param_name, value); // Doesn't have any effect if name is unknown
         }
-    // Standard parameter
     } else {
-        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = obj->dspUI->setValue(name, value); // Doesn't have any effect if name is unknown
-    }
-    
-    if (!res) {
         post("Unknown parameter : %s", (s)->s_name);
+    }
+}
+
+/*--------------------------------------------------------------------------*/
+void faust_create_jsui(t_faust* x)
+{
+    t_object *patcher, *box, *obj;
+    object_obex_lookup((t_object*)x, gensym("#P"), &patcher);
+    
+    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
+        obj = jbox_get_object(box);
+        // Notify JSON
+        if (obj && strcmp(object_classname(obj)->s_name, "js") == 0) {
+            t_atom json;
+            atom_setsym(&json, gensym(x->m_json));
+            object_method_typed(obj, gensym("anything"), 1, &json, 0);
+            post("Generate UI from JSON...");
+        }
+    }
+        
+    // Keep all outputs
+    x->m_output_table.clear();
+    for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
+        obj = jbox_get_object(box);
+        t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
+        if (scriptingname && x->dspUI->isOutputValue(scriptingname->s_name)) {
+            x->m_output_table[scriptingname->s_name] = obj;
+        }
+    }
+}
+
+void faust_update_outputs(t_faust* x)
+{
+    map<string, t_object*>::iterator it;
+    for (it =  x->m_output_table.begin(); it != x->m_output_table.end(); it++) {
+        FAUSTFLOAT value = x->dspUI->isOutputValue((*it).first);
+        if (value != NAN) {
+            t_atom at_value;
+            atom_setfloat(&at_value, value);
+            object_method_typed((*it).second, gensym("float"), 1, &at_value, 0);
+        }
     }
 }
 
@@ -486,7 +614,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     JSONUI builder(x->dsp->getNumInputs(), x->dsp->getNumOutputs());
     x->dsp->metadata(&builder);
     x->dsp->buildUserInterface(&builder);
-    x->m_json = builder.JSON();
+    x->m_json = strdup(builder.JSON().c_str());
     
     int num_input;
     
@@ -506,6 +634,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     }
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
+    
+    // send JSON to JS script
+    faust_create_jsui(x);
     return x;
 }
 
@@ -520,7 +651,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			}
 			post((char*)"------------------");
-			for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
+			for (mspUI::iterator it = x->dspUI->begin1(); it != x->dspUI->end1(); ++it) {
 				char param[256];
 				it->second->toString(param);
 				post(param);
@@ -548,6 +679,7 @@ void faust_free(t_faust* x)
 	if (x->dsp) delete x->dsp;
 	if (x->dspUI) delete x->dspUI;
 	if (x->args) free(x->args);
+    if (x->m_json) free(x->m_json);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -566,6 +698,7 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
         } else {
             x->dsp->compute(sampleframes, ins, outs);
         }
+        faust_update_outputs(x);
     }
 }
 
@@ -585,10 +718,13 @@ extern "C" int main(void)
     mspUI dspUI;
 	thedsp->buildUserInterface(&dspUI);
 
-	// Add the same method for every parameters and use the symbol as a selector
-	// inside this method
-	for (mspUI::iterator it = dspUI.begin(); it != dspUI.end(); ++it) {
-		addmess((method)faust_method, (char*)(it->first.c_str()), A_GIMME, 0);
+	// Add the same method for every parameters and use the symbol as a selector inside this method
+	for (mspUI::iterator it = dspUI.begin1(); it != dspUI.end1(); ++it) {
+        addmess((method)faust_method, (char*)(it->first.c_str()), A_GIMME, 0);
+	}
+    // Same for complete path
+    for (mspUI::iterator it = dspUI.begin2(); it != dspUI.end2(); ++it) {
+        addmess((method)faust_method, (char*)(it->first.c_str()), A_GIMME, 0);
 	}
 
     addmess((method)faust_dsp64, (char*)"dsp64", A_CANT, 0);

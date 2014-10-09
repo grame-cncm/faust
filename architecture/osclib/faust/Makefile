@@ -12,7 +12,7 @@ system	?= $(shell uname -s)
 # use some generic prefix such as @loader_path/ instead (see below).
 
 ifneq ($(PREFIX),)
-INSTALL_PREFIX = $(PREFIX)/lib/faust/
+INSTALL_PREFIX = $(PREFIX)/lib/
 endif
 
 # Here are some useful alternative options for the installation name prefix
@@ -66,13 +66,13 @@ CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(sub
 all : $(TARGET)
 
 libOSCFaust.$(VERSION).dylib : $(objects)
-	$(CXX) -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
+	$(CXX) -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) ../liboscpack.a -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.so.$(VERSION) : $(objects)
-	$(CXX) -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
+	$(CXX) -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) ../liboscpack.a -o libOSCFaust.so.$(VERSION)
 
 libOSCFaust-$(VERSION).dll : $(objects)
-	$(CXX) -shared $(ARCHFLAGS) $(objects) -L.. -loscpack -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
+	$(CXX) -shared $(ARCHFLAGS) $(objects) ../liboscpack.a -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
 
 libOSCFaust.a : $(objects)
 	rm -f $@

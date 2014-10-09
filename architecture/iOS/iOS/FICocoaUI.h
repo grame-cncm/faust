@@ -1699,8 +1699,19 @@ public:
                                 }
                                 else
                                 {
-                                    y = ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight;
-                                    h = (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight));
+                                    float divider = (contentSize.height - kSpaceSize - labelHeight)
+                                    
+                                    if(divider != 0.0)
+                                    {
+                                        y = ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / divider) + kSpaceSize + labelHeight;
+                                        h = (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / divider);
+                                    }
+                                    else
+                                    {
+                                        y = 0.f;
+                                        h = 0.f;
+                                    }
+                                        
                                 }
                                 
                                 (*j)->setFrame((*j)->getX(),

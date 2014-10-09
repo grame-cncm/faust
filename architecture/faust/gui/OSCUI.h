@@ -56,7 +56,7 @@ class OSCUI : public GUI
 {
      
 	oscfaust::OSCControler*	fCtrl;
-	std::vector<const char*>		fAlias;
+	std::vector<const char*> fAlias;
 	
 	const char* tr(const char* label) const;
 	
@@ -111,14 +111,15 @@ class OSCUI : public GUI
 
 	virtual void show() {}
 
-	void run(){
-            fCtrl->run(); 
+	void run()
+    {
+        fCtrl->run(); 
     }
-	const char* getRootName()							{ return fCtrl->getRootName(); }
+	const char* getRootName()		{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
     int	getUDPOut()                 { return fCtrl->getUDPOut(); }
     int	getUDPErr()                 { return fCtrl->getUDPErr(); }
-    const char* getDestAddress()            {return fCtrl->getDestAddress();}
+    const char* getDestAddress()    {return fCtrl->getDestAddress();}
 };
 
 const char* OSCUI::tr(const char* label) const
