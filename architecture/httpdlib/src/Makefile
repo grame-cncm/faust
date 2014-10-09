@@ -62,7 +62,7 @@ dynamic : ../libHTTPDFaust.$(LIB_EXT)
 	$(CXX) -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
-	$(CXX) -shared -fPIC -o $@ $(objects)
+	$(CXX) -shared -fPIC -o $@ $(objects) `pkg-config --libs libmicrohttpd`
 
 ../libHTTPDFaust.dll  :  $(objects)
 	$(CXX) -shared -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
