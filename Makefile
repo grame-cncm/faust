@@ -137,10 +137,12 @@ install :
 
 
 uninstall :
+	rm -f $(addprefix $(prefix)/lib/, libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)*)
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust$(EXE)
 	make -C tools/faust2appls uninstall
+	rm -f $(prefix)/bin/sound2faust$(EXE)
 
 # make a faust distribution .zip file
 dist :
