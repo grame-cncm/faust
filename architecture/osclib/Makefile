@@ -47,7 +47,7 @@ libOSCFaust.a : liboscpack.a faust/libOSCFaust.a
 # This "links" liboscpack.a into libOSCFaust.a.
 	(rm -Rf tmpdir && mkdir tmpdir && cd tmpdir && ar x ../liboscpack.a && ar q ../libOSCFaust.a `ar t ../liboscpack.a | grep .o` && cd .. && rm -Rf tmpdir)
 # Older ar versions might need this?
-	ranlib $@
+#	ranlib $@
 
 $(TARGET) : faust/$(TARGET)
 	cp faust/$(TARGET) $@
