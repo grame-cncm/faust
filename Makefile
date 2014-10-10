@@ -243,8 +243,8 @@ debversion = $(version)+git$(shell git log -1 --format=%cd --date=short | sed -e
 # Debian revision number of the package.
 debrevision = 0
 # Source tarball and folder.
-debsrc = faust_$(debversion).orig.tar.gz
-debdist = faust-$(debversion)
+debsrc = faust2_$(debversion).orig.tar.gz
+debdist = faust2-$(debversion)
 
 # This is used for automatically generated debian/changelog entries (cf. 'make
 # debchange'). Adjust as needed.
@@ -261,7 +261,7 @@ debchange:
 
 debclean: $(debsrc)
 	rm -rf $(debdist)
-	rm -f faust_$(version)+git*
+	rm -f faust2_$(version)+git*
 
 deb: $(debsrc)
 	rm -rf $(debdist)
