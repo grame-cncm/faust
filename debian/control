@@ -1,0 +1,24 @@
+Source: faust
+Section: sound
+Priority: optional
+Maintainer: Albert Graef <aggraef@gmail.com>
+Build-Depends: debhelper (>= 7.0.50~), bison, flex, pkg-config,
+ libsndfile1-dev, libssl-dev, libmicrohttpd-dev, vim-common
+Standards-Version: 3.9.3
+
+Package: faust
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Conflicts: faust2
+Recommends: ruby, libc6-dev | libc-dev, g++, make, libjack-dev, libgtk2.0-dev
+Suggests: kate
+Description: functional programming language for realtime audio applications
+ Faust is a functional programming language specifically designed for realtime
+ audio applications and plugins. The syntax of the language is block diagram
+ oriented. The faust compiler translates signal processing specifications into
+ optimized C++ code for signal processing applications.
+ .
+ The generated code can be wrapped into an 'architecture file' in order to
+ create for example a standalone jack/gtk application. Several architecture
+ files are provided and additional ones are fairly easy to add.
+Homepage: http://faust.grame.fr/
