@@ -13,6 +13,21 @@ VPATH = $(subprojects)
 
 system ?= $(shell uname -s)
 
+# These paths are searched for llvm-config* in reverse order (/opt/local/bin
+# is included for compatibility with MacPorts).
+llvm_paths = /usr/bin /opt/local/bin /usr/local/bin
+
+# Search heuristic for finding a suitable llvm-config. This will select a
+# default 'llvm-config', if it's on the PATH. Otherwise it will look for
+# llvm-config* on the paths above and select the lexicographically greatest
+# among these. Usually this will give the llvm-config for the latest LLVM
+# version on your system, preferring later paths in the list (so /usr/local
+# will be considered before /usr). If none of these work then you can either
+# link a suitable llvm-config to a location somewhere on your PATH, or just
+# set LLVM_CONFIG manually.
+
+LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-config* /usr/local/bin/llvm-config*) $(shell which llvm-config 2> /dev/null))
+
 ## On Darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
     ARCHFLAGS 	:=  -arch i386 -arch x86_64
@@ -22,15 +37,12 @@ ifeq ($(system), Darwin)
     LIB_EXT     = dylib
     ## --analyze   -Wall -pedantic
     #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 
-    LLVM_CONFIG = llvm-config
-else 
+else
     ARCHFLAGS 	:=
     LIBFLAGS	:= --mode=link --tag=CXX
 ifneq ($(findstring MINGW32, $(system)),)
-    LLVM_CONFIG = llvm-config
     LIB_EXT     = dll
 else
-    LLVM_CONFIG = $(word 1,$(wildcard /usr/bin/llvm-config*))
     LIB_EXT     = so
 endif
 endif
@@ -148,7 +160,7 @@ faust : $(objects) main.o libmain.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lncurses -lpthread -o faust
 endif
 
 scheduler.ll : ../architecture/scheduler.cpp
