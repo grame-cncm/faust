@@ -1,0 +1,3 @@
+version=3
+http://sf.net/faudiostream/faust-(.+)\.tar\.gz debian uupdate
+

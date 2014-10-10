@@ -149,5 +149,81 @@ dist :
 
 log :
 	git log --oneline --date-order --reverse --after={2011-01-07} master >log-$(version)
-	
+
+# Make Debian packages. This builds a package from the current HEAD in a
+# subdirectory named $(debdist). It also creates the source archive that goes
+# along with it. All files will be created in the toplevel Faust source
+# directory.
+
+# To make this work, you need to have the Debian package toolchain (debuild
+# and friends) installed. Also make sure you have your DEBEMAIL and
+# DEBFULLNAME environment variables set up as explained in the debchange(1)
+# manual page. These are needed to create changelog entries and in order to
+# sign the Debian packages created with 'make deb' and 'make debsrc'.
+
+# The typical workflow is as follows:
+
+# 1. Run 'make debchange' once to create a new debian/changelog entry. You
+# *must* do this once so that debuild knows about the proper version number of
+# the package.
+
+# 2. Run 'make deb' to build a signed binary package. Or 'make deb-us' for an
+# unsigned one.
+
+# If you only need the binary package for local deployment then you're done.
+# Otherwise proceed to step 3.
+
+# 3. Run 'make debsrc' to create a signed Debian source package which can be
+# uploaded, e.g, to Launchpad using 'dput'. Or 'make debsrc-us' for an
+# unsigned package.
+
+# 4. Run 'make debclean' to get rid of any files that were created in steps 2
+# and 3.
+
+# The Debian version gets derived from the package version $(version) as well
+# as the date and serial number of the last commit.
+debversion = $(version)+git$(shell git log -1 --format=%cd --date=short | sed -e 's/-//g')+$(shell git rev-list --count HEAD)
+# Debian revision number of the package.
+debrevision = 0
+# Source tarball and folder.
+debsrc = faust_$(debversion).orig.tar.gz
+debdist = faust-$(debversion)
+
+# This is used for automatically generated debian/changelog entries (cf. 'make
+# debchange'). Adjust as needed.
+debmsg = "Build from latest upstream source."
+debprio = "low"
+
+.PHONY: debversion debchange debclean deb debsrc deb-us debsrc-us
+
+debversion:
+	@echo $(debversion)
+
+debchange:
+	dch -u $(debprio) -v $(debversion)-$(debrevision) $(debmsg) && dch -r ""
+
+debclean: $(debsrc)
+	rm -rf $(debdist)
+	rm -f faust_$(version)+git*
+
+deb: $(debsrc)
+	rm -rf $(debdist)
+	tar xfz $(debsrc)
+# Here we just copy debian/ from the working copy since it might have changes
+# that haven't been committed yet.
+	cd $(debdist) && cp -R ../debian . && debuild $(DEBUILD_FLAGS)
+	rm -rf $(debdist)
+
+debsrc:
+	$(MAKE) deb DEBUILD_FLAGS=-S
+
+deb-us:
+	$(MAKE) deb DEBUILD_FLAGS="-us -uc"
+
+debsrc-us:
+	$(MAKE) deb DEBUILD_FLAGS="-S -us -uc"
+
+$(debsrc) :
+	git archive --format=tar.gz -o $(debsrc) --prefix=$(debdist)/ HEAD
+
 # DO NOT DELETE
