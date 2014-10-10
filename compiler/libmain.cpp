@@ -644,7 +644,7 @@ static bool process_cmdline(int argc, const char* argv[])
     }
     
     if (err != 0) {
-        throw faustexception("ERROR: " + parse_error.str() + '\n');
+        printf("WARNING: %s\n", parse_error.str().c_str());
     }
 
 	return (err == 0);
