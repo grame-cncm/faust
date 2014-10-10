@@ -644,7 +644,9 @@ static bool process_cmdline(int argc, const char* argv[])
     }
     
     if (err != 0) {
-        printf("WARNING: %s\n", parse_error.str().c_str());
+        stringstream error;
+        error << "WARNING : " << parse_error.str() << endl;
+        gGlobal->gErrorMsg = error.str();
     }
 
 	return (err == 0);
