@@ -181,21 +181,9 @@ install :
 	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/
 	# install webaudio
 	cp -r architecture/webaudio $(prefix)/lib/faust/
-	
-install-dynamic:
-	cp compiler/libfaust.$(LIB_EXT) /usr/lib
-#	cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) /usr/lib
-
-	# install Max/MSP
-	cp -r architecture/max-msp $(prefix)/lib/faust/
-        
-
-uninstall-dynamic:
-	rm  /usr/lib/libfaust.$(LIB_EXT)
-#	rm /usr/lib/libHTTPDFaust.$(LIB_EXT) /usr/lib
 
 uninstall :
-	rm -f $(addprefix $(prefix)/lib/, libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)*)
+	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)*)
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust$(EXE)
