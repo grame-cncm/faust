@@ -160,7 +160,7 @@ faust : $(objects) main.o libmain.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lncurses -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
 endif
 
 scheduler.ll : ../architecture/scheduler.cpp
