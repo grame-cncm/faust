@@ -271,9 +271,13 @@ class mspUI : public UI
         {
             return (fUITable1.count(name) || fUITable2.count(name));
         }
-        bool isBargraphValue(string name) 
+        bool isOutputValue(string name) 
         {
             return fUITable3.count(name);
+        }
+        bool isInputValue(string name) 
+        {
+            return fUITable2.count(name);
         }
         bool setValue(string name, FAUSTFLOAT f)
         {
@@ -288,7 +292,7 @@ class mspUI : public UI
             }
         }
         
-        FAUSTFLOAT getBargraphValue(string name) { return fUITable3[name]->getValue(); }
+        FAUSTFLOAT getOutputValue(string name) { return fUITable3[name]->getValue(); }
           
         iterator begin()	{ return fUITable1.begin(); }
         iterator end()		{ return fUITable1.end(); }

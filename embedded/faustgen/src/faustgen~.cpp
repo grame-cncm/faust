@@ -1118,7 +1118,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
-            update_bargraph();
+            update_outputs();
         }
     
         fDSPfactory->unlock();
@@ -1215,9 +1215,6 @@ void faustgen::create_dsp(bool init)
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
         
-        // send JSON to JS script
-        create_jsui();
-        
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
             
@@ -1238,6 +1235,9 @@ void faustgen::create_dsp(bool init)
         if (dspstate) {
             dsp_status("start");
         }
+  
+        // send JSON to JS script
+        create_jsui();
         
         fDSPfactory->unlock();
     } else {
@@ -1288,22 +1288,25 @@ void faustgen::create_jsui()
         }
     }
         
-    // Keep all bargraph
-    fBargraphTable.clear();
+    // Keep all outputs
+    fOutputTable.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
         t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
-        if (scriptingname && fDSPUI.isBargraphValue(scriptingname->s_name)) {
-            fBargraphTable[scriptingname->s_name] = obj;
+        if (scriptingname) {
+            // Keep control outputs
+            if (fDSPUI.isOutputValue(scriptingname->s_name)) {
+                fOutputTable[scriptingname->s_name] = obj;
+            }
         }
     }
 }
 
-void faustgen::update_bargraph()
+void faustgen::update_outputs()
 {
     map<string, t_object*>::iterator it;
-    for (it = fBargraphTable.begin(); it != fBargraphTable.end(); it++) {
-        FAUSTFLOAT value = fDSPUI.getBargraphValue((*it).first);
+    for (it = fOutputTable.begin(); it != fOutputTable.end(); it++) {
+        FAUSTFLOAT value = fDSPUI.getOutputValue((*it).first);
         if (value != NAN) {
             t_atom at_value;
             atom_setfloat(&at_value, value);

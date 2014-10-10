@@ -477,6 +477,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     InitializeNativeTargetAsmParser();
     
     // For ObjectCache to work...
+//#if defined(LLVM_34) || defined(LLVM_35)
 #if defined(LLVM_35)
     LLVMLinkInMCJIT();
 #endif

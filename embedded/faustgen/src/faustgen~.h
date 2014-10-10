@@ -197,7 +197,7 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
-        map<string, t_object*> fBargraphTable;
+        map<string, t_object*> fOutputTable;
 
         mspUI fDSPUI;               // DSP UI
         
@@ -230,7 +230,7 @@ class faustgen : public MspCpp5<faustgen> {
         void dsp_status(const char* mess);
         t_pxobject* check_dac();
         void create_jsui();
-        void update_bargraph();
+        void update_outputs();
         
         bool allocate_factory(const string& effect_name);
         
