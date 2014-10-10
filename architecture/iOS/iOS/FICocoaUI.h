@@ -1699,7 +1699,7 @@ public:
                                 }
                                 else
                                 {
-                                    float divider = (contentSize.height - kSpaceSize - labelHeight)
+                                    float divider = (contentSize.height - kSpaceSize - labelHeight);
                                     
                                     if(divider != 0.0)
                                     {
