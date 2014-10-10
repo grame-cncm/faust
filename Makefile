@@ -13,7 +13,7 @@ LIB_EXT = so
 endif
 endif
 
-DESTDIR ?= 
+DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
 
@@ -71,12 +71,12 @@ win32 :
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
 ios :
-	$(MAKE) -C compiler ios -f $(MAKEFILE) prefix=$(prefix) 
+	$(MAKE) -C compiler ios -f $(MAKEFILE) prefix=$(prefix)
 
 emcc :
 	$(MAKE) -C compiler emcc -f $(MAKEFILE) prefix=$(prefix)
 
-sound2faust: 
+sound2faust:
 
 	$(MAKE) -C tools/sound2faust
 
@@ -136,7 +136,7 @@ install :
 	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/
 	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
-	
+
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/
 	cp architecture/*.cpp $(prefix)/lib/faust/
@@ -158,10 +158,10 @@ install :
 	# install additional binary libraries (osc, http,...)
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/) || echo libHTTPDFaust.a not available
 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/) || echo libHTTPDFaust.$(LIB_EXT) not available
-		
+
 	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/libOSCFaust.a $(prefix)/lib/) || echo libOSCFaust.a not available
 	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/libOSCFaust*.$(LIB_EXT)* $(prefix)/lib/) || echo libOSCFaust.$(LIB_EXT) not available
-	
+
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available
@@ -174,7 +174,7 @@ install :
 	# install faust2xxx tools
 	make -C tools/faust2appls install
 	# install sound converter
-	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled	
+	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
 	#install faustremote
 	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
 	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
