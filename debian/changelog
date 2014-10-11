@@ -1,3 +1,9 @@
+faust2 (2.0.a29+git20141011+5211-0) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Sat, 11 Oct 2014 01:26:44 +0200
+
 faust2 (2.0.a28+git20141008+5170-0) trusty; urgency=low
 
   * Build from latest upstream source.
