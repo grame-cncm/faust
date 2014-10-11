@@ -1,8 +1,8 @@
-faust (0.9.70+git20141010+3181-0) trusty; urgency=low
+faust (0.9.70+git20141011+3182-1) trusty; urgency=low
 
   * Build from latest upstream source.
 
- -- Albert Graef <aggraef@gmail.com>  Sat, 11 Oct 2014 07:50:27 +0200
+ -- Albert Graef <aggraef@gmail.com>  Sat, 11 Oct 2014 09:29:24 +0200
 
 faust (0.9.70+git20141010+3174-0) trusty; urgency=low
 
