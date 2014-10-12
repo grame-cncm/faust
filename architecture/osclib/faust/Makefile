@@ -31,7 +31,7 @@ endif
 #INSTALL_PREFIX = @rpath/
 
 ifeq ($(system), Darwin)
-#ARCHFLAGS :=  -arch i386 -arch x86_64
+ARCHFLAGS :=  -arch i386 -arch x86_64
 else
 ARCHFLAGS := 
 ifeq ($(findstring MINGW32, $(system)),)

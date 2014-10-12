@@ -9,7 +9,7 @@ VPATH = $(subprojects)
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-##ARCHFLAGS :=  -arch i386 -arch x86_64
+ARCHFLAGS :=  -arch i386 -arch x86_64
 LIB_EXT = dylib
 # Darwin/OS X: default installation name prefix for the dynamic library. This
 # defaults to the installation prefix (a fixed path) if we have one, but
