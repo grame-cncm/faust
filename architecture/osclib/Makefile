@@ -45,9 +45,18 @@ liboscpack.a : oscpack/liboscpack.a
 libOSCFaust.a : liboscpack.a faust/libOSCFaust.a
 	cp faust/libOSCFaust.a $@
 # This "links" liboscpack.a into libOSCFaust.a.
+ifeq ($(system), Darwin)
+# On Darwin, we need to use Apple's libtool here, since ar can't handle
+# archives containing more than one architecture.
+	libtool libOSCFaust.a liboscpack.a -o tmp.a && rm -f libOSCFaust.a && mv tmp.a libOSCFaust.a
+else
+# Other systems use ar. The following should work with most systems having a
+# modern ar (including GNU ar), but may need adjustments for systems with
+# older ar versions or fat binaries like on OS X.
 	(rm -Rf tmpdir && mkdir tmpdir && cd tmpdir && ar x ../liboscpack.a && ar q ../libOSCFaust.a `ar t ../liboscpack.a | grep .o` && cd .. && rm -Rf tmpdir)
 # Older ar versions might need this?
 #	ranlib $@
+endif
 
 $(TARGET) : faust/$(TARGET)
 	cp faust/$(TARGET) $@
