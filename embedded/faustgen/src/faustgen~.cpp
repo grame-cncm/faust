@@ -1296,7 +1296,7 @@ void faustgen::create_jsui()
         if (scriptingname) {
             // Keep control outputs
             if (fDSPUI.isOutputValue(scriptingname->s_name)) {
-                fOutputTable[scriptingname->s_name] = obj;
+                fOutputTable[scriptingname->s_name].push_back(obj);
             }
         }
     }
@@ -1304,13 +1304,16 @@ void faustgen::create_jsui()
 
 void faustgen::update_outputs()
 {
-    map<string, t_object*>::iterator it;
-    for (it = fOutputTable.begin(); it != fOutputTable.end(); it++) {
-        FAUSTFLOAT value = fDSPUI.getOutputValue((*it).first);
+    map<string, vector<t_object*> >::iterator it1;
+    vector<t_object*>::iterator it2;
+    for (it1 = fOutputTable.begin(); it1 != fOutputTable.end(); it1++) {
+        FAUSTFLOAT value = fDSPUI.getOutputValue((*it1).first);
         if (value != NAN) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
-            object_method_typed((*it).second, gensym("float"), 1, &at_value, 0);
+            for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); it2++) {
+                object_method_typed((*it2), gensym("float"), 1, &at_value, 0);
+            }
         }
     }
 }

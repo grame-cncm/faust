@@ -197,7 +197,7 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
-        map<string, t_object*> fOutputTable;
+        map<string, vector <t_object*> > fOutputTable;
 
         mspUI fDSPUI;               // DSP UI
         
