@@ -528,9 +528,15 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         EngineBuilder builder(fResult->fModule);
         builder.setOptLevel(CodeGenOpt::Aggressive);
         builder.setEngineKind(EngineKind::JIT);
+        
         // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
+    //#if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_35)
         builder.setUseMCJIT(true);
-        //builder.setUseMCJIT(false);
+    #else
+        builder.setUseMCJIT(false);
+    #endif
+    
         builder.setCodeModel(CodeModel::JITDefault);
         builder.setMCPU(llvm::sys::getHostCPUName());
         
