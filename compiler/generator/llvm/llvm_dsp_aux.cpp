@@ -518,11 +518,20 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
-          
+
+#ifdef _WIN32
+	// Windows needs this special suffix to the target triple,
+	// otherwise the backend would try to generate native COFF
+	// code which the JIT can't use
+	// (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
+	string target_suffix = "-elf";
+#else
+	string target_suffix = "";
+#endif
         if (fTarget != "") {
-            fResult->fModule->setTargetTriple(fTarget);
+            fResult->fModule->setTargetTriple(fTarget+target_suffix);
         } else {
-            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple()+target_suffix);
         }
      
         EngineBuilder builder(fResult->fModule);
@@ -573,10 +582,12 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
             pm.add(tli);
             
-#ifndef LLVM_35
-	    // XXXFIXME: LLVM 3.5 doesn't support this any more. It doesn't
-	    // seem to be necessary either, as the target data from the module
-	    // is used, which should be set up properly at this point? -ag
+#ifdef LLVM_35
+	    // LLVM 3.5 doesn't need a separate pass for the data
+	    // layout, but it does require that we initialize the
+	    // data layout of the module. -ag
+	    fResult->fModule->setDataLayout(fJIT->getDataLayout());
+#else
             const string &ModuleDataLayout = fResult->fModule->getDataLayout();
             DataLayout* td = new DataLayout(ModuleDataLayout);
             pm.add(td);
