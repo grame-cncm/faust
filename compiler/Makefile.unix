@@ -175,6 +175,7 @@ ifeq ($(system), Darwin)
 else	
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libmain.o global.o
+	rm -f $@
 	ar cq $@ $(objects) libmain.o global.o
 	ranlib $@
 
@@ -182,6 +183,7 @@ ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) -shared $(objects) libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread
 else
     libfaust.a : $(objects) libmain.o global.o
+	rm -f $@
 	ar cq $@ $(objects) libmain.o global.o
 	ranlib $@
 
