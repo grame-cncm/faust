@@ -169,9 +169,10 @@ static Tree real_a2sb(Tree exp)
             return abstr;
 	
 		} else {
-			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure", exp);
-            throw faustexception("a2sb : internal error : not an abstraction inside closure\n");
-		}
+            evalerror(yyfilename, -1, "a2sb : internal error : not an abstraction inside closure", exp);
+            // Never reached...
+            return 0;
+        }
 		
 	} else if (isBoxPatternMatcher(exp)) {
 		// Here we have remaining PM rules that we will try to 
@@ -339,8 +340,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             // it is a closure, we have an environment to access
             return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
         } else {
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access", exp);
-            throw faustexception("No environment to access\n");
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "no environment to access", exp);
         }
 
 //////////////////////en chantier////////////////////////////
@@ -353,9 +353,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             Tree lenv3 = copyEnvReplaceDefs(lenv2, ldef, visited2, localValEnv);
             return eval(closure(exp2,notused,visited2,lenv3), visited, localValEnv);
         } else {
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "Not a closure", val);
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access", exp);
-            throw faustexception("Not a closure, no environment to access\n");
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "not a closure", val);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "no environment to access", exp);
         }
 
 ///////////////////////////////////////////////////////////////////
@@ -660,7 +659,7 @@ static double eval2double (Tree exp, Tree visited, Tree localValEnv)
 	int numInputs, numOutputs;
 	getBoxType(diagram, &numInputs, &numOutputs);
 	if ( (numInputs > 0) || (numOutputs != 1) ) {
-		evalerror (yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
+		evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
 		return 1;
 	} else {
 		Tree lsignals = boxPropagateSig(gGlobal->nil, diagram , makeSigInputList(numInputs) );
@@ -688,7 +687,7 @@ static int eval2int (Tree exp, Tree visited, Tree localValEnv)
 	int numInputs, numOutputs;
 	getBoxType(diagram, &numInputs, &numOutputs);
 	if ( (numInputs > 0) || (numOutputs != 1) ) {
-		evalerror (yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
+		evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
 		return 1;
 	} else {
 		Tree lsignals = boxPropagateSig(gGlobal->nil, diagram , makeSigInputList(numInputs) );
@@ -1060,12 +1059,10 @@ static Tree applyList (Tree fun, Tree larg)
 
     if (isBoxEnvironment(abstr)) {
         evalerrorbox(yyfilename, -1, "an environment can't be used as a function", fun);
-        throw faustexception("an environment can't be used as a function\n");
     }
 
     if (!isBoxAbstr(abstr, id, body)) {
         evalerror(yyfilename, -1, "(internal) not an abstraction inside closure", fun);
-        throw faustexception("(internal) not an abstraction inside closure\n");
     }
 
 	// try to synthetise a  name from the function name and the argument name
@@ -1118,7 +1115,6 @@ static Tree larg2par(Tree larg)
 {
 	if (isNil(larg)) {
 		evalerror(yyfilename, -1, "empty list of arguments", larg);
-        throw faustexception("empty list of arguments\n");
 	}
 	if (isNil(tl(larg))) {
 		return hd(larg);
@@ -1149,10 +1145,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 	// check that the definition exists
 	if (isNil(lenv)) {
     	evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol", id);
-	    stringstream error;
-        error << "undefined symbol " << *id << endl;
-        throw faustexception(error.str());
-	}
+ 	}
 
     //cerr << "Id definition is " << *def << endl;
 	// check that it is not a recursive definition
