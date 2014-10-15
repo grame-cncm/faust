@@ -39,7 +39,7 @@ void lexerror(const char* msg)
 void yyerror(const char* msg)
 {
     stringstream error;
-    error << "ERROR : " << yyfilename << ":" << yylineno << ":" << msg << endl;
+    error << yyfilename << ":" << yylineno << " : ERROR : " << msg << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
