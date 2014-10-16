@@ -521,15 +521,15 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
 
-#ifdef _WIN32
-	// Windows needs this special suffix to the target triple,
-	// otherwise the backend would try to generate native COFF
-	// code which the JIT can't use
-	// (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
-	string target_suffix = "-elf";
-#else
-	string target_suffix = "";
-#endif
+    #ifdef _WIN32
+        // Windows needs this special suffix to the target triple,
+        // otherwise the backend would try to generate native COFF
+        // code which the JIT can't use
+        // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
+        string target_suffix = "-elf";
+    #else
+        string target_suffix = "";
+    #endif
         if (fTarget != "") {
             fResult->fModule->setTargetTriple(fTarget+target_suffix);
         } else {
@@ -584,16 +584,16 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
             pm.add(tli);
             
-    #ifdef LLVM_35
+        #ifdef LLVM_35
             // LLVM 3.5 doesn't need a separate pass for the data
             // layout, but it does require that we initialize the
             // data layout of the module. -ag
             fResult->fModule->setDataLayout(fJIT->getDataLayout());
-    #else
+        #else
             const string &ModuleDataLayout = fResult->fModule->getDataLayout();
             DataLayout* td = new DataLayout(ModuleDataLayout);
             pm.add(td);
-    #endif
+        #endif
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
             tm->addAnalysisPasses(pm);
@@ -968,8 +968,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
     } 
 }
 
-
-
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, 
                                                     int argc, const char* argv[], 
                                                     const string& target, 
@@ -979,30 +977,30 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 //    ----- Filtrate Options for file generation ----------      //
     int numberArg = argc;
  
-    for(int i=0; i<argc; i++){
-        if(strcmp(argv[i],"-svg") == 0 || 
-           strcmp(argv[i],"-ps") == 0  || 
-           strcmp(argv[i],"-tg") == 0  || 
+    for (int i=0; i<argc; i++) {
+        if (strcmp(argv[i],"-svg") == 0 || 
+           strcmp(argv[i],"-ps") == 0 || 
+           strcmp(argv[i],"-tg") == 0 || 
            strcmp(argv[i],"-sg") == 0 || 
            strcmp(argv[i],"-mdoc") == 0 || 
-           strcmp(argv[i],"-mdlang") == 0  || 
-           strcmp(argv[i],"-stripdoc") == 0  || 
-           strcmp(argv[i],"-xml") == 0  )
+           strcmp(argv[i],"-mdlang") == 0 || 
+           strcmp(argv[i],"-stripdoc") == 0 || 
+           strcmp(argv[i],"-xml") == 0)
             numberArg--;
     }
 
     const char* arguments[numberArg];
     
     int i = 0;
-    for(int j=0; j<numberArg; j++){
-        while(strcmp(argv[i],"-svg") == 0 || 
-              strcmp(argv[i],"-ps") == 0  || 
-              strcmp(argv[i],"-tg") == 0  || 
-              strcmp(argv[i],"-sg") == 0 || 
-              strcmp(argv[i],"-mdoc") == 0 || 
-              strcmp(argv[i],"-mdlang") == 0  || 
-              strcmp(argv[i],"-stripdoc") == 0  || 
-              strcmp(argv[i],"-xml") == 0  )
+    for (int j=0; j<numberArg; j++) {
+        while (strcmp(argv[i],"-svg") == 0 || 
+                strcmp(argv[i],"-ps") == 0 || 
+                strcmp(argv[i],"-tg") == 0 || 
+                strcmp(argv[i],"-sg") == 0 || 
+                strcmp(argv[i],"-mdoc") == 0 || 
+                strcmp(argv[i],"-mdlang") == 0 || 
+                strcmp(argv[i],"-stripdoc") == 0 || 
+                strcmp(argv[i],"-xml") == 0)
             i++;
         
         arguments[j] = argv[i];
