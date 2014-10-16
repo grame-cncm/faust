@@ -1565,9 +1565,6 @@ public:
 	virtual ~QTGUI() {
         
         delete fGeneralLayout;
-        
-        if(fMainWindow)
-            delete fMainWindow;
     }
 
     QString styleSheet(){
