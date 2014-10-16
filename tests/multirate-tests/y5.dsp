@@ -1,3 +1,1 @@
-import("multirate.lib");
-
-process = vectorize(3,_);
+process = vectorize(3);

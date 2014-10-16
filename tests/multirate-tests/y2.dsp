@@ -1,4 +1,4 @@
-import("multirate.lib");
+//import("multirate.lib");
 
-process = upsample(3): downsample(2);
+process = up(3): down(2);
 

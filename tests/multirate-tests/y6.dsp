@@ -1,6 +1,6 @@
 // mutual recursion
 
-import("multirate.lib");
+//import("multirate.lib");
 
 foo(r,x) = r*x;
 fii(r,x) = abs(r-x);

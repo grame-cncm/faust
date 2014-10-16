@@ -1,9 +1,7 @@
 // mutual recursion
 
-import("multirate.lib");
-
-foo = upsample(4), _ : *;
-fii = downsample(4),_ : *;
+foo = up(4), _ : *;
+fii = down(4),_ : *;
 
 cross = _,_ <: !,_,_,!;
 
