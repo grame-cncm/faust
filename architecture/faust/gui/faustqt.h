@@ -1715,9 +1715,9 @@ public:
         //    myBro->document()->setDefaultStyleSheet(sheet);
         //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
         
-        QString text("<br>Connect You To");
+        QString text("<br>Please connect to:");
         text += "<br><a href = " + url + ">"+ url+ "</a>";
-        text += "<br>Or Flash the code below";
+        text += "<br>or scan the QR code below.";
         
         myBro->setOpenExternalLinks(true);
         myBro->setHtml(text);
