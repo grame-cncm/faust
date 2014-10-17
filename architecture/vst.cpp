@@ -52,7 +52,7 @@
 /********************************************************************
  * vsti-poly.cpp - Polyphonic VSTi-2.4 wrapper for the FAUST language. 
  *
- * Usage: faust -a vsti-poly.cpp myfaustprog.dsp
+ * Usage: faust -a vst.cpp myfaustprog.dsp
  *
  * By Yan Michalevsky (http://www.stanford.edu/~yanm2/)
  * based on vsti-mono.cpp by

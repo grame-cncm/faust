@@ -73,7 +73,7 @@ class GUI : public UI
     virtual void show() {};	
     virtual void run() {};
 	
-	void stop()		{ fStopped = true; }
+	virtual void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
     virtual void declare(FAUSTFLOAT* , const char* , const char* ) {}
