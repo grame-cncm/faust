@@ -1566,7 +1566,10 @@ public:
         fMainWindow->setCentralWidget(this);
     }
 
-	virtual ~QTGUI() {}
+	virtual ~QTGUI() {
+        
+        delete fGeneralLayout;
+    }
 
     QString styleSheet(){
         
@@ -1715,9 +1718,9 @@ public:
         //    myBro->document()->setDefaultStyleSheet(sheet);
         //    myBro->setStyleSheet("*{color: white; font: Menlo; font-size: 14px }");
         
-        QString text("<br>Please connect to:");
+        QString text("<br>Please connect to ");
         text += "<br><a href = " + url + ">"+ url+ "</a>";
-        text += "<br>or scan the QR code below.";
+        text += "<br>Or scan the QR code below";
         
         myBro->setOpenExternalLinks(true);
         myBro->setHtml(text);
@@ -1760,7 +1763,16 @@ public:
             fMainWindow->show();
 	}
     
-    
+    virtual void stop()
+	{
+		if (fTimer != 0) {
+            fTimer->stop();
+            delete fTimer;
+            fTimer = NULL;
+		}
+        
+        GUI::stop();
+	}
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // OPEN AND CLOSE GROUPS
@@ -2083,3 +2095,4 @@ public:
 };
 
 #endif
+
