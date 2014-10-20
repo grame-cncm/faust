@@ -183,10 +183,11 @@ install :
 	cp -r architecture/webaudio $(prefix)/lib/faust/
 
 uninstall :
-	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)*)
+	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
 	rm -rf $(prefix)/lib/faust/
 	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust$(EXE)
+	rm -f $(prefix)/bin/RemoteServer$(EXE)
 	make -C tools/faust2appls uninstall
 	rm -f $(prefix)/bin/sound2faust$(EXE)
 
