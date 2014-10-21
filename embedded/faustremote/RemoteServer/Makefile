@@ -27,7 +27,7 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 clean: 
-	rm -f $(objects)
+	rm -f $(OBJECTS) $(TARGET)
 
 ####### Compile
 

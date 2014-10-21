@@ -50,7 +50,7 @@ all :
 # additional dependencies and hence aren't built by default; please check the
 # Faust README for details. This target may be built in parallel (make -j).
 # NOTE: Once the remote target is readily supported on most platforms, it
-# should be added here. Currently this requires jack2 from git which isn't
+# should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
 world : all sound2faust httpd dynamic
 
