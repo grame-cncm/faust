@@ -84,13 +84,7 @@ storage of trees.
 #include <cstdlib>
 #include "exception.hh"
 
-static void error(const char * s, Tree t)
-{
-	cerr << "ERROR : " << s << " : " << *t << endl;
-}
-
-#define ERROR(s,t) { error(s,t); throw faustexception(s); }
-
+#define ERROR(s,t) { throw faustexception(s); }
 
 Tree CTree::gHashTable[kHashTableSize];
 bool CTree::gDetails = false;
@@ -150,7 +144,6 @@ unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
 	return hk;
 }
 
-
 Tree CTree::make(const Node& n, int ar, Tree* tbl)
 {
 	tvec	br(ar); 
@@ -165,7 +158,6 @@ Tree CTree::make(const Node& n, int ar, Tree* tbl)
 	}
 	return (t) ? t : new CTree(hk, n, br);
 }
-
 
 Tree CTree::make(const Node& n, const tvec& br)
 {
@@ -196,7 +188,6 @@ ostream& CTree::print (ostream& fout) const
 	
 	return fout;
 }
-
 
 void CTree::control ()
 {
@@ -232,7 +223,7 @@ int tree2int (Tree t)
 	} else if (isDouble(t->node(), &x)) {
 		i = int(x);
 	} else {
-		ERROR("the node of the tree is not an int nor a float", t);
+		ERROR("the node of the tree is not an int nor a float\n", t);
 	}
 	return i;
 }	
@@ -248,7 +239,7 @@ double tree2float (Tree t)
     } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
-        ERROR("the node of the tree is not a float nor an int", t);
+        ERROR("the node of the tree is not a float nor an int\n", t);
     }
     return x;
 }   
@@ -264,7 +255,7 @@ double tree2double (Tree t)
     } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
-        ERROR("the node of the tree is not a float nor an int", t);
+        ERROR("the node of the tree is not a float nor an int\n", t);
     }
     return double(x);
 }   
@@ -274,7 +265,7 @@ const char* tree2str (Tree t)
 {
 	Sym s;
 	if (!isSym(t->node(), &s)) {
-		ERROR("the node of the tree is not a symbol", t);
+		ERROR("the node of the tree is not a symbol\n", t);
 	}
 	return name(s);
 }	
@@ -284,7 +275,7 @@ void* tree2ptr (Tree t)
 {
 	void*	x;
 	if (! isPointer(t->node(), &x)) {
-		ERROR("the node of the tree is not a pointer", t);
+		ERROR("the node of the tree is not a pointer\n", t);
 	}
 	return x;
 }	
@@ -373,7 +364,6 @@ void* getUserData(Tree t)
 		return 0;
 	}
 }
-
 
 /**
  * export the properties of a CTree as two vectors, one for the keys
