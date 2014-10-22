@@ -134,6 +134,9 @@ install :
 	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
 	# install webaudio
 	cp -r architecture/webaudio $(prefix)/lib/faust/
+	# install Max/MSP
+	cp -r architecture/max-msp $(prefix)/lib/faust/
+        
 
 
 uninstall :
@@ -186,7 +189,7 @@ log :
 # as the date and serial number of the last commit.
 debversion = $(version)+git$(shell git log -1 --format=%cd --date=short | sed -e 's/-//g')+$(shell git rev-list --count HEAD)
 # Debian revision number of the package.
-debrevision = 0
+debrevision = 1
 # Source tarball and folder.
 debsrc = faust_$(debversion).orig.tar.gz
 debdist = faust-$(debversion)

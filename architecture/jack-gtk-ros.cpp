@@ -10,7 +10,7 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2014-2015 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
@@ -89,17 +89,19 @@ int main(int argc, char *argv[])
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	
+	// create DSP object
 	DSP = new mydsp();
 	if (DSP==0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
 	}
 
+	// Get name from file name to name the namespace.
 	std::string NameSpace =(std::string)appname;
 	ros::init(argc, argv, NameSpace);
 	ros::NodeHandle _n(NameSpace);
 		
-	
+	// create and build graphic and ROS interfaces
 	GUI* interface 	= new GTKUI (appname, &argc, &argv);
 	RosUI* rosinterface = new RosUI (_n);
 	
@@ -133,9 +135,11 @@ int main(int argc, char *argv[])
 	oscinterface->run();
 #endif
 
+	// ROS Callbacks are called by AsyncSpinner spinner
 	ros::AsyncSpinner spinner(rosinterface->getParamsCount());
 	spinner.start();
 	
+	// GTK interface is launched
 	interface->run();
 		
     	interface->stop();
