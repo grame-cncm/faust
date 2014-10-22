@@ -1563,7 +1563,12 @@ public:
         fTimer = 0;
 
         fMainWindow = new QMainWindow;
-        fMainWindow->setCentralWidget(this);
+        QScrollArea *sa = new QScrollArea( fMainWindow );
+        
+        sa->setWidgetResizable( true );
+        sa->setWidget(this);
+        
+        fMainWindow->setCentralWidget(sa);
     }
 
 	virtual ~QTGUI() {
