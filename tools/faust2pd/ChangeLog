@@ -1,3 +1,11 @@
+2014-09-17  Albert Graef  <aggraef@gmail.com>
+
+	+ Release 2.8
+
+	* Pass the -mcpu=generic option to llc when batch-compiling Pure
+	scripts, to prevent illegal instructions depending on the build
+	host's cpu type.
+
 2009-08-08  Albert Graef  <Dr.Graef@t-online.de>
 
 	+ Release 2.2

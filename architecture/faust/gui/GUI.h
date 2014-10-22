@@ -5,7 +5,6 @@
 #include <list>
 #include <map>
 
-
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
  * Provides additional macchanismes to synchronize widgets and zones. Widgets
@@ -15,10 +14,17 @@
 class uiItem;
 typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 
+class clist : public std::list<uiItem*>
+{
+    public:
+    
+        virtual ~clist();
+        
+};
+
 class GUI : public UI
 {
     
-	typedef std::list<uiItem*> clist;
 	typedef std::map<FAUSTFLOAT*, clist*> zmap;
 	
  private:
@@ -67,7 +73,7 @@ class GUI : public UI
     virtual void show() {};	
     virtual void run() {};
 	
-	void stop()		{ fStopped = true; }
+	virtual void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
     virtual void declare(FAUSTFLOAT* , const char* , const char* ) {}
@@ -87,12 +93,13 @@ class uiItem
 	
 	uiItem (GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
-		ui->registerZone(zone, this); 
-	}
+ 		ui->registerZone(zone, this); 
+ 	}
 	
   public :
   
-	virtual ~uiItem() {}
+	virtual ~uiItem() 
+    {}
 	
 	void modifyZone(FAUSTFLOAT v) 	
 	{ 
@@ -161,5 +168,13 @@ inline void GUI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
 { 
 	new uiCallbackItem(this, zone, foo, data); 
 };
+
+inline clist::~clist() 
+{
+    std::list<uiItem*>::iterator it;
+    for (it = begin(); it != end(); it++) {
+        delete (*it);
+    }
+}
 
 #endif

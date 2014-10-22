@@ -27,6 +27,7 @@
 #include "signals.hh"
 #include "prim2.hh"
 #include "xtended.hh"
+#include "Text.hh"
 
 extern int gFloatSize;
 
@@ -87,7 +88,7 @@ const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
 
 const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
 {
-    if (ptr == sigWriteReadTable) 	return "wrtable";
+    if (ptr == sigWriteReadTable) 	return "rwtable";
     return "prim5???";
 }
 
@@ -153,7 +154,7 @@ ostream& boxpp::print (ostream& fout) const
 
     Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg,
             body, fun, args, abstr, genv, vis, lenv, ldef, slot,
-            ident, rules, filename;
+            ident, rules;
 
     const char* str;
 
@@ -162,7 +163,7 @@ ostream& boxpp::print (ostream& fout) const
     // primitive elements
     if (xt) 						fout << xt->name();
     else if (isBoxInt(box, &i))			fout << i;
-    else if (isBoxReal(box, &r))		fout << r;
+    else if (isBoxReal(box, &r))		fout << T(r);
     else if (isBoxCut(box))				fout << '!';
     else if (isBoxWire(box))			fout << '_';
     else if (isBoxIdent(box, &str))		fout << str;
@@ -174,7 +175,7 @@ ostream& boxpp::print (ostream& fout) const
     else if (isBoxPrim5(box, &p5))		fout << prim5name(p5);
 
     else if (isBoxAbstr(box,arg,body))	fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
-    else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << "TOTO" << boxpp(args) ;
+    else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << boxpp(args) ;
 
     else if (isBoxWithLocalDef(box, body, ldef))	fout << boxpp(body) << " with { " << envpp(ldef) << " }";
 
@@ -283,7 +284,7 @@ ostream& boxpp::print (ostream& fout) const
     
         fout << "waveform";
         char sep = '{';
-        for (size_t i=0; i<box->arity(); i++) {
+        for (int i=0; i<box->arity(); i++) {
             fout << sep << boxpp(box->branch(i));
             sep = ',';
         }

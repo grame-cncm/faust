@@ -22,7 +22,7 @@ import("math.lib");
 
 // optimBasic, optimMaxRe, optimInPhase : weights the circular harmonics signals depending to the ambisonics optimization. It can be "basic" for no optimization, "maxRe" or "inPhase".
 
-// wider : can be used to wide the diffusion of a localised sound. The order depending signals are weighted and appear in a logarithmic way to have linear changes.
+// wider : can be used to wide the diffusion of a localized sound. The order depending signals are weighted and appear in a logarithmic way to have linear changes.
 
 // map : encodes a source with distance compensation.
 
@@ -82,7 +82,7 @@ with
 
 // Usage : n is the order
 // Exemple : decoderStereo(3,8)
-// Informations : An "home made" ambisonic decoder for stereophonic resitution (30° - 330°) : Sound field lose energy aound 180°. You should use inPhase optimization with ponctual sources.
+// Informations : An "home made" ambisonic decoder for stereophonic restitution (30° - 330°) : Sound field lose energy around 180°. You should use inPhase optimization with ponctual sources.
 
 
 //----------------------------------------------------------------------------//
@@ -163,7 +163,7 @@ with
 
 // Usage : n is the order and w the widen value between 0 - 1
 // Exemple : wider(3, w)
-// Informations : It can be used to wide the diffusion of a localised sound. The order depending signals are weighted to simulate fractional order. When w = 0, there's only the harmonic 0 and the sound is omnidirectionnal, when w = 1, the processing have no effect and the sound field have the highest spatial resolution. From 0 to 1, harmonics appear in a logarithmic way to have linear changes. Wider is used to simulate sources inside the loudspeakers array.
+// Informations : It can be used to wide the diffusion of a localized sound. The order depending signals are weighted to simulate fractional order. When w = 0, there's only the harmonic 0 and the sound is omnidirectional when w = 1, the processing have no effect and the sound field have the highest spatial resolution. From 0 to 1, harmonics appear in a logarithmic way to have linear changes. Wider is used to simulate sources inside the loudspeakers array.
 
 
 

@@ -40,9 +40,11 @@
 #include <stdio.h>
 #include <assert.h>
 #include <portaudio.h>
+#include <stdlib.h>
+#include <map>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/audio/dsp-adapter.h"
 
 static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv);
 
@@ -90,60 +92,101 @@ class portaudio : public audio {
             stop(); 
             Pa_Terminate();
         }
-
-        virtual bool init(const char* name, dsp* DSP)
-        {
-            fDsp = DSP;
-            if (pa_error(Pa_Initialize())) {
-                return false;
-            }
-
-            const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
-            const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
-         
-            if (fDsp->getNumInputs() > idev->maxInputChannels || fDsp->getNumOutputs() > odev->maxOutputChannels) {
-                printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
-                        fDsp->getNumInputs(), fDsp->getNumOutputs(), 
-                        idev->maxInputChannels, odev->maxOutputChannels);
-                return false;
-            }
-            
+        
+    virtual bool init(const char* name, dsp* DSP)
+    {
+        if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())){
+            set_dsp_aux(DSP);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    bool init(const char* name, int numInputs, int numOutputs)
+    {            
+        if (pa_error(Pa_Initialize())) {
+            return false;
+        }
+        
+        const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
+        const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
+        
+        printf("DEVICE = %p || %p\n", idev, odev);
+        
+        //In case there is no audio device, the function fails
+        
+        if(idev == NULL)
+            fDevNumInChans = 0;
+        else{
             fDevNumInChans = idev->maxInputChannels;
-            fDevNumOutChans = odev->maxOutputChannels;
-
+            
             fInputParameters.device = Pa_GetDefaultInputDevice();
-            fInputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
+            fInputParameters.sampleFormat = paFloat32 | paNonInterleaved;
             fInputParameters.channelCount = fDevNumInChans;
             fInputParameters.hostApiSpecificStreamInfo = 0;
-
+        }
+        
+        if(odev == NULL)
+            fDevNumOutChans = 0;
+        else{
+            fDevNumOutChans = odev->maxOutputChannels;
+            
             fOutputParameters.device = Pa_GetDefaultOutputDevice();
             fOutputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
             fOutputParameters.channelCount = fDevNumOutChans;
             fOutputParameters.hostApiSpecificStreamInfo = 0;
-          
-            PaError err;
-            if ((err = Pa_IsFormatSupported(
-                ((fDevNumInChans > 0) ? &fInputParameters : 0),
-                ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate)) != 0) {
-                printf("stream format is not supported err = %d\n", err);
-                return false;
-            }
-
-            fDsp->init(fSampleRate);
-            return true;
         }
-
-        virtual bool start() 
-        {
-            if (pa_error(Pa_OpenStream(&fAudioStream, &fInputParameters, &fOutputParameters, fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
-                return false;
-            }      
-            
-            if (pa_error(Pa_StartStream(fAudioStream))) {
-                return false;
-            }
-            return true;
+        
+        //A DSP that has only outputs or only inputs forces the presence of an output or input device
+        if(numInputs == 0 && numOutputs != 0 && fDevNumOutChans == 0){
+            printf("Devices not adaptated to DSP\n");
+            return false;
         }
+        
+        if(numInputs != 0 && numOutputs == 0 && fDevNumInChans == 0){
+            printf("Devices not adaptated to DSP\n");
+            return false;
+        }
+        
+        //If no device exists : the function fails
+        PaError err;
+        if ((err = Pa_IsFormatSupported(
+                                        ((fDevNumInChans > 0) ? &fInputParameters : 0),
+                                        ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate)) != 0) {
+            printf("stream format is not supported err = %d\n", err);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    void set_dsp_aux(dsp* DSP){
+        
+        fDsp = DSP;
+        if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {
+            printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
+                   fDsp->getNumInputs(), fDsp->getNumOutputs(), 
+                   fDevNumInChans, fDevNumOutChans);
+            fDsp = new dsp_adapter(fDsp, fDevNumInChans, fDevNumOutChans, fBufferSize);
+            printf("adapter\n");
+        }
+        
+        fDsp->init(fSampleRate);
+    }
+    
+    virtual bool start() 
+    {
+        if (pa_error(Pa_OpenStream(&fAudioStream, ((fDevNumInChans > 0) ? &fInputParameters : 0),
+                                   ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
+            return false;
+        }    
+        
+        if (pa_error(Pa_StartStream(fAudioStream))) {
+            return false;
+        }
+        return true;
+    }
 
         virtual void stop() 
         {
@@ -161,8 +204,13 @@ class portaudio : public audio {
             return paContinue;
         }
         
-        virtual int get_buffer_size() { return fBufferSize; }
-        virtual int get_sample_rate() { return fSampleRate; }
+        virtual int get_buffer_size() { 
+            return fBufferSize; 
+        }
+
+        virtual int get_sample_rate() { 
+            return fSampleRate; 
+        }
 };
 
 //----------------------------------------------------------------------------

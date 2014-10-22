@@ -528,5 +528,5 @@ string VectorCompiler::generateWaveform(Tree sig)
 
     declareWaveform(sig, vname, size);
     fClass->addPostCode(subst("idx$0 = (idx$0 + count) % $1;", vname, T(size)) );
-    return subst("$0[(idx$0+i)%$1]", vname, T(size));
+    return generateCacheCode(sig, subst("$0[(idx$0+i)%$1]", vname, T(size)));
 }

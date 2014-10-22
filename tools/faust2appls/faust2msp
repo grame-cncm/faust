@@ -33,6 +33,23 @@ createInfoPList() {
 
 
 #-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
+
+
+#-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
@@ -97,14 +114,14 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
 
-	$CC -verbose -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+	$CC  -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) 
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
@@ -118,6 +135,7 @@ for p in $FILES; do
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+    
 done
 
 echo $BINARIES

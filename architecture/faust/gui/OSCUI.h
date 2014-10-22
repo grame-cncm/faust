@@ -47,11 +47,12 @@ This solution is implemented in the proposed OSC UI;
 ///using namespace std;
 
 //class oscfaust::OSCIO;
+
 class OSCUI : public GUI 
 {
      
 	oscfaust::OSCControler*	fCtrl;
-	std::vector<const char*>		fAlias;
+	std::vector<const char*> fAlias;
 	
 	const char* tr(const char* label) const;
 	
@@ -65,13 +66,13 @@ class OSCUI : public GUI
 	}
 	
  public:
-		
-	OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0) : GUI() 
+
+    OSCUI(const char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true) : GUI() 
     { 
-		fCtrl = new oscfaust::OSCControler(argc, argv, this, io); 
-//		fCtrl->opengroup(applicationname);
+		fCtrl = new oscfaust::OSCControler(argc, argv, this, io, errCallback, arg, init); 
+        //		fCtrl->opengroup(applicationname);
 	}
-	
+    
 	virtual ~OSCUI() { delete fCtrl; }
     
     // -- widget's layouts
@@ -106,8 +107,15 @@ class OSCUI : public GUI
 
 	virtual void show() {}
 
-	void run()											{ fCtrl->run(); }
-	const char* getRootName()							{ return fCtrl->getRootName(); }
+	void run()
+    {
+        fCtrl->run(); 
+    }
+	const char* getRootName()		{ return fCtrl->getRootName(); }
+    int getUDPPort()                { return fCtrl->getUDPPort(); }
+    int	getUDPOut()                 { return fCtrl->getUDPOut(); }
+    int	getUDPErr()                 { return fCtrl->getUDPErr(); }
+    const char* getDestAddress()    {return fCtrl->getDestAddress();}
 };
 
 const char* OSCUI::tr(const char* label) const

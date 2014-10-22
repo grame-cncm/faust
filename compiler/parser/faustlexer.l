@@ -5,7 +5,15 @@
 %{
 #include "tree.hh"
 #include "faustparser.hpp"
-#include "compatibility.hh"
+#if defined(WIN32) && !defined(__MINGW32__)
+// We don't want to include compatibility.hh here, since it pulls in whole lot
+// of unneeded stuff which breaks other things, so here's some stuff to make
+// MSVC happy.
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+#define YY_NO_UNISTD_H
+#endif
 %}
 
 DIGIT    [0-9]
@@ -16,6 +24,7 @@ WSPACE   [ \t\n]
 TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 %option yylineno
+%option nounput
 %x comment
 %x doc
 %x lst
@@ -58,13 +67,17 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 {DIGIT}+    		return INT;
 
-
-{DIGIT}+"."{DIGIT}* 				return FLOAT;
-{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+ 	return FLOAT;
-{DIGIT}+e[-+]?{DIGIT}+ 				return FLOAT;
-"."{DIGIT}+ 						return FLOAT;
-"."{DIGIT}+e[-+]?{DIGIT}+ 			return FLOAT;
-
+{DIGIT}+"f"                             return FLOAT;
+{DIGIT}+"."{DIGIT}*                     return FLOAT;
+{DIGIT}+"."{DIGIT}*"f"                  return FLOAT;
+{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+       return FLOAT;
+{DIGIT}+"."{DIGIT}*e[-+]?{DIGIT}+"f"    return FLOAT;
+{DIGIT}+e[-+]?{DIGIT}+                  return FLOAT;
+{DIGIT}+e[-+]?{DIGIT}+"f"               return FLOAT;
+"."{DIGIT}+                             return FLOAT;
+"."{DIGIT}+"f"                          return FLOAT;
+"."{DIGIT}+e[-+]?{DIGIT}+               return FLOAT;
+"."{DIGIT}+e[-+]?{DIGIT}+"f"            return FLOAT;
 
 ":"   		return SEQ;
 ","   		return PAR;

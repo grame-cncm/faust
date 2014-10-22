@@ -24,10 +24,10 @@ for p in $@; do
         ignore=" "
     elif [ $p = "-osc" ]; then
         OSCDEFS="DEFINES += OSCCTRL"
-        OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
+        OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
         JACK="1"
     elif [ "$p" = "-xcode" ]; then

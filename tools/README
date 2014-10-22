@@ -1,9 +1,8 @@
-	 		Additional tools for Faust
-			==========================
+	 	Additional tools for Faust
+		==========================
+
 	 Grame, Centre National de Creation Musicale
-	 			 http://www.grame.fr
-
-
+	 	http://www.grame.fr
 
 
 These additional tools are provided by various contributors to help 
@@ -32,3 +31,8 @@ Currently the following tools are available :
 
 - faust2flash allows to convert Faust programs into Flash .swf files
   that can be published in web pages.
+
+- sound2faust allows to convert audio files in Faust 'waveforms'. The output file contains:
+	- an interleaved version (all audio channels are generated in a same 'waveform')
+	- several 'waveforms' for separated mono channels
+	- a resulting 'processor' that simply output all mono 'waveforms' 

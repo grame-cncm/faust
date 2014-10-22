@@ -19,9 +19,9 @@ class SourceReader
 	vector<string>		fFilePathnames;
 	Tree parse(string fname);
 	Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
+	bool cached(string fname);
 	
 public:
-	bool cached(string fname);
 	Tree getlist(string fname);
 	Tree expandlist(Tree ldef);
 	vector<string>	listSrcFiles();

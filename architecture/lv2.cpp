@@ -393,8 +393,7 @@ class dsp {
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/ext/dynmanifest/dynmanifest.h>
 #if FAUST_MIDICC
-#include <lv2/lv2plug.in/ns/ext/event/event-helpers.h>
-#include <lv2/lv2plug.in/ns/ext/uri-map/uri-map.h>
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #define MIDI_EVENT_URI "http://lv2plug.in/ns/ext/midi#MidiEvent"
 #endif
@@ -430,14 +429,11 @@ struct LV2Plugin {
   int *inctrls, *outctrls;	// indices for active and passive controls
   float **inputs, **outputs;	// audio buffers
 #if FAUST_MIDICC
-  LV2_Event_Buffer* event_port;	// midi input
+  LV2_Atom_Sequence* event_port; // midi input
   std::map<uint8_t,int> ctrlmap; // MIDI controller map
-  // Needed host features (the uri-map extension is officially deprecated, but
-  // still needed for some if not most hosts at the time of this writing).
-  LV2_URI_Map_Feature* uri_map;
-  LV2_URID_Map* map;	// the new urid extension
+  // Needed host features.
+  LV2_URID_Map* map;	// the urid extension
   LV2_URID midi_event;	// midi event uri
-  LV2_Event_Feature* event_ref;
 #endif
 
   LV2Plugin() {
@@ -450,9 +446,8 @@ struct LV2Plugin {
     ports = inputs = outputs = NULL;
     portvals = NULL;
 #if FAUST_MIDICC
-    uri_map = NULL; map = NULL;
+    map = NULL;
     midi_event = -1;
-    event_ref = NULL;
     event_port = NULL;
 #endif
   }
@@ -466,24 +461,17 @@ instantiate(const LV2_Descriptor*     descriptor,
 {
   LV2Plugin* plugin = new LV2Plugin;
 #if FAUST_MIDICC
-  // Scan host features for URID (or URI) map.
+  // Scan host features for URID map.
   for (int i = 0; features[i]; i++) {
     if (!strcmp(features[i]->URI, LV2_URID_URI "#map")) {
       plugin->map = (LV2_URID_Map*)features[i]->data;
       plugin->midi_event =
 	plugin->map->map(plugin->map->handle, MIDI_EVENT_URI);
-    } else if (!strcmp(features[i]->URI, LV2_URI_MAP_URI)) {
-      plugin->uri_map = (LV2_URI_Map_Feature*)features[i]->data;
-      plugin->midi_event =
-	plugin->uri_map->uri_to_id(plugin->uri_map->callback_data,
-				   LV2_EVENT_URI, MIDI_EVENT_URI);
-    } else if (!strcmp(features[i]->URI, LV2_EVENT_URI)) {
-      plugin->event_ref = (LV2_Event_Feature *)features[i]->data;
     }
   }
-  if (!plugin->map && !plugin->uri_map) {
+  if (!plugin->map) {
     fprintf
-      (stderr, "%s: host supports neither uri-map or urid:map, giving up\n",
+      (stderr, "%s: host doesn't support urid:map, giving up\n",
        PLUGIN_URI);
     delete plugin;
     return 0;
@@ -532,7 +520,7 @@ instantiate(const LV2_Descriptor*     descriptor,
 	    const char *key = jt->first, *val = jt->second;
 #if DEBUG_META
 	    fprintf(stderr, "ctrl '%s' meta: '%s' -> '%s'\n",
-		    plugin->ui[0]->elems[i].label, key, val);
+		    plugin->ui->elems[i].label, key, val);
 #endif
 	    if (strcmp(key, "midi")) continue;
 	    unsigned num;
@@ -605,7 +593,7 @@ connect_port(LV2_Handle instance,
 	plugin->outputs[i] = (float*)data;
 #if FAUST_MIDICC
       else if (i == m)
-	plugin->event_port = (LV2_Event_Buffer*)data;
+	plugin->event_port = (LV2_Atom_Sequence*)data;
 #endif
       else
 	fprintf(stderr, "%s: bad port number %u\n", PLUGIN_URI, port);
@@ -660,21 +648,13 @@ run(LV2_Handle instance, uint32_t n_samples)
 #if FAUST_MIDICC
   if (!plugin->ctrlmap.empty() && plugin->event_port) {
     // Process incoming MIDI events.
-    LV2_Event_Iterator i;
-    for (lv2_event_begin(&i, plugin->event_port);
-	 lv2_event_is_valid(&i);
-	 lv2_event_increment(&i)) {
-      LV2_Event* ev = lv2_event_get(&i, NULL);
-      if (ev->type == 0) {
-	if (plugin->event_ref) {
-	  plugin->event_ref->lv2_event_unref
-	    (plugin->event_ref->callback_data, ev);
-	}
-      } else if (ev->type == plugin->midi_event) {
+    LV2_Atom_Event* i;
+    LV2_ATOM_SEQUENCE_FOREACH(plugin->event_port, ev) {
+      if (ev->body.type == plugin->midi_event) {
 	uint8_t *data = (uint8_t*)(ev+1);
 #if DEBUG_MIDI
-	fprintf(stderr, "midi ev (%u bytes):", ev->size);
-	for (unsigned i = 0; i < ev->size; i++)
+	fprintf(stderr, "midi ev (%u bytes):", ev->body.size);
+	for (unsigned i = 0; i < ev->body.size; i++)
 	  fprintf(stderr, " 0x%0x", data[i]);
 	fprintf(stderr, "\n");
 #endif
@@ -694,7 +674,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 	  }
 	}
       } else {
-	fprintf(stderr, "%s: unknown event type %d\n", PLUGIN_URI, ev->type);
+	fprintf(stderr, "%s: unknown event type %d\n", PLUGIN_URI, ev->body.type);
       }
     }
   }
@@ -886,7 +866,7 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .\n\
 @prefix lv2:   <http://lv2plug.in/ns/lv2core#> .\n\
 @prefix epp:   <http://lv2plug.in/ns/ext/port-props#> .\n\
-@prefix ev:    <http://lv2plug.in/ns/ext/event#> .\n\
+@prefix atom:  <http://lv2plug.in/ns/ext/atom#> .\n\
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
 @prefix units: <http://lv2plug.in/ns/extensions/units#> .\n\
@@ -1034,8 +1014,9 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
     // midi input
     fprintf(fp, "%s [\n\
 	a lv2:InputPort ;\n\
-	a ev:EventPort ;\n\
-	ev:supportsEvent <http://lv2plug.in/ns/ext/midi#MidiEvent> ;\n\
+	a atom:AtomPort ;\n\
+	atom:bufferType atom:Sequence ;\n\
+	atom:supports <http://lv2plug.in/ns/ext/midi#MidiEvent> ;\n\
 	lv2:index %d ;\n\
 	lv2:symbol \"midiin\" ;\n\
 	lv2:name \"midiin\"\n\

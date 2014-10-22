@@ -104,12 +104,16 @@ int main( int argc, char *argv[] )
 	oscinterface->run();
 	interface->run();	
     
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     
 	osca.stop();
 	finterface->saveState(rcfilename);
+    
+	// desallocation
+    delete interface;
+    delete finterface;
 	delete oscinterface;
   	return 0;
 }

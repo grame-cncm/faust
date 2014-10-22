@@ -10,9 +10,15 @@ system	?= $(shell uname -s)
 
 ## On darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
-ARCHFLAGS 	:=  -arch i386 -arch x86_64
+#ARCHFLAGS 	:=  -arch i386 -arch x86_64
 else 
 ARCHFLAGS 	:= 
+endif
+
+## On Windows (mingw32) we must link against the socket library.
+ifneq ($(findstring MINGW32, $(system)),)
+LIBS = -lwsock32
+EXE = .exe
 endif
 
 CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
@@ -22,7 +28,7 @@ CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"
 all : faust
 
 faust : $(objects)
-	$(CXX) $(CXXFLAGS) $(objects) -o faust
+	$(CXX) $(CXXFLAGS) $(objects) -o faust $(LIBS)
 
 
 .PHONY: clean depend ctags parser
@@ -32,7 +38,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) faust$(EXE) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :
@@ -83,7 +89,7 @@ documentator/doc.o: signals/sigprint.hh propagate/propagate.hh parser/enrobage.h
 documentator/doc.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh documentator/lateq.hh
 documentator/doc.o: documentator/doc_compile.hh signals/sigtyperules.hh generator/occurences.hh tlib/property.hh
 documentator/doc.o: generator/Text.hh generator/description.hh generator/uitree.hh documentator/doc_lang.hh
-documentator/doc.o: documentator/doc_notice.hh documentator/doc_autodoc.hh tlib/compatibility.hh
+documentator/doc.o: documentator/doc_notice.hh documentator/doc_autodoc.hh tlib/compatibility.hh utils/files.hh
 documentator/doc_Text.o: documentator/doc_Text.hh tlib/compatibility.hh generator/floats.hh
 documentator/doc_autodoc.o: documentator/doc_autodoc.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 documentator/doc_autodoc.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
@@ -118,7 +124,7 @@ draw/drawschema.o: draw/device/SVGDev.h draw/device/device.h draw/device/PSDev.h
 draw/drawschema.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 draw/drawschema.o: signals/sigvisitor.hh documentator/lateq.hh tlib/occurrences.hh boxes/boxcomplexity.h
 draw/drawschema.o: draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh utils/names.hh propagate/propagate.hh
-draw/drawschema.o: generator/description.hh
+draw/drawschema.o: generator/description.hh utils/files.hh
 draw/sigToGraph.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/sigToGraph.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 draw/sigToGraph.o: signals/sigtyperules.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
@@ -385,6 +391,7 @@ tlib/recursive-tree.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tli
 tlib/shlysis.o: tlib/shlysis.hh tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh
 tlib/symbol.o: tlib/symbol.hh tlib/compatibility.hh
 tlib/tree.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh
+utils/files.o: utils/files.hh tlib/compatibility.hh
 utils/names.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 utils/names.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh utils/names.hh propagate/propagate.hh boxes/boxes.hh
 utils/names.o: tlib/property.hh documentator/doc_Text.hh generator/Text.hh

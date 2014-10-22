@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.65"
+#define FAUSTVERSION "0.9.70"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -91,7 +91,7 @@ SourceReader	gReader;
 map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
 extern string gDocLang;
-
+tvec gWaveForm;
 
 /****************************************************************
  				Command line tools and arguments
@@ -150,7 +150,7 @@ bool            gDumpNorm       = false;
 
 int             gTimeout        = 120;          // time out to abort compiler (in seconds)
 
-int             gFloatSize = 1;
+int             gFloatSize      = 1;
 
 bool			gPrintFileListSwitch = false;
 bool			gInlineArchSwitch = false;
@@ -159,6 +159,8 @@ string			gClassName		= "mydsp";
 bool            gExportDSP      = false;
 
 list<string>    gImportDirList;                 // dir list enrobage.cpp/fopensearch() searches for imports, etc.
+string          gOutputDir;                     // output directory for additionnal generated ressources : -SVG, XML...etc...
+bool            gInPlace        = false;        // add cache to input for correct in-place computations
 
 //-- command line tools
 
@@ -171,6 +173,33 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 {
 	return 	(strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
+
+string makeDrawPath()
+{
+    if (gOutputDir != "") {
+        return gOutputDir + "/" + gMasterName + ".dsp";
+    } else {
+        return gMasterDocument;
+    }
+}
+
+static string makeDrawPathNoExt()
+{
+    if (gOutputDir != "") {
+        return gOutputDir + "/" + gMasterName;
+    } else if (gMasterDocument.length() >= 4 && gMasterDocument.substr(gMasterDocument.length() - 4) == ".dsp") {
+        return gMasterDocument.substr(0, gMasterDocument.length() - 4);
+    } else {
+        return gMasterDocument;
+    }
+}
+
+#ifdef WIN32
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#ifndef __MINGW32__
+#define PATH_MAX _MAX_PATH
+#endif
+#endif
 
 bool process_cmdline(int argc, char* argv[])
 {
@@ -358,16 +387,31 @@ bool process_cmdline(int argc, char* argv[])
                 gImportDirList.push_back(path);
                 i += 2;
             }
+         } else if (isCmd(argv[i], "-O", "--output-dir")) {
+        
+            char temp[PATH_MAX+1];
+            char* path = realpath(argv[i+1], temp);
+             if (path == 0) {
+                std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                exit(-1);
+            } else {
+                gOutputDir = path;
+                i += 2;
+            }
+             
+         } else if (isCmd(argv[i], "-inpl", "--in-place")) {
+             gInPlace = true;
+             i += 1;
 
-       } else if (argv[i][0] != '-') {
-            const char* url = strip_start(argv[i]);
+        } else if (argv[i][0] != '-') {
+            const char* url = argv[i];
             if (check_url(url)) {
                 gInputFiles.push_back(url);
             }
 			i++;
 
 		} else {
-			cerr << "faust: unrecognized option \"" << argv[i] <<"\"" << endl;
+			std::cerr << "faust: unrecognized option \"" << argv[i] <<"\"" << endl;
 			i++;
 			err++;
 		}
@@ -375,6 +419,11 @@ bool process_cmdline(int argc, char* argv[])
 
     // adjust related options
     if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
+    
+    if (gInPlace && gVectorSwitch) {
+        std::cerr << "ERROR : 'in-place' option can only be used in scalar mode" << endl;
+        exit(-1);
+    }   
 
 	return err == 0;
 }
@@ -409,10 +458,10 @@ void printhelp()
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \tprint block-diagram --svg file\n";
-    cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
-    cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \t\tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
+    cout << "-mdlang <l> \tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
+    cout << "-stripdoc  \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -425,10 +474,10 @@ void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-	cout << "-i \t--inline-architecture-files \n";
+	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-	cout << "-time \t--compilation-time, flag to display compilation phases timing information\n";
+	cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC++ output file\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
@@ -445,9 +494,10 @@ void printhelp()
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
-    cout << "-e  \t--export-dsp export expanded DSP (all included libraries) \n";
-
-	cout << "\nexample :\n";
+    cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
+    cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
+    cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
+  	cout << "\nexample :\n";
 	cout << "---------\n";
 
 	cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp\n";
@@ -598,11 +648,8 @@ int main (int argc, char* argv[])
 	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
 	if (gDrawPSSwitch || gDrawSVGSwitch) {
-		string projname = gMasterDocument;
-		if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
-			projname = gMasterDocument.substr(0, gMasterDocument.length()-4); 
-		}
-		if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  projname).c_str(), "ps" ); }
+		string projname = makeDrawPathNoExt();
+     	if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps", projname).c_str(), "ps" ); }
 		if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", projname).c_str(), "svg" ); }
 	}
 
@@ -620,7 +667,8 @@ int main (int argc, char* argv[])
 	endTiming("evaluation");
     
     if (gExportDSP) {
-        cout << "process = " << boxpp(process) << ";" << endl;
+        ofstream xout(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
+        xout << "process = " << boxpp(process) << ";" << endl;
         return 0;
     }
  
@@ -674,8 +722,7 @@ int main (int argc, char* argv[])
 
 	if (gPrintXMLSwitch) {
 		Description* 	D = C->getDescription(); assert(D);
-		//ostream* 		xout = new ofstream(subst("$0.xml", gMasterDocument).c_str());
-		ofstream 		xout(subst("$0.xml", gMasterDocument).c_str());
+		ofstream 		xout(subst("$0.xml", makeDrawPath()).c_str());
 
         if(gMetaDataSet.count(tree("name"))>0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
         if(gMetaDataSet.count(tree("author"))>0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
@@ -698,10 +745,7 @@ int main (int argc, char* argv[])
 
 	if (gPrintDocSwitch) {
 		if (gLatexDocSwitch) {
-			string projname = gMasterDocument;
-			if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
-				projname = gMasterDocument.substr(0, gMasterDocument.length()-4); }
-			printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
+            printDoc(subst("$0-mdoc", makeDrawPathNoExt()).c_str(), "tex", FAUSTVERSION);
 		}
 	}
 
@@ -717,7 +761,8 @@ int main (int argc, char* argv[])
 	//istream* intrinsic;
 
 	if (gOutputFile != "") {
-		dst = new ofstream(gOutputFile.c_str());
+        string outpath = (gOutputDir != "") ? (gOutputDir + "/" + gOutputFile) : gOutputFile;
+		dst = new ofstream(outpath.c_str());
 	} else {
 		dst = &cout;
 	}
@@ -769,12 +814,9 @@ int main (int argc, char* argv[])
     *****************************************************************/
 
     if (gGraphSwitch) {
-        ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
+        ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
         C->getClass()->printGraphDotFormat(dotfile);
     }
-
-
-
 	
 	delete C;
 	return 0;

@@ -32,6 +32,8 @@
 #include "ip/UdpSocket.h"
 #include "osc/OscPacketListener.h"
 
+typedef void (*ErrorCallback)(void*);  
+
 namespace oscfaust
 {
 
@@ -48,6 +50,7 @@ class OSCListener : public osc::OscPacketListener, public smartable
 	UdpListeningReceiveSocket *fSocket;	///< the udp socket listener
 	MessageProcessor * fMsgHandler;
 	bool	fRunning;
+	bool	fSetDest;
 	int		fPort;
 
 	public:

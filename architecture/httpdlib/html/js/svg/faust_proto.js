@@ -422,6 +422,9 @@ with DOM ids.
 **/
 _f4u$t.PATHS_TO_IDS = {};
 
+_f4u$t.path_to_id = function (path, id) {
+  _f4u$t.PATHS_TO_IDS[path] = id;
+}
 
 /**
  Rather than using lots of global variables (clutters namespace)
@@ -454,6 +457,60 @@ _f4u$t.magic_color = function() {
   var v = [r,g,b];
   v.sort(function() {return 0.5 - Math.random()}) // shuffles
   return v;
+}
+
+/**
+Returns a random string.
+
+@method rand_string
+@for _f4u$t
+@static
+@param {Number} n (optional) the length of the string to return
+@return {String} a random string
+**/
+_f4u$t.rand_string = function(n)
+{
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  if (!n) {
+    n = 8;
+  }
+
+  for( var i=0; i < n; i++ ) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
+/**
+Returns true if needle is the first part of haystack
+
+@method first_part_matches
+@for _f4u$t
+@static
+@param {String} haystack the string to search
+@param {String} needle the search query
+@return {Boolean} true if needle is the first part of the haystack
+**/
+_f4u$t.first_part_matches = function(haystack, needle) {
+  return haystack.indexOf(needle) == 0;
+}
+
+/**
+Removes needle from the head of haystack.
+
+@method remove_from_head_of_string
+@for _f4u$t
+@static
+@param {String} haystack the string to operate on
+@param {String} needle remove
+@return {String} the modified string without needle
+**/
+_f4u$t.remove_from_head_of_string = function(haystack, needle) {
+  if (_f4u$t.first_part_matches(haystack, needle)) {
+    return haystack.substr(needle.length);
+  }
 }
 
 /**
@@ -1103,20 +1160,16 @@ _f4u$t.get_text_bbox = function(svg, text, kls) {
   if (!kls) {
     kls = 'faust-label';
   }
-  var dummy = svg.text(0,0,text, {'class' : kls});
+  var dummy = _f4u$t.make_text(svg,null,0,0,text, {'class' : kls});
   var bbox = dummy.getBBox();
-  svg.remove(dummy);
+  _f4u$t.svg_remove(svg, dummy);
   return bbox;
-}
-
-_f4u$t.make_rectangle_via_rect = function(svg, parent, rf, x, y, w, h, ops) {
-  return svg.rect(parent, x, y, w, h, rf, rf, ops);
 }
 
 _f4u$t.make_rectangle_via_path = function(svg, parent, rf, x, y, w, h, ops) {
   var d = "M{0} {7}L{1} {7}C{2} {7} {2} {7} {2} {3}L{2} {4}C{2} {5} {2} {5} {1} {5}L{0} {5}C{6} {5} {6} {5} {6} {4}L{6} {3}C{6} {7} {6} {7} {0} {7}";
   d = d.format([rf + x, w - rf + x, w + x, rf + y, h - rf + y, h + y, x, y]);
-  var rect = svg.path(
+  var rect = _f4u$t.make_path(
     parent,
     d,
     ops
@@ -1133,19 +1186,16 @@ Makes the UI for the faust application.
 @param {Object} svg The root SVG node.
 @param {Object} raw_json The raw JSON describing the UI to build.
 **/
-_f4u$t.make_ui = function(svg, raw_json) {
+_f4u$t.make_ui = function(svg, raw_json, width, height, hash) {
   var json = eval ("(" + raw_json + ")");
-
   var faust_svg = new _f4u$t.SVG(
     svg,
-    // kludge to prevent scroll bars...
-    $(window).width() - 15,
-    // kludge to prevent scroll bars...
-    $(window).height() - 17,
+    width,
+    height,
     {
       constrain : false,
       title : json["ui"][0].label,
-      lm : _f4u$t.json_to_ui(json)
+      lm : _f4u$t.json_to_ui(json, hash)
     }
   );
 
@@ -1154,45 +1204,112 @@ _f4u$t.make_ui = function(svg, raw_json) {
   faust_svg.make();
 }
 
+_f4u$t.assign_parameters_to_values = function(URLParams) {
+  for (var index in URLParams) {
+    var split_index = index.split('.');
+    if (split_index.length != 2) {
+      continue;
+    }
+    if (_f4u$t[split_index[0]]) {
+      if (_f4u$t[split_index[0]][split_index[1]]) {
+        _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
+      }
+    }
+  }
+}
+
 /**
 The main function called to build the faust UI.
 Parses the URL to include any new documents and then builds the UI.
 
-@method make
+@method main
 @for _f4u$t
-@param {Object} svg The root SVG node.
-@param {Object} raw_json The raw JSON describing the UI to build.
+@param {Object} raw_json A raw JSON object describing the UI to build.
+@param {Object} div (optional) The div to place the object in.
 **/
-_f4u$t.main = function(svg, raw_json) {
-  /*
-  // bad idea...disactivates all zoom...
-  if (_f4u$t.detect_mobile_device.any()) {
-    _f4u$t.disable_zoom();
-  }
-  */
-  // make sure that loading of files is synchronous...
-  var URLParams = _f4u$t.parseURLParams(document.URL);
-  if (URLParams) {
-    URLParams.js = URLParams.js || [];
-    URLParams.css = URLParams.css || [];
-    for (var index in URLParams) {
-      var split_index = index.split('.');
-      if (split_index.length != 2) {
-        continue;
-      }
-      if (_f4u$t[split_index[0]]) {
-        if (_f4u$t[split_index[0]][split_index[1]]) {
-          _f4u$t[split_index[0]][split_index[1]] = eval(URLParams[index][URLParams[index].length - 1]);
-        }
-      }
+_f4u$t.main = function(raw_json, div, callback) {
+    
+    if (!div) {
+        div = $( "<div />" );
+        $("body").append(div);
     }
-    _f4u$t.load_css_and_then_js_and_then_build_ui(URLParams.css, URLParams.js, svg, raw_json);
+    // we create a hash for the object
+    var hash = $(div).attr('id') ? $(div).attr('id') :  _f4u$t.rand_string(8);
+    
+    // keep it in the div
+    $(div).attr('id', hash);  
+    
+    // first, we parse URL parameters to change UIs' style if necessary
+    var URLParams = _f4u$t.parseURLParams(document.URL);
+    // then we assign parameters
+    _f4u$t.assign_parameters_to_values(URLParams);
+    // we make sure all JS and CSS is loaded before we build the UI
+    _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
+    
+    var width = $(div).width();
+    if (width == 0) {
+        // HUOM: this "- 15" is a kludge and should dealt with more elegantly
+        width = $(window).width() - 15;
+    }
+    var height = $(div).height();
+    if (height == 0) {
+        // HUOM: this "- 17" is a kludge and should dealt with more elegantly
+        height = $(window).height() - 17;
+    }
+    if (callback) {
+        _f4u$t.HANDLER_CALLBACKS.push(function(address, value) {
+                                      if (_f4u$t.first_part_matches(address, hash)) {
+                                      return callback(_f4u$t.remove_from_head_of_string(address, hash), value);
+                                      }
+                                      });
+    }
+
+    _f4u$t.add_svg_and_onload_to_div(div, raw_json, width, height, hash);
+
+    return function(address, value) {
+        return _f4u$t.update_value_at_address(hash+address, value);
+    }
+}
+
+/**
+  Deletes all references to this div in internal data structures, including
+  all bindings.  Note that this does NOT delete the div from the page, nor
+  does it delete the div's contents.  This is in case the div contains
+  other information that the person wants to complete.
+  
+  To delete the UI in the div, call _f4u$t.hard_delete()
+**/
+_f4u$t.delete = function(div) {
+  var id = $(div).attr('id');
+  if (!id) {
+    console.log("Can't delete because obj does not exist in the system.");
+    return;
   }
-  else {
-    _f4u$t.make_ui(svg, raw_json);
+  var ids_to_delete = [];
+  var keys_to_delete = []
+  for (var key in _f4u$t.PATHS_TO_IDS) {
+    if (_f4u$t.first_part_matches(key, id)) {
+      ids_to_delete.push(_f4u$t.PATHS_TO_IDS[key]);
+      keys_to_delete.push(key);
+    }
+  }
+  for (var key_to_delete in keys_to_delete) {
+    delete _f4u$t.PATHS_TO_IDS[key_to_delete];
+  }
+  for (var id_to_delete in ids_to_delete) {
+    var slim = _f4u$t.unique(id_to_delete);
+    delete _f4u$t.IDS_TO_ATTRIBUTES[slim];
   }
 }
 
+_f4u$t.hard_delete = function(div) {
+  _f4u$t.delete(div);
+  $(div).empty();
+}
+
+/**
+  To be called when used with the C++/LLVM libfaust based FaustNode.
+**/
 _f4u$t.make_audio_ui = function(dsp, svg) {
   var json = eval ("(" + dsp.json() + ")");
   var faust_svg = new _f4u$t.SVG(
@@ -1209,7 +1326,6 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   );
   
   // Keep audio params in a table 
-  
   _f4u$t.controls = new Array();
   for (var i = 0; i < dsp.numberOfAudioParams(); i++) {
     var ctrl = dsp.getAudioParam(i);
@@ -1219,15 +1335,7 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   _f4u$t.fausthandler = function(dest, value) {
     _f4u$t.controls[dest].value = value; 
   }
-  
-  /*  
-  // Change value of the given audio param
-  _f4u$t.fausthandler = function(dest, value) {
-    dsp.setAudioParamValue(dest, value); 
-  }
-  */
     
-  _f4u$t.update = function() {}
   _f4u$t.main_loop = function() {}
 
   faust_svg.defs();

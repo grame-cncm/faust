@@ -53,11 +53,14 @@
 
 using namespace std;
 
+extern bool     gInPlace;
 extern bool     gDrawSignals;
 extern bool     gLessTempSwitch;
 extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
+
+string makeDrawPath();
 
 static Klass* signal2klass (Klass* parent, const string& name, Tree sig)
 {
@@ -128,7 +131,7 @@ startTiming("ScalarCompiler::prepare");
 endTiming("ScalarCompiler::prepare");
 
     if (gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
+        ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
         sigToGraph(L3, dotfile);
     }
   	return L3;
@@ -157,6 +160,9 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+        if (gInPlace) {
+        	CS(sigInput(i));
+        }
     }
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
@@ -374,7 +380,12 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
-	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    if (gInPlace) {
+        // inputs must be cached for in-place transformations
+        return forceCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    } else {
+        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    }
 }
 
 
@@ -482,6 +493,30 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	}
 
 	return "Error in generateCacheCode";
+}
+
+// like generateCacheCode but we force caching like if sharing was always > 1
+string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
+{
+	string 		vname, ctype, code;
+	Occurences* o = fOccMarkup.retrieve(sig);
+
+	// check reentrance
+    if (getCompiledExpression(sig, code)) {
+        return code;
+    }
+
+	// check for expression occuring in delays
+	if (o->getMaxDelay()>0) {
+
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
+        return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
+
+	} else  {
+
+        return generateVariableStore(sig, exp);
+
+	}
 }
 
 
@@ -1075,7 +1110,7 @@ string ScalarCompiler::generateXtended 	(Tree sig)
  */
 void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
-        fVectorProperty.set(sig, vecname);
+    fVectorProperty.set(sig, vecname);
 }
 
 
@@ -1215,7 +1250,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     } else {
 
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int     N = pow2limit(mxd+1);
+        int N = pow2limit(mxd+1);
 
         // we need a iota index
         ensureIotaCode();
@@ -1264,7 +1299,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
 
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int     N = pow2limit(mxd+1);
+        int N = pow2limit(mxd+1);
 
         // we need a iota index
         ensureIotaCode();
@@ -1298,17 +1333,13 @@ void ScalarCompiler::ensureIotaCode()
  */
 void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
 {
-
     // computes C type and unique name for the waveform
-
-    string		ctype;
+    string ctype;
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
-
 
     size = sig->arity();
 
     // Converts waveform into a string : "{a,b,c,...}"
-
     stringstream content;
 
     char sep = '{';
@@ -1317,17 +1348,14 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
         sep = ',';
     }
     content << '}';
-
-
+  
     // Declares the Waveform
-
     fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
     fClass->getTopParentKlass()->addStaticFields(
                 subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size) )
                 + content.str() + ";");
-
 }
 
 string ScalarCompiler::generateWaveform(Tree sig)
@@ -1336,6 +1364,6 @@ string ScalarCompiler::generateWaveform(Tree sig)
     int     size;
 
     declareWaveform(sig, vname, size);
-    fClass->addPostCode(subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size)) );
-    return subst("$0[idx$0]", vname);
+    fClass->addPostCode(subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size)));
+    return generateCacheCode(sig, subst("$0[idx$0]", vname));
 }

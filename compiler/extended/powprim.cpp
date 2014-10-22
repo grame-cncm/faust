@@ -50,7 +50,7 @@ class PowPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-        if (types[1]->nature() == kInt) {
+        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp)) {
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
         } else {

@@ -69,16 +69,27 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
 
 
 	protected:
-		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui) 
+		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone) 
 			: MessageDriven (name, prefix), uiItem (ui, zone), fMapping(min, max)
-			{ *zone = init; }
+			{ 
+                if(initZone)
+                    *zone = init; 
+            }
 			
 		virtual ~FaustNode() {}
 
 	public:
 		typedef SMARTP<FaustNode<C> > SFaustNode;
-		static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui)	
-							{ return new FaustNode(name, zone, init, min, max, prefix, ui); }
+		static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone)	
+        { 
+            SFaustNode node = new FaustNode(name, zone, init, min, max, prefix, ui, initZone); 
+            /*
+                Since FaustNode is a subclass of uiItem, the pointer will also be kept in the GUI class, and it's desallocation will be done there.
+                So we don't want to have smartpointer logic desallocate it and we increment the refcount.
+            */
+            node->addReference(); 
+            return node; 
+        }
 
 		virtual bool	accept( const Message* msg )			///< handler for the 'accept' message
 		{

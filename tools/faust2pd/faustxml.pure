@@ -28,7 +28,7 @@ namespace faustxml;
    The faustxml module is provided along with faust2pd to retrieve the
    description of a Faust DSP from its XML file as a data structure which
    is ready to be processed by Pure programs. It may also be useful in other
-   Pure applications which need to inspect description of Faust DSPs.
+   Pure applications which need to inspect descriptions of Faust DSPs.
 
    The main entry point is the :func:`info` function which takes the name of a
    Faust-generated XML file as argument and returns a tuple ``(name, descr,
@@ -186,7 +186,7 @@ private parse parse_doc parse_node parse_prop parse_type
 info fname::string
 = case xml::load_file fname 0 of
     doc = name,descr,info when
-            name = basename fname; descr,info = parse doc;
+            name = basename fname; descr,info = parse name doc;
             descr = if null descr then name else descr;
           end if xml::docp doc;
     _ = throw "could not open XML file" otherwise;
@@ -222,7 +222,7 @@ tree n::pointer = node (xml::node_info n)
 
 /* Helper functions to parse the contents of a Faust XML file. */
 
-parse doc
+parse nm doc
 = case map (map tree . xml::select doc)
        ["/faust/name","/faust/version",
 	"/faust/inputs","/faust/outputs",
@@ -230,28 +230,28 @@ parse doc
 	"/faust/ui/passivewidgets/widget",
 	"/faust/ui/layout/group"] of
     [[name],[version],[in],[out],active,passive,layout] =
-      parse_doc (name,version,in,out,active+passive,layout);
+      parse_doc nm (name,version,in,out,active+passive,layout);
     _ = throw "invalid XML data" otherwise;
   end;
 
 private extern int atoi(char*);
 private extern double atof(char*);
 
-parse_doc (node (xml::element "name" _ _) name,
-	   node (xml::element "version" _ _) version,
-	   node (xml::element "inputs" _ _) in,
-	   node (xml::element "outputs" _ _) out,
-	   controls,layout)
-= case map (parse_group (dict controls)) layout of
+parse_doc nm (node (xml::element "name" _ _) name,
+	      node (xml::element "version" _ _) version,
+	      node (xml::element "inputs" _ _) in,
+	      node (xml::element "outputs" _ _) out,
+	      controls,layout)
+= case map (parse_group 0 nm (dict controls)) layout of
     [controls] = (name,version,in,out,controls);
     _ = throw "invalid XML data" otherwise;
   end when
     [name,version,in,out] = map parse_node [name,version,in,out];
     [name,version] = map (parse_prop.trim) [name,version];
     [in,out] = map atoi [in,out];
-    controls = map parse_control controls;
+    controls = map (parse_control nm) controls;
   end;
-parse_doc _ = throw "invalid XML data" otherwise;
+parse_doc _ _ = throw "invalid XML data" otherwise;
 
 parse_node [node (xml::text s::string) _] = s;
 parse_node [] = "";
@@ -267,10 +267,16 @@ parse_prop s
 
 parse_type s::string = eval $ "faustxml::"+s;
 
-parse_control (node (xml::element "widget" _ attrs) params)
+using system;
+check_label 0 nm "0x00" = nm;
+check_label 0 nm "" = nm;
+check_label _ _ "" = "";
+check_label _ _ s = s otherwise;
+
+parse_control nm (node (xml::element "widget" _ attrs) params)
 = case attrs!!["type","id"]+params!!["label"] of
     [ty,id,label] =
-      make_control (atoi id) ty (str_val label) params;
+      make_control (atoi id) ty (check_label 1 nm (str_val label)) params;
     _ = throw "invalid XML data" otherwise;
   end when
     attrs = dict attrs; params = dict $ map param params with
@@ -279,7 +285,7 @@ parse_control (node (xml::element "widget" _ attrs) params)
       param _ = throw "invalid XML data" otherwise;
     end;
   end;
-parse_control _ = throw "invalid XML data" otherwise;
+parse_control _ _ = throw "invalid XML data" otherwise;
 
 make_control id ty label params
 = id => parse_type ty label if any ((==)ty) ["button","checkbox"];
@@ -295,18 +301,19 @@ make_control id ty label params
   end if any ((==)ty) ["vbargraph","hbargraph"];
 make_control _ _ _ _ = throw "invalid XML data" otherwise;
 
-parse_group cdict (node (xml::element "group" _ attrs) params)
+parse_group lev nm cdict (node (xml::element "group" _ attrs) params)
 = case attrs!!["type"] of
-    [ty] = make_group cdict ty params;
+    [ty] = make_group lev nm cdict ty params;
     _ = throw "invalid XML data" otherwise;
   end when attrs = dict attrs end;
-parse_group cdict (node (xml::element "widgetref" _ ["id"=>id::string]) [])
+parse_group lev nm cdict (node (xml::element "widgetref" _ ["id"=>id::string]) [])
 = case cdict!![atoi id] of [c] = c; _ = throw "invalid XML data"; end;
-parse_group _ _ = throw "invalid XML data" otherwise;
+parse_group _ _ _ _ = throw "invalid XML data" otherwise;
 
-make_group cdict ty (node (xml::element "label" _ _) label:params)
-= case parse_type ty (str_val label,map (parse_group cdict) params) of
+make_group lev nm cdict ty (node (xml::element "label" _ _) label:params)
+= case parse_type ty (check_label lev nm (str_val label),
+		      map (parse_group (lev+1) nm cdict) params) of
     c = c if stringp label && controlp c;
     _ = throw "invalid XML data" otherwise;
   end when label = parse_node label end;
-make_group _ _ _ = throw "invalid XML data" otherwise;
+make_group _ _ _ _ _ = throw "invalid XML data" otherwise;

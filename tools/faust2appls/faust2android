@@ -62,8 +62,8 @@ for f in $FILES; do
 	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
 done
 
-# Copy include files *.h if any
-(cp *.h "$TMPFILES/jni/" 2> /dev/null) 
+# Copy include files *.h if any (ignore any error here)
+(cp *.h "$TMPFILES/jni/" 2> /dev/null) || true
 
 # Get the number of input and output of the Faust object 
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')

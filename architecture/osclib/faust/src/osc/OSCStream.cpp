@@ -43,9 +43,14 @@ OSCStream::OSCStream ()
 //--------------------------------------------------------------------------
 bool OSCStream::start ()
 {
-	_socket = new UdpSocket;
-	_oscout = new OSCStream(_socket);
-	_oscerr = new OSCStream(_socket);
+    if(_socket == 0)
+        _socket = new UdpSocket;
+	
+    if(_oscout == 0)
+        _oscout = new OSCStream(_socket);
+    
+    if(_oscerr == 0)
+        _oscerr = new OSCStream(_socket);
 	return (_socket && _oscout && _oscerr);
 }
 

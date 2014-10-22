@@ -281,7 +281,7 @@ static std::string normalizeClassName(const std::string& name)
 
   unsigned int i=0;
   bool upnext=true;
-  while (c=name[i++]) {
+  while ((c=name[i++])) {
     if (upnext) { c = toupper(c); upnext=false; }
     if ( (c == '_') || (c == '-') || isspace(c)) { upnext=true; continue; }
     s += c;

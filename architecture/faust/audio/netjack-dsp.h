@@ -37,6 +37,7 @@
 #ifndef __netjack_dsp__
 #define __netjack_dsp__
 
+#include <stdio.h>
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 #include "faust/gui/ControlUI.h"
@@ -104,7 +105,16 @@ class netjackaudio : public audio
 
         bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
         {
-            fDsp = DSP;
+            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
+                set_dsp(DSP);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    
+        bool init_aux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
+        {
             jack_slave_t request = {
                 audio_inputs,
                 audio_outputs,
@@ -134,8 +144,13 @@ class netjackaudio : public audio
             
             jack_set_net_slave_error_callback(fNet, net_error, this);
 
-            fDsp->init(fResult.sample_rate);
             return true;
+        }
+    
+        void set_dsp(dsp* DSP) 
+        {
+            fDsp = DSP;
+            fDsp->init(fResult.sample_rate);
         }
         
         // Possibly to be redefined by subclasses
@@ -174,7 +189,12 @@ class netjackaudio : public audio
         {}
         
         virtual ~netjackaudio() 
-        {}
+        {
+            if (fNet) {
+                stop();
+                jack_net_slave_close(fNet);
+            }
+        }
 
         virtual bool init(const char* name, dsp* DSP) 
         {
@@ -192,8 +212,9 @@ class netjackaudio : public audio
 
         virtual void stop() 
         {
-            jack_net_slave_deactivate(fNet);
-            jack_net_slave_close(fNet);
+            if (fNet) {
+                jack_net_slave_deactivate(fNet);
+            }
         }
         
         virtual int get_buffer_size() { return fResult.buffer_size; }

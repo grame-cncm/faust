@@ -52,6 +52,13 @@ long lopt(char *argv[], const char *name, long def)
 	return def;
 }
 
+bool isopt(char *argv[], const char *name)
+{
+	int	i;
+	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+	return false;
+}
+
 const char* lopts(char *argv[], const char *name, const char* def)
 {
 	int	i;

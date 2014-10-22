@@ -39,13 +39,35 @@ class OscThread : public TThreads
 {
 	public:
 		SOSCListener fListener;	
+        ErrorCallback fErrCallback;
+        void*         fArg;
 	
 				 OscThread(MessageProcessor* mp, int udpport)  
 							 { fListener = OSCListener::create (mp, udpport); }
+    
+                OscThread(MessageProcessor* mp, int udpport, ErrorCallback errCallback, void* arg){
+                        fListener = OSCListener::create (mp, udpport);
+                    fErrCallback = errCallback;
+                    fArg = arg;
+                }
 		virtual ~OscThread() { stop(); }
 
 		/// \brief starts the osc listener
-		void run ()				{ fListener->run(); }
+    void run ()				{ 
+        try {
+            fListener->run(); 
+        }
+	catch (osc::Exception& e){
+            
+            if(fErrCallback != NULL)
+                (*fErrCallback)(fArg);
+        }        
+	catch (std::runtime_error& err) {
+            
+            if(fErrCallback != NULL)
+                (*fErrCallback)(fArg);
+        }
+        }
 		void stop ()			{ fListener->stop(); quit(); }
 		SOSCListener&	listener()		{ return fListener; }
 };
@@ -66,10 +88,11 @@ bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort
 			oscerr.setPort (errPort);
 			oscout.setAddress(address);
 			oscerr.setAddress(address);
-			fOSCThread = new OscThread (mp, port);
-			fOSCThread->start();
+			fOSCThread = new OscThread (mp, port, fErrCallback, fArg);
+            fOSCThread->start();
 			done = true;
 		}
+//        In case the OSC Listener could not be allocated = PORT IS BUSY
 		catch (std::runtime_error e) {
 			if ( port - inPort > 1000) return false;
 			do {

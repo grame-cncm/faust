@@ -257,6 +257,23 @@ conv(kv) = fir(kv);
 // tfN = N'th-order direct-form digital filter
 tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
 tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
+// tf2 is a variant of tf22 below with duplicated mems
+
+//=============== Direct-Form second-order biquad sections ================
+// REFERENCE: https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html
+
+//---------------------- tf21, tf21t, tf22, tf22t ------------------------
+tf21(b0,b1,b2,a1,a2) = // tf2, direct-form 1:
+    _ <:(mem<:((mem:*(b2)),*(b1))),*(b0) :>_
+    : ((_,_,_:>_) ~(_<:*(-a1),(mem:*(-a2))));
+tf22(b0,b1,b2,a1,a2) = // tf2, direct-form 2:
+    _ : (((_,_,_:>_)~*(-a1)<:mem,*(b0))~*(-a2))
+      : (_<:mem,*(b1)),_ : *(b2),_,_ :> _;
+tf22t(b0,b1,b2,a1,a2) = // tf2, direct-form 2 transposed:
+    _ : (_,_,(_ <: *(b2)',*(b1)',*(b0))
+      : _,+',_,_ :> _)~*(-a1)~*(-a2) : _;
+tf21t(b0,b1,b2,a1,a2) = // tf2, direct-form 1 transposed:
+    tf22t(1,0,0,a1,a2) : tf22t(b0,b1,b2,0,0); // or write it out if you want
 
 //===================== Ladder/Lattice Digital Filters ======================
 // Ladder and lattice digital filters generally have superior numerical
@@ -419,7 +436,7 @@ with {
   tgr(i) = take(M+1-i,tg);
   tghr(n) = tgr(n)/pi(n);
   pi(0) = 1;
-  s(n) = take(M-n+1,sv);
+  s(n) = take(M-n+1,sv); // reflection coefficient = sin(theta) 
   c(n) = sqrt(max(0,1-s(n)*s(n))); // compiler crashes on sqrt(-)
   pi(n) = pi(n-1)*c(n);
 };
@@ -1159,7 +1176,7 @@ with {
   LL = ls_group(hslider("[0] Low Boost|Cut [unit:dB] [style:knob]
                 [tooltip: Amount of low-frequency boost or cut in decibels]",
                 0,-40,40,0.1));
-  FL = ls_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob]
+  FL = ls_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
                 [tooltip: Transition-frequency from boost (cut) to unity gain]",
                 200,1,5000,1));
 
@@ -1169,13 +1186,13 @@ with {
                 [tooltip: Amount of local boost or cut in decibels]",
                 0,-40,40,0.1));
   FP = pq_group(hslider("[1] Peak Frequency [unit:PK] [style:knob]
-       [tooltip: Peak Frequency in Piano Key (PK) units (A-440= 49 PK)]",
+       [tooltip: Peak Frequency in Piano Key (PK) units (A440 = 49PK)]",
                 49,1,100,1)) : smooth(0.999) : pianokey2hz 
 		with { pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); };
 
-  Q = pq_group(hslider("[2] Peak Q [style:knob]
+  Q = pq_group(hslider("[2] Peak Q [style:knob] [scale:log]
               [tooltip: Quality factor (Q) of the peak = center-frequency/bandwidth]",
-              40,1,50,0.1));
+              40,1,1000,0.1));
 
   BP = FP/Q;
 
@@ -1185,7 +1202,7 @@ with {
   LH = hs_group(hslider("[0] High Boost|Cut [unit:dB] [style:knob]
                 [tooltip: Amount of high-frequency boost or cut in decibels]",
                 0,-40,40,.1));
-  FH = hs_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob]
+  FH = hs_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
                 [tooltip: Transition-frequency from boost (cut) to unity gain]",
                 8000,20,10000,1));
 };
@@ -1518,9 +1535,9 @@ with {
   // Lowest band-edge is at ftop*2^(-Noct+2) = 62.5 Hz when ftop=16 kHz:
   N = int(Noct*M); // without 'int()', segmentation fault observed for M=1.67
   ctl_group(x)  = hgroup("[1] SPECTRUM ANALYZER CONTROLS", x);
-  tau = ctl_group(hslider("[0] Level Averaging Time [unit:sec]
-        [tooltip: band-level averaging time in seconds]",
-        0.1,0,1,0.01)); 
+  tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]
+        [tooltip: band-level averaging time in milliseconds]",
+        100,1,10000,1)) * 0.001; 
   dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
         [tooltip: Level offset in decibels]",
         50,0,100,1)); 

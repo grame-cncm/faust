@@ -51,7 +51,13 @@ class smartable {
 		smartable() : refCount(0) {}
 		smartable(const smartable&): refCount(0) {}
 		//! destructor checks for non-zero refCount
-		virtual ~smartable()    { assert (refCount == 0); }
+		virtual ~smartable()    
+        { 
+            /* 
+                See "Static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui)" comment.
+                assert (refCount == 0); 
+            */
+         }
 		smartable& operator=(const smartable&) { return *this; }
 };
 

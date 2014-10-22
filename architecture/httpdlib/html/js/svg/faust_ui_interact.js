@@ -20,10 +20,6 @@ _f4u$t.move_to_ridiculous_negative = function(id) {
   _f4u$t.generic_translate(id, -100000, -100000);
 }
 
-_f4u$t.path_to_id = function (path, id) {
-  _f4u$t.PATHS_TO_IDS[path] = id;
-}
-
 _f4u$t.devnull = function devnull() { }
 
 _f4u$t.generic_translate = function(id, x, y) {
@@ -964,7 +960,7 @@ _f4u$t.actualize_incremental_object = function(id) {
     var axis = _f4u$t.IDS_TO_ATTRIBUTES[id]["axis"];
     var weakaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["weakaxis"];
     var strongaxis = _f4u$t.IDS_TO_ATTRIBUTES[id]["strongaxis"];
-    val = _f4u$t[_f4u$t.xy(axis, "remap", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
+    val = _f4u$t[_f4u$t.xy(axis, "remap_and_flip", "remap_and_flip")](val, minval, maxval, 0, strongaxis);
     val = _f4u$t.bound(val, 0, strongaxis);
     /*
     // for paths...

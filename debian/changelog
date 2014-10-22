@@ -1,0 +1,192 @@
+faust (0.9.70+git20141011+3182-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Sat, 11 Oct 2014 09:29:24 +0200
+
+faust (0.9.70+git20141010+3174-0) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Fri, 10 Oct 2014 08:49:47 +0200
+
+faust (0.9.68+git20141007+3158-0) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Thu, 09 Oct 2014 19:45:56 +0200
+
+faust (0.9.68+git20141007-1) trusty; urgency=low
+
+  * Latest upstream from git
+
+ -- Albert Graef <aggraef@gmail.com>  Thu, 09 Oct 2014 14:30:53 +0200
+
+faust (0.9.67-1) trusty; urgency=low
+
+  * New upstream release
+
+ -- Albert Graef <aggraef@gmail.com>  Sat, 13 Sep 2014 22:09:44 +0200
+
+faust (0.9.58-1) natty; urgency=low
+
+  * New upstream release
+
+ -- Albert Graef <Dr.Graef@t-online.de>  Fri, 23 Nov 2012 21:54:48 +0100
+
+faust (0.9.52+git20120520-2) natty; urgency=low
+
+  * Packaging fixes (set 'prefix' variable at build time)
+
+ -- Albert Graef <Dr.Graef@t-online.de>  Tue, 29 May 2012 00:07:39 +0200
+
+faust (0.9.52+git20120520-1) natty; urgency=low
+
+  * Include date of git snapshot
+
+ -- Albert Graef <Dr.Graef@t-online.de>  Mon, 28 May 2012 21:04:56 +0200
+
+faust (0.9.52-1) natty; urgency=low
+
+  * New upstream release
+
+ -- Albert Graef <Dr.Graef@t-online.de>  Sat, 26 May 2012 21:39:37 +0200
+
+faust (0.9.46-3) natty; urgency=low
+
+  * Backport of newer 0.9.46 version from Quantal to Natty
+
+ -- Albert Graef <Dr.Graef@t-online.de>  Fri, 25 May 2012 00:31:11 +0200
+
+faust (0.9.46-2) unstable; urgency=low
+
+  * Fix "ftbfs with GCC-4.7":
+    - debian/patches/unistd: Include <unistd.h> where necessary.
+      (Closes: #667163)
+
+ -- Mario Lang <mlang@debian.org>  Wed, 04 Apr 2012 13:52:01 +0200
+
+faust (0.9.46-1) unstable; urgency=low
+
+  * New upstream release.
+  * Acknowledge NMU, thanks to Nobuhiro Iwamatsu.
+  * debian/source/format: Switch to 3.0 (quilt).
+  * debian/patches/destdir: Fix qt example compilation (Closes: Bug#660587).
+  * debian/patches/atoi,
+    debian/patches/kFreeBSD: Extract changes from source format 1.0 diff.gz.
+  * debian/control,
+    debian/rules: Drop cdbs.  Use debhelper >= 7.0.50~ instead.
+  * Bump Standards-Version to 3.9.3.
+
+ -- Mario Lang <mlang@debian.org>  Sun, 25 Mar 2012 00:51:55 +0100
+
+faust (0.9.43-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Fix FTBFS on Kfreebsd. (Closes: #644590)
+    Add kfreebsd support to architecture/osclib/oscpack/Makefile.  
+  * Fix FTBFS on all architecture by atoi. (Closes: #652322)
+    Add "#include <stdlib.h>" to architecture/misc.h.
+
+ -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Fri, 09 Mar 2012 08:43:21 +0900
+
+faust (0.9.43-1) unstable; urgency=low
+
+  * New upstream release (Closes: Bug#604050).
+
+ -- Mario Lang <mlang@debian.org>  Wed, 07 Sep 2011 17:05:27 +0200
+
+faust (0.9.24-1) unstable; urgency=low
+
+  * New upstream release
+  * Upgrade Standsrds-Version from 3.8.2 to 3.8.4.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 19 May 2010 13:53:01 +0200
+
+faust (0.9.9.4b-2) unstable; urgency=low
+
+  * Fix "FTBFS with GCC 4.4: missing #include" (Closes: #505365)
+  * Fix a few parenthesis suggestion warnings to make the build log less
+    verbose.
+  * Build-Depend on debhelper >= 5 and use compat level 5.
+  * No longer ship /usr/lib/faust/VST which contains OSX specific stuff
+    for Xcode.
+  * Install kate syntax highlighting support in
+    /usr/share/kde4/apps/katepart/syntax.
+  * debian/control:
+    - Recommend those package required to build the default example set
+      out of the box.
+    - Suggest kate since we provide syntax highlighting support.
+    - Depend on ${misc:Depends} to make lintian happy.
+    - Upgrade to Standards-Version 3.8.2 (no changes).
+  * debian/docs: Install more of the available documentation.
+
+ -- Mario Lang <mlang@debian.org>  Sat, 18 Jul 2009 17:00:06 +0200
+
+faust (0.9.9.4b-1) unstable; urgency=low
+
+  * New upstream release.
+  * More work on gcc 4.3 patch (thanks for the NMU) (Closes: Bug#417185).
+  * Ack previously missed NMU (thanks) (Closes: Bug#355997).
+  * Update Standards-Version to 3.7.3 (no changes).
+  * debian/control: Add Homepage field.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 11 Apr 2008 14:54:49 +0200
+
+faust (0.9.9.1-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTBFS with GCC 4.3 (Closes: #417185).
+
+ -- Luk Claes <luk@debian.org>  Sun, 09 Mar 2008 11:48:39 +0000
+
+faust (0.9.9.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Mario Lang <mlang@debian.org>  Tue, 29 May 2007 00:06:45 +0200
+
+faust (0.9.8.7-2) unstable; urgency=low
+
+  * Fix debian/watch file.
+  * debian/faust.examples: Explicitly list files to install so that we
+    do not accidentally pick up precompiled binaries shipped
+    with .orig.tar.gz (Closes: Bug#419583).
+  * Disable -ffriend-injection again since it seems no longer to be
+    needed.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 18 May 2007 15:01:48 +0200
+
+faust (0.9.8.7-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Mario Lang <mlang@debian.org>  Mon, 09 Apr 2007 22:51:05 +0200
+
+faust (0.9.8-1) unstable; urgency=low
+
+  * New upstream release.
+  * Upgrade Standards-Version to 3.7.2.
+
+ -- Mario Lang <mlang@debian.org>  Mon,  9 Oct 2006 11:05:30 +0200
+
+faust (0.9.3-2.1) unstable; urgency=low
+
+  * NMU as part of the GCC 4.1 transition.
+  * Apply patch from Ben Hutchings to declare friend functions (Closes:
+    #355997).
+
+ -- Martin Michlmayr <tbm@cyrius.com>  Thu, 25 May 2006 18:01:50 +0200
+
+faust (0.9.3-2) unstable; urgency=low
+
+  * Add flex to Build-Depends (Closes: Bug#319481).
+
+ -- Mario Lang <mlang@debian.org>  Fri, 22 Jul 2005 15:30:36 +0200
+
+faust (0.9.3-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Mario Lang <mlang@debian.org>  Tue,  5 Jul 2005 13:13:05 +0200
+

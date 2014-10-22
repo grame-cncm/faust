@@ -29,6 +29,7 @@ extern bool gLatexDocSwitch;
 
 
 int yyparse();
+void yyrestart( FILE *new_file );
 struct yy_buffer_state* yy_scan_string (const char *yy_str  ); // In principle YY_BUFFER_STATE
 
 extern int 		yyerr;
@@ -193,7 +194,7 @@ Tree SourceReader::parse(string fname)
 	yyerr = 0;
 	
 	yyfilename = fname.c_str();
-    if (strstr(yyfilename,"://") > 0) {
+    if (strstr(yyfilename,"http://") != 0) {
         // We are requested to parse an URL file
         int ret = http_fetch(yyfilename, &fileBuf);
         if (ret == -1) {
@@ -217,13 +218,18 @@ Tree SourceReader::parse(string fname)
         return gResult;
 
     } else {
+		// test for local url
+		if (strstr(yyfilename,"file://") != 0) {
+			yyfilename  = &yyfilename[7]; // skip 'file://'
+		}
+		
         // We are requested to parse a regular file
         yyin = fopensearch(yyfilename, fullpath);
         if (yyin == NULL) {
             fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
             exit(1);
         }
-        
+        yyrestart(yyin);	// make sure we scan from file again (in case we scanned a string just before)
         yylineno = 1;
         int r = yyparse();
         if (r) { 

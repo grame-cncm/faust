@@ -5,7 +5,7 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/UI.h"
+#include "faust/gui/PathUI.h"
 #include <vector>
 #include <string>
 
@@ -14,24 +14,9 @@
  * This class print arguments given to calls to UI methods and build complete path for labels.
  ******************************************************************************/
 
-class PrintUI : public UI
+class PrintUI : public PathUI
 {
 
-    protected:
-    
-        std::vector<std::string> fControlsLevel;
-        
-        std::string buildPath(const std::string& label) 
-        {
-            std::string res = "/";
-            for (size_t i = 0; i < fControlsLevel.size(); i++) {
-                res += fControlsLevel[i];
-                res += "/";
-            }
-            res += label;
-            return res;
-        }
-    
     public:
 
         PrintUI() {}

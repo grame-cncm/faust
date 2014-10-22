@@ -15,6 +15,7 @@ CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-
 # -nometa: ignore metadata (author information etc.) from the Faust source
 # -nomidicc: plugin doesn't process MIDI control data
 # -nvoices N: number of synth voices of the plugin (arg must be an integer)
+# -dyn-manifest: use dynamic manifests (requires LV2 host support)
 # -uri-prefix URI: URI prefix of plugin (arg must be a valid URI)
 
 for ((i=1;i<$#+1;i++)); do

@@ -139,7 +139,6 @@ class uiBox;
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box);
 CGPoint absolutePosition(uiCocoaItem* widget);
 
-
 // All Cocoa widget classes inheritate from uiCocoaItem, which inheritate from Faust uiItem
 class uiCocoaItem : public uiItem
 {
@@ -182,7 +181,6 @@ protected:
     
 public:
     
-    FIMainViewController*   mainViewController;
     UILabel*                fLabel;
     float                   fInit;
     
@@ -202,7 +200,7 @@ public:
     
     // Constructor / Destuctor
     uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name)
-    : uiItem(ui, zone), mainViewController(controller)
+    : uiItem(ui, zone)
     {
         fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
         fLabel = nil;
@@ -1222,6 +1220,15 @@ class CocoaUI : public GUI
 public:
     list <uiCocoaItem*>             fWidgetList;
     
+    void setHidden(bool state)
+    {
+        map<float*, bool>::iterator it;
+        for (it = fHideOnGUI.begin(); it != fHideOnGUI.end(); it++) {
+            (*it).second = state;
+        }
+    }
+
+    
 private:
     
     UIWindow*                       fWindow;
@@ -1248,24 +1255,20 @@ private:
     
     // Layout management
     
+    
     uiBox* getActiveBox()
     {
-        list<uiCocoaItem*>::iterator i;
+        list<uiCocoaItem*>::reverse_iterator i;
         
         // Loop on each widgets, from the last
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                {
-                    return dynamic_cast<uiBox*>(*i);
-                }
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                return box;
             }
         }
-        
-        i = fWidgetList.begin();
-        return dynamic_cast<uiBox*>(*i);
+        return NULL;        
     }
     
     // General rules to place objet
@@ -1284,14 +1287,11 @@ private:
             y = 0.f;
             
             // If main box : no label
-            if (dynamic_cast<uiBox*>(widget))
-            {
-                if (dynamic_cast<uiBox*>(widget)->fLabel)
-                {
-                    [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
-                    dynamic_cast<uiBox*>(widget)->fLabel = nil;
-                    dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
-                }
+            uiBox* box = dynamic_cast<uiBox*>(widget);
+            if (box && box->fLabel) {
+                [box->fLabel removeFromSuperview];
+                box->fLabel = nil;
+                box->fLastY = box->fLastY - kStdBoxLabelHeight;
             }
         }
         
@@ -1301,14 +1301,11 @@ private:
             // If the box is a tab content box : no label
             if (parent->fBoxType == kTabLayout)
             {
-                if (dynamic_cast<uiBox*>(widget))
-                {
-                    if (dynamic_cast<uiBox*>(widget)->fLabel)
-                    {
-                        [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
-                        dynamic_cast<uiBox*>(widget)->fLabel = nil;
-                        dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
-                    }
+                uiBox* box = dynamic_cast<uiBox*>(widget);
+                if (box && box->fLabel) {
+                    [box->fLabel removeFromSuperview];
+                    box->fLabel = nil;
+                    box->fLastY = box->fLastY - kStdBoxLabelHeight;
                 }
             }
             
@@ -1461,56 +1458,62 @@ private:
     
     void updateBoxChildren(const char* label, uiCocoaItem* widget)
     {
-        list<uiCocoaItem*>::iterator i;
+        list<uiCocoaItem*>::reverse_iterator i;
+        uiBox* box = NULL;
         
         if (fCurrentLayoutType == kTabLayout)
         {
-            for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+            for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
             {
-                if (dynamic_cast<uiBox*>(*i))
+                if ((box = dynamic_cast<uiBox*>(*i)))
                 {
-                    if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                        && dynamic_cast<uiBox*>(*i) != widget
-                        && !dynamic_cast<uiBox*>(*i)->fClosed)
+                    if (box->fBoxType == kTabLayout
+                        && box != widget
+                        && !box->fClosed)
                     {   
                         // Add FIButton in the fTabView
-                        [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
+                        [box->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                         
                         // Add uiCocoaItem in the uiBox (*i)
-                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);                        
+                        box->fWidgetList.push_back(widget);
                     }
                 }
-            }   
-            i = fWidgetList.begin();
-            if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                && dynamic_cast<uiBox*>(*i) != widget)
+            }
+            
+            list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
+            box = dynamic_cast<uiBox*>(*i1);
+            
+            if (box->fBoxType == kTabLayout
+                && box != widget)
             {
-                [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
-                
-                dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                [box->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
+                box->fWidgetList.push_back(widget);
             }
         }
         else
         {
-            for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+            for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
             {
-                if (dynamic_cast<uiBox*>(*i))
+                if ((box = dynamic_cast<uiBox*>(*i)))
                 {
-                    if (    (dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
-                                || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
-                            && dynamic_cast<uiBox*>(*i) != widget)
+                    if ((box->fBoxType == kHorizontalLayout
+                        || box->fBoxType == kVerticalLayout)
+                        && box != widget)
                     {   
                         // Add uiCocoaItem in the uiBox (*i)
-                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                        box->fWidgetList.push_back(widget);
                     }
                 }
             }   
-            i = fWidgetList.begin();
-            if (    (dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
-                        || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
-                    && dynamic_cast<uiBox*>(*i) != widget)
+       
+            list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
+            box = dynamic_cast<uiBox*>(*i1);
+            
+            if ((box)->fBoxType == kHorizontalLayout
+                || box->fBoxType == kVerticalLayout
+                && box != widget)
             {
-                dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                box->fWidgetList.push_back(widget);
             }
         }
     }
@@ -1556,7 +1559,7 @@ public:
         fViewController.dspScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
         
         [window addSubview:viewController.view];
-        [window makeKeyAndVisible];
+        [window makeKeyAndVisible];        
     }
     
     ~CocoaUI()
@@ -1586,6 +1589,16 @@ public:
         }
     }
     
+    void setHideOnGUI(BOOL state)
+    {
+        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            (*i)->setHideOnGUI(state);
+        }
+    }
+    
     // Function used to place widgets within a box when the horizontal box is too large or vertical box is too high
     void expandBoxesContent()
     {
@@ -1599,7 +1612,7 @@ public:
         float                           rx = 1.f;
         float                           cpt = 0.f;
         float                           newVal = 0.f;
-
+        
         // Loop on every boxes of the layout
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
@@ -1676,10 +1689,35 @@ public:
                                 else labelHeight = 0.f;
                                 
                                 // Place objects on all the height of the box
+                                float y;
+                                float h;
+                                
+                                if (contentSize.height == kSpaceSize)
+                                {
+                                    y = 0.f;
+                                    h = 0.f;
+                                }
+                                else
+                                {
+                                    float divider = (contentSize.height - kSpaceSize - labelHeight);
+                                    
+                                    if(divider != 0.0)
+                                    {
+                                        y = ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / divider) + kSpaceSize + labelHeight;
+                                        h = (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / divider);
+                                    }
+                                    else
+                                    {
+                                        y = 0.f;
+                                        h = 0.f;
+                                    }
+                                        
+                                }
+                                
                                 (*j)->setFrame((*j)->getX(),
-                                               ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
+                                               y,
                                                (*j)->getW(),
-                                               (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
+                                               h);
                             }
                         }
                     }
@@ -1750,9 +1788,23 @@ public:
                             if ((*j)->getParent() == box)
                             {
                                 // Place objects on all the width of the box
-                                (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
+                                float x;
+                                float w;
+                                
+                                if (contentSize.width == kSpaceSize)
+                                {
+                                    x = 0.f;
+                                    w = 0.f;
+                                }
+                                else
+                                {
+                                    x = ((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize;
+                                    w = (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize));
+                                }
+                                
+                                (*j)->setFrame(x,
                                                (*j)->getY(),
-                                               (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
+                                               w,
                                                (*j)->getH());
                             }
                         }
@@ -1772,13 +1824,14 @@ public:
         float                           newWidth = 0.f;
         float                           newHeight = 0.f;
         int                             cpt = 0;
+        uiBox*                          box = NULL;
         
-        if (dynamic_cast<uiBox*>(*i))
+        if ((box = dynamic_cast<uiBox*>(*i)))
         {
             // Make main box transparent if it is not a tab box
-            if (dynamic_cast<uiBox*>(*i)->fBoxType != kTabLayout)
+            if (box->fBoxType != kTabLayout)
             {
-                dynamic_cast<uiBox*>(*i)->fBox.color = [UIColor clearColor];
+                box->fBox.color = [UIColor clearColor];
             }
             
             // Load abstract layout
@@ -1799,18 +1852,18 @@ public:
             
             for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
             {
-                if (dynamic_cast<uiBox*>(*j))
+                if ((box = dynamic_cast<uiBox*>(*j)))
                 {
                     if (!hExpandable
-                        && dynamic_cast<uiBox*>(*j)->fBoxType == kHorizontalLayout
-                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                        && box->fBoxType == kHorizontalLayout
+                        && box->getNumberOfDirectChildren() > 1)
                     {
                         hExpandable = TRUE;
                     }
                     
                     if (!vExpandable
-                        && dynamic_cast<uiBox*>(*j)->fBoxType == kVerticalLayout
-                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                        && box->fBoxType == kVerticalLayout
+                        && box->getNumberOfDirectChildren() > 1)
                     {
                         vExpandable = TRUE;
                     }
@@ -1859,12 +1912,13 @@ public:
     // Returns the box containing the point
     uiBox* getBoxForPoint(CGPoint pt)
     {
-        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        list<uiCocoaItem*>::reverse_iterator i;
+        uiBox* box = NULL;
         
         // Loop on each widgets, from the last
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
-            if (dynamic_cast<uiBox*>(*i))
+            if ((box = dynamic_cast<uiBox*>(*i)))
             {
                 if (!(*i)->isHidden()
                     && pt.x >= absolutePosition(*i).x
@@ -1872,27 +1926,25 @@ public:
                     && pt.y >= absolutePosition(*i).y
                     && pt.y <= absolutePosition(*i).y + (*i)->getH())
                 {
-                    if (dynamic_cast<uiBox*>(*i)->getParent())
+                    if (box->getParent())
                     {
-                        if (dynamic_cast<uiBox*>(dynamic_cast<uiBox*>(*i)->getParent())->fBoxType == kTabLayout)
+                        if (dynamic_cast<uiBox*>(box->getParent())->fBoxType == kTabLayout)
                         {
-                            return dynamic_cast<uiBox*>(dynamic_cast<uiBox*>(*i)->getParent());
+                            return dynamic_cast<uiBox*>(box->getParent());
                         }
                     }
                     
-                    return dynamic_cast<uiBox*>(*i);
+                    return box;
                 }
             }
         }
         
-        return dynamic_cast<uiBox*>(*i);
+        return NULL;
     }
     
     uiBox* getMainBox()
     {
-        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
-        
-        return dynamic_cast<uiBox*>(*i);
+         return (fWidgetList.size() > 0) ? dynamic_cast<uiBox*>(*fWidgetList.begin()): NULL;
     }
     
     bool isKnob(float* zone)
@@ -1944,87 +1996,40 @@ public:
     
     virtual uiBox* getCurrentOpenedBox()
     {
-        list<uiCocoaItem*>::iterator        i;
-        uiBox*                              box = NULL;
-        BOOL                                found = false;
+        list<uiCocoaItem*>::reverse_iterator i;
+        uiBox* box = NULL;
         
         // Find the last box to close
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!found)
-                {
-                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                    {
-                        box = dynamic_cast<uiBox*>(*i);
-                        found = true;
-                    }
-                }
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                return box;
             }
         }
         
-        if (!found && dynamic_cast<uiBox*>(*i))
-        {
-            box = dynamic_cast<uiBox*>(*i);
-        }
-        
-        return box;
+        return NULL;
     }
     
     virtual void closeBox()
     {
-        list<uiCocoaItem*>::iterator        i;
-        uiBox*                              box = NULL;
-        BOOL                                found = false;
-        uiBox*                              parent = NULL;
-                        
-        // Find the last box to close
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
-        {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!found)
-                {
-                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                    {
-                        box = dynamic_cast<uiBox*>(*i);
-                        box->close(fWidgetList.size());
-                        found = true;
-                    }
-                }
-            }            
-        }
+        list<uiCocoaItem*>::reverse_iterator i;
         
-        if (!found && dynamic_cast<uiBox*>(*i))
-        {
-            box = dynamic_cast<uiBox*>(*i);
-            box->close(fWidgetList.size());
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++) {
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                box->close(fWidgetList.size());
+                break;
+            }
         }
-        
-        // Find the last layout type
-        found = false;
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
-        {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!found)
-                {
-                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                    {
-                        fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
-                        found = true;
-                    }
-                }
-            }            
+     
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++) {
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                fCurrentLayoutType = box->fBoxType;
+                break;
+            }
         }
-        
-        if (!found && dynamic_cast<uiBox*>(*i))
-        {
-            fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
-        }
-                
-        if (box) parent = dynamic_cast<uiBox*>(box->getParent());
     }
     
     //virtual void adjustStack(int n);
@@ -2343,7 +2348,7 @@ public:
             {
 				fUnit[zone] = value;
 			}
-            if (strcmp(key,"hidden") == 0)
+            else if (strcmp(key,"hidden") == 0)
             {
 				NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];

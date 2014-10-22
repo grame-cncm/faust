@@ -64,9 +64,18 @@ Symbol* Symbol::get(const string& str)
  * \return a symbol of name str
  */ 
 
-Symbol* Symbol::get(const char* str)
+Symbol* Symbol::get(const char* rawstr)
 {
-    unsigned int 			hsh  = calcHashKey(str);
+    // ---replaces control characters with white spaces---
+    char            str[1024];
+    char*           p = &str[0];
+    char            c;
+    unsigned int    n = 0;
+    while ((++n<1024) && (c=*rawstr++)) { *p++ = (c<32) ? 32 : c; }
+    *p++ = 0;
+    //----------------------------------------------------
+
+    unsigned int 	hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 
@@ -84,7 +93,7 @@ Symbol* Symbol::get(const char* str)
 
 bool Symbol::isnew(const char* str)
 {
-    unsigned int 			hsh  = calcHashKey(str);
+    unsigned int    hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 	

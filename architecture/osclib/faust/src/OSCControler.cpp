@@ -39,8 +39,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 0.93f
-#define kVersionStr	"0.93"
+#define kVersion	 0.94f
+#define kVersionStr	"0.94"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -87,8 +87,8 @@ static bool getXmitOption (int argc, char *argv[], const std::string& option, bo
 
 
 //--------------------------------------------------------------------------
-OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io)
-	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io)
+OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
+	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io), fInit(init)
 {
 	fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
 	fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);
@@ -97,9 +97,9 @@ OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io)
 	gXmit = getXmitOption (argc, argv, kXmitOpt, false);
 
 	fFactory = new FaustFactory(ui, io);
-	fOsc	= new OSCSetup();
+	fOsc	= new OSCSetup(errCallback, arg);
 }
-
+    
 OSCControler::~OSCControler ()
 { 
 	quit(); 
@@ -128,7 +128,8 @@ void OSCControler::run ()
 		// informs the root node of the udp ports numbers (required to handle the 'hello' message
 		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		// starts the network services
-		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
+        
+		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDestAddress());
 
 		// and outputs a message on the osc output port
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
@@ -146,7 +147,12 @@ void OSCControler::run ()
 }
 
 //--------------------------------------------------------------------------
-const char*	OSCControler::getRootName()		{ return fFactory->root()->getName(); }
-void		OSCControler::quit ()			{ fOsc->stop(); }
+const char*	OSCControler::getRootName()	const { return fFactory->root()->getName(); }
 
+//--------------------------------------------------------------------------
+void OSCControler::quit ()
+{
+	fOsc->stop();
 }
+
+} // namespace

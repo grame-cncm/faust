@@ -1,0 +1,176 @@
+
+
+<script>
+
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var max_polyphony = 16;
+var audio_input = null;
+var midi_input = [];
+var DSP_poly = null;
+var faustsvg = null;
+
+function changeBufferSize(buffer_size)
+{
+    var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
+    console.log(new_buffer_size);
+    startNewDSP(new_buffer_size);
+}
+
+// MIDI input handling
+
+function keyOn(channel, pitch, velocity)
+{
+    if (DSP_poly) {
+        DSP_poly.keyOn(channel, pitch, velocity);
+    }
+}
+
+function keyOff(channel, pitch)
+{
+    if (DSP_poly) {
+        DSP_poly.keyOff(channel, pitch);
+    }
+}
+
+function pitchWheel(channel, pitchWheel)
+{
+    if (DSP_poly) {
+        DSP_poly.pitchWheel(channel, pitchWheel);
+    }
+}
+
+function ctrlChange(channel, ctrl, value)
+{
+    if (DSP_poly) {
+        DSP_poly.ctrlChange(channel, ctrl, value);
+    }
+}
+
+function midiMessageReceived(ev) 
+{
+    var cmd = ev.data[0] >> 4;
+    var channel = ev.data[0] & 0xf;
+    var data1 = ev.data[1];
+    var data2 = ev.data[2];
+    
+    //console.log(ev);
+
+    if (channel === 9) {
+        return;
+    } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) { 
+        keyOff(channel, data1);
+    } else if (cmd === 9) {
+        keyOn(channel, data1, data2);
+    } else if (cmd === 11) {
+        ctrlChange(channel, data1, data2);
+    } else if (cmd === 14) {
+        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+    }  
+}
+
+function onerrorcallback(error) 
+{
+     console.log(error);
+}
+
+function onsuccesscallback(access) 
+{
+    access.inputs().forEach(function(input) {
+        midi_input.push(input);
+        input.onmidimessage = midiMessageReceived;
+        console.log(input.name);
+    });
+}
+ 
+function activateMIDIInput()
+{
+    if (typeof (navigator.requestMIDIAccess) !== "undefined") {
+        navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+    } else {
+        alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+    }
+}
+
+// Audio input handling
+
+function activateAudioInput()
+{
+    if (!navigator.getUserMedia) {
+        navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    }
+   
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia({audio:true}, getDevice, function(e) {
+                alert('Error getting audio input');
+                console.log(e);
+        });
+    } else {
+        alert('Audio input API not available');
+    }
+}
+
+function getDevice(device) 
+{
+    // Create an AudioNode from the stream.
+    audio_input = audio_context.createMediaStreamSource(device);
+    
+    // Connect it to the destination.
+    audio_input.connect(DSP_poly.scriptProcessor);
+}
+
+function startDSPAux(buffer_size) 
+{
+    activateMIDIInput();
+    if (DSP_poly) {
+        if (audio_input) {
+            audio_input.disconnect(DSP_poly.scriptProcessor);
+        }
+        _f4u$t.hard_delete(faustsvg);
+        DSP_poly.stop();
+        DSP_poly.destroy();
+    }
+    DSP_poly = faust.DSP_poly(audio_context, buffer_size, max_polyphony);
+    DSP_poly.start();
+    
+    console.log(DSP_poly.json());
+    
+    // kludge...ideally, this needs to not be part of the imported JS
+    _f4u$t.main_loop = function() {}
+    
+    faustsvg = $('<div />');
+    $('body').append(faustsvg);
+    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.update);
+    DSP_poly.setHandler(handler);
+}
+
+function startDSP() 
+{
+    startDSPAux(1024);
+}
+
+function startNewDSP(buffer_size) 
+{
+    startDSPAux(buffer_size);
+}
+
+// Polyphonic instrument
+
+$(startDSP);
+
+</script>
+
+<P>
+<center>
+<form method="POST" name="menu" >
+  <select name="selectedBuffer" 
+    onChange="changeBufferSize(this.form.selectedBuffer)">
+    <option value = 256 > 256 </option>
+    <option value = 512> 512 </option>
+    <option selected value = 1024> 1024 </option>
+    <option value = 2048> 2048 </option>
+    <option value = 4096> 4096 </option>
+    <option value = 8192> 8192 </option>
+  </select>
+</form>
+</center>

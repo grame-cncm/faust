@@ -18,9 +18,9 @@
 
 #include <cmath>
 
-#include "faust/gui/GUI.h"
+#include "faust/gui/UI.h"
 #include "faust/audio/dsp.h"
-#include "faust/misc.h"
+#include "faust/gui/meta.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -45,3 +45,9 @@
 //----------------------------------------------------------------------------
 
 <<includeclass>>
+
+int main(int argc, char *argv[])
+{
+	mydsp DSP;
+}
+

@@ -209,86 +209,71 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
     streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
+#define TRY_OPEN(filename)                      \
+    ifstream* f = new ifstream();               \
+    f->open(filename, ifstream::in);            \
+    if (f->is_open()) return f; else delete f;  \
+
 /**
  * Try to open an architecture file searching in various directories
  */
 ifstream* open_arch_stream(const char* filename)
 {
 	char	buffer[FAUST_PATH_MAX];
-    char*	old = getcwd (buffer, FAUST_PATH_MAX);
+    char*	old = getcwd(buffer, FAUST_PATH_MAX);
 	int		err;
 
-    {
-	    ifstream* f = new ifstream();
-	    f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
-    }
+    TRY_OPEN(filename);
+    
     char *envpath = getenv("FAUST_LIB_PATH");
     if (envpath!=NULL) {
 		if (chdir(envpath)==0) {
-			ifstream* f = new ifstream();
-			f->open(filename, ifstream::in);
-			if (f->is_open()) return f; else delete f;
+			TRY_OPEN(filename);
 		}
     }
 	err = chdir(old);
 	if ( (chdir(gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
 		//cout << "enrobage.cpp : 'architecture' directory found in gFaustDirectory" << endl;
-        ifstream* f = new ifstream();
-		f->open(filename, ifstream::in);
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
     err = chdir(old);
     if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
         //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
-        ifstream* f = new ifstream();
-        f->open(filename, ifstream::in);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
     err = chdir(old);
 	if ((chdir(gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
         //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
-        ifstream* f = new ifstream();
-		f->open(filename, ifstream::in);
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
 #ifdef INSTALL_PREFIX
 	err = chdir(old);
 	if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
-        ifstream* f = new ifstream();
-		f->open(filename); 
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
     err = chdir(old);
     if (chdir(INSTALL_PREFIX "/include")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
 #endif
 	err = chdir(old);
 	if (chdir("/usr/local/lib/faust")==0) {
-        ifstream* f = new ifstream();
-		f->open(filename); 
-		if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
 	}
     err = chdir(old);
     if (chdir("/usr/lib/faust")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
     err = chdir(old);
     if (chdir("/usr/local/include")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
     err = chdir(old);
     if (chdir("/usr/include")==0) {
-        ifstream* f = new ifstream();
-        f->open(filename);
-        if (f->good()) return f; else delete f;
+        TRY_OPEN(filename);
     }
+
+    if (err != 0) cerr << "ERROR : cannot change back directory to '" << old << "' : " <<  strerror(errno) << endl;
 
 	return 0;
 }
@@ -313,9 +298,21 @@ const char* strip_start(const char* filename)
 bool check_url(const char* filename)
 {
     char* fileBuf = 0;
+
+	// Tries to open as an URL for a local file
+    if (strstr(filename, "file://") != 0) {
+        // Tries to open as a regular file after removing 'file://'
+        FILE* f = fopen(&filename[7], "r");
+        if (f) {
+            fclose(f);
+            return true;
+        } else {
+            cerr << "ERROR : cannot open file '" << filename << "' : " <<  strerror(errno) << "; for help type \"faust --help\"" << endl;
+            return false;
+        }
      
     // Tries to open as a http URL
-    if (strstr(filename, "://") > 0) {
+    } else if (strstr(filename, "http://") != 0) {
         if (http_fetch(filename, &fileBuf) != -1) {
             return true;
         } else {
@@ -345,19 +342,27 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
     char olddirbuffer[FAUST_PATH_MAX];
     char newdirbuffer[FAUST_PATH_MAX];
     
-    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
 
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
-		fullpath = getcwd (newdirbuffer, FAUST_PATH_MAX);
+	    char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
+        if (!newdir) {
+            cerr << "ERROR : getcwd '" << strerror(errno) << endl;
+            return 0;
+        }
+		fullpath = newdir;
 		fullpath += '/';
 		fullpath += filename;
         err = chdir(olddir);
+        if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
         return f;
     }
     err = chdir(olddir);
+    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
     return 0;
 }
+
 
 /**
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
@@ -378,12 +383,17 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
     char olddirbuffer[FAUST_PATH_MAX];
     char newdirbuffer[FAUST_PATH_MAX];
     
-    char* olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
     
     if (chdir(dir.c_str()) == 0) {
         if (chdir(path) == 0) {            
             FILE* f = fopen(filename, "r");
-			fullpath = getcwd (newdirbuffer, FAUST_PATH_MAX);
+			char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
+            if (!newdir) {
+                cerr << "ERROR : getcwd '" << strerror(errno) << endl;
+                return 0;
+            }
+            fullpath = newdir;
 			fullpath += '/';
 			fullpath += filename;
             err = chdir(olddir);
@@ -391,10 +401,9 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
         }
     }
     err = chdir(olddir);
+    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
     return 0;
 }
-
-
 
 /**
  * Test absolute pathname.
@@ -410,7 +419,6 @@ static bool isAbsolutePathname(const string& filename)
 	return false;
 }
 
-
 /**
  * Build a full pathname of <filename>.
  * <fullpath> = <currentdir>/<filename>
@@ -422,7 +430,12 @@ static void buildFullPathname(string& fullpath, const char* filename)
 	if (isAbsolutePathname(filename)) {
 		fullpath = filename;
 	} else {
-		fullpath = getcwd (old, FAUST_PATH_MAX);
+		char* newdir = getcwd(old, FAUST_PATH_MAX);
+        if (!newdir) {
+            cerr << "ERROR : getcwd '" << strerror(errno) << endl;
+            return;
+        }
+        fullpath = newdir;
 		fullpath += '/';
 		fullpath += filename;
 	}
@@ -433,34 +446,6 @@ static void buildFullPathname(string& fullpath, const char* filename)
  *  place its full pathname in the string <fullpath>
  */
 
-#ifdef WIN32
-FILE* fopensearch(const char* filename, string& fullpath)
-{   
-    FILE* f;
-    char* envpath;
-
-    if ((f = fopen(filename, "r"))) { 
-    	buildFullPathname(fullpath, filename); 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
-    	return f;
-    }
-    if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {
-        return f;
-    }
-    if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gFaustSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gFaustSuperSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    return 0;
-}
-#else
 FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
@@ -514,7 +499,6 @@ FILE* fopensearch(const char* filename, string& fullpath)
     }
     return 0;
 }
-#endif
 
 
 /** 

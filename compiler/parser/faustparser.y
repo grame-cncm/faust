@@ -34,8 +34,8 @@ extern bool         gLstDistributedSwitch;
 extern bool        	gLstMdocTagsSwitch;
 	
 extern map<Tree, set<Tree> > gMetaDataSet;
-extern vector<Tree> gDocVector;
-
+extern vector<Tree>          gDocVector;
+extern tvec                  gWaveForm; 
 
 int yylex();
 
@@ -317,12 +317,12 @@ deflist         : /*empty*/                             { $$ = nil; }
 				| deflist definition                    { $$ = cons ($2,$1); }
 				;
 
-// vallist         : argument                              { $$ = cons($1,nil); }
+// vallist      : argument                              { $$ = cons($1,nil); }
 // 				| argument PAR vallist                  { $$ = cons ($1,$3); }
 // 				;
 // 
-vallist         : number                              { $$ = cons($1,nil); }
-                | vallist PAR number                  { $$ = cons ($3,$1); }
+vallist         : number                                { gWaveForm.push_back($1); }
+                | vallist PAR number                    { gWaveForm.push_back($3); }
                 ;
 
 number			: INT   						{ $$ = boxInt(atoi(yytext)); }
@@ -524,7 +524,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
                 | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ deflist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
-                | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(reverse($3)); }
+                | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(gWaveForm); gWaveForm.clear(); }
 
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }

@@ -152,9 +152,9 @@ sawtooth_demo = signal with {
 [tooltip: Percentange frequency-shift up or down for third detuned oscillator]",
     +0.1,-10,10,0.01));
   portamento = knob_group(
-    vslider("[5] Portamento [unit:sec] [style:knob]
+    vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-      0.1,0.01,1,0.001));
+      0.1,0.001,10,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   tone = (amp/3) * 
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
@@ -199,7 +199,7 @@ imptrainN(N,freq) = impulse + 0.5*diffn(sawN(N,freq));
 imptrain = imptrainN(2); // default based on saw2
 
 triangleN(N,freq) = squareN(N,freq) : fl.pole(p) : *(gain) with {
-  gain = sqrt(1.0-p);
+  gain = 4.0*freq/ml.SR; // for aproximate unit peak amplitude
   p = 0.999;
 };
 triangle = triangleN(2); // default based on saw2
@@ -270,9 +270,9 @@ virtual_analog_oscillator_demo = signal with {
       [tooltip: Percentange frequency-shift up or down for third detuned oscillator]",
     +0.1,-10,10,0.01));
   portamento = knob_group(
-    vslider("[5] Portamento [unit:sec] [style:knob]
+    vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-      0.1,0.01,1,0.001));
+      0.1,0.001,10,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
 };
 
@@ -299,10 +299,11 @@ with {
 // Reference:
 // https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html
 //
-oscrq(f) =  impulse : fl.nlf2(f,1); // sine and cosine outputs
-oscrs(f) =  impulse : fl.nlf2(f,1) : _,!; // sine
-oscrc(f) =  impulse : fl.nlf2(f,1) : !,_; // cosine
-oscr = oscrs; // default = sine case
+oscrq(f) = impulse : fl.nlf2(f,1); // sine and cosine outputs
+oscrs(f) = impulse : fl.nlf2(f,1) : _,!; // sine
+oscrc(f) = impulse : fl.nlf2(f,1) : !,_; // cosine
+oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for cosine, etc.
+oscr = oscrs; // default = sine (starts without a pop)
 
 //-------------------------- oscs --------------------------------
 // Sinusoidal oscillator based on the state variable filter
@@ -349,9 +350,9 @@ oscrs_demo = signal with {
      49,1,88,0.01) : pianokey2hz);
   pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // (also defined in effect.lib)
   portamento = osc_group(
-    hslider("[3] Portamento [unit:sec]
+    hslider("[3] Portamento [unit:sec] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-      0.1,0,1,0.001));
+      0.1,0.001,10,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   signal = amp * oscrs(sfreq);
 };

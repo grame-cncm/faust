@@ -40,7 +40,7 @@
 #include <list>
 
 #include "faust/gui/FUI.h"
-#include "faust/gui/PUI.h"
+#include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
@@ -120,6 +120,17 @@ int main(int argc, char *argv[])
 	
 	audio.stop();
 	finterface->saveState(rcfilename);
+    
+    // desallocation
+    delete interface;
+    delete finterface;
+#ifdef HTTPCTRL
+	 delete httpdinterface;
+#endif
+#ifdef OSCCTRL
+	 delete oscinterface;
+#endif
+
   	return 0;
 }
 

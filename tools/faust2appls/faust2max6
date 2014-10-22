@@ -31,6 +31,24 @@ createInfoPList() {
 	) > "$2"
 }
 
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust
+  JSFILE_PATH="\/usr\/local\/lib\/faust\/max-msp\/ui.js"
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust
+  JSFILE_PATH="\/usr\/lib\/faust\/max-msp\/ui.js"
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
+
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -98,7 +116,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -double -a max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
@@ -119,6 +137,15 @@ for p in $FILES; do
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+    
+    # create Max patch
+    cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
+    sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+    
+    rm ${f%.dsp}-temp1.maxpat
+    rm ${f%.dsp}-temp2.maxpat
+    
 done
 
 echo $BINARIES

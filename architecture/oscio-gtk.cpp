@@ -105,6 +105,10 @@ int main( int argc, char *argv[] )
 	interface->run();	
 	finterface->saveState(rcfilename);
 	osca.stop();
+    
+    // desallocation
+    delete interface;
+    delete finterface;
 	delete oscinterface;
   	return 0;
 }

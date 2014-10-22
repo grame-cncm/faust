@@ -9,28 +9,63 @@ VPATH = $(subprojects)
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-ARCHFLAGS :=  -arch i386 -arch x86_64
+##ARCHFLAGS :=  -arch i386 -arch x86_64
+LIB_EXT = dylib
+# Darwin/OS X: default installation name prefix for the dynamic library. This
+# defaults to the installation prefix (a fixed path) if we have one, but
+# depending on usage (plugin or executable) you may want to keep it empty or
+# use some generic prefix such as @loader_path/ instead (see below).
+ifneq ($(PREFIX),)
+INSTALL_PREFIX = $(PREFIX)/lib/
+endif
+ifneq ($(INSTALL_PREFIX),)
+INSTALL_NAME = -install_name "$(INSTALL_PREFIX)libHTTPDFaust.dylib"
+endif
 else
 ARCHFLAGS := 
+ifneq ($(findstring MINGW32, $(system)),)
+LIB_EXT = dll
+else
+CXXFLAGS += -fPIC
+LIB_EXT = so
 endif
+endif
+
+# Here are some useful alternative options for the installation name prefix
+# (cf., e.g., https://wincent.com/wiki/@executable_path,_@load_path_and_@rpath):
+
+# @executable_path: Useful if the dylib is distributed with an application
+# (add path relative to the main executable if needed):
+#INSTALL_PREFIX = @executable_path/
+
+# @loader_path (OS X 10.4+): Useful if the dylib is distributed with a plugin
+# (add path relative to the plugin if needed):
+#INSTALL_PREFIX = @loader_path/
+
+# @rpath (OS X 10.5+): Useful if the dylib is distributed with an application
+# which has an rpath coded into it:
+#INSTALL_PREFIX = @rpath/
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
+all: ../libHTTPDFaust.a
 
-
-
-all : ../libHTTPDFaust.a
-
-dynamic : ../libHTTPDFaust.dylib
+dynamic : ../libHTTPDFaust.$(LIB_EXT)
 
 ../libHTTPDFaust.a : $(objects)
 	rm -f $@
 	ar cq $@ $(objects)
 	ranlib $@
 
-../libHTTPDFaust.dylib  :  $(objects)
-	libtool -dynamic $(objects) -lc -lstdc++ `pkg-config --libs libmicrohttpd`  -macosx_version_min 10.6  -install_name /usr/local/lib/faust/libHTTPDFaust.dylib -o $@
+../libHTTPDFaust.dylib :  $(objects)
+	$(CXX) -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
+
+../libHTTPDFaust.so  :  $(objects)
+	$(CXX) -shared -fPIC -o $@ $(objects) `pkg-config --libs libmicrohttpd`
+
+../libHTTPDFaust.dll  :  $(objects)
+	$(CXX) -shared -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
@@ -38,7 +73,7 @@ depend :
 clean :
 	rm -f $(objects) hexa/jsscripts hexa/jsscripts.cpp
 	rm -f $(objects) hexa/stylesheet hexa/stylesheet.cpp
-	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib
+	rm -f ../libHTTPDFaust.a ../libHTTPDFaust.dylib ../libHTTPDFaust.so ../libHTTPDFaust.dll
 	
 
 hexa/jsscripts.o : hexa/jsscripts.cpp
@@ -60,6 +95,8 @@ hexa/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
 	echo " " >> $@
 	cat ../html/js/svg/faust_proto.js >> $@
 	echo " " >> $@
+	cat ../html/js/svg/faust_jquery_svg_backend.js >> $@
+	echo " " >> $@
 	cat ../html/js/svg/faust_mobile.js >> $@
 	echo " " >> $@
 	cat ../html/js/svg/faust_ui_inits.js >> $@
@@ -71,6 +108,8 @@ hexa/jsscripts : ../html/js/svg/*.js ../html/js/svg/jquerysvg/jquery.svg.js
 	cat ../html/js/svg/faust_ui_builder.js >> $@
 	echo " " >> $@
 	cat ../html/js/svg/faust_ui_interact.js >> $@
+	echo " " >> $@
+	cat ../html/js/svg/faust_ui_audio_bridge.js >> $@
 	echo " " >> $@
 	cat ../html/js/svg/faust_server_communication.js >> $@
 

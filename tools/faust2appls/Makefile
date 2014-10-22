@@ -32,6 +32,7 @@ install:
 	install faust2mathdoc $(dest)
 	install faust2mathviewer $(dest)
 	install faust2msp $(dest)
+	install faust2w32msp $(dest)
 	install faust2max6 $(dest)
 	install faust2octave $(dest)
 	install faust2paqt $(dest)
@@ -39,6 +40,9 @@ install:
 	install faust2plot $(dest)
 	install faust2png $(dest)
 	install faust2puredata $(dest)
+	install faust2w32puredata $(dest)
+	install faust2ros $(dest)
+	install faust2rosgtk $(dest)
 	install faust2svg $(dest)
 	install faust2supercollider $(dest)
 	install ../faust2sc-1.0.0/faust2sc $(dest)
@@ -50,6 +54,7 @@ install:
 	install faust2netjackconsole $(dest)
 	install faust2vst $(dest)
 	install faust2vsti $(dest)
+	install faust2w32vst $(dest)
 	install faust2ios $(dest)
 	install faust2lv2 $(dest)
 	install faust2lv2synth $(dest)
@@ -57,6 +62,10 @@ install:
 	install faust2rpialsaconsole $(dest)
 	install faust2rpinetjackconsole $(dest)
 	install faust2android $(dest)
+	install faust2owl $(dest)
+	install faust2webaudioasm $(dest)
+	install faust2asm $(dest)
+	
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -79,6 +88,7 @@ uninstall:
 	rm -f $(dest)/faust2mathdoc
 	rm -f $(dest)/faust2mathviewer
 	rm -f $(dest)/faust2msp
+	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2max6
 	rm -f $(dest)/faust2octave
 	rm -f $(dest)/faust2paqt
@@ -86,6 +96,9 @@ uninstall:
 	rm -f $(dest)/faust2plot
 	rm -f $(dest)/faust2png
 	rm -f $(dest)/faust2puredata
+	rm -f $(dest)/faust2w32puredata
+	rm -f $(dest)/faust2ros
+	rm -f $(dest)/faust2rosgtk
 	rm -f $(dest)/faust2svg
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2sc
@@ -97,6 +110,7 @@ uninstall:
 	rm -f $(dest)/faust2netjackconsole
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2vsti
+	rm -f $(dest)/faust2w32vst
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2lv2synth
@@ -104,4 +118,9 @@ uninstall:
 	rm -f $(dest)/faust2rpialsaconsole
 	rm -f $(dest)/faust2rpinetjackconsole
 	rm -f $(dest)/faust2android
+	rm -f $(dest)/faust2owl
+	rm -f $(dest)/faust2webaudioasm
+	rm -f $(dest)/faust2asm
+	
+
 

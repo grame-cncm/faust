@@ -111,12 +111,23 @@ int main(int argc, char *argv[])
 #endif
 	interface->run();
 	
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     
 	audio.stop();
 	finterface->saveState(rcfilename);
+    
+    // desallocation
+    delete interface;
+    delete finterface;
+#ifdef HTTPCTRL
+	 delete httpdinterface;
+#endif
+#ifdef OSCCTRL
+	 delete oscinterface;
+#endif
+
   	return 0;
 }
 

@@ -77,7 +77,7 @@
 #include "doc_notice.hh"
 #include "doc_autodoc.hh"
 #include "compatibility.hh"
-
+#include "files.hh"
 
 
 #define MAXIDCHARS 5				///< max numbers (characters) to represent ids (e.g. for directories).
@@ -104,7 +104,6 @@ extern SourceReader				gReader;
 
 extern string 					gDocName;				///< Contains the filename for out documentation.
 static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
-static string 					gCurrentDir;			///< Room to save current directory name.
 static const string				gLatexheaderfilename = "latexheader.tex";
 
 vector<Tree> 					gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
@@ -152,10 +151,6 @@ static void		initCompilationDate();
 static struct tm* getCompilationDate();
 
 /* Files functions */
-static int		cholddir ();
-static int		mkchdir(const char* dirname);
-static int		makedir(const char* dirname);
-static void		getCurrentDir();
 static istream* openArchFile (const string& filename);
 static char*	legalFileName(const Tree t, int n, char* dst);
 static string	rmExternalDoubleQuotes(const string& s);
@@ -974,74 +969,6 @@ static bool doesFileBeginWithCode(const string& faustfile)
 
 
 //------------------------ dealing with files -------------------------
-
-
-/**
- * Create a new directory in the current one.
- */
-static int makedir(const char* dirname)
-{
-	char	buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
-	
-	if ( gCurrentDir.c_str() != 0) {
-		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			return 0;
-		}
-	}
-	perror("makedir");
-	exit(errno);
-}
-
-
-/**
- * Create a new directory in the current one, 
- * then 'cd' into this new directory.
- * 
- * @remark
- * The current directory is saved to be later restaured.
- */
-static int mkchdir(const char* dirname)
-{
-	char	buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
-
-	if ( gCurrentDir.c_str() != 0) {
-		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			if (chdir(dirname) == 0) {
-				return 0;
-			}
-		}
-	}
-	perror("mkchdir");
-	exit(errno);
-}
-
-
-/**
- * Switch back to the previously stored current directory
- */
-static int cholddir ()
-{
-	if (chdir(gCurrentDir.c_str()) == 0) {
-		return 0;
-	} else {
-		perror("cholddir");
-		exit(errno);
-	}
-}
-
-
-/**
- * Get current directory and store it in gCurrentDir.
- */
-static void getCurrentDir ()
-{
-	char	buffer[FAUST_PATH_MAX];
-    gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
-}
 
 
 /**

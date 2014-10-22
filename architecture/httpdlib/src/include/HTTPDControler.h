@@ -55,6 +55,8 @@ class HTTPDControler
 	std::string		fHTML;		// the corresponding HTML page
 	std::map<std::string, std::string>	fCurrentMeta;	// the current meta declarations 
 
+    bool            fInit;
+    
 	public:
 		/*
 			base udp port is chosen in an unassigned range from IANA PORT NUMBERS (last updated 2011-01-24)
@@ -63,7 +65,7 @@ class HTTPDControler
 		*/
 		enum { kTCPBasePort = 5510};
 
-				 HTTPDControler (int argc, char *argv[], const char* applicationname);
+				 HTTPDControler (int argc, char *argv[], const char* applicationname, bool init = true);
 		virtual ~HTTPDControler ();
 	
 		//--------------------------------------------------------------------------
