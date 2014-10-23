@@ -59,7 +59,9 @@ do
         fi
     fi
     cd ${WORKSPACES[${i}]}/src
+    if [ ! src/CMakeLists.txt ]; then
     catkin_init_workspace > /dev/null
+    fi
     
     # Check if faust_msgs package exists ; if not, create it
     
@@ -71,7 +73,7 @@ do
   	    sed -i '/^#/ d' CMakeLists.txt 
 	    sed -i '4,26 d' CMakeLists.txt
 	    sed -i '4ifind_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)' CMakeLists.txt
-	    sed -i '6iadd_message_files(FILES ParamFaust.msg)\' CMakeLists.txt
+	    sed -i '6iadd_message_files(FILES faust_param.msg)\' CMakeLists.txt
 	    sed -i '8igenerate_messages(DEPENDENCIES std_msgs)' CMakeLists.txt
 	    sed -i '10icatkin_package(CATKIN_DEPENDS message_runtime)' CMakeLists.txt
 	    sed -i '12iinclude_directories(${catkin_INCLUDE_DIRS})' CMakeLists.txt
@@ -81,10 +83,10 @@ do
     then
         mkdir msg
 	cd msg
-	    if [ ! -f ParamFaust.msg ]
+	    if [ ! -f faust_param.msg ]
 	    then 
-		>ParamFaust.msg
-		echo 'float32 value' >> ParamFaust.msg
+		>faust_param.msg
+		echo 'float32 value' >> faust_param.msg
 	    fi
     fi
     cd ${WORKSPACES[${i}]}
@@ -182,7 +184,7 @@ i=0
 	  		sed -i '/^#/ d' CMakeLists.txt 
     			sed -i '4,26 d' CMakeLists.txt
     			sed -i '4ifind_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)' CMakeLists.txt
-    			sed -i '6iadd_message_files(FILES ParamFaust.msg)\' CMakeLists.txt
+    			sed -i '6iadd_message_files(FILES faust_param.msg)\' CMakeLists.txt
     			sed -i '8igenerate_messages(DEPENDENCIES std_msgs)' CMakeLists.txt
     			sed -i '10icatkin_package(CATKIN_DEPENDS message_runtime)' CMakeLists.txt
     			sed -i '12iinclude_directories(${catkin_INCLUDE_DIRS})' CMakeLists.txt
@@ -191,10 +193,10 @@ i=0
 		    then
         		mkdir msg
 			cd msg
-			    if [ ! -f ParamFaust.msg ]
+			    if [ ! -f faust_param.msg ]
 			    then 
-				>ParamFaust.msg
-				echo 'float32 value' >> ParamFaust.msg
+				>faust_param.msg
+				echo 'float32 value' >> faust_param.msg
 			    fi
 		    fi
     		cd $HOME

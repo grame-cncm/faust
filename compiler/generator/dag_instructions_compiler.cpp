@@ -404,17 +404,19 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 
 ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-    int mxd, d;
     string vname;
-
-    CS(exp); // ensure exp is compiled to have a vector name
-
-    mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+    ValueInst* code = CS(exp); // ensure exp is compiled to have a vector name
+    int d, mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
     if (!getVectorNameProperty(exp, vname)) {
-        stringstream error;
-        error << "No vector name for " << ppsig(exp) << endl;
-        throw faustexception(error.str());
+        if (mxd == 0) {
+            //cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            stringstream error;
+            error << "No vector name for : " << ppsig(exp) << endl;
+            throw faustexception(error.str());
+        }
     }
 
     if (mxd == 0) {

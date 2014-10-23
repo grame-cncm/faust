@@ -42,6 +42,7 @@
 #include "faust/misc.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/RosUI.h"
+
 #include <ros/ros.h>
 
 #ifdef OSCCTRL
@@ -86,18 +87,16 @@ int main(int argc, char *argv[])
 	// Create DSP Object
 	DSP = new mydsp();
 	if (DSP==0) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        ROS_ERROR("Unable to allocate Faust DSP object" );
 		exit(1);
 	}
 
 	// Get name from file name to name the namespace.
-	std::string NodeName=(std::string)appname;
-	ros::init(argc, argv, NodeName);
-	ros::NodeHandle _n((std::string)appname);
+	ros::init(argc, argv, (std::string)appname);
+	ros::NodeHandle n((std::string)appname);
 	
 	// Create and build ROS interface
-	RosUI* interface = new RosUI(_n);
-	
+	RosUI* interface = new RosUI(n);
 	DSP->buildUserInterface(interface);
 	
 	
@@ -105,7 +104,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
 	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
 	DSP->buildUserInterface(httpdinterface);
-    std::cout << "HTTPD is on" << std::endl;
+    	ROS_INFO("HTTPD is on");
 #endif
 
 #ifdef OSCCTRL
