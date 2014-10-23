@@ -594,15 +594,20 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 
 ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-    CS(exp); // Ensure exp is compiled to have a vector name, result of CS is not needed, only side effect is important
-    
+    ValueInst* code = CS(exp); // Ensure exp is compiled to have a vector name
     int mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
     string vname;
 
 	if (!getVectorNameProperty(exp, vname)) {
-        stringstream error;
-        error << "No vector name for : " << ppsig(exp) << endl;
-        throw faustexception(error.str());
+    
+        if (mxd == 0) {
+            //cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            stringstream error;
+            error << "No vector name for : " << ppsig(exp) << endl;
+            throw faustexception(error.str());
+        }
     }
 
     if (mxd == 0) {
