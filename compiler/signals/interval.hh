@@ -57,12 +57,20 @@ inline ostream& operator<<(ostream& dst, const interval& i)
 { 
 	if (i.valid) {
         if (i.f) {
-            return  dst << "interval(" << i.lo << ", " << i.hi << ")";
+            if (i.lo == i.hi) {
+                return dst << i.lo;
+            } else {
+                return  dst << "[" << i.lo << ".." << i.hi << "]";
+            }
         } else {
-            return  dst << "interval(" << int(i.lo) << ", " << int(i.hi) << ")";
+            if (int(i.lo) == int(i.hi)) {
+                return dst << int(i.lo);
+            } else {
+                return  dst << "[" << int(i.lo) << ".." << int(i.hi) << "]";
+            }
         }
 	} else {
-		return  dst << "interval()";
+        return  dst << "[-INF..+INF]";
 	}
 }
 
