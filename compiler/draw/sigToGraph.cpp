@@ -59,7 +59,8 @@ void sigToGraph (Tree L, ofstream& fout)
         recdraw(hd(L), alreadyDrawn, fout);
 
         fout << "OUTPUT_" << out << "[color=\"red2\" style=\"filled\" fillcolor=\"pink\"];" << endl;
-        fout << 'S' << hd(L) << " -> " << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L))) << "];" << endl;
+//      fout << 'S' << hd(L) << " -> " << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L))) << "];" << endl;
+        fout << "OUTPUT_" << out++ << " -> " << 'S' << hd(L) << "[" << edgeattr(getCertifiedSigType(hd(L))) << "];" << endl;
         L = tl(L);
     }
 
@@ -113,9 +114,11 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
                 }
 
                 for (int i=0; i<n; i++) {
+                    Type t = getCertifiedSigType(subsig[i]);
                     recdraw(subsig[i], drawn, fout);
-                    fout    << 'S' << subsig[i] << " -> " << 'S' << sig
-                            << "[" << edgeattr(getCertifiedSigType(subsig[i])) << "];"
+                    //fout    << 'S' << subsig[i] << " -> " << 'S' << sig
+                    fout    << 'S' << sig << " -> " << 'S' << subsig[i]
+                            << "[fontsize=9 " << edgeattr(t) << " label=\"" << t->getInterval() << "\"" << "];"
                             << endl;
                 }
             }
@@ -123,6 +126,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
     }
     //cerr << --TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
+
 
 
 /**
@@ -143,6 +147,7 @@ static string edgeattr(Type t)
     if (t->vectorability()==kVect && t->variability()==kSamp) {
         s += " style=\"bold\"";
     }
+
     return s;
 }
 
