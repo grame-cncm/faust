@@ -106,7 +106,7 @@ i=0
     for p in $FILES
     do 
 
-	# Check .dsp path ; if there is no path, file should be in curent directory
+	# Check .dsp path ; if there is no path, file should be in current directory
 	temp=$(basename "$p")
 	temp_path=$(dirname ${p})
 

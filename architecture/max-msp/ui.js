@@ -1,4 +1,4 @@
-// genui.js
+// ui.js
 // -----------------
 //
 // Automatically (re)generate/destroy sliders according to Faust DSP module
@@ -102,8 +102,7 @@ parse_item = function(item, patcher)
         
         // Bargraph ScriptingName is set with the complete parameter path, so that faustgen~ can directly address them
 		thesliders[numwidgets].message('varname', item.address);
-
-			
+		
 		thenumberBoxes[numwidgets] = patcher.newobject("flonum",hBase+258,20+widgHeight*numwidgets,80,13);
 		thenumberBoxes[numwidgets].message('min',parseFloat(item.min));
 		thenumberBoxes[numwidgets].message('max',parseFloat(item.max));
