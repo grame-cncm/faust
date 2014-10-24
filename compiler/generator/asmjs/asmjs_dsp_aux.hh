@@ -22,17 +22,9 @@
 #ifndef ASMJS_DSP_AUX_H
 #define ASMJS_DSP_AUX_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
 #include <string>
 #include <cstdlib>
-
-#include "faust/gui/CUI.h"
-#include "faust/audio/dsp.h"
 #include "export.hh"
-#include "smartpointer.h"
 
 using namespace std;
 
