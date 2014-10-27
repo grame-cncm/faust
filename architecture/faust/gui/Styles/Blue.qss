@@ -164,3 +164,14 @@ QStatusBar{
 	margin:0px;
 }
 
+QScrollArea > QWidget > QWidget{
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #003366, stop: 0.4 #22427C, stop: 0.5 #003366, stop: 1.0 #22427C);
+}
+
+QScrollArea > QWidget {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #003366, stop: 0.4 #22427C, stop: 0.5 #003366, stop: 1.0 #22427C);
+}
+
+QScrollArea {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #003366, stop: 0.4 #22427C, stop: 0.5 #003366, stop: 1.0 #22427C);
+}
