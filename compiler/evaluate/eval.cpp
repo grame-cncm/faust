@@ -632,11 +632,13 @@ static bool isBoxNumeric (Tree in, Tree& out)
     int 	numInputs, numOutputs;
     double 	x;
     int		i;
-    Tree 	v;
+    Tree 	v, abstr, genv, vis, lenv, var, body;
 
     if (isBoxInt(in, &i) || isBoxReal(in, &x)) {
         out = in;
         return true;
+    } else if (isClosure(in, abstr, genv, vis, lenv) && isBoxAbstr(abstr, var, body)) {
+        return false;
     } else {
         v = a2sb(in);
         if ( getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {

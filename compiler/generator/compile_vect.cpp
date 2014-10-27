@@ -346,13 +346,18 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
     //cerr << "VectorCompiler::generateFixDelay " << ppsig(sig) << endl;
 
-    CS(exp); // ensure exp is compiled to have a vector name
+    string code = CS(exp); // ensure exp is compiled to have a vector name
 
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
     if (! getVectorNameProperty(exp, vecname)) {
-        cerr << "ERROR no vector name for " << ppsig(exp) << endl;
-        exit(1);
+        if (mxd == 0) {
+            //cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            cerr << "No vector name for : " << ppsig(exp) << endl;
+            assert(0);
+        }
     }
 
     if (mxd == 0) {
