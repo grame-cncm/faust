@@ -18,9 +18,9 @@ background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, s
     
 QGroupBox {
 subcontrol: .QGroupBox
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8, stop: 0 #A0A0A0, stop: 1 #202020);
-border-radius: 5px;
+background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020);
 margin-top: 3ex;
+border-radius: 5px;
 font-size:10pt;
 font-weight:bold;
 color: white;
@@ -34,7 +34,7 @@ color : white;
 }
 
 QMainWindow, QDialog {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8, stop: 0 #A0A0A0, stop: 1 #202020);
+background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020);
 border-radius: 5px;
 margin-top: 3ex;
 font-size:10pt;
@@ -43,7 +43,7 @@ color: white;
 }    
     
 QPlainTextEdit, QTextEdit{
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8, stop: 0 #A0A0A0, stop: 1 #202020);
+background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020);
 border-color: yellow;
 border-radius: 5px;
 top: 3px;
@@ -159,4 +159,16 @@ QStatusBar{
 	border: 0px; 
 	padding:0px 0px 0px 0px; 
 	margin:0px;
+}
+
+QScrollArea > QWidget > QWidget{
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8, stop: 0 #A0A0A0, stop: 1 #202020);
+}
+
+QScrollArea > QWidget {
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8, stop: 0 #A0A0A0, stop: 1 #202020);
+}
+
+QScrollArea {
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 0.8, y2: 0.8, stop: 0 #A0A0A0, stop: 1 #202020);
 }
