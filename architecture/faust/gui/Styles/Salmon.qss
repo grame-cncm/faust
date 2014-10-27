@@ -42,7 +42,7 @@ color: dark grey;
 color: white;
 }
     
-QPlainTextEdit, QTextEdit{
+QPlainTextEdit, QTextEdit {
 background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4,stop: 1 #FEC3AC);
 border: 2px solid gray;
 border-radius: 5px;
@@ -156,4 +156,16 @@ QStatusBar{
 	border: 0px; 
 	padding:0px 0px 0px 0px; 
 	margin:0px;
+}
+
+QScrollArea > QWidget > QWidget{
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4,stop: 1 #FEC3AC);
+}
+
+QScrollArea > QWidget {
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4,stop: 1 #FEC3AC);
+}
+
+QScrollArea {
+	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #FFE4C4,stop: 1 #FEC3AC);
 }
