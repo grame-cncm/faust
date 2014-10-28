@@ -4,7 +4,7 @@ DEFINE	      = D_REENTRANT
 INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator/llvm -I/usr/include -I/opt/local/include 
 LINK          = g++
 LLVM_CONFIG   = llvm-config
-LIBS          = ../../../compiler/libfaust.a -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lncurses -ldl -llo
+LIBS          = ../../../compiler/libfaust.a -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 
 sources =  $(wildcard *.cpp)
 objects = $(sources:.cpp=.o)
@@ -27,7 +27,7 @@ $(TARGET):  $(OBJECTS)
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 clean: 
-	rm -f $(objects)
+	rm -f $(OBJECTS) $(TARGET)
 
 ####### Compile
 

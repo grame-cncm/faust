@@ -10,7 +10,7 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2014-2015 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
@@ -45,7 +45,6 @@
 #include "faust/gui/RosUI.h"
 
 #include <ros/ros.h>
-#include "faust_msgs/ParamFaust.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -89,19 +88,20 @@ int main(int argc, char *argv[])
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	
+	// create DSP object
 	DSP = new mydsp();
 	if (DSP==0) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        ROS_ERROR("Unable to allocate Faust DSP object" );
 		exit(1);
 	}
 
-	std::string NameSpace =(std::string)appname;
-	ros::init(argc, argv, NameSpace);
-	ros::NodeHandle _n(NameSpace);
+	// Get name from file name to name the namespace.
+	ros::init(argc, argv, (std::string)appname);
+	ros::NodeHandle n((std::string)appname);
 		
-	
+	// create and build graphic and ROS interfaces
 	GUI* interface 	= new GTKUI (appname, &argc, &argv);
-	RosUI* rosinterface = new RosUI (_n);
+	RosUI* rosinterface = new RosUI (n);
 	
 	DSP->buildUserInterface(rosinterface);
 	DSP->buildUserInterface(interface);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
 	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
 	DSP->buildUserInterface(httpdinterface);
-    std::cout << "HTTPD is on" << std::endl;
+    ROS_INFO("HTTPD is on");
 #endif
 
 #ifdef OSCCTRL
@@ -133,9 +133,11 @@ int main(int argc, char *argv[])
 	oscinterface->run();
 #endif
 
+	// ROS Callbacks are called by AsyncSpinner spinner
 	ros::AsyncSpinner spinner(rosinterface->getParamsCount());
 	spinner.start();
 	
+	// GTK interface is launched
 	interface->run();
 		
     	interface->stop();

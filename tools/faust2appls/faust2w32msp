@@ -32,7 +32,21 @@ LIBS="$MAXSDK/max-includes/MaxAPI.lib  $MAXSDK/msp-includes/MaxAudio.lib"
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
 CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION" 
 
+#-------------------------------------------------------------------
+# Set Faust include path
 
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -78,7 +92,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (

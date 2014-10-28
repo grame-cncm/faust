@@ -39,7 +39,7 @@ void lexerror(const char* msg)
 void yyerror(const char* msg)
 {
     stringstream error;
-    error << "ERROR : " << yyfilename << ":" << yylineno << ":" << msg << endl;
+    error << yyfilename << " : " << yylineno << " : ERROR : " << msg << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -85,7 +85,7 @@ const char* getDefFileProp(Tree sym)
 	if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
 		return name(hd(n)->node().getSym());
 	} else {
-		return "????";
+		return yyfilename;
 	}
 }
 

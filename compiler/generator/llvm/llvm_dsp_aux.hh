@@ -67,8 +67,7 @@ class llvm_dsp_factory : public smartable {
         int getOptlevel();
 
         ExecutionEngine* fJIT;
-    //#if defined(LLVM_34) || defined(LLVM_35)
-    #if defined(LLVM_35)
+    #if defined(LLVM_34) || defined(LLVM_35)
         FaustObjectCache* fObjectCache;
     #endif
         LLVMResult* fResult;
@@ -115,8 +114,7 @@ class llvm_dsp_factory : public smartable {
               
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
         
-    //#if defined(LLVM_34) || defined(LLVM_35)
-    #if defined(LLVM_35)
+    #if defined(LLVM_34) || defined(LLVM_35)
         llvm_dsp_factory(const string& sha_key, const std::string& machine_code);
     #endif
       
@@ -231,8 +229,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
-//#if defined(LLVM_34) || defined(LLVM_35)
-#if defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
 
@@ -305,8 +302,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
-//#if defined(LLVM_34) || defined(LLVM_35)
-#if defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code_path, const char* target, int opt_level);
 
 EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);

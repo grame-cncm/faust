@@ -244,6 +244,8 @@ Tree SourceReader::parsestring(string fname)
 {
     yyerr = 0;
     yylineno = 1;
+    yyfilename = fname.c_str();
+    
     yy_scan_string(gGlobal->gInputString);
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
     gGlobal->gInputString = NULL;
