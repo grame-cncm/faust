@@ -972,7 +972,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             numberArg--;
     }
 
-    const char* arguments[numberArg];
+// New is needed, otherwise it doesn't compile on windows ! 
+    const char** arguments = new const char*[numberArg];
     
     int i = 0;
     for(int j=0; j<numberArg; j++){
@@ -996,8 +997,11 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     string sha_key;
     
     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, numberArg, arguments, sha_key, error_msg)) == "") {
+		delete [] arguments;
         return 0; 
     } else {
+		delete [] arguments;
+
         FactoryTableIt it;
         llvm_dsp_factory* factory = 0;
         if (getFactory(sha_key, it)) {
