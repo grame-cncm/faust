@@ -19,13 +19,18 @@
  ************************************************************************
  ************************************************************************/
 
-
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "compile_vect.hh"
 #include "floats.hh"
 #include "ppsig.hh"
 
 extern int gVecSize;
+extern bool gPrintJSONSwitch;
+
+string makeDrawPath();
 
 void VectorCompiler::compileMultiSignal (Tree L)
 {
@@ -54,6 +59,11 @@ void VectorCompiler::compileMultiSignal (Tree L)
  	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
+    
+    if (gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        xout << fJSON.JSON();
     }
 }
 

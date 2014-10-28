@@ -35,6 +35,7 @@
 #include <map>
 
 #include "description.hh"
+#include "faust/gui/JSONUI.h"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -54,6 +55,7 @@ protected:
 	bool			fNeedToDeleteClass;
 	Tree			fUIRoot;
 	Description*	fDescription;
+    JSONUI          fJSON;
 
 public:
 	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);

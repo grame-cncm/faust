@@ -119,6 +119,7 @@ bool            gGraphSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
+bool            gPrintJSONSwitch = false;
 bool            gPrintDocSwitch = false;
 bool            gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
 bool			gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
@@ -142,8 +143,8 @@ int             gVectorLoopVariant = 0;
 
 bool            gOpenMPSwitch   = false;
 bool            gOpenMPLoop     = false;
-bool            gSchedulerSwitch   = false;
-bool			gGroupTaskSwitch= false;
+bool            gSchedulerSwitch = false;
+bool			gGroupTaskSwitch = false;
 
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
@@ -233,6 +234,10 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-xml", "--xml")) {
             gPrintXMLSwitch = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-json", "--json")) {
+            gPrintJSONSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-tg", "--task-graph")) {
@@ -467,6 +472,7 @@ void printhelp()
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
 	cout << "-xml \t\tgenerate an --xml description file\n";
+    cout << "-json \t\tgenerate a --json description file\n";
     cout << "-blur \t\tadd a --shadow-blur to SVG boxes\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";

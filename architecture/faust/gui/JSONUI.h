@@ -14,6 +14,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <assert.h>
+
 /*******************************************************************************
  * JSONUI : Faust User Interface
  * This class produce a complete JSON decription of the DSP instance.
@@ -58,11 +60,11 @@ class JSONUI : public PathUI, public Meta
                 fMetaAux.clear();
             }
         }
-      
-     public:
-
-        JSONUI(int inputs, int outputs):fTab(1)
+        
+        void init(const std::string& name, int inputs, int outputs)
         {
+            fTab = 1;
+            
             // Start Meta generation
             tab(fTab, fMeta); fMeta << "\"meta\": [";
             fCloseMetaPar = ' ';
@@ -72,11 +74,23 @@ class JSONUI : public PathUI, public Meta
             fCloseUIPar = ' ';
             fTab += 1;
             
-            fName = "";
+            fName = name;
             fInputs = inputs;
             fOutputs = outputs;
         }
+      
+     public:
+     
+        JSONUI(const std::string& name, int inputs, int outputs)
+        {
+            init(name, inputs, outputs);
+        }
 
+        JSONUI(int inputs, int outputs)
+        {
+            init("", inputs, outputs);
+        }
+ 
         virtual ~JSONUI() {}
 
         // -- widget's layouts
@@ -211,7 +225,7 @@ class JSONUI : public PathUI, public Meta
         virtual void declare(const char* key, const char* value)
         {
             fMeta << fCloseMetaPar;
-            if (strcmp(key, "name") == 0) fName = value;
+            if ((strcmp(key, "name") == 0) && (fName == "")) fName = value;
             tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ":" << "\"" << value << "\" }";
             fCloseMetaPar = ',';
         }

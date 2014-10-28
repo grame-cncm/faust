@@ -55,7 +55,8 @@ using namespace std;
 
 extern bool     gInPlace;
 extern bool     gDrawSignals;
-extern bool     gLessTempSwitch;
+extern bool     gPrintJSONSwitch;
+extern bool     gDrawSignals;
 extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
@@ -134,6 +135,7 @@ endTiming("ScalarCompiler::prepare");
         ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
         sigToGraph(L3, dotfile);
     }
+    
   	return L3;
 }
 
@@ -177,6 +179,11 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
+    
+    if (gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    } 
 }
 
 
