@@ -26,12 +26,15 @@ for p in $@; do
 		
     elif [ "$p" = "-o" ]; then
 	NEW_NAMES="$NEW_NAMES ${params[$n]}"
+
+    elif [ ${p:0:1} = "-" ]; then
+    	OPTIONS="$OPTIONS $p ${params[$n]}"
 	
     elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
+	FILES="$FILES $p"
 	
-    else
-	OPTIONS="$OPTIONS $p"        
+#    else
+#	OPTIONS="$OPTIONS $p"        
     fi
 done
 
@@ -172,7 +175,7 @@ i=0
 	    sed -i '18,28d' CMakeLists.txt
 	    
 	# compile faust to c++
-    	faust -i -a $ARCHFILE -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	
+    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	
 	if [ $WS_LENGTH = 0 ]
 	then
 	    cd $HOME
@@ -201,12 +204,12 @@ i=0
 		    fi
     		cd $HOME
     		msg=faust_msgs
-    		zip -r faust.zip $msg > /dev/null
+    		zip -r $name.zip $msg > /dev/null
 	    fi
 	    
-	    zip -r faust.zip $name > /dev/null
+	    zip -r $name.zip $name > /dev/null
 	    rm -r $PACKAGE_PATH
-	    OUTPUT="$OUTPUT faust.zip/$name;"
+	    OUTPUT="$OUTPUT $name.zip;"
 	else
 	    #cd ${WORKSPACES[${i}]}
 	    #    catkin_make
