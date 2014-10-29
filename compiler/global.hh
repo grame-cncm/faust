@@ -424,6 +424,7 @@ struct global {
     bool gDrawPSSwitch;
     bool gDrawSVGSwitch;
     bool gPrintXMLSwitch;
+    bool gPrintJSONSwitch;
     bool gPrintDocSwitch;
     int gBalancedSwitch;
     const char* gArchFile;

@@ -35,6 +35,7 @@
 #include "property.hh"
 #include "Text.hh"
 #include "garbageable.hh"
+#include "json_instructions.hh"
 
 using namespace std;
 
@@ -54,10 +55,11 @@ class InstructionsCompiler : public virtual Garbageable {
         static map<string, int>	fIDCounters;
         Tree fSharingKey;
         OccMarkup fOccMarkup;
-
+       
         Tree fUIRoot;
         Description* fDescription;
         bool fLoadedIota;
+        JSONInstVisitor fJSON;
 
         void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
@@ -81,8 +83,7 @@ class InstructionsCompiler : public virtual Garbageable {
    
         ValueInst* generateSelect2WithSelect(Tree sig, ValueInst* sel, ValueInst* val1, ValueInst* val2);
         ValueInst* generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* sel, ValueInst* val1, ValueInst* val2);
-    
-
+   
         /* wrapper functions to access code container */
         StatementInst* pushInitMethod(StatementInst* inst)              { return fContainer->pushInitMethod(inst); }
         StatementInst* pushPostInitMethod(StatementInst* inst)          { return fContainer->pushPostInitMethod(inst); }
@@ -189,6 +190,7 @@ class InstructionsCompiler : public virtual Garbageable {
         // Gestion de la description arborescente de l'IU
         void addUIWidget(Tree path, Tree widget);
         Tree prepareUserInterfaceTree(Tree t);
+        void generateMetaData();
         void generateUserInterfaceTree(Tree t);
         void generateUserInterfaceElements(Tree elements);
         void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
@@ -197,7 +199,7 @@ class InstructionsCompiler : public virtual Garbageable {
         void generateMacroInterfaceElements(const string& pathname, Tree elements);
         void generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
 
-        void setDescription(Description* descr)	{ fDescription= descr; }
+        void setDescription(Description* descr)	{ fDescription = descr; }
         Description* getDescription() { return fDescription; }
 
         Tree prepare(Tree LS);

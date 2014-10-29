@@ -70,7 +70,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION        "2.0.a29"
+#define FAUSTVERSION        "2.0.a30"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;
@@ -412,6 +412,10 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-xml", "--xml")) {
             gGlobal->gPrintXMLSwitch = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-json", "--json")) {
+            gGlobal->gPrintJSONSwitch = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-tg", "--task-graph")) {
             gGlobal->gGraphSwitch = true;
@@ -685,7 +689,8 @@ static void printhelp()
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
-	cout << "-xml \t\tgenerate an --xml description file\n";
+	cout << "-xml \t\tgenerate an XML description file\n";
+    cout << "-json \t\tgenerate a JSON description file\n";
     cout << "-blur \t\tadd a --shadow-blur to SVG boxes\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";

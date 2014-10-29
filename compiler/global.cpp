@@ -287,6 +287,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDrawPSSwitch = false;
     gDrawSVGSwitch = false;
     gPrintXMLSwitch = false;
+    gPrintJSONSwitch = false;
     gPrintDocSwitch = false;
     gBalancedSwitch = 0;
     gArchFile = 0;

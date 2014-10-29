@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#include <fstream>
+
 #include "dag_instructions_compiler.hh"
 #include "ppsig.hh"
 #include "Text.hh"
@@ -30,6 +32,8 @@
 #include "xtended.hh"
 #include "prim2.hh"
 #include "exception.hh"
+
+string makeDrawPath();
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container):
     InstructionsCompiler(container)
@@ -107,6 +111,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
+    generateMetaData();
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
@@ -115,6 +120,12 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations
 	fContainer->processFIR();
+    
+    fContainer->generateUserInterface(&fJSON);
+    if (gGlobal->gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    } 
 }
 
 /**
