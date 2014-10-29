@@ -58,6 +58,7 @@ Compile a list of FAUST signals into a C++ class .
 
 extern int 		gDetailsSwitch;
 extern string 	gMasterName;
+extern map<Tree, set<Tree> > gMetaDataSet;
 
 /*****************************************************************************
 ******************************************************************************
@@ -134,6 +135,31 @@ static string wdel(const string& s)
 
 //================================= BUILD USER INTERFACE METHOD =================================
 
+void Compiler::generateMetaData()
+{
+    // Add global metadata
+    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            stringstream str1, str2;
+            str1 << *(i->first);
+            str2 << **(i->second.begin());
+            fJSON.declare(str1.str().c_str(), str2.str().c_str());
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    stringstream str1, str2;
+                    str1 << *(i->first);
+                    str2 << **j;
+                    fJSON.declare(str1.str().c_str(), str2.str().c_str());
+                } else {
+                    stringstream str2;
+                    str2 << **j;
+                    fJSON.declare("contributor", str2.str().c_str());
+                }
+            }
+        }
+    }
+}
 
 /**
  * Generate buildUserInterface C++ lines of code corresponding 
@@ -141,14 +167,15 @@ static string wdel(const string& s)
  */
 void Compiler::generateUserInterfaceTree(Tree t)
 {
-	Tree 	label, elements, varname, sig;
-
+	Tree label, elements, varname, sig;
+    
+    
 	if (isUiFolder(t, label, elements)) {
 		const int orient = tree2int(left(label));
         // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI architectures
         const char* str = tree2str(right(label));  
         const char* model;
-
+          
         // extract metadata from group label str resulting in a simplifiedLabel
 		// and metadata declarations for fictive zone at address 0
         string  simplifiedLabel;

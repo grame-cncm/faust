@@ -471,8 +471,8 @@ void printhelp()
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
-	cout << "-xml \t\tgenerate an --xml description file\n";
-    cout << "-json \t\tgenerate a --json description file\n";
+    cout << "-xml \t\tgenerate an XML description file\n";
+    cout << "-json \t\tgenerate a JSON description file\n";
     cout << "-blur \t\tadd a --shadow-blur to SVG boxes\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";

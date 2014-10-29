@@ -82,6 +82,7 @@ protected:
 // gestion de la description arborescente de l'IU
 	void 		addUIWidget(Tree path, Tree widget);
 	void 		generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
+    void        generateMetaData();
 	void 		generateUserInterfaceTree(Tree t);
 	void 		generateUserInterfaceElements(Tree elements);
 	Tree 		prepareUserInterfaceTree(Tree t);

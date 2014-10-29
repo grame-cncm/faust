@@ -174,6 +174,8 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 		Tree sig = hd(L);
 		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
 	}
+    
+    generateMetaData();
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {

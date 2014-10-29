@@ -55,6 +55,7 @@ void VectorCompiler::compileMultiSignal (Tree L)
         fClass->closeLoop(sig);
     }
 
+    generateMetaData();
     generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
  	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
     if (fDescription) {
