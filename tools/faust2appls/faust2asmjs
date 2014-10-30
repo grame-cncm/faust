@@ -4,6 +4,7 @@
 # Wrapping resources
 
 CPP_WRAPPER=webaudio-asm.cpp
+CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
 JS_WRAPPER=webaudio-asm-footer.js
 COMB=0
 COMB_SRC=
@@ -11,6 +12,7 @@ COMB_EXPORTED=
 COMB_WRAPPED=
 COMB_WRAPPED_FILES=
 COMB_SEP=
+EMCC="NO"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -41,6 +43,8 @@ for p in $@; do
     elif [ $p = "-poly" ]; then
         CPP_WRAPPER=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-asm-poly-footer.js
+    elif [ $p = "-emcc" ]; then
+        EMCC=emcc
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -60,27 +64,34 @@ if [ $COMB = 0 ]; then
 for f in $FILES; do
     name=${f%.dsp}
     
-    # compile the C++ code
-    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
-    
-    if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
-        EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+    # compile the C++ code or asm.js code
+    if [ $EMCC = emcc ] ; then
+        faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     else
-        EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff']"       
-	fi
+        faust -lang ajs -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name.js
+    fi
     
-    # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
-        -s EXPORTED_FUNCTIONS=$EXPORTED
-   
-    # compose the asm.js code
-    sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
-    
-    # add final footer of JS page
-    echo "}());" >> $name.js
-    
-    rm $name-temp.js
-    rm $name.cpp
+    if [ $EMCC = emcc ] ; then
+        # prepare emcc compilation files
+        if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
+            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+        else
+            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff']"       
+        fi
+        
+        # compile the C++ code to asm.js
+        emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+            -s EXPORTED_FUNCTIONS=$EXPORTED
+       
+        # compose the asm.js code
+        sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
+        
+        # add final footer of JS page
+        echo "}());" >> $name.js
+        
+        rm $name-temp.js
+        rm $name.cpp
+    fi
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES$name.js;"

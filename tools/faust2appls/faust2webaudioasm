@@ -69,7 +69,7 @@ BINARIES=""
 for f in $FILES; do
     name=${f%.dsp}
     
-    # compile the Faust DSP to C++ ou asm.js code
+    # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     else
