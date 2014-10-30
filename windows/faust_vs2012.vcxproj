@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -94,7 +94,7 @@
     <ClCompile>
       <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;..\architecture;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -134,7 +134,7 @@
       <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;..\architecture;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
