@@ -53,7 +53,7 @@ class JSONUI : public PathUI, public Meta
                 std::string sep = "";
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     fUI << sep;
-                    tab(tab_val + 1, fUI); fUI << "{ " << "\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\"}";
+                    tab(tab_val + 1, fUI); fUI << "{\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\" }";
                     sep = ",";
                 }
                 tab(tab_val, fUI); fUI << ((quote) ? "],": "]");
@@ -102,7 +102,7 @@ class JSONUI : public PathUI, public Meta
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab, fUI); fUI << "\"label\":" << "\"" << label << "\",";
+            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
             tab(fTab, fUI); fUI << "\"items\": [";
             fCloseUIPar = ' ';
             fTab += 1;
@@ -140,8 +140,8 @@ class JSONUI : public PathUI, public Meta
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
@@ -162,8 +162,8 @@ class JSONUI : public PathUI, public Meta
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ",";
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
@@ -195,8 +195,8 @@ class JSONUI : public PathUI, public Meta
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": " << "\"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": " << "\"" << buildPath(label) << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ",";
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
             tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\"";
@@ -226,7 +226,7 @@ class JSONUI : public PathUI, public Meta
         {
             fMeta << fCloseMetaPar;
             if ((strcmp(key, "name") == 0) && (fName == "")) fName = value;
-            tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ":" << "\"" << value << "\" }";
+            tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ": " << "\"" << value << "\" }";
             fCloseMetaPar = ',';
         }
     

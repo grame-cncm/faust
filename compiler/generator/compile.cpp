@@ -143,18 +143,18 @@ void Compiler::generateMetaData()
             stringstream str1, str2;
             str1 << *(i->first);
             str2 << **(i->second.begin());
-            fJSON.declare(str1.str().c_str(), str2.str().c_str());
+            fJSON.declare(str1.str().c_str(), unquote(str2.str()).c_str());
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
                     stringstream str1, str2;
                     str1 << *(i->first);
                     str2 << **j;
-                    fJSON.declare(str1.str().c_str(), str2.str().c_str());
+                    fJSON.declare(str1.str().c_str(), unquote(str2.str()).c_str());
                 } else {
                     stringstream str2;
                     str2 << **j;
-                    fJSON.declare("contributor", str2.str().c_str());
+                    fJSON.declare("contributor", unquote(str2.str()).c_str());
                 }
             }
         }
