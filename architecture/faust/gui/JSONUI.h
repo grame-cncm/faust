@@ -256,8 +256,6 @@ class JSONUI : public PathUI, public Meta
             fJSON << "{";
             fTab += 1;
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
-            tab(fTab, fJSON); fJSON << "\"address\": \"\",";
-            tab(fTab, fJSON); fJSON << "\"port\": \"0\",";
             if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
             if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
             tab(fTab, fMeta); fMeta << "],";

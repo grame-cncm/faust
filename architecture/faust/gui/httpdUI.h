@@ -44,9 +44,11 @@ class httpdUI : public UI
 
  public:
 		
-	httpdUI(const char* applicationname, int argc, char *argv[], bool init = true) 
+	httpdUI(const char* applicationname, int inputs, int outputs, int argc, char *argv[], bool init = true) 
     { 
 		fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname, init); 
+        fCtrl->setInputs(inputs);
+        fCtrl->setOutputs(outputs);
 	}
 	
 	virtual ~httpdUI() { delete fCtrl; }
@@ -73,20 +75,12 @@ class httpdUI : public UI
 	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 									{ fCtrl->addnode( "vbargraph", tr(label), zone, min, max); }
 	
-    virtual void declare (FAUSTFLOAT* , const char* key, const char* val ) { fCtrl->declare(key, val); }
+    virtual void declare (FAUSTFLOAT*, const char* key, const char* val) { fCtrl->declare(key, val); }
 
 	void run()						{ fCtrl->run(); }
 	int getTCPPort()                { return fCtrl->getTCPPort(); }
     
-    void set_Inputs(int numInputs){
-        fCtrl->set_Inputs(numInputs);
-        
-    }
-    
-    void set_Outputs(int numOutputs){
-        fCtrl->set_Outputs(numOutputs);
-    }
-    std::string get_jsonInterface(){ return fCtrl->get_jsonInterface();}
+    std::string getJSONInterface(){ return fCtrl->getJSONInterface(); }
 
 };
 					

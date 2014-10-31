@@ -99,9 +99,9 @@ int main(int argc, char *argv[] )
 	DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
 	DSP->buildUserInterface(httpdinterface);
-    std::cout << "HTTPD is on" << std::endl;
+     std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL

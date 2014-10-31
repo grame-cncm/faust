@@ -97,9 +97,9 @@ int main(int argc, char *argv[] )
 #endif
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+	httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
 	DSP.buildUserInterface(httpdinterface);
-#endif
+ #endif
 
 	jackaudio audio;
 	audio.init(appname, &DSP);

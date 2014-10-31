@@ -103,12 +103,12 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(name, argc, argv);
-	DSP.buildUserInterface(httpdinterface);
-#endif
+    httpdUI* httpdinterface = new httpdUI(name, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
+    DSP.buildUserInterface(httpdinterface);
+ #endif
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(name, argc, argv);
+	GUI* oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
