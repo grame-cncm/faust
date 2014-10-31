@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(interface);
 	
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
 	DSP->buildUserInterface(httpdinterface);
     ROS_INFO("HTTPD is on");
 #endif
