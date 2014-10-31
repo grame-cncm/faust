@@ -305,6 +305,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // User interface : prepare the JSON string...
     JSONInstVisitor json_visitor(fNumInputs, fNumOutputs);
     generateUserInterface(&json_visitor);
+    generateMetaData(&json_visitor);
      
     // Generate JSON and getDSPSize
     tab(n, *fOut); *fOut << "function getSize" << fKlassName << "() {";

@@ -20,10 +20,7 @@
  ************************************************************************/
 
 #include <string>
-#include <list>
-#include <set>
-#include <map>
-#include <vector>
+#include <fstream>
 
 #include "code_container.hh"
 #include "recursivness.hh"
@@ -34,12 +31,16 @@
 
 using namespace std;
 
+string makeDrawPath();
+
 void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
 {
     fNumInputs = numInputs;
     fNumOutputs = numOutputs;
     fInputRates.resize(numInputs, 0);
     fOutputRates.resize(numOutputs, 0);
+    fJSON.setOutputs(numInputs);
+    fJSON.setOutputs(numOutputs);
 }
 
 CodeContainer::CodeContainer()
@@ -57,7 +58,8 @@ CodeContainer::CodeContainer()
     fComputeFunctions(InstBuilder::genBlockInst()),
     fUserInterfaceInstructions(InstBuilder::genBlockInst()),
     fSubContainerType(kInt), fFullCount("count"),
-    fGeneratedSR(false)
+    fGeneratedSR(false),
+    fJSON(-1, -1)
 {
     fCurLoop = new CodeLoop(0, "i");
 }
@@ -507,3 +509,44 @@ void CodeContainer::generateDeclarations(InstVisitor* visitor)
 #endif
     handleDeclarations(visitor);
 }
+
+void CodeContainer::generateMetaData(JSONUI* json)
+{
+    // Add global metadata
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            stringstream str1, str2;
+            str1 << *(i->first);
+            str2 << **(i->second.begin());
+            json->declare(str1.str().c_str(), unquote(str2.str()).c_str());
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    stringstream str1, str2;
+                    str1 << *(i->first);
+                    str2 << **j;
+                    json->declare(str1.str().c_str(), unquote(str2.str()).c_str());
+                } else {
+                    stringstream str2;
+                    str2 << **j;
+                    json->declare("contributor", unquote(str2.str()).c_str());
+                }
+            }
+        }
+    }
+}
+
+void CodeContainer::generateJSON()
+{
+    if (gGlobal->gPrintJSONSwitch) {
+    
+        // Add global metadata
+        generateMetaData(&fJSON);
+      
+        // Generate JSON
+        generateUserInterface(&fJSON);
+        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    } 
+}
+

@@ -23,10 +23,6 @@
 #define _CODE_CONTAINER_H
 
 #include <string>
-#include <list>
-#include <set>
-#include <map>
-#include <vector>
 
 #include "instructions.hh"
 #include "sigtype.hh"
@@ -38,6 +34,7 @@
 #include "function_builder.hh"
 #include "code_loop.hh"
 #include "garbageable.hh"
+#include "json_instructions.hh"
 
 class CodeContainer : public virtual Garbageable {
 
@@ -96,7 +93,11 @@ class CodeContainer : public virtual Garbageable {
 
         int fSubContainerType;
         string fFullCount;
-
+        
+        bool fGeneratedSR;
+  
+        JSONInstVisitor fJSON;
+        
         void merge(set<string>& dst, set<string>& src)
         {
             set<string>::iterator i;
@@ -119,8 +120,6 @@ class CodeContainer : public virtual Garbageable {
 
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
         void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp);
-
-        bool fGeneratedSR;
 
       public:
 
@@ -193,6 +192,9 @@ class CodeContainer : public virtual Garbageable {
         DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
 
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
+        
+        void generateJSON();
+        void generateMetaData(JSONUI* json);
 
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
         virtual void processFIR(void);

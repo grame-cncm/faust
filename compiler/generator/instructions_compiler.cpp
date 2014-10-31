@@ -20,10 +20,6 @@
  ************************************************************************/
 
 #include <string>
-#include <list>
-#include <set>
-#include <map>
-#include <vector>
 
 #include "instructions.hh"
 #include "instructions_compiler.hh"
@@ -59,7 +55,7 @@ static inline ValueInst* promote2int(int type, ValueInst* val) { return (type ==
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)), 
-            fDescription(0), fLoadedIota(false), fJSON(container->inputs(), container->outputs())
+            fDescription(0), fLoadedIota(false)
 {}
 
 /*****************************************************************************
@@ -345,8 +341,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputRate(index, rate);
     }
 
-    generateMetaData();
-	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+  generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
@@ -355,12 +350,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
     
-    fContainer->generateUserInterface(&fJSON);
-    if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
-        xout << fJSON.JSON();
-    } 
-    
+    // Generate JSON
+    fContainer->generateJSON();
+       
     endTiming("compileMultiSignal");
 }
 
@@ -1442,32 +1434,6 @@ Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
 }
 
 //================================= BUILD USER INTERFACE METHOD =================================
-
-void InstructionsCompiler::generateMetaData()
-{
-    // Add global metadata
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
-            stringstream str1, str2;
-            str1 << *(i->first);
-            str2 << **(i->second.begin());
-            fJSON.declare(str1.str().c_str(), unquote(str2.str()).c_str());
-        } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
-                    stringstream str1, str2;
-                    str1 << *(i->first);
-                    str2 << **j;
-                    fJSON.declare(str1.str().c_str(), unquote(str2.str()).c_str());
-                } else {
-                    stringstream str2;
-                    str2 << **j;
-                    fJSON.declare("contributor", unquote(str2.str()).c_str());
-                }
-            }
-        }
-    }
-}
 
 /**
  * Generate buildUserInterface C++ lines of code corresponding

@@ -35,7 +35,6 @@
 #include "property.hh"
 #include "Text.hh"
 #include "garbageable.hh"
-#include "json_instructions.hh"
 
 using namespace std;
 
@@ -59,8 +58,7 @@ class InstructionsCompiler : public virtual Garbageable {
         Tree fUIRoot;
         Description* fDescription;
         bool fLoadedIota;
-        JSONInstVisitor fJSON;
-
+    
         void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
         bool getCompiledExpression(Tree sig, InstType& cexp);
@@ -190,7 +188,6 @@ class InstructionsCompiler : public virtual Garbageable {
         // Gestion de la description arborescente de l'IU
         void addUIWidget(Tree path, Tree widget);
         Tree prepareUserInterfaceTree(Tree t);
-        void generateMetaData();
         void generateUserInterfaceTree(Tree t);
         void generateUserInterfaceElements(Tree elements);
         void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);

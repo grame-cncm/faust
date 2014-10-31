@@ -92,6 +92,9 @@ class JSONUI : public PathUI, public Meta
         }
  
         virtual ~JSONUI() {}
+        
+        void setInputs(int inputs) { fInputs = inputs; }
+        void setOutputs(int outputs) { fOutputs = outputs; }
 
         // -- widget's layouts
     
