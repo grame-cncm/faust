@@ -39,7 +39,7 @@ void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
     fNumOutputs = numOutputs;
     fInputRates.resize(numInputs, 0);
     fOutputRates.resize(numOutputs, 0);
-    fJSON.setOutputs(numInputs);
+    fJSON.setInputs(numInputs);
     fJSON.setOutputs(numOutputs);
 }
 
