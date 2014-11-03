@@ -913,6 +913,7 @@ static int count_digit(const string& name)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
+    bool res = false;
     string name = string((s)->s_name);
    
     if (ac < 0) return;
@@ -931,15 +932,9 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
         return;
     }
-    
-    // Standard parameter
-    float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-    if (fDSPUI.setValue(name, value)) { // Doesn't have any effect if name is unknown
-        return;
-    }
-        
+         
     // List of values
-    if (check_digit(name)) {
+    if (check_digit(name) && (ac > 1)) {
         
         int ndigit = 0;
         int pos;
@@ -992,12 +987,19 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                     sprintf(param_name, "%s  %s", prefix.c_str(), num_val.str().c_str());
                     break;
             }
-    
-            fDSPUI.setValue(param_name, value); // Doesn't have any effect if name is unknown
+       
+            //printf("param_name = %s value = %f\n", param_name, value);
+            res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
         }
     } else {
-        post("Unknown parameter : %s", (s)->s_name);
+        // Standard parameter
+        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+        res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
     }
+    
+    if (!res) {
+        post("Unknown parameter : %s", (s)->s_name);
+    }    
 }	
 
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv) 
