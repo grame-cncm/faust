@@ -432,7 +432,7 @@ static int count_digit(const string& name)
     return count;
 }
 
-void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
+void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
     string name = string((s)->s_name);
      
@@ -449,7 +449,7 @@ void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
-        faust_method(obj, s, 1, av);
+        faust_anything(obj, s, 1, av);
         
         return;
     }
@@ -684,6 +684,7 @@ extern "C" int main(void)
  	thedsp->buildUserInterface(&dspUI);
    
 	// Add the same method for every parameters and use the symbol as a selector inside this method
+    /*
 	for (mspUI::iterator it = dspUI.begin1(); it != dspUI.end1(); ++it) {
         addmess((method)faust_method, (char*)(it->first.c_str()), A_GIMME, 0);
 	}
@@ -691,6 +692,10 @@ extern "C" int main(void)
     for (mspUI::iterator it = dspUI.begin2(); it != dspUI.end2(); ++it) {
         addmess((method)faust_method, (char*)(it->first.c_str()), A_GIMME, 0);
 	}
+    */
+    
+    // 03/11/14 : use 'anything' to handle all parameter changes
+    addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
 
 	addmess((method)faust_dsp, (char*)"dsp", A_CANT, 0);
 	addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
