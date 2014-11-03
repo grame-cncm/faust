@@ -100,7 +100,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.54"
+#define EXTERNAL_VERSION "0.55"
 
 class mspUI;
 
