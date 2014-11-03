@@ -919,7 +919,6 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     bool res = false;
     string name = string((s)->s_name);
-   
     if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
@@ -938,7 +937,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
     }
          
     // List of values
-    if (check_digit(name) && (ac > 1)) {
+    if (check_digit(name)) {
         
         int ndigit = 0;
         int pos;
@@ -992,18 +991,28 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                     break;
             }
        
-            //printf("param_name = %s value = %f\n", param_name, value);
-            res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
+            // Try special naming scheme for list of parameters
+            bool res = fDSPUI.setValue(param_name, value); 
+            
+            // Otherwise try standard name
+            if (!res) {
+                res = fDSPUI.setValue(name, value);
+            }
+            
+            if (!res) {
+                post("Unknown parameter : %s", (s)->s_name);
+            }
         }
+        
     } else {
-        // Standard parameter
+        // Standard parameter name
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = fDSPUI.setValue(name, value); // Doesn't have any effect if name is unknown
-    }
+        res = fDSPUI.setValue(name, value);
+    }  
     
     if (!res) {
         post("Unknown parameter : %s", (s)->s_name);
-    }    
+    }
 }	
 
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv) 
