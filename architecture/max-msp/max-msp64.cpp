@@ -490,7 +490,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
     }
     
     // List of values
-    if (check_digit(name) && (ac > 1)) {
+    if (check_digit(name)) {
         
         int ndigit = 0;
         int pos;
@@ -544,13 +544,22 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
                     break;
             }
             
-            //printf("param_name = %s value = %f\n", param_name, value);
-            res = obj->dspUI->setValue(param_name, value); // Doesn't have any effect if name is unknown
+            // Try special naming scheme for list of parameters
+            res = obj->dspUI->setValue(param_name, value); 
+            
+            // Otherwise try standard name
+            if (!res) {
+                res = obj->dspUI->setValue(name, value);
+            }
+            
+            if (!res) {
+                post("Unknown parameter : %s", (s)->s_name);
+            }
         }
     } else {
-        // Standard parameter
+        // Standard parameter name
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = obj->dspUI->setValue(name, value); // Doesn't have any effect if name is unknown
+        res = obj->dspUI->setValue(name, value);
     }
     
     if (!res) {
