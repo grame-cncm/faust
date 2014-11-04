@@ -247,6 +247,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         const set<string>& values = i->second;
         for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
             fClass->addUICode(subst("interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key), wdel(*j)));
+             fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
         }
     }
 

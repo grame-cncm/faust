@@ -41,9 +41,9 @@ template <typename C> class jsonui
 		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
-		virtual void openTabBox(const char* label)					{ fFactory->opengroup( "tgroup", label); }
-		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup( "hgroup", label); }
-		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup( "vgroup", label); }
+		virtual void openTabBox(const char* label)					{ fFactory->opengroup("tgroup", label, fMeta); fMeta.clear();}
+		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup("hgroup", label, fMeta); fMeta.clear();}
+		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup("vgroup", label, fMeta); fMeta.clear();}
 		virtual void closeBox()										{ fFactory->closegroup(); }
 
 		// -- active widgets

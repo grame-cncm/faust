@@ -53,7 +53,7 @@ class JSONUI : public PathUI, public Meta
                 std::string sep = "";
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     fUI << sep;
-                    tab(tab_val + 1, fUI); fUI << "{\"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\" }";
+                    tab(tab_val + 1, fUI); fUI << "{ \"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\" }";
                     sep = ",";
                 }
                 tab(tab_val, fUI); fUI << ((quote) ? "],": "]");
@@ -103,6 +103,7 @@ class JSONUI : public PathUI, public Meta
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            addMeta(fTab + 1);
             tab(fTab, fUI); fUI << "\"items\": [";
             fCloseUIPar = ' ';
             fTab += 1;
