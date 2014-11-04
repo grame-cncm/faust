@@ -992,7 +992,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
             }
        
             // Try special naming scheme for list of parameters
-            bool res = fDSPUI.setValue(param_name, value); 
+            res = fDSPUI.setValue(param_name, value); 
             
             // Otherwise try standard name
             if (!res) {
