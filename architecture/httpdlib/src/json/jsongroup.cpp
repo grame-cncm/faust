@@ -36,7 +36,7 @@ void jsongroup::print(std::ostream& out, jsonendl& eol) const
 	out << eol << "\"label\": \"" << fName << "\",";
 //	out << eol << "\"address\": \"" << getAddress() << "\"";
     if (fMeta.size()) {
-        out << "\"meta\": " << "[ "; eol++;
+        out << eol << "\"meta\": " << "[ "; eol++;
         TMetas::const_iterator i=fMeta.begin();
         while (true) {
             out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
