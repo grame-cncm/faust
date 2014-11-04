@@ -60,10 +60,10 @@ public:
     mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
     virtual ~mspUIObject() {}
     
-    virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0, 1.0, f);}
+    virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0, 1.0, f); }
     virtual FAUSTFLOAT getValue() { return *fZone; }
     virtual void toString(char* buffer) {}
-    virtual string getName() {return fLabel;}
+    virtual string getName() { return fLabel; }
   
 };
 

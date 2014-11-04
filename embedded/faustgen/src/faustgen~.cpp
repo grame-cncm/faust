@@ -215,8 +215,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
         argv[i++] = (char*)(*it).c_str();
     }
     
+    // Generate SVG file
     if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error)) {
-        post("generate_svg error : %s", error.c_str());
+        post("Generate SVG error : %s", error.c_str());
     }
     
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
