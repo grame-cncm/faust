@@ -16,7 +16,7 @@ PATH=$PATH:/usr/local/bin
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
-QMAKE=$(which qmake-qt4 || echo qmake) 
+QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
