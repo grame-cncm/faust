@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "smartpointer.h"
 
@@ -35,6 +36,8 @@ namespace httpdfaust
 
 class jsonnode;
 typedef SMARTP<jsonnode>	Sjsonnode;
+
+typedef std::map<std::string, std::string>	TMetas;
 
 //______________________________________________________________________________
 /*!

@@ -43,7 +43,7 @@ template <typename C> class jsoncontrol : public jsonnode
 	std::string fName;
 	std::string fType;
 	C fInit, fMin, fMax, fStep;
-	std::map<std::string, std::string> fMeta;
+	TMetas fMeta;
 		
 	public:
 				typedef std::map<std::string, std::string>	TMetas;

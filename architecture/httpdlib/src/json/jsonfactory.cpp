@@ -54,9 +54,9 @@ void jsonfactory::addnode (Sjsonnode node, const char* label)
  * Open a group in the current group and place it on the top of the stack. 
  * Takes into account that due to alias, a group can been previously created.  
  */
-void jsonfactory::opengroup (const char* type, const char* label)
+void jsonfactory::opengroup (const char* type, const char* label, const TMetas& m)
 {
-	Sjsonnode node = jsongroup::create (label, type);
+	Sjsonnode node = jsongroup::create (label, type, m);
 	addnode (node, label);
 	fNodes.push (node);
 }

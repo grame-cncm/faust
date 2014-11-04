@@ -52,9 +52,8 @@ class jsonfactory
 	void addnode(Sjsonnode node, const char * label);
 
 	public:
-				typedef std::map<std::string, std::string>	TMetas;
-
-				 jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
+    
+                jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
 		virtual ~jsonfactory() {}
 
 		template <typename C> void addnode (const char* type, const char* label, C min, C max, const TMetas& m) {
@@ -69,7 +68,7 @@ class jsonfactory
 				addnode (jsoncontrol<C>::create (label, type, m), label);
 			}
 
-		void opengroup(const char* type, const char* label);
+		void opengroup(const char* type, const char* label, const TMetas& m);
 		void closegroup();
 
 		jsonroot&	root()			{ return fRoot; }
