@@ -30,7 +30,6 @@
 #include <map>
 #include "jsonnode.h"
 
-
 namespace httpdfaust
 {
 
@@ -46,8 +45,7 @@ template <typename C> class jsoncontrol : public jsonnode
 	TMetas fMeta;
 		
 	public:
-				typedef std::map<std::string, std::string>	TMetas;
-
+		
 	static Sjsonnode create (const char *name, const char* type, C min, C max, const TMetas& m)
 			{ return new jsoncontrol (name, type, min, max, m); }
 	static Sjsonnode create (const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
