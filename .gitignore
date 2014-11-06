@@ -11,5 +11,4 @@
 .DS_Store
 *tmp*
 *dir*
-
-
+compiler/faust
