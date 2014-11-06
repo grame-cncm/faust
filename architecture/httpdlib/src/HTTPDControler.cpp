@@ -23,15 +23,16 @@
 
 */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
-#include <sstream>
-#ifdef __MINGW32__
+#ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <netdb.h>
+#include <unistd.h>
 #endif
+
+#include <stdlib.h>
+#include <iostream>
+#include <sstream>
 
 #include "HTTPDControler.h"
 #include "FaustFactory.h"
@@ -39,6 +40,7 @@
 #include "jsonfactory.h"
 #include "htmlfactory.h"
 #include "RootNode.h"
+
 
 using namespace std;
 
@@ -165,9 +167,8 @@ template<> void HTTPDControler::addnode<double> (const char* type, const char* l
 void HTTPDControler::opengroup (const char* type, const char* label)
 {
 	fFactory->opengroup (label);
-	fJson->opengroup (type, label, fCurrentMeta);
+	fJson->opengroup (type, label);
 	fHtml->opengroup (type, label);
-    fCurrentMeta.clear();
 }
 
 //--------------------------------------------------------------------------
@@ -213,7 +214,7 @@ void HTTPDControler::quit ()
 std::string HTTPDControler::getJSONInterface(){        
     stringstream strjson;
     fJson->root().print(strjson);
-    return strjson.str();
+   return strjson.str();
 }
     
 void HTTPDControler::setInputs(int numInputs){

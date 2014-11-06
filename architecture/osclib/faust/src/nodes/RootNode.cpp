@@ -23,7 +23,10 @@
 
 #include <string>
 #include <sstream>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "faust/OSCControler.h"
 #include "faust/osc/Message.h"

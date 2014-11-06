@@ -19,38 +19,56 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\architecture\osclib\faust\faust\OSCControler.h" />
-    <ClInclude Include="..\architecture\osclib\faust\faust\OSCIO.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\lib\deelx.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\lib\OSCFError.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\lib\OSCRegexp.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\nodes\RootNode.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\osc\OSCAddress.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\osc\OSCListener.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\osc\OSCSetup.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\osc\OSCStream.h" />
-    <ClInclude Include="..\architecture\osclib\faust\src\threads\TThreads.h" />
+    <ClCompile Include="..\architecture\httpdlib\src\hexa\jsscripts.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\hexa\stylesheet.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\html\htmlfactory.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\html\htmlpage.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\html\htmlui.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\HTTPDControler.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\httpd\Address.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\httpd\HTTPDServer.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\httpd\HTTPDSetup.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\json\jsoncontrol.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\json\jsonfactory.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\json\jsonfaustui.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\json\jsongroup.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\json\jsonroot.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\json\jsonui.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\msg\Message.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\nodes\FaustFactory.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\nodes\FaustNode.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\nodes\MessageDriven.cpp" />
+    <ClCompile Include="..\architecture\httpdlib\src\nodes\RootNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\architecture\osclib\faust\src\lib\OSCFError.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\lib\OSCRegexp.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\msg\Message.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\nodes\FaustFactory.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\nodes\FaustNode.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\nodes\MessageDriven.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\nodes\RootNode.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\OSCControler.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\osc\OSCAddress.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\osc\OSCIO.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\osc\OSCListener.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\osc\OSCSetup.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\osc\OSCStream.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\threads\pthreads_impl.cpp" />
-    <ClCompile Include="..\architecture\osclib\faust\src\threads\winthreads_impl.cpp" />
+    <ClInclude Include="..\architecture\httpdlib\src\html\htmlfactory.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\html\htmlpage.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\html\htmlui.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\html\jsscripts.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\html\stylesheet.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\httpd\Address.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\httpd\HTTPDServer.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\httpd\HTTPDSetup.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\include\HTTPDControler.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\include\jsonfaustui.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\json\jsoncontrol.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\json\jsonfactory.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\json\jsongroup.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\json\jsonnode.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\json\jsonroot.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\json\jsonui.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\lib\deelx.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\lib\smartpointer.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\msg\Message.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\msg\MessageProcessor.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\nodes\FaustFactory.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\nodes\FaustNode.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\nodes\MessageDriven.h" />
+    <ClInclude Include="..\architecture\httpdlib\src\nodes\RootNode.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>libOSCFaust</ProjectName>
-    <ProjectGuid>{097B0E5B-2DF2-4A9A-98C1-728E75245E8B}</ProjectGuid>
+    <ProjectName>libHTTPD</ProjectName>
+    <ProjectGuid>{106283CC-0703-4C8F-B953-A717B67F3086}</ProjectGuid>
     <RootNamespace>faust_vs2008</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
@@ -100,7 +118,7 @@
     <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>libOSCFaust</TargetName>
+    <TargetName>libHTTPDFaust</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,7 +131,7 @@
     <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>libOSCFaust</TargetName>
+    <TargetName>libHTTPDFaust</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,7 +144,7 @@
     <ClCompile>
       <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\architecture\osclib\oscpack;..\architecture\osclib\faust;..\architecture\osclib\faust\src;..\architecture\osclib\faust\src\lib;..\architecture\osclib\faust\src\nodes;..\architecture\osclib\faust\src\msg;..\architecture\osclib\faust\src\osc;..\architecture\osclib\faust\src\threads;..\architecture;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\architecture\httpdlib\src;..\architecture\httpdlib\src\httpd;..\architecture\httpdlib\src\msg;..\architecture\httpdlib\src\html;..\architecture\httpdlib\src\nodes;..\architecture\httpdlib\src\include;..\architecture\httpdlib\src\json;..\architecture\httpdlib\src\lib;C:\Users\Sarah\DevTools\libmicrohttpd\include;..\architecture;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;LLVM_34;_EXPORTING;_SECURE_SCL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -168,7 +186,7 @@
       <AdditionalOptions>/wd4554 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\architecture\osclib\faust;..\architecture;..\architecture\osclib\oscpack;..\architecture\osclib\faust\src\nodes;..\architecture\osclib\faust\src\lib;..\architecture\osclib\faust\src\osc;..\architecture\osclib\faust\src\msg;..\architecture\osclib\faust\src\threads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\architecture\httpdlib\src;..\architecture\httpdlib\src\html;..\architecture\httpdlib\src\httpd;..\architecture\httpdlib\src\include;..\architecture\httpdlib\src\json;..\architecture\httpdlib\src\lib;..\architecture\httpdlib\src\msg;..\architecture\httpdlib\src\nodes;C:\Users\Sarah\DevTools\libmicrohttpd\include;..\architecture;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;LLVM_34;_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
