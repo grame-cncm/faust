@@ -28,11 +28,6 @@ fi
 #PHASE 1 : collects files and options from the command line
 
 DEBUG=0
-if [ $DEBUG -eq 1 ]; then
-PRINTDEV=/dev/tty
-else
-PRINTDEV=/dev/null
-fi
 
 for p in $@; do
 if [ "$p" = -omp ]; then
@@ -61,6 +56,12 @@ else
 OPTIONS="$OPTIONS $p"
 fi
 done
+
+if [ $DEBUG -eq 1 ]; then
+PRINTDEV=/dev/tty
+else
+PRINTDEV=/dev/null
+fi
 
 #-------------------------------------------------------------------------------
 
