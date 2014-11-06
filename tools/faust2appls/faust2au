@@ -95,26 +95,9 @@ for f in $FILES; do
 	export FAUSTAU_CLASS
 	export COMPTYPE
 
-	#echo $ARCHFILE
-	#echo $AUTYPE
-	#echo $FAUSTAU_CLASS
-	#echo $COMPTYPE
-
 	FAUST_DIR=$FLIB
 	AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
 	TEMP_DIR=./faust.XXX
-
-	if [ $# -lt 1 ]
-	then
-	echo FAUST dsp file not specified
-	exit
-	fi
-
-	if [ ! -f $f ]
-	then
-	echo Input file does not exist
-	exit
-	fi
 
 	if [ -d $TEMP_DIR ]
 	then
