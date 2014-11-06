@@ -103,7 +103,7 @@ class portaudio : public audio {
             }
         }
         
-        bool init(const char* name, int numInputs, int numOutputs)
+        bool init(const char* /*name*/, int numInputs, int numOutputs)
         {            
             if (pa_error(Pa_Initialize())) {
                 return false;

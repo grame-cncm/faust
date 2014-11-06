@@ -22,16 +22,16 @@
   research@grame.fr
 
 */
-
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
-#include <sstream>
-#ifdef __MINGW32__
+#ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <netdb.h>
+#include <unistd.h>
 #endif
+
+#include <stdlib.h>
+#include <iostream>
+#include <sstream>
 
 #include "HTTPDControler.h"
 #include "FaustFactory.h"
