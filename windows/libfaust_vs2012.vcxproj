@@ -67,8 +67,8 @@
     <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>_output\$(Platform)\faust_vs2012\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\faust_vs2012\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>faust</TargetName>
     <TargetExt>.dll</TargetExt>
