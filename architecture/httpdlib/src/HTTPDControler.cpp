@@ -22,7 +22,6 @@
   research@grame.fr
 
 */
-
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -40,7 +39,6 @@
 #include "jsonfactory.h"
 #include "htmlfactory.h"
 #include "RootNode.h"
-
 
 using namespace std;
 
@@ -167,8 +165,9 @@ template<> void HTTPDControler::addnode<double> (const char* type, const char* l
 void HTTPDControler::opengroup (const char* type, const char* label)
 {
 	fFactory->opengroup (label);
-	fJson->opengroup (type, label);
+	fJson->opengroup (type, label, fCurrentMeta);
 	fHtml->opengroup (type, label);
+    fCurrentMeta.clear();
 }
 
 //--------------------------------------------------------------------------
@@ -214,7 +213,7 @@ void HTTPDControler::quit ()
 std::string HTTPDControler::getJSONInterface(){        
     stringstream strjson;
     fJson->root().print(strjson);
-   return strjson.str();
+    return strjson.str();
 }
     
 void HTTPDControler::setInputs(int numInputs){
