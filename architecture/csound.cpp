@@ -141,7 +141,7 @@ struct dataspace {
     MYFLT*    ain[FAUST_INPUTS];          /* input buffers    */
     MYFLT*    ktl[FAUST_ACTIVES];         /* controls         */
     dsp*      DSP;                        /* the Faust generated object */
-    CSUI*     interface;                  /* do the mapping between CSound controls and DSP fields */
+    CSUI*     ui_interface;                  /* do the mapping between CSound controls and DSP fields */
     AUXCH     dspmem;                     /* aux memory allocated once to store the DSP object */
     AUXCH     intmem;                     /* aux memory allocated once to store the interface object */
 };
@@ -174,12 +174,12 @@ static int init(CSOUND *csound, dataspace *p)
         csound->AuxAlloc(csound, sizeof(CSUI), &p->intmem);
     
     p->DSP = new (p->dspmem.auxp) mydsp;
-    p->interface = new (p->intmem.auxp) CSUI;
+    p->ui_interface = new (p->intmem.auxp) CSUI;
     
-    if ((p->DSP == 0) | (p->interface == 0)) return NOTOK;
+    if ((p->DSP == 0) | (p->ui_interface == 0)) return NOTOK;
     
     p->DSP->init((int)csound->GetSr(csound));   
-    p->DSP->buildUserInterface(p->interface);
+    p->DSP->buildUserInterface(p->ui_interface);
     
     return OK;
 }
@@ -194,7 +194,7 @@ static int process32bits(CSOUND *csound, dataspace *p)
     AVOIDDENORMALS;
     
     // update all the control values
-    p->interface->copyfrom(p->ktl);
+    p->ui_interface->copyfrom(p->ktl);
     
     p->DSP->compute(csound->GetKsmps(csound), p->ain, p->aout);
     return OK;

@@ -33,16 +33,16 @@ using namespace std;
 
 OPENSL_STREAM *p;
 mydsp* DSP;
-GUI* interface;
+GUI* ui_interface;
 
 int inChanNumb, outChanNumb;
 float **bufferout,**bufferin;
 
 Para faust::initFaust(){
 	DSP = new mydsp();
-	interface = new GUI();
-	interface->initUI();
-	DSP->buildUserInterface(interface);
+	ui_interface = new GUI();
+	ui_interface->initUI();
+	DSP->buildUserInterface(ui_interface);
 	DSP->init(SR);
 	Para params;
 	inChanNumb = DSP->getNumInputs();
@@ -60,13 +60,13 @@ Para faust::initFaust(){
 	}
 
 	// layout elements initialization
-	params.cntLay = interface->params.cntLay;
+	params.cntLay = ui_interface->params.cntLay;
 	params.typeLay = new int [params.cntLay];
 	params.labelLayPos = new int [params.cntLay];
 
 	// parameters elements initialization
-	params.cnt = interface->params.cnt;
-	params.cntEl = interface->params.cntEl;
+	params.cnt = ui_interface->params.cnt;
+	params.cntEl = ui_interface->params.cntEl;
 	params.type = new int [params.cnt];
 	params.typeEl = new int [params.cntEl];
 	params.labelPos = new int [params.cnt];
@@ -79,29 +79,29 @@ Para faust::initFaust(){
 	int oldPos = 0;
 	char labelBuf[1024]="",labelBuf2[1024]="",labelOld[1024]="",metadata[1024]="";
 
-	for(int i=0; i<params.cntEl; i++) params.typeEl[i] = interface->params.typeEl[i];
+	for(int i=0; i<params.cntEl; i++) params.typeEl[i] = ui_interface->params.typeEl[i];
 
 	for(int i=0; i<params.cnt; i++){
-		params.type[i] = interface->params.type[i];
+		params.type[i] = ui_interface->params.type[i];
 		/*
 		 * There must be a way to do that in a nicer way with swig, but for now,
 		 * it works fine... TODO
 		 */
-		int currentPos = strlen(interface->params.label[i]);
+		int currentPos = strlen(ui_interface->params.label[i]);
 		params.labelPos[i] = currentPos + oldPos;
 		oldPos = currentPos + oldPos;
 		strcpy(labelBuf,labelOld);
-		strcat(labelBuf,interface->params.label[i]);
+		strcat(labelBuf,ui_interface->params.label[i]);
 		strcpy(labelOld,labelBuf);
 		params.label = labelBuf;
 
-		params.init[i] = interface->params.init[i];
-		*interface->params.value[0] = params.zone[i];
-		params.min[i] = interface->params.min[i];
-		params.max[i] = interface->params.max[i];
-		params.step[i] = interface->params.step[i];
+		params.init[i] = ui_interface->params.init[i];
+		*ui_interface->params.value[0] = params.zone[i];
+		params.min[i] = ui_interface->params.min[i];
+		params.max[i] = ui_interface->params.max[i];
+		params.step[i] = ui_interface->params.step[i];
 
-		strcat(metadata,interface->params.metadata[i]);
+		strcat(metadata,ui_interface->params.metadata[i]);
 	}
 
 	params.metadata = metadata;
@@ -112,13 +112,13 @@ Para faust::initFaust(){
 	strcpy(labelOld,"");
 
 	for(int i=0; i<params.cntLay; i++){
-		params.typeLay[i] = interface->params.typeLay[i];
+		params.typeLay[i] = ui_interface->params.typeLay[i];
 		if(params.typeLay[i] == 0 || params.typeLay[i] == 1){
-			int currentPos = strlen(interface->params.labelLay[i]);
+			int currentPos = strlen(ui_interface->params.labelLay[i]);
 			params.labelLayPos[i] = currentPos + oldPos;
 			oldPos = currentPos + oldPos;
 			strcpy(labelBuf2,labelOld);
-			strcat(labelBuf2,interface->params.labelLay[i]);
+			strcat(labelBuf2,ui_interface->params.labelLay[i]);
 			strcpy(labelOld,labelBuf2);
 			params.labelLay = labelBuf2;
 		}
@@ -138,8 +138,8 @@ void faust::stopAudio(){
 }
 
 void faust::setParam(float *params){
-	for(int i = 0; i<interface->params.cnt; i++){
-		*interface->params.value[i] = params[i];
+	for(int i = 0; i<ui_interface->params.cnt; i++){
+		*ui_interface->params.value[i] = params[i];
 	}
 }
 
