@@ -1556,7 +1556,7 @@ class dsp {
 	
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
-    virtual void buildUserInterface(UI* ui_interface) 					= 0;
+    virtual void buildUserInterface(UI* interface) 					= 0;
     virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
  	virtual void conclude() 										{}
@@ -1618,8 +1618,8 @@ pthread_t	guithread;
 	
 void* run_ui(void* ptr)
 {
-	UI* ui_interface = (UI*) ptr;
-	ui_interface->run();
+	UI* interface = (UI*) ptr;
+	interface->run();
 	pthread_exit(0);
 	return 0;
 }
@@ -1628,7 +1628,7 @@ int main(int argc, char *argv[] )
 {
 	CHECKINTSIZE;
 
-	UI* 	ui_interface = new GTKUI(argv[0], &argc, &argv);
+	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
 	
 	// compute rcfilename to (re)store application state
 	char	rcfilename[256];
@@ -1648,11 +1648,11 @@ int main(int argc, char *argv[] )
 	audio.open();
 	
     DSP.init(audio.frequency());
-    DSP.buildUserInterface(ui_interface);
+    DSP.buildUserInterface(interface);
 	
-	ui_interface->recallState(rcfilename);
+	interface->recallState(rcfilename);
 
-	pthread_create(&guithread, NULL, run_ui, ui_interface);
+	pthread_create(&guithread, NULL, run_ui, interface);
 	
 	bool rt = setRealtimePriority();
 	if (rt == false) {
@@ -1674,7 +1674,7 @@ int main(int argc, char *argv[] )
 		running = mesure <= (KMESURE + KSKIP);
 	}
 	closeMesure();
-	ui_interface->saveState(rcfilename);
+	interface->saveState(rcfilename);
 
 #ifdef BENCHMARKMODE
     printstats(argv[0], audio.buffering(), DSP.getNumInputs(), DSP.getNumOutputs());

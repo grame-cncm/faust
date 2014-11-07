@@ -325,7 +325,7 @@ public:
 
     virtual int getNumInputs() 										= 0;
     virtual int getNumOutputs() 									= 0;
-    virtual void buildUserInterface(UI* ui_interface) 					= 0;
+    virtual void buildUserInterface(UI* interface) 					= 0;
     virtual void init(int samplingRate) 							= 0;
     virtual void compute(int len, float** inputs, float** outputs) 	= 0;
     virtual void conclude() 										{}
@@ -405,11 +405,11 @@ int main(int argc, char *argv[] )
 	float			fnbsamples;
 
 
-    CMDUI* ui_interface = new CMDUI(argc, argv);
-    DSP.buildUserInterface(ui_interface);
+    CMDUI* interface = new CMDUI(argc, argv);
+    DSP.buildUserInterface(interface);
 	
-    ui_interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
-	ui_interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
+    interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
+	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
 
 //     if (DSP.getNumInputs() > 0) {
 //         fprintf(stderr,
@@ -421,7 +421,7 @@ int main(int argc, char *argv[] )
     DSP.init(44100);
 
     // modify the UI values according to the command-line options:
-    ui_interface->process_command();
+    interface->process_command();
 
 	// prepare input channels (if any) with an impulse
     int nins = DSP.getNumInputs();

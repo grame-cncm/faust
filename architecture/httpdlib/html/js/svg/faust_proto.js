@@ -1246,7 +1246,6 @@ _f4u$t.main = function(raw_json, div, callback) {
     // we make sure all JS and CSS is loaded before we build the UI
     _f4u$t.load_css_and_then_js(URLParams.css, URLParams.js);
     
-//     var width  = 35;
     var width = $(div).width();
     if (width == 0) {
         // HUOM: this "- 15" is a kludge and should dealt with more elegantly

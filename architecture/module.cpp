@@ -51,6 +51,6 @@ extern "C" void deleteDsp(dsp* self) 						{ delete self; }
 
 extern "C" int getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
 extern "C" int getNumOutputs(dsp* self) 					{ return self->getNumOutputs(); }
-extern "C" void buildUserInterface(dsp* self,UI* ui_interface) { self->buildUserInterface(ui_interface); }
+extern "C" void buildUserInterface(dsp* self,UI* interface) { self->buildUserInterface(interface); }
 extern "C" void init(dsp* self, int freq) 					{ self->init(freq); }
 extern "C" void compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
