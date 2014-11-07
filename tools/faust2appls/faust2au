@@ -28,6 +28,7 @@ fi
 #PHASE 1 : collects files and options from the command line
 
 DEBUG=0
+MANUFACTURER="Grame"
 
 for p in $@; do
 	if [ "$p" = -omp ]; then
@@ -48,6 +49,8 @@ for p in $@; do
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+	elif [ $p = "-manufacturer"]; then
+		$MANUFACTURER=$p
 	elif [ ${p:0:1} = "-" ]; then
 		OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -99,9 +102,8 @@ for f in $FILES; do
 	AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
 	TEMP_DIR=./faust.XXX
 
-	if [ -d $TEMP_DIR ]
-	then
-	rm -r $TEMP_DIR
+	if [ -d $TEMP_DIR ]; then
+		rm -r $TEMP_DIR
 	fi
 	mkdir $TEMP_DIR
 	cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
@@ -129,37 +131,16 @@ for f in $FILES; do
 	faust $OPTIONS -xml $f > $PRINTDEV
 	mv $f.xml Source/au-output.xml
 
-	if [ ! -f Source/au-output.cpp ]
-	then
-	echo FAUST could not generate cpp file
-	cd ..
-	rm -r $TEMP_DIR
-    exit 1
-	fi
-
-	if [ $# -lt 2 ]
-	then
-	MANUFACTURER="Grame"
-	else
-	MANUFACTURER=$2
+	if [ ! -f Source/au-output.cpp ]; then
+		echo FAUST could not generate cpp file
+		cd ..
+		rm -r $TEMP_DIR
+		exit 1
 	fi
 
 	NAME=$MANUFACTURER:' '"$FILE_NAME"
-
-	if [ $# -lt 3 ]
-	then
-	STR=${FILE_NAME:0:4}
-	SUB_TYPE=$(echo $STR | tr [[:lower:]] [[:upper:]])
-	else
-	SUB_TYPE=$3
-	fi
-
-	if [ $# -lt 4 ]
-	then
+	SUB_TYPE=$(echo ${FILE_NAME:0:4} | tr [[:upper:]] [[:lower:]])
 	MANF=${MANUFACTURER:0:4}
-	else
-	MANF=$4
-	fi
 
 	perl -pi -e 's/_NAME_/'"$NAME"'/g' Info.plist
 	perl -pi -e 's/_DESC_/'"$NAME"'/g' Info.plist
