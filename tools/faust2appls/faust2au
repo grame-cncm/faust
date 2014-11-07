@@ -100,7 +100,7 @@ for f in $FILES; do
 
 	FAUST_DIR=$FLIB
 	AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
-	TEMP_DIR=./faust.XXX
+	TEMP_DIR=`dirname $f`/faustAUtmp.`basename $f`
 
 	if [ -d $TEMP_DIR ]; then
 		rm -r $TEMP_DIR
