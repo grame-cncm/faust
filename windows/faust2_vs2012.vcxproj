@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>faust_vs2012</ProjectName>
+    <ProjectName>faust2_vs2012</ProjectName>
     <ProjectGuid>{5B179DA5-5826-46C2-AF2C-DBEF9181610D}</ProjectGuid>
     <RootNamespace>faust_vs2008</RootNamespace>
     <Keyword>Win32Proj</Keyword>

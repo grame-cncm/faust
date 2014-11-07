@@ -1,7 +1,7 @@
 
-/* faustxml.pure: Parse a Faust XML file. */
+/* faustxml.pure: Parse a Faust XML or JSON file. */
 
-/* Copyright (c) 2009 by Albert Graef.
+/* Copyright (c) 2009-2014 by Albert Graef.
 
    This is free software; you can redistribute it and/or modify it under the
    terms of the GNU General Public License as published by the Free Software
@@ -26,16 +26,16 @@ namespace faustxml;
    ==================
 
    The faustxml module is provided along with faust2pd to retrieve the
-   description of a Faust DSP from its XML file as a data structure which
-   is ready to be processed by Pure programs. It may also be useful in other
-   Pure applications which need to inspect descriptions of Faust DSPs.
+   description of a Faust DSP from its XML or JSON file as a data structure
+   which is ready to be processed by Pure programs. It may also be useful in
+   other Pure applications which need to inspect descriptions of Faust DSPs.
 
    The main entry point is the :func:`info` function which takes the name of a
-   Faust-generated XML file as argument and returns a tuple ``(name, descr,
-   version, in, out, controls)`` with the name, description, version, number
-   of inputs and outputs and the toplevel group with the descriptions of the
-   controls of the dsp. A couple of other convenience functions are provided
-   to deal with the control descriptions.
+   Faust-generated XML or JSON file as argument and returns a tuple ``(name,
+   descr, version, in, out, controls, options)`` with the name, description,
+   version, number of inputs and outputs, control descriptions and faust2pd
+   options (from the global meta data of the dsp module). A couple of other
+   convenience functions are provided to deal with the control descriptions.
 
    Usage
    -----
@@ -156,16 +156,18 @@ end if controlp x;
 
 /* .. function:: info fname
  
-      Extract the description of a Faust DSP from its XML file. This is the
-      main entry point. Returns a tuple with the name, description and version
-      of the DSP, as well as the number of inputs and outputs and the toplevel
-      group with all the control descriptions. Raises an exception if the XML
-      file doesn't exist or contains invalid contents.
+      Extract the description of a Faust DSP from its XML or JSON file. This
+      is the main entry point. Returns a tuple with the name, description and
+      version of the DSP, as well as the number of inputs and outputs, the
+      toplevel group with all the control descriptions, and additional
+      faust2pd-specific options specified in the global meta data. Raises an
+      exception if the XML/JSON file doesn't exist or contains invalid
+      contents.
 
    Example::
 
      > using faustxml;
-     > let name,descr,version,in,out,group =
+     > let name,descr,version,in,out,group,opts =
      >   faustxml::info "examples/basic/freeverb.dsp.xml";
      > name,descr,version,in,out;
      "freeverb","freeverb -- a Schroeder reverb","1.0",2,2
@@ -175,29 +177,126 @@ end if controlp x;
      faustxml::hslider ("freeverb/roomsize",0.5,0.0,1.0,0.025)
      faustxml::hslider ("freeverb/wet",0.3333,0.0,1.0,0.025)
 
+   Note: As of faust2pd 2.11, the :func:`info` function can also process
+   descriptions in JSON format (as obtained with ``faust -json`` in recent
+   Faust versions). Moreover, instead of a JSON file you may also specify the
+   URL of a running Faust dsp instance (typically something like
+   ``http://localhost:5510``). This works with stand-alone Faust applications
+   which have httpd support enabled (created with, e.g., ``faust2jaqt
+   -httpd``), as well as dsp instances running in Grame's FaustLive
+   application. You also need to have the ``curl`` program installed to make
+   this work.
+
+   The latter currently has some minor limitations. Specifically, the
+   httpd/JSON interface only provides the name of a running dsp; the
+   description, version and other global meta data is not available. In the
+   current implementation, we therefore set the description to the name of the
+   dsp, and the version and auxiliary faust2pd options to empty strings in
+   this case.
+
+   Furthermore, the :func:`info` function can also be invoked with a special
+   URL of the form ``http://localhost:7777/availableInterfaces`` to retrieve
+   the list of dsp instances running in a (local or remote) FaustLive
+   instance. (Replace ``localhost`` with the hostname or IP address and
+   ``7777`` with the actual port number as necessary. FaustLive's default port
+   is usually ``7777``, but you should check the actual IP address with
+   FaustLive's ``Window / View QRcode`` option.) The result is a list of hash
+   pairs of names and URLs of dsp instances which can be queried for their
+   JSON data.
+
 */
 
 public info;
 
-private basename trim str_val tree node;
-private parse parse_doc parse_node parse_prop parse_type
+private pathname basename extension trim str_val tree node;
+private parse_json parse parse_doc parse_node parse_prop parse_type
   parse_control make_control parse_group make_group;
 
 info fname::string
-= case xml::load_file fname 0 of
-    doc = name,descr,info when
-            name = basename fname; descr,info = parse name doc;
-            descr = if null descr then name else descr;
-          end if xml::docp doc;
-    _ = throw "could not open XML file" otherwise;
+= case regex "^([a-z]+)://(.*)$" REG_EXTENDED fname 0 of
+  // Check for JSON URL, retrieve with curl.
+  1,_,url,_,ty,_,path = case fget (popen ("curl -s "+url) "r") of
+    // list of available dsps in a FaustLive instance
+    s::string = res when
+      data = check s;
+      url = pathname fname;
+      // sort by port numbers
+      res = sort cmp [name=>port | name=>(port:_) = data] with
+	cmp (_=>p1) (_=>p2)
+	= v1 < v2 if intp v1 && intp v2 when
+	  v1 = val p1; v2 = val p2;
+	end;
+	// Presumably the port numbers are integers, but if they aren't then
+	// we can still compare them lexicographically as strings instead.
+	= p1 < p2 otherwise;
+      end;
+      // add URL prefix
+      res = [name=>url+"/"+port | name=>port = res];
+    end if lst == "availableInterfaces";
+    // ordinary JSON data with dsp description
+    s::string = name,parse_json data when
+      data = check s;
+      name = catch (cst "") (data!"name");
+    end;
+    _ = throw ("could not retrieve "+url) otherwise;
+  end when
+    ty == "http" || throw "unkown URL type (must be http)";
+    lst = if null path then "" else last (split "/" path);
+    url = if lst == "JSON" then url else url+"/JSON";
   end;
+  // Check for JSON file.
+  _ = case fget (fopen fname "r") of
+    s::string = basename fname,parse_json (check s);
+    _ = throw "could not open JSON file" otherwise;
+  end if extension fname == "json";
+  // Check for XML file.
+  _ = case xml::load_file fname 0 of
+    doc = name,descr,info,opts when
+      name = basename fname; descr,info = parse name doc;
+      descr = if null descr then name else descr;
+      // Custom global meta data is not available in the XML file.
+      opts = [];
+    end if xml::docp doc;
+    _ = throw "could not open XML file" otherwise;
+  end if extension fname == "xml";
+  _ = throw ("unkown file type '"+extension fname+"' (must be json or xml)");
+end with
+  // Trivial JSON parser. Since JSON syntax is valid Pure syntax, we can just
+  // let 'val' do the job, and then convert JSON dictionaries to Pure records
+  // for easier access.
+  check s = case json (val s) of
+    data::smatrix = data;
+    _ = throw "invalid JSON data" otherwise;
+  end;
+  json x::smatrix = record {key=>json val | key:val = x};
+  json x::list = map json x;
+  json x = x otherwise;
+end;
 
 /* Private operations. *******************************************************/
+
+/* Determine the pathname of a file (strip off filename and extension). */
+
+pathname s::string
+= s when
+  s::string = join "/" (if null s then [] else init $ split "/" s);
+end;
 
 /* Determine the basename of a file (strip off path and extension). */
 
 basename s::string
-= s when s::string = last $ split "/" s; s::string = head $ split "." s; end;
+= s when
+  s::string = if null s then "" else last $ split "/" s;
+  s::string = if null s then "" else head $ split "." s;
+end;
+
+/* Determine the extension of a file (strip off path and filename). */
+
+extension s::string
+= s when
+  s::string = if null s then "" else last $ split "/" s;
+  s::string = if null s || index s "." < 0 then "" else last $ split "." s;
+end;
 
 /* Remove leading and trailing whitespace. */
 
@@ -211,6 +310,47 @@ str_val s::string
     s::string = s;
     _ = s otherwise;
   end;
+
+/* Helper function to parse the contents of a Faust JSON file. */
+
+parse_json data::smatrix = name,version,in,out,
+  catch (\_ -> throw "invalid JSON data") (parse (data!"ui"!0)), opts
+with
+  parse x = case ty of
+    "vgroup" | "hgroup" | "tgroup" = (tyval ty) (label,map parse (x!"items"));
+    "button" | "checkbox" = (tyval ty) label;
+    "nentry" | "vslider" | "hslider" = (tyval ty) (label,args) when
+      args = tuple (map (double.val) (x!!["init","min","max","step"]));
+    end;
+    "vbargraph" | "hbargraph" = (tyval ty) (label,args) when
+      args = tuple (map (double.val) (x!!["min","max"]));
+    end;
+  end when
+    ty = x!"type";
+    label = x!"label";
+  end;
+  tyval ty = val ("faustxml::"+ty);
+end when
+  name = catch (cst "") (data!"name");
+  meta = catch (cst {}) (data!"meta");
+  // At present, the global meta data is encoded as a list of dictionaries,
+  // turn it into a single dictionary for convenience.
+  meta = if recordp meta then meta else colcat meta;
+  recordp meta || throw "invalid JSON data";
+  version = catch (cst "") (meta!"version");
+  // As of faust2pd 2.11, we allow faust2pd options to be specified in the
+  // Faust source in one chunk using the global 'faust2pd' meta data key.
+  opts = catch (cst [])
+    (regsplit "[[:space:]]+" REG_EXTENDED (meta!"faust2pd") 0);
+  // For compatibility with pd-faust and older faust2pd versions, we also
+  // still allow options to be specified using 'pd' meta data on the toplevel
+  // group.
+  meta_ui = catch (cst {}) (data!"ui"!0!"meta");
+  opts_ui = map ("--"+) (cat (map (list.(!!["pd"])) meta_ui));
+  opts = opts+opts_ui;
+  in = catch (cst 0) (val (data!"inputs"));
+  out = catch (cst 0) (val (data!"outputs"));
+end;
 
 /* Generate a tree representation of an entire XML document, or the subtree of
    an XML document rooted at a given node. */

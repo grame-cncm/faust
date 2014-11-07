@@ -9,29 +9,42 @@ Albert Graef <aggraef@gmail.com>
 
 This package contains software which makes it easier to use Faust DSPs with Pd
 and the Pure programming language. The main component is the faust2pd script
-which creates GUI wrappers for Faust DSPs. The package also includes a bunch
-of examples. The software is distributed under the GPL; see the COPYING file
-for details.
+which creates Pd GUI wrappers for Faust DSPs. The package also includes a Pure
+script faustxml.pure for parsing Faust dsp descriptions in XML or JSON format,
+as well as a bunch of examples. The software is distributed under the GPL; see
+the COPYING file for details.
 
 .. note:: This faust2pd version is written in Pure and was ported from an
    earlier version written in Pure's predecessor Q. The version of the script
    provided here should be 100% backward-compatible to those previous
    versions, except for the following changes:
 
-   - The (rarely used) -f (a.k.a. --fake-buttons) option was renamed to -b.
+   - The (rarely used) -f (a.k.a. --fake-buttons) option was renamed to -b,
+     and a new -f (a.k.a. --font-size) option was added to change the font
+     size of the GUI elements.
 
-   - A new -f (a.k.a. --font-size) option was added to change the font size
-     of the GUI elements.
+   - For compatibility with pd-faust, the -s (a.k.a. --slider-nums) flag is
+     enabled by default now. The corresponding option is still supported for
+     backward compatibility, and for overriding the new --no-slider-nums
+     option which can be used to disable this feature.
 
-   - Most command line options can now also be specified using special
-     ``[pd:...]`` tags in the Faust source.
-
-   Also note that you can now run the script on 64 bit systems (Q never worked
-   there).
+   - Most command line options can now also be specified using special meta
+     data in the Faust source.
 
 As of version 2.1, the faust2pd script is now compiled to a native executable
 before installation. This makes the program start up much faster, which is a
-big advantage because most xml files don't take long to be processed.
+big advantage because most xml and json files don't take long to be processed.
+
+faust2pd version 2.11 and later have full support for Faust's new JSON-based
+description format, which is generated with the -json option. The JSON-based
+interface offers some advantages, such as accessing additional meta data in
+the Faust source (the XML format doesn't offer this in the latest Faust
+versions any more), and the capability to read dsp descriptions straight from
+running dsp instances in httpd-enabled Faust applications and Grame's new
+FaustLive environment. However, this format is only supported in the latest
+Faust versions (Faust 0.9.70 and later, or Faust 2.0.a30 and later if you are
+running the Faust2 development version). At the time of this writing, these
+versions are only available in the Faust git repository.
 
 .. _Pure: http://purelang.bitbucket.org
 
@@ -73,12 +86,15 @@ To run the seqdemo example, you'll also need the Pd Pure external
 (pd-pure*.tar.gz), also available at the Pure_ website.
 
 To compile the examples, you'll need GNU C++ and make, Pd_ and, of course,
-Faust_. Make sure you get a recent version of Faust; Faust releases >0.9.8
-include the puredata architecture necessary to create Pd externals from Faust
-DSPs.
+Faust_. Make sure you get a recent version of Faust; Faust 0.9.67 or later is
+recommended. Faust 0.9.70 and later have support for the new JSON format and
+offer some other new and convenient capabilities, such as retrieving the JSON
+description directly from a running dsp instance via Faust's httpd interface.
+For the latter, you also need to have the curl_ program installed.
 
 .. _Pd: http://puredata.info
 .. _Faust: http://faudiostream.sf.net
+.. _curl: http://curl.haxx.se
 
 Installation
 ============
@@ -99,8 +115,8 @@ installation, if it guesses wrong, you can specify the prefix explicitly by
 running make as ``make install-pd pdprefix=/some/path``.
 
 The included faustxml.pure script provides access to Faust-generated dsp
-descriptions in xml files to Pure scripts. This module is described in its own
-appendix__ below. It may have uses beyond faust2pd, but isn't normally
+descriptions in XML or JSON files to Pure scripts. This module is described in
+its own appendix__ below. It may have uses beyond faust2pd, but isn't normally
 installed. If you want to use this module, you can just copy it to your Pure
 library directory.
 
@@ -167,7 +183,9 @@ Faust compiler and run faust2pd on the resulting XML file:
   # generate the Pd patch from the xml file
   faust2pd freeverb.dsp.xml
 
-Please see `Wrapping DSPs with faust2pd`_ below for further details.
+As of version 2.11, faust2pd can also process dsp descriptions in Faust's new
+JSON format (-json option). Please see `Wrapping DSPs with faust2pd`_ below
+for further details.
 
 Note that, just as with other Pd externals and abstractions, the compiled
 .pd_linux modules and wrapper patches must be put somewhere where Pd can find
@@ -307,6 +325,37 @@ The default output filename is ``input-file`` with new extension
 ``.pd``. Thus, ``faust2pd filename.dsp.xml`` creates a Pd patch named
 ``filename.pd`` from the Faust XML description in ``filename.dsp.xml``.
 
+JSON Support
+------------
+
+As of version 2.11, faust2pd also fully supports Faust's new JSON-based
+description format, which is generated with the -json option. In this case the
+filename extension is ``.dsp.json``, so faust2pd is invoked as ``faust2pd
+filename.dsp.json`` instead. Please note that this format is only supported in
+the latest Faust versions (Faust 0.9.70 and later).
+
+Instead of generating a JSON file with the Faust compiler, you can also read
+the JSON description straight from a running dsp instance via the httpd
+interface. This works with both stand-alone Faust applications which have the
+httpd interface enabled (e.g., created with ``faust2jaqt -httpd mydsp.dsp``)
+and instances running in Grame's FaustLive application. To these ends, you
+just specify the URL of the running dsp instance instead of the JSON
+filename. (To make this work, you need to have curl_ installed.)
+
+For instance, assuming that there's a Faust dsp running locally at port 5510,
+you can run faust2pd as follows to create a GUI patch for it: ``faust2pd
+http://localhost:5510``. You can find out about the port a Faust dsp runs on
+by inspecting the terminal output of a stand-alone Faust application. In
+FaustLive, use the ``Window / View QRcode`` menu option to retrieve the IP
+under which the httpd interface of a dsp window can be accessed. If FaustLive
+is running locally on its default port (7777), then you can also retrieve a
+list of dsp instances currently running in FaustLive using ``faust2pd
+http://localhost:7777/availableInterfaces``. This prints the dsp names along
+with their URLs on stdout.
+
+faust2pd Options
+----------------
+
 The faust2pd program understands a number of options which affect the layout
 of the GUI elements and the contents of the generated patch. Here is a brief
 list of the available options:
@@ -344,11 +393,10 @@ and vertical layout specified in the Faust source. The script also adds
 special buttons for resetting all controls to their defaults and to operate
 the special ``active`` control.
 
-This generally works very well, but you should be aware that the control GUIs
-generated by faust2pd are somewhat hampered by the limited range of GUI
-elements available in a vanilla Pd installation. As a remedy, faust2pd
-provides various options to change the content of the generated wrapper and
-work around these limitations.
+This generally works very well, but the control GUIs generated by faust2pd are
+somewhat hampered by the limited range of GUI elements available in a vanilla
+Pd installation. As a remedy, faust2pd provides various options to change the
+content of the generated wrapper and work around these limitations.
 
 - There are no real button widgets as required by the Faust specification,
   so bangs are used instead. There is a global delay time for switching the
@@ -362,7 +410,9 @@ work around these limitations.
   to figure out what the current value is. Therefore faust2pd has an option -s
   a.k.a. --slider-nums which causes it to add a number box to each slider
   control. (This flag also applies to Faust's passive bargraph controls, as
-  these are implemented using sliders, see below.)
+  these are implemented using sliders, see below. As of faust2pd 2.12, this
+  option is actually the default now, but you can still disable it with the
+  --no-slider-nums option.)
 
 - Pd's sliders also have no provision for specifying a stepsize, so they are
   an awkward way to input integral values from a small range. OTOH, Faust
@@ -408,15 +458,24 @@ control surfaces and interfaces to be used on stage you'll probably have to
 edit the generated GUI layouts by hand.)
 
 For convenience, all the content-related command line options mentioned above
-can also be specified in the Faust source, as special tags in the label of the
-toplevel group of the dsp. These take the form ``[pd:option]`` or
-``[pd:option=value]`` where ``option`` is any of the (long) options understood
+can also be specified in the Faust source, as special meta data in the label
+of the toplevel group of the dsp. These take the form ``[pd:option]`` or
+``[pd:option=value]`` where ``option`` is any of the layout options understood
 by faust2pd. For instance::
 
-  process = vgroup("mysynth [pd:nvoices=8] [pd:slider-nums]", ...);
+  process = vgroup("mysynth [pd:nvoices=8] [pd:no-slider-nums]", ...);
 
-Source options carrying arguments, like ``nvoices`` in the above example, can
-also be overridden with corresponding command line options.
+Alternatively, as of faust2pd 2.11, these options can also be specified as a
+single chunk of global meta data, using the ``faust2pd`` key. So the above can
+also be written as::
+
+  declare faust2pd "--nvoices=8 --no-slider-nums";
+
+Note that source options carrying arguments, like ``--nvoices`` in the above
+example, can still be overridden with corresponding command line options. Also
+note that all this works with the JSON format only, as meta data in the Faust
+source isn't recorded in the XML format produced by recent Faust versions any
+more.
 
 Conclusion
 ==========
