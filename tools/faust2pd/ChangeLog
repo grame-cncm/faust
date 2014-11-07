@@ -1,3 +1,25 @@
+2014-11-06  Albert Graef  <aggraef@gmail.com>
+
+	+ Release 2.12
+
+	* For better compatibility with pd-faust and older faust2pd
+	versions, parse the 'pd' meta data on the toplevel group in JSON
+	format. Also, make --slider-nums the default, and add a new
+	--no-slider-nums option to disable this feature.
+
+2014-11-04  Albert Graef  <aggraef@gmail.com>
+
+	+ Release 2.11
+
+	* Bugfixes. Version bump needed since broken package was out
+	already.
+
+2014-11-03  Albert Graef  <aggraef@gmail.com>
+
+	+ Release 2.10
+
+	* Add JSON support (faust -json, httpd JSON interface).
+
 2014-09-17  Albert Graef  <aggraef@gmail.com>
 
 	+ Release 2.8

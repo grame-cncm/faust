@@ -1,6 +1,6 @@
 #! /usr/local/bin/pure -x
 
-/* Copyright (c) 2009 by Albert Graef.
+/* Copyright (c) 2009-2014 by Albert Graef.
 
    This is free software; you can redistribute it and/or modify it under the
    terms of the GNU General Public License as published by the Free Software
@@ -20,10 +20,16 @@ let version = "@version@";
 using dict, faustxml, getopt, regex, system;
 using namespace faustxml;
 
+/* Option values.*/
+
+public height width exclude nvoices radio_sliders;
+public fake_buttons_flag slider_nums_flag;
+
 /* Constructors to represent Pd messages and objects. */
 
 public obj msg text connect coords send receive route
   bng tgl nbx hsl vsl hradio vradio;
+public s r;
 
 send = s;
 receive = r;
@@ -50,7 +56,51 @@ move dx dy (f@_ x)
 		= move dx dy f x;
 move dx dy x	= x otherwise;
 
+/* Make control names as in faustxml.pure but with name mangling and "/" in
+   front. */
+
+join2 "" s	= "/"+s;
+join2 s ""	= s;
+join2 s t	= s+"/"+t otherwise;
+
+mangle s	= join "-" $ filter (\x->~null x) $
+		  regsplit "[^A-Za-z0-9]+" REG_EXTENDED s 0
+when
+  s = strcat $ regsplit "[ \t]*\\[[^]]+\\][ \t]*" REG_EXTENDED s 0;
+end;
+
+pdcontrols x	= filter (((~=)"/").control_label) $ controls "" x with
+  controls path x
+		= case x of
+		    f@_ (lbl::string,ctrls@[]) |
+		    f@_ (lbl::string,ctrls@(_:_))
+		      = catmap (controls (join2 path lbl)) ctrls
+		        when lbl = mangle lbl end;
+		    f@_ (lbl::string,args)
+		      = [f (join2 path lbl,args)]
+		        when lbl = mangle lbl end;
+		    f@_ lbl::string
+		      = [f (join2 path lbl)]
+		        when lbl = mangle lbl end;
+		  end;
+end if controlp x;
+
 /* Write dsp and synth patches to a file. */
+
+public make_dsp make_synth;
+
+obj_str (f@_ x::string)
+		= obj_str f if null x;
+		= obj_str f+" \\"+x if x!0 == "$";
+		= obj_str f+" "+x otherwise;
+obj_str (f@_ x::int)
+		= obj_str f+sprintf " %d" x otherwise;
+obj_str (f@_ x::double)
+		= obj_str f+sprintf " %g" x otherwise;
+obj_str (f@_ x)	= obj_str f+" "+str x;
+obj_str f	= str f otherwise;
+
+write_obj f x	= fprintf f "#X %s;\n" $ obj_str x;
 
 write_dsp info outname
 		= fputs "#N canvas 0 0 450 300 10;\n" f $$
@@ -74,24 +124,25 @@ write_synth n info outname
 		      objs = make_synth n info;
 		    end;
 
-write_obj f x	= fprintf f "#X %s;\n" $ obj_str x;
-
-obj_str (f@_ x::string)
-		= obj_str f if null x;
-		= obj_str f+" \\"+x if x!0 == "$";
-		= obj_str f+" "+x otherwise;
-obj_str (f@_ x::int)
-		= obj_str f+sprintf " %d" x otherwise;
-obj_str (f@_ x::double)
-		= obj_str f+sprintf " %g" x otherwise;
-obj_str (f@_ x)	= obj_str f+" "+str x;
-obj_str f	= str f otherwise;
-
 /* Construct dsp and synth patches. */
+
+// check for the "active" control which is treated specially
+is_dsp_control c
+		= name~="active"
+		    when name = last $ split "/" $ control_label c end;
+
+// check for "active" and special voice controls (freq/gain/gate) which
+// shouldn't be exposed in the GUI
+is_voice_control c
+		= ~any ((==)name) ["active","freq","gain","gate"]
+		    when name = last $ split "/" $ control_label c end;
 
 comment y	= [text 0 (y+10) $ sprintf "Generated %s by faust2pd v%s. \
 See http://faust.grame.fr and http://purelang.bitbucket.org."
 		   (strftime "%c" (localtime time),version)];
+
+public make_group add_widget make_controls make_control_objs;
+public make_simple make_voices make_gui;
 
 make_dsp (name,descr,version,in,out,layout)
 		= merge dsp controls +
@@ -116,17 +167,6 @@ make_synth n (name,descr,version,in,out,layout)
 		      voices = move 10 (y+60) $
 		      make_voices (name+"~") out n;
 		    end;
-
-// check for the "active" control which is treated specially
-is_dsp_control c
-		= name~="active"
-		    when name = last $ split "/" $ control_label c end;
-
-// check for "active" and special voice controls (freq/gain/gate) which
-// shouldn't be exposed in the GUI
-is_voice_control c
-		= ~any ((==)name) ["active","freq","gain","gate"]
-		    when name = last $ split "/" $ control_label c end;
 
 /* Create the dsp subpatch. */
 
@@ -225,6 +265,21 @@ make_controls layout controls
 
 let fn1,fn2 = 10,10; // default GUI font sizes, adapt as needed
 
+hbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		= x0,y0,x,y1,max x2 x,max y2 y,c1:c
+		    if width<=0 || x<=width || x1<=x0;
+		= hbreak f (x0,y0,x0,y2,x2,y2,c) item (f (x0,y2) item);
+hstep f (x0,y0,x1,y1,x2,y2,c) item
+		= hbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		    when x,y,c1 = f (x1,y1) item end;
+vbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		= x0,y0,x1,y,max x2 x,max y2 y,c1:c
+		    if height<=0 || y<=height || y1<=y0;
+		= vbreak f (x0,y0,x2,y0,x2,y2,c) item (f (x2,y0) item);
+vstep f (x0,y0,x1,y1,x2,y2,c) item
+		= vbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		    when x,y,c1 = f (x1,y1) item end;
+
 make_gui layout	= x,y,c+
 		  [obj (x-38) 3 bng 15 250 50 1 "$0-init" "$0-ignore"
 		   "empty" 0 (-6) 0 fn1 white black black,
@@ -256,23 +311,12 @@ make_group path (x,y) item
 		= //printf "%s [%s] item %s\n" (str (x,y),path,str item) $$
 		  add_widget path (x,y) item;
 
-hstep f (x0,y0,x1,y1,x2,y2,c) item
-		= hbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
-		    when x,y,c1 = f (x1,y1) item end;
-hbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
-		= x0,y0,x,y1,max x2 x,max y2 y,c1:c
-		    if width<=0 || x<=width || x1<=x0;
-		= hbreak f (x0,y0,x0,y2,x2,y2,c) item (f (x0,y2) item);
-vstep f (x0,y0,x1,y1,x2,y2,c) item
-		= vbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
-		    when x,y,c1 = f (x1,y1) item end;
-vbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
-		= x0,y0,x1,y,max x2 x,max y2 y,c1:c
-		    if height<=0 || y<=height || y1<=y0;
-		= vbreak f (x0,y0,x2,y0,x2,y2,c) item (f (x2,y0) item);
-
 checkname name	= "empty" if null name;
 		= name otherwise;
+
+control_sym name
+		= sprintf "$0-%s" $ substr name 1 (#name-1) if name!0=="/";
+		= sprintf "$0-%s" name otherwise;
 
 match_control path name pat
 		= fnmatch pat (join2 path name) 0 if index pat "/" >= 0;
@@ -399,6 +443,9 @@ add_widget _ (x,y) _
 
 /* Create the control objects and wiring. */
 
+public control_objs button_control_objs activate_control_objs;
+public active_control_objs passive_control_objs;
+
 make_control_objs controls
 		= [obj 0 0 receive "$0-init",
 		   obj dx 0 send (if nvoices>0 then "$0-all" else "$0-in"),
@@ -438,10 +485,6 @@ control_objs dx (j,c) (vbargraph (name,_))
 		    when s = control_sym name end;
 control_objs _ (j,c) _
 		= (j,c) otherwise;
-
-control_sym name
-		= sprintf "$0-%s" $ substr name 1 (#name-1) if name!0=="/";
-		= sprintf "$0-%s" name otherwise;
 
 activate_control_objs dx j name s init
 		= [msg 0 ((2*j+1)*20) init,
@@ -503,36 +546,9 @@ passive_control_objs dx j name s init
 		   (if j>0 then 1 else 0) (6*j+8) 0,
 		   connect (6*j+8) 0 (6*j+9) 0];
 
-/* Make control names as in faustxml.pure but with name mangling and "/" in
-   front. */
-
-mangle s	= join "-" $ filter (\x->~null x) $
-		  regsplit "[^A-Za-z0-9]+" REG_EXTENDED s 0
-when
-  s = strcat $ regsplit "[ \t]*\\[[^]]+\\][ \t]*" REG_EXTENDED s 0;
-end;
-
-pdcontrols x	= filter (((~=)"/").control_label) $ controls "" x with
-  controls path x
-		= case x of
-		    f@_ (lbl::string,ctrls@[]) |
-		    f@_ (lbl::string,ctrls@(_:_))
-		      = catmap (controls (join2 path lbl)) ctrls
-		        when lbl = mangle lbl end;
-		    f@_ (lbl::string,args)
-		      = [f (join2 path lbl,args)]
-		        when lbl = mangle lbl end;
-		    f@_ lbl::string
-		      = [f (join2 path lbl)]
-		        when lbl = mangle lbl end;
-		  end;
-end if controlp x;
-
-join2 "" s	= "/"+s;
-join2 s ""	= s;
-join2 s t	= s+"/"+t otherwise;
-
 /* main program */
+
+public prog myopts;
 
 error msg::string
 		= fprintf stderr "%s: %s\n" (prog,msg) $$ exit 1;
@@ -550,15 +566,15 @@ get_set_opt opt	= case myopts!![opt] of
 		   _ = [] otherwise;
 		  end;
 
-get_int_opt opt	= case myopts!![opt] of
-		   [val::string] = check_int_opt opt val if ~null val;
-		   _ = 0 otherwise;
-		  end;
-
 extern int atoi(char*);
 check_int_opt opt val
 		= n if n>0 when n = atoi val end;
 		= error $ sprintf "invalid option value %s %s" (opt,val);
+
+get_int_opt opt	= case myopts!![opt] of
+		   [val::string] = check_int_opt opt val if ~null val;
+		   _ = 0 otherwise;
+		  end;
 
 print_usage prog
 		= printf
@@ -577,18 +593,20 @@ Options:\n\
 -X, --exclude       exclude controls matching the given glob patterns\n\
 -x, --width         maximum width of the GUI area\n\
 -y, --height        maximum height of the GUI area\n\
-input-file          input file name ('.dsp.xml' file)\n\
-Default output-file is input-file with new extension '.pd'.\n"
+input-file          input file name ('.dsp.xml' or '.dsp.json') or URL\n\
+NOTE: --slider-nums is the default as of faust2pd 2.12; use --no-slider-nums\n\
+to disable. Default output-file is input-file with new extension '.pd'.\n"
 		  (version,prog) $$ exit 0;
 
 print_version	= printf
-"faust2pd version %s, Copyright (c) 2009 by Albert Graef\n" version $$
+"faust2pd version %s, Copyright (c) 2009-2014 by Albert Graef\n" version $$
 		  exit 0;
 
 let opts        = [("--help", "-h", NOARG),
 		   ("--version", "-V", NOARG),
 		   ("--fake-buttons", "-b", NOARG),
 		   ("--slider-nums", "-s", NOARG),
+		   ("--no-slider-nums", "", NOARG),
 		   ("--radio-sliders", "-r", REQARG),
 		   ("--nvoices", "-n", REQARG),
 		   ("--font-size", "-f", REQARG),
@@ -598,7 +616,8 @@ let opts        = [("--help", "-h", NOARG),
 		   ("--output-file", "-o", REQARG)];
 
 //let compiling = 1;
-//let argv = ["faust2pd","test/organ.dsp.xml"];
+//let argv = ["faust2pd","http://127.0.0.1:7777/availableInterfaces"];
+//let argv = ["faust2pd","http://127.0.0.1:7777/5510"];
 let prog,myargs = case argv of prog:args = prog,args; _ = "faust2pd",[] end;
 
 //let prog = "faust2pd";
@@ -630,33 +649,56 @@ if outname===xmlname then
   error "output would overwrite source file, aborting"
 else ();
 
-attrs s		= regexg (\info->info!3) "\\[pd:([^]]+)\\]" REG_EXTENDED s 0;
-
 let dsp_info => (src_opts,_) =
   if compiling then () => ([],[])
   else
   (dsp_info => catch invalid_src_option (getopt opts src_opts) when
      setlocale LC_ALL "C";
      dsp_info = catch error (faustxml::info xmlname);
-     src_opts = case dsp_info!5 of
-                  _ (label,_) = ["--"+opt | opt = attrs label];
-                  _ = [];
-                end;
+     ~listp dsp_info ||
+     (() when
+	// Output is a list of dsp/url hash pairs. Print them on stdout and
+	// exit.
+	maxlen = foldl (\l (name=>url) -> max l (#name)) 0 dsp_info;
+	format = sprintf "%%-%ds  %%s\n" maxlen;
+	puts "Available interfaces:";
+	do (\(name=>url) -> printf format (name,url)) dsp_info;
+	exit 0;
+      end);
+     // This is for backward compatibility with older faust2pd and faust
+     // versions, where the options were encoded as meta data in the label of
+     // the toplevel group. This doesn't work with the latest faust versions
+     // any more.
+     src_opts1 = case dsp_info!5 of
+       _ (label,_) = ["--"+opt | opt = attrs label] with
+	 attrs s = regexg (\info->info!3) "\\[pd:([^]]+)\\]" REG_EXTENDED s 0;
+       end;
+       _ = [];
+     end;
+     // In the latest faust2pd versions we now take the options from global
+     // meta data. This requires a recent faust version and only works with
+     // JSON descriptions (-json).
+     src_opts2 = dsp_info!6;
+     src_opts = src_opts1 + src_opts2;
+     dsp_info = dsp_info!!(0..5);
    end);
 
 /* Command line options always override what's in the source. */
+let mycmdopts = myopts;
 let myopts = dict (src_opts+members myopts);
 
 let fake_buttons_flag = member myopts "--fake-buttons";
-let slider_nums_flag = member myopts "--slider-nums";
+let slider_nums_flag = member mycmdopts "--slider-nums" ||
+  ~member myopts "--no-slider-nums";
 let [radio_sliders,nvoices,height,width,fnsize] = map get_int_opt
   ["--radio-sliders","--nvoices","--height","--width","--font-size"];
 let exclude = get_set_opt "--exclude";
 
 let fn1,fn2 = if fnsize>0 then fnsize,fnsize else fn1,fn2;
 
-main		= catch error mainprog $$ exit 0;
-mainprog	= write_synth nvoices dsp_info outname if nvoices>0;
+main		= catch error mainprog $$ exit 0 with
+  mainprog	= write_synth nvoices dsp_info outname if nvoices>0;
 		= write_dsp dsp_info outname otherwise;
+end;
 
 if compiling then () else main;
