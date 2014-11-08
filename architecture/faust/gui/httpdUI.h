@@ -8,14 +8,13 @@
 #ifndef __httpdUI__
 #define __httpdUI__
 
-#ifdef _MINGW32__
-#include "HTTPDControler.h"
-#include "UI.h"
-#else
+//#ifdef _WIN32
+//#include "HTTPDControler.h"
+//#include "UI.h"
+//#else
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/UI.h"
-#endif
-
+//#endif
 /******************************************************************************
 *******************************************************************************
 
