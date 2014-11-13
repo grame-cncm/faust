@@ -65,7 +65,7 @@ Symbol* Symbol::get(const char* rawstr)
     char*           p = &str[0];
     char            c;
     unsigned int    n = 0;
-    while ((++n<1024) && (c=*rawstr++)) { *p++ = (c<32) ? 32 : c; }
+    while ((++n<1024) && (c=*rawstr++)) { *p++ = (c >= 0 && c < 32) ? 32 : c; }
     *p++ = 0;
     //----------------------------------------------------
 
@@ -75,6 +75,7 @@ Symbol* Symbol::get(const char* rawstr)
   
     while ( item && !item->equiv(hsh,str) ) item = item->fNext;
 	Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
+     
 	return r;
 }
 
