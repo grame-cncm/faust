@@ -24,6 +24,8 @@
 
 #define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35)
 
+unsigned faust_alarm(unsigned seconds);
+
 #ifdef WIN32
 #include <windows.h>
 #include <time.h>

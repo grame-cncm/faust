@@ -142,10 +142,16 @@ emcc : libfaust.js
 emcc : EXPORTED="['_createAsmCDSPFactoryFromString']"
 
 ##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 
-##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
+##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
 
-libfaust.js : $(objects) libmain.o global.o
-	$(CXX) -O2 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libmain.o global.o -o libfaust.js
+libfaust.js : $(objects) libcode.o global.o
+	$(CXX) -O2 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
+
+libcode.o : libcode.cpp
+	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
+
+libcode.o : libcode.cpp
+	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
@@ -156,39 +162,39 @@ global.o : global.cpp
 main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
 
-faust : $(objects) main.o libmain.o global.o 
+faust : $(objects) main.o libcode.o global.o 
 ifneq ($(findstring MINGW32, $(system)),)
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
 endif
 
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 
 ifeq ($(system), Darwin)
-    libfaust.a : $(objects) libmain.o global.o
-	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
+    libfaust.a : $(objects) libcode.o libmain.o global.o
+	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
-    libfaust.dylib : $(objects) libmain.o global.o
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+    libfaust.dylib : $(objects) libcode.o libmain.o global.o
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else	
 ifneq ($(findstring MINGW32, $(system)),)
-    libfaust.a : $(objects) libmain.o global.o
+    libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
-	ar cq $@ $(objects) libmain.o global.o
+	ar cq $@ $(objects) libcode.o libmain.o global.o
 	ranlib $@
 
-    libfaust.dll : $(objects) libmain.o global.o
-	$(CXX) -shared $(objects) libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread
+    libfaust.dll : $(objects) libcode.o libmain.o global.o
+	$(CXX) -shared $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread
 else
-    libfaust.a : $(objects) libmain.o global.o
+    libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
-	ar cq $@ $(objects) libmain.o global.o
+	ar cq $@ $(objects) libcode.o libmain.o global.o
 	ranlib $@
 
-    libfaust.so : $(objects) libmain.o global.o
-	$(CXX) -shared -fPIC $(objects) libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ 
+    libfaust.so : $(objects) libcode.o libmain.o global.o
+	$(CXX) -shared -fPIC $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) -ldl -lcrypto -lstdc++ 
 endif
 endif
 
@@ -200,11 +206,11 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) main.o libmain.o global.o faust$(EXE) libfaust.a libfaust.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) main.o libcode.o libmain.o global.o faust$(EXE) libfaust.a libfaust.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :
-	makedepend -fMakefile.unix -w120 -Y -- $(addprefix -I, $(subprojects)) -- $(sources) libmain.cpp global.cpp main.cpp
+	makedepend -fMakefile.unix -w120 -Y -- $(addprefix -I, $(subprojects)) -- $(sources) libcode.cpp global.cpp main.cpp
 
 ctags:
 	ctags -R main.cpp $(subprojects)
@@ -693,24 +699,24 @@ generator/js/js_code_container.o: generator/type_manager.hh errors/exception.hh
 generator/llvm/llvm_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_dsp_aux.o: tlib/compatibility.hh
 ../libraries/loki/SafeFormat.o: ../libraries/loki/SafeFormat.h ../libraries/loki/LokiExport.h
-libmain.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
-libmain.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
-libmain.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-libmain.o: evaluate/loopDetector.hh tlib/occurrences.hh tlib/compatibility.hh signals/sigtyperules.hh
-libmain.o: signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh
-libmain.o: propagate/propagate.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh
-libmain.o: evaluate/environment.hh generator/description.hh generator/uitree.hh generator/floats.hh documentator/doc.hh
-libmain.o: generator/instructions_compiler.hh generator/code_container.hh generator/function_builder.hh
-libmain.o: parallelize/code_loop.hh generator/json_instructions.hh generator/occurences.hh
-libmain.o: generator/dag_instructions_compiler.hh generator/c/c_code_container.hh generator/c/c_instructions.hh
-libmain.o: generator/text_instructions.hh generator/type_manager.hh generator/vec_code_container.hh
-libmain.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
-libmain.o: generator/cpp/cpp_instructions.hh generator/opencl_instructions.hh generator/cpp/cpp_gpu_code_container.hh
-libmain.o: generator/java/java_code_container.hh generator/java/java_instructions.hh generator/typing_instructions.hh
-libmain.o: generator/js/js_code_container.hh generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
-libmain.o: generator/asmjs/asmjs_instructions.hh generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
-libmain.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh
-libmain.o: errors/exception.hh libfaust.h export.hh
+libcode.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
+libcode.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
+libcode.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
+libcode.o: evaluate/loopDetector.hh tlib/occurrences.hh tlib/compatibility.hh signals/sigtyperules.hh
+libcode.o: signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh
+libcode.o: propagate/propagate.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh
+libcode.o: evaluate/environment.hh generator/description.hh generator/uitree.hh generator/floats.hh documentator/doc.hh
+libcode.o: generator/instructions_compiler.hh generator/code_container.hh generator/function_builder.hh
+libcode.o: parallelize/code_loop.hh generator/json_instructions.hh generator/occurences.hh
+libcode.o: generator/dag_instructions_compiler.hh generator/c/c_code_container.hh generator/c/c_instructions.hh
+libcode.o: generator/text_instructions.hh generator/type_manager.hh generator/vec_code_container.hh
+libcode.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
+libcode.o: generator/cpp/cpp_instructions.hh generator/opencl_instructions.hh generator/cpp/cpp_gpu_code_container.hh
+libcode.o: generator/java/java_code_container.hh generator/java/java_instructions.hh generator/typing_instructions.hh
+libcode.o: generator/js/js_code_container.hh generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
+libcode.o: generator/asmjs/asmjs_instructions.hh generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
+libcode.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh
+libcode.o: errors/exception.hh libfaust.h export.hh
 global.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 global.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
 global.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
@@ -726,4 +732,4 @@ global.o: generator/text_instructions.hh generator/type_manager.hh generator/typ
 main.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 main.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
 main.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-main.o: evaluate/loopDetector.hh tlib/occurrences.hh export.hh errors/exception.hh
+main.o: evaluate/loopDetector.hh tlib/occurrences.hh export.hh errors/exception.hh tlib/compatibility.hh

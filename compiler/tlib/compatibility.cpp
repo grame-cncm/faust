@@ -80,11 +80,12 @@
 	int mkdir(const char* path, unsigned int attribute)
 	{
 		if (CreateDirectory(path,NULL) == 0) {
-// mkdir has to be successfull in case the path already exists
-			if(GetLastError() == ERROR_ALREADY_EXISTS)
+            // mkdir has to be successfull in case the path already exists
+			if (GetLastError() == ERROR_ALREADY_EXISTS) {
 				return 0;
-			else
+			} else {
 				return -1;
+            }
 		} else {
 			return 0;
         }
@@ -184,7 +185,6 @@
 	}
 
 #endif
-
 	
     char *realpath(const char *path, char resolved_path[MAX_PATH])
     {
@@ -195,8 +195,8 @@
         }
     }
 
-	char* basename(const char* fullpath){
-		
+	char* basename(const char* fullpath)
+    {
 		char drive[_MAX_DRIVE];
 		char dir[_MAX_DIR];
 		char fname[_MAX_FNAME];

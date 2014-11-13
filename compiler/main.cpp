@@ -21,6 +21,13 @@
 #include "global.hh"
 #include "export.hh"
 #include "exception.hh"
+#include "compatibility.hh"
+
+// Standalone compiler uses the real 'alarm' function
+unsigned faust_alarm(unsigned seconds)
+{
+    return alarm(seconds);
+}
 
 int main(int argc, const char* argv[])
 {

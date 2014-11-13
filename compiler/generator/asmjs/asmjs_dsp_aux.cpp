@@ -51,8 +51,6 @@ static inline std::string flatten(const std::string& src)
     return dst.str();
 }
 
-unsigned alarm(unsigned seconds) { return 0; }
-
 EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, const char* name_class, char* error_msg)
 {
     int argc1 = 7;
