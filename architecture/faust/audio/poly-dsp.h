@@ -201,6 +201,17 @@ struct mydsp_poly
         }
     }
     
+    void pitchBend(int refPitch, float pitch)
+    {
+    	int voice = getVoice(refPitch);
+        if (voice >= 0) {
+        	fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+        }
+        else {
+        	printf("Playing voice not found...\n");
+        }
+    }
+    
     void ctrlChange(int channel, int ctrl, int value)
     {}
     
