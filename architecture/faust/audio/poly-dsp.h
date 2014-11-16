@@ -82,9 +82,9 @@ struct mydsp_poly
         }
     }
     
-    inline float midiToFreq(int note) 
+    inline float midiToFreq(float note) 
     {
-        return 440.0f * powf(2.0f, ((float(note))-69.0f)/12.0f);
+        return 440.0f * powf(2.0f, (note-69.0f)/12.0f);
     }
     
     inline void clearOutput(int count, FAUSTFLOAT** mixBuffer) 
