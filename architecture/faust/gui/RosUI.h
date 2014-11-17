@@ -8,16 +8,22 @@
 
 #include "faust/gui/UI.h"
 #include "ros/ros.h"
-#include "faust_msgs/faust_param.h"
+#include "std_msgs/Float32.h"
+#include "std_msgs/Bool.h"
 
 #include <algorithm>
+#include <vector>
 
 class RosUI : public UI
 {
     
     public :
     
-	RosUI(ros::NodeHandle nh) : nh_(nh), queue_(10), count_(0) {};
+	RosUI(ros::NodeHandle nh) : nh_(nh), queue_(10), count_(0), box_names_(0) 
+	{
+	    const std::string nh_name = nh_.getNamespace();
+	    box_names_.push_back(nh_name);
+	};
 	
 	//~RosUI() {}
 	
@@ -111,31 +117,30 @@ class RosUI : public UI
 	
 	// -- callbacks
 	
-	void buttonCallback(const faust_msgs::faust_paramConstPtr& msg, FAUSTFLOAT* zone)
+	void buttonCallback(const std_msgs::BoolConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    // If msg-> value >=0, then the button is activated 
-	    // and reset to 0 after 5 ms.
-	    *zone=msg->value;
-	    ros::Duration(0.005).sleep();
-	    *zone=0;
+	    
+	    *zone=msg->data;
+	    //ros::Duration(0.005).sleep();
+	    //*zone=0;
 	    
 	}
 	
-	void cButtonCallback(const faust_msgs::faust_paramConstPtr& msg, FAUSTFLOAT* zone)
+	void cButtonCallback(const std_msgs::BoolConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    *zone=msg->value;
+	    *zone=msg->data;
 	    
 	}
 	
-	void sliderCallback(const faust_msgs::faust_paramConstPtr& msg, FAUSTFLOAT* zone)
+	void sliderCallback(const std_msgs::Float32ConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    *zone=msg->value;
+	    *zone=msg->data;
 	    
 	}
 	
-	void numEntryCallback(const faust_msgs::faust_paramConstPtr& msg, FAUSTFLOAT* zone)
+	void numEntryCallback(const std_msgs::Float32ConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    *zone=msg->value;
+	    *zone=msg->data;
 	    
 	}	
 	
@@ -143,15 +148,38 @@ class RosUI : public UI
 
     	void openTabBox(const char* label)
     	{
+	    std::string L = (std::string)label;
+	    if(L == "0x00")
+	    {
+		L="";
+	    }
+	    
+	    box_names_.push_back(L);
     	}
 	void openHorizontalBox(const char* label)
 	{
+	    std::string L = (std::string)label;
+	    if(L == "0x00")
+	    {
+		L="";
+	    }
+	    
+	    box_names_.push_back(L);
+	    
 	}
 	void openVerticalBox(const char* label)
 	{
+	    std::string L = (std::string)label;
+	    if(L == "0x00")
+	    {
+		L="";
+	    }
+	    
+	    box_names_.push_back(L);
 	}
 	void closeBox()
 	{
+	    box_names_.pop_back();
 	}
 
 	// -- active widgets
@@ -162,8 +190,34 @@ class RosUI : public UI
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    if (! box_names_.empty())
+	    {
+		
+		std::string my_name = "";
+		
+		for (int i = 0 ; i<box_names_.size() ; i++)
+		{
+		    if (box_names_[i] != "")
+		    {
+			my_name += "/" + strProcess(box_names_[i]); 
+		    }   
+		    else 
+		    {
+			box_names_.erase(box_names_.begin()+i);
+		    }
+		}
+		my_string = my_name + "/" + my_string;
+
+	    }
+	    else
+	    {
+	    std::cout<<"RosUI.h - function addButton - line 187 : No box name to use ! "<<std::endl;
+	    std::cout<<"Finishing..."<<std::endl;
+	    return;
+	    }
+  
 	    ros::Subscriber* button_sub = new ros::Subscriber();
-	    *button_sub = nh_.subscribe<faust_msgs::faust_param>(my_string, queue_, 
+	    *button_sub = nh_.subscribe<std_msgs::Bool>(my_string, queue_, 
 	    boost::bind(&RosUI::buttonCallback, this, _1, zone));
 	    count_++;
 	 	
@@ -174,8 +228,33 @@ class RosUI : public UI
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    if (! box_names_.empty())
+	    {
+		std::string my_name = "";
+		
+		for (int i = 0 ; i<box_names_.size() ; i++)
+		{
+		    if (box_names_[i] != "")
+		    {
+			my_name += "/" + strProcess(box_names_[i]); 
+		    }   
+		    else 
+		    {
+			box_names_.erase(box_names_.begin()+i);
+		    }
+		}
+		my_string = my_name + "/" + my_string;
+
+	    }
+	    else
+	    {
+	    std::cout<<"RosUI.h - function addCheckButton - line 225 : No box name to use ! "<<std::endl;
+	    std::cout<<"Finishing..."<<std::endl;
+	    return;
+	    }
+	    
 	    ros::Subscriber* c_button_sub = new ros::Subscriber();
-	    *c_button_sub = nh_.subscribe<faust_msgs::faust_param>(my_string, queue_, 
+	    *c_button_sub = nh_.subscribe<std_msgs::Bool>(my_string, queue_, 
 	    boost::bind(&RosUI::cButtonCallback, this, _1, zone));
 	    count_++;
 	 
@@ -187,9 +266,35 @@ class RosUI : public UI
 	    std::string str = (std::string)label;
 	    
 	    std::string my_string = strProcess(str);
+
+	    if (! box_names_.empty())
+	    {
+		std::string my_name = "";
+		
+		for (int i = 0 ; i<box_names_.size() ; i++)
+		{
+		    if (box_names_[i] != "")
+		    {
+			my_name += "/" + strProcess(box_names_[i]); 
+		    }   
+		    else 
+		    {
+			box_names_.erase(box_names_.begin()+i);
+		    }
+		}
+		my_string = my_name + "/" + my_string;
+
+	    }
+	    else
+	    {
+	    std::cout<<"RosUI.h - function addVerticalSlider - line 263 : No box name to use ! "<<std::endl;
+	    std::cout<<"Finishing..."<<std::endl;
+	    return;
+	    }
+	    
 	    
 	    ros::Subscriber* v_slider = new ros::Subscriber();
-	    *v_slider = nh_.subscribe<faust_msgs::faust_param>(my_string, queue_, 
+	    *v_slider = nh_.subscribe<std_msgs::Float32>(my_string, queue_, 
 	    boost::bind(&RosUI::sliderCallback, this, _1, zone));
 	    count_++;
 	 
@@ -202,8 +307,34 @@ class RosUI : public UI
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    if (! box_names_.empty())
+	    {
+		std::string my_name = "";
+		
+		for (int i = 0 ; i<box_names_.size() ; i++)
+		{
+		    if (box_names_[i] != "")
+		    {
+			my_name += "/" + strProcess(box_names_[i]); 
+		    }   
+		    else 
+		    {
+			box_names_.erase(box_names_.begin()+i);
+		    }
+		}
+		my_string = my_name + "/" + my_string;
+
+	    }
+	    else
+	    {
+	    std::cout<<"RosUI.h - function addHorizontalSlider - line 303 : No box name to use ! "<<std::endl;
+	    std::cout<<"Finishing..."<<std::endl;
+	    return;
+	    }
+	    
 	    ros::Subscriber* h_slider = new ros::Subscriber();
-	    *h_slider = nh_.subscribe<faust_msgs::faust_param>
+	    
+	    *h_slider = nh_.subscribe<std_msgs::Float32>
 	    (my_string, queue_, boost::bind(&RosUI::sliderCallback, this, _1, zone));
 	    count_++;
 	
@@ -216,8 +347,32 @@ class RosUI : public UI
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    if (! box_names_.empty())
+	    {
+		std::string my_name = "";
+		
+		for (int i = 0 ; i<box_names_.size() ; i++)
+		{
+		    if (box_names_[i] != "")
+		    {
+			my_name += "/" + strProcess(box_names_[i]); 
+		    }   
+		    else 
+		    {
+			box_names_.erase(box_names_.begin()+i);
+		    }
+		}
+		my_string = my_name + "/" + my_string;
+
+	    }
+	    else
+	    {
+	    std::cout<<"RosUI.h - function addNumEntry - line 343 : No box name to use ! "<<std::endl;
+	    std::cout<<"Finishing..."<<std::endl;
+	    return;
+	    }
 	    ros::Subscriber* num_entry = new ros::Subscriber();
-	    *num_entry = nh_.subscribe<faust_msgs::faust_param>(my_string, queue_, 
+	    *num_entry = nh_.subscribe<std_msgs::Float32>(my_string, queue_, 
 	    boost::bind(&RosUI::numEntryCallback, this, _1, zone));
 	   count_++;
 	 
@@ -249,6 +404,8 @@ class RosUI : public UI
 	ros::NodeHandle nh_;
 	int queue_;
 	int count_;
+	
+	std::vector<std::string> box_names_;
 		
 };
 

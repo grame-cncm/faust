@@ -66,32 +66,6 @@ do
     catkin_init_workspace > /dev/null
     fi
     
-    # Check if faust_msgs package exists ; if not, create it
-    
-    if [ ! -d faust_msgs ]
-    then
-  	catkin_create_pkg faust_msgs roscpp message_runtime message_generation std_msgs > /dev/null
-
-	cd faust_msgs	  
-  	    sed -i '/^#/ d' CMakeLists.txt 
-	    sed -i '4,26 d' CMakeLists.txt
-	    sed -i '4ifind_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)' CMakeLists.txt
-	    sed -i '6iadd_message_files(FILES faust_param.msg)\' CMakeLists.txt
-	    sed -i '8igenerate_messages(DEPENDENCIES std_msgs)' CMakeLists.txt
-	    sed -i '10icatkin_package(CATKIN_DEPENDS message_runtime)' CMakeLists.txt
-	    sed -i '12iinclude_directories(${catkin_INCLUDE_DIRS})' CMakeLists.txt
-	    sed -i '13,21 d' CMakeLists.txt 
-    fi
-    if [ ! -d faust_msgs/msg ]    
-    then
-        mkdir msg
-	cd msg
-	    if [ ! -f faust_param.msg ]
-	    then 
-		>faust_param.msg
-		echo 'float32 value' >> faust_param.msg
-	    fi
-    fi
     cd ${WORKSPACES[${i}]}
 	catkin_make > /dev/null
 	#echo "source ${WORKSPACES[${i}]}/devel/setup.bash" >> $HOME/.bashrc
@@ -131,84 +105,77 @@ i=0
 	name=$name"_gtk"
     	if [ $WS_LENGTH = 0 ] 
     	then
-	    cd $HOME
-	    	if [ ! -d $HOME/$name ]
-		then
-		    catkin_create_pkg $name roscpp faust_msgs > /dev/null
-		fi
 	
-		PACKAGE_PATH=$HOME/$name
+	    cd $HOME
+	    	
+		temp_dir=$(mktemp -d ROS.XXXXXX)
+		cd $temp_dir
+		     catkin_create_pkg $name roscpp std_msgs > /dev/null
+		
+	
+		PACKAGE_PATH=$HOME/$temp_dir/$name
 	else
 	    if [ $WS_LENGTH = 1 ]
 	    then
 		cd $WORKSPACE_PATH
-	    	    if [[ ! -d $WORKSPACE_PATH/$name ]]
+	    	    if [[ -d $WORKSPACE_PATH/$name ]]
 		    then
-			catkin_create_pkg $name roscpp faust_msgs > /dev/null
+			
+			rm -r $WORKSPACE_PATH/$name
 
 		    fi
+		    catkin_create_pkg $name roscpp std_msgs > /dev/null
+		    
 		PACKAGE_PATH=$WORKSPACE_PATH/$name
 	    
 	    else 
 	    
 		WORKSPACE_PATH="${WORKSPACES[${i}]}"/src
 		cd $WORKSPACE_PATH
-	    	    if [ ! -d $WORKSPACE_PATH/$name ]
+	    	    if [ -d $WORKSPACE_PATH/$name ]
 		    then
-		    	catkin_create_pkg $name roscpp faust_msgs > /dev/null
+		        
+		        rm -r $WORKSPACE_PATH/$name	
 
 		    fi
+		    
+		    catkin_create_pkg $name roscpp std_msgs > /dev/null
+		    
 		PACKAGE_PATH=$WORKSPACE_PATH/$name
 	    fi
 	fi
 	cd $PACKAGE_PATH
-	    sed -i '/^#/ d' CMakeLists.txt 
-    	    sed -i '4iset(CMAKE_INCLUDE_CURRENT_DIR ON)' CMakeLists.txt
-    	    sed -i '5iset(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})' CMakeLists.txt
-    	    sed -i '6ifind_package(PkgConfig REQUIRED)' CMakeLists.txt
-    	    sed -i '7ipkg_check_modules(GTK2 REQUIRED gtk+-2.0)' CMakeLists.txt
-    	    sed -i '8iinclude_directories(${catkin_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})' CMakeLists.txt
-    	    sed -i '9ilink_directories(${GTK2_LIBRARY_DIRS})' CMakeLists.txt
-    	    sed -i '14,30d' CMakeLists.txt
-    	    sed -i '15iadd_executable(${PROJECT_NAME} src/${PROJECT_NAME}.cpp)' CMakeLists.txt
-	    sed -i '17itarget_link_libraries(${PROJECT_NAME} ${GTK2_LIBRARIES} jack ${catkin_LIBRARIES})' CMakeLists.txt
-	    sed -i '18,28d' CMakeLists.txt
+	
+############## CMAKELISTS ############################	
+echo -e "cmake_minimum_required(VERSION 2.8.3) 
+project($name)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK2 REQUIRED gtk+-2.0)
+include_directories(\${catkin_INCLUDE_DIRS} \${GTK2_INCLUDE_DIRS})
+link_directories(\${GTK2_LIBRARY_DIRS})
+catkin_package()
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+)
+
+add_executable(\${PROJECT_NAME} src/\${PROJECT_NAME}.cpp)
+
+target_link_libraries(\${PROJECT_NAME} \${GTK2_LIBRARIES} jack \${catkin_LIBRARIES})" > CMakeLists.txt
+############# END CMAKELISTS #########################
 	    
 	# compile faust to c++
-    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	
+    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p > /dev/null	
 	if [ $WS_LENGTH = 0 ]
 	then
-	    cd $HOME
-	    if [ ! -d faust_msgs ]
-	    then
-	        catkin_create_pkg faust_msgs roscpp message_runtime message_generation std_msgs > /dev/null
-
-		    cd faust_msgs	  
-	  		sed -i '/^#/ d' CMakeLists.txt 
-    			sed -i '4,26 d' CMakeLists.txt
-    			sed -i '4ifind_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)' CMakeLists.txt
-    			sed -i '6iadd_message_files(FILES faust_param.msg)\' CMakeLists.txt
-    			sed -i '8igenerate_messages(DEPENDENCIES std_msgs)' CMakeLists.txt
-    			sed -i '10icatkin_package(CATKIN_DEPENDS message_runtime)' CMakeLists.txt
-    			sed -i '12iinclude_directories(${catkin_INCLUDE_DIRS})' CMakeLists.txt
-    			sed -i '13,21 d' CMakeLists.txt
-    		    if [ ! -d faust_msgs/msg ]    
-		    then
-        		mkdir msg
-			cd msg
-			    if [ ! -f faust_param.msg ]
-			    then 
-				>faust_param.msg
-				echo 'float32 value' >> faust_param.msg
-			    fi
-		    fi
-    		cd $HOME
-    		msg=faust_msgs
-    		zip -r $name.zip $msg > /dev/null
-	    fi
 	    
+	    cd $HOME/$temp_dir
+
 	    zip -r $name.zip $name > /dev/null
-	    rm -r $PACKAGE_PATH
+	    cd $HOME
+	    cp $temp_dir/$name.zip $HOME
+	    rm -r $temp_dir
 	    OUTPUT="$OUTPUT $name.zip;"
 	else
 	    #cd ${WORKSPACES[${i}]}
@@ -218,11 +185,7 @@ i=0
 
     i=$((i+1))
 
-    done
-if [ -d faust_msgs ]
-then
-    rm -r $msg
-fi
+    done	
 
 echo $OUTPUT
 	
