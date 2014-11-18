@@ -11,6 +11,7 @@
 
 ARCHFILE="jack-ros.cpp"
 path=$(pwd)
+CURRENT_DIR=$(pwd)
 
 # Dispatch command arguments
 WORKSPACES=''
@@ -104,14 +105,14 @@ i=0
 	
     	if [ $WS_LENGTH = 0 ] 
     	then
-	    cd $HOME
+	    cd $CURRENT_DIR
 	    	
 		temp_dir=$(mktemp -d ROS.XXXXXX)
 		cd $temp_dir
 		     catkin_create_pkg $name roscpp std_msgs > /dev/null
 		
 	
-		PACKAGE_PATH=$HOME/$temp_dir/$name
+		PACKAGE_PATH=$CURRENT_DIR/$temp_dir/$name
 	else
 	    if [ $WS_LENGTH = 1 ]
 	    then
@@ -166,11 +167,11 @@ target_link_libraries(\${PROJECT_NAME} jack \${catkin_LIBRARIES})" > CMakeLists.
     	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	
 	if [ $WS_LENGTH = 0 ]
 	then
-	    cd $HOME/$temp_dir
+	    cd $CURRENT_DIR/$temp_dir
 
 	    zip -r $name.zip $name > /dev/null
-	    cd $HOME
-	    cp $temp_dir/$name.zip $HOME
+	    cd $CURRENT_DIR
+	    cp $temp_dir/$name.zip $CURRENT_DIR
 	    rm -r $temp_dir
 	    OUTPUT="$OUTPUT $name.zip;"
 	else
