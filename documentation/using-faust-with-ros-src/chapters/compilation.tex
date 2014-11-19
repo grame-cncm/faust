@@ -1,0 +1,120 @@
+\chapter{Compiling \faust Program for \ros Use}
+\label{chap:compilation}
+
+To compile a \faust program for a \ros use, you can use either the \lstinline'faust2ros' command, or the \lstinline'faust2rosgtk' one, which adds a gtk graphic user interface to the simple \lstinline'faust2ros' command.
+Note that all the \faust compilation options remain.
+
+\section{Compiling in a \faust Archive}
+In order to compile a DSP file into a \faust archive, just type the command followed by your file : 
+\begin{lstlisting}
+faust2ros file.dsp
+\end{lstlisting}
+It should output :
+\begin{lstlisting}
+file.zip;
+\end{lstlisting}
+and the resulting  \lstinline'file.zip' folder should contain the following elements:
+
+\begin{tabular}{ll}
+	\lstinline'faust_msgs' 		&messages package to handle faust messages\\
+	\lstinline'file'		&package containing a .cpp file corresponding to the DSP file\\
+\end{tabular}
+
+If the DSP file is not in the current directory, make sure to type the right path. For instance :
+\begin{lstlisting}
+faust2ros ~/faust/examples/myfile.dsp
+\end{lstlisting}
+
+
+\paragraph{Comment:}If you want to use the \lstinline'faust2rosgtk' command, the output will have a \lstinline'_gtk' extension. For instance :
+\begin{lstlisting}
+faust2rosgtk file.dsp
+\end{lstlisting}
+should output :
+\begin{lstlisting}
+file_gtk.zip;
+\end{lstlisting}
+and the resulting  \lstinline'file_gtk.zip' folder should contain the following elements:
+
+\begin{tabular}{ll}
+	\lstinline'faust_msgs' 		&messages package to handle faust messages\\
+	\lstinline'file_gtk'		&package containing a .cpp file corresponding to the DSP file\\
+\end{tabular}
+
+\section{Compiling in a Workspace}
+Thanks to the option \lstinline'-install', you have the possibility to create a package from your DSP file directly in the a workspace you chose.
+Just type :
+\begin{lstlisting}
+faust2ros -install faust_ws file.dsp
+\end{lstlisting}
+
+It should output : 
+\begin{lstlisting}
+file.cpp; 
+\end{lstlisting}
+and you should have a faust\_ws repository looking like this :\\
+
+\dirtree{%
+.1 faust\_ws. 
+	.2 build. 
+	.2 devel. 
+	.2 src. 
+		.3 faust\_msgs : \begin{minipage}[t]{10cm}
+						Messages Package \\
+						Files to handle \faust messages{.}
+					   \end{minipage}. 
+			.4 include. 
+			.4 msg. 
+				.5 param\_faust.msg. 
+			.4 src. 
+			.4 CMakeLists.txt. 
+			.4 package.xml. 
+		.3 file :  \begin{minipage}[t]{10cm}
+						File Package
+						{.}
+				\end{minipage}.
+			.4 include. 
+			.4 src. 
+				.5 \textcolor{margincolor}{file.cpp} : 
+						\begin{minipage}[t]{10cm}
+						File generated with \faust compiler
+						{.}
+					   \end{minipage}. 
+			.4 CMakeLists.txt. 
+			.4 package.xml. 
+}
+
+%\section{Renaming DSP file}
+%If the dsp file name does not fit you, you can change it using the \lstinline'-o' command.
+%For instance, if you want the package generated from DSP file to have a different name that your DSP file name, you can type :
+%\begin{lstlisting}
+%	faust2ros -o foobar file.dsp
+%\end{lstlisting}
+%The output is going to be : \\
+%
+%\dirtree{%
+%.1 foobar.zip. 
+%	.2 faust\_msgs. 
+%	.2 foobar. 
+%}
+%\newpage
+\section{Example}
+Here is an example of three files compilation.\\
+
+Input :
+\begin{lstlisting}
+faust2rosgtk -install foo_ws -o foo1 file1.dsp 
+			 -install foo_ws -o foo2 file2.dsp 
+			 -install bar_ws -o bar file3.dsp
+\end{lstlisting}
+\newpage
+Output :\\
+\dirtree{%
+.1 \~{ }. 	
+	.2 foo\_ws. 
+		.3 faust\_msgs. 
+		.3 foo1. 
+		.3 foo2. 
+	.2 bar\_ws. 
+		.3 bar. 
+}
