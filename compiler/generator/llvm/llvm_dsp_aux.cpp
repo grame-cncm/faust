@@ -1446,6 +1446,52 @@ EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
     }
 }
 
+EXPORT char* getCName(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string res = factory->getName();
+        char* name = (char*)malloc(sizeof(char) * (res.length() + 1));
+        strcpy(name, res.c_str());
+        return name;
+    } else {
+        return NULL;
+    }
+}
+
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string res = factory->getSHAKey();
+        char* key = (char*)malloc(sizeof(char) * (res.length() + 1));
+        strcpy(key, res.c_str());
+        return key;
+    } else {
+        return NULL;
+    }
+}
+
+EXPORT const char** getCLibraryList(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        vector<string> library_list1 = factory->getLibraryList();
+        const char** library_list2 = (const char**)malloc(sizeof(char*) * (library_list1.size() + 1));
+        
+        size_t i;
+        for (i = 0; i < library_list1.size(); i++) {
+            string library1 = library_list1[i];
+            char* library2 = (char*)malloc(sizeof(char) * (library1.length() + 1));
+            strcpy(library2, library1.c_str());
+            library_list2[i] = library2;
+        }
+        
+        // Last element is NULL
+        library_list2[i] = NULL;
+        return library_list2;
+    } else {
+        return NULL;
+    }
+}
+
 EXPORT void deleteAllCDSPFactories()
 {
     deleteAllDSPFactories();

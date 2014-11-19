@@ -371,7 +371,7 @@ llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 void deleteDSPInstance(llvm_dsp* dsp);
 
 /**
- * Compute a SHA1 hey from a string
+ * Compute a SHA1 key from a string
  * 
  * @param data - the string to be converted in SHA1 key
  *
