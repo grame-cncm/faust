@@ -1,0 +1,33 @@
+\chapter{\faust Messages}
+\label{chap:msgs}
+
+In order to share data, \ros nodes publish in and subscribe to topics. Topics can handle only one type of messages (a float, a string and an integer, etc \dots).\\
+A \faust node is configured to read a single type of messages : faust\_param.msg.
+
+\section{faust\_param.msg}
+When you compile a DSP file, a faust\_msgs package is automatically created next to your file package. As describe above in chapter~\ref{chap:compilation}, the faust\_msgs package contains a msg folder, in which is the faust\_param.msg file. 
+When you make the workspace with \lstinline'catkin_make', a faust\_param.h file is created in the devel/include/faust\_msgs directory. For more informations and details about messages in \ros, refer to \href{http://wiki.ros.org/msg}{\ros documentation}.\\
+The faust\_param messages definition is very simple :
+\begin{lstlisting}
+float32 value
+\end{lstlisting}
+It means this message only constituted by a float, which is named value.
+\newpage
+\section{How to Use these Messages ?}
+Let's put it in diagram :\\
+\begin{figure}[ht!]
+\centering
+\begin{tikzpicture}[node distance=1.5cm]
+	\node[draw, fill=orange, rounded corners=3pt, text width=1.5cm, align=center](sensor topic){sensor data get published into that topic};
+	\node[draw, fill=cyan, ellipse, text width=1.4cm, right=of sensor topic, align=center](processing){data are processed to fit to faust\_param type};
+	\node[draw, fill=orange, rounded corners=3pt, text width=1.5cm, right=of processing, align=center](faust topic){processed data get published into that topic};
+	\node[draw, fill=cyan, ellipse, text width=1.3cm, right=of faust topic, align=center](faust node){parameters are set};
+	
+	\draw[yoheader,->, very thick] (sensor topic) to node [sloped, midway, above, text width=1.5cm, align=center] {Sensor messages} (processing);
+	\draw[yoheader,->, very thick] (processing) to node [sloped, midway, above, text width=1.4cm, align=center] {\faust messages: \\ a float} (faust topic);
+	\draw[yoheader,->, very thick] (faust topic) to node [sloped, midway, above, text width=1.4cm, align=center] {\faust messages: \\ a float} (faust node);
+\end{tikzpicture}
+\caption{Diagram explaining messages dynamic between a sensor topic and a \faust node}
+\label{fig:msgs diagram}
+\end{figure}\\
+Data coming from a sensor need to get processed to be used by a \faust node. For example, if the data is an image message, coming from a camera, you cannot use it directly : you need to perform some processing on the picture, in order t get the value you're interested in. Once this value is processed, you can send it to a \faust topic, on which a \faust node has subscribed. The \faust node is now able to change its parameter value.

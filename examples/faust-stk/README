@@ -92,11 +92,14 @@ of the architecture files (jackqt, jackgtk, etc.).
 3/ How to compile?
 ------------------
 
-In order to compile the instruments, the latest FAUST repository must be installed on your computer 
-(03/21/2011) as well as all the required dependencies for the FAUST architecture you wish to use. 
+In order to compile the instruments, the latest FAUST repository must be installed on your computer as well 
+as all the required dependencies for the FAUST architecture you wish to use. 
 
-Type "make help" in a terminal to print the list of available architectures and to know how to compile
-the examples.
+Run any of the faust compilation script with one of the .dsp file contained in this directory. For example:
+
+faust2caqt *
+
+will compile all the objects as Core Audio Qt applications...
 
 4/ Acknowledgments
 ------------------
