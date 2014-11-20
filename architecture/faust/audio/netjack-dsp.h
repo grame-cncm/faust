@@ -236,8 +236,8 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         {
             AVOIDDENORMALS;
             
-            float* inputs_tmp[fDsp->getNumInputs()];
-            float* outputs_tmp[fDsp->getNumOutputs()];
+            float** inputs_tmp = (float**)alloca(fDsp->getNumInputs()*sizeof(float*));
+            float** outputs_tmp = (float**)alloca(fDsp->getNumOutputs()*sizeof(float*));
             
             for(int i = 0; i < fDsp->getNumInputs();i++) {
                 inputs_tmp[i] = audio_inputs[i+1];
@@ -292,8 +292,8 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI {
         {
             AVOIDDENORMALS;
             
-            float* inputs_tmp[fDsp->getNumInputs()];
-            float* outputs_tmp[fDsp->getNumOutputs()];
+            float** inputs_tmp = (float**)alloca(fDsp->getNumInputs()*sizeof(float*));
+            float** outputs_tmp = (float**)alloca(fDsp->getNumOutputs()*sizeof(float*));
             
             for(int i = 0; i < fDsp->getNumInputs();i++) {
                 inputs_tmp[i] = audio_inputs[i];

@@ -46,6 +46,10 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define snprintf _snprintf
+#endif
+
 /******************************************************************************
 *******************************************************************************
 
@@ -288,11 +292,11 @@ class jackaudio : public audio {
         {
             AVOIDDENORMALS;
             // Retrieve JACK inputs/output audio buffers
-            float* fInChannel[fNumInChans];
+			float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
             for (int i = 0; i < fNumInChans; i++) {
                 fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
             }
-            float* fOutChannel[fNumOutChans];
+			float** fOutChannel = (float**)alloca(fNumOutChans*sizeof(float*));
             for (int i = 0; i < fNumOutChans; i++) {
                 fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
             }

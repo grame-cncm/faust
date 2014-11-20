@@ -62,7 +62,11 @@ do
         fi
     fi
     cd ${WORKSPACES[${i}]}/src
-    if [ !  src/CMakeLists.txt ]; then
+    if [ !  CMakeLists.txt ] || [ -w CMakeLists.txt ] 
+    then
+    	
+    rm -f CMakeLists.txt
+    	
     catkin_init_workspace > /dev/null
     fi
     
