@@ -246,7 +246,7 @@
     <ClCompile Include="..\compiler\generator\vec_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\wss_code_container.cpp" />
     <ClCompile Include="..\compiler\global.cpp" />
-    <ClCompile Include="..\compiler\libmain.cpp" />
+    <ClCompile Include="..\compiler\libcode.cpp" />
     <ClCompile Include="..\compiler\normalize\aterm.cpp" />
     <ClCompile Include="..\compiler\normalize\mterm.cpp" />
     <ClCompile Include="..\compiler\normalize\normalize.cpp" />

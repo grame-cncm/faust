@@ -26,7 +26,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -38,7 +38,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -71,7 +71,7 @@
     <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>faust</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
@@ -84,7 +84,7 @@
     <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>faust</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
@@ -246,6 +246,7 @@
     <ClCompile Include="..\compiler\generator\vec_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\wss_code_container.cpp" />
     <ClCompile Include="..\compiler\global.cpp" />
+    <ClCompile Include="..\compiler\libcode.cpp" />
     <ClCompile Include="..\compiler\libmain.cpp" />
     <ClCompile Include="..\compiler\normalize\aterm.cpp" />
     <ClCompile Include="..\compiler\normalize\mterm.cpp" />
@@ -283,7 +284,6 @@
     <ClCompile Include="..\compiler\tlib\tree.cpp" />
     <ClCompile Include="..\compiler\utils\files.cpp" />
     <ClCompile Include="..\compiler\utils\names.cpp" />
-    <ClCompile Include="..\compiler\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\boxes\boxcomplexity.hh" />

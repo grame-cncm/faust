@@ -275,7 +275,6 @@
       <Filter>extended</Filter>
     </ClCompile>
     <ClCompile Include="..\compiler\global.cpp" />
-    <ClCompile Include="..\compiler\libmain.cpp" />
     <ClCompile Include="..\compiler\parallelize\code_loop.cpp">
       <Filter>parallelize</Filter>
     </ClCompile>
@@ -375,6 +374,7 @@
     <ClCompile Include="..\compiler\generator\wss_code_container.cpp">
       <Filter>generator</Filter>
     </ClCompile>
+    <ClCompile Include="..\compiler\libcode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
