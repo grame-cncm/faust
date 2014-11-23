@@ -230,6 +230,14 @@ struct mydsp_poly
         }
     }
     
+    void setValue(const char* path, int pitch, float value)
+    {
+    	int voice = getVoice(pitch);
+    	if (voice >= 0) {
+    		fVoiceTable[voice]->setValue(path, value);
+    	}
+    }
+    
     float getValue(const char* path)
     {
         return fVoiceTable[0]->getValue(path);
