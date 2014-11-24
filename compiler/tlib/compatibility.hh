@@ -45,7 +45,7 @@ struct timezone
 	int  tz_dsttime;     /* type of dst correction */
 };
 
-#define alarm(x)
+#define alarm(x) 0
 #ifndef __MINGW32__
 // mingw has these in its headers.
 #define strdup _strdup

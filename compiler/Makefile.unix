@@ -150,9 +150,6 @@ libfaust.js : $(objects) libcode.o libmain.o global.o
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
 
-libcode.o : libcode.cpp
-	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
-
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
 
