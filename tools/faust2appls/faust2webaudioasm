@@ -84,7 +84,7 @@ for f in $FILES; do
             EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
         fi
         # compile the C++ code to asm.js
-        emcc -O2 $name.cpp -s EMCC_DEBUG=2 -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s EMCC_DEBUG=2 -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
         # add final footer of JS page
         echo "}());" >> $name-temp1.js
