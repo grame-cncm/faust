@@ -301,7 +301,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gLsignalsTree = 0;
     gNumInputs = 0;
     gNumOutputs = 0;
-    string gErrorMessage = "";
+    gErrorMessage = "";
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
