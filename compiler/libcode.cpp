@@ -1328,8 +1328,7 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
         res = "";
     }
     
-    // TODO : make the compilation fails the next time...
-    //global::destroy();
+    global::destroy();
     return res;
 }
 
