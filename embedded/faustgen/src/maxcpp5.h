@@ -231,6 +231,7 @@ public:
     unsigned int m_siginlets, m_sigoutlets;
     maxmethodperform m_perform;
     maxmethodinit m_init;
+    double m_samplerate;
     
     MspCpp5():m_siginlets(0), m_sigoutlets(0)
     {}
@@ -410,7 +411,10 @@ template<typename T> void MspCpp5<T>::internal_dsp_32(MspCpp5<T> * x, t_signal *
 
 template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T> * x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags) {
     T* self = (T*)x;	
-    ((self)->*(self->m_init))(samplerate);
+    if (samplerate != self->m_samplerate) {
+        ((self)->*(self->m_init))(samplerate);
+        self->m_samplerate = samplerate;
+    }
     object_method(dsp64, gensym("dsp_add64"), x, MspCpp5<T>::internal_perform_64, 0, NULL);
 }
 
