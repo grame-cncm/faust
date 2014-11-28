@@ -116,6 +116,8 @@ class jackaudio : public audio {
         
         void shutdown(const char* message)
         {
+            fClient = NULL;
+            
             if (fShutdown) {
                 fShutdown(message, fShutdownArg);
             } else {
@@ -181,21 +183,23 @@ class jackaudio : public audio {
         
         virtual ~jackaudio() 
         { 
-            stop();
-            
-            for (int i = 0; i < fNumInChans; i++) {
-                jack_port_unregister(fClient, fInputPorts[i]);
-            }
-            for (int i = 0; i < fNumOutChans; i++) {
-                jack_port_unregister(fClient, fOutputPorts[i]);
-            }
-            jack_client_close(fClient);
-                   
-            delete[] fInputPorts;
-            delete[] fOutputPorts;
-            
-            if (fIconData) {
-                free(fIconData);
+            if(fClient){
+                stop();
+                
+                for (int i = 0; i < fNumInChans; i++) {
+                    jack_port_unregister(fClient, fInputPorts[i]);
+                }
+                for (int i = 0; i < fNumOutChans; i++) {
+                    jack_port_unregister(fClient, fOutputPorts[i]);
+                }
+                jack_client_close(fClient);
+                
+                delete[] fInputPorts;
+                delete[] fOutputPorts;
+                
+                if (fIconData) {
+                    free(fIconData);
+                }
             }
         }
         
@@ -274,8 +278,11 @@ class jackaudio : public audio {
 
         virtual void stop() 
         {
-            save_connections();
-            jack_deactivate(fClient);
+            if(fClient){
+
+                save_connections();
+                jack_deactivate(fClient);
+            }
         }
     
         virtual void shutdown(shutdown_callback cb, void* arg)
