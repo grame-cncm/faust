@@ -1,4 +1,4 @@
-<!-- 
+<!--
  FAUST Architecture File for Android
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA Stanford University
  Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
@@ -12,7 +12,7 @@
  This sample code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- -->
+-->
 
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -20,12 +20,16 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="#000000">
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/the_layout"
-        android:gravity="center"
-        android:layout_gravity="center_horizontal" >
-    </LinearLayout>
+   	<HorizontalScrollView
+   	    android:id="@+id/horizontalScroll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:id="@+id/the_layout"
+        	android:gravity="left">
+    	</LinearLayout>
+    </HorizontalScrollView>
 </ScrollView>
