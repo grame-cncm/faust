@@ -3,11 +3,18 @@
 #####################################################################
 #                                                                   #
 #               Compile a Faust program to an android app           #
-#               (c) Romain Michon CCRMA and Grame, 2013             #
+#               (c) Romain Michon CCRMA and Grame, 2014             #
 #                                                                   #
 #####################################################################
 
+# change in function of of your system
+TARGET=android-20
 
+# change if you want to get the log of what's happening
+LOG="/dev/null"
+#LOG="log"
+
+# exit if a command fails
 set -e
 
 # make sure we always execute this script with the appropriate $PATH definition
@@ -24,43 +31,78 @@ then
 	fi
 fi
 
-# create the temporary directory were compilation will take place
-TMPFILES=$(mktemp -d faust.XXX)
-
-cp -r /usr/local/lib/faust/android/*  $TMPFILES
-
 # Global variables for options
 INSTALL=0
 ECLIPSE=0
-
-LOG="/dev/null"
+ECLIPSEC=0
+SWIG=0
+FAUST=0
+KEYBOARD=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
+	if [ $p = "-swig" ]; then
+		SWIG=1
+	fi
 	if [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
 	elif [ $p = "-eclipse" ]; then
 		ECLIPSE=1
+	elif [ $p = "-faust" ]; then
+		FAUST=1
+	elif [ $p = "-eclipsec" ]; then
+		ECLIPSEC=1
+	elif [ $p = "-keyboard" ]; then
+		KEYBOARD=1
 	elif [ $p = "-debug" ]; then
 		LOG="/dev/stdout"
 	elif [ $p = "-h" ]; then
 		echo "Usage: faust2android faustFile.dsp"
 		echo "OPTIONS:"
-		echo "-install : once compilation is over, installs the generated app on the Android device connected to the computer."
-		echo "-eclipse : creates an eclipse project of the app in the current directory."
+		echo "-install: once compilation is over, installs the generated app on the Android device connected to the computer."
+		echo "-eclipse: creates an eclipse project of the app in the current directory."
 		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
+		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
+		echo "-faust: only carries out the faust compilation and install the generated C++ file in the JNI folder."
+		echo "-eclipsec: only compile the native portion of the app (this option is used by eclipse to compile the project)."
 		exit 1
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
 
-# Faust compilation
+# only carry out the faust compilation 
+if [ $FAUST -eq 1 ]; then
+	for f in $FILES; do
+		faust -i -a android.cpp "$f" -o "jni/dsp_faust.cpp"
+	done
+	exit 1
+fi
+
+# only compile the native part of the app (in the case where the script is used to compile an eclipse project)
+if [ $ECLIPSEC -eq 1 ]; then
+	if [ $SWIG -eq 1 ]; then
+		rm -rf src/com/grame/dsp_faust
+		mkdir -p src/com/grame/dsp_faust
+		swig -java -package com.grame.dsp_faust -includeall -verbose -outdir src/com/grame/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp dsp_faust_interface.i
+	fi
+	$NDKBUILD > $LOG
+	exit 1
+fi
+
+# create the temporary directory where compilation will take place
+TMPFILES=$(mktemp -d faust.XXX)
+cp -r /usr/local/lib/faust/android/*  $TMPFILES
+
+# Faust compilation (for now only one file should be specified)
 for f in $FILES; do
-	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
+	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/dsp_faust.cpp"
 done
+
+APPNAME=$(basename "$f")
+APPNAME="${APPNAME%.dsp}"
 
 # Copy include files *.h if any (ignore any error here)
 (cp *.h "$TMPFILES/jni/" 2> /dev/null) || true
@@ -69,7 +111,10 @@ done
 NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
 NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
 
+rm $f.xml
+
 # If the number of input signals is greater than one, they are merged into one signal
+# If the number of output signals is greater than two, they are merged into tow signals
 if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	if [ $NINPUTS -gt  1 ]; then
 		INMOD="_ <:"
@@ -81,63 +126,64 @@ if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
 	echo "It was modified as follows:"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;"
 	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -xml -i -a android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
+	faust -i -a android.cpp tmpMOD.dsp -o "$TMPFILES/jni/faust_dsp.cpp"
 	rm tmpMOD.dsp
-	rm tmpMOD.dsp.xml
 fi
-
-# Declare global variables in the C++ code for the number of parameters
-echo 'const int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
-echo 'const int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
-
-APPNAME=$(basename "$f")
-APPNAME="${APPNAME%.dsp}"
-
-# Customize the package name in function of the name of the app (dirty... I know)
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/faustApp.java > temp && mv temp $TMPFILES/src/com/faustApp/faustApp.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/About.java > temp && mv temp $TMPFILES/src/com/faustApp/About.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/accel.java > temp && mv temp $TMPFILES/src/com/faustApp/accel.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/AudioSettings.java > temp && mv temp $TMPFILES/src/com/faustApp/AudioSettings.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/DisplayWelcomeActivity.java > temp && mv temp $TMPFILES/src/com/faustApp/DisplayWelcomeActivity.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/OSCSettings.java > temp && mv temp $TMPFILES/src/com/faustApp/OSCSettings.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/Settings.java > temp && mv temp $TMPFILES/src/com/faustApp/Settings.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/UI.java > temp && mv temp $TMPFILES/src/com/faustApp/UI.java
-
-
-sed 's/REP/'$APPNAME'/g' $TMPFILES/AndroidManifest.xml > temp && mv temp $TMPFILES/AndroidManifest.xml
 
 cd $TMPFILES 
 
-mv res/values/strings.xml res/values/stringsN.xml 
-sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
-rm res/values/stringsN.xml
+#************************************************************************
+# CUSTOMIZING THE APP'S MAIN PACKAGE IN FUNCTION OF THE DSP FILE NAME
+#************************************************************************
+
+PLATFORM=$(uname)
+
+if [ $PLATFORM = "Darwin" ]; then
+	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' src/com/grame/faust/*
+	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' src/com/triggertrap/seekarc/*
+	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' AndroidManifest.xml
+	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' res/layout/*
+	sed -i '' 's,1,'$APPNAME',g' res/values/strings.xml
+else
+	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' src/com/grame/faust/*
+	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' src/com/triggertrap/seekarc/*
+	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' AndroidManifest.xml
+	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' res/layout/*
+	sed -i 's,1,'$APPNAME',g' res/values/strings.xml
+fi
+	
+
+mv src/com/grame/faust src/com/grame/$APPNAME
 
 # *************
 # COMPILATION
 # *************
 
-rm -rf src/faust_dsp
-mkdir -p src/faust_dsp
+MAINCLASSNAME="FaustActivity"
 
-swig -java -package faust_dsp -includeall -verbose -outdir src/faust_dsp -c++ -I/usr/share/swig2.0 -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp faust_dsp_interface.i > /dev/null
+if [ $SWIG -eq 1 ]; then
+	rm -rf src/com/grame/faust_dsp
+	mkdir -p src/com/grame/faust_dsp
+	swig -java -package com.grame.faust_dsp -includeall -verbose -outdir src/com/grame/faust_dsp -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp faust_dsp_interface.i
+fi
 
-ndk-build TARGET_PLATFORM=android-14 V=1 > $LOG
+$NDKBUILD > $LOG
 
+# android list targets # gives the target list
 
-# To be checked on the mac
-android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > $LOG
+# We use target ID 1 here which should be the latest version of the API on every system but this might
+# have to be verified
+android update project --target $TARGET --path . > $LOG
 
 ant release > $LOG
 
-# Code used to generate the faust2android key:
-# keytool -genkey -v -keystore faust2android.keystore -alias faust2an -keyalg RSA -keysize 2048 -validity 10000
-
-jarsigner -storepass mephisto -sigalg MD5withRSA -digestalg SHA1 -keystore faust2android.keystore bin/faustApp-release-unsigned.apk faust2an
+jarsigner -storepass mephisto -sigalg MD5withRSA -digestalg SHA1 -keystore tools/faust2android.keystore bin/$MAINCLASSNAME-release-unsigned.apk faust2an
 
 # Check the alignment of the compressed file
-zipalign -v 4 bin/faustApp-release-unsigned.apk bin/faustApp-release.apk >/dev/null
+zipalign -v 4 bin/$MAINCLASSNAME-release-unsigned.apk bin/$MAINCLASSNAME-release.apk > $LOG
 
-cp -r bin/faustApp-release.apk ../$APPNAME.apk
+cp -r bin/$MAINCLASSNAME-release.apk ../$APPNAME.apk
+
 cd ..
 
 # ****************
@@ -155,6 +201,6 @@ else
 	rm -rf $TMPFILES
 fi
 
-rm "$f.xml"
-
 echo "$APPNAME.apk;"
+
+
