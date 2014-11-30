@@ -30,7 +30,7 @@ public class dsp_faustJNI {
   public final static native int getParamsCount();
   public final static native float getParam(String jarg1);
   public final static native void setParam(String jarg1, float jarg2);
-  public final static native void setVoiceParam(String jarg1, int jarg2, float jarg3);
-  public final static native void setVoiceGain(int jarg1, float jarg2);
+  public final static native int setVoiceParam(String jarg1, int jarg2, float jarg3);
+  public final static native int setVoiceGain(int jarg1, float jarg2);
   public final static native String getParamAddress(int jarg1);
 }

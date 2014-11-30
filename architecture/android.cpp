@@ -83,9 +83,12 @@ float **bufferout, **bufferin, polyCoef;
 
 /*
  * init(samplingRate, bufferFrames)
- * Initialize a monophonic Faust object. This function should be
- * called before using start(). If this function was used to initialize
- * the Faust process, keyOn() and keyOff() are not available.
+ * Initializes the Audio engine and the DSP code
+ * with samplingRate and bufferFrames.
+ * This method also looks for the [style:poly]
+ * metadata in the Faust code and initializes a
+ * polyphonic object or not based on that. init
+ * should be called before start.
  */
 void init(int samplingRate, int bufferFrames) {
 	// configuring global variables
@@ -150,14 +153,10 @@ void *processDSP(void *threadID) {
 
 /*
  * start()
- * Open the audio engine and create a new thread for the Faust
- * process computation.
- * The number of input channels is limited to 1 and the number of
- * output channel to 2 to meet the requirements of most Android
- * devices. If the Faust object has more than one input or more
- * than two outputs, these will be computed but also discarded.
- * start() will return 1 if the audio engine was successfully launched
- * and 0 otherwise.
+ * Begins the processing and return 1 if the connection
+ * with the audio device was successful and 0 if not.
+ * On Android it also creates the native thread where the
+ * DSP tasks will be computed.
  */
 int start() {
 	on = 1;
@@ -172,16 +171,23 @@ int start() {
 
 /*
  * stop()
- * Stops the audio process, closes the audio engine and frees
- * the memory.
+ * Stops the processing, closes the audio engine and terminates
+ * the native thread on Android.
  */
 void stop() {
 	on = 0;
 	pthread_join(audioThread, 0);
 	android_CloseAudioDevice(p);
-	delete[] bufferin;
-	delete[] *bufferout;
+	for (int i = 0; i < outChanNumb; i++) {
+		delete[] bufferout[i];
+	}
 	delete[] bufferout;
+	if (inChanNumb >= 1) {
+		for (int i = 0; i < inChanNumb; i++) {
+			delete[] bufferin[i];
+		}
+		delete[] bufferin;
+	}
 }
 
 /*
@@ -198,9 +204,11 @@ bool isRunning() {
 
 /*
  * keyOn(pitch, velocity)
- * Instantiate a new polyphonic voice where velocity and pitch are
- * MIDI numbers (0-127). keyOn can only be used if initPoly was used
- * to initialize the system.
+ * Instantiates a new polyphonic voice where velocity
+ * and pitch are MIDI numbers (0-127). keyOn can only
+ * be used if the [style:poly] metadata is used in the
+ * Faust code. keyOn will return 0 if the object is not
+ * polyphonic and 1 otherwise.
  */
 int keyOn(int pitch, int velocity) {
 	if(polyMax > 0){
@@ -213,13 +221,16 @@ int keyOn(int pitch, int velocity) {
 
 /*
  * keyOff(pitch)
- * Deinstantiate a polyphonic voice where pitch is the MIDI number
- * of the note (0-127). keyOff can only be used if initPoly was used
- * to initialize the system.
+ * De-instantiates a polyphonic voice where pitch is the
+ * MIDI number of the note (0-127). keyOff can only be
+ * used if the [style:poly] metadata is used in the Faust
+ * code. keyOn will return 0 if the object is not polyphonic
+ * and 1 otherwise.
  */
 int keyOff(int pitch) {
 	if(polyMax > 0){
 		DSPpoly->keyOff(0, pitch);
+		return 1;
 	}
 	else
 		return 0;
@@ -227,12 +238,16 @@ int keyOff(int pitch) {
 
 /*
  * pitchBend(refPitch, pitch)
- * Bends the pitch of refPitch. Pitch is float and is expressed as a MIDI
- * number
+ * Replaces refPitch in the voice associated with it with pitch.
+ * pitch is a MIDI number expressed as a decimal number.
+ * pitchBend can only be used if the [style:poly] metadata
+ * is used in the Faust code. pitchBend will return 0
+ * if the object is not polyphonic and 1 otherwise.
  */
 int pitchBend(int refPitch, float pitch){
 	if(polyMax > 0){
 		DSPpoly->pitchBend(refPitch, pitch);
+		return 1;
 	}
 	else
 		return 0;
@@ -269,7 +284,7 @@ float getParam(const char* address) {
 
 /*
  * setParam(address,value)
- * Set the value of the parameter associated with address.
+ * Sets the value of the parameter associated with address.
  */
 void setParam(const char* address, float value) {
 	if (polyMax == 0)
@@ -280,19 +295,34 @@ void setParam(const char* address, float value) {
 }
 
 /*
- * setParam(address,value)
- * Set the value of the parameter associated with address and voice.
+ * setVoiceParam(address,pitch,value)
+ * Sets the value of the parameter associated with address for
+ * the voice associated with pitch. setVoiceParam can only be
+ * used if the [style:poly] metadata is used in the Faust code.
+ * setVoiceParam will return 0 if the object is not polyphonic
+ * and 1 otherwise.
  */
-void setVoiceParam(const char* address, int pitch, float value) {
-	DSPpoly->setValue(address, pitch, value);
+int setVoiceParam(const char* address, int pitch, float value) {
+	if(polyMax > 0){
+		DSPpoly->setValue(address, pitch, value);
+		return 1;
+	}
+	else return 0;
 }
 
 /*
  * setVoiceGain(pitch,gain)
- * Set the gain of a voice where gain is between 0 and 1.
+ * Sets the gain (0-1) of the voice associated with pitch.
+ * setVoiceGain can only be used if the [style:poly] metadata
+ * is used in the Faust code. setVoiceGain will return 0 if the
+ * object is not polyphonic and 1 otherwise.
  */
-void setVoiceGain(int pitch, float gain){
-	setVoiceParam(DSPpoly->fGainLabel.c_str(),pitch,gain);
+int setVoiceGain(int pitch, float gain){
+	if(polyMax > 0){
+		setVoiceParam(DSPpoly->fGainLabel.c_str(),pitch,gain);
+		return 1;
+	}
+	else return 0;
 }
 
 /*
