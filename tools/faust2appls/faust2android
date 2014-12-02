@@ -162,9 +162,9 @@ mv src/com/grame/faust src/com/grame/$APPNAME
 MAINCLASSNAME="FaustActivity"
 
 if [ $SWIG -eq 1 ]; then
-	rm -rf src/com/grame/faust_dsp
-	mkdir -p src/com/grame/faust_dsp
-	swig -java -package com.grame.faust_dsp -includeall -verbose -outdir src/com/grame/faust_dsp -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp faust_dsp_interface.i
+	rm -rf src/com/grame/dsp_faust
+	mkdir -p src/com/grame/dsp_faust
+	swig -java -package com.grame.dsp_faust -includeall -verbose -outdir src/com/grame/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp dsp_faust_interface.i
 fi
 
 $NDKBUILD > $LOG
