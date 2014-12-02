@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="96"
+   height="96"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="lockIconOpen.svg"
+   inkscape:export-filename="/home/romain/android/workspace/Faust/res/drawable-xhdpi/ic_lockiconopen.png"
+   inkscape:export-xdpi="90.000038"
+   inkscape:export-ydpi="90.000038">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="4.65"
+     inkscape:cx="57.231372"
+     inkscape:cy="69.699241"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-956.36218)">
+    <path
+       inkscape:connector-curvature="0"
+       style="color:#000000;fill:#45a0c5;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.9999997;marker:none;visibility:visible;display:block;overflow:visible"
+       d="m 45.500017,956.37531 c -17.138615,0.52859 -28.499984,8.64099 -28.499984,25.37348 l 0,17.07834 -3.857174,0 C 10.312758,998.82713 8,1000.7459 8,1003.149 l 0,44.8914 c 0,2.4032 2.312758,4.3222 5.142859,4.3218 l 69.78568,0 c 2.830144,0 5.071461,-1.9186 5.071461,-4.3218 l 0,-44.8914 c 0,-2.4031 -2.241317,-4.32187 -5.071461,-4.32187 l -12.928539,0 3,-16.46495 6.071417,-0.33452 c 0,-17.76194 -12.333436,-25.43308 -30.999966,-25.65235 -0.870275,-0.008 -1.728539,-0.0249 -2.571434,0 z m 1.714265,11.22292 c 0.315157,-0.008 0.674139,0 1.000008,0 20.710918,0 18.194343,8.13413 18.50017,12.45493 L 73,982.36218 l -3,16.46495 -41.357158,0 0,-12.3382 c -0.07352,-4.28649 -1.282876,-18.44982 18.57144,-18.8907 z"
+       id="path2086"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       sodipodi:nodetypes="cscssscssssccccccscccccc" />
+  </g>
+</svg>
