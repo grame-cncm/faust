@@ -93,8 +93,8 @@ private:
     string jsonString;
 
 public:
-    dsp_faust() : json(DSP.getNumInputs(), DSP.getNumOutputs()) {};
-    virtual ~dsp_faust() {};
+    dsp_faust() : json(DSP.getNumInputs(), DSP.getNumOutputs()),DSPpoly(0) {};
+    virtual ~dsp_faust() {delete DSPpoly;};
     
     /*
  	 * init(samplingRate, bufferFrames)

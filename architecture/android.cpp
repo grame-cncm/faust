@@ -188,6 +188,7 @@ void stop() {
 		}
 		delete[] bufferin;
 	}
+	delete DSPpoly;
 }
 
 /*
