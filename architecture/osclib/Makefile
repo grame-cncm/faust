@@ -62,6 +62,7 @@ $(TARGET) : faust/$(TARGET)
 	cp faust/$(TARGET) $@
 	ln -sf $(TARGET) $(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(LIB_NAME)
+
 	
 oscpack/liboscpack.a:
 	make -C oscpack
@@ -71,6 +72,10 @@ faust/libOSCFaust.a:
 	
 faust/$(TARGET):
 	make -C faust VERSION=$(VERSION) SOVERSION=$(SOVERSION) PREFIX=$(PREFIX) MODE=SHARED
+
+ios : 
+	make -C oscpack ios
+	make -C faust ios
 	
 clean :
 	rm -f liboscpack.a libOSCFaust.a
