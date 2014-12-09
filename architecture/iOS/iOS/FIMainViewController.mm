@@ -23,6 +23,8 @@
 #import "FIAppDelegate.h"
 #import "FICocoaUI.h"
 
+#include "faust/gui/OSCUI.h"
+
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
 
@@ -41,6 +43,7 @@
 audio* audio_device = NULL;
 CocoaUI* interface = NULL;
 FUI* finterface = NULL;
+GUI* oscinterface = NULL;
 MY_Meta metadata;
 char rcfilename[256];
 
@@ -114,6 +117,17 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP.init(long(sampleRate));
 	DSP.buildUserInterface(interface);
     DSP.buildUserInterface(finterface);
+    
+    char* argv[3];
+    
+    argv[0] = (char*)_name;
+    argv[1] = "-xmit";
+    argv[2] = "1";
+    
+    oscinterface = new OSCUI(_name, 3, argv);
+    DSP.buildUserInterface(oscinterface);
+    
+    oscinterface->run();
     
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
@@ -370,6 +384,7 @@ error:
     
     delete interface;
     delete finterface;
+    delete oscinterface;
     
     [_refreshTimer invalidate];
     [self stopMotion];
@@ -824,6 +839,8 @@ T findCorrespondingUiItem(FIResponder* sender)
             [dynamic_cast<uiBargraph*>(*i)->fBargraph setNeedsDisplay];
         }
     }
+    
+    GUI::updateAllGuis();
 }
 
 // Function called just after a pinch or a double click on a box
@@ -1047,7 +1064,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     // If no uiCocoaItem found, it's an error so we don't show the window
     if (!_selectedWidget) return;
     
-    // SL : 04/09/14 was affed for the SF concert ? deactivated for now
+    // SL : 04/09/14 was added for the SF concert ? deactivated for now
     
     /*
     // If widget is hidden we don't show the window
@@ -1662,11 +1679,6 @@ T findCorrespondingUiItem(FIResponder* sender)
             b = y1 - a * x1;
             value = a * va + b;*/
             
-            
-            
-            
-            
-            
             /*NSLog(@"va %f", va);
             NSLog(@"la %f - ha %f - x %f - y %f - ls %f - hs %f", la, ha, x, y, ls, hs);
             NSLog(@"%f %f %f %f", x1, x2, y1, y2);
@@ -1703,11 +1715,7 @@ T findCorrespondingUiItem(FIResponder* sender)
                     else if (dynamic_cast<uiButton*>(*i)->fButton.value == 0) value = 1;
                 }
             }*/
-
-            
-            
-            
-            
+   
             //NSLog(@"va %f", va);
             //NSLog(@"VALUE %f", value);
             

@@ -79,6 +79,13 @@ libOSCFaust.a : $(objects)
 	ar cq $@ $(objects)
 	ranlib $@
 	
+
+ios: IPHONEOS_DEPLOYMENT_TARGET=5.0
+ios: CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ 
+ios: CXXFLAGS += -std=c++11 -stdlib=libstdc++ -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk
+ios: CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+
+ios : libOSCFaust.a 
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)

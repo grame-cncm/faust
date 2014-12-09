@@ -102,6 +102,11 @@ struct mydsp_poly
         return -1;
     }
     
+    inline bool ends_with(std::string const & value, std::string const & ending)
+    {
+        return (ending.size() > value.size()) ? false : std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+    }
+    
     mydsp_poly(int sample_rate, int buffer_size, int max_polyphony)
     {
         fMaxPolyphony = max_polyphony;
@@ -130,11 +135,11 @@ struct mydsp_poly
         
         for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
             std::string label = (*it).first;
-            if (label.find("gate") != std::string::npos) {
+            if (label.ends_with("/gate")) {
                 fGateLabel = label;
-            } else if (label.find("freq") != std::string::npos) {
+            } else if (label.ends_with("/freq")) {
                 fFreqLabel = label;
-            } else if (label.find("gain") != std::string::npos) {
+            } else if (label.ends_with("/gain")) {
                 fGainLabel = label;
             }
         }

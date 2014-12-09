@@ -227,8 +227,8 @@
 		655DAAE814F69C9B0013FAF5 /* FIBox.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBox.mm; sourceTree = "<group>"; };
 		6560453F14FE924400AE84A9 /* FITabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITabView.h; sourceTree = "<group>"; };
 		6560454014FE924400AE84A9 /* FITabView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITabView.mm; sourceTree = "<group>"; };
-		6563671617CF4FC000575DD9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
-		6563671817CF4FC000575DD9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		6563671617CF4FC000575DD9 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		6563671817CF4FC000575DD9 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		6566748414ED30F000172A10 /* FIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIButton.h; sourceTree = "<group>"; };
 		6566748514ED30F000172A10 /* FIButton.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIButton.mm; sourceTree = "<group>"; };
 		6566748614ED30F000172A10 /* FIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIResponder.h; sourceTree = "<group>"; };
@@ -575,6 +575,7 @@
 		65E5ED8514DB037D00136CFC /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastTestingUpgradeCheck = 0510;
 				LastUpgradeCheck = 0420;
 			};
 			buildConfigurationList = 65E5ED8814DB037D00136CFC /* Build configuration list for PBXProject "iOS" */;
@@ -965,7 +966,10 @@
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = "";
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					libOSCFaust.a,
+					liboscpack.a,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -987,7 +991,10 @@
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = "";
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					libOSCFaust.a,
+					liboscpack.a,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
