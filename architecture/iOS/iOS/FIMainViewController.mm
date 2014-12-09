@@ -1614,8 +1614,6 @@ T findCorrespondingUiItem(FIResponder* sender)
             //NSLog(@"val %f", value);
             ////
             
-            
-            
             // CASE 1: two curves
             /*float x1 = 0.;
             float y1 = 0.;
@@ -1858,9 +1856,9 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Animation
     [UIView animateWithDuration:kJackViewAnimationDuration
-                          delay:0.0
-                        options:UIViewAnimationOptionCurveLinear
-                     animations:^
+                    delay:0.0
+                    options:UIViewAnimationOptionCurveLinear
+                    animations:^
      {
          [_jackView setFrame:CGRectMake(0,
                                         _dspScrollView.frame.size.height - kJackViewHeight + 44,
