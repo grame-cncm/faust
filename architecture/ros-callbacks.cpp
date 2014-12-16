@@ -36,20 +36,16 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
+
 
 #include "faust/misc.h"
-#include "faust/audio/jack-dsp.h"
-#include "faust/gui/RosUI.h"
+#include "faust/gui/RosCI.h"
+#include "faust/audio/dsp.h"
 
 #include <ros/ros.h>
 
-#ifdef OSCCTRL
-#include "faust/gui/OSCUI.h"
-#endif
 
-#ifdef HTTPCTRL
-#include "faust/gui/httpdUI.h"
-#endif
 
 /**************************BEGIN USER SECTION **************************/
 
@@ -69,7 +65,23 @@
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-					
+
+/************************************************************************
+*************************************************************************
+			
+							BE CAREFUL :
+			
+	This architecture file cannot be used to deal with any stream.
+	It has been written to be used before an over architecture file :
+		- jack-ros.cpp
+		- jack-gtk-ros.cpp
+		
+	It has been written for faust2appls tools like faust2ros or 
+	faust2rosgtk
+	
+*************************************************************************
+*************************************************************************/
+				
 mydsp*	DSP;
 
 //-------------------------------------------------------------------------
@@ -77,58 +89,36 @@ mydsp*	DSP;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    
-	char	appname[256];
+    char	appname[256];
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
-	
+    
 	// Create DSP Object
 	DSP = new mydsp();
 	if (DSP==0) {
         ROS_ERROR("Unable to allocate Faust DSP object" );
 		exit(1);
 	}
-
-	// Get name from file name to name the namespace
-		//This is a lot of names !
-	ros::init(argc, argv, (std::string)appname);
-	ros::NodeHandle n;
 	
-	// Create and build ROS interface
-	RosUI* interface = new RosUI(n, (std::string)appname);
+	// Create and build ROS Callbacks Interface
+	RosCI* interface = new RosCI();
 	DSP->buildUserInterface(interface);
 	
-	// Is there any declared ROS metadata ?
-	bool meta = interface->isTrue();
+	// Gets the number of ROS metadata declared
+	int count = interface->getParamsCount();
 	
-	if (meta) // If there is any, then we subscribe to the specific subscriber(s)
-	{
-		RosCallbacks* subscriber = new RosCallbacks(n); 
+	// Gets the callbacks parameters
+	std::vector<RosCI::CallbackParams> parameters = interface->getCallbacksParameters();
 	
-		std::vector<FAUSTFLOAT*> my_zones = interface->getZones();
-		subscriber->Subscribe(my_zones);
-	}
-	
-	// Launching jack audio API
-	jackaudio audio;
-	audio.init(appname, DSP);
+	std::string name = static_cast<std::string>(appname);
+	// Writes the rosCallbacks.h file
+	interface->CallbacksWriter(count, parameters, name);
 
-	audio.start();
-	
-		
-	// Call ROS Callbacks
-	ros::spin();
-	
-	// Once Ctrl + C, everything stops
-	audio.stop();
-	
-    // desallocation
-    delete interface;
+	// desallocation
+	delete interface;
 
-
-  	return 0;
+	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

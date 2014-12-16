@@ -34,10 +34,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
-#include <list>
 
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
@@ -90,48 +88,40 @@ int main(int argc, char *argv[])
 	
 	// create DSP object
 	DSP = new mydsp();
-	if (DSP==0) {
+	if (DSP==0) 
+	{
         ROS_ERROR("Unable to allocate Faust DSP object" );
 		exit(1);
 	}
 
 	// Get name from file name to name the namespace.
 	ros::init(argc, argv, (std::string)appname);
-	ros::NodeHandle n((std::string)appname);
+	ros::NodeHandle n;
 		
 	// create and build graphic and ROS interfaces
 	GUI* interface 	= new GTKUI (appname, &argc, &argv);
-	RosUI* rosinterface = new RosUI (n);
+	RosUI* rosinterface = new RosUI (n, (std::string)appname);
 	
 	DSP->buildUserInterface(rosinterface);
 	DSP->buildUserInterface(interface);
 	
-#ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-	DSP->buildUserInterface(httpdinterface);
-    ROS_INFO("HTTPD is on");
-#endif
+	// Is there any declared ROS metadata ?
+	bool meta = rosinterface->isTrue();
 
-#ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(appname, argc, argv);
-	DSP->buildUserInterface(oscinterface);
-#endif
+	if (meta) // If there is any, then we subscribe to the specific subscriber(s)
+	{
+		RosCallbacks* subscriber = new RosCallbacks(n); 
 	
+		std::vector<FAUSTFLOAT*> my_zones = rosinterface->getZones();
+		subscriber->Subscribe(my_zones);
+	}
+	
+	// Launching jack audio API
 	jackaudio audio;
 	audio.init(appname, DSP);
 	
 	audio.start();
-	
-#ifdef HTTPCTRL
-	httpdinterface->run();
-#ifdef QRCODECTRL
-    interface->displayQRCode( httpdinterface->getTCPPort() );
-#endif
-#endif
-	
-#ifdef OSCCTRL
-	oscinterface->run();
-#endif
+
 
 	// ROS Callbacks are called by AsyncSpinner spinner
 	ros::AsyncSpinner spinner(rosinterface->getParamsCount());
@@ -139,8 +129,9 @@ int main(int argc, char *argv[])
 	
 	// GTK interface is launched
 	interface->run();
-		
-    	interface->stop();
+	
+	// Once the user clicks on the red cross of the window, everything stops	
+	interface->stop();
     
 	audio.stop();
 	
@@ -149,12 +140,7 @@ int main(int argc, char *argv[])
     delete interface;
     delete rosinterface;
     
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
-#ifdef OSCCTRL
-	 delete oscinterface;
-#endif
+
 
   	return 0;
 }
