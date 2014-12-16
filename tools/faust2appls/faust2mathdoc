@@ -92,7 +92,7 @@ then
 fi
 
 CONVERT=""
-if [ $1 = "-utf8" ] || [ $1 = "--utf8" ]
+if [ "$1" = "-utf8" ] || [ "$1" = "--utf8" ]
 then
     CONVERT="utf8"
     shift 1
@@ -115,7 +115,7 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
-	    if [ $CONVERT = "utf8" ] 
+	    if [ "$CONVERT" = "utf8" ] 
 	    then
 	    	recode2utf8 $FILENAME
 	    fi
