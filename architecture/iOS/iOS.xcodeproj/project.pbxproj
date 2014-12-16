@@ -575,6 +575,7 @@
 		65E5ED8514DB037D00136CFC /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastTestingUpgradeCheck = 0510;
 				LastUpgradeCheck = 0420;
 			};
 			buildConfigurationList = 65E5ED8814DB037D00136CFC /* Build configuration list for PBXProject "iOS" */;
@@ -960,11 +961,15 @@
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					../,
+					.,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = "";
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					libOSCFaust.a,
+					liboscpack.a,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -981,11 +986,15 @@
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					../,
+					.,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = "";
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					libOSCFaust.a,
+					liboscpack.a,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;

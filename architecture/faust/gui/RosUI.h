@@ -1,3 +1,13 @@
+/**********************************************
+* 			ROS User Interface
+*
+* This interface  creates default callbacks 
+*	with default messages types
+* It also returns parameters for specific ROS
+*  callbacks, defined in the RosCallbacks class
+*	thanks to the RosCI.h and ros-callbacks.cpp
+* 	architecture files
+**********************************************/
 #ifndef FAUST_RosUI_H
 #define FAUST_RosUI_H
 
@@ -8,8 +18,8 @@
 
 #include "faust/gui/UI.h"
 #include "ros/ros.h"
-#include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/Float32.h"
 
 #include <algorithm>
 #include <vector>
@@ -19,15 +29,15 @@ class RosUI : public UI
     
     public :
     
-	RosUI(ros::NodeHandle nh) : nh_(nh), queue_(10), count_(0), box_names_(0) 
+	RosUI(ros::NodeHandle nh, std::string nspace) : nh_(nh), queue_(10), count_(0), meta_(false), box_names_(0), zones_(0) 
 	{
-	    const std::string nh_name = nh_.getNamespace();
-	    box_names_.push_back(nh_name);
+	   // Get the namespace's name for default topics
+	   box_names_.push_back(nspace);
 	};
 	
 	//~RosUI() {}
 	
-	// String function for topics names
+	// String processing function for topics names
 	std::string strProcess(std::string label)
     {
         int count = label.size();
@@ -41,11 +51,11 @@ class RosUI : public UI
         
         do
         {
-            if ((label[0]<65)  // before A in ASCII
-                || (label[0]<=96 && label[0]>=91) // After Z and before a in ASCII
-                || (label[0] > 122) // After z in ASCII
-                && (label[0] != FORWARD_SLASH) // not /
-                && (label[0] != TILDE) // not ~
+            if ((label[0]<65)  // before "A" in ASCII
+                || (label[0]<=96 && label[0]>=91) // After "Z" and before "a" in ASCII
+                || (label[0] > 122) // After "z" in ASCII
+                && (label[0] != FORWARD_SLASH) // not "/"
+                && (label[0] != TILDE) // not "~"
               )
             {
                 label.erase(0,1);
@@ -115,271 +125,350 @@ class RosUI : public UI
     }
 	
 	
-	// -- callbacks
+	// -- default callbacks
+	
+	// Default Callbacks :
+		// Buttons widgets use the std_msgs/Bool message type
+		// Sliders and Numerical entries use the std_msgs/Float32 message type
 	
 	void buttonCallback(const std_msgs::BoolConstPtr& msg, FAUSTFLOAT* zone)
 	{
 	    
 	    *zone=msg->data;
-	    //ros::Duration(0.005).sleep();
-	    //*zone=0;
-	    
+
 	}
 	
 	void cButtonCallback(const std_msgs::BoolConstPtr& msg, FAUSTFLOAT* zone)
 	{
+	    
 	    *zone=msg->data;
 	    
 	}
 	
 	void sliderCallback(const std_msgs::Float32ConstPtr& msg, FAUSTFLOAT* zone)
 	{
+	    
 	    *zone=msg->data;
 	    
 	}
 	
 	void numEntryCallback(const std_msgs::Float32ConstPtr& msg, FAUSTFLOAT* zone)
 	{
+	    
 	    *zone=msg->data;
 	    
 	}	
 	
-    	// -- widget's layouts
+	// -- widget's layouts
+		// Boxes names are stored in a vector so that the default topics names
+		// fit to the graphic interface
 
-    	void openTabBox(const char* label)
-    	{
-	    std::string L = (std::string)label;
-	    if(L == "0x00")
-	    {
-		L="";
-	    }
+	void openTabBox(const char* label)
+	{
+		std::string L = (std::string)label;
+		if(L == "0x00") // no box name
+		{
+			L="";
+		}
 	    
-	    box_names_.push_back(L);
-    	}
+		box_names_.push_back(L);	    
+	}
+	
 	void openHorizontalBox(const char* label)
 	{
-	    std::string L = (std::string)label;
-	    if(L == "0x00")
-	    {
-		L="";
-	    }
+		std::string L = (std::string)label;
+		if(L == "0x00") // no box name
+		{
+			L="";
+		}
 	    
-	    box_names_.push_back(L);
-	    
+		box_names_.push_back(L);	    
 	}
+	
 	void openVerticalBox(const char* label)
 	{
-	    std::string L = (std::string)label;
-	    if(L == "0x00")
-	    {
-		L="";
-	    }
+		std::string L = (std::string)label;
+		if(L == "0x00") // no box name
+		{
+			L="";
+		}
 	    
-	    box_names_.push_back(L);
+		box_names_.push_back(L);	    
 	}
+	
 	void closeBox()
 	{
 	    box_names_.pop_back();
 	}
 
 	// -- active widgets
+		// Adding a widget is translated into subscribing to a topic
+		// For each widget, we use default messages types
+		// Buttons							: std_msgs/Bool
+		// Sliders and Numerical Entries	: std_msgs/Float32
 
 	void addButton(const char* label, FAUSTFLOAT* zone)
 	{
+	    // Gets the button name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    // Builds the topic name from boxes and button names
 	    if (! box_names_.empty())
 	    {
 		
-		std::string my_name = "";
+			std::string my_name = "";
 		
-		for (int i = 0 ; i<box_names_.size() ; i++)
-		{
-		    if (box_names_[i] != "")
-		    {
-			my_name += "/" + strProcess(box_names_[i]); 
-		    }   
-		    else 
-		    {
-			box_names_.erase(box_names_.begin()+i);
-		    }
-		}
-		my_string = my_name + "/" + my_string;
+			for (int i = 0 ; i<box_names_.size() ; i++)
+			{
+			    if (box_names_[i] != "")
+			    {
+					my_name += "/" + strProcess(box_names_[i]); 
+		    	}   
+		    	else 
+		    	{
+					box_names_.erase(box_names_.begin()+i);
+		    	}
+			}
+			
+			my_string = my_name + "/" + my_string;
 
 	    }
 	    else
 	    {
-	    std::cout<<"RosUI.h - function addButton - line 187 : No box name to use ! "<<std::endl;
-	    std::cout<<"Finishing..."<<std::endl;
-	    return;
+	    	ROS_ERROR("RosUI.h - function addButton : No box name to use ! ");
+	    	ROS_INFO("Button's callback will not be subscribed");
+	    	return;
 	    }
-  
+  		
+  		// Subscription to buttons callback
 	    ros::Subscriber* button_sub = new ros::Subscriber();
+	    
 	    *button_sub = nh_.subscribe<std_msgs::Bool>(my_string, queue_, 
 	    boost::bind(&RosUI::buttonCallback, this, _1, zone));
+	    
 	    count_++;
+	    
+	    // Adds the Faust parameter's address (zone) to a zone vector
+	    	// if a ros metadata has been declared
+	    if (meta_)
+	    {
+	    	zones_.push_back(zone);
+	 	}
 	 	
+	 	meta_=false;
 	}
 	void addCheckButton(const char* label, FAUSTFLOAT* zone)
 	{
+	    // Gets the check button name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    // Builds the topic name from boxes and check button names
 	    if (! box_names_.empty())
 	    {
-		std::string my_name = "";
+			std::string my_name = "";
 		
-		for (int i = 0 ; i<box_names_.size() ; i++)
-		{
-		    if (box_names_[i] != "")
-		    {
-			my_name += "/" + strProcess(box_names_[i]); 
-		    }   
-		    else 
-		    {
-			box_names_.erase(box_names_.begin()+i);
-		    }
-		}
-		my_string = my_name + "/" + my_string;
+			for (int i = 0 ; i<box_names_.size() ; i++)
+			{
+			    if (box_names_[i] != "")
+			    {
+					my_name += "/" + strProcess(box_names_[i]); 
+		    	}   
+		    	else 
+		    	{
+					box_names_.erase(box_names_.begin()+i);
+		    	}
+			}
+			
+			my_string = my_name + "/" + my_string;
 
 	    }
 	    else
 	    {
-	    std::cout<<"RosUI.h - function addCheckButton - line 225 : No box name to use ! "<<std::endl;
-	    std::cout<<"Finishing..."<<std::endl;
-	    return;
+	    	ROS_ERROR("RosUI.h - function addCheckButton : No box name to use ! ");
+	    	ROS_INFO("Check button's callback will not be subscribed");
+	    	return;
 	    }
 	    
+	    // Subscription to check buttons callback
 	    ros::Subscriber* c_button_sub = new ros::Subscriber();
+	    
 	    *c_button_sub = nh_.subscribe<std_msgs::Bool>(my_string, queue_, 
 	    boost::bind(&RosUI::cButtonCallback, this, _1, zone));
+	    
 	    count_++;
-	 
-	 
+	 	
+	 	// Adds the Faust parameter's address (zone) to a zone vector
+	    	// if a ros metadata has been declared
+	    if (meta_)
+	    {
+	    	zones_.push_back(zone);
+	 	}
+	 	
+	 	meta_=false;
 	}
 	void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
+	     // Gets the vertical slider name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
 	    
 	    std::string my_string = strProcess(str);
+	    
+	    // Builds the topic name from boxes and vertical slider names
 
 	    if (! box_names_.empty())
 	    {
-		std::string my_name = "";
+			std::string my_name = "";
 		
-		for (int i = 0 ; i<box_names_.size() ; i++)
-		{
-		    if (box_names_[i] != "")
-		    {
-			my_name += "/" + strProcess(box_names_[i]); 
-		    }   
-		    else 
-		    {
-			box_names_.erase(box_names_.begin()+i);
-		    }
-		}
-		my_string = my_name + "/" + my_string;
-
+			for (int i = 0 ; i<box_names_.size() ; i++)
+			{
+			    if (box_names_[i] != "")
+			    {
+					my_name += "/" + strProcess(box_names_[i]); 
+			    }   
+			    else 
+			    {
+					box_names_.erase(box_names_.begin()+i);
+				}
+			}
+			
+			my_string = my_name + "/" + my_string;
 	    }
 	    else
 	    {
-	    std::cout<<"RosUI.h - function addVerticalSlider - line 263 : No box name to use ! "<<std::endl;
-	    std::cout<<"Finishing..."<<std::endl;
-	    return;
+	    	ROS_ERROR("RosUI.h - function addVerticalSlider : No box name to use ! ");
+	    	ROS_INFO("Vertical slider's callback will not be subscribed");
+	    	return;
 	    }
 	    
-	    
+	    // Subscription to sliders callback
 	    ros::Subscriber* v_slider = new ros::Subscriber();
+	    
 	    *v_slider = nh_.subscribe<std_msgs::Float32>(my_string, queue_, 
 	    boost::bind(&RosUI::sliderCallback, this, _1, zone));
+	    
 	    count_++;
-	 
-	  
+
+		// Adds the Faust parameter's address (zone) to a zone vector
+	    	// if a ros metadata has been declared
+	    if (meta_)
+	    {
+	    	zones_.push_back(zone);
+	 	}
+		
+		meta_=false;
 	}
 	void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
+	    // Gets the horizontal slider name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    // Builds the topic name from boxes and horizontal slider names	    
 	    if (! box_names_.empty())
 	    {
-		std::string my_name = "";
+			std::string my_name = "";
 		
-		for (int i = 0 ; i<box_names_.size() ; i++)
-		{
-		    if (box_names_[i] != "")
-		    {
-			my_name += "/" + strProcess(box_names_[i]); 
-		    }   
-		    else 
-		    {
-			box_names_.erase(box_names_.begin()+i);
-		    }
-		}
-		my_string = my_name + "/" + my_string;
-
+			for (int i = 0 ; i<box_names_.size() ; i++)
+			{
+			    if (box_names_[i] != "")
+			    {
+					my_name += "/" + strProcess(box_names_[i]); 
+		    	}   
+		    	else 
+		    	{
+					box_names_.erase(box_names_.begin()+i);
+		    	}
+			}
+			
+			my_string = my_name + "/" + my_string;
 	    }
 	    else
 	    {
-	    std::cout<<"RosUI.h - function addHorizontalSlider - line 303 : No box name to use ! "<<std::endl;
-	    std::cout<<"Finishing..."<<std::endl;
-	    return;
+	    	ROS_ERROR("RosUI.h - function addVerticalSlider : No box name to use ! ");
+	    	ROS_INFO("Vertical slider's callback will not be subscribed");
+	    	return;
 	    }
 	    
+	    // Subscription to sliders callback
 	    ros::Subscriber* h_slider = new ros::Subscriber();
 	    
 	    *h_slider = nh_.subscribe<std_msgs::Float32>
 	    (my_string, queue_, boost::bind(&RosUI::sliderCallback, this, _1, zone));
+	    
 	    count_++;
+
+		// Adds the Faust parameter's address (zone) to a zone vector
+	    	// if a ros metadata has been declared
+	    if (meta_)
+	    {
+	    	zones_.push_back(zone);
+	 	}
 	
-	  
+		meta_=false;
+		
 	}
 	void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
+	    // Gets the numerical entry name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
 	    
 	    std::string my_string = strProcess(str);
 	    
+	    // Builds the topic name from boxes and numerical entry names
+	    
 	    if (! box_names_.empty())
 	    {
-		std::string my_name = "";
+			std::string my_name = "";
 		
-		for (int i = 0 ; i<box_names_.size() ; i++)
-		{
-		    if (box_names_[i] != "")
-		    {
-			my_name += "/" + strProcess(box_names_[i]); 
-		    }   
-		    else 
-		    {
-			box_names_.erase(box_names_.begin()+i);
-		    }
-		}
-		my_string = my_name + "/" + my_string;
-
+			for (int i = 0 ; i<box_names_.size() ; i++)
+			{
+			    if (box_names_[i] != "")
+		    	{
+					my_name += "/" + strProcess(box_names_[i]); 
+		    	}   
+		    	else 
+		    	{
+					box_names_.erase(box_names_.begin()+i);
+				}
+			}
+		
+			my_string = my_name + "/" + my_string;
 	    }
 	    else
 	    {
-	    std::cout<<"RosUI.h - function addNumEntry - line 343 : No box name to use ! "<<std::endl;
-	    std::cout<<"Finishing..."<<std::endl;
-	    return;
+		    ROS_ERROR("RosUI.h - function addVerticalSlider : No box name to use ! ");
+	    	ROS_INFO("Vertical slider's callback will not be subscribed");
+	    	return;
 	    }
+	    
+	    // Subscription to numerical entries callback
 	    ros::Subscriber* num_entry = new ros::Subscriber();
 	    *num_entry = nh_.subscribe<std_msgs::Float32>(my_string, queue_, 
 	    boost::bind(&RosUI::numEntryCallback, this, _1, zone));
-	   count_++;
-	 
-	
+	    
+		count_++;
+
+		// Adds the Faust parameter's address (zone) to a zone vector
+	    	// if a ros metadata has been declared
+	    if (meta_)
+	    {
+	    	zones_.push_back(zone);
+	 	}
+	 	
+	 	meta_=false;
+	 	
 	}
 	
 	// -- passive widgets
+		// Nothing to say - not used
 
 	void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 	{
@@ -392,20 +481,51 @@ class RosUI : public UI
 
 	void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
 	{
+		if (key=="ros") // We do not care if key is not "ros" here
+		{
+			meta_=true;
+		}
+		else 
+		{
+			meta_=false;
+		}
 	}
     
-    	int getParamsCount()
+    // Function returning the number of widgets added
+	int getParamsCount()
+	{
+		return count_;
+	}
+	
+	// Function saying if, yes or no, there is any ROS metadata declared
+	bool isTrue()
+    {
+    	if (!zones_.empty())
     	{
-    	    return count_;
+    		return true; // yes
     	}
+    	else
+    	{
+    		return false; // no
+    	}
+    }
+	
+	// Function returning the Faust parameters addresses (zones)
+		// if these zones correspond to metadata declared topics
+	std::vector<FAUSTFLOAT*> getZones()
+	{
+		return zones_;
+	}
     
     private :
     
 	ros::NodeHandle nh_;
 	int queue_;
 	int count_;
+	bool meta_;
 	
 	std::vector<std::string> box_names_;
+	std::vector<FAUSTFLOAT*> zones_;
 		
 };
 

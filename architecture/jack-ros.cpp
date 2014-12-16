@@ -34,10 +34,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
-#include <list>
 
 #include "faust/misc.h"
 #include "faust/audio/jack-dsp.h"
@@ -91,57 +89,42 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	// Get name from file name to name the namespace.
+	// Get name from file name to name the namespace
+		//This is a lot of names !
 	ros::init(argc, argv, (std::string)appname);
-	ros::NodeHandle n((std::string)appname);
+	ros::NodeHandle n;
 	
 	// Create and build ROS interface
-	RosUI* interface = new RosUI(n);
+	RosUI* interface = new RosUI(n, (std::string)appname);
 	DSP->buildUserInterface(interface);
 	
+	// Is there any declared ROS metadata ?
+	bool meta = interface->isTrue();
 	
-
-#ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
-	DSP->buildUserInterface(httpdinterface);
-    	ROS_INFO("HTTPD is on");
-#endif
-
-#ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(appname, argc, argv);
-	DSP->buildUserInterface(oscinterface);
-#endif
+	if (meta) // If there is any, then we subscribe to the specific subscriber(s)
+	{
+		RosCallbacks* subscriber = new RosCallbacks(n); 
 	
+		std::vector<FAUSTFLOAT*> my_zones = interface->getZones();
+		subscriber->Subscribe(my_zones);
+	}
+	
+	// Launching jack audio API
 	jackaudio audio;
 	audio.init(appname, DSP);
 
 	audio.start();
 	
-#ifdef HTTPCTRL
-	httpdinterface->run();
-#ifdef QRCODECTRL
-    interface->displayQRCode( httpdinterface->getTCPPort() );
-#endif
-#endif
-	
-#ifdef OSCCTRL
-	oscinterface->run();
-#endif
-	
+		
 	// Call ROS Callbacks
 	ros::spin();
 	
+	// Once Ctrl + C, everything stops
 	audio.stop();
 	
     // desallocation
     delete interface;
 
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
-#ifdef OSCCTRL
-	 delete oscinterface;
-#endif
 
   	return 0;
 }

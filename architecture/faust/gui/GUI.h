@@ -54,7 +54,7 @@ class GUI : public UI
 	
 	void registerZone(FAUSTFLOAT* z, uiItem* c)
 	{
-		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
+  		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
 		fZoneMap[z]->push_back(c);
 	} 	
 
@@ -76,7 +76,7 @@ class GUI : public UI
 	virtual void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
-    virtual void declare(FAUSTFLOAT* , const char* , const char* ) {}
+    virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
 };
 
 /**
@@ -155,12 +155,14 @@ inline void GUI::updateZone(FAUSTFLOAT* z)
 inline void GUI::updateAllZones()
 {
 	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
-		FAUSTFLOAT* 	z = m->first;
+		FAUSTFLOAT* z = m->first;
 		clist*	l = m->second;
-		FAUSTFLOAT	v = *z;
-		for (clist::iterator c = l->begin(); c != l->end(); c++) {
-			if ((*c)->cache() != v) (*c)->reflectZone();
-		}
+        if (z) {
+            FAUSTFLOAT	v = *z;
+            for (clist::iterator c = l->begin(); c != l->end(); c++) {
+                if ((*c)->cache() != v) (*c)->reflectZone();
+            }
+        }
 	}
 }
 
