@@ -87,7 +87,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             // Do no generate structure variable, since they are in the global HEAP
-            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)  || (inst->fAddress->getAccess() & Address::kStaticStruct); 
+            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct); 
             string prefix = is_struct ? fObjPrefix : "var ";
          
             if (inst->fValue) {
@@ -494,7 +494,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
         } else {
             fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-            return new DropInst();
+            return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
         }
     }
     
