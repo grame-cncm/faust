@@ -18,10 +18,10 @@ then
   FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/lib/faust/music.lib ]
 then
-  FAUSTLIB=/usr/local/lib/faust/
+  FAUSTLIB=/usr/local/lib/faust
 elif [ -f /usr/lib/faust/music.lib ]
 then
-  FAUSTLIB=/usr/lib/faust/
+  FAUSTLIB=/usr/lib/faust
 else
   error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
 fi

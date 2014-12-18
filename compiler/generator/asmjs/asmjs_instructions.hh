@@ -454,34 +454,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
             }
         }
- };
+    };
 
-// Moves all variables declaration at the beginning of the block
-struct MoveVariablesInFront1 : public BasicCloneVisitor {
-    
-    list<DeclareVarInst*> fVarTable;
-    
-    virtual StatementInst* visit(DeclareVarInst* inst)
-    {
-        BasicCloneVisitor cloner;
-        fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-        return new DropInst();
-    }
-    
-    BlockInst* getCode(BlockInst* src)
-    {
-        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
-        // Moved in front..
-        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
-            dst->pushFrontInst(*it);
-        }
-        return dst;
-    }
-    
-};
 
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
-struct MoveVariablesInFront2 : public BasicCloneVisitor {
+struct MoveVariablesInFront : public BasicCloneVisitor {
     
     list<DeclareVarInst*> fVarTable;
     
@@ -490,12 +467,11 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         BasicCloneVisitor cloner;
         // For variable declaration that is not a number, separate the declaration and the store
         if (inst->fValue && !dynamic_cast<NumValueInst*>(inst->fValue)) {
-            fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
-            return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+            fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));    
         } else {
             fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-            return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
         }
+        return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
     }
     
     BlockInst* getCode(BlockInst* src)
