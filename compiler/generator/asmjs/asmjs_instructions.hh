@@ -481,7 +481,6 @@ struct MoveVariablesInFront : public BasicCloneVisitor {
         for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
-        BasicCloneVisitor cloner;
         return dst;
     }
     
