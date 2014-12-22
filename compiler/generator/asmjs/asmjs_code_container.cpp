@@ -114,7 +114,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
     // Moves all variables declaration at the beginning of the block
-    MoveVariablesInFront mover1;
+    MoveVariablesInFront1 mover1;
     BlockInst* block1 = mover1.getCode(fInitInstructions); 
     block1->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
@@ -133,7 +133,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     fComputeBlockInstructions->pushBackInst(loop);
     
     // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
-    MoveVariablesInFront mover2;
+    MoveVariablesInFront2 mover2;
     BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
     block2->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
@@ -151,7 +151,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kIntish, kFloatish or kDoublish
         and ASMJAVAScriptInstVisitor::visit(CastNumInst* inst) interprets kIntish, kFloatish or kDoublish
         - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) add the type of result
-     5) MoveVariablesInFront FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
+     5) MoveVariablesInFront1 and MoveVariablesInFront2 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
      6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
      7) 'buffer' argument is the actual emscripten (or 'self-made') memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers.
      8) subcontainer generation :
@@ -246,7 +246,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut);
             gGlobal->gASMJSVisitor->Tab(n+2);
             // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront mover;
+            MoveVariablesInFront1 mover;
             BlockInst* block2 = mover.getCode(fInitInstructions); 
             // Replace use of "sig" in use of "dsp"
             DspRenamer renamer2;
@@ -268,7 +268,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
             tab(n+2, *fOut); *fOut << "value = +value;";
-            tab(n+2, *fOut);*fOut << "HEAPF32[dsp + offset >> 2] = value;"; 
+            tab(n+2, *fOut); *fOut << "HEAPF32[dsp + offset >> 2] = value;"; 
         tab(n+1, *fOut); *fOut << "}";
     
         // getValue
@@ -276,7 +276,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << fObjPrefix << "function getValue(dsp, offset) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
-            tab(n+2, *fOut);*fOut << "return +HEAPF32[dsp + offset >> 2];";
+            tab(n+2, *fOut); *fOut << "return +HEAPF32[dsp + offset >> 2];";
         tab(n+1, *fOut); *fOut << "}";
     
         // Compute
@@ -372,7 +372,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         fComputeBlockInstructions->pushBackInst(loop);
     
         // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
-        MoveVariablesInFront mover;
+        MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions); 
         block->accept(gGlobal->gASMJSVisitor);
            

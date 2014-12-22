@@ -303,6 +303,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
             *fOut << checkDouble(inst->fNum);
         }
+        
+        inline bool isRealType(Typed::VarType type) 
+        { 
+            return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble); 
+        }
            
         virtual void visit(BinopInst* inst)
         {
@@ -343,12 +348,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         inst->fInst2->accept(this);
                         *fOut << " | 0)";
                     }
-                } else if ((type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) 
-                           || ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kInt)
-                           || ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) 
-                               && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble))
-                           || ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kBool)
-                           || (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)))
+                } else if ((type1 == Typed::kInt && isRealType(type2))
+                           || (isRealType(type1) && type2 == Typed::kInt)
+                           || (isRealType(type1) && isRealType(type2))
+                           || (isRealType(type1) && type2 == Typed::kBool)
+                           || (type1 == Typed::kBool && isRealType(type2)))
                            {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
@@ -419,7 +423,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 
                 // To generate C99 compatible loops...
                 c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), 
+                                                                InstBuilder::genBasicTyped(Typed::kInt), 
+                                                                    InstBuilder::genIntNumInst(0));
                 // C99 loop variable declared outside the loop
                 c99_declare_inst->accept(this);
             }
@@ -454,11 +460,34 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
             }
         }
-    };
+};
 
+// Moves all variables declaration at the beginning of the block
+struct MoveVariablesInFront1 : public BasicCloneVisitor {
+    
+    list<DeclareVarInst*> fVarTable;
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        BasicCloneVisitor cloner;
+        fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+        return new DropInst();
+    }
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
+        // Moved in front..
+        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+            dst->pushFrontInst(*it);
+        }
+        return dst;
+    }
+    
+};
 
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
-struct MoveVariablesInFront : public BasicCloneVisitor {
+struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
     list<DeclareVarInst*> fVarTable;
     
@@ -476,7 +505,7 @@ struct MoveVariablesInFront : public BasicCloneVisitor {
     
     BlockInst* getCode(BlockInst* src)
     {
-        BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
+        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
         // Moved in front..
         for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
             dst->pushFrontInst(*it);
@@ -492,6 +521,7 @@ struct DspRenamer : public BasicCloneVisitor {
     DspRenamer() 
     {}
     
+    // change access
     virtual Address* visit(NamedAddress* named)
     {  
          if (startWith(named->getName(), "sig")) {
@@ -501,6 +531,7 @@ struct DspRenamer : public BasicCloneVisitor {
          }
     }
     
+    // remove allocation
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         if (startWith(inst->fAddress->getName(), "sig")) {
@@ -513,8 +544,7 @@ struct DspRenamer : public BasicCloneVisitor {
     
     BlockInst* getCode(BlockInst* src)
     {
-        BlockInst* dst = dynamic_cast< BlockInst*>(src->clone(this));
-        return dst;
+        return dynamic_cast<BlockInst*>(src->clone(this));
     }
     
 };
