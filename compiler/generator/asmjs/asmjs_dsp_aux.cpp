@@ -68,11 +68,16 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
     try {
         str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
         str = flatten(str);
+        char* cstr = (char*)malloc(str.length() + 1);
+        strcpy(cstr, str.c_str());
+        return cstr;
     } catch (...) {
         strncpy(error_msg, "libfaust.js fatal error...", 256);
-        str = "";
+        return NULL;
     }
-    char* cstr = (char*)malloc(str.length() + 1);
-    strcpy(cstr, str.c_str());
-    return cstr;
+}
+
+EXPORT void freeCDSP(void* ptr)
+{
+    free(ptr);
 }

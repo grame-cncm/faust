@@ -120,24 +120,24 @@ extern "C"
     char* getCSHAKey(llvm_dsp_factory* factory);
 
     /**
-     * Get the list of library dependancies of the DSP factory.
+     * Get the list of library dependancies of the DSP factory as a null-terminated array.
      *
      * @param factory - the DSP factory.
      * 
-     * @return the list as a vector of strings (the array and it's contain has to be deallocated by the caller).
+     * @return the library dependancies (the array and it's contain has to be deleted by the caller).
      */
     const char** getCLibraryList(llvm_dsp_factory* factory);
     
     /**
-     * Destroy all Faust DSP factories kept in the libray cache. Beware : all kept factory pointer (in local variables of so...) thus become invalid.
+     * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
      * 
      */                                 
     void deleteAllCDSPFactories();
     
     /**
-     * Return Faust DSP factories of the library cache as an array of their SHA keys.
+     * Return Faust DSP factories of the library cache as a null-terminated array of their SHA keys.
      * 
-     * @return the Faust DSP factories (the array and it's contain has to be deallocated by the caller).
+     * @return the Faust DSP factories (the array and it's content has to be deleted by the caller).
      */    
     const char** getAllCDSPFactories();
     
@@ -243,7 +243,7 @@ extern "C"
      * 
      * @param factory - the Faust DSP factory
      *
-     * @return the machine code as a string.
+     * @return the machine code as a string (to be deleted by the caller).
      */
     const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
 
@@ -377,6 +377,16 @@ extern "C"
      *
      */ 
     void generateCSHA1(const char* data, char* key);
+    
+    /**
+     * The free function to be used on memory returned by getCName, getCSHAKey, getCLibraryList, 
+     * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine, 
+     * expandCDSPFromString end expandCDSPFromFile.
+     * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
+     * 
+     * @param ptr - the pointer to be deleted.
+     */
+    void freeCDSP(void* ptr);
     
 #ifdef __cplusplus
 }

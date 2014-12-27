@@ -196,6 +196,7 @@ var faust = faust || {};
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
 faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number']);
+faust.freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
 
 faust.error_msg = null;
 faust.factory_number = 0;
@@ -224,7 +225,8 @@ faust.createDSPFactory = function (code) {
     Module.writeStringToMemory(code, code_ptr);
     Module.writeStringToMemory(factory_name, factory_name_ptr);
     
-    var factory_code = Pointer_stringify(faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, factory_name_ptr, error_msg_ptr));
+    var factory_code_ptr = faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, factory_name_ptr, error_msg_ptr);
+    var factory_code = Pointer_stringify(factory_code_ptr);
     faust.error_msg = Pointer_stringify(error_msg_ptr);
     if (factory_code === "") {
         return null;
@@ -261,6 +263,9 @@ faust.createDSPFactory = function (code) {
     Module._free(name_ptr);
     Module._free(error_msg_ptr);
     Module._free(factory_name_ptr);
+    
+    // Free C allocated asm.js module
+    faust.freeCDSP(factory_code_ptr);
     
     return factory;
 };
