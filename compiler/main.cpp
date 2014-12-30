@@ -656,7 +656,7 @@ int main (int argc, char* argv[])
      1.7 - Inject code instead of compile
     *****************************************************************/
 
-    // Check for injected code
+    // Check if this is a code injection
     if (gInjectFlag) {
         if (gArchFile == "") {
             cerr << "ERROR : no architecture file specified to inject \"" << gInjectFile << "\"" << endl;
@@ -666,7 +666,7 @@ int main (int argc, char* argv[])
             streamCopy(*injcode, *dst);
             streamCopyUntilEnd(*enrobage, *dst);
         }
-        exit(1);
+        exit(0);
     }
 
     /****************************************************************
