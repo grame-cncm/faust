@@ -134,11 +134,11 @@ struct mydsp_poly
         
         for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
             std::string label = (*it).first;
-            if (label.find("gate") != std::string::npos) {
+            if (label.ends_with("/gate")) {
                 fGateLabel = label;
-            } else if (label.find("freq") != std::string::npos) {
+            } else if (label.ends_with("/freq")) {
                 fFreqLabel = label;
-            } else if (label.find("gain") != std::string::npos) {
+            } else if (label.ends_with("/gain")) {
                 fGainLabel = label;
             }
         }
