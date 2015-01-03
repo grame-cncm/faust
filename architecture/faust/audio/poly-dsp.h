@@ -38,10 +38,21 @@
 #include <stdio.h>
 #include <string>
 #include <math.h>
+#include <algorithm>
 
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
+
+// ends_with(<str>,<end>) : returns true if <str> ends with <end>
+static bool ends_with (std::string const& str, std::string const& end)
+{
+	unsigned int l1 = str.length();
+	unsigned int l2 = end.length();
+
+    return (l1 >= l2) && (0 == str.compare (l1 - l2, l2, end));
+}
+
 
 struct mydsp_voice : public MapUI {
     
@@ -52,7 +63,7 @@ struct mydsp_voice : public MapUI {
     {
         fVoice.init(sample_rate);
         fVoice.buildUserInterface(this);
-        fNote = -1;
+        fNote = -2;
     }
 };
 
@@ -71,15 +82,18 @@ struct mydsp_poly
     FAUSTFLOAT** fNoteOutputs;
     int fNumOutputs;
     
-    inline void mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
+    inline float mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
     {
+    	float l = 0;
         for (int i = 0; i < fNumOutputs; i++) {
             float* mixChannel = mixBuffer[i];
             float* outChannel = outputBuffer[i];
             for (int j = 0; j < count; j++) {
-                mixChannel[j] += outChannel[j];
+            	l = std::max(l,(float)fabs(outChannel[j]));
+                mixChannel[j] += outChannel[j]/(fMaxPolyphony*0.5f);
             }
         }
+        return l;
     }
     
     inline float midiToFreq(float note) 
@@ -100,11 +114,6 @@ struct mydsp_poly
             if (fVoiceTable[i]->fNote == note) return i;
         }
         return -1;
-    }
-    
-    inline bool ends_with(std::string const & value, std::string const & ending)
-    {
-        return (ending.size() > value.size()) ? false : std::equal(ending.rbegin(), ending.rend(), value.rbegin());
     }
     
     mydsp_poly(int sample_rate, int buffer_size, int max_polyphony)
@@ -135,11 +144,11 @@ struct mydsp_poly
         
         for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
             std::string label = (*it).first;
-            if (label.ends_with("/gate")) {
+            if (ends_with(label, "/gate")) {
                 fGateLabel = label;
-            } else if (label.ends_with("/freq")) {
+            } else if (ends_with(label, "/freq")) {
                 fFreqLabel = label;
-            } else if (label.ends_with("/gain")) {
+            } else if (ends_with(label, "/gain")) {
                 fGainLabel = label;
             }
         }
@@ -165,8 +174,11 @@ struct mydsp_poly
           
         // Then mix all voices
         for (int i = 0; i < fMaxPolyphony; i++) {
-            fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
-            mixVoice(count, fNoteOutputs, outputs);
+        	if(fVoiceTable[i]->fNote != -2){
+            	fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
+            	float level = mixVoice(count, fNoteOutputs, outputs);
+            	if((level < 0.001) && (fVoiceTable[i]->fNote == -1)) fVoiceTable[i]->fNote = -2;
+            }
         }
     }
     
@@ -182,7 +194,9 @@ struct mydsp_poly
     
     void keyOn(int channel, int pitch, int velocity)
     {
-        int voice = getVoice(-1);  // Gets a free voice
+        int voice = getVoice(-2);
+        if(voice == -1) voice = getVoice(-1);  // Gets a free voice
+        
         if (voice >= 0) {
             printf("noteOn %d\n", voice);
             fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
