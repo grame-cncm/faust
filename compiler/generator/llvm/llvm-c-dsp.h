@@ -38,7 +38,7 @@ extern "C"
 	
     /*!
      \addtogroup llvmc C interface for compiling Faust code. Note that the API is not thread safe and must be used with 
-     appropiate protections (like mutexes) in a multi-thread context.
+     appropriate protections (like mutexes) in a multi-thread context.
      @{
      */
     
