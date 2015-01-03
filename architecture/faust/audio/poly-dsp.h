@@ -44,6 +44,16 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
+// ends_with(<str>,<end>) : returns true if <str> ends with <end>
+static bool ends_with (std::string const& str, std::string const& end)
+{
+	unsigned int l1 = str.length();
+	unsigned int l2 = end.length();
+
+    return (l1 >= l2) && (0 == str.compare (l1 - l2, l2, end));
+}
+
+
 struct mydsp_voice : public MapUI {
     
     mydsp fVoice;
@@ -134,11 +144,11 @@ struct mydsp_poly
         
         for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
             std::string label = (*it).first;
-            if (label.ends_with("/gate")) {
+            if (ends_with(label, "/gate")) {
                 fGateLabel = label;
-            } else if (label.ends_with("/freq")) {
+            } else if (ends_with(label, "/freq")) {
                 fFreqLabel = label;
-            } else if (label.ends_with("/gain")) {
+            } else if (ends_with(label, "/gain")) {
                 fGainLabel = label;
             }
         }
