@@ -98,7 +98,7 @@ cp -r /usr/local/lib/faust/android/*  $TMPFILES
 
 # Faust compilation (for now only one file should be specified)
 for f in $FILES; do
-	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/dsp_faust.cpp"
+	faust -i -a android.cpp "$f" -o "$TMPFILES/jni/dsp_faust.cpp"
 done
 
 APPNAME=$(basename "$f")
@@ -106,29 +106,6 @@ APPNAME="${APPNAME%.dsp}"
 
 # Copy include files *.h if any (ignore any error here)
 (cp *.h "$TMPFILES/jni/" 2> /dev/null) || true
-
-# Get the number of input and output of the Faust object 
-NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
-NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
-
-rm $f.xml
-
-# If the number of input signals is greater than one, they are merged into one signal
-# If the number of output signals is greater than two, they are merged into tow signals
-if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
-	if [ $NINPUTS -gt  1 ]; then
-		INMOD="_ <:"
-		echo "Your Faust object has more than one inputs!"
-	elif [ $NOUTPUTS -gt  2 ]; then
-		OUTMOD=":> _,_"
-		echo "Your Faust object has more than two outputs!"
-	fi
-	echo "It was modified as follows:"
-	echo "process = $INMOD component(\"$f\") $OUTMOD;"
-	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -i -a android.cpp tmpMOD.dsp -o "$TMPFILES/jni/faust_dsp.cpp"
-	rm tmpMOD.dsp
-fi
 
 cd $TMPFILES 
 
