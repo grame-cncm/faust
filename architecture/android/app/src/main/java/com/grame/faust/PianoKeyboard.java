@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 /*
  * This class implements a polyphonic continuous piano keyboard.
  */
-class PianoKeyboard extends ViewGroup{
+public class PianoKeyboard extends ViewGroup{
 	private PianoKey[] keys;
 	
 	// Config variables

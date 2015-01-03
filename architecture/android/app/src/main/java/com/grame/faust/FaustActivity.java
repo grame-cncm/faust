@@ -2,6 +2,7 @@ package com.grame.faust;
 
 /*
  * TODO
+ * - Make all accel meta data compatible
  * - The knob class could be greatly improved
  * - Drop down menu for actions for small screens 
  * - Vertical sliders are fucked up with accelerometers.
