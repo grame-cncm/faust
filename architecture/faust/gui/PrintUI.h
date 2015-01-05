@@ -10,7 +10,7 @@
 #include <string>
 
 /*******************************************************************************
- * PUI : Faust User Interface
+ * PrintUI : Faust User Interface
  * This class print arguments given to calls to UI methods and build complete path for labels.
  ******************************************************************************/
 

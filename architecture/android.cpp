@@ -247,7 +247,7 @@ int keyOff(int pitch) {
  */
 int pitchBend(int refPitch, float pitch){
 	if(polyMax > 0){
-		DSPpoly->pitchBend(refPitch, pitch);
+		DSPpoly->pitchBend(0, refPitch, pitch);
 		return 1;
 	}
 	else
