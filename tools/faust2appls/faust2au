@@ -16,12 +16,21 @@ PATH=$PATH:/usr/local/bin
 FLIB=""; FINC="";
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 for f in $FPATH; do
-if [ -e $f/lib/faust ];		then FLIB=$f/lib/faust; fi
-if [ -e $f/include/faust ]; then FINC=$f/include/; fi
+	if [ -e $f/lib/faust ]; then
+		FLIB=$f/lib/faust;
+	fi
+	if [ -e $f/include/faust ]; then
+		FINC=$f/include/;
+	fi
 done
+
+if [ -z $ARCHPATH ]; then
+	ARCHPATH=$FLIB
+fi
+
 if [ -z "$FLIB" -o -z "$FINC" ]; then
-echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)";
-exit 1;
+	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)";
+	exit 1;
 fi
 
 #-------------------------------------------------------------------------------
@@ -49,7 +58,7 @@ for p in $@; do
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
-	elif [ $p = "-manufacturer"]; then
+	elif [ $p = "-manufacturer" ]; then
 		$MANUFACTURER=$p
 	elif [ ${p:0:1} = "-" ]; then
 		OPTIONS="$OPTIONS $p"
@@ -98,7 +107,6 @@ for f in $FILES; do
 	export FAUSTAU_CLASS
 	export COMPTYPE
 
-	FAUST_DIR=$FLIB
 	AU_DIR=$HOME/Library/Audio/Plug-Ins/Components
 	TEMP_DIR=`dirname $f`/faustAUtmp.`basename $f`
 
@@ -106,7 +114,7 @@ for f in $FILES; do
 		rm -r $TEMP_DIR
 	fi
 	mkdir $TEMP_DIR
-	cp -r /usr/local/lib/faust/AU/* $TEMP_DIR
+	cp -r $ARCHPATH/AU/* $TEMP_DIR
 	cp $f $TEMP_DIR
 	cp *.dsp $TEMP_DIR >& $PRINTDEV
 	cp *.lib $TEMP_DIR >& $PRINTDEV
@@ -119,7 +127,7 @@ for f in $FILES; do
 	EXTENSION="${FILE_NAME##*.}"
 	FILE_NAME="${FILE_NAME%.*}"
 
-	cp $FAUST_DIR/$ARCHFILE au-arch-temp.cpp
+	cp $ARCHPATH/$ARCHFILE au-arch-temp.cpp
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' au-arch-temp.cpp
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' FaustAUCustomView.plist
 
