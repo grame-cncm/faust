@@ -1,0 +1,39 @@
+.node {
+	position: absolute;
+	background-color: #aaf;
+	border: 4px solid blue;
+	border-radius: 20px;
+	color: #000000;
+	padding: 10px;
+	width: 150px;
+	height: 150px;	
+	font: 14px/10px Geneva, sans-serif;
+	vertical-align: text-top;
+}
+
+.inputconnector {
+		position: absolute;
+		left:-12px; top:75px;
+		width:10px; height:10px;
+		border:5px solid red;
+		border-radius: 10px;
+		background: gray;
+}
+
+.inputconnector.connected, .outputconnector.connected { background: lightgreen }
+.inputconnector.canConnect, .outputconnector.canConnect { background: pink }
+
+.outputconnector {
+		position: absolute;
+		right:-12px; top:75px;
+		width:10px; height:10px;
+		border:5px solid green;
+		border-radius: 10px;
+		background: gray;
+}
+
+.dialcontrol {
+	position: absolute;
+}
+
+#code { font: 10pt Courier New, fixed; }
