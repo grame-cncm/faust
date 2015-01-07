@@ -374,9 +374,14 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         that.scriptProcessor.disconnect(faust.context.destination);
     };
     
-    that.update = function (path, val) 
+    that.setValue = function (path, val) 
     {
         that.factory.setValue(that.dsp, that.factory.pathTable[path], val);
+    };
+    
+    that.getValue = function (path) 
+    {
+        return that.factory.getValue(that.dsp, that.factory.pathTable[path]);
     };
     
     that.json = function ()

@@ -174,9 +174,14 @@ faust.mydsp = function (context, buffer_size) {
         that.scriptProcessor.disconnect(faust.context.destination);
     };
     
-    that.update = function (path, val) 
+    that.setValue = function (path, val) 
     {
         that.factory.setValue(that.dsp, that.pathTable[path], val);
+    };
+    
+    that.getValue = function (path) 
+    {
+        that.factory.getValue(that.dsp, that.pathTable[path]);
     };
      
     that.json = function ()
