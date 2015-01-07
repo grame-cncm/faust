@@ -23,11 +23,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-osc" ]; then
-        OSCDEFS="DEFINES += OSCCTRL"
-        OSCLIBS="-lOSCFaust"
+        OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
-        HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-jack" ]; then
         JACK="1"
     elif [ "$p" = "-xcode" ]; then

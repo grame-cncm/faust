@@ -20,7 +20,7 @@ import android.widget.TextView;
  * can be moved on the screen. It respects the Faust standards and 
  * can output values constrained between a certain range, etc.
  */
-class MultiParams extends ViewGroup{
+public class MultiParams extends ViewGroup{
 	private Context c;
 	private ShapeDrawable frame; // the frame around the interface
 	private ParamPoint points[]; // the points

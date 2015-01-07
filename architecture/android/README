@@ -8,26 +8,24 @@ Documentations and tutorials on how to use faust2android can be found at: http:/
 
 INSTALL
 
-faust2android fully relies on the android SDK and NDK tools. This instructions given here were tested with Android API-21. Google often changes the organization of its SDK and NDK so some of the command line tools used by faust2android might not be found with the path configuration decribed below. So it might have to be adapted for future versions of the SDK and NDK...
+faust2android fully relies on the android SDK and NDK tools. The instructions given here were tested with Android API-21. Google often changes the organization of its SDK and NDK so some of the command line tools used by faust2android might not be found with the path configuration decribed below. So it might have to be adapted for future versions of the SDK and NDK...
 faust2android is only compatible with Mac OSX and Linux. The installation process for these two platforms is almost the same:
 	- First, you should make sure that JAVA is properly installed on your system.
-	- Download the most recent Android SDK (ADT Bundle): https://developer.android.com/sdk/index.html?hl=i
-	- Download the most recent Android NDK: https://developer.android.com/tools/sdk/ndk/index.html
-	- Install them on your system. I recommend that you create and android folder in /opt where you will put the sdk (/opt/android/sdk) and the ndk (/opt/android/ndk) folders.
+	- Download the most recent Android SDK (Android Studio and SDK tools): https://developer.android.com/sdk
+	- Download the most recent Android NDK: https://developer.android.com/tools/sdk/ndk
+	- Install them on your system. I recommend that you create an android folder in /opt where you will put the sdk (/opt/android/sdk), Android Studio (/opt/android/studio) and the ndk (/opt/android/ndk) folders.
 	- Add the following commands to your bash profile: 
 		export ANDROID_ECLIPSE=/usr/local/eclipse
 		export ANDROID_ROOT=/opt/android
 		export ANDROID_NDK_ROOT=$ANDROID_ROOT/ndk
 		export ANDROID_SDK_ROOT=$ANDROID_ROOT/sdk
+		export ANDROID_STUDIO=$ANDROID_ROOT/studio/bin
 		export PATH="$PATH:$ANDROID_NDK_ROOT"
 		export PATH="$PATH:$ANDROID_ECLIPSE"
+		export PATH="$PATH:$ANDROID_STUDIO"
 		export PATH="$PATH:$ANDROID_SDK_ROOT/platform-tools"
 		export PATH="$PATH:$ANDROID_SDK_ROOT/tools"
-		export PATH="$PATH:$ANDROID_SDK_ROOT/build-tools/android-4.4W"
 
-		The last command might have to be adjusted in function of the version of the Android SDK you're using. The idea is to make the program "zipalign" visible.
-
-	- ant should be installed on your system
 	- run sudo ./install (faust2android will be installed in the standard Faust locations: /usr/local/ and will replace the old version from the Faust distribution).
 
 After that, you should be good to go...

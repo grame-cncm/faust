@@ -53,6 +53,8 @@ static bool ends_with (std::string const& str, std::string const& end)
     return (l1 >= l2) && (0 == str.compare (l1 - l2, l2, end));
 }
 
+#define kFreeVoice        -2
+#define kReleaseVoice     -1
 
 struct mydsp_voice : public MapUI {
     
@@ -63,7 +65,7 @@ struct mydsp_voice : public MapUI {
     {
         fVoice.init(sample_rate);
         fVoice.buildUserInterface(this);
-        fNote = -2;
+        fNote = kFreeVoice;
     }
 };
 
@@ -84,16 +86,16 @@ struct mydsp_poly
     
     inline float mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
     {
-    	float l = 0;
+    	float level = 0;
         for (int i = 0; i < fNumOutputs; i++) {
             float* mixChannel = mixBuffer[i];
             float* outChannel = outputBuffer[i];
             for (int j = 0; j < count; j++) {
-            	l = std::max(l,(float)fabs(outChannel[j]));
+            	level = std::max(level,(float)fabs(outChannel[j]));
                 mixChannel[j] += outChannel[j]/(fMaxPolyphony*0.5f);
             }
         }
-        return l;
+        return level;
     }
     
     inline float midiToFreq(float note) 
@@ -113,7 +115,7 @@ struct mydsp_poly
         for (int i = 0; i < fMaxPolyphony; i++) {
             if (fVoiceTable[i]->fNote == note) return i;
         }
-        return -1;
+        return kReleaseVoice;
     }
     
     mydsp_poly(int sample_rate, int buffer_size, int max_polyphony)
@@ -174,10 +176,10 @@ struct mydsp_poly
           
         // Then mix all voices
         for (int i = 0; i < fMaxPolyphony; i++) {
-        	if(fVoiceTable[i]->fNote != -2){
+        	if (fVoiceTable[i]->fNote != kFreeVoice){
             	fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
             	float level = mixVoice(count, fNoteOutputs, outputs);
-            	if((level < 0.001) && (fVoiceTable[i]->fNote == -1)) fVoiceTable[i]->fNote = -2;
+            	if ((level < 0.001) && (fVoiceTable[i]->fNote == kReleaseVoice)) fVoiceTable[i]->fNote = kFreeVoice;
             }
         }
     }
@@ -194,8 +196,8 @@ struct mydsp_poly
     
     void keyOn(int channel, int pitch, int velocity)
     {
-        int voice = getVoice(-2);
-        if(voice == -1) voice = getVoice(-1);  // Gets a free voice
+        int voice = getVoice(kFreeVoice);
+        if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
         
         if (voice >= 0) {
             printf("noteOn %d\n", voice);
@@ -214,27 +216,23 @@ struct mydsp_poly
         if (voice >= 0) {
             printf("noteOff %d\n", voice);
             fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
-            fVoiceTable[voice]->fNote = -1;
+            fVoiceTable[voice]->fNote = kReleaseVoice;
         } else {
             printf("Playing voice not found...\n");
         }
     }
     
-    void pitchBend(int refPitch, float pitch)
+    void pitchBend(int channel, int refPitch, float pitch)
     {
     	int voice = getVoice(refPitch);
         if (voice >= 0) {
-        	fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
-        }
-        else {
+            fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+        } else {
         	printf("Playing voice not found...\n");
         }
     }
     
     void ctrlChange(int channel, int ctrl, int value)
-    {}
-    
-    void pitchWheel(int channel, int pitchWheel)
     {}
     
     const char* getJSON()
