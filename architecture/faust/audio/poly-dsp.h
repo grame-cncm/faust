@@ -310,9 +310,9 @@ extern "C" {
         n->ctrlChange(channel, ctrl, value);
     }
     
-    void mydsp_poly_pitchWheel(mydsp_poly* n, int channel, int pitchWheel)
+    void mydsp_poly_pitchBend(mydsp_poly* n, int channel, int refPitch, float pitch)
     {
-        n->pitchWheel(channel, pitchWheel);
+        n->pitchBend(channel, refPitch, pitch);
     }
     
     void mydsp_poly_setValue(mydsp_poly* n, const char* path, float value)
