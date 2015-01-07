@@ -53,6 +53,10 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+#ifdef OCVCTRL
+#include "faust/gui/OCVUI.h"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -104,6 +108,12 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(oscinterface);
 #endif
 
+#ifdef OCVCTRL
+	std::cout<<"OCVCTRL defined"<<std::endl;
+	OCVUI* ocvinterface = new OCVUI();
+	DSP.buildUserInterface(ocvinterface);
+#endif
+
 	jackaudio audio;
 	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);	
@@ -116,6 +126,11 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
+
+#ifdef OCVCTRL
+	ocvinterface->run();
+#endif
+
 	interface->run();
 	
 	audio.stop();
@@ -129,6 +144,10 @@ int main(int argc, char *argv[])
 #endif
 #ifdef OSCCTRL
 	 delete oscinterface;
+#endif
+
+#ifdef OCVCTRL
+	 delete ocvinterface;
 #endif
 
   	return 0;
