@@ -30,9 +30,9 @@
 // std::thread
 #include <pthread.h>
 
-// Main Loop Function Prototype
+// OpenCV Main Loop Function Prototype
 
-static void* mainLoop(void*);	// changer nom
+static void* ocvLoop(void*);
 
 //********	OpenCV User Interface CLASS DEFINITION ********//
 class OCVUI : public UI
@@ -79,7 +79,10 @@ class OCVUI : public UI
 	
 	// Destructor
 	~OCVUI() 
-	{exit_=true;};
+	{
+	exit_=true;
+	pthread_join(loop_, NULL);	
+	};
 	
 	
 	// -- WIDGETS LAYOUTS
@@ -376,7 +379,7 @@ class OCVUI : public UI
 					}
 					else if (parameters_storage_[j].param=="y")
 					{
-						*parameters_storage_[j].zone=objects_storage_[i].centerY/height_;
+						*parameters_storage_[j].zone=1-(objects_storage_[i].centerY/height_);
 					}
 					else if (parameters_storage_[j].param=="area")
 					{
@@ -455,12 +458,17 @@ class OCVUI : public UI
 		return exit_;
 	}
 	
+	void exitThread()
+	{
+		pthread_exit(NULL);
+	}
+	
 	void run()
 	{		
 		exit_=false;
 		int create_thread = 1;
 	
-		create_thread = pthread_create(&loop_, NULL, mainLoop, (void *) this);
+		create_thread = pthread_create(&loop_, NULL, ocvLoop, (void *) this);
 		
 		if (create_thread)
 		{
@@ -550,15 +558,15 @@ cv::Scalar OCVUI::magenta_min = cv::Scalar (145,200,55);
 cv::Scalar OCVUI::magenta_max = cv::Scalar (155,255,255);
 
 
-// Main Loop Function Implementation
+// OpenCV Main Loop Function Implementation
 	// This function is a loop that gets every frame from a camera
 	// and calls the image processing functions.
-	// This is the main function.
-void* mainLoop(void* ocv_object)
+	// This is the OCVUI.h main function.
+void* ocvLoop(void* ocv_object)
 {
 	// The camera index allows to select the camera.
 		// 0 stands for the default camera.
-	int camIndex=0;
+	int camIndex=2;
 	//std::cout<<"camera index ?"<<std::endl;
 	//std::cin>>camIndex;
 
@@ -596,6 +604,8 @@ void* mainLoop(void* ocv_object)
   		//if(cv::waitKey(27) >= 0) break;
 
    	}
+   	
+   	ocv->exitThread();
 
 }
 
