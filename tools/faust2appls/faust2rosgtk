@@ -22,9 +22,12 @@ params=("$@")
 n=0
 for p in $@; do
 	n=$(($n+1))
+	
+	# install option, get workspace's name
     if [ "$p" = "-install" ]; then
 	WORKSPACES="$WORKSPACES ${params[$n]}"
-		
+	
+	# o option, get the new application's name	
     elif [ "$p" = "-o" ]; then
 	NEW_NAMES="$NEW_NAMES ${params[$n]}"
 
@@ -33,9 +36,7 @@ for p in $@; do
 	
     elif [[ -f "$p" ]]; then
 	FILES="$FILES $p"
-	
-#    else
-#	OPTIONS="$OPTIONS $p"        
+       
     fi
 done
 
@@ -106,6 +107,7 @@ i=0
 	    name="${NEW_NAMES[${i}]}"
 	fi
 	name=$name"_gtk"
+		# zip file
     	if [ $WS_LENGTH = 0 ] 
     	then
 	
@@ -113,11 +115,14 @@ i=0
 	    	
 		temp_dir=$(mktemp -d ROS.XXXXXX)
 		cd $temp_dir
-		     catkin_create_pkg $name roscpp std_msgs > /dev/null
-		
-	
-		PACKAGE_PATH=$CURRENT_DIR/$temp_dir/$name
+			mkdir src
+		    cd src
+		    	catkin_init_workspace > /dev/null
+		    	catkin_create_pkg $name roscpp std_msgs > /dev/null
+
+		PACKAGE_PATH=$CURRENT_DIR/$temp_dir/src/$name
 	else
+	    # install in workspace
 	    if [ $WS_LENGTH = 1 ]
 	    then
 		cd $WORKSPACE_PATH
@@ -148,10 +153,13 @@ i=0
 	    fi
 	fi
 	cd $PACKAGE_PATH
-	
+
+# Set CMakeLists.txt to fit to the faust package
 ############## CMAKELISTS ############################	
 echo -e "cmake_minimum_required(VERSION 2.8.3) 
 project($name)
+
+SET(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math\")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK2 REQUIRED gtk+-2.0)
@@ -169,20 +177,39 @@ target_link_libraries(\${PROJECT_NAME} \${GTK2_LIBRARIES} jack \${catkin_LIBRARI
 ############# END CMAKELISTS #########################
 	    
 	# compile faust to c++
-    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p > /dev/null	
+	
+	# step 1 : create an executable that writes 
+			 # callbacks from metadata declaration
+	faust -i -a ros-callbacks.cpp -o "$PACKAGE_PATH/src/$name.cpp" $path/$p
+	if [ $WS_LENGTH = 0 ]
+	then
+		cd $CURRENT_DIR/$temp_dir
+	else
+	cd ${WORKSPACES[$i]}
+	fi
+		catkin_make > /dev/null
+		source devel/setup.bash
+	# step 2 : compile faust to c++
+	cd $PACKAGE_PATH/src
+	
+		faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null
+		rosrun $name $name > /dev/null # adds the callbacks declaration to the generated c++ file
+	
+	# zip file
 	if [ $WS_LENGTH = 0 ]
 	then
 	    
-	    cd $CURRENT_DIR/$temp_dir
+	    cd $CURRENT_DIR/$temp_dir/src
 
 	    zip -r $name.zip $name > /dev/null
 	    cd $CURRENT_DIR
-	    cp $temp_dir/$name.zip $CURRENT_DIR
+	    cp $temp_dir/src/$name.zip $CURRENT_DIR
 	    rm -r $temp_dir
 	    OUTPUT="$OUTPUT $name.zip;"
+	# package installation
 	else
-	    #cd ${WORKSPACES[${i}]}
-	    #    catkin_make
+	    cd ${WORKSPACES[${i}]}
+	        catkin_make > /dev/null
 	    OUTPUT="$OUTPUT $name.cpp;"
 	fi 
 

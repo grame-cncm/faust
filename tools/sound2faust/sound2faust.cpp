@@ -52,9 +52,14 @@ int main(int argc, char *argv[])
         printf("Generates : 'sound = (sound_0,...sound_x):((!,_),...(!,_))' processor\n");
         exit(1);
     }
+    
+    if (isdigit(base_name[0])) {
+        printf("soundfile '%s' start with a digit, please rename it\n", base_name);
+        exit(0); 
+    }
      
     snd_info.format = 0;
-    soundfile = sf_open(argv[1], SFM_READ, &snd_info);
+    soundfile = sf_open(base_name, SFM_READ, &snd_info);
     
     if (soundfile == NULL) { 
         printf("soundfile '%s' cannot be opened\n", base_name);

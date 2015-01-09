@@ -107,7 +107,7 @@ void init(int samplingRate, int bufferFrames) {
 
 	if(jsonString.find("keyboard") != std::string::npos ||
        jsonString.find("poly") != std::string::npos){
-		polyMax = 4;
+		polyMax = 6;
 		polyCoef = 1.0f / polyMax;
 		DSPpoly = new mydsp_poly(SR, bufferSize, polyMax);
 	}
@@ -247,7 +247,7 @@ int keyOff(int pitch) {
  */
 int pitchBend(int refPitch, float pitch){
 	if(polyMax > 0){
-		DSPpoly->pitchBend(refPitch, pitch);
+		DSPpoly->pitchBend(0, refPitch, pitch);
 		return 1;
 	}
 	else

@@ -694,7 +694,8 @@ amp_follower(rel) = abs : env with {
 //  att = attack time = amplitude-envelope time constant (sec) going up
 //  rel = release time = amplitude-envelope time constant (sec) going down
 //
-// For audio, att should be faster (smaller) than rel (e.g., 0.001 and 0.01)
+// NOTE: We assume rel >> att.  Otherwise, consider rel ~ max(rel,att).
+// For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01)
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
@@ -725,12 +726,13 @@ gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
   ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
 };
 
-gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,rel) with {
-  extendedrawgate = max(float(rawgatesig),holdsig);
-  rawgatesig = inlevel(x) > db2linear(thresh);
-  inlevel(x) = amp_follower_ud(att/2,rel/2,x);
-  holdsig = ((max(holdreset & holdsamps,_) ~-(1)) > 0);
-  holdreset = rawgatesig > rawgatesig'; // reset hold when raw gate falls
+gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ud(att,rel) with {
+  extendedrawgate(x) = max(float(rawgatesig(x)),holdsig(x));
+  rawgatesig(x) = inlevel(x) > db2linear(thresh);
+  inlevel = amp_follower_ud(att/10,rel/10.0); // Check attack/release times for your application
+  holdcounter(x) = (max(holdreset(x) * holdsamps,_) ~-(1));
+  holdsig(x) = holdcounter(x) > 0;
+  holdreset(x) = rawgatesig(x) < rawgatesig(x)'; // reset hold when raw gate falls
   holdsamps = int(hold*SR);
 };
 
