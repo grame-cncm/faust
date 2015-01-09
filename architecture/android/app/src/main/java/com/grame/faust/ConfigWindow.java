@@ -91,15 +91,15 @@ public class ConfigWindow{
 		
 		minSlider.setLayoutParams(new ViewGroup.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		minSlider.setMax(100);
+		minSlider.setMax(1000);
 		
 		maxSlider.setLayoutParams(new ViewGroup.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		maxSlider.setMax(100);
+		maxSlider.setMax(1000);
 		
 		centerSlider.setLayoutParams(new ViewGroup.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		centerSlider.setMax(100);
+		centerSlider.setMax(1000);
 						
 		titleLayout.addView(windowLabel);
 		titleLayout.addView(closeButton);
@@ -169,7 +169,7 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				float scaledProgress = progress*0.2f - 10.0f;
+				float scaledProgress = progress*0.2f - 100.0f;
 				if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
 					setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMax[currentParameterNumber]);
 				else{ 
@@ -183,7 +183,7 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				float scaledProgress = progress*0.2f - 10.0f;
+				float scaledProgress = progress*.2f - 100.0f;
 				if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
 					setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMin[currentParameterNumber]);
 				else{ 
@@ -197,7 +197,7 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				float scaledProgress = progress*0.2f - 10.0f;
+				float scaledProgress = progress*0.2f - 100.0f;
 				if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
 					setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMin[currentParameterNumber]);
 				else if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
