@@ -87,12 +87,14 @@ APPNAME="${APPNAME%.dsp}"
 PLATFORM=$(uname)
 
 if [ $PLATFORM = "Darwin" ]; then
+	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $TMPFILES/app/build.gradle
 	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/grame/faust/*
 	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
 	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
 	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/res/layout/*
 	sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 else
+	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $TMPFILES/app/build.gradle
 	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/grame/faust/*
 	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
 	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml

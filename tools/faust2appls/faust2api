@@ -39,14 +39,11 @@ fi
 
 if [ $ANDROID -eq 1 ]; then
 	APIFOLDER="dsp-faust"
+	rm -r "$APIFOLDER" > /dev/null || true
 	mkdir "$APIFOLDER"
-	cp /usr/local/lib/faust/android/project.properties $APIFOLDER
-	cp -r /usr/local/lib/faust/android/src/com/grame/dsp_faust $APIFOLDER
-	cp -r /usr/local/lib/faust/android/jni $APIFOLDER
+	cp -r /usr/local/lib/faust/android/app/src/main/java/com/grame/dsp_faust $APIFOLDER
+	cp -r /usr/local/lib/faust/android/app/src/main/jni $APIFOLDER
 	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/jni/dsp_faust.cpp"
-	cd $APIFOLDER	
-	ndk-build > $LOG
-	cd ..
 	echo "Your faust-dsp API package for Android was created"
 elif [ $IOS -eq 1 ]; then
 	faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.h
