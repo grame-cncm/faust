@@ -693,8 +693,9 @@ public class UI{
 	 */
 	public void checkbox(Context c, LinearLayout currentGroup, final String address, final String label, 
 			int localScreenWidth, int localBackgroundColor, boolean visibility){
+        int height = Math.round(screenSizeY*0.5f);
 		checkboxes[parametersCounters[7]] = new Checkbox(c,address,parameterNumber,
-				localScreenWidth, localBackgroundColor, label);
+				localScreenWidth, height, localBackgroundColor, label);
 		
 		float init = 0.0f; //default value for the checkbox
 		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
