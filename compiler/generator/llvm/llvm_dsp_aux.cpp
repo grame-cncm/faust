@@ -1650,10 +1650,5 @@ EXPORT void generateCSHA1(const char* data, char* key)
     strncpy(key, res.c_str(), 20);
 }
 
-EXPORT void freeCDSP(void* ptr)
-{
-    free(ptr);
-}
-
 #endif // LLVM_BUILD
 
