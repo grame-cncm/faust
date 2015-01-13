@@ -341,7 +341,7 @@ void Klass::buildTasksList()
     addDeclCode("FAUSTFLOAT** input;");
     addDeclCode("FAUSTFLOAT** output;");
     addDeclCode("volatile bool fIsFinished;");
-    addDeclCode("int fFullCount;");
+    addDeclCode("int fCount;");
     addDeclCode("int fIndex;");
     addDeclCode("DSPThreadPool* fThreadPool;");
     addDeclCode("int fStaticNumThreads;");
@@ -1060,7 +1060,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "fGraph.Display();";
     tab(n+1,fout); fout << "}";
 
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
+    tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
 
         tab(n+2,fout); fout << "GetRealTime();";
 
@@ -1068,10 +1068,12 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "this->output = output;";
 
         tab(n+2,fout); fout << "StartMeasure();";
+        
+        tab(n+2,fout); fout << "int fullcount = count;";
 
         tab(n+2,fout); fout << "for (fIndex = 0; fIndex < fullcount; fIndex += " << gVecSize << ") {";
 
-        tab(n+3,fout); fout << "fFullCount = min ("<< gVecSize << ", fullcount-fIndex);";
+        tab(n+3,fout); fout << "fCount = min ("<< gVecSize << ", fullcount-fIndex);";
         tab(n+3,fout); fout << "TaskQueue::Init();";
         printlines (n+3, fZone2cCode, fout);
 
@@ -1087,6 +1089,9 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "void computeThread(int cur_thread) {";
+    
+        tab(n+2,fout); fout << "int count = fCount;";
+        
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
 
@@ -1095,8 +1100,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "{";
             tab(n+3,fout); fout << "TaskQueue taskqueue(cur_thread);";
             tab(n+3,fout); fout << "int tasknum = -1;";
-            tab(n+3,fout); fout << "int count = fFullCount;";
-
+    
             // Init input and output
             tab(n+3,fout); fout << "// Init input and output";
             printlines (n+3, fZone3Code, fout);
