@@ -123,8 +123,8 @@ void init(int samplingRate, int bufferFrames) {
 	}
 
 	// Allocating memory for input channel. We assume no more than
-	// one physical input channel. All software input channels will 
-	// share the same content.
+	// one physical input channel. Additional input channels will 
+	// share the content of input channel 0.
 	if (inChanNumb >= 1) {
 		bufferin = new float *[inChanNumb];
 		bufferin[0] = new float[vecSamps];
