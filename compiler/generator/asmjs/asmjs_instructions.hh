@@ -321,21 +321,14 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
-            string fStart, fEnd;
             
-            if (fTypingVisitor.fCurType == Typed::kInt) {
-                fStart = "("; fEnd = ") | 0";
-            } else {
-                fStart = "+("; fEnd = ")";
-             }
-            
-            *fOut << fStart;
+            *fOut << ((fTypingVisitor.fCurType == Typed::kInt) ? "(" : "+(");
             inst->fCond->accept(this);
             *fOut << "?";
             inst->fThen->accept(this);
             *fOut << ":";
             inst->fElse->accept(this);
-            *fOut << fEnd;
+            *fOut << ((fTypingVisitor.fCurType == Typed::kInt) ? ") | 0" : ")");
         }
            
         virtual void visit(BinopInst* inst)
