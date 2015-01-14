@@ -85,7 +85,7 @@ interpolation (table, f, i) = rtable(table, i)*(1-f) + rtable(table,i+1)*f;
 //-- Bound Index with table boundaries
 boundIndex(size, index) = index : floor: min(size-1) : max(0);
 
-//-- Bound factor of interpolation : factor-index if still in the table boudaries, 0 otherwise
+//-- Bound factor of interpolation : factor-index if still in the table boundaries, 0 otherwise
 boundFactor(size, factor, index) = 0<index<size-1, factor - index, 0 : select2;  
 
 /****************************************************************************************
