@@ -45,7 +45,7 @@ class VectorCodeContainer : public virtual CodeContainer {
         VectorCodeContainer(int numInputs, int numOutputs)
         {
             initializeCodeContainer(numInputs, numOutputs);
-            fFullCount = "fullcount";
+            fFullCount = "count";
         }
 
 };

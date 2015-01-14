@@ -30,7 +30,7 @@ class RosCI : public UI
     
     public :
     
-	RosCI() : count_(0)
+	RosCI() : count_(0), use_slider_values_(false), meta_(false)
 	{};
 	
 	//~RosCI() {}
@@ -152,14 +152,53 @@ class RosCI : public UI
 	void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
+		*zone=init;
+		if (meta_)
+		{
+			if (use_slider_values_)
+			{
+				callbacks_parameters_[count_-1].min_value = min;
+				callbacks_parameters_[count_-1].max_value = max;
+				use_slider_values_ = false;
+			}
+			callbacks_parameters_[count_-1].slider_min = min;
+			callbacks_parameters_[count_-1].slider_max = max;
+			meta_=false;
+		}
 	}
 	void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
+		*zone=init;
+		if (meta_)
+		{
+			if (use_slider_values_)
+			{
+				callbacks_parameters_[count_-1].min_value = min;
+				callbacks_parameters_[count_-1].max_value = max;
+				use_slider_values_ = false;
+			}
+			callbacks_parameters_[count_-1].slider_min = min;
+			callbacks_parameters_[count_-1].slider_max = max;
+			meta_=false;
+		}
 	}
 	void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
+		*zone=init;
+		if (meta_)
+		{
+			if (use_slider_values_)
+			{
+				callbacks_parameters_[count_-1].min_value = min;
+				callbacks_parameters_[count_-1].max_value = max;
+				use_slider_values_ = false;
+			}
+			callbacks_parameters_[count_-1].slider_min = min;
+			callbacks_parameters_[count_-1].slider_max = max;
+			meta_=false;
+		}
 	}
 	
 	// -- passive widgets
@@ -180,6 +219,10 @@ class RosCI : public UI
 	    std::string msg_type;
 	    std::string msg_name;
 	    std::string field_name;
+	    FAUSTFLOAT min_value;
+	    FAUSTFLOAT max_value;
+	    FAUSTFLOAT slider_min;
+	    FAUSTFLOAT slider_max;
 	};
 	
 	// Callback writing the callbacks file
@@ -281,6 +324,24 @@ class RosCI : public UI
 			 << "\tRosCallbacks(ros::NodeHandle n) : nh_(n)"<<std::endl
 			 << "\t{};\n"<<std::endl;
 		
+		// Ranging Function
+		file << "\tfloat rangeAndConvert(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT slider_min, "<< std::endl
+			 << "\t\tFAUSTFLOAT slider_max, float value)" << std::endl
+			 << "\t{" << std::endl
+			 << "\t\tif (value < min)" << std::endl
+			 << "\t\t{" << std::endl
+			 << "\t\t\tvalue = min;" << std::endl
+			 << "\t\t}" << std::endl
+			 << "\t\telse if (value > max)" << std::endl
+			 << "\t\t{" << std::endl
+			 << "\t\t\tvalue = max ;" << std::endl
+			 << "\t\t}" << std::endl
+			 << "\t\tfloat a = (slider_max - slider_min)/(max-min);" << std::endl
+			 << "\t\tfloat b = (slider_max + slider_min - a*(max+min))/2;" << std::endl
+			 << "\t\tvalue = a*value + b;\n" << std::endl
+			 << "\t\treturn value;" << std::endl
+			 << "\t}" << std::endl;
+		
 		// ROS specific callbacks
 		for (int i = 0 ; i<num ; i++)
 		{
@@ -288,7 +349,12 @@ class RosCI : public UI
 			file << "\tvoid callback"<<i<<"(const "<< parameters.msg_type<<"::"
 				 << parameters.msg_name<<"ConstPtr& msg, FAUSTFLOAT* zone)"<<std::endl
 				 << "\t{"<<std::endl
-				 << "\t\t *zone = msg->"<<parameters.field_name<<";"<<std::endl
+				 << "\t\t FAUSTFLOAT min"<<i<<" = "<<parameters.min_value<<";"<<std::endl
+				 << "\t\t FAUSTFLOAT max"<<i<<" = "<<parameters.max_value<<";"<<std::endl
+				 << "\t\t FAUSTFLOAT smin"<<i<<" = "<<parameters.slider_min<<";"<<std::endl
+				 << "\t\t FAUSTFLOAT smax"<<i<<" = "<<parameters.slider_max<<";\n"<<std::endl
+				 << "\t\t *zone =  rangeAndConvert(min"<<i<<", max"<<i<<", smin"<<i<<", smax"<<i
+				 << ", (float) msg->"<<parameters.field_name<<");"<<std::endl
 				 << "\t}\n"<<std::endl;
 		}	
 		
@@ -323,7 +389,7 @@ class RosCI : public UI
 	}
 	
 	// String parsing function, which detects every callback parameter
-		// Separators must be spaces, and there must be 4 arguments
+		// Separators must be spaces, and there must be 4 or 6 arguments
 	void stringParser(std::string string2parse)
 	{
 	    int SPACE = 32;
@@ -332,18 +398,16 @@ class RosCI : public UI
 	    {
 	    	if (string2parse[i]==SPACE)
 	    	{
-	    	    std::string a_string= string2parse.substr(0,i);
-	    	    std::string param = strProcess(a_string);
+	    	    std::string param= string2parse.substr(0,i);
 	    	    topic_params_.push_back(param);
 	    	    string2parse.erase(string2parse.begin(), string2parse.begin()+i+1);
-	    	    i=0;
+	    	    i=-1;
 
 	    	}
 	    	
 	    }
 	    
-	    std::string a_string = strProcess(string2parse);
-	    topic_params_.push_back(a_string);
+	    topic_params_.push_back(string2parse);
 	}
 	
 	// Function declaring metadata
@@ -352,20 +416,32 @@ class RosCI : public UI
 		if (key=="ros") // We do not care if key is not "ros" here
 		{
 			stringParser(val); // Parsing the string corresponding to a callback parameters
-			
 			CallbackParams params;
-			if (topic_params_.size() == 4)
+			if (topic_params_.size() == 4 
+				||
+				topic_params_.size() == 6  )
 			{
 				// Storing the parameters in a structure...
-				params.topic_name=topic_params_[0];
+				params.topic_name=strProcess(topic_params_[0]);
 				params.msg_type=topic_params_[1];
 				params.msg_name=topic_params_[2];
 				params.field_name=topic_params_[3];
+				
+				if (topic_params_.size() == 6)
+				{
+					params.min_value=(float)atof(topic_params_[4].c_str());
+					params.max_value=(float)atof(topic_params_[5].c_str());
+				}
+				else 
+				{
+					use_slider_values_ = true;
+				}
 					
 				// ... and the structure in a vector 
 				callbacks_parameters_.push_back(params);
 				
 				count_++;
+				meta_=true;
 			}
 			else
 			{
@@ -399,6 +475,8 @@ class RosCI : public UI
     private :
     
 	int count_;
+	bool use_slider_values_;
+	bool meta_;
 	
 	std::vector<std::string> topic_params_;
 	std::vector<CallbackParams> callbacks_parameters_;

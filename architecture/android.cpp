@@ -115,17 +115,21 @@ void init(int samplingRate, int bufferFrames) {
 		polyMax = 0;
 	}
 
-	// allocating memory for output channel
+	// Allocating memory for output channels. Only the first two channels
+	// are played. Additional output channels are ignored.
 	bufferout = new float *[outChanNumb];
 	for (int i = 0; i < outChanNumb; i++) {
 		bufferout[i] = new float[vecSamps];
 	}
 
-	// allocating memory for input channel
+	// Allocating memory for input channel. We assume no more than
+	// one physical input channel. Additional input channels will 
+	// share the content of input channel 0.
 	if (inChanNumb >= 1) {
 		bufferin = new float *[inChanNumb];
-		for (int i = 0; i < inChanNumb; i++) {
-			bufferin[i] = new float[vecSamps];
+		bufferin[0] = new float[vecSamps];
+		for (int i = 1; i < inChanNumb; i++) {
+			bufferin[i] = bufferin[0];
 		}
 	}
 }

@@ -210,6 +210,7 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
 #define TRY_OPEN(filename)                      \
     ifstream* f = new ifstream();               \
     f->open(filename, ifstream::in);            \
+    err=chdir(old);                                 \
     if (f->is_open()) return f; else delete f;  \
 
 /**
@@ -245,33 +246,25 @@ ifstream* open_arch_stream(const char* filename)
         TRY_OPEN(filename);
 	}
 #ifdef INSTALL_PREFIX
-	err = chdir(old);
-	if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
+    if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
         TRY_OPEN(filename);
 	}
-    err = chdir(old);
     if (chdir(INSTALL_PREFIX "/include")==0) {
         TRY_OPEN(filename);
     }
 #endif
-	err = chdir(old);
-	if (chdir("/usr/local/lib/faust")==0) {
+    if (chdir("/usr/local/lib/faust")==0) {
         TRY_OPEN(filename);
 	}
-    err = chdir(old);
     if (chdir("/usr/lib/faust")==0) {
         TRY_OPEN(filename);
     }
-    err = chdir(old);
     if (chdir("/usr/local/include")==0) {
         TRY_OPEN(filename);
     }
-    err = chdir(old);
     if (chdir("/usr/include")==0) {
         TRY_OPEN(filename);
     }
-
-    if (err != 0) cerr << "ERROR : cannot change back directory to '" << old << "' : " <<  strerror(errno) << endl;
 
 	return 0;
 }

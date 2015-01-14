@@ -199,7 +199,24 @@ target_link_libraries(\${PROJECT_NAME} \${GTK2_LIBRARIES} jack \${catkin_LIBRARI
 	if [ $WS_LENGTH = 0 ]
 	then
 	    
-	    cd $CURRENT_DIR/$temp_dir/src
+	    cd $CURRENT_DIR/$temp_dir/src/$name
+	    echo -e "			README : Using Faust with ROS
+		Grame, Centre National de Creation Musicale
+		###########################################
+
+This file was automatically generated with faust2ros or faust2rosgtk
+
+To run your new application : 
+	1) unzip this package into a ROS workspace.
+	2) source this workspace :
+		a) go in your workspace's root
+		b) type 'source devel/setup.bash'
+	3) run with 'rosrun myapp myapp'
+
+For more informations, check the documentation :
+https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
+
+		cd $CURRENT_DIR/$temp_dir/src
 
 	    zip -r $name.zip $name > /dev/null
 	    cd $CURRENT_DIR
@@ -209,6 +226,22 @@ target_link_libraries(\${PROJECT_NAME} \${GTK2_LIBRARIES} jack \${catkin_LIBRARI
 	# package installation
 	else
 	    cd ${WORKSPACES[${i}]}
+	    
+	    echo -e "			README : Using Faust with ROS
+		Grame, Centre National de Creation Musicale
+		###########################################
+
+This file was automatically generated with faust2ros or faust2rosgtk
+
+To run your new application : 
+	1) source this workspace :
+		a) go in your workspace's root
+		b) type 'source devel/setup.bash'
+	3) run with 'rosrun myapp myapp'
+
+For more informations, check the documentation :
+https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
+
 	        catkin_make > /dev/null
 	    OUTPUT="$OUTPUT $name.cpp;"
 	fi 

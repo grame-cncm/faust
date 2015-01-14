@@ -30,6 +30,8 @@ using namespace std;
 #define START_TASK_INDEX LAST_TASK_INDEX + 1
 #define START_TASK_MAX 2
 
+#define fullcount "fCount"
+
 void WSSCodeContainer::moveCompute2ComputeThread()
 {
     // Move stack variable from "compute" to "computeThread"
@@ -136,7 +138,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
     string index = "fIndex";
     BlockInst* loop_code = fComputeBlockInstructions;
 
-    loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar(counter)));
+    loop_code->pushBackInst(InstBuilder::genStoreStructVar(fullcount, InstBuilder::genLoadFunArgsVar(counter)));
     loop_code->pushBackInst(InstBuilder::genStoreVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genIntNumInst(0)));
     
     generateDAGLoopWSSAux1(dag, loop_code, -1); // -1 means dispath ready tasks on all WSQ
@@ -161,7 +163,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     
     // Needed in the struct
     pushDeclare(InstBuilder::genDecVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushDeclare(InstBuilder::genDecStructVar("fFullcount", InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecStructVar(fullcount, InstBuilder::genBasicTyped(Typed::kInt)));
     pushDeclare(InstBuilder::genDecStructVar("fScheduler", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
   
     // Scheduler prototypes declaration
@@ -246,8 +248,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     BlockInst* loop_code = fComputeThreadBlockInstructions;
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
     
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    loop_code->pushBackInst(count_dec);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genLoadStructVar(fullcount));
+    loop_code->pushFrontInst(count_dec);
 
     ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
@@ -270,7 +272,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                                                     gGlobal->gVecSize)));
      
     ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                                InstBuilder::genLoadStructVar("fFullcount"));
+                                                InstBuilder::genLoadStructVar(fullcount));
    
     BlockInst* then_block = InstBuilder::genBlockInst();
     BlockInst* else_block = InstBuilder::genBlockInst();
@@ -292,11 +294,11 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     int loop_num = START_TASK_MAX;  // First index to be used for remaining tasks
 
     ValueInst* while_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                InstBuilder::genLoadStructVar("fFullcount"));
+                                InstBuilder::genLoadStructVar(fullcount));
     BlockInst* switch_block_code = InstBuilder::genBlockInst();
 
     // Generates switch/case block "header"
-    ValueInst* init1 = InstBuilder::genLoadStructVar("fFullcount");
+    ValueInst* init1 = InstBuilder::genLoadStructVar(fullcount);
     ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
