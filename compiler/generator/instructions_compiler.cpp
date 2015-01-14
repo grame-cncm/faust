@@ -1657,7 +1657,6 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
 
     Typed::VarType ctype;
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
-
     size = sig->arity();
     
     // Declares the Waveform
@@ -1697,8 +1696,15 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     } else {
         assert(false);
     }
-   
-    pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    
+    // Ugly hack: in asm.js waveforms are allocated in the DSP object memory, itself allocted in a unique global heap
+    // so initialisation is moved in "init" method
+    if (gGlobal->gOutputLang == "ajs") {
+        pushInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    } else {
+        pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    }
+    
     string idx = subst("$0_idx", vname);
     pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
     pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));

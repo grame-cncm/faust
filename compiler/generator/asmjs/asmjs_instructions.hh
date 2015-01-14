@@ -27,6 +27,8 @@ using namespace std;
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
+#define NUM_SIZE 4
+
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
@@ -82,37 +84,43 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             // Empty
         }
-
+  
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
-            // Do no generate structure variable, since they are in the global HEAP
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct); 
             string prefix = is_struct ? fObjPrefix : "var ";
-         
-            if (inst->fValue) {
-                if (!is_struct)
-                    *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
-            } else {
-                ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-                if (array_typed && array_typed->fSize > 1) {
-                    string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
-                    if (!is_struct)
-                        *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+            
+            if (array_typed && array_typed->fSize > 1) {
+                if (is_struct) {
                     // Keep pointer type
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, Typed::getPtrFromType(array_typed->fType->getType()));
-                    fStructSize += array_typed->fSize * 4;
-                } else {
-                    if (!is_struct)
-                        *fOut << prefix << inst->fAddress->getName();
+                    fStructSize += array_typed->fSize * NUM_SIZE;
+                  } else {
+                    if (!inst->fValue) {
+                        string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
+                        *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
+                    }
+                }
+            } else {
+                if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
-                    fStructSize += 4;
+                    fStructSize += NUM_SIZE;
+                } else {
+                    if (inst->fValue) {
+                        *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
+                    } else {
+                        *fOut << prefix << inst->fAddress->getName();
+                    }
                 }
             }
-            if (!is_struct)
+            
+            if (!is_struct) {
                 EndLine();
+            }
         }
-    
+     
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
             *fOut << "(";
@@ -235,7 +243,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << named->fName;
             }
         }
-      
+        
         virtual void visit(IndexedAddress* indexed)
         {
             // HACK : completely adhoc code for input/output...
@@ -253,6 +261,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << " >> 2]";
             } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
+                //printf("IndexedAddress type %d\n", tmp.second);
                 if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
@@ -489,25 +498,66 @@ struct MoveVariablesInFront1 : public BasicCloneVisitor {
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
 struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
-    list<DeclareVarInst*> fVarTable;
-    
+    list<StatementInst*> fVarTable;
+      
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         BasicCloneVisitor cloner;
-        // For variable declaration that is not a number, separate the declaration and the store
-        if (inst->fValue && !dynamic_cast<NumValueInst*>(inst->fValue)) {
-            fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));    
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        
+        if (inst->fValue) {
+            if (dynamic_cast<NumValueInst*>(inst->fValue)) {
+                fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+                return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+            // "In extension" array definition
+            } else if (array_typed) {
+                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
+                Typed::VarType ctype = array_typed->fType->getType();
+                if (array_typed->fSize > 0) {
+                    if (ctype == Typed::kInt) {
+                        IntArrayNumInst* int_num_array = dynamic_cast<IntArrayNumInst*>(inst->fValue);
+                        for (int i = 0; i < array_typed->fSize; i++) {
+                            fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
+                                                InstBuilder::genIntNumInst(i), 
+                                                InstBuilder::genIntNumInst(int_num_array->getValue(i))));
+                        }
+                    } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
+                        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
+                        for (int i = 0; i < array_typed->fSize; i++) {
+                            fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
+                                                InstBuilder::genIntNumInst(i), 
+                                                InstBuilder::genFloatNumInst(float_array->getValue(i))));
+                        }
+                    } else if (ctype == Typed::kDouble) {
+                        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
+                        for (int i = 0; i < array_typed->fSize; i++) {
+                            fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
+                                                InstBuilder::genIntNumInst(i), 
+                                                InstBuilder::genDoubleNumInst(double_array->getValue(i))));
+                        }
+                    } else {
+                        assert(false);
+                    }
+                    return new DropInst(); 
+                } else {
+                    return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                }
+            } else {
+                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
+                return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+            }
+           
         } else {
             fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+            return new DropInst();
         }
-        return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
     }
     
     BlockInst* getCode(BlockInst* src)
     {
         BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
         // Moved in front..
-        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+        for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
         return dst;

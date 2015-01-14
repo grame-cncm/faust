@@ -114,9 +114,10 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
     // Moves all variables declaration at the beginning of the block
-    MoveVariablesInFront1 mover1;
+    MoveVariablesInFront2 mover1;
     BlockInst* block1 = mover1.getCode(fInitInstructions); 
     block1->accept(gGlobal->gASMJSVisitor);
+    
     tab(n+1, *fOut); *fOut << "}";
     
     // Fill
@@ -161,6 +162,9 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         - use of 'sig' variable name is transalted in 'dsp'
         - subcontainer is not allocated/deallocated anymore
      9) pointers are actually integers, so are treated like this
+     10) waveforms are also allocated in the DSP object heap. Array definition is not done in "global" oart but in "inits" methods 
+     (see InstructionsCompiler::declareWaveform()). Since "in extention" array definition is not possible, the FIR code is first rewritten to 
+     a list of "store" instructions (MoveVariablesInFront2) then the actual code is generated.
  
 */
 void ASMJAVAScriptCodeContainer::produceClass()
@@ -201,7 +205,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         sortDeclareFunctions sorter(gGlobal->gASMJSVisitor->getMathLibTable());
         fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(gGlobal->gASMJSVisitor);
-    
+          
         // Manually and always generated
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
@@ -236,7 +240,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             DspRenamer renamer1;
             BlockInst* block0 = renamer1.getCode(fStaticInitInstructions);
             block0->accept(gGlobal->gASMJSVisitor);
-             
+               
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -245,13 +249,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             gGlobal->gASMJSVisitor->Tab(n+2);
+              
             // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront1 mover;
-            BlockInst* block2 = mover.getCode(fInitInstructions); 
+            MoveVariablesInFront2 mover1;
+            BlockInst* block2 = mover1.getCode(fInitInstructions); 
             // Replace use of "sig" in use of "dsp"
             DspRenamer renamer2;
             BlockInst* block3 = renamer2.getCode(block2);
             block3->accept(gGlobal->gASMJSVisitor);
+            
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);

@@ -1972,7 +1972,7 @@ struct InstBuilder
         Rit rbegin (indexEnd);
         Rit rend (indexBegin);
 
-        Address * address = genNamedAddress(vname, Address::kStruct);
+        Address* address = genNamedAddress(vname, Address::kStruct);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
@@ -2009,7 +2009,7 @@ struct InstBuilder
         Rit rbegin (indexEnd);
         Rit rend (indexBegin);
 
-        Address * address = genNamedAddress(vname, Address::kStruct);
+        Address* address = genNamedAddress(vname, Address::kStruct);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
@@ -2052,7 +2052,7 @@ struct InstBuilder
         Rit rbegin (indexEnd);
         Rit rend (indexBegin);
 
-        Address * address = genNamedAddress(vname, Address::kStaticStruct);
+        Address* address = genNamedAddress(vname, Address::kStaticStruct);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
@@ -2065,6 +2065,28 @@ struct InstBuilder
         vector<ValueInst*> indices;
         indices.push_back(index);
         return genLoadArrayStaticStructVar(vname, indices.begin(), indices.end());
+    }
+    
+    template <typename Iterator>
+    static StoreVarInst* genStoreArrayStaticStructVar(string vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
+    {
+        typedef reverse_iterator<Iterator> Rit;
+        Rit rbegin (indexEnd);
+        Rit rend (indexBegin);
+
+        Address* address = genNamedAddress(vname, Address::kStaticStruct);
+        for (Rit it = rbegin; it != rend; ++it) {
+            address = genIndexedAddress(address, *it);
+        }
+
+        return genStoreVarInst(address, exp);
+    }
+
+    static StoreVarInst* genStoreArrayStaticStructVar(string vname, ValueInst* index, ValueInst* exp)
+    {
+        vector<ValueInst*> indices;
+        indices.push_back(index);
+        return genStoreArrayStructVar(vname, exp, indices.begin(), indices.end());
     }
 
     // Stack variable
