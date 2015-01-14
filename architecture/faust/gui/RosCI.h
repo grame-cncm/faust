@@ -30,7 +30,7 @@ class RosCI : public UI
     
     public :
     
-	RosCI() : count_(0), use_slider_values_(false)
+	RosCI() : count_(0), use_slider_values_(false), meta_(false)
 	{};
 	
 	//~RosCI() {}
@@ -153,40 +153,52 @@ class RosCI : public UI
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		*zone=init;
-		if (use_slider_values_)
+		if (meta_)
 		{
-			callbacks_parameters_[count_-1].min_value = min;
-			callbacks_parameters_[count_-1].max_value = max;
-			use_slider_values_ = false;
+			if (use_slider_values_)
+			{
+				callbacks_parameters_[count_-1].min_value = min;
+				callbacks_parameters_[count_-1].max_value = max;
+				use_slider_values_ = false;
+			}
+			callbacks_parameters_[count_-1].slider_min = min;
+			callbacks_parameters_[count_-1].slider_max = max;
+			meta_=false;
 		}
-		callbacks_parameters_[count_-1].slider_min = min;
-		callbacks_parameters_[count_-1].slider_max = max;
 	}
 	void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		*zone=init;
-		if (use_slider_values_)
+		if (meta_)
 		{
-			callbacks_parameters_[count_-1].min_value = min;
-			callbacks_parameters_[count_-1].max_value = max;
-			use_slider_values_ = false;
+			if (use_slider_values_)
+			{
+				callbacks_parameters_[count_-1].min_value = min;
+				callbacks_parameters_[count_-1].max_value = max;
+				use_slider_values_ = false;
+			}
+			callbacks_parameters_[count_-1].slider_min = min;
+			callbacks_parameters_[count_-1].slider_max = max;
+			meta_=false;
 		}
-		callbacks_parameters_[count_-1].slider_min = min;
-		callbacks_parameters_[count_-1].slider_max = max;
 	}
 	void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		*zone=init;
-		if (use_slider_values_)
+		if (meta_)
 		{
-			callbacks_parameters_[count_-1].min_value = min;
-			callbacks_parameters_[count_-1].max_value = max;
-			use_slider_values_ = false;
+			if (use_slider_values_)
+			{
+				callbacks_parameters_[count_-1].min_value = min;
+				callbacks_parameters_[count_-1].max_value = max;
+				use_slider_values_ = false;
+			}
+			callbacks_parameters_[count_-1].slider_min = min;
+			callbacks_parameters_[count_-1].slider_max = max;
+			meta_=false;
 		}
-		callbacks_parameters_[count_-1].slider_min = min;
-		callbacks_parameters_[count_-1].slider_max = max;
 	}
 	
 	// -- passive widgets
@@ -429,6 +441,7 @@ class RosCI : public UI
 				callbacks_parameters_.push_back(params);
 				
 				count_++;
+				meta_=true;
 			}
 			else
 			{
@@ -463,6 +476,7 @@ class RosCI : public UI
     
 	int count_;
 	bool use_slider_values_;
+	bool meta_;
 	
 	std::vector<std::string> topic_params_;
 	std::vector<CallbackParams> callbacks_parameters_;
