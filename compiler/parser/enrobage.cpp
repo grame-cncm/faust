@@ -351,18 +351,27 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
         FILE* f = fopen(filename, "r");
 	    char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
         if (!newdir) {
-            cerr << "ERROR : getcwd '" << strerror(errno) << endl;
-            return 0;
+            stringstream error;
+            error << "ERROR : getcwd '" << strerror(errno) << endl;
+            throw faustexception(error.str());
         }
 		fullpath = newdir;
 		fullpath += '/';
 		fullpath += filename;
         err = chdir(olddir);
-        if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
+        if (err != 0) {
+            stringstream error;
+            error << "ERROR : cannot change back directory to '" << olddir << "' : " << strerror(errno) << endl;
+            throw faustexception(error.str());
+        }
         return f;
     }
     err = chdir(olddir);
-    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
+    if (err != 0) {
+        stringstream error;
+        error << "ERROR : cannot change back directory to '" << olddir << "' : " << strerror(errno) << endl;
+        throw faustexception(error.str());
+    }
     return 0;
 }
 
@@ -392,10 +401,11 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
             FILE* f = fopen(filename, "r");
             char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
             if (!newdir) {
-                cerr << "ERROR : getcwd '" << strerror(errno) << endl;
-                return 0;
+                stringstream error;
+                error << "ERROR : getcwd '" << strerror(errno) << endl;
+                throw faustexception(error.str());
             }
-			fullpath = newdir;
+            fullpath = newdir;
 			fullpath += '/';
 			fullpath += filename;
             err = chdir(olddir);
@@ -403,7 +413,11 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
         }
     }
     err = chdir(olddir);
-    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
+    if (err != 0) {
+        stringstream error;
+        error << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
+        throw faustexception(error.str());
+    }
     return 0;
 }
 
@@ -434,8 +448,9 @@ static void buildFullPathname(string& fullpath, const char* filename)
 	} else {
         char* newdir = getcwd(old, FAUST_PATH_MAX);
         if (!newdir) {
-            cerr << "ERROR : getcwd '" << strerror(errno) << endl;
-            return;
+            stringstream error;
+            error << "ERROR : getcwd '" << strerror(errno) << endl;
+            throw faustexception(error.str());
         }
         fullpath = newdir;
     	fullpath += '/';
@@ -463,7 +478,6 @@ FILE* fopensearch(const char* filename, string& fullpath)
 
     for (list< string >::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
         if ((f = fopenat(fullpath, *i, filename))) {
-            //std::cerr << "found file : " << fullpath << std::endl;
             return f;
         }
     }
@@ -538,10 +552,8 @@ const char* filebasename(const char* name)
 #endif
 
 	const char* base;
-	for (base = name; *name; name++)
-    {
-		if (IS_DIR_SEPARATOR (*name))
-		{
+	for (base = name; *name; name++) {
+		if (IS_DIR_SEPARATOR (*name)) {
 			base = name + 1;
 		}
     }
