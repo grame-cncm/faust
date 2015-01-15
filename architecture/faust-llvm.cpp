@@ -421,10 +421,10 @@ Compilation :
 g++ faust-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all` -lcrypto -o faust-llvm-static
 g++ faust-llvm.cpp -lfaust -L /usr/local/lib/faust `llvm-config --ldflags --libs all` -lcrypto -o faust-llvm-shared
 
-Usage (possibly with explicit parameters given to the compiler)
+Usage (possibly with explicit parameters given to the compiler) : 
 
-./faust-llvm karplus.dsp
-./faust-llvm -vec -lv 1 karplus.dsp
-./faust-llvm -double -vec -lv 0 -vs 64 karplus.dsp
+./faust-llvm-static karplus.dsp
+./faust-llvm-static -vec -lv 1 karplus.dsp
+./faust-llvm-static -double -vec -lv 0 -vs 64 karplus.dsp
 */
 
