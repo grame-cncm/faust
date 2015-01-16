@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 class RosCI : public UI
 {
@@ -224,7 +225,7 @@ class RosCI : public UI
 	    FAUSTFLOAT slider_max;
 	};
 	
-	// Callback writing the callbacks file
+	// Callback writing the callbacks filekeyboard's arrows
 		// num is the number of ROS declared metadata
 		// param_vector is a callbacks parameters structure container 
 		// name is the application name
@@ -428,8 +429,11 @@ class RosCI : public UI
 				
 				if (topic_params_.size() == 6)
 				{
-					params.min_value=(float)atof(topic_params_[4].c_str());
-					params.max_value=(float)atof(topic_params_[5].c_str());
+					std::stringstream smin, smax;
+					smin.str(topic_params_[4]);
+					smin >> params.min_value;
+					smax.str(topic_params_[5]);
+					smax >> params.max_value;
 				}
 				else 
 				{
