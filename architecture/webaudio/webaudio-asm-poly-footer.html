@@ -76,11 +76,11 @@ function onerrorcallback(error)
 
 function onsuccesscallback(access) 
 {
-    access.inputs().forEach(function(input) {
+    for (var input of access.inputs.values()) {
         midi_input.push(input);
         input.onmidimessage = midiMessageReceived;
         console.log(input.name);
-    });
+    }
 }
  
 function activateMIDIInput()
