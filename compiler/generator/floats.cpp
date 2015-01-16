@@ -55,5 +55,5 @@ void printfloatdef (std::ostream& fout)
     fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
     fout << "#endif  " << std::endl;
     fout << std::endl;
-    fout << "typedef long double quad;" << std::endl;
+    if (gFloatSize == 3) fout << "typedef long double quad;" << std::endl;
 }
