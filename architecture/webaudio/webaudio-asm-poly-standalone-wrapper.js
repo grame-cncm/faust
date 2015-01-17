@@ -19,6 +19,7 @@ var faust = faust || {};
 
 // Shim AudioContext on webkit
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
+
 <<includeIntrinsic>>
 <<includeclass>>
 
