@@ -31,6 +31,9 @@ function mydspMixer(global, foreign, buffer) {
     var HEAP32 = new global.Int32Array(buffer);
 	var HEAPF32 = new global.Float32Array(buffer);
     
+    var max = global.Math.max;
+    var abs = global.Math.abs;
+    
     function clearOutput(count, channels, outputs) {
         count = count | 0;
         channels = channels | 0;
@@ -45,20 +48,23 @@ function mydspMixer(global, foreign, buffer) {
     }
 		
 	function mixVoice(count, channels, inputs, outputs) {
-		count = count | 0;
+        count = count | 0;
         channels = channels | 0;
-		inputs = inputs | 0;
-		outputs = outputs | 0;
-    	var i = 0;
+        inputs = inputs | 0;
+        outputs = outputs | 0;
+        var i = 0;
         var j = 0;
+        var level = 0.;
         for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
             for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
+                level = max(+level, +(abs(+(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
                 HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] 
                     = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) + 
                       +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
-             }
+            }
         }
-	}
+        return +level;
+    }
 	
 	return { mixVoice: mixVoice, clearOutput: clearOutput};
 }
@@ -130,9 +136,24 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
     
     // Start of DSP memory ('polyphony' DSP voices)
     that.dsp_voices = [];
-    var voice;
-    for (voice = 0; voice < that.polyphony; voice++) {
-        that.dsp_voices[voice] = that.dsp_start + voice * getSizemydsp();
+    that.dsp_voices_state = [];
+    
+    that.kFreeVoice = -2;
+    that.kReleaseVoice = -1;
+
+    var i;
+    for (i = 0; i < that.polyphony; i++) {
+        that.dsp_voices[i] = that.dsp_start + i * getSizemydsp();
+        that.dsp_voices_state[i] = that.kFreeVoice;
+    }
+    
+    that.getVoice = function (note)
+    {
+        var i;
+        for (i = 0; i < that.polyphony; i++) {
+            if (that.dsp_voices_state[i] === note) return i;
+        }
+        return that.kReleaseVoice;
     }
    
     that.pathTable = getPathTablemydsp();
@@ -174,12 +195,19 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
         // First clear the outputs
         that.mixer.clearOutput(that.buffer_size, that.numOut, that.outs);
         
-        // Compute
+        // Compute all voices
+        var level;
         for (i = 0; i < that.polyphony; i++) {
-            that.factory.compute(that.dsp_voices[i], that.buffer_size, that.ins, that.mixing);
-            that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs);
+            if (that.dsp_voices_state[i] != that.kFreeVoice) {
+                that.factory.compute(that.dsp_voices[i], that.buffer_size, that.ins, that.mixing);
+                level = that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs);
+                if ((level < 0.001) && (that.dsp_voices_state[i] == that.kReleaseVoice)) {
+                    console.log("compute voice %d", i);
+                    that.dsp_voices_state[i] = that.kFreeVoice;
+                }
+            }
         }
-       
+        
         // Update bargraph
         that.update_outputs();
         
@@ -226,28 +254,47 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
     {
         return 440.0 * Math.pow(2.0, (note - 69.0) / 12.0);
     }
-    
+     
     that.keyOn = function (channel, pitch, velocity)
     {
-        //console.log("keyOn %d %d %d %f %f", channel, pitch, velocity, that.midiToFreq(pitch),  velocity/127.);
-        var voice = pitch - 48;
-        that.factory.setValue(that.dsp_voices[voice], that.fFreqLabel, that.midiToFreq(pitch));
-        that.factory.setValue(that.dsp_voices[voice], that.fGainLabel, velocity/127.);
-        that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, 1.0);
+        var voice = that.getVoice(that.kFreeVoice);
+        if (voice == that.kReleaseVoice) voice = that.getVoice(that.kReleaseVoice);  // Gets a free voice
+       
+        if (voice >= 0) {
+            console.log("keyOn voice %d", voice);
+            that.factory.setValue(that.dsp_voices[voice], that.fFreqLabel, that.midiToFreq(pitch));
+            that.factory.setValue(that.dsp_voices[voice], that.fGainLabel, velocity/127.);
+            that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, 1.0);
+            that.dsp_voices_state[voice] = pitch;
+        } else {
+            console.log("No more free voice...\n");
+        }
     }
     
     that.keyOff = function (channel, pitch)
     {
-        //console.log("keyOff %d %d", channel, pitch);
-        var voice = pitch - 48;
-        that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, 0.0);
+        var voice = that.getVoice(pitch);
+        if (voice >= 0) {
+            console.log("keyOff voice %d", voice);
+            that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, 0.0);
+            that.dsp_voices_state[voice] = that.kReleaseVoice;
+        } else {
+            console.log("Playing voice not found...\n");
+        }
     }
     
     that.ctrlChange = function (channel, ctrl, value)
     {}
     
     that.pitchBend = function (channel, refPitch, pitch)
-    {}
+    {
+        var voice = that.getVoice(refPitch);
+        if (voice >= 0) {
+            that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, that.midiToFreq(pitch))
+        } else {
+        	console.log("Playing voice not found...\n");
+        }
+    }
     
     // Bind to Web Audio, external API
     that.start = function () 

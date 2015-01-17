@@ -4,7 +4,7 @@
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var max_polyphony = 32;
+var max_polyphony = 16;
 var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
