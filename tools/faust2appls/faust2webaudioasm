@@ -3,8 +3,12 @@
 #-------------------------------------------------------------------
 # Wrapping resources
 
-HTML_FOOTER=webaudio-asm-footer.html
-CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
+#HTML_FOOTER=webaudio-asm-footer.html
+#CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
+
+HTML_FOOTER=webaudio-asm-poly-footer.html
+CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
+
 JS_WRAPPER=webaudio-asm-footer.js
 LINKS=""
 SVG=""

@@ -4,7 +4,7 @@
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var max_polyphony = 16;
+var max_polyphony = 32;
 var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
@@ -53,9 +53,7 @@ function midiMessageReceived(ev)
     var channel = ev.data[0] & 0xf;
     var data1 = ev.data[1];
     var data2 = ev.data[2];
-    
-    //console.log(ev);
-
+  
     if (channel === 9) {
         return;
     } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) { 
@@ -76,11 +74,11 @@ function onerrorcallback(error)
 
 function onsuccesscallback(access) 
 {
-    access.inputs().forEach(function(input) {
+    for (var input of access.inputs.values()) {
         midi_input.push(input);
         input.onmidimessage = midiMessageReceived;
         console.log(input.name);
-    });
+    }
 }
  
 function activateMIDIInput()
@@ -140,7 +138,7 @@ function startDSPAux(buffer_size)
     
     faustsvg = $('<div />');
     $('body').append(faustsvg);
-    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.update);
+    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.setValue);
     DSP_poly.setHandler(handler);
 }
 
