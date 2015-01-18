@@ -202,7 +202,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
                 that.factory.compute(that.dsp_voices[i], that.buffer_size, that.ins, that.mixing);
                 level = that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs);
                 if ((level < 0.001) && (that.dsp_voices_state[i] == that.kReleaseVoice)) {
-                    //console.log("compute voice %d", i);
                     that.dsp_voices_state[i] = that.kFreeVoice;
                 }
             }

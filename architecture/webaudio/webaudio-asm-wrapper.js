@@ -580,6 +580,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     // input items
     that.inputs_items = [];
     
+    // asm.js mixer
     that.mixer = mydspMixer(window, null, buffer);
     
     // Start of DSP memory ('polyphony' DSP voices)
@@ -648,7 +649,6 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
                 that.factory.compute(that.dsp_voices[i], that.buffer_size, that.ins, that.mixing);
                 level = that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs);
                 if ((level < 0.001) && (that.dsp_voices_state[i] == that.kReleaseVoice)) {
-                    //console.log("compute voice %d", i);
                     that.dsp_voices_state[i] = that.kFreeVoice;
                 }
             }
