@@ -308,11 +308,85 @@
     var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
     var buffer_size = 1024;
     var audio_input = null;
+    var midi_input = [];
     var factory = null;
     var DSP = null;
     var dsp_code = null;
     var faustsvg = null;
     
+    // MIDI input handling
+    function keyOn(channel, pitch, velocity)
+    {
+        if (DSP) {
+            DSP.keyOn(channel, pitch, velocity);
+        }
+    }
+
+    function keyOff(channel, pitch)
+    {
+        if (DSP) {
+            DSP.keyOff(channel, pitch);
+        }
+    }
+
+    function pitchBend(channel, bend)
+    {
+        if (DSP) {
+            DSP.pitchBend(channel, bend);
+        }
+    }
+
+    function ctrlChange(channel, ctrl, value)
+    {
+        if (DSP) {
+            DSP.ctrlChange(channel, ctrl, value);
+        }
+    }
+
+    function midiMessageReceived(ev) 
+    {
+        var cmd = ev.data[0] >> 4;
+        var channel = ev.data[0] & 0xf;
+        var data1 = ev.data[1];
+        var data2 = ev.data[2];
+      
+        if (channel === 9) {
+            return;
+        } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) { 
+            keyOff(channel, data1);
+        } else if (cmd === 9) {
+            keyOn(channel, data1, data2);
+        } else if (cmd === 11) {
+            ctrlChange(channel, data1, data2);
+        } else if (cmd === 14) {
+            pitchBend(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        }  
+    }
+
+    function onerrorcallback(error) 
+    {
+         console.log(error);
+    }
+
+    function onsuccesscallback(access) 
+    {
+        for (var input of access.inputs.values()) {
+            midi_input.push(input);
+            input.onmidimessage = midiMessageReceived;
+            console.log(input.name);
+        }
+    }
+     
+    function activateMIDIInput()
+    {
+        console.log("activateMIDIInput");
+        if (typeof (navigator.requestMIDIAccess) !== "undefined") {
+            navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
+        } else {
+            alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+        }
+    }
+  
     // Audio input handling
     function activateAudioInput()
     {
@@ -358,6 +432,7 @@
     function UploadFile(e) 
     {
         var intAltKey = e.altKey;
+        var intShiftKey = e.shiftKey;
      
         FileDragHover(e);
         var files = e.target.files || e.dataTransfer.files;
@@ -397,7 +472,14 @@
                 }
                 
                 // Then creates one DSP instance
-                DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
+                if (intShiftKey) {
+                    console.log("Poly DSP");
+                    DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
+                } else {
+                    console.log("Mono DSP");
+                    DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
+                }
+                
                 if (DSP.getNumInputs() > 0) {
                     activateAudioInput();
                 }
@@ -422,6 +504,7 @@
     
     function Init() 
     {
+        activateMIDIInput();
         var filedrag1 = document.getElementById("filedrag");
         filedrag1.addEventListener("dragover", FileDragHover, false);
         filedrag1.addEventListener("dragleave", FileDragHover, false);
