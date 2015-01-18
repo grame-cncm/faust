@@ -118,6 +118,7 @@ for f in $FILES; do
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
+    cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
     cat $name-temp1.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html 
     echo "</head>" >> $name-temp2.html

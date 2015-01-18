@@ -299,6 +299,7 @@
 <script src="jsscripts.js"></script>
 <script src="libfaust.js"></script>
 <script src="webaudio-asm-wrapper.js"></script>
+<script src="WebMIDIAPI.js"></script>
         
 <script type=text/javascript>
 
@@ -344,7 +345,6 @@
         }
     }
 
-
     function midiMessageReceived(ev) 
     {
         var cmd = ev.data[0] >> 4;
@@ -370,7 +370,17 @@
          console.log(error);
     }
 
-    function onsuccesscallback(access) 
+    function onsuccesscallbackJazz(access) 
+    {
+        var inputs = access.getInputs();
+        for (var i = 0; i <inputs.length; i++) {
+            var input = access.getInput(inputs[i]);
+            midi_input.push(input);
+            input.onmessage = midiMessageReceived;
+        }
+    }
+
+    function onsuccesscallbackStandard(access) 
     {
         for (var input of access.inputs.values()) {
             midi_input.push(input);
@@ -383,8 +393,12 @@
     {
         console.log("activateMIDIInput");
         if (typeof (navigator.requestMIDIAccess) !== "undefined") {
-            navigator.requestMIDIAccess().then(onsuccesscallback, onerrorcallback);
-        } else {
+            if (navigator.requestMIDIAccess() != undefined) {
+                navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
+            } else{
+                navigator.requestMIDIAccess(onsuccesscallbackJazz, onerrorcallback);
+            }
+         } else {
             alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
         }
     }

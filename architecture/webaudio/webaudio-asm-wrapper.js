@@ -567,7 +567,6 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     var that = {};
 
     that.factory = factory;
-    //that.dsp = Module._malloc(that.factory.getSize());
     faust.context = context;
     that.polyphony = max_polyphony;
     that.buffer_size = buffer_size;
