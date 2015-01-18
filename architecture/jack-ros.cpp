@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 		RosCallbacks* subscriber = new RosCallbacks(n); 
 	
 		std::vector<FAUSTFLOAT*> my_zones = interface->getZones();
-		subscriber->Subscribe(my_zones);
+		subscriber->subscribe(my_zones);
 	}
 	
 	// Launching jack audio API

@@ -17,13 +17,13 @@
 #endif
 
 #include "faust/gui/UI.h"
-#include "ros/ros.h"
 
 #include <algorithm>
 #include <vector>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 class RosCI : public UI
 {
@@ -225,11 +225,11 @@ class RosCI : public UI
 	    FAUSTFLOAT slider_max;
 	};
 	
-	// Callback writing the callbacks file
+	// Callback writing the callbacks filekeyboard's arrows
 		// num is the number of ROS declared metadata
 		// param_vector is a callbacks parameters structure container 
 		// name is the application name
-	void CallbacksWriter(int num, std::vector<RosCI::CallbackParams> param_vector, std::string name)
+	void callbacksWriter(int num, std::vector<RosCI::CallbackParams> param_vector, std::string name)
 	{
 		// Get file name
 		name = name + ".cpp";
@@ -238,7 +238,7 @@ class RosCI : public UI
 		
 		if (!file.is_open())
 		{
-			ROS_ERROR("Unable to open %s",file_name);
+			std::cout<<"unable to open"<<file_name<<std::endl;
 			return;
 		}
 		
@@ -360,7 +360,7 @@ class RosCI : public UI
 		
 		// RosCallbacks class main function :
 			// When called, it subscribes to all the predefined callbacks
-		file << "\n\tvoid Subscribe(std::vector<FAUSTFLOAT*> zones)\n"<<std::endl
+		file << "\n\tvoid subscribe(std::vector<FAUSTFLOAT*> zones)\n"<<std::endl
 			 << "\t{" <<std::endl;
 		
 		// Declaring subscribers and subscribing	 
@@ -429,8 +429,11 @@ class RosCI : public UI
 				
 				if (topic_params_.size() == 6)
 				{
-					params.min_value=(float)atof(topic_params_[4].c_str());
-					params.max_value=(float)atof(topic_params_[5].c_str());
+					std::stringstream smin, smax;
+					smin.str(topic_params_[4]);
+					smin >> params.min_value;
+					smax.str(topic_params_[5]);
+					smax >> params.max_value;
 				}
 				else 
 				{
@@ -445,9 +448,10 @@ class RosCI : public UI
 			}
 			else
 			{
-				ROS_ERROR("Wrong number of parameters in ros metadata declaration !");
-				ROS_INFO("It should look like : [ros:/my/topic/name msg_type msg_name field_name]");
-				ROS_INFO("Example : [ros:/topic/level std_msgs Float32 data]");
+				std::cout<<"Wrong number of parameters in ros metadata declaration !"<<std::endl;
+				std::cout<<"It should look like : [ros:/my/topic/name msg_type msg_name"
+						 <<" field_name]"<<std::endl;
+				std::cout<<"Example : [ros:/topic/level std_msgs Float32 data]"<<std::endl;
 			}
 			
 			do
