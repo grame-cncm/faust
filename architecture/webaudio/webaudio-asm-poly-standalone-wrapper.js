@@ -387,7 +387,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
                 that.HEAP32[(that.ins >> 2) + i] = that.audio_heap_inputs + ((that.buffer_size * that.sample_size) * i);
             }
      
-            // Prepare Ins/out buffer tables
+            // Prepare ins/out buffer tables
             that.dspInChannnels = [];
             var dspInChans = that.HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptr_size) >> 2);
             for (i = 0; i < that.numIn; i++) {
@@ -406,14 +406,12 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
             }
           
             that.dspOutChannnels = [];
-            that.mixingChannnels = [];
             
             var dspOutChans = that.HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptr_size) >> 2);
             var mixingChans = that.HEAP32.subarray(that.outs >> 2, (that.mixing + that.numOut * that.ptr_size) >> 2);
             
             for (i = 0; i < that.numOut; i++) {
                 that.dspOutChannnels[i] = that.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptr_size) >> 2);
-                that.mixingChannnels[i] = that.HEAPF32.subarray(mixingChans[i] >> 2, (mixingChans[i] + that.buffer_size * that.ptr_size) >> 2);
             }
         }
         

@@ -187,7 +187,7 @@ Utf8.decode = function(strUtf) {
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014
+ Additional code : GRAME 2014-2015
 */
 
 // asm.js mixer
@@ -837,7 +837,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
                   HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
             }
 
-            // Prepare Ins/out buffer tables
+            // Prepare ins/out buffer tables
             that.dspInChannnels = [];
             var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
             for (i = 0; i < that.numIn; i++) {
@@ -857,14 +857,12 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
          
             that.dspOutChannnels = [];
-            that.mixingChannnels = [];
             
             var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
             var mixingChans = HEAP32.subarray(that.outs >> 2, (that.mixing + that.numOut * that.ptr_size) >> 2);
             
             for (i = 0; i < that.numOut; i++) {
                 that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
-                that.mixingChannnels[i] = HEAPF32.subarray(mixingChans[i] >> 2, (mixingChans[i] + that.buffer_size * that.ptr_size) >> 2);
             }
         }
                                 
