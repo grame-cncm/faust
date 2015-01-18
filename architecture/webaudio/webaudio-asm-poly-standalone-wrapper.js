@@ -70,13 +70,13 @@ function mydspMixer(global, foreign, buffer) {
 }
 
 // Polyphonic Faust DSP
-faust.mydsp_poly = function (context, buffer_size, polyphony) {
+faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
 
     var that = {};
     
     faust.context = context;
  
-    that.polyphony = polyphony;
+    that.polyphony = max_polyphony;
     that.buffer_size = buffer_size;
     that.handler = null;
  

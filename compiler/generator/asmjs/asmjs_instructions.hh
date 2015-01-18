@@ -318,17 +318,21 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble); 
         }
         
+        
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
             
-            *fOut << ((fTypingVisitor.fCurType == Typed::kInt) ? "(" : "+(");
+            string fStart = (fTypingVisitor.fCurType == Typed::kInt) ? "(" : "+(";
+            string fEnd = (fTypingVisitor.fCurType == Typed::kInt) ? ") | 0" : ")";
+            
+            *fOut << fStart;
             inst->fCond->accept(this);
             *fOut << "?";
             inst->fThen->accept(this);
             *fOut << ":";
             inst->fElse->accept(this);
-            *fOut << ((fTypingVisitor.fCurType == Typed::kInt) ? ") | 0" : ")");
+            *fOut << fEnd;
         }
            
         virtual void visit(BinopInst* inst)
