@@ -11,9 +11,9 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014
+ Additional code : GRAME 2014-2015
  
- */
+*/
 
 var faust = faust || {};
 
@@ -195,14 +195,14 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
         // First clear the outputs
         that.mixer.clearOutput(that.buffer_size, that.numOut, that.outs);
         
-        // Compute all voices
+        // Compute all running voices
         var level;
         for (i = 0; i < that.polyphony; i++) {
             if (that.dsp_voices_state[i] != that.kFreeVoice) {
                 that.factory.compute(that.dsp_voices[i], that.buffer_size, that.ins, that.mixing);
                 level = that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs);
                 if ((level < 0.001) && (that.dsp_voices_state[i] == that.kReleaseVoice)) {
-                    console.log("compute voice %d", i);
+                    //console.log("compute voice %d", i);
                     that.dsp_voices_state[i] = that.kFreeVoice;
                 }
             }
@@ -261,7 +261,7 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
         if (voice == that.kReleaseVoice) voice = that.getVoice(that.kReleaseVoice);  // Gets a free voice
        
         if (voice >= 0) {
-            console.log("keyOn voice %d", voice);
+            //console.log("keyOn voice %d", voice);
             that.factory.setValue(that.dsp_voices[voice], that.fFreqLabel, that.midiToFreq(pitch));
             that.factory.setValue(that.dsp_voices[voice], that.fGainLabel, velocity/127.);
             that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, 1.0);
@@ -275,7 +275,7 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
     {
         var voice = that.getVoice(pitch);
         if (voice >= 0) {
-            console.log("keyOff voice %d", voice);
+            //console.log("keyOff voice %d", voice);
             that.factory.setValue(that.dsp_voices[voice], that.fGateLabel, 0.0);
             that.dsp_voices_state[voice] = that.kReleaseVoice;
         } else {
@@ -376,7 +376,7 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
         that.numOut = that.getNumOutputs();
         
         // Setup web audio context
-        console.log("that.buffer_size %d", that.buffer_size);
+        console.log("buffer_size = %d", that.buffer_size);
         that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
         that.scriptProcessor.onaudioprocess = that.compute;
         
@@ -384,9 +384,7 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
  
             that.ins = that.audio_heap_ptr_inputs; 
             
-            // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
             for (i = 0; i < that.numIn; i++) { 
-                // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 that.HEAP32[(that.ins >> 2) + i] = that.audio_heap_inputs + ((that.buffer_size * that.sample_size) * i);
             }
      
@@ -403,9 +401,7 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
             that.outs = that.audio_heap_ptr_outputs; 
             that.mixing = that.audio_heap_ptr_mixing; 
             
-            // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
             for (i = 0; i < that.numOut; i++) { 
-                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 that.HEAP32[(that.outs >> 2) + i] = that.audio_heap_outputs + ((that.buffer_size * that.sample_size) * i);
                 that.HEAP32[(that.mixing >> 2) + i] = that.audio_heap_mixing + ((that.buffer_size * that.sample_size) * i);
             }
@@ -422,10 +418,10 @@ faust.mydsp_poly = function (context, buffer_size, polyphony) {
             }
         }
         
-         // bargraph
+        // bargraph
         that.parse_ui(JSON.parse(that.json()).ui);
         
-        // init labels
+        // keep 'keyOn/keyOff' labels
         for (i = 0; i < that.inputs_items.length; i++) {
             if (that.inputs_items[i].endsWith("/gate")) {
                 that.fGateLabel = that.pathTable[that.inputs_items[i]];

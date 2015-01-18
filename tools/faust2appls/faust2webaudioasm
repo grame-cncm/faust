@@ -8,7 +8,8 @@ CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
 JS_WRAPPER=webaudio-asm-footer.js
 LINKS=""
 SVG=""
-EMCC="NO"
+EMCC="false"
+POLY="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -44,15 +45,7 @@ for p in $@; do
             <a href=\"DSP.dsp\" target=\"_blank\">code</a>  <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
     elif [ $p = "-poly" ]; then
-        #HTML_FOOTER=webaudio-asm-poly-footer.html
-        #CODE_WRAPPER=webaudio-asm-poly.cpp
-        #JS_WRAPPER=webaudio-asm-poly-footer.js
-        # Force emcc compilation for now
-        #EMCC=emcc 
-        
-        HTML_FOOTER=webaudio-asm-poly-footer.html
-        CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
-
+        POLY="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
         CODE_WRAPPER=webaudio-asm.cpp
@@ -66,8 +59,26 @@ for p in $@; do
 done
 
 #-------------------------------------------------------------------
+# set the 'poly' compilation mode
+#
+
+if [ $POLY = true ]; then
+    if [ $EMCC = emcc ]; then
+        echo "emcc poly"
+        HTML_FOOTER=webaudio-asm-poly-footer.html
+        CODE_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-footer.js
+    else
+        echo "asm.js poly"
+        HTML_FOOTER=webaudio-asm-poly-footer.html
+        CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
+    fi
+fi
+
+#-------------------------------------------------------------------
 # compile the *.dsp files
 #
+
 BINARIES=""
 
 for f in $FILES; do
