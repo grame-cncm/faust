@@ -12,7 +12,8 @@ COMB_EXPORTED=
 COMB_WRAPPED=
 COMB_WRAPPED_FILES=
 COMB_SEP=
-EMCC="NO"
+EMCC="false"
+POLY="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -41,8 +42,7 @@ for p in $@; do
     if [ $p = "-comb" ]; then
         COMB=1
     elif [ $p = "-poly" ]; then
-        CPP_WRAPPER=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-footer.js
+        POLY="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
     elif [ ${p:0:1} = "-" ]; then
@@ -53,6 +53,21 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
+
+#-------------------------------------------------------------------
+# set the 'poly' compilation mode
+#
+
+if [ $POLY = true ]; then
+    if [ $EMCC = emcc ]; then
+        echo "emcc poly"
+        CPP_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-footer.js
+    else
+        echo "asm.js poly"
+        CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
+    fi
+fi
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
