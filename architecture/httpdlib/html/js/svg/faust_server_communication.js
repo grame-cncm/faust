@@ -19,10 +19,10 @@ _f4u$t.server_update_function = function(address, value) {
 //-----------------------------------------------------------------------------
 
 _f4u$t.dispatch = function(data) {
-  var lines = data.split('\n');
+  var lines = data.toString().split('\n');
   var limit = lines.length;
   for (i=0; i < limit; i++) {
-    var values = lines[i].split(' ');
+    var values = lines[i].toString().split(' ');
     if (values.length > 1) {
       var address = values[0];
       // skip things being moved to avoid interference

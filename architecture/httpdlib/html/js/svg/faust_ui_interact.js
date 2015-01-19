@@ -237,7 +237,7 @@ _f4u$t.initiate_button = function(fullid, upfill, downfill, address) {
 }
 
 _f4u$t.initiate_tab_group = function(index, ids) {
-  var strar = ids.split('#');
+  var strar = ids.toString().split('#');
   // boo svg...tags
   for (var i = 0; strar.length > i; i++) {
     if (i != index) {
@@ -338,7 +338,7 @@ _f4u$t.activate_moving_object = function(ee) {
 }
 
 _f4u$t.activate_tgroup = function(x, y, goodid, badids) {
-  var strar = badids.split('#');
+  var strar = badids.toString().split('#');
   for (var i = 0; strar.length > i; i++) {
     _f4u$t.move_to_ridiculous_negative(strar[i]);
     _f4u$t.tgroup_fill_changer(_f4u$t.unique(strar[i]), false);

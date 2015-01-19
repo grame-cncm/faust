@@ -699,6 +699,64 @@ amp_follower(rel) = abs : env with {
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
+// Begin contributions by Jonatan Liljedahl at http://kymatica.com
+
+/*****************************************************
+    _ : amp_follower_ar(att,rel) : _;
+
+Envelope follower with independent attack and release times. The
+release can be shorter than the attack (unlike in amp_follower_ud
+above).
+
+*****************************************************/
+
+amp_follower_ar(att,rel) = abs <: ((>,at,rt:select2),_:smooth) ~ _ with {
+    at = tau2pole(att);
+    rt = tau2pole(rel);
+};
+
+/*****************************************************
+    _ : lag_ud(up, dn, signal) : _;
+
+    Lag filter with separate times for up and down.
+*****************************************************/
+
+lag_ud(up,dn) = _ <: ((>,tau2pole(up),tau2pole(dn):select2),_:smooth) ~ _;
+
+/*****************************************************
+    _ : peakhold(mode,sig) : _;
+
+    Outputs current max value above zero.
+    'mode' means:
+    0 - Pass through. A single sample 0 trigger will work as a reset.
+    1 - Track and hold max value.
+*****************************************************/
+
+peakhold = (*,_:max) ~ _;
+
+/*****************************************************
+    sweep(period,run);
+
+    Counts from 0 to 'period' samples repeatedly, while 'run' is 1.
+    Outsputs zero while 'run' is 0.
+*****************************************************/
+
+sweep = %(int(*:max(1)))~+(1);
+
+/*****************************************************
+    peakholder(holdtime, sig);
+
+    Tracks abs peak and holds peak for 'holdtime' samples.
+*****************************************************/
+
+peakholder(holdtime) = peakhold2 ~ reset : (!,_) with {
+    reset = sweep(holdtime) > 0;
+    // first out is gate that is 1 while holding last peak
+    peakhold2 = _,abs <: peakhold,!,_ <: >=,_,!;
+};
+
+// End contributions by Jonatan Liljedahl at http://kymatica.com
+
 //=============== Gates, Limiters, and Dynamic Range Compression ============
 
 //----------------- gate_mono, gate_stereo -------------------
