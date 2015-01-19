@@ -710,10 +710,7 @@ above).
 
 *****************************************************/
 
-amp_follower_ar(att,rel) = abs <: ((>,at,rt:select2),_:smooth) ~ _ with {
-    at = tau2pole(att);
-    rt = tau2pole(rel);
-};
+amp_follower_ar(att,rel) = abs : lag_ud(att,rel);
 
 /*****************************************************
     _ : lag_ud(up, dn, signal) : _;
@@ -755,7 +752,7 @@ peakholder(holdtime) = peakhold2 ~ reset : (!,_) with {
     peakhold2 = _,abs <: peakhold,!,_ <: >=,_,!;
 };
 
-// End contributions by Jonatan Liljedahl at http://kymatica.com
+// End of contributions (so far) by Jonatan Liljedahl at http://kymatica.com
 
 //=============== Gates, Limiters, and Dynamic Range Compression ============
 
