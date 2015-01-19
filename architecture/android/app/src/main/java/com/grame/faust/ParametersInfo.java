@@ -51,8 +51,8 @@ class ParametersInfo{
 		
 		// assigning default values
 		for(int i=0; i<nParams; i++){
-			accelMin[i] = -10.0f;
-			accelMax[i] = 10.0f;
+			accelMin[i] = -100.0f;
+			accelMax[i] = 100.0f;
 			accelCenter[i] = 0.0f;
 			accelInverterState[i] = 0;
 			accelItemFocus[i] = 0;

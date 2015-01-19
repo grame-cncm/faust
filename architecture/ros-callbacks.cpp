@@ -43,8 +43,6 @@
 #include "faust/gui/RosCI.h"
 #include "faust/audio/dsp.h"
 
-#include <ros/ros.h>
-
 
 
 /**************************BEGIN USER SECTION **************************/
@@ -96,7 +94,7 @@ int main(int argc, char *argv[])
 	// Create DSP Object
 	DSP = new mydsp();
 	if (DSP==0) {
-        ROS_ERROR("Unable to allocate Faust DSP object" );
+        std::cout<<"Unable to allocate Faust DSP object" <<std::endl;
 		exit(1);
 	}
 	
@@ -112,7 +110,7 @@ int main(int argc, char *argv[])
 	
 	std::string name = static_cast<std::string>(appname);
 	// Writes the rosCallbacks.h file
-	interface->CallbacksWriter(count, parameters, name);
+	interface->callbacksWriter(count, parameters, name);
 
 	// desallocation
 	delete interface;

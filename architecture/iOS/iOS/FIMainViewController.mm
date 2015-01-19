@@ -988,8 +988,12 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     if ([[segue identifier] isEqualToString:@"showAlternate"]) 
     {
+    #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        id<NSFileManagerDelegate> tmp = [segue destinationViewController];
+        [tmp setDelegate:self];
+    #else
         [[segue destinationViewController] setDelegate:self];
-        
+    #endif
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
         {
             UIPopoverController *popoverController = [(UIStoryboardPopoverSegue *)segue popoverController];

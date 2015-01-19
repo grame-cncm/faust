@@ -25,7 +25,7 @@ class Checkbox{
 	 * label: the parameter's name
 	 */
 	public Checkbox(Context c, String addr, int currentParameterID,
-			int width, int backgroundColor, String label){
+			int width, int height, int backgroundColor, String label){
 		id = currentParameterID;
 		address = addr;
 		

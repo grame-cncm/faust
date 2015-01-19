@@ -249,15 +249,6 @@ class RosUI : public UI
 	    boost::bind(&RosUI::buttonCallback, this, _1, zone));
 	    
 	    count_++;
-	    
-	    // Adds the Faust parameter's address (zone) to a zone vector
-	    	// if a ros metadata has been declared
-	    if (meta_)
-	    {
-	    	zones_.push_back(zone);
-	 	}
-	 	
-	 	meta_=false;
 	}
 	void addCheckButton(const char* label, FAUSTFLOAT* zone)
 	{
@@ -300,15 +291,6 @@ class RosUI : public UI
 	    boost::bind(&RosUI::cButtonCallback, this, _1, zone));
 	    
 	    count_++;
-	 	
-	 	// Adds the Faust parameter's address (zone) to a zone vector
-	    	// if a ros metadata has been declared
-	    if (meta_)
-	    {
-	    	zones_.push_back(zone);
-	 	}
-	 	
-	 	meta_=false;
 	}
 	void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
 	FAUSTFLOAT max, FAUSTFLOAT step)
@@ -352,15 +334,6 @@ class RosUI : public UI
 	    boost::bind(&RosUI::sliderCallback, this, _1, zone));
 	    
 	    count_++;
-
-		// Adds the Faust parameter's address (zone) to a zone vector
-	    	// if a ros metadata has been declared
-	    if (meta_)
-	    {
-	    	zones_.push_back(zone);
-	 	}
-		
-		meta_=false;
 	}
 	void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
@@ -403,15 +376,6 @@ class RosUI : public UI
 	    (my_string, queue_, boost::bind(&RosUI::sliderCallback, this, _1, zone));
 	    
 	    count_++;
-
-		// Adds the Faust parameter's address (zone) to a zone vector
-	    	// if a ros metadata has been declared
-	    if (meta_)
-	    {
-	    	zones_.push_back(zone);
-	 	}
-	
-		meta_=false;
 		
 	}
 	void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
@@ -455,16 +419,7 @@ class RosUI : public UI
 	    boost::bind(&RosUI::numEntryCallback, this, _1, zone));
 	    
 		count_++;
-
-		// Adds the Faust parameter's address (zone) to a zone vector
-	    	// if a ros metadata has been declared
-	    if (meta_)
-	    {
-	    	zones_.push_back(zone);
-	 	}
-	 	
-	 	meta_=false;
-	 	
+ 	
 	}
 	
 	// -- passive widgets
@@ -483,11 +438,9 @@ class RosUI : public UI
 	{
 		if (key=="ros") // We do not care if key is not "ros" here
 		{
-			meta_=true;
-		}
-		else 
-		{
-			meta_=false;
+			// Adds the Faust parameter's address (zone) to a zone vector
+	    		// if a ros metadata has been declared
+			zones_.push_back(zone);
 		}
 	}
     

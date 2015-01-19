@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.70"
+#define FAUSTVERSION "0.9.71"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -163,6 +163,11 @@ list<string>    gImportDirList;                 // dir list enrobage.cpp/fopense
 string          gOutputDir;                     // output directory for additionnal generated ressources : -SVG, XML...etc...
 bool            gInPlace        = false;        // add cache to input for correct in-place computations
 
+// source file injection
+bool            gInjectFlag     = false;        // inject an external source file into the architecture file
+string          gInjectFile     = "";           // instead of a compiled dsp file
+
+
 //-- command line tools
 
 static bool isCmd(const char* cmd, const char* kw1)
@@ -220,9 +225,14 @@ bool process_cmdline(int argc, char* argv[])
 			gDetailsSwitch = true;
 			i += 1;
 
-		} else if (isCmd(argv[i], "-a", "--architecture")) {
-			gArchFile = argv[i+1];
-			i += 2;
+        } else if (isCmd(argv[i], "-a", "--architecture")) {
+            gArchFile = argv[i+1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-inj", "--inject")) {
+            gInjectFlag = true;
+            gInjectFile = argv[i+1];
+            i += 2;
 
 		} else if (isCmd(argv[i], "-o")) {
 			gOutputFile = argv[i+1];
@@ -503,6 +513,7 @@ void printhelp()
     cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
+    cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
   	cout << "\nexample :\n";
 	cout << "---------\n";
 
@@ -594,6 +605,10 @@ static void initFaustDirectories()
 
 int main (int argc, char* argv[])
 {
+    ostream*    dst;
+    ifstream*   injcode;
+    istream*    enrobage;
+
 
 	/****************************************************************
 	 1 - process command line
@@ -608,7 +623,53 @@ int main (int argc, char* argv[])
     alarm(gTimeout);
 
 
-	/****************************************************************
+    /****************************************************************
+     1.5 - Check and open some input files
+    *****************************************************************/
+    if (gOutputFile != "") {
+        string outpath = (gOutputDir != "") ? (gOutputDir + "/" + gOutputFile) : gOutputFile;
+        dst = new ofstream(outpath.c_str());
+    } else {
+        dst = &cout;
+    }
+
+    // Check for injected code (before checking for architectures)
+    if (gInjectFlag) {
+        injcode = new ifstream();
+        injcode->open(gInjectFile.c_str(), ifstream::in);
+        if ( ! injcode->is_open() ) {
+            cerr << "ERROR : can't inject \"" << gInjectFile << "\" external code file, file not found" << endl;
+            exit(1);
+        }
+    }
+
+    // Check for architecture file
+    if (gArchFile != "") {
+        if ( ! (enrobage = open_arch_stream(gArchFile.c_str())) ) {
+            cerr << "ERROR : can't open architecture file " << gArchFile << endl;
+            exit(1);
+        }
+    }
+
+
+    /****************************************************************
+     1.7 - Inject code instead of compile
+    *****************************************************************/
+
+    // Check if this is a code injection
+    if (gInjectFlag) {
+        if (gArchFile == "") {
+            cerr << "ERROR : no architecture file specified to inject \"" << gInjectFile << "\"" << endl;
+        } else {
+            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+            streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+            streamCopy(*injcode, *dst);
+            streamCopyUntilEnd(*enrobage, *dst);
+        }
+        exit(0);
+    }
+
+    /****************************************************************
 	 2 - parse source files
 	*****************************************************************/
 
@@ -618,7 +679,8 @@ int main (int argc, char* argv[])
 	gResult2 = nil;
 	yyerr = 0;
 
-	if (gInputFiles.begin() == gInputFiles.end()) {
+    if (! gInjectFlag && (gInputFiles.begin() == gInputFiles.end()) ) {
+        cout << "Error no input file" << endl;
 		exit(1);
 	}
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
@@ -628,7 +690,7 @@ int main (int argc, char* argv[])
 		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
 	}
 	if (yyerr > 0) {
-		cerr << "ERROR : paorsing count = " <<  yyerr << endl;
+        cerr << "ERROR : parsing count = " <<  yyerr << endl;
 		exit(1);
 	}
 	gExpandedDefList = gReader.expandlist(gResult2);
@@ -762,56 +824,38 @@ int main (int argc, char* argv[])
 	 8 - generate output file
 	*****************************************************************/
 
-	ostream* dst;
-	istream* enrobage;
-	//istream* intrinsic;
-
-	if (gOutputFile != "") {
-        string outpath = (gOutputDir != "") ? (gOutputDir + "/" + gOutputFile) : gOutputFile;
-		dst = new ofstream(outpath.c_str());
-	} else {
-		dst = &cout;
-	}
+    printheader(*dst);
+    C->getClass()->printLibrary(*dst);
+    C->getClass()->printIncludeFile(*dst);
+    C->getClass()->printAdditionalCode(*dst);
 
 	if (gArchFile != "") {
-		if ( (enrobage = open_arch_stream(gArchFile.c_str())) ) {
-            printheader(*dst);
-			C->getClass()->printLibrary(*dst);
-			C->getClass()->printIncludeFile(*dst);
-            C->getClass()->printAdditionalCode(*dst);
 
-            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+        streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
 
-// 			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
-// 				streamCopyUntilEnd(*intrinsic, *dst);
-// 			}
-            
-            if (gSchedulerSwitch) {
-                istream* scheduler_include = open_arch_stream("scheduler.cpp");
-                if (scheduler_include) {
-                    streamCopy(*scheduler_include, *dst);
-                } else {
-					cerr << "ERROR : can't include \"scheduler.cpp\", file not found" << endl;
-					exit(1);
-				}
+        if (gSchedulerSwitch) {
+            istream* scheduler_include = open_arch_stream("scheduler.cpp");
+            if (scheduler_include) {
+                streamCopy(*scheduler_include, *dst);
+            } else {
+                cerr << "ERROR : can't include \"scheduler.cpp\", file not found" << endl;
+                exit(1);
             }
-            
-			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-            printfloatdef(*dst);
-            
-			C->getClass()->println(0,*dst);
-			streamCopyUntilEnd(*enrobage, *dst);
-		} else {
-			cerr << "ERROR : can't open architecture file " << gArchFile << endl;
-			return 1;
-		}
-	} else {
-        printheader(*dst);
+        }
+
+        streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
         printfloatdef(*dst);
+        C->getClass()->println(0,*dst);
+        streamCopyUntilEnd(*enrobage, *dst);
+
+    } else {
+
 		C->getClass()->printLibrary(*dst);
         C->getClass()->printIncludeFile(*dst);
         C->getClass()->printAdditionalCode(*dst);
+        printfloatdef(*dst);
         C->getClass()->println(0,*dst);
+
 	}
 
 
