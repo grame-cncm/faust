@@ -536,7 +536,7 @@ Parses a string into an orientation
 @return {Object}
 **/
 _f4u$t.parse_orientation = function(s) {
-  var split = s.split(" ");
+  var split = s.toString().split(" ");
   while (split.indexOf("") >= 0) {
     split.splce(split.indexOf(""), 1);
   }
@@ -860,7 +860,7 @@ this function returns it.
 @return {String} The unique trailing part, if one exists.
 **/
 _f4u$t.unique = function(s) {
-  var spl = s.split("_");
+  var spl = s.toString().split("_");
   if (spl.length == 0) {
     return s;
   }
@@ -879,7 +879,7 @@ rbutton.
 @return {String} The unique type, if one exists.
 **/
 _f4u$t.type = function(s) {
-  var spl = s.split("_");
+  var spl = s.toString().split("_");
   if (spl.length == 0) {
     console.log("incorrect naming of faust object");
     return s;
@@ -1206,7 +1206,7 @@ _f4u$t.make_ui = function(svg, raw_json, width, height, hash) {
 
 _f4u$t.assign_parameters_to_values = function(URLParams) {
   for (var index in URLParams) {
-    var split_index = index.split('.');
+    var split_index = index.toString().split('.');
     if (split_index.length != 2) {
       continue;
     }

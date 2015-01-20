@@ -15,25 +15,25 @@ you should type :
 faust2ros -install path/to/myworkspace ~/path/to/myfile.dsp
 \end{lstlisting}
 
-\section{Fatal error during \lstinline'catkin_make' operation}
-Once your DSP file compiled into a cpp file, if you try to compile it into a \ros executable, the terminal might output :
-\begin{lstlisting}
-fatal error: faust_msgs/faust_param.h: No such file or directory
-\end{lstlisting}
-\newpage
-You have two possibilities :
-
-\begin{itemize}[leftmargin=*]
-	\item If your workspace is only a test workspace, then type :
-	\begin{lstlisting}
-source path/to/myworkspace/devel/setup.bash
-	\end{lstlisting}
-	in your terminal.
-	\item If your workspace is going to be your current \ros workspace, you can add it to the source directories :
-	\begin{lstlisting}
-echo "source path/to/myworkspace/devel/setup.bash" >> ~/.bashrc 
-	\end{lstlisting}
-\end{itemize}
+%\section{Fatal error during \lstinline'catkin_make' operation}
+%Once your DSP file compiled into a cpp file, if you try to compile it into a \ros executable, the terminal might output :
+%\begin{lstlisting}
+%fatal error: faust_msgs/faust_param.h: No such file or directory
+%\end{lstlisting}
+%\newpage
+%You have two possibilities :
+%
+%\begin{itemize}[leftmargin=*]
+%	\item If your workspace is only a test workspace, then type :
+%	\begin{lstlisting}
+%source path/to/myworkspace/devel/setup.bash
+%	\end{lstlisting}
+%	in your terminal.
+%	\item If your workspace is going to be your current \ros workspace, you can add it to the source directories :
+%	\begin{lstlisting}
+%echo "source path/to/myworkspace/devel/setup.bash" >> ~/.bashrc 
+%	\end{lstlisting}
+%\end{itemize}
 
 \section{[rosrun] error}
 \label{sec:rosrun error}
