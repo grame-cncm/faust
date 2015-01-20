@@ -77,8 +77,9 @@ using namespace std;
 
 extern bool gTimingSwitch;
 
-ifstream* injcode;
-
+ifstream* injcode = 0;
+ifstream* enrobage = 0;
+       
 typedef void* (*compile_fun)(void* arg);
 
 #ifdef _WIN32 
@@ -1025,8 +1026,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         /****************************************************************
          * generate output file
          ****************************************************************/
-        ifstream* enrobage;
-        
+         
         if (gGlobal->gArchFile != "") {
         
             // Keep current directory
@@ -1054,7 +1054,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     delete injcode;
                     throw faustexception("");
                 }
-         
+       
                 if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                     printheader(*dst);
                 }
@@ -1099,7 +1099,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 
                 // Restore current_directory
                 chdir(current_directory);
-                delete(enrobage);
+                delete enrobage;
                  
             } else {
                 stringstream error;
