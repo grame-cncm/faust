@@ -1,4 +1,4 @@
-\chapter{Using \faust Nodes}
+\chapter{Using FAUST Nodes}
 \label{chap:run}
 Once your DSP files are compiled into \ros executables, you can run them into a \ros master.
 
@@ -27,7 +27,7 @@ roscore
 \end{lstlisting}
 
 \newpage
-\section{Run a \faust Node}
+\section{Run a FAUST Node}
 Now that your master is running, you can run your \faust node. It is quite simple. Type :
 \begin{lstlisting}
 rosrun mynodepackage mynode
@@ -42,11 +42,11 @@ If you get an error message looking like this :
 \end{lstlisting}
 then refer to section~\ref{sec:rosrun error}
 
-\section{To Which Topics is a \faust Node Subscribing ?}
+\section{To Which Topics is a FAUST Node Subscribing ?}
 Once your \faust node is running, it automatically subscribes to topics corresponding to the parameters you can modify, and to the widgets the gtk graphic interface has. For instance, if you use a \faust node generated from the noise.dsp file (in the examples directory), the noise\_gtk node will subscribe to the topic \lstinline'noise_gtk/Volume' and the graphic interface will look like this :
 \begin{figure}[ht!]
 \centering
-\begin{adjustbox}{minipage=5cm,margin=0pt 10pt,bgcolor=gray}
+\begin{adjustbox}{minipage=5cm,margin=0pt 10pt,bgcolor=roscolor}
 \centering
 \includegraphics[scale=0.5]{images/noise_gtk.png}
 \end{adjustbox}
@@ -68,7 +68,7 @@ A more complex example like the harpe.dsp file, which contains three widgets, ca
 and the graphic interface can look like this :
 \begin{figure}[ht!]
 \centering
-\begin{adjustbox}{minipage=5cm,margin=0pt 10pt,bgcolor=gray}
+\begin{adjustbox}{minipage=5cm,margin=0pt 10pt,bgcolor=roscolor}
 \centering
 \includegraphics[scale=0.5]{images/harpe_gtk.png}
 \end{adjustbox}
@@ -84,6 +84,21 @@ For instance, to remap the /harpe/hand topic to /play, then run the harpe node l
 \begin{lstlisting}
 rosrun harpe harpe /harpe/hand:=/play
 \end{lstlisting}
+
+\paragraph{Comment:}The \faust nodes subscribe to topics using std\_msgs message types. Depending on the widgets you use, you can subscribe to default topics using either Float32 or Bool messages.\\
+
+\begin{center}
+	\begin{tabular}{ | c | c | }
+		\hline
+		\rowcolor{yobg} Widget & Message type \\ \hline
+		Button & std\_msgs/Bool \\ \hline
+		Check Button & std\_msgs/Bool \\ \hline
+		Slider & std\_msgs/Float32 \\ \hline
+		Num. Entry & std\_msgs/Float32 \\ \hline
+	\end{tabular}
+\end{center}
+
+\newpage
 
 \section{How to Escape from a Running Node ?}
 To close a node running in \ros, you have two possibilities, depending on the graphic interface :

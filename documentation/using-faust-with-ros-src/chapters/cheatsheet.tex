@@ -1,0 +1,27 @@
+\chapter{Cheat Sheet}
+\label{cheatsheet}
+
+\section*{Compilation}
+\begin{tabular}{p{2cm} p{7cm}}
+\lstinline'faust2ros' & compile a .dsp file\\
+\lstinline'faust2rosgtk' & compile a .dsp file with a GTK graphic interface\\
+\end{tabular}
+
+\paragraph{Options}~\\
+\begin{tabular}{p{2cm} p{7cm}}
+\lstinline'-install' & installation in a specified workspace\\
+\lstinline'-o' & rename the executable\\
+\end{tabular}
+
+\paragraph{Example}~\\
+\lstinline'faust2ros -install ~/catkin_ws -o harpe4ros ~/dsp/harpe.dsp'
+
+
+\section*{Run}
+\begin{tabular}{p{5cm} p{7cm}}
+\lstinline'rosrun harpe4ros harpe4ros' & run the executable \textit{harpe4ros}\\
+\end{tabular}
+\section*{Metadata}
+
+\lstinline'[ros:/my/topic msg_type msg_name msg_field]'\newline
+\lstinline'[ros:/my/topic msg_type msg_name msg_field min_value max_value]'
