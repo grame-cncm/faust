@@ -663,7 +663,7 @@ static bool process_cmdline(int argc, const char* argv[])
 static void printversion()
 {
 	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, LLVM IR, version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2015, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
