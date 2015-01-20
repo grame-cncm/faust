@@ -249,7 +249,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             gGlobal->gASMJSVisitor->Tab(n+2);
-         
             // Replace use of "sig" in use of "dsp"
             DspRenamer renamer2;
             BlockInst* block2 = renamer2.getCode(fInitInstructions);
@@ -257,7 +256,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             MoveVariablesInFront2 mover1;
             BlockInst* block3 = mover1.getCode(block2); 
             block3->accept(gGlobal->gASMJSVisitor);
-            
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);

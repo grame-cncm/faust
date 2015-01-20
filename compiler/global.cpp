@@ -290,7 +290,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gPrintJSONSwitch = false;
     gPrintDocSwitch = false;
     gBalancedSwitch = 0;
-    gArchFile = 0;
+    gArchFile = "";
     gExportDSP = false;
 
     gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
@@ -376,6 +376,10 @@ void global::init()
     setlocale(LC_ALL, "C");
     
     gAllocationCount = 0;
+    
+    // source file injection
+    gInjectFlag = false;    // inject an external source file into the architecture file
+    gInjectFile  = "";      // instead of a compiled dsp file
 }
     
 global::~global()

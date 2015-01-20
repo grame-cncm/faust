@@ -77,6 +77,8 @@ using namespace std;
 
 extern bool gTimingSwitch;
 
+ifstream* injcode;
+
 typedef void* (*compile_fun)(void* arg);
 
 #ifdef _WIN32 
@@ -400,6 +402,11 @@ static bool process_cmdline(int argc, const char* argv[])
 		} else if (isCmd(argv[i], "-a", "--architecture") && (i+1 < argc)) {
 			gGlobal->gArchFile = argv[i+1];
 			i += 2;
+            
+         } else if (isCmd(argv[i], "-inj", "--inject")) {
+            gGlobal->gInjectFlag = true;
+            gGlobal->gInjectFile = argv[i+1];
+            i += 2;
 
 		} else if (isCmd(argv[i], "-o") && (i+1 < argc)) {
 			gGlobal->gOutputFile = argv[i+1];
@@ -728,7 +735,7 @@ static void printhelp()
     cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
- 
+    cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
 	cout << "\nexample :\n";
 	cout << "---------\n";
 
@@ -836,7 +843,7 @@ static void parseSourceFiles()
     list<string>::iterator s;
     gGlobal->gResult2 = gGlobal->nil;
 
-    if (gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
+    if (!gGlobal->gInjectFlag && gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
     for (s = gGlobal->gInputFiles.begin(); s != gGlobal->gInputFiles.end(); s++) {
@@ -1019,15 +1026,35 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          * generate output file
          ****************************************************************/
         ifstream* enrobage;
-         
-        if (gGlobal->gArchFile) {
+        
+        if (gGlobal->gArchFile != "") {
         
             // Keep current directory
             char current_directory[FAUST_PATH_MAX];
             getcwd(current_directory, FAUST_PATH_MAX);
             
-            if ((enrobage = open_arch_stream(gGlobal->gArchFile))) {
-                
+            if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+            
+                /****************************************************************
+                 1.7 - Inject code instead of compile
+                *****************************************************************/
+
+                // Check if this is a code injection
+                if (gGlobal->gInjectFlag) {
+                    if (gGlobal->gArchFile == "") {
+                        stringstream error;
+                        error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
+                        throw faustexception(error.str());
+                    } else {
+                        streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+                        streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+                        streamCopy(*injcode, *dst);
+                        streamCopyUntilEnd(*enrobage, *dst);
+                    }
+                    delete injcode;
+                    throw faustexception("");
+                }
+         
                 if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
                     printheader(*dst);
                 }
@@ -1196,7 +1223,22 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     }
 
     faust_alarm(gGlobal->gTimeout);
-
+    
+    /****************************************************************
+     1.5 - Check and open some input files
+    *****************************************************************/
+    
+    // Check for injected code (before checking for architectures)
+    if (gGlobal->gInjectFlag) {
+        injcode = new ifstream();
+        injcode->open(gGlobal->gInjectFile.c_str(), ifstream::in);
+        if (!injcode->is_open()) {
+            stringstream error;
+            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found" << endl;
+            throw faustexception(error.str());
+        }
+    }
+    
     /****************************************************************
      2 - parse source files
     *****************************************************************/

@@ -318,7 +318,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble); 
         }
         
-        
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);

@@ -427,8 +427,12 @@ struct global {
     bool gPrintJSONSwitch;
     bool gPrintDocSwitch;
     int gBalancedSwitch;
-    const char* gArchFile;
+    string gArchFile;
     bool gExportDSP;
+    
+    // source file injection
+    bool gInjectFlag;
+    string gInjectFile;
 
     int gTimeout;   // time out to abort compiler (in seconds)
     bool gLLVMOut;
