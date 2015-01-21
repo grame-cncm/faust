@@ -681,7 +681,7 @@ with {
 
 amp_follower(rel) = abs : env with {
  p = tau2pole(rel);
- env(x) = x * (1.0 - p) : + ~ max(x,_) * p;
+ env(x) = x * (1.0 - p) : (+ : max(x,_)) ~ *(p);
 };
 
 //--------------------------- amp_follower_ud ---------------------------
