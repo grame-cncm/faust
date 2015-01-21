@@ -54,11 +54,11 @@ class FirCodeContainer : public virtual CodeContainer {
        
     private:
     
-        void dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst);
+        void dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst);
 
-        virtual void dumpThread(FIRInstVisitor & firvisitor, ostream* dst) {};
-        virtual void dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst);
-        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst) = 0;
+        virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst) {};
+        virtual void dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst);
+        virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst) = 0;
         virtual void dumpMemory(ostream* dst);
         virtual void dumpFlatten(ostream* dst);
 };
@@ -75,7 +75,7 @@ class FirScalarCodeContainer : public FirCodeContainer {
 
     private:
     
-        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+        virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
 };
 
 class FirVectorCodeContainer : public VectorCodeContainer, public FirCodeContainer {
@@ -88,7 +88,7 @@ class FirVectorCodeContainer : public VectorCodeContainer, public FirCodeContain
 
     private:
     
-        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+        virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
 };
 
 class FirOpenMPCodeContainer : public OpenMPCodeContainer, public FirCodeContainer {
@@ -101,7 +101,7 @@ class FirOpenMPCodeContainer : public OpenMPCodeContainer, public FirCodeContain
 
     private:
     
-        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+        virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
 };
 
 class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeContainer {

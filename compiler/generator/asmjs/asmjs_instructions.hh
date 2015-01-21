@@ -327,12 +327,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             return (type == Typed::kInt || type == Typed::kIntish); 
         }
         
+        
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
             
-            string fStart = isIntType(fTypingVisitor.fCurType) ? "(" : "+(";
-            string fEnd = isIntType(fTypingVisitor.fCurType) ? " | 0)" : ")";
+            string fStart = isIntType(fTypingVisitor.fCurType) ? "((" : "+(";
+            string fEnd = isIntType(fTypingVisitor.fCurType) ? ") | 0)" : ")";
             
             *fOut << fStart;
             inst->fCond->accept(this);
@@ -342,17 +343,17 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             inst->fElse->accept(this);
             *fOut << fEnd;
         }
-           
+        
         virtual void visit(BinopInst* inst)
         {
             if (isBoolOpcode(inst->fOpcode)) {
-                *fOut << "(";
+                *fOut << "((";
                 inst->fInst1->accept(this);
                 *fOut << " ";
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << " | 0)";
+                *fOut << ") | 0)";
             } else {
                 
                 inst->fInst1->accept(&fTypingVisitor);
@@ -374,13 +375,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         inst->fInst2->accept(this);
                         *fOut << ") | 0)";
                     } else {
-                        *fOut << "(";
+                        *fOut << "((";
                         inst->fInst1->accept(this);
                         *fOut << " ";
                         *fOut << gBinOpTable[inst->fOpcode]->fName;
                         *fOut << " ";
                         inst->fInst2->accept(this);
-                        *fOut << " | 0)";
+                        *fOut << ") | 0)";
                     }
                 } else if ((isIntType(type1) && isRealType(type2))
                            || (isRealType(type1) && isIntType(type2))
@@ -417,9 +418,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst->accept(this);
                 *fOut << ")";
             } else if (inst->fType->getType() == Typed::kIntish) {
-                *fOut << "(";
+                *fOut << "((";
                 inst->fInst->accept(this);
-                *fOut << " | 0)";
+                *fOut << ") | 0)";
             } else if (isRealType(inst->fType->getType())) {
                 *fOut << "+(";
                 inst->fInst->accept(this);

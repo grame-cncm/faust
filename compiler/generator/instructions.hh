@@ -1034,7 +1034,7 @@ struct BinopInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct CastNumInst : public ValueInst, public SimpleValueInst
+struct CastNumInst : public ValueInst
 {
     Typed* fType;
     ValueInst* fInst;

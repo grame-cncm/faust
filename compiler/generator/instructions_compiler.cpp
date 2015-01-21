@@ -341,11 +341,11 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputRate(index, rate);
     }
 
-  generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
-	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-	if (fDescription) {
-		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
-	}
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    if (fDescription) {
+        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
