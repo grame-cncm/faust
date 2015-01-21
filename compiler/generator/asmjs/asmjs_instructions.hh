@@ -327,13 +327,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             return (type == Typed::kInt || type == Typed::kIntish); 
         }
         
-        
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
             
-            string fStart = (fTypingVisitor.fCurType == Typed::kInt) ? "(" : "+(";
-            string fEnd = (fTypingVisitor.fCurType == Typed::kInt) ? " | 0)" : ")";
+            string fStart = isIntType(fTypingVisitor.fCurType) ? "(" : "+(";
+            string fEnd = isIntType(fTypingVisitor.fCurType) ? " | 0)" : ")";
             
             *fOut << fStart;
             inst->fCond->accept(this);
@@ -343,7 +342,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             inst->fElse->accept(this);
             *fOut << fEnd;
         }
-        
            
         virtual void visit(BinopInst* inst)
         {
