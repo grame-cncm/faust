@@ -315,7 +315,16 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         inline bool isRealType(Typed::VarType type) 
         { 
-            return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble); 
+            return (type == Typed::kFloat 
+                || type == Typed::kFloatMacro 
+                || type == Typed::kFloatish 
+                || type == Typed::kDouble
+                || type == Typed::kDoublish); 
+        }
+        
+        inline bool isIntType(Typed::VarType type) 
+        { 
+            return (type == Typed::kInt || type == Typed::kIntish); 
         }
         
         virtual void visit(Select2Inst* inst)
@@ -352,9 +361,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst2->accept(&fTypingVisitor);
                 Typed::VarType type2 = fTypingVisitor.fCurType;
                 
-                if ((type1 == Typed::kInt && type2 == Typed::kInt) 
-                    || (type1 == Typed::kInt && type2 == Typed::kBool)
-                    || (type1 == Typed::kBool && type2 == Typed::kInt)
+                if ((isIntType(type1) && isIntType(type2)) 
+                    || (isIntType(type1) && type2 == Typed::kBool)
+                    || (type1 == Typed::kBool && isIntType(type2))
                     || (type1 == Typed::kBool && type2 == Typed::kBool))
                     {
                     // Special case of 32 bits integer multiply
@@ -373,8 +382,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         inst->fInst2->accept(this);
                         *fOut << " | 0)";
                     }
-                } else if ((type1 == Typed::kInt && isRealType(type2))
-                           || (isRealType(type1) && type2 == Typed::kInt)
+                } else if ((isIntType(type1) && isRealType(type2))
+                           || (isRealType(type1) && isIntType(type2))
                            || (isRealType(type1) && isRealType(type2))
                            || (isRealType(type1) && type2 == Typed::kBool)
                            || (type1 == Typed::kBool && isRealType(type2)))
@@ -387,6 +396,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this);
                     *fOut << ")";
                 } else { // Default
+                    //assert(type1 == Typed::kNoType && type2 == Typed::kNoType);
                     *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -410,11 +420,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << "(";
                 inst->fInst->accept(this);
                 *fOut << " | 0)";
-            } else if (inst->fType->getType() == Typed::kFloatMacro 
-                       || inst->fType->getType() == Typed::kFloat
-                       || inst->fType->getType() == Typed::kFloatish
-                       || inst->fType->getType() == Typed::kDouble
-                       || inst->fType->getType() == Typed::kDoublish) {
+            } else if (isRealType(inst->fType->getType())) {
                 *fOut << "+(";
                 inst->fInst->accept(this);
                 *fOut << ")";
