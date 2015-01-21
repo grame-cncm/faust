@@ -31,7 +31,8 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        // One gASMJSVisitor static visitor for subcontainers and global container moved in global
+        // One gASMJSVisitor static visitor for subcontainers and global container moved in global,
+        // so that subcontainers and 'mydsp' class are generated with a unique visitor, using a single memory area.
         std::ostream* fOut;
         string fObjPrefix;
  

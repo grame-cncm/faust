@@ -151,20 +151,20 @@ void ASMJAVAScriptCodeContainer::produceInternal()
      4) TypingVisitor is used to know value types :
         - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kIntish, kFloatish or kDoublish
         and ASMJAVAScriptInstVisitor::visit(CastNumInst* inst) interprets kIntish, kFloatish or kDoublish
-        - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) add the type of result
+        - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) adds the type of result
      5) MoveVariablesInFront1 and MoveVariablesInFront2 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
      6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
      7) 'buffer' argument is the actual emscripten (or 'self-made') memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers.
      8) subcontainer generation :
         - tables (as type kStaticStruct) are treated as 'mydsp' fields
-        - 'mydsp' classInit method is changed so that method on subcontainers are rewritten as normal function call
+        - 'mydsp' classInit method is changed so that methods on subcontainers are rewritten as normal function calls
         - subcontainer are merged in the global container : fields, functions definition...
-        - use of 'sig' variable name is transalted in 'dsp'
+        - use of 'sig' variable name is translated in 'dsp'
         - subcontainer is not allocated/deallocated anymore
      9) pointers are actually integers, so are treated like this
-     10) waveforms are also allocated in the DSP object heap. Array definition is not done in "global" part but in "inits" methods 
-     (see InstructionsCompiler::declareWaveform()). Since "in extention" array definition is not possible, the FIR code is first rewritten to 
-     a list of "store" instructions (MoveVariablesInFront2), then the actual code is generated.
+     10) waveforms are also allocated in the DSP object heap. Array definition is not done in 'global' part but in 'inits' methods 
+     (see InstructionsCompiler::declareWaveform()). Since 'in extention' array definition is not possible, the FIR code is first rewritten to 
+     a list of 'store' instructions (MoveVariablesInFront2), then the actual code is generated.
  
 */
 void ASMJAVAScriptCodeContainer::produceClass()

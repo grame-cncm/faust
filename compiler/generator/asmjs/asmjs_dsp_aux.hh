@@ -46,7 +46,6 @@ extern "C" {
     
     /**
      * The free function to be used on memory returned by createAsmCDSPFactoryFromString.
-     * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
      * 
      * @param ptr - the pointer to be deleted.
      */
