@@ -234,7 +234,7 @@ ostream& ppsig::print (ostream& fout) const
 	
 	else {
         stringstream error;
-        error << "NOT A SIGNAL : " << *sig << endl;
+        error << "Not a signal : " << *sig << endl;
         throw faustexception(error.str());
 	}
 	return fout;

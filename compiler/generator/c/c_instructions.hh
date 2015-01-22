@@ -64,13 +64,13 @@ class CInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fOrient) {
                 case 0:
-                    name = "interface->openVerticalBox"; break;
+                    name = "interface->openVerticalBox("; break;
                 case 1:
-                    name = "interface->openHorizontalBox"; break;
+                    name = "interface->openHorizontalBox("; break;
                 case 2:
-                    name = "interface->openTabBox"; break;
+                    name = "interface->openTabBox("; break;
             }
-            *fOut << name << "(" << "interface->uiInterface, " << quote(inst->fName) << ")";
+            *fOut << name << "interface->uiInterface, " << quote(inst->fName) << ")";
             EndLine();
         }
 
