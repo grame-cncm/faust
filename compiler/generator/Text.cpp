@@ -204,10 +204,7 @@ string unquote(const string& s)
  */
 string quote(const string& s)
 {
-	string q("\"");
-	q += s;
-	q += "\"";
-	return q;
+ 	return "\"" + s + "\"";
 }
 
 /**

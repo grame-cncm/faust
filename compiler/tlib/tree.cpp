@@ -270,6 +270,11 @@ const char* tree2str (Tree t)
 	return name(s);
 }	
 
+string tree2quotedstr (Tree t)
+{
+    return "\"" + string(tree2str(t)) + "\"";
+}
+
 // if t has a node of type ptr, return it otherwise error			
 void* tree2ptr (Tree t)
 {

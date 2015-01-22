@@ -56,7 +56,7 @@ LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
 EXE = .exe
 endif
 
-CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
+CXXFLAGS ?= -O3 -g -Wall -Wuninitialized 
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
