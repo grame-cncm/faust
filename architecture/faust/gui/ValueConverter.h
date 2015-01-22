@@ -8,7 +8,7 @@
 //--------------------------------------------------------------------------------------
 // convert values between UI and Faust. The UI side is described
 // by a min and max value. The Faust side is described by a min and max value
-// as well as a scale mode : lin, log or exp. Log and exp mappings are build on top of
+// as well as a scale mode : lin, log or exp. Log and exp mappings are built on top of
 // linear conversion.
 //--------------------------------------------------------------------------------------
 class ValueConverter 
