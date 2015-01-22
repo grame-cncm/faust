@@ -158,13 +158,13 @@ class JAVAInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fOrient) {
                 case 0:
-                    name = "ui_interface.openVerticalBox"; break;
+                    name = "ui_interface.openVerticalBox("; break;
                 case 1:
-                    name = "ui_interface.openHorizontalBox"; break;
+                    name = "ui_interface.openHorizontalBox("; break;
                 case 2:
-                    name = "ui_interface.openTabBox"; break;
+                    name = "ui_interface.openTabBox("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
+            *fOut << name << quote(inst->fName) << ")";
             EndLine();
         }
 
@@ -175,11 +175,13 @@ class JAVAInstVisitor : public TextInstVisitor {
         
         virtual void visit(AddButtonInst* inst)
         {
+            string name;
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")";
+                name = "ui_interface->addButton("; 
             } else {
-                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; 
+                name = "ui_interface->addCheckButton("; 
             }
+            *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ")"; 
             EndLine();
         }
 
@@ -188,13 +190,16 @@ class JAVAInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "ui_interface.addHorizontalSlider"; break;
+                    name = "ui_interface.addHorizontalSlider("; break;
                 case AddSliderInst::kVertical:
-                    name = "ui_interface.addVerticalSlider"; break;
+                    name = "ui_interface.addVerticalSlider("; break;
                 case AddSliderInst::kNumEntry:
-                    name = "ui_interface.addNumEntry"; break;
+                    name = "ui_interface.addNumEntry("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+            *fOut << name << quote(inst->fLabel) << ", " 
+            << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit) 
+            << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) 
+            << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -203,11 +208,11 @@ class JAVAInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "ui_interface.addHorizontalBargraph"; break;
+                    name = "ui_interface.addHorizontalBargraph("; break;
                 case AddBargraphInst::kVertical:
-                    name = "ui_interface.addVerticalBargraph"; break;
+                    name = "ui_interface.addVerticalBargraph("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

@@ -52,9 +52,9 @@ class CInstVisitor : public TextInstVisitor {
         {
             // Special case
             if (inst->fZone == "0") {
-                *fOut << "interface->declare(" << "interface->uiInterface, " << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")";
+                *fOut << "interface->declare(interface->uiInterface, " << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             } else {
-                *fOut << "interface->declare(" << "interface->uiInterface, " << "&dsp->" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")";
+                *fOut << "interface->declare(interface->uiInterface, " << "&dsp->" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             }
             EndLine();
         }
@@ -70,7 +70,7 @@ class CInstVisitor : public TextInstVisitor {
                 case 2:
                     name = "interface->openTabBox"; break;
             }
-            *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fName << "\"" << ")";
+            *fOut << name << "(" << "interface->uiInterface, " << quote(inst->fName) << ")";
             EndLine();
         }
 
@@ -80,11 +80,13 @@ class CInstVisitor : public TextInstVisitor {
         }
         virtual void visit(AddButtonInst* inst)
         {
+            string name;
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "interface->addButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")"; 
+                name = "interface->addButton("; 
             } else {
-                *fOut << "interface->addCheckButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")";
+                name = "interface->addCheckButton("; 
             }
+            *fOut << name << "interface->uiInterface, " << quote(inst->fLabel) << ", " << "&dsp->" << inst->fZone << ")";
             EndLine();
         }
 
@@ -93,13 +95,15 @@ class CInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "interface->addHorizontalSlider"; break;
+                    name = "interface->addHorizontalSlider("; break;
                 case AddSliderInst::kVertical:
-                    name = "interface->addVerticalSlider"; break;
+                    name = "interface->addVerticalSlider("; break;
                 case AddSliderInst::kNumEntry:
-                    name = "interface->addNumEntry"; break;
+                    name = "interface->addNumEntry("; break;
             }
-            *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+            *fOut << name << "interface->uiInterface, " << quote(inst->fLabel) << ", " 
+            << "&dsp->" << inst->fZone << ", " << checkReal(inst->fInit) << ", " 
+            << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -108,11 +112,12 @@ class CInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "interface->addHorizontalBargraph"; break;
+                    name = "interface->addHorizontalBargraph("; break;
                 case AddBargraphInst::kVertical:
-                    name = "interface->addVerticalBargraph"; break;
+                    name = "interface->addVerticalBargraph("; break;
             }
-            *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << "interface->uiInterface, " << quote(inst->fLabel) 
+            << ", " << "&dsp->" << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";          
             EndLine();
         }
 
