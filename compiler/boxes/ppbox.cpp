@@ -117,12 +117,6 @@ static void printRule(ostream& fout, Tree rule)
 	 affichage d'une expression box comme en entree
 *****************************************************************************/
 
-// if t has a node of type symbol, return its name otherwise error		
-static string tree2quotedstr (Tree t)
-{
-	return "\"" + string(tree2str(t)) + "\"";
-}
-
 static string type2str(int type)
 {
 	switch (type) {

@@ -152,16 +152,11 @@ static struct tm* getCompilationDate();
 
 /* Files functions */
 static istream* openArchFile (const string& filename);
-static char*	legalFileName(const Tree t, int n, char* dst);
-static string	rmExternalDoubleQuotes(const string& s);
-static void		copyFaustSources(const char* projname, const vector<string>& pathnames);
+static char*    legalFileName(const Tree t, int n, char* dst);
+static void     copyFaustSources(const char* projname, const vector<string>& pathnames);
 vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlices);
-static void		printdocCodeSlices(const string& code, ostream& docout);
-static bool		doesFileBeginWithCode(const string& faustfile);
-
-//static void		declareAutoDoc();
-
-
+static void     printdocCodeSlices(const string& code, ostream& docout);
+static bool     doesFileBeginWithCode(const string& faustfile);
 
 /*****************************************************************************
 					Types of Documentation Elements
@@ -200,10 +195,6 @@ bool isDocLst(Tree t)				{ return isTree(t, DOCLST); 	}
 Sym DOCMTD = symbol ("DocMtd");
 Tree docMtd(Tree x) 				{ return tree(DOCMTD, x); 		}
 bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, DOCMTD, x); 	}
-
-//string getDocTxt(Tree t) 			{ return hd(t)->branch(0); }
-
-
 
 /*****************************************************************************
 				Main Printing Function for the Documentation
@@ -267,8 +258,6 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	printlatexfooter(docout);										///< Static LaTeX footer.
 }
 
-
-
 /*****************************************************************************
 			LaTeX basic printing functions of the Documentation
  *****************************************************************************/
@@ -315,7 +304,7 @@ static void printDocMetadata(const Tree expr, ostream& docout)
 		set<Tree> mset = gMetaDataSet[expr];
 		
 		for (set<Tree>::iterator j = mset.begin(); j != mset.end(); j++) {
-			docout << sep << rmExternalDoubleQuotes(tree2str(*j));
+			docout << sep << unquote(tree2str(*j));
 			sep = ", ";
 		}
 	}
@@ -1025,23 +1014,6 @@ static string calcNumberedName(const char* base, int i)
 	return subst("$0$1", base, nb);
 }
 
-/**
- * Remove the leading and trailing double quotes of a string
- * (but not those in the middle of the string)
- */
-static string rmExternalDoubleQuotes(const string& s)
-{
-    size_t i = s.find_first_not_of("\"");
-    size_t j = s.find_last_not_of("\"");
-	
-    if ( (i != string::npos) & (j != string::npos) ) {
-        return s.substr(i, 1+j-i);
-    } else {
-        return "";
-    }
-}
-
-
 /** 
  * Copy all Faust source files into an 'src' subdirectory.
  *
@@ -1070,7 +1042,6 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
 
 
 //------------------------ date managment -------------------------
-
 
 static void initCompilationDate()
 {

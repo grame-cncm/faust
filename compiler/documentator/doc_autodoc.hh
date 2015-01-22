@@ -19,17 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-
 #ifndef _DOCAUTODOC_
 #define _DOCAUTODOC_
 
-
 using namespace std;
-
 
 void initDocAutodoc();
 void declareAutoDoc();
-
-
 
 #endif

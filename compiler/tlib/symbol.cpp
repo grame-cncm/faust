@@ -167,10 +167,7 @@ unsigned int Symbol::calcHashKey (const char* str)
 
 Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 {
-	int len = (int)strlen(str);
-	
-    fName = new char [len+1];
-    memcpy(fName, str, len+1);
+    fName = strdup(str);
     fHash = hsh;
     fNext = nxt;
 	fData = 0;
@@ -178,7 +175,7 @@ Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 
 Symbol::~Symbol ()
 {
-	delete [] fName;
+	free(fName);
 }
 
 ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a stream
