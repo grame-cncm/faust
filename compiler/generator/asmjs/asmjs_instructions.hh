@@ -326,8 +326,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         { 
             return (type == Typed::kInt || type == Typed::kIntish); 
         }
-        
-        
+         
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
@@ -397,7 +396,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this);
                     *fOut << ")";
                 } else { // Default
-                    //assert(type1 == Typed::kNoType && type2 == Typed::kNoType);
+                    assert(type1 == Typed::kNoType && type2 == Typed::kNoType);
                     *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";

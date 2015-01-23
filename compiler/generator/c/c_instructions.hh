@@ -117,7 +117,8 @@ class CInstVisitor : public TextInstVisitor {
                     name = "interface->addVerticalBargraph("; break;
             }
             *fOut << name << "interface->uiInterface, " << quote(inst->fLabel) 
-            << ", " << "&dsp->" << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";          
+            << ", " << "&dsp->" << inst->fZone << ", "<< checkReal(inst->fMin) 
+            << ", " << checkReal(inst->fMax) << ")";          
             EndLine();
         }
 
