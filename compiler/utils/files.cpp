@@ -56,10 +56,8 @@ int	cholddir()
  
 int mkchdir(string dirname)
 {
-    char buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
-   
-	if (gCurrentDir.c_str() != 0) {
+    getCurrentDir();
+    if (gCurrentDir != "") {
 		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			if (chdir(dirname.c_str()) == 0) {
@@ -73,10 +71,8 @@ int mkchdir(string dirname)
 
 int	makedir(string dirname)
 {
-    char buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
-  
-	if (gCurrentDir.c_str() != 0) {
+    getCurrentDir();
+    if (gCurrentDir != "") {
 		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			return 0;
@@ -89,6 +85,7 @@ int	makedir(string dirname)
 void getCurrentDir()
 {
     char buffer[FAUST_PATH_MAX];
-    gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
+    char* current_dir = getcwd(buffer, FAUST_PATH_MAX);
+    gCurrentDir = (current_dir) ? current_dir : "";
 }
 
