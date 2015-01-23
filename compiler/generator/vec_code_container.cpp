@@ -47,7 +47,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     BlockInst* block_res = InstBuilder::genBlockInst();
 
     // Declare the "index" variable outside the loop
-    DeclareVarInst* index_dec = InstBuilder::genDecStackVar(index, InstBuilder::genBasicTyped(Typed::kInt));
+    DeclareVarInst* index_dec = InstBuilder::genDecStackVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     block_res->pushBackInst(index_dec);
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
 
