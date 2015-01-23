@@ -500,7 +500,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
                 HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
             }
 
-            // Prepare Ins/out buffer tables
+            // Prepare Ins buffer tables
             that.dspInChannnels = [];
             var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
             for (i = 0; i < that.numIn; i++) {
@@ -514,6 +514,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
                 HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
             }
          
+            // Prepare Out buffer tables
             that.dspOutChannnels = [];
             var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
             for (i = 0; i < that.numOut; i++) {
@@ -536,20 +537,20 @@ faust.deleteDSPInstance = function (that) {
     that.stop();
     var i;
      
-    for (i = 0; i < that.numIn; i++) { 
-        Module._free(HEAP32[(that.ins >> 2) + i]); 
-    }
-     
-    for (i = 0; i < that.numOut; i++) { 
-        Module._free(HEAP32[(that.outs >> 2) + i]);
-    }
-    
     if (that.numIn > 0) {
+        for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]); 
+        }
         Module._free(that.ins);
     }
+     
     if (that.numOut > 0) {
+        for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i]);
+        }
         Module._free(that.outs);
     }
+  
     Module._free(that.dsp);
 };
 
@@ -888,23 +889,23 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
 faust.deletePolyDSPInstance = function (that) {
     that.stop();
     var i;
-     
-    for (i = 0; i < that.numIn; i++) { 
-        Module._free(HEAP32[(that.ins >> 2) + i]); 
-    }
-     
-    for (i = 0; i < that.numOut; i++) { 
-        Module._free(HEAP32[(that.outs >> 2) + i]);
-        Module._free(HEAP32[(that.mixing >> 2) + i])
-    }
     
     if (that.numIn > 0) {
+        for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]); 
+        }
         Module._free(that.ins);
     }
+     
     if (that.numOut > 0) {
+        for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i]);
+            Module._free(HEAP32[(that.mixing >> 2) + i])
+        }
         Module._free(that.outs);
         Module._free(that.mixing);
     }
+    
     for (i = 0; i < that.polyphony; i++) {
         Module._free(that.dsp_voices[i]);
     }
