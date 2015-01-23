@@ -284,7 +284,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(LoadVarAddressInst* inst)
         {
            // Not implemented in ASMJavaScript
-            assert(false);
+            //assert(false);
         }
                 
         // No .f syntax for float in JS

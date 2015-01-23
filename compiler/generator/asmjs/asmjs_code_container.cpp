@@ -61,7 +61,8 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, i
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("Scheduler mode not supported for ASMJavaScript\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for ASMJavaScript\n");
+        //throw faustexception("Vector mode not supported for ASMJavaScript\n");
+        container = new ASMJAVAScriptVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new ASMJAVAScriptScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
@@ -380,5 +381,33 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         BlockInst* block = mover.getCode(fComputeBlockInstructions); 
         block->accept(gGlobal->gASMJSVisitor);
            
+    tab(n+1, *fOut); *fOut << "}";
+}
+
+// Vector
+ASMJAVAScriptVectorCodeContainer::ASMJAVAScriptVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+    :VectorCodeContainer(numInputs, numOutputs), ASMJAVAScriptCodeContainer(name, numInputs, numOutputs, out)
+{}
+
+ASMJAVAScriptVectorCodeContainer::~ASMJAVAScriptVectorCodeContainer()
+{}
+
+void ASMJAVAScriptVectorCodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n+1, *fOut);
+    tab(n+1, *fOut); *fOut << fObjPrefix << subst("function compute(dsp, $0, inputs, outputs) {", fFullCount);
+        tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+        tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
+        tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
+        tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
+        tab(n+2, *fOut);
+    gGlobal->gASMJSVisitor->Tab(n+2);
+ 
+    // Generates local variables declaration and setup
+    generateComputeBlock(gGlobal->gASMJSVisitor);
+ 
+    // Generates it
+    fDAGBlock->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
 }

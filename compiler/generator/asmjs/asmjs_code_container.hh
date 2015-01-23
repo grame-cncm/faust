@@ -23,6 +23,7 @@
 #define _ASMJAVASCRIPT_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "vec_code_container.hh"
 #include "asmjs_instructions.hh"
 
 using namespace std;
@@ -65,5 +66,19 @@ class ASMJAVAScriptScalarCodeContainer : public ASMJAVAScriptCodeContainer {
         void generateCompute(int tab);
 
 };
+
+class ASMJAVAScriptVectorCodeContainer : public VectorCodeContainer, public ASMJAVAScriptCodeContainer {
+
+    protected:
+
+    public:
+
+        ASMJAVAScriptVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        virtual ~ASMJAVAScriptVectorCodeContainer();
+
+        void generateCompute(int tab);
+
+};
+
 
 #endif
