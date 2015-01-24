@@ -38,10 +38,24 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         map <string, string> fMathLibTable;
        
         string fObjPrefix;
-        int fStructSize;    // Keep the size in bytes of the structure
-    
-        map <string, pair<int, Typed::VarType> > fFieldTable;  // Table : field_name, <byte offset in structure, type>
-    
+        
+        int fStructSize;                                        // Keep the size in bytes of the structure
+        map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
+        
+        inline bool isRealType(Typed::VarType type) 
+        { 
+            return (type == Typed::kFloat 
+                || type == Typed::kFloatMacro 
+                || type == Typed::kFloatish 
+                || type == Typed::kDouble
+                || type == Typed::kDoublish); 
+        }
+        
+        inline bool isIntType(Typed::VarType type) 
+        { 
+            return (type == Typed::kInt || type == Typed::kIntish); 
+        }
+  
     public:
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
@@ -80,11 +94,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
         map <string, string>& getMathLibTable() { return fMathLibTable; }
 
-        virtual void visit(LabelInst* inst)
-        {
-            // Empty
-        }
-  
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
@@ -312,21 +321,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
             *fOut << checkDouble(inst->fNum);
         }
-        
-        inline bool isRealType(Typed::VarType type) 
-        { 
-            return (type == Typed::kFloat 
-                || type == Typed::kFloatMacro 
-                || type == Typed::kFloatish 
-                || type == Typed::kDouble
-                || type == Typed::kDoublish); 
-        }
-        
-        inline bool isIntType(Typed::VarType type) 
-        { 
-            return (type == Typed::kInt || type == Typed::kIntish); 
-        }
-         
+                 
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);

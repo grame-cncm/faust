@@ -80,5 +80,4 @@ class ASMJAVAScriptVectorCodeContainer : public VectorCodeContainer, public ASMJ
 
 };
 
-
 #endif
