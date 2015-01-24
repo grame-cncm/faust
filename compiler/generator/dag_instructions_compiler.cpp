@@ -76,8 +76,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             //int rate = getSigRate(sig);
             int rate = 1;
             fContainer->setOutputRate(index, rate);
-
-            //fContainer->openLoop(getFreshID("i"));
             fContainer->openLoop("i");
 
             // Cast to external float
@@ -97,8 +95,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             //int rate = getSigRate(sig);
             int rate = 1;
             fContainer->setOutputRate(index, rate);
-
-            //fContainer->openLoop(getFreshID("i"));
             fContainer->openLoop("i");
 
             // Cast to external float

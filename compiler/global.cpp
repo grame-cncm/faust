@@ -401,6 +401,20 @@ void global::destroy()
     delete gGlobal;
 }
 
+/*****************************************************************************
+						getFreshID
+*****************************************************************************/
+
+string global::getFreshID(const string& prefix)
+{
+	if (gIDCounters.find(prefix) == gIDCounters.end()) {
+		gIDCounters[prefix] = 0;
+	}
+	int n = gIDCounters[prefix];
+	gIDCounters[prefix] = n+1;
+	return subst("$0$1", prefix, T(n));
+}
+
 Garbageable::Garbageable()
 {}
 

@@ -455,6 +455,8 @@ struct global {
     
     static void allocate();
     static void destroy();
+    
+    string getFreshID(const string& prefix);
 };
 
 extern global* gGlobal;
