@@ -100,15 +100,21 @@ faust.DSP = function (context, buffer_size) {
     that.destroy = function ()
     {
         DSP_destructor(that.ptr);
-        for (i = 0; i < that.numIn; i++) { 
-            Module._free(HEAP32[(that.ins >> 2) + i]);
+        
+        if (that.numIn > 0) {
+            for (i = 0; i < that.numIn; i++) { 
+                Module._free(HEAP32[(that.ins >> 2) + i]); 
+            }
+            Module._free(that.ins);
         }
-        for (i = 0; i < that.numOut; i++) { 
-            Module._free(HEAP32[(that.outs >> 2) + i]);
+         
+        if (that.numOut > 0) {
+            for (i = 0; i < that.numOut; i++) { 
+                Module._free(HEAP32[(that.outs >> 2) + i]);
+            }
+            Module._free(that.outs);
         }
         
-        Module._free(that.ins);
-        Module._free(that.outs);
         Module._free(that.pathPtr);
     };
     
@@ -211,40 +217,36 @@ faust.DSP = function (context, buffer_size) {
         that.numOut = that.getNumOutputs();
         
         // Setup web audio context
-        console.log("that.buffer_size %d", that.buffer_size);
         that.scriptProcessor = faust.context.createScriptProcessor(that.buffer_size, that.numIn, that.numOut);
         that.scriptProcessor.onaudioprocess = that.compute;
         
-        // TODO the below calls to malloc are not yet being freed, potential memory leak
-        // allocate memory for input / output arrays
-        that.ins = Module._malloc(that.ptrsize * that.numIn);
-        
-        // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
-        for (i = 0; i < that.numIn; i++) { 
-            // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
-            HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
+        if (that.numIn > 0) {
+            that.ins = Module._malloc(that.ptrsize * that.numIn);
+            for (i = 0; i < that.numIn; i++) { 
+                HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
+            }
+            
+            // Prepare Ins buffer tables
+            that.dspInChannnels = [];
+            var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
+            for (i = 0; i < that.numIn; i++) {
+                that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
+            }
         }
         
-        //ptrsize, change to eight or use Runtime.QUANTUM? or what?
-        that.outs = Module._malloc(that.ptrsize * that.numOut); 
+        if (that.numOut > 0) {
         
-        // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
-        for (i = 0; i < that.numOut; i++) { 
-            // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typedarray magic beyond the presumably TypedArray HEAP32
-            HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
-        }
-    
-        // Prepare Ins/out buffer tables
-        that.dspInChannnels = [];
-        var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
-        for (i = 0; i < that.numIn; i++) {
-            that.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + that.buffer_size * that.ptrsize) >> 2);
-        }
-       
-        that.dspOutChannnels = [];
-        var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
-        for (i = 0; i < that.numOut; i++) {
-            that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
+            that.outs = Module._malloc(that.ptrsize * that.numOut); 
+            for (i = 0; i < that.numOut; i++) { 
+                HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
+            }
+           
+            // Prepare Outs buffer tables
+            that.dspOutChannnels = [];
+            var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
+            for (i = 0; i < that.numOut; i++) {
+                that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
+            }
         }
                                 
         // bargraph
