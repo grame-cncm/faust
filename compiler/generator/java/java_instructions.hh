@@ -177,9 +177,9 @@ class JAVAInstVisitor : public TextInstVisitor {
         {
             string name;
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                name = "ui_interface->addButton("; 
+                name = "ui_interface.addButton("; 
             } else {
-                name = "ui_interface->addCheckButton("; 
+                name = "ui_interface.addCheckButton("; 
             }
             *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ")"; 
             EndLine();
@@ -212,7 +212,8 @@ class JAVAInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface.addVerticalBargraph("; break;
             }
-            *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) 
+            << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 
@@ -220,24 +221,28 @@ class JAVAInstVisitor : public TextInstVisitor {
         {
             // Empty
         }
-
+      
         virtual void visit(DeclareVarInst* inst)
         {
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
             
-            if (inst->fValue) {
-                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this);
-            } else {
-                ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-                if (array_typed && array_typed->fSize > 1) {
-                    string type = fTypeDirectTable[array_typed->fType->getType()];
-                    *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+            if (array_typed && array_typed->fSize > 1) {
+                string type = fTypeDirectTable[array_typed->fType->getType()];
+                if (inst->fValue) {
+                    *fOut << type << " " << inst->fAddress->getName() << "[] = "; inst->fValue->accept(this);
                 } else {
-                    *fOut << generateType(inst->fType, inst->fAddress->getName());
+                    *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                 }
+            } else {
+                *fOut << generateType(inst->fType, inst->fAddress->getName());
+                if (inst->fValue) {
+                    *fOut << " = "; inst->fValue->accept(this);
+                } 
             }
+            
             EndLine();
         }
 

@@ -70,7 +70,7 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION        "2.0.a31"
+#define FAUSTVERSION        "2.0.a32"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;
@@ -753,7 +753,7 @@ static void printheader(ostream& dst)
     selectedKeys.insert(tree("license"));
     selectedKeys.insert(tree("version"));
 
-    dst << "//-----------------------------------------------------" << endl;
+    dst << "//------------------------------------------------------------" << endl;
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
             dst << "// " << *(i->first);
@@ -768,7 +768,7 @@ static void printheader(ostream& dst)
 
     dst << "//" << endl;
     dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
-    dst << "//-----------------------------------------------------" << endl;
+    dst << "//------------------------------------------------------------" << endl;
 }
 
 /****************************************************************
@@ -1055,7 +1055,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     throw faustexception("");
                 }
        
-                if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
+                if (gGlobal->gOutputLang != "js") {
                     printheader(*dst);
                 }
                 
@@ -1108,7 +1108,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             
         } else {
-            if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
+            if (gGlobal->gOutputLang != "js") {
                 printheader(*dst);
             }
             if ((gGlobal->gOutputLang != "java") && (gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
