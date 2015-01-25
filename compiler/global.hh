@@ -453,10 +453,8 @@ struct global {
    
     // GC
     static list<Garbageable*> gObjectTable;
-	static bool gHeapCleanup;
-    
+    static bool gHeapCleanup;
 
-      
     global();
     ~global();
     
@@ -468,10 +466,10 @@ struct global {
     string getFreshID(const string& prefix);
 };
 
+// Unique shared global pointer
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
-
 #define MAX_STACK_SIZE 50000
 
 #endif

@@ -32,13 +32,14 @@ void VectorCodeContainer::moveStack2Struct()
     VariableMover::Move(this, "tmp");
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");
+    VariableMover::Move(this, "Rec");
     
     // Remove marked variables from fComputeBlockInstructions
     RemoverCloneVisitor remover;
     fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
 }
 
-StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
+BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
     string index = "index";
     string count = "count";
@@ -102,7 +103,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     return block_res;
 }
 
-StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
+BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
 {
     string index = "index";
     string count = "count";
@@ -132,7 +133,10 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
     StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code);
-    return loop;
+    
+    BlockInst* res_block = InstBuilder::genBlockInst();
+    res_block->pushBackInst(loop);
+    return res_block;
 }
 
 void VectorCodeContainer::processFIR(void)
@@ -145,7 +149,7 @@ void VectorCodeContainer::processFIR(void)
     handleComputeBlock(&counter);
     
     if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {
-        // Transform some stack variables in struct variables
+        // Transform stack array variables in struct variables
         moveStack2Struct();
     } else {
         // Sort arrays to be at the begining

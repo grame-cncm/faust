@@ -38,7 +38,7 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
     return new LLVMScalarCodeContainer(name, 0, 1, fResult, sub_container_type);
 }
 
- LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
+LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;

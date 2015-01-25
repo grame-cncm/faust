@@ -388,7 +388,10 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
 // Vector
 ASMJAVAScriptVectorCodeContainer::ASMJAVAScriptVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
     :VectorCodeContainer(numInputs, numOutputs), ASMJAVAScriptCodeContainer(name, numInputs, numOutputs, out)
-{}
+{
+    // No array on stack, move all of them in struct
+    gGlobal->gMachineMaxStackSize = 0;
+}
 
 ASMJAVAScriptVectorCodeContainer::~ASMJAVAScriptVectorCodeContainer()
 {}
@@ -405,10 +408,22 @@ void ASMJAVAScriptVectorCodeContainer::generateCompute(int n)
         tab(n+2, *fOut);
     gGlobal->gASMJSVisitor->Tab(n+2);
  
+    /*
     // Generates local variables declaration and setup
+    MoveVariablesInFront2 mover1;
+    BlockInst* block1 = mover1.getCode(fComputeBlockInstructions); 
+    block1->accept(gGlobal->gASMJSVisitor);
+    */
+    
     generateComputeBlock(gGlobal->gASMJSVisitor);
- 
+    
+    /*
     // Generates it
+    MoveVariablesInFront2 mover2;
+    BlockInst* block2 = mover2.getCode(fDAGBlock); 
+    block2->accept(gGlobal->gASMJSVisitor);
+    */
+    
     fDAGBlock->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
 }

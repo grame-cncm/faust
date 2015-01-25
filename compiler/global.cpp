@@ -51,8 +51,9 @@
 
 // Parser
 extern FILE* yyin;
-extern const char * yyfilename;
+extern const char* yyfilename;
 
+// CG globals
 list<Garbageable*> global::gObjectTable;
 bool global::gHeapCleanup = false;
 
@@ -303,9 +304,10 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gNumOutputs = 0;
     gErrorMessage = "";
     
+    // Timing
     gTimingSwitch = false;
     gTimingIndex = 0;
-    gTimingLog = NULL;
+    gTimingLog = 0;
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built

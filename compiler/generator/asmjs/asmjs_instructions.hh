@@ -287,6 +287,20 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             // Not implemented in ASMJavaScript
             //assert(false);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            if (indexed) {
+                if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
+                    pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
+                    *fOut << "dsp + " << tmp.first << " + ";  
+                    *fOut << "(";
+                    indexed->fIndex->accept(this);
+                    *fOut << " << 2) >> 2"; 
+                } else {
+                    assert(false);
+                }
+            } else {
+                assert(false);
+            }
         }
                 
         // No .f syntax for float in JS
