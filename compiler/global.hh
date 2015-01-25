@@ -443,10 +443,19 @@ struct global {
     int gNumInputs;
     int gNumOutputs;
     string gErrorMessage;
+    
+    // timing
+    bool gTimingSwitch;
+    int gTimingIndex;
+    double gStartTime[1024];
+    double gEndTime[1024];
+    ostream* gTimingLog;
    
     // GC
     static list<Garbageable*> gObjectTable;
 	static bool gHeapCleanup;
+    
+
       
     global();
     ~global();
