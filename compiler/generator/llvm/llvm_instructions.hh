@@ -1209,7 +1209,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 if (inst->fValue) {
                     // Result is in fCurValue;
                     inst->fValue->accept(this);
-                    fBuilder->CreateStore(fCurValue, fDSPStackVars[name]);
+                    genVectorStore(fDSPStackVars[name], fCurValue, 1, false, false);
                 }
                 
             } else if (inst->fAddress->getAccess() & Address::kGlobal || inst->fAddress->getAccess() & Address::kStaticStruct) {
@@ -1561,14 +1561,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
 
             } else {
-                //cerr << "genVectorStore scalar" << endl;
-               
-                // HACK : special case if we store a 0 (null pointer) in a void* (used in "allocate" function in scheduler mode...)
-                if ((store_ptr->getType() == PointerType::get(PointerType::get(fBuilder->getInt8Ty(), 0), 0))
-                    && (store_ptr->getType() != PointerType::get(store->getType(), 0))
+                // HACK : special case if we store a 0 (null pointer) in a adress (used in vec mode and in "allocate" function in scheduler mode...)
+                if ((store_ptr->getType() != PointerType::get(store->getType(), 0))
                     && (store->getType() == llvm::Type::getInt32Ty(fModule->getContext()))) {
-                        // Cast Int value to "null"
-                        Value* casted_store = ConstantPointerNull::get(PointerType::get(fBuilder->getInt8Ty(), 0));
+                        Value* casted_store = ConstantPointerNull::get((llvm::PointerType*)store_ptr->getType()->getContainedType(0));
                         fBuilder->CreateStore(casted_store, store_ptr, isvolatile);
                 } else {
                     fBuilder->CreateStore(store, store_ptr, isvolatile);

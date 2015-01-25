@@ -74,6 +74,9 @@
 
 using namespace std;
 
+// Timing can be used outside of the scope of 'gGlobal'
+extern bool gTimingSwitch;
+
 static ifstream* injcode = 0;
 static ifstream* enrobage = 0;
        
@@ -536,7 +539,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 2;
             
         } else if (isCmd(argv[i], "-time", "--compilation-time")) {
-            gGlobal->gTimingSwitch = true;
+            gTimingSwitch = true;
             i += 1;
 
         // double float options

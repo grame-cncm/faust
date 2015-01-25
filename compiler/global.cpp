@@ -56,7 +56,7 @@ extern const char* yyfilename;
 // CG globals
 list<Garbageable*> global::gObjectTable;
 bool global::gHeapCleanup = false;
-
+  
 /*
 faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation error).
 So we use a lower value here.
@@ -303,11 +303,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gNumInputs = 0;
     gNumOutputs = 0;
     gErrorMessage = "";
-    
-    // Timing
-    gTimingSwitch = false;
-    gTimingIndex = 0;
-    gTimingLog = 0;
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
@@ -386,12 +381,6 @@ void global::init()
     // source file injection
     gInjectFlag = false;    // inject an external source file into the architecture file
     gInjectFile  = "";      // instead of a compiled dsp file
-    
-    // timing
-    gTimingLog = (getenv("FAUST_TIMING")) ? new ofstream("FAUST_TIMING_LOG", ios::app) : NULL;
-    if (gTimingLog) {
-        *gTimingLog << endl;
-    }
 }
     
 global::~global()
@@ -400,7 +389,6 @@ global::~global()
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
     setlocale(LC_ALL, gCurrentLocal);
-    delete gTimingLog;
 }
 
 void global::allocate()
