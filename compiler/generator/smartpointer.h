@@ -35,7 +35,7 @@
 */
 class smartable {
 	private:
-		unsigned 	refCount;		
+		unsigned refCount;		
 	public:
 		//! gives the reference count of the object
 		unsigned refs() const         { return refCount; }

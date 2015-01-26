@@ -97,8 +97,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
  
     // Next valid heap size for ASM code is 0x3000000 (given by Firefox), use twice of it for the DSP size itself....
     that.HEAP = new ArrayBuffer(0x3000000*2);
-    var buffer = that.HEAP;
-    
     that.HEAP32 = new window.Int32Array(that.HEAP);
     that.HEAPF32 = new window.Float32Array(that.HEAP);
      

@@ -191,12 +191,9 @@ string T(double n)
 /**
  * remove quotes from a string
  */
-string unquote(const string& s)
+string unquote(const string& str)
 {
-	assert(s.size() >= 2);
-	assert(s[0] == '"');
-	assert(s[s.size()-1] == '"');
-	return s.substr(1, s.size()-2);
+	return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
 /**
@@ -313,4 +310,14 @@ string indent(string const & str, int tabs)
     }
 
     return outstream.str();
+}
+
+string replaceChar(string str, char ch1, char ch2) 
+{
+    for (unsigned int i = 0; i < str.length(); ++i) {
+        if (str[i] == ch1) {
+            str[i] = ch2;
+        }
+    }
+    return str;
 }

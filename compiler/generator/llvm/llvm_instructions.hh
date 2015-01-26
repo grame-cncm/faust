@@ -895,24 +895,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
-        static string replaceChar(string str, char ch1, char ch2) 
-        {
-            for (unsigned int i = 0; i < str.length(); ++i) {
-                if (str[i] == ch1) {
-                    str[i] = ch2;
-                }
-            }
-            return str;
-        }
-    
-        static string removeQuote(string str) 
-        {
-            return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
-        }
-
         GlobalVariable* addStringConstant(string arg)
         {
-            string str = replaceChar(removeQuote(arg), '@', '_');
+            string str = replaceChar(unquote(arg), '@', '_');
 
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
