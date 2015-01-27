@@ -95,7 +95,7 @@ for f in $FILES; do
     if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
         EXPORTED="'_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON'"
     else
-        EXPORTED="'_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff'"       
+        EXPORTED="'_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
 	fi
     
     # compose the asm.js code
@@ -119,9 +119,6 @@ done
 emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
     -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
-# add final footer of JS page
-echo "}());" >> comb.js
-    
 # collect binary file name for FaustWorks
 BINARIES="comb.js;"
 
