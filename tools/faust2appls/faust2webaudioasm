@@ -82,11 +82,8 @@ for f in $FILES; do
 	fi
      
     # compile the C++ code to asm.js
-    emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/js/jsscripts.js --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
         -s EXPORTED_FUNCTIONS=$EXPORTED
-        
-    # add final footer of JS page
-    echo "}());" >> $name-temp1.js
           
     # compose the self-contained HTML page
     echo "<html>" > $name-temp2.html
