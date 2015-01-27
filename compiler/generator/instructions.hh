@@ -648,7 +648,7 @@ struct NamedAddress : public Address {
     Address::AccessType getAccess() { return fAccess; }
 
     void setName(const string& name) { fName = name; }
-    string getName() {return fName; }
+    string getName() { return fName; }
 
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 

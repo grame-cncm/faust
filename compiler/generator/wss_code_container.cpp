@@ -54,7 +54,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
                 inst->fAddress->setAccess(Address::kLink);
             }
             
-            // The dispatch and possibly rewrite 'value' access
+            // Then dispatch and possibly rewrite 'value' access
             DispatchVisitor::visit(inst);
         }
 
@@ -64,7 +64,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     };
      
     // Transform stack variables in struct variables
-    VariableMover::Move(this, "Rec");
+    VariableMover::Move(this, "Rec", false);
     VariableMover::Move(this, "tmp");
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");

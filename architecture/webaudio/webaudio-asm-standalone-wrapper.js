@@ -33,24 +33,41 @@ faust.mydsp = function (context, buffer_size) {
  
     that.buffer_size = buffer_size;
     that.handler = null;
- 
+   
+    // JSON parsing
+    that.json = function ()
+    {
+        return getJSONmydsp();
+    }
+    
+    // Keep JSON parsed object
+    that.jon_object = JSON.parse(that.json());
+    
+    that.getNumInputs = function () 
+    {
+        return (that.jon_object.inputs != undefined) ? that.jon_object.inputs : 0;
+    };
+    
+    that.getNumOutputs = function () 
+    {
+        return (that.jon_object.outputs != undefined) ? that.jon_object.outputs : 0;
+    };
+     
+    // Memory allocator
     that.ptr_size = 4; 
     that.sample_size = 4;
-     
-     // Memory allocator
-    that.maxInputs = 128;
-    that.maxOutputs = 128;
     that.maxBufferSize = 8192;
-    console.log(getSizemydsp());
     
-    /*
-    var size = getSizemydsp() + (that.maxInputs + that.maxOutputs) * that.ptr_size + (that.maxInputs + that.maxOutputs) * that.maxBufferSize * that.sample_size;
-    size = window.Math.floor(size/4096);
-    size = (size + 1) * 4096;
-    */
- 
-    // Next valid heap size for ASM code is 0x3000000 (given by Firefox), use twice of it for the DSP size itself....
-    that.HEAP = new ArrayBuffer(0x3000000*2);
+    that.pow2limit = function(x)
+    {
+        var n = 2;
+        while (n < x) { n = 2 * n; }
+        return (n < 4096) ? 4096 : n;
+    }
+     
+    var memory_size = that.pow2limit(getSizemydsp() + (that.getNumInputs() + that.getNumOutputs()) * (that.ptr_size + that.maxBufferSize * that.sample_size));
+  
+    that.HEAP = new ArrayBuffer(memory_size);
     that.HEAP32 = new window.Int32Array(that.HEAP);
     that.HEAPF32 = new window.Float32Array(that.HEAP);
      
@@ -70,14 +87,14 @@ faust.mydsp = function (context, buffer_size) {
      
     // Setup pointers offset
     that.audio_heap_ptr_inputs = that.audio_heap_ptr; 
-    that.audio_heap_ptr_outputs = that.audio_heap_ptr_inputs + (that.maxInputs * that.ptr_size);
+    that.audio_heap_ptr_outputs = that.audio_heap_ptr_inputs + (that.getNumInputs() * that.ptr_size);
      
     // Setup buffer offset
-    that.audio_heap_inputs = that.audio_heap_ptr_outputs + (that.maxOutputs * that.ptr_size);
-    that.audio_heap_outputs = that.audio_heap_inputs + (that.maxInputs * that.buffer_size * that.sample_size);
+    that.audio_heap_inputs = that.audio_heap_ptr_outputs + (that.getNumOutputs() * that.ptr_size);
+    that.audio_heap_outputs = that.audio_heap_inputs + (that.getNumInputs() * that.buffer_size * that.sample_size);
     
     // Setup DSP offset
-    that.dsp_start = that.audio_heap_outputs + (that.maxOutputs * that.buffer_size * that.sample_size);
+    that.dsp_start = that.audio_heap_outputs + (that.getNumOutputs() * that.buffer_size * that.sample_size);
      
     // Start of DSP memory
     that.dsp = that.dsp_start;
@@ -87,17 +104,7 @@ faust.mydsp = function (context, buffer_size) {
     console.log(that.factory);
  
     that.pathTable = getPathTablemydsp();
-    
-    that.getNumInputs = function () 
-    {
-        return that.factory.getNumInputs(that.dsp);
-    };
-    
-    that.getNumOutputs = function () 
-    {
-        return that.factory.getNumOutputs(that.dsp);
-    };
-    
+       
     that.update_outputs = function () 
     {
         if (that.ouputs_items.length > 0 && that.handler && that.ouputs_timer-- === 0) {
@@ -187,11 +194,6 @@ faust.mydsp = function (context, buffer_size) {
     {
         that.factory.getValue(that.dsp, that.pathTable[path]);
     };
-     
-    that.json = function ()
-    {
-        return getJSONmydsp();
-    }
     
     that.controls = function()
     {
@@ -203,6 +205,7 @@ faust.mydsp = function (context, buffer_size) {
     {
         var i;
         for (i = 0; i < ui.length; i++) {
+            console.log(ui[i]);
             that.parse_group(ui[i]);
         }
     }
@@ -276,7 +279,7 @@ faust.mydsp = function (context, buffer_size) {
         }
                                 
         // bargraph
-        that.parse_ui(JSON.parse(that.json()).ui);
+        that.parse_ui(that.jon_object.ui);
         
         // Init DSP
         that.factory.init(that.dsp, faust.context.sampleRate);

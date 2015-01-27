@@ -53,6 +53,7 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
     
     CodeContainer* fContainer;
     string fName;
+    bool fInit;
     
     void visit(DeclareVarInst* inst)
     {
@@ -66,7 +67,11 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
             
             // For local thread access (in compute), rewrite the Declare instruction by a Store
             if (inst->fValue) {
-                fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                if (fInit) {
+                    fContainer->pushInitMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                } else {
+                    fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                }
             }
             
             // Mark inst to be removed
@@ -84,18 +89,18 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
         }
     }
     
-    Stack2StructAnalyser1(CodeContainer* container, const string& name)
-        :fContainer(container), fName(name)
+    Stack2StructAnalyser1(CodeContainer* container, const string& name, bool init)
+        :fContainer(container), fName(name), fInit(init)
     {}
     
 };
 
 struct VariableMover {
     
-    static void Move(CodeContainer* container, const string& name)
+    static void Move(CodeContainer* container, const string& name, bool init = true)
     {
         // Transform stack variables in struct variables
-        Stack2StructAnalyser1 analyser1(container, name);
+        Stack2StructAnalyser1 analyser1(container, name, init);
         container->generateComputeBlock(&analyser1);
         
         // Variable access stack ==> struct
