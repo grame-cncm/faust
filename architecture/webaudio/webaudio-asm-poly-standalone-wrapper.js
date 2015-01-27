@@ -112,14 +112,13 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
     }
     
     // Output * 2 to handle mixing channels
-    var memory_size = that.pow2limit(getSizemydsp() + (that.getNumInputs() + that.getNumOutputs() * 2) * (that.ptr_size + that.maxBufferSize * that.sample_size));
+    var memory_size = that.pow2limit(getSizemydsp() * that.polyphony + ((that.getNumInputs() + that.getNumOutputs() * 2) * (that.ptr_size + that.maxBufferSize * that.sample_size)));
   
     console.log(that.getNumInputs());
     console.log(that.getNumOutputs());
     console.log(memory_size);
     
-    //that.HEAP = new ArrayBuffer(memory_size);
-    that.HEAP = new ArrayBuffer(0x3000000*2);
+    that.HEAP = new ArrayBuffer(memory_size);
     that.HEAP32 = new window.Int32Array(that.HEAP);
     that.HEAPF32 = new window.Float32Array(that.HEAP);
      
@@ -143,7 +142,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
     that.audio_heap_ptr_mixing = that.audio_heap_ptr_outputs + (that.getNumOutputs() * that.ptr_size);
      
     // Setup buffer offset
-    that.audio_heap_inputs = that.audio_heap_ptr_outputs + (that.getNumOutputs() * that.ptr_size);
+    that.audio_heap_inputs = that.audio_heap_ptr_mixing + (that.getNumOutputs() * that.ptr_size);
     that.audio_heap_outputs = that.audio_heap_inputs + (that.getNumInputs() * that.buffer_size * that.sample_size);
     that.audio_heap_mixing = that.audio_heap_outputs + (that.getNumOutputs() * that.buffer_size * that.sample_size)
     
@@ -329,11 +328,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
     {
         that.factory.getValue(that.dsp_voices[0], that.pathTable[path]);
     };
-     
-    that.json = function ()
-    {
-        return getJSONmydsp();
-    }
     
     that.controls = function()
     {
