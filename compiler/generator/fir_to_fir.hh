@@ -55,6 +55,7 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
     string fName;
     bool fInit;
     
+    // TODO : also rewrite value memory access
     void visit(DeclareVarInst* inst)
     {
         BasicCloneVisitor cloner;

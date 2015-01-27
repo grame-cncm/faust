@@ -64,7 +64,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     };
      
     // Transform stack variables in struct variables
-    VariableMover::Move(this, "Rec", false);
+    VariableMover::Move(this, "Rec");
     VariableMover::Move(this, "tmp");
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");

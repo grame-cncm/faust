@@ -110,8 +110,9 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
         while (n < x) { n = 2 * n; }
         return (n < 4096) ? 4096 : n;
     }
-     
-    var memory_size = that.pow2limit(getSizemydsp() + (that.getNumInputs() + that.getNumOutputs()) * (that.ptr_size + that.maxBufferSize * that.sample_size));
+    
+    // Output * 2 to handle mixing channels
+    var memory_size = that.pow2limit(getSizemydsp() + (that.getNumInputs() + that.getNumOutputs() * 2) * (that.ptr_size + that.maxBufferSize * that.sample_size));
   
     that.HEAP = new ArrayBuffer(memory_size);
     that.HEAP32 = new window.Int32Array(that.HEAP);
