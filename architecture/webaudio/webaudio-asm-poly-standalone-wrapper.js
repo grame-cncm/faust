@@ -114,7 +114,12 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
     // Output * 2 to handle mixing channels
     var memory_size = that.pow2limit(getSizemydsp() + (that.getNumInputs() + that.getNumOutputs() * 2) * (that.ptr_size + that.maxBufferSize * that.sample_size));
   
-    that.HEAP = new ArrayBuffer(memory_size);
+    console.log(that.getNumInputs());
+    console.log(that.getNumOutputs());
+    console.log(memory_size);
+    
+    //that.HEAP = new ArrayBuffer(memory_size);
+    that.HEAP = new ArrayBuffer(0x3000000*2);
     that.HEAP32 = new window.Int32Array(that.HEAP);
     that.HEAPF32 = new window.Float32Array(that.HEAP);
      
@@ -173,17 +178,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
     }
    
     that.pathTable = getPathTablemydsp();
-    
-    that.getNumInputs = function () 
-    {
-        return that.factory.getNumInputs(that.dsp_voices[0]);
-    };
-    
-    that.getNumOutputs = function () 
-    {
-        return that.factory.getNumOutputs(that.dsp_voices[0]);
-    };
-    
+     
     that.update_outputs = function () 
     {
         if (that.ouputs_items.length > 0 && that.handler && that.ouputs_timer-- === 0) {
@@ -432,7 +427,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
         }
         
         // bargraph
-        that.parse_ui(that.jon_object.ui;
+        that.parse_ui(that.jon_object.ui);
         
         // keep 'keyOn/keyOff' labels
         for (i = 0; i < that.inputs_items.length; i++) {
