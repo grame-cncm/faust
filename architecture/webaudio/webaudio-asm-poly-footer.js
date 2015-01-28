@@ -186,7 +186,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     that.getValue = function (path) 
     {
         Module.writeStringToMemory(path, that.pathPtr);
-        return DSP_getValue(that.ptr, that.pathPtr);
+        return DSP_poly_getValue(that.ptr, that.pathPtr);
     };
     
     that.json = function ()

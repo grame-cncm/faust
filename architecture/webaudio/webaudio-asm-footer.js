@@ -156,7 +156,7 @@ faust.DSP = function (context, buffer_size) {
     that.setValue = function (path, val) 
     {
         Module.writeStringToMemory(path, that.pathPtr);
-        DSP_poly_setValue(that.ptr, that.pathPtr, val);
+        DSP_setValue(that.ptr, that.pathPtr, val);
     };
     
     that.getValue = function (path) 
