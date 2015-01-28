@@ -127,7 +127,7 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    cat $name-temp1.js >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html 
     echo "</head>" >> $name-temp2.html
     echo "<body>" >> $name-temp2.html
