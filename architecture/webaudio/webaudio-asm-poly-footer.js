@@ -179,7 +179,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     
     that.setValue = function (path, val) 
     {
-        Module.writeStringToMemory(path, pathPtr);
+        Module.writeStringToMemory(path, that.pathPtr);
         DSP_poly_setValue(that.ptr, that.pathPtr, val);
     };
     
