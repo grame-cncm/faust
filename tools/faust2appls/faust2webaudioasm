@@ -110,8 +110,7 @@ for f in $FILES; do
         # compile the C++ code to asm.js
         emcc -O2 --memory-init-file 0 $name.cpp -s EMCC_DEBUG=2 -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
-        # add final footer of JS page
-        echo "}());" >> $name-temp1.js
+ 
         # remove intermediate C++  file
         rm $name.cpp
     fi

@@ -222,6 +222,11 @@ struct mydsp_poly
         }
     }
     
+    void pitchWheel(int channel, int wheel)
+    {
+    	// TODO
+    }
+    
     void pitchBend(int channel, int refPitch, float pitch)
     {
     	int voice = getVoice(refPitch);
@@ -308,6 +313,11 @@ extern "C" {
     void mydsp_poly_ctrlChange(mydsp_poly* n, int channel, int ctrl, int value)
     {
         n->ctrlChange(channel, ctrl, value);
+    }
+    
+    void mydsp_poly_pitchWheel(mydsp_poly* n, int channel, int wheel)
+    {
+        n->pitchWheel(channel, wheel);
     }
     
     void mydsp_poly_pitchBend(mydsp_poly* n, int channel, int refPitch, float pitch)
