@@ -62,7 +62,7 @@ faust.DSP = function (context, buffer_size) {
             that.ouputs_timer = 5;
             var i;
             for (i = 0; i < that.ouputs_items.length; i++) {
-                Module.writeStringToMemory(that.ouputs_items[i], pathPtr);
+                Module.writeStringToMemory(that.ouputs_items[i], that.pathPtr);
                 that.handler(that.ouputs_items[i], DSP_getValue(that.ptr, that.pathPtr));
             }
         }
