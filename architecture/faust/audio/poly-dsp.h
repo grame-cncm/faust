@@ -200,7 +200,6 @@ struct mydsp_poly
         if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
         
         if (voice >= 0) {
-            printf("noteOn %d\n", voice);
             fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
             fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
             fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
@@ -214,7 +213,6 @@ struct mydsp_poly
     {
         int voice = getVoice(pitch);
         if (voice >= 0) {
-            printf("noteOff %d\n", voice);
             fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
             fVoiceTable[voice]->fNote = kReleaseVoice;
         } else {
