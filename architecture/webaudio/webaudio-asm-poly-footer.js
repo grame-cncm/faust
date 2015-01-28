@@ -177,10 +177,16 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
         that.scriptProcessor.disconnect(faust.context.destination);
     };
     
-    that.update = function (path, val) 
+    that.setValue = function (path, val) 
     {
-        Module.writeStringToMemory(path, pathPtr);
+        Module.writeStringToMemory(path, that.pathPtr);
         DSP_poly_setValue(that.ptr, that.pathPtr, val);
+    };
+    
+    that.getValue = function (path) 
+    {
+        Module.writeStringToMemory(path, that.pathPtr);
+        return DSP_getValue(that.ptr, that.pathPtr);
     };
     
     that.json = function ()
