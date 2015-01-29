@@ -87,12 +87,13 @@ struct mydsp_poly
     inline float mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
     {
     	float level = 0;
+        float gain_level = 1./(float)fMaxPolyphony;
         for (int i = 0; i < fNumOutputs; i++) {
             float* mixChannel = mixBuffer[i];
             float* outChannel = outputBuffer[i];
             for (int j = 0; j < count; j++) {
-            	level = std::max(level,(float)fabs(outChannel[j]));
-                mixChannel[j] += outChannel[j]/(fMaxPolyphony*0.5f);
+                level = std::max(level, (float)fabs(outChannel[j]));
+                mixChannel[j] += outChannel[j] * gain_level;
             }
         }
         return level;
