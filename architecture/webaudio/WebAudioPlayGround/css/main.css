@@ -8,11 +8,59 @@
  *	- Links
  *	-------------------------------------------------------------------------*/
 
-div.equiButton {
+div.equiButton1 {
 	position:fixed;
 	color: white;
 	bottom: 2px;
-	right: 120px;
+	right: 600px;
+	text-align: center;
+	
+/* 	background: url('../img/ico-plus.png') .9em 50% no-repeat #fff; */
+/* 	background-color : #FF4901; */
+	background-color: #FCD21C;
+
+/* 	background : qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 , stop: 1 #22427C); */
+	border-radius: 5px;
+	color: #4c4c4c;
+/* 	display: block; */
+	font-size: 1em; /* 11 / 16 */
+/* 	padding: .1em 1em .1em .15em; */
+    padding-top: 5px;
+    padding-right: 10px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+	text-transform: uppercase;
+}
+
+div.equiButton2 {
+	position:fixed;
+	color: white;
+	bottom: 2px;
+	right: 400px;
+	text-align: center;
+	
+/* 	background: url('../img/ico-plus.png') .9em 50% no-repeat #fff; */
+/* 	background-color : #FF4901; */
+	background-color: #FCD21C;
+
+/* 	background : qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 , stop: 1 #22427C); */
+	border-radius: 5px;
+	color: #4c4c4c;
+/* 	display: block; */
+	font-size: 1em; /* 11 / 16 */
+/* 	padding: .1em 1em .1em .15em; */
+    padding-top: 5px;
+    padding-right: 10px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+	text-transform: uppercase;
+}
+
+div.equiButton3 {
+	position:fixed;
+	color: white;
+	bottom: 2px;
+	right: 200px;
 	text-align: center;
 	
 /* 	background: url('../img/ico-plus.png') .9em 50% no-repeat #fff; */
@@ -37,7 +85,7 @@ div.link {
 	font-style: italic;
 	color: lightgrey;
 	bottom: 0px;
-	left: 20px;
+	left: 110px;
 }
 
 div.link a {
@@ -114,6 +162,18 @@ body {
 	margin: 0;
 	padding: 2em 0 0 2em;	
 }
+
+.PatchName{
+	color:white;
+	text-align:center;
+	font-family: 'Droid Serif', Georgia, serif; 
+	font-size:20px;
+	background-color:transparent;
+    left:40%;
+}
+.PatchName:focus { 
+	outline: 0px solid transparent; 
+} 
 
 /* Nav */
 #nav {
@@ -211,6 +271,33 @@ body {
 }
 
 /*	---------------------------------------------------------------------------
+ *	:: Input
+ *	-------------------------------------------------------------------------*/
+#input {
+	background:
+		url('../img/ico-speaker.png') 50% 50% no-repeat,
+		url('../img/output-bkg.gif') 0 0 repeat;
+	border-left: 1px solid #363636;
+	box-shadow: 0 0 3px rgba(0,0,0, .4);
+	bottom: 0;
+	display: block;
+	height: 100%;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 110px;
+	z-index: 0;
+}
+
+#input .node {
+	right: -18px;
+	margin-top: -11px;
+	position: absolute;
+	top: 50%;
+}
+
+
+/*	---------------------------------------------------------------------------
  *	:: Output
  *	-------------------------------------------------------------------------*/
 #output {
@@ -225,9 +312,10 @@ body {
 	position: absolute;
 	right: 0;
 	top: 0;
-	width: 105px;
+	width: 170px;
 	z-index: 100;
 }
+
 #output .node {
 	left: -18px;
 	margin-top: -11px;
@@ -235,6 +323,32 @@ body {
 	top: 50%;
 }
 
+#output .exportTitle{
+	color: black;
+	font-size: 20px;
+	text-align:center;
+}
+
+#output .architectures, #output .platforms{
+	width: 100%; 
+}
+
+#output .qrcodeDiv{
+	position: fixed; 
+	bottom: 2px;
+}
+
+#output .exportButton{
+	position: fixed;
+	right: 60px;
+}
+
+#output .export-title {
+	font-size: 14px;
+	margin: 0 0 1em;
+	text-align: center;
+	text-transform: uppercase;
+}
 
 /*	---------------------------------------------------------------------------
  *	:: Global classes and styles

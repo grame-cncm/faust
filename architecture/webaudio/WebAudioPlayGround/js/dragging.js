@@ -10,8 +10,6 @@ function skipDefault(event) {
 		event.preventDefault();
 }
 
-
-
 function startDraggingNode(event) {
  	var el;
   	var x, y;
@@ -139,7 +137,7 @@ function startDraggingConnection(obj){
 
 
 	// Get the position of the originating connector with respect to the page.
-	var off = event.target;
+	var off = obj;
     x = window.scrollX + 12;
     y = window.scrollY + 12;
 
@@ -254,8 +252,6 @@ function connectNodes( src, dst ) {
 	console.log(src);
 	console.log(dst);
 
-	var dstFaust = false;
-
 	var connectorShape = dragObj.connectorShape;
 	src.className += " connected";
 	dst.className += " connected";
@@ -274,7 +270,7 @@ function connectNodes( src, dst ) {
 	src.outputConnections.push(connector);
 	
 	console.log("Output Connections ====>");
-	console.log(src);
+	console.log(src.outputConnections);
 	
 	//Make sure the connector line points go from src->dest (x1->x2)
 	if (!dragObj.originIsInput) { // need to flip
@@ -289,51 +285,42 @@ function connectNodes( src, dst ) {
 	// Put an entry into the destinations's inputs
 	if (!dst.inputConnections)
 		dst.inputConnections = new Array();
+
 	connector = new Object();
 	connector.line = connectorShape;
 	connector.source = src;
 	connector.destination = dst;
 	dst.inputConnections.push(connector);
 	
-	console.log("Input Connections in connector Nodes ====>");
-	console.log(dst.inputConnections);
-	
 	var dstCpy = dst;
-	
+	var srcCpy = src;
+
+// Searching for src/dst DSP if existing
 	for (var i = 0; i < window.myArray.length; i++) {    		
 
-		if(window.myArray[i].ID == dst.id){
+		if(window.myArray[i].ID == dst.id)
 			dstCpy = window.myArray[i].DSP;
-		}
 		
-		else if(window.myArray[i].ID == src.id){
-			src = window.myArray[i].DSP;
-			
-			if(dstCpy.id == "output"){
-				dstFaust = true;
-				dstCpy = faust.context.destination;
-			}
-		}
+		else if(window.myArray[i].ID == src.id)
+			srcCpy = window.myArray[i].DSP;
 	}
 	
 	// if the source has an audio node, connect them up.  
 	// AudioBufferSourceNodes may not have an audio node yet.
-	if (src.audioNode ){
+	if (srcCpy.audioNode ){
 		
 		if(dst.audioNode)
-			src.audioNode.connect(dstCpy.audioNode);
+			srcCpy.audioNode.connect(dstCpy.audioNode);
 		else if(dstCpy.scriptProcessor)
-			src.connect(dstCpy.scriptProcessor);
+			srcCpy.connect(dstCpy.scriptProcessor);
 // 		src.connect(dstCpy.scriptProcessor.audioNode);
 	}
-	else if(src.scriptProcessor){
+	else if(srcCpy.scriptProcessor){
 		
 		if(dstCpy.scriptProcessor) 
-			src.scriptProcessor.connect(dstCpy.scriptProcessor)
-		else if(dstFaust == true)
-			src.scriptProcessor.connect(dstCpy);
+			srcCpy.scriptProcessor.connect(dstCpy.scriptProcessor)
 		else
-			src.scriptProcessor.connect;
+			srcCpy.scriptProcessor.connect(dstCpy.audioNode);
 	}
 
 	if (dstCpy.onConnectInput)
@@ -358,13 +345,19 @@ function breakSingleInputConnection( connections, index ) {
 		// delete us from their .outputConnections,
 		if(src.outputConnections && src.outputConnections.indexOf( connector.destination ))
 			src.outputConnections.splice( src.outputConnections.indexOf( connector.destination ), 1);
+			
+		for (var i = 0; i < window.myArray.length; i++) {    		
+			if(window.myArray[i].ID == src.id){
+				src = window.myArray[i].DSP;
+			}
+		}
+		
 		if (src.audioNode) {	// they may not have an audioNode, if they're a BSN or an Oscillator
 			// call disconnect() on the src,
-			src.audioNode.disconnect();
-			// if there's anything left in their outputConnections, re.connect() those nodes.
-			// TODO: again, this will break due to src resetting.
-			for (var j=0; j<src.outputConnections.length; j++)
-				src.audioNode.connect( src.outputConnections[j].destination.audioNode);
+			src.audioNode.disconnect(connector.destination.audioNode);
+		}
+		else if(src.scriptProcessor){
+			src.scriptProcessor.disconnect(connector.destination.audioNode);
 		}
 
 		// and delete the line 
@@ -377,9 +370,6 @@ function breakSingleInputConnection( connections, index ) {
 
 // Disconnect a node from all other nodes connecting to it, or that it connects to.
 function disconnectNode( nodeElement ) {
-
-	console.log("Disconnect Node===>");
-	console.log(nodeElement);
 
 	var nodeElementCpy = nodeElement;
 
@@ -398,7 +388,8 @@ function disconnectNode( nodeElement ) {
 				connections.splice( connections.indexOf(nodeElementCpy), 1);
 
 			// and delete the line
-			connector.line.parentNode.removeChild( connector.line );
+			if(connector.line.parentNode)
+				connector.line.parentNode.removeChild( connector.line );
 			
 			if(nodeElementCpy.outputConnections[i].id == "output")
 				faustOutput = true;
@@ -512,7 +503,7 @@ function stopDraggingConnection(obj){
 	    dragObj.connectorShape.setAttributeNS(null, "y2", y);
 
 		var str=""+toElem.className;
-		
+	
 		// If we're over a connection point, make the connection
 		if (dragObj.originIsInput) {
 		
@@ -547,7 +538,6 @@ function stopDraggingConnection(obj){
 	dragObj.connectorShape = null;
 }
 
-
 function stopDraggingConnector(event) {
   	// Stop capturing mousemove and mouseup events.
     document.removeEventListener("mousemove", whileDraggingConnector,   true);
@@ -579,4 +569,61 @@ function stringifyAudio() {
 	}
 	// add the node into the soundfield
 	document.getElementById("code").innerHTML = code;
+}
+
+/***********************************/
+/******* GET/SET CNX OF A NODE******/
+/***********************************/
+
+function getOutputNodeFromDiv(div){
+
+	for(var i=0 ; i<div.childNodes.length; i++){
+		if(div.childNodes[i].className.indexOf("node node-output")>=0){
+			return div.childNodes[i];
+		}
+	}
+	
+	return null;
+}
+
+function getInputNodeFromDiv(div){
+
+	for(var i=0 ; i<div.childNodes.length; i++){
+		if(div.childNodes[i].className && div.childNodes[i].className.indexOf("node node-input")>=0){
+			return div.childNodes[i];
+		}
+	}
+	
+	return null;
+}
+
+function getNodeInputConnections(node){
+
+	return node.parentNode.inputConnections;	
+}
+
+function getNodeOutputConnections(node){
+	
+	return node.parentNode.outputConnections;	
+}
+
+function setNodeInputConnections(node, inputConnections){
+
+	if(inputConnections){
+		for(var i=0; i<inputConnections.length; i++){
+		
+			startDraggingConnection(getOutputNodeFromDiv(inputConnections[i].source));
+			stopDraggingConnection(node);
+		}
+	}
+}
+
+function setNodeOutputConnections(node, outputConnections){
+	
+	if(outputConnections){
+		for(var i=0; i<outputConnections.length; i++){
+			startDraggingConnection(node);
+			stopDraggingConnection(getInputNodeFromDiv(outputConnections[i].destination));
+		}
+	}
 }
