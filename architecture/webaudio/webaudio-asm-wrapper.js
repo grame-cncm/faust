@@ -214,20 +214,23 @@ function mydspMixer(global, foreign, buffer) {
         }
     }
 		
-	function mixVoice(count, channels, inputs, outputs) {
+	function mixVoice(count, channels, inputs, outputs, polyphony) {
         count = count | 0;
         channels = channels | 0;
         inputs = inputs | 0;
         outputs = outputs | 0;
+        polyphony = +polyphony;
         var i = 0;
         var j = 0;
         var level = 0.;
+        var gain_level = 0.;
+        gain_level = 1. / +polyphony;
         for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
             for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
                 level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
                 HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] 
                     = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) + 
-                      +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
+                      +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) * +gain_level;
             }
         }
         return +level;
@@ -639,7 +642,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         for (i = 0; i < that.polyphony; i++) {
             if (that.dsp_voices_state[i] != that.kFreeVoice) {
                 that.factory.compute(that.dsp_voices[i], that.buffer_size, that.ins, that.mixing);
-                level = that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs);
+                level = that.mixer.mixVoice(that.buffer_size, that.numOut, that.mixing, that.outs, that.polyphony);
                 if ((level < 0.001) && (that.dsp_voices_state[i] == that.kReleaseVoice)) {
                     that.dsp_voices_state[i] = that.kFreeVoice;
                 }
