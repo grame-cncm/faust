@@ -13,7 +13,7 @@ wavetable
 
 
 var audioContext = null;
-var tempx=50, tempy=150;
+var tempx=30, tempy=200;
 var idX = 0;
 var lastBufferLoaded = null;
 var buffers = new Array();
@@ -47,9 +47,11 @@ function activateAudioInput(){
     }
         
 	if (navigator.getUserMedia) {
+		console.log("On est quand meme tout a fait sensé passer par là");
+	
     	navigator.getUserMedia({audio:true}, getDevice, function(e) {
         alert('Error getting audio input');
-        console.log(e);
+//         console.log(e);
     	});
 	} else {
         alert('Audio input API not available');
@@ -57,11 +59,16 @@ function activateAudioInput(){
 }
 
 function getDevice(device) {
+
 // Create an AudioNode from the stream.
-	var audio_input = window.audioContext.createMediaStreamSource(device);
+    var src = document.getElementById("input");
+	src.audioNode = audioContext.createMediaStreamSource(device);
         
-// Connect it to the destination.
-	audio_input.connect(window.DSP.scriptProcessor);
+    var i=document.createElement("div");
+	i.className="node node-output";
+	i.addEventListener( "mousedown", startDraggingConnector, true );
+	i.innerHTML = "<span class='node-button'>&nbsp;</span>";
+	document.getElementById("input").appendChild(i);
 }
 
 function createNewModule( nodeType, input, output ) {
@@ -93,7 +100,7 @@ function createNewModule( nodeType, input, output ) {
 	if (input) {
 		var i=document.createElement("div");
 		i.className="node node-input ";
-	    i.addEventListener( "mousedown", startDraggingConnector, true );
+//	    i.addEventListener( "mousedown", startDraggingConnector, true );
 //		i.addEventListener( 'pointerdown', startDraggingConnector, false );
 		i.innerHTML = "<span class='node-button'>&nbsp;</span>";
 		e.appendChild(i);
@@ -397,8 +404,8 @@ function hitstop(e) {
 
 function createOscillator() {
 	var osc = createNewModule( "oscillator", false, true );
-	addModuleSlider( osc, "", "frequency", 440, 0, 8000, 1, "Hz", onUpdateOscillatorFrequency );
-	addModuleSlider( osc, "", "detune", 0, -1200, 1200, 1, "cents", onUpdateDetune );
+	addModuleSlider( osc, "", "frequency", 440, 0, 8000, 1, "", onUpdateOscillatorFrequency );
+	addModuleSlider( osc, "", "detune", 0, -1200, 1200, 1, "", onUpdateDetune );
 
 	var play = document.createElement("img");
 	play.src = "img/ico-play.gif";
@@ -470,7 +477,7 @@ function createLiveInput() {
 	module = module.parentNode;
 	var err = function(e) {
         alert('Error getting audio');
-        console.log(e);
+//         console.log(e);
     };
 
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -773,6 +780,45 @@ function downloadImpulseFromURL( url ){
   	request.send();
 }
 
+function addModuleSlider( element, groupName, label, ivalue, imin, imax, stepUnits, units, onUpdate ) {
+
+	var group = document.createElement("div");
+// 	group.className="control-group";
+	group.label = groupName;
+
+	var info = document.createElement("div");
+	info.className="slider-info";
+	info.setAttribute("min", imin );
+	info.setAttribute("max", imax );
+	var lab = document.createElement("span");
+	lab.className="label";
+	lab.appendChild(document.createTextNode(label));
+	info.appendChild(lab);
+	var val = document.createElement("span");
+	val.className="value";
+	val.appendChild(document.createTextNode("" + ivalue + " " + units));
+
+	// cache the units type on the element for updates
+	val.setAttribute("units",units);
+	info.appendChild(val);
+
+	group.appendChild(info);
+
+// 	console.log(imin, imax, ivalue, stepUnits);
+
+	var slider = document.createElement("input");
+	slider.type="range";
+	slider.min = imin;
+	slider.max = imax;
+	slider.value = ivalue;
+	slider.step = stepUnits;
+	slider.oninput = onUpdate;
+	group.appendChild(slider);
+
+	element.appendChild(group);
+	return slider;
+}
+
 // Set up the page as a drop site for audio files. When an audio file is
 // dropped on the page, it will be auto-loaded as an AudioBufferSourceNode.
 function initDragDropOfAudioFiles() {
@@ -782,12 +828,12 @@ function initDragDropOfAudioFiles() {
 	window.ondrop = function (e) {
   		this.className = '';
   		e.preventDefault();
-		console.log("audio file before read");
+// 		console.log("audio file before read");
 
 	  var reader = new FileReader();
 	  reader.onload = function (event) {
 	  
-	  	console.log("audio File Reader");
+// 	  	console.log("audio File Reader");
 	  
 	  	audioContext.decodeAudioData( event.target.result, function(buffer) {
 	    		createAudioBufferSource(buffer);
@@ -946,17 +992,9 @@ function delaylinesNatives(){
 }
 
 function osclinesNatives(){
-
 // CREATE OSCILLATOR
 	
 		var osc = createNewModule( "oscillator", false, true );
-		
-// 		var play = document.createElement("img");
-// 		play.src = "img/ico-play.gif";
-// 		play.style.marginTop = "10px";
-// 		play.alt = "play";
-// 		play.onclick = onPlayOscillator;
-// 		osc.appendChild( play );
 
 		var oscNode = audioContext.createOscillator();
 	
@@ -965,38 +1003,59 @@ function osclinesNatives(){
 		oscNode.type = "sine";
 		osc.audioNode = oscNode;	
 		oscNode.start();
+	
+	var outNode = oscNode;
+	
+	var biNodeOutput;
+	
+	for(var i=0 ; i<osc.parentNode.childNodes.length; i++){
+		if(osc.parentNode.childNodes[i].className == "node node-output"){
+			biNodeOutput = osc.parentNode.childNodes[i];
+		}
+	}
+	
 	var i = 0;
 	
-	while(i != 5){
+	while(i != 50){
 	
-// 		var osc = createNewModule( "oscillator", false, true );
 		var biquad = createNewModule( "biquad", true, true );
 
-// 		var play = document.createElement("img");
-// 		play.src = "img/ico-play.gif";
-// 		play.style.marginTop = "10px";
-// 		play.alt = "play";
-// 		play.onclick = onPlayOscillator;
-// 		osc.appendChild( play );
-
-// 		var oscNode = audioContext.createOscillator();
 		var biNode = audioContext.createBiquadFilter();
-		biNode.frequency.value = 100.0;
+		biNode.frequency.value = 450.0;
 		biNode.Q.value = 0.5;
 		biNode.gain.value = 1.0;
+		biNode.type = "lowpass";
 		biquad.audioNode = biNode;
+		
+		console.log(biquad.parentNode);		
+		for(var j=0 ; j<biquad.parentNode.childNodes.length; j++){
+			if(biquad.parentNode.childNodes[j].className == "node node-input "){
+				startDraggingConnection(biNodeOutput);
+				stopDraggingConnection(biquad.parentNode.childNodes[j]);
+			}
+			else if(biquad.parentNode.childNodes[j].className == "node node-output"){
+				biNodeOutput = biquad.parentNode.childNodes[j];
+			}
+		}
+		
+// 		startDraggingConnection(biNodeOutput);
+// 		stopDraggingConnection(biNode);	
+		outNode.connect(biNode);
+		outNode = biNode;
 			
-// 		oscNode.frequency.value = 400;
-// 		oscNode.detune.value = 0;
-// 		oscNode.type = "sine";
-// 		osc.audioNode = oscNode;
-	
-		oscNode.connect(biNode);
-		biNode.connect(document.getElementById("output").audioNode);
 // 		oscNode.start(0);
 		i++;
 	}
 	
+	for(var j=0 ; j<document.getElementById("output").childNodes.length; j++){
+		if(document.getElementById("output").childNodes[j].className && document.getElementById("output").childNodes[j].className.indexOf("node node-input")>=0){
+		
+			startDraggingConnection(biNodeOutput);
+			stopDraggingConnection(document.getElementById("output").childNodes[j]);
+		}
+	}
+	
+	outNode.connect(document.getElementById("output").audioNode);
 }
 
 //----- Initialization function for the page.
@@ -1014,6 +1073,9 @@ function init() {
 	startLoadingSounds();
 
 	// create the one-and-only destination node for the context
+	
+
+	// create the one-and-only destination node for the context
 	var dest = document.getElementById("output");
 	dest.audioNode = audioContext.destination;
 //	stringifyAudio();
@@ -1029,9 +1091,16 @@ function init() {
 	setClickHandler( "cana", createAnalyser );
 	setClickHandler( "afm", createFaustModule );
 	setClickHandler( "cfe", createFaustEquivalent);
+	setClickHandler("ndlt", osclinesNatives);
+	setClickHandler("dlt", biquadTest);
 	
     window.myArray = new Array();
 	window.buttonVal = 0;
+	
+	UploadTargets();
+	
+	activateAudioInput();
+	
 	
 // 	osclinesNatives();
 // 	biquadTest();
