@@ -38,10 +38,24 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         map <string, string> fMathLibTable;
        
         string fObjPrefix;
-        int fStructSize;    // Keep the size in bytes of the structure
-    
-        map <string, pair<int, Typed::VarType> > fFieldTable;  // Table : field_name, <byte offset in structure, type>
-    
+        
+        int fStructOffset;                                      // Keep the offset in bytes of the structure
+        map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
+        
+        inline bool isRealType(Typed::VarType type) 
+        { 
+            return (type == Typed::kFloat 
+                || type == Typed::kFloatMacro 
+                || type == Typed::kFloatish 
+                || type == Typed::kDouble
+                || type == Typed::kDoublish); 
+        }
+        
+        inline bool isIntType(Typed::VarType type) 
+        { 
+            return (type == Typed::kInt || type == Typed::kIntish); 
+        }
+  
     public:
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
@@ -70,21 +84,16 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["tanf"] = "global.Math.tan";
             
             fObjPrefix = "";
-            fStructSize = 0;
+            fStructOffset = 0;
         }
 
         virtual ~ASMJAVAScriptInstVisitor()
         {}
     
-        int getStructSize() { return fStructSize; }
+        int getStructSize() { return fStructOffset; }
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
         map <string, string>& getMathLibTable() { return fMathLibTable; }
 
-        virtual void visit(LabelInst* inst)
-        {
-            // Empty
-        }
-  
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)
         {
@@ -95,8 +104,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             if (array_typed && array_typed->fSize > 1) {
                 if (is_struct) {
                     // Keep pointer type
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, Typed::getPtrFromType(array_typed->fType->getType()));
-                    fStructSize += array_typed->fSize * NUM_SIZE;
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, Typed::getPtrFromType(array_typed->fType->getType()));
+                    fStructOffset += array_typed->fSize * NUM_SIZE;
                   } else {
                     if (!inst->fValue) {
                         string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
@@ -105,8 +114,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }
             } else {
                 if (is_struct) {
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructSize, inst->fType->getType());
-                    fStructSize += NUM_SIZE;
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, inst->fType->getType());
+                    fStructOffset += NUM_SIZE;
                 } else {
                     if (inst->fValue) {
                         *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
@@ -248,32 +257,25 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             // HACK : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-                *fOut << "HEAP32[" << indexed->getName() << " + ";  
-                *fOut << "(";
+                *fOut << "HEAP32[" << indexed->getName() << " + (";  
                 indexed->fIndex->accept(this);
-                *fOut << " << 2)"; 
-                *fOut << " >> 2]";
+                *fOut << " << 2) >> 2]"; 
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                *fOut << "HEAPF32[" << indexed->getName() << " + ";  
-                *fOut << "(";
+                *fOut << "HEAPF32[" << indexed->getName() << " + (";  
                 indexed->fIndex->accept(this);
-                *fOut << " << 2)";       
-                *fOut << " >> 2]";
+                *fOut << " << 2) >> 2]"; 
             } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                //printf("IndexedAddress type %d\n", tmp.second);
                 if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
                     *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
-                    *fOut << " << 2)";       
-                    *fOut << " >> 2]";
+                    *fOut << " << 2) >> 2]"; 
                 } else {
                     *fOut << "HEAP32[dsp + " << tmp.first << " + "; 
                     *fOut << "(";
                     indexed->fIndex->accept(this);
-                    *fOut << " << 2)";        
-                    *fOut << " >> 2]";
+                    *fOut << " << 2) >> 2]"; 
                 }
             } else {
                 indexed->fAddress->accept(this);
@@ -283,8 +285,22 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
   
         virtual void visit(LoadVarAddressInst* inst)
         {
-           // Not implemented in ASMJavaScript
-            assert(false);
+            // Not implemented in ASMJavaScript
+            //assert(false);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            if (indexed) {
+                if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
+                    pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
+                    *fOut << "dsp + " << tmp.first << " + ";  
+                    *fOut << "(";
+                    indexed->fIndex->accept(this);
+                    *fOut << " << 2) >> 2"; 
+                } else {
+                    assert(false);
+                }
+            } else {
+                assert(false);
+            }
         }
                 
         // No .f syntax for float in JS
@@ -312,19 +328,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
             *fOut << checkDouble(inst->fNum);
         }
-        
-        inline bool isRealType(Typed::VarType type) 
-        { 
-            return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble); 
-        }
-        
-        
+                 
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
             
-            string fStart = (fTypingVisitor.fCurType == Typed::kInt) ? "(" : "+(";
-            string fEnd = (fTypingVisitor.fCurType == Typed::kInt) ? ") | 0" : ")";
+            string fStart = isIntType(fTypingVisitor.fCurType) ? "((" : "+(";
+            string fEnd = isIntType(fTypingVisitor.fCurType) ? ") | 0)" : ")";
             
             *fOut << fStart;
             inst->fCond->accept(this);
@@ -334,17 +344,17 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             inst->fElse->accept(this);
             *fOut << fEnd;
         }
-           
+        
         virtual void visit(BinopInst* inst)
         {
             if (isBoolOpcode(inst->fOpcode)) {
-                *fOut << "(";
+                *fOut << "((";
                 inst->fInst1->accept(this);
                 *fOut << " ";
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << " | 0)";
+                *fOut << ") | 0)";
             } else {
                 
                 inst->fInst1->accept(&fTypingVisitor);
@@ -353,11 +363,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst2->accept(&fTypingVisitor);
                 Typed::VarType type2 = fTypingVisitor.fCurType;
                 
-                if ((type1 == Typed::kInt && type2 == Typed::kInt) 
-                    || (type1 == Typed::kInt && type2 == Typed::kBool)
-                    || (type1 == Typed::kBool && type2 == Typed::kInt)
-                    || (type1 == Typed::kBool && type2 == Typed::kBool))
-                    {
+                if ((isIntType(type1) && isIntType(type2)) 
+                    || (isIntType(type1) && type2 == Typed::kBool)
+                    || (type1 == Typed::kBool && isIntType(type2))
+                    || (type1 == Typed::kBool && type2 == Typed::kBool)) {
                     // Special case of 32 bits integer multiply
                     if (inst->fOpcode == kMul) {
                         *fOut << "(imul(";
@@ -366,20 +375,19 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         inst->fInst2->accept(this);
                         *fOut << ") | 0)";
                     } else {
-                        *fOut << "(";
+                        *fOut << "((";
                         inst->fInst1->accept(this);
                         *fOut << " ";
                         *fOut << gBinOpTable[inst->fOpcode]->fName;
                         *fOut << " ";
                         inst->fInst2->accept(this);
-                        *fOut << " | 0)";
+                        *fOut << ") | 0)";
                     }
-                } else if ((type1 == Typed::kInt && isRealType(type2))
-                           || (isRealType(type1) && type2 == Typed::kInt)
+                } else if ((isIntType(type1) && isRealType(type2))
+                           || (isRealType(type1) && isIntType(type2))
                            || (isRealType(type1) && isRealType(type2))
                            || (isRealType(type1) && type2 == Typed::kBool)
-                           || (type1 == Typed::kBool && isRealType(type2)))
-                           {
+                           || (type1 == Typed::kBool && isRealType(type2))) {
                     *fOut << "+(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -388,6 +396,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     inst->fInst2->accept(this);
                     *fOut << ")";
                 } else { // Default
+                    assert(type1 == Typed::kNoType && type2 == Typed::kNoType);
                     *fOut << "(";
                     inst->fInst1->accept(this);
                     *fOut << " ";
@@ -408,14 +417,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst->accept(this);
                 *fOut << ")";
             } else if (inst->fType->getType() == Typed::kIntish) {
-                *fOut << "(";
+                *fOut << "((";
                 inst->fInst->accept(this);
-                *fOut << " | 0)";
-            } else if (inst->fType->getType() == Typed::kFloatMacro 
-                       || inst->fType->getType() == Typed::kFloat
-                       || inst->fType->getType() == Typed::kFloatish
-                       || inst->fType->getType() == Typed::kDouble
-                       || inst->fType->getType() == Typed::kDoublish) {
+                *fOut << ") | 0)";
+            } else if (isRealType(inst->fType->getType())) {
                 *fOut << "+(";
                 inst->fInst->accept(this);
                 *fOut << ")";
@@ -451,31 +456,31 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
                 c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), 
                                                                 InstBuilder::genBasicTyped(Typed::kInt), 
-                                                                    InstBuilder::genIntNumInst(0));
+                                                                InstBuilder::genIntNumInst(0));
                 // C99 loop variable declared outside the loop
                 c99_declare_inst->accept(this);
             }
             
             *fOut << "for (";
-            fFinishLine = false;
-            if (c99_declare_inst) {
-                // C99 loop initialized here
-                c99_init_inst->accept(this);
-            } else {
-                // Index already defined
-                inst->fInit->accept(this);
-            }
-            *fOut << "; ";
-            inst->fEnd->accept(this);
-            *fOut << "; ";
-            inst->fIncrement->accept(this);
-            fFinishLine = true;
+                fFinishLine = false;
+                if (c99_declare_inst) {
+                    // C99 loop initialized here
+                    c99_init_inst->accept(this);
+                } else {
+                    // Index already defined
+                    inst->fInit->accept(this);
+                }
+                *fOut << "; ";
+                inst->fEnd->accept(this);
+                *fOut << "; ";
+                inst->fIncrement->accept(this);
+                fFinishLine = true;
             *fOut << ") {";
-            fTab++;
-            tab(fTab, *fOut);
-            inst->fCode->accept(this);
-            fTab--;
-            tab(fTab, *fOut);
+                fTab++;
+                tab(fTab, *fOut);
+                inst->fCode->accept(this);
+                fTab--;
+                tab(fTab, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
             
@@ -528,7 +533,9 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
             // "In extension" array definition
             } else if (array_typed) {
-                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
+                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), 
+                                                        inst->fType->clone(&cloner), 
+                                                        InstBuilder::genTypedZero(inst->fType->getType())));
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
                     if (ctype == Typed::kInt) {
@@ -560,7 +567,9 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                     return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
                 }
             } else {
-                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), InstBuilder::genTypedZero(inst->fType->getType())));
+                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), 
+                                    inst->fType->clone(&cloner), 
+                                    InstBuilder::genTypedZero(inst->fType->getType())));
                 return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
             }
            

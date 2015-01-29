@@ -200,7 +200,6 @@ struct mydsp_poly
         if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
         
         if (voice >= 0) {
-            printf("noteOn %d\n", voice);
             fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
             fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
             fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
@@ -214,12 +213,16 @@ struct mydsp_poly
     {
         int voice = getVoice(pitch);
         if (voice >= 0) {
-            printf("noteOff %d\n", voice);
             fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
             fVoiceTable[voice]->fNote = kReleaseVoice;
         } else {
             printf("Playing voice not found...\n");
         }
+    }
+    
+    void pitchWheel(int channel, int wheel)
+    {
+    	// TODO
     }
     
     void pitchBend(int channel, int refPitch, float pitch)
@@ -308,6 +311,11 @@ extern "C" {
     void mydsp_poly_ctrlChange(mydsp_poly* n, int channel, int ctrl, int value)
     {
         n->ctrlChange(channel, ctrl, value);
+    }
+    
+    void mydsp_poly_pitchWheel(mydsp_poly* n, int channel, int wheel)
+    {
+        n->pitchWheel(channel, wheel);
     }
     
     void mydsp_poly_pitchBend(mydsp_poly* n, int channel, int refPitch, float pitch)

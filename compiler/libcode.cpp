@@ -23,7 +23,6 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-#include <map>
 #include <string>
 #include <vector>
 #include <list>
@@ -70,13 +69,17 @@
 #include "exception.hh"
 #include "libfaust.h"
 
-#define FAUSTVERSION        "2.0.a31"
+#define FAUSTVERSION        "2.0.a32"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;
 
+// Timing can be used outside of the scope of 'gGlobal'
 extern bool gTimingSwitch;
 
+static ifstream* injcode = 0;
+static ifstream* enrobage = 0;
+       
 typedef void* (*compile_fun)(void* arg);
 
 #ifdef _WIN32 
@@ -400,6 +403,11 @@ static bool process_cmdline(int argc, const char* argv[])
 		} else if (isCmd(argv[i], "-a", "--architecture") && (i+1 < argc)) {
 			gGlobal->gArchFile = argv[i+1];
 			i += 2;
+            
+         } else if (isCmd(argv[i], "-inj", "--inject")) {
+            gGlobal->gInjectFlag = true;
+            gGlobal->gInjectFile = argv[i+1];
+            i += 2;
 
 		} else if (isCmd(argv[i], "-o") && (i+1 < argc)) {
 			gGlobal->gOutputFile = argv[i+1];
@@ -663,7 +671,7 @@ static bool process_cmdline(int argc, const char* argv[])
 static void printversion()
 {
 	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, LLVM IR, version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2015, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
@@ -697,7 +705,7 @@ static void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-	cout << "-a <file> \tC++ architecture file\n";
+	cout << "-a <file> \twrapper architecture file\n";
 	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
@@ -717,7 +725,7 @@ static void printhelp()
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
     cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, fir (default cpp)\n";
-    cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
+    cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
@@ -725,10 +733,10 @@ static void printhelp()
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
     cout << "-l <file> \t--library <file> link with the LLVM module <file>\n";
-    cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
+    cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated output code, and the output directory of additional generated files (SVG, XML...)\n";
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
- 
+    cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
 	cout << "\nexample :\n";
 	cout << "---------\n";
 
@@ -737,7 +745,7 @@ static void printhelp()
 
 static void printheader(ostream& dst)
 {
-    // defines the metadata we want to print as comments at the begin of in the C++ file
+    // defines the metadata we want to print as comments at the begin of in the file
     set<Tree> selectedKeys;
     selectedKeys.insert(tree("name"));
     selectedKeys.insert(tree("author"));
@@ -745,10 +753,10 @@ static void printheader(ostream& dst)
     selectedKeys.insert(tree("license"));
     selectedKeys.insert(tree("version"));
 
-    dst << "//-----------------------------------------------------" << endl;
+    dst << "/* ------------------------------------------------------------" << endl;
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
-            dst << "// " << *(i->first);
+            dst << *(i->first);
             const char* sep = ": ";
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
                 dst << sep << **j;
@@ -758,9 +766,8 @@ static void printheader(ostream& dst)
         }
     }
 
-    dst << "//" << endl;
-    dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
-    dst << "//-----------------------------------------------------" << endl;
+    dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+    dst << "------------------------------------------------------------ */" << endl;
 }
 
 /****************************************************************
@@ -775,13 +782,13 @@ static string fxname(const string& filename)
 {
 	// determine position right after the last '/' or 0
 	unsigned int p1 = 0;
-    for (unsigned int i=0; i<filename.size(); i++) {
+    for (unsigned int i = 0; i < filename.size(); i++) {
         if (filename[i] == '/')  { p1 = i+1; }
     }
 
 	// determine position of the last '.'
 	unsigned int p2 = filename.size();
-    for (unsigned int i=p1; i<filename.size(); i++) {
+    for (unsigned int i = p1; i < filename.size(); i++) {
         if (filename[i] == '.')  { p2 = i; }
     }
 
@@ -836,7 +843,7 @@ static void parseSourceFiles()
     list<string>::iterator s;
     gGlobal->gResult2 = gGlobal->nil;
 
-    if (gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
+    if (!gGlobal->gInjectFlag && gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
     for (s = gGlobal->gInputFiles.begin(); s != gGlobal->gInputFiles.end(); s++) {
@@ -1018,17 +1025,36 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         /****************************************************************
          * generate output file
          ****************************************************************/
-        ifstream* enrobage;
          
-        if (gGlobal->gArchFile) {
+        if (gGlobal->gArchFile != "") {
         
             // Keep current directory
             char current_directory[FAUST_PATH_MAX];
             getcwd(current_directory, FAUST_PATH_MAX);
             
-            if ((enrobage = open_arch_stream(gGlobal->gArchFile))) {
-                
-                if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
+            if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+            
+                /****************************************************************
+                 1.7 - Inject code instead of compile
+                *****************************************************************/
+
+                // Check if this is a code injection
+                if (gGlobal->gInjectFlag) {
+                    if (gGlobal->gArchFile == "") {
+                        stringstream error;
+                        error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
+                        throw faustexception(error.str());
+                    } else {
+                        streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+                        streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+                        streamCopy(*injcode, *dst);
+                        streamCopyUntilEnd(*enrobage, *dst);
+                    }
+                    delete injcode;
+                    throw faustexception("");
+                }
+       
+                if (gGlobal->gOutputLang != "js") {
                     printheader(*dst);
                 }
                 
@@ -1072,7 +1098,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 
                 // Restore current_directory
                 chdir(current_directory);
-                delete(enrobage);
+                delete enrobage;
                  
             } else {
                 stringstream error;
@@ -1081,7 +1107,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             
         } else {
-            if ((gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
+            if (gGlobal->gOutputLang != "js") {
                 printheader(*dst);
             }
             if ((gGlobal->gOutputLang != "java") && (gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
@@ -1196,7 +1222,22 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     }
 
     faust_alarm(gGlobal->gTimeout);
-
+    
+    /****************************************************************
+     1.5 - Check and open some input files
+    *****************************************************************/
+    
+    // Check for injected code (before checking for architectures)
+    if (gGlobal->gInjectFlag) {
+        injcode = new ifstream();
+        injcode->open(gGlobal->gInjectFile.c_str(), ifstream::in);
+        if (!injcode->is_open()) {
+            stringstream error;
+            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found" << endl;
+            throw faustexception(error.str());
+        }
+    }
+    
     /****************************************************************
      2 - parse source files
     *****************************************************************/

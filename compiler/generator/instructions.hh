@@ -648,7 +648,7 @@ struct NamedAddress : public Address {
     Address::AccessType getAccess() { return fAccess; }
 
     void setName(const string& name) { fName = name; }
-    string getName() {return fName; }
+    string getName() { return fName; }
 
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -1034,7 +1034,7 @@ struct BinopInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct CastNumInst : public ValueInst, public SimpleValueInst
+struct CastNumInst : public ValueInst
 {
     Typed* fType;
     ValueInst* fInst;

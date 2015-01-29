@@ -28,19 +28,19 @@
 
 using namespace std;
 
-string subst (const string& m, const string& a0);
-string subst (const string& m, const vector<string>& vargs);
-string subst (const string& m, const string& a0, const string& a1);
-string subst (const string& m, const string& a0, const string& a1, const string& a2);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5, const string& a6);
+string subst(const string& m, const string& a0);
+string subst(const string& m, const vector<string>& vargs);
+string subst(const string& m, const string& a0, const string& a1);
+string subst(const string& m, const string& a0, const string& a1, const string& a2);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5, const string& a6);
 
-string T (char* c);
-string T (int n);
-string T (long n);
-string T (double n);
+string T(char* c);
+string T(int n);
+string T(long n);
+string T(double n);
 
 // add and remove quotes of a string
 string unquote(const string& s);
@@ -49,10 +49,12 @@ string quote(const string& s);
 void tab(int n, ostream& fout);
 void printlines(int n, list<string>& lines, ostream& fout, string sep = "");
 string rmWhiteSpaces(const string& s);
+
 string checkFloat(float val);
 string checkDouble(double val);
 string checkReal(double val);
 
-string indent(string const & str, int tabs);
+string indent(string const& str, int tabs);
+string replaceChar(string str, char ch1, char ch2);
 
 #endif

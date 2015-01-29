@@ -56,7 +56,7 @@ LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
 EXE = .exe
 endif
 
-CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
+CXXFLAGS ?= -O3 -g -Wall -Wuninitialized 
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
@@ -619,9 +619,9 @@ generator/asmjs/asmjs_code_container.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/asmjs/asmjs_code_container.o: signals/signals.hh generator/uitree.hh global.hh parser/sourcereader.hh
 generator/asmjs/asmjs_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh tlib/occurrences.hh generator/floats.hh
 generator/asmjs/asmjs_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
-generator/asmjs/asmjs_code_container.o: generator/json_instructions.hh generator/asmjs/asmjs_instructions.hh
-generator/asmjs/asmjs_code_container.o: generator/text_instructions.hh generator/type_manager.hh
-generator/asmjs/asmjs_code_container.o: generator/typing_instructions.hh errors/exception.hh
+generator/asmjs/asmjs_code_container.o: generator/json_instructions.hh generator/vec_code_container.hh
+generator/asmjs/asmjs_code_container.o: generator/asmjs/asmjs_instructions.hh generator/text_instructions.hh
+generator/asmjs/asmjs_code_container.o: generator/type_manager.hh generator/typing_instructions.hh errors/exception.hh
 generator/asmjs/asmjs_dsp_aux.o: tlib/compatibility.hh generator/asmjs/asmjs_dsp_aux.hh export.hh libfaust.h
 generator/c/c_code_container.o: generator/c/c_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/c/c_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh

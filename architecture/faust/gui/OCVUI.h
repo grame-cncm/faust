@@ -1,18 +1,25 @@
-/************************************************
-* 			OpenCV User Interface			  	*
-*												*
-* This architecture file allows the user to	  	*
-*	use the OpenCV library in order to perform	*
-*	image processing and use the result 		*
-*	to control audio parameters.				*
-*												*
-* To use this mode, just add the option -ocv in *
-* 	the command line. 							*
-*												*
-************************************************/
 #ifndef _OCVUI_H
 #define _OCVUI_H
 
+/******************************************************************************
+*******************************************************************************
+
+                                OPENCV USER INTERFACE
+
+*******************************************************************************
+*******************************************************************************/
+/**
+ * \file OCVUI.h
+ * \brief OpenCV user interface
+ * \author GRAME, Centre National de Création Musicale
+ * \date 26/01/2015
+ * 
+ * This architecture file allows the user to use the OpenCV library in order to perform
+ *	image processing and use the result to control audio parameters.
+ *								
+ * To use this mode, just add the option -ocv with your faust2jack tool.
+ * 				
+ */
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -40,38 +47,46 @@ class OCVUI : public UI
     
     public :
     
-    ////////////////////////////////////////////
-	////									////
-	////			STRUCTURES				////
-	////									////
-	////////////////////////////////////////////
+	// STRUCTURES
+	
+	/**
+	 * \struct object
+	 * \brief parameters of an object detected in the image
+	 * 
+	 * An object is assimilated to a circle, and characterised by 
+	 * its color, its center, its area, and its radius.
+	 * 
+	 */
 	
 	struct object
 	{
-		int color;
-		float centerX;
-		float centerY;
-		float area;
-		int radius;
+		int color;		/*!< Object's color				*/
+		float centerX;	/*!< Object's center's abscissa */
+		float centerY;	/*!< Object's center's ordinate */
+		float area;		/*!< Object's area 				*/
+		int radius;		/*!< Object's radius 			*/
 	};
 	
+	/**
+	 * \struct metadata
+	 * \brief metadata for audio parameters
+	 *
+	 * OpenCV metadata specify which object's characteristics you
+	 * want for an audio parameter.
+	 *
+	 */
 	struct metadata
 	{
-		FAUSTFLOAT* zone;
-		int color;
-		std::string param;
-		bool used;
+		FAUSTFLOAT* zone;	/*!< Audio parameter's address 	*/
+		int color;			/*!< Object's color 			*/
+		std::string param;	/*!< Object's parameter 		*/
+		bool used;			/*!< Bool variable				*/
 	};
 	
-	////////////////////////////////////////////
-	////									////
-	////			FUNCTIONS				////
-	////									////
-	////////////////////////////////////////////
+
+	// FUNCTIONS
 	
-	/**********************************************/
-	/*******	UI Functions Redefinition	*******/
-	/**********************************************/
+	//-- UI Functions Redefinition
 		// Functions inherited from the UI class
 	
     // Constructor
@@ -109,16 +124,23 @@ class OCVUI : public UI
 	// -- METADATA DECLARATION
 	
 	
-	//******** Parsing function	********//
-		// This function analyses a string and stores
-		// the different parameters in a metadata structure.
+	/**
+	 * \fn bool parser(std::string string2parse, metadata *pmeta)
+	 * \brief Parsing Function
+	 * 
+	 * \param string2parse A string to parse
+	 * \param pmeta Pointer on a metadata structure
+	 *
+	 * This function parses the metadata string, and puts the parameters 
+	 * in a metadata structure.
+	 */
 		
 	bool parser(std::string string2parse, metadata *pmeta)
 	{
 	    int SPACE = 32; // Parameters separator
 	    std::vector<std::string> parameters(0);
 	    
-	    //*** String analysis ***//
+	    // String analysis 
 	    for (int i = 0 ; i < string2parse.size() ; i++)
 	    {
 	    	if (string2parse[i]==SPACE)
@@ -130,38 +152,43 @@ class OCVUI : public UI
 	    	}	
 	    }
 	    std::string lastParameter = string2parse;
+	    
 	    parameters.push_back(lastParameter);
 	    	    
-	    //*** Store Parameters in a Metadata Structure ***//
+	    // Store Parameters in a Metadata Structure
 	    
 	    // Parameters count must be 2
 	    if (parameters.size()==2)
 	    {
-	    	// Associate every color to a digit
-	    		// red		= 1	;	green 	= 3	;	blue 	= 5	;
-	    		// yellow	= 2	;	cyan	= 4	;	magenta = 6	.
+	    	/**
+	    	 * \enum color
+	    	 * \brief color indexes
+	    	 *
+	    	 * Colors are indexed
+	    	 */
+	    	
 	    		
-	    	if (parameters[0]=="red")
+	    	if (parameters[0]=="red")			/*!< red = 1		*/
 	    	{
 	    		pmeta->color = 1;
 	    	}
-	    	else if (parameters[0]=="yellow")
+	    	else if (parameters[0]=="yellow")	/*!< yellow = 2		*/
 	    	{
 	    		pmeta->color = 2;
 	    	}
-	    	else if (parameters[0]=="green")
+	    	else if (parameters[0]=="green")	/*!< green = 3 		*/
 	    	{
 	    		pmeta->color = 3;
 	    	}
-	    	else if (parameters[0]=="cyan")
+	    	else if (parameters[0]=="cyan")		/*!< cyan = 4 		*/
 	    	{
 	    		pmeta->color = 4;
 	    	}
-	    	else if (parameters[0]=="blue")
+	    	else if (parameters[0]=="blue")		/*!< blue = 5 		*/
 	    	{
 	    		pmeta->color = 5;
 	    	}
-	    	else if (parameters[0]=="magenta")
+	    	else if (parameters[0]=="magenta")	/*!< magenta = 6	*/
 	    	{
 	    		pmeta->color = 6;
 	    	}
@@ -176,9 +203,16 @@ class OCVUI : public UI
 	    	return false;
 	    }
 	}
-	//******** Declare Function ********//
-	// This function calls the parsing function if the declared key is "ocv"
-		// and creates a new metadata structure.
+	/**
+	 * \fn void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+	 * \brief metadata declaration
+	 *
+	 * \param zone audio parameter's address
+	 * \param key metadata key/type (here, it must be ocv)
+	 * \param val metadata value
+	 * 
+	 * This function gives the metadata string, which will be analysed.
+	 */
 	void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
 	{
 		if (key=="ocv")
@@ -199,19 +233,24 @@ class OCVUI : public UI
 		}
 	}
 	
-	/**************************************************/
-    /*******	Image Processing Functions		*******/
-    /**************************************************/
+	// Image Processing Functions
        
-    //*** Contours processing ***//   
-    	// This function approximates contours to rectangles,
-    	// keeps the bigest one,
-    	// and stores it as a new object.
+    /** 
+     * \fn void contoursProcess(std::vector<std::vector<cv::Point>> contours, int color)
+     * \brief Contours processing
+     *
+     * \param contours contours of an object
+     * \param color color of this object
+     * 
+     * This function approximates contours to rectangles, 
+     * and stores the bigest one as a new object.
+     */  
+	
     void contoursProcess(std::vector<std::vector<cv::Point> > contours, int color)
 	{
 		int tempArea=0;
 		cv::Rect myRect;
-		for (int j=0 ; j<contours.size() ; j++)								// for each contour
+		for (int j=0 ; j<contours.size() ; j++)
 		{
 			std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
 			std::vector<cv::Rect> boundRect( contours.size() );
@@ -244,10 +283,16 @@ class OCVUI : public UI
 			objects_storage_.push_back(newObject);
 		}
 	}
-	//*** Morphological Opening (Erosion and Dilatation) ***//
-		// Improve a mask shape
-		// See OpenCV documentation for more informations :
-		// http://docs.opencv.org/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html
+	/**
+	 * \fn void erodeAndDilate(cv::Mat image)
+	 * \brief Morphological Opening (Erosion and Dilatation)
+	 * 
+	 * \param image mask produced with the "cv::inRange" function.
+	 *
+	 * This function improves a mask shape
+	 * See OpenCV documentation for more informations :
+	 * http://docs.opencv.org/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html
+	 */
 	
 	void erodeAndDilate(cv::Mat image)
 	{
@@ -268,12 +313,84 @@ class OCVUI : public UI
 			cv::dilate(image, image, element);
 		}
 	}
+	
+	/**
+	 * \fn void drawCircle(object my_object, cv::Mat my_image)
+	 * \brief Draws circles around chosen objects
+	 *
+	 * \param my_object Detected and specified object
+	 * \param my_image image on which to draw
+	 *
+	 * This function draws circles around the objects specified in the metadata
+	 * declaration and detected in the image.
+	 * Note that the circle color depends on the object color.
+	 */
+	
+	void drawCircle(object my_object, cv::Mat my_image)
+	{
+		cv::Scalar bgr_color;
+		switch (my_object.color)
+		{
+			case 1: // RED
+				bgr_color = cv::Scalar (0,0,255); 
+			
+				break;
+				
+			case 2: //YELLOW
+				bgr_color = cv::Scalar (0, 255, 255); 
+				
+				break;
+			
+			case 3: // GREEN
+				bgr_color = cv::Scalar (0, 255, 0);
+			
+				break;
+			case 4: // CYAN
+				bgr_color = cv::Scalar (255, 255, 0);
+				
+				break;
+			
+			case 5: // BLUE
+				bgr_color = cv::Scalar (255,0,0);
+							
+				break;
+			
+			case 6: // MAGENTA
+				bgr_color = cv::Scalar (255, 0, 255);
+					
+				break;
+	
+			default: // Add a color !
+	
+				break;
+		}
+		// draw circle
+		cv::circle(my_image, cv::Point(my_object.centerX, my_object.centerY),
+				   my_object.radius, bgr_color, 2, 8, 0);
+	}
 
 	
-	//*** Image Threshold ***//
-		// This function creates a mask for every defined color
-	void thresholdHsv(cv::Mat image)
-	{
+	/**
+	 * \fn imageProcessing(cv::Mat BGRImage)
+	 * \brief Image Processing function for objects detection
+	 *
+	 * \param BGRImage image in BGR color scale, from camera
+	 *
+	 * This function processes a BGR image. 
+	 * It converts it into an HSV image, opens it (erodes and dilates), extracts contours from image
+	 * and extracts objects from contours. The objects are stored and circled.
+	 */
+	
+	void imageProcessing(cv::Mat BGRImage)
+	{	
+		height_ = BGRImage.rows;
+		width_ = BGRImage.cols;
+		
+		cv::Mat HsvImage;
+		
+		cv::cvtColor(BGRImage, HsvImage, CV_BGR2HSV);	// Convert frame to HSV format 
+   	    												// in order to use "inRange"
+   	    
 		// Mask matrices (red, yellow, green, cyan, blue and magenta)
 		cv::Mat r_mask, y_mask, g_mask, c_mask, b_mask, m_mask;
 	
@@ -284,12 +401,12 @@ class OCVUI : public UI
 		
 		// Get every pixel whose value is between _min and _max
 			// and put it into a mask
-		cv::inRange(image, red_min, red_max, r_mask);
-		cv::inRange(image, yellow_min, yellow_max, y_mask);
-		cv::inRange(image, green_min, green_max, g_mask);
-		cv::inRange(image, cyan_min, cyan_max, c_mask);
-		cv::inRange(image, blue_min, blue_max, b_mask);
-		cv::inRange(image, magenta_min, magenta_max, m_mask);
+		cv::inRange(BGRImage, red_min, red_max, r_mask);
+		cv::inRange(BGRImage, yellow_min, yellow_max, y_mask);
+		cv::inRange(BGRImage, green_min, green_max, g_mask);
+		cv::inRange(BGRImage, cyan_min, cyan_max, c_mask);
+		cv::inRange(BGRImage, blue_min, blue_max, b_mask);
+		cv::inRange(BGRImage, magenta_min, magenta_max, m_mask);
 		
 		// Improve masks shapes
 		erodeAndDilate(r_mask);
@@ -346,20 +463,6 @@ class OCVUI : public UI
 				break;
 			}
 		}
-	
-	}
-
-	//*** Object Detection ***//
-		// This function calls the previous image processing functions
-		// and uses the objects and parameters storages to set the audio parameters
-		// depending on the detected objects.
-	void detectObjects(cv::Mat hsvImage, cv::Mat originalFrame)
-	{	
-		height_ = originalFrame.rows;
-		width_ = originalFrame.cols;
-		
-		// Objects detection and storage 
-		thresholdHsv(hsvImage);
 		
 		// Audio parameters setting
 		for (int i=0 ; i<objects_storage_.size() ; i++)
@@ -386,60 +489,20 @@ class OCVUI : public UI
 						*parameters_storage_[j].zone=(float)objects_storage_[i].area;
 					}
 					parameters_storage_[j].used=true;
+					
+					drawCircle(objects_storage_[i], BGRImage);
 				}
 			}
-			
-			
-			
-			// Draw a circle around the object for each object in the objects storage.
-				// Circle color depends on the object color, of course !
-			cv::Scalar bgr_color;
-			switch (objects_storage_[i].color)
-			{
-				case 1: // RED
-					bgr_color = cv::Scalar (0,0,255); // red in BGR (not RGB)
-				
-					break;
-					
-				case 2: //YELLOW
-					bgr_color = cv::Scalar (0, 255, 255); // yellow in BGR
-					
-					break;
-				
-				case 3: // GREEN
-					bgr_color = cv::Scalar (0, 255, 0);
-				
-					break;
-				case 4: // CYAN
-					bgr_color = cv::Scalar (255, 255, 0);
-					
-					break;
-				
-				case 5: // BLUE
-					bgr_color = cv::Scalar (255,0,0); // blue in BGR (not RGB)
-		
-					break;
-				
-				case 6: // MAGENTA
-					bgr_color = cv::Scalar (255, 0, 255);
-					
-					break;
-	
-				default: // Add a color !
-					break;
-			}
-			// draw circle around every detected object
-			cv::circle(originalFrame, cv::Point(objects_storage_[i].centerX, objects_storage_[i].centerY),
-					   objects_storage_[i].radius, bgr_color, 2, 8, 0);
 		}
 	}
 	
-	/*******************************************/
-	/********	Other Usefull Functions	********/
-	/*******************************************/
-	
-	// Empty Function
-		// This function empties both objects and parameters storages
+	/**
+	 * \fn void empty()
+	 * \brief Empties the object's storage
+	 *
+	 * This function empties the object's storage, and resets the parameters storage
+	 */
+
 	void empty()
     {
     	while (objects_storage_.size()>0)
@@ -453,16 +516,32 @@ class OCVUI : public UI
 		}
 	}
 	
+	/**
+	 * \fn bool exit()
+	 * \brief Return the exit member parameter.
+	 */
 	bool exit()
 	{
 		return exit_;
 	}
 	
+	/**
+	 * \fn void exitThread()
+	 * \brief Exit from thread
+	 *
+	 * \param This function exits from thread
+	 */
 	void exitThread()
 	{
 		pthread_exit(NULL);
 	}
 	
+	/**
+	 * \fn void run()
+	 * \brief Creates and runs the thread
+	 *
+	 * This function creates the image processing thread
+	 */
 	void run()
 	{		
 		exit_=false;
@@ -542,8 +621,8 @@ cv::Scalar OCVUI::yellow_min = cv::Scalar (25, 200, 55);
 cv::Scalar OCVUI::yellow_max = cv::Scalar (35, 255, 255);
 
 // #3 = GREEN
-cv::Scalar OCVUI::green_min = cv::Scalar (30,155,55);
-cv::Scalar OCVUI::green_max = cv::Scalar (40,255,255);
+cv::Scalar OCVUI::green_min = cv::Scalar (20,155,55);
+cv::Scalar OCVUI::green_max = cv::Scalar (50,255,255);
 
 // #4 = CYAN
 cv::Scalar OCVUI::cyan_min = cv::Scalar (85,200,55);
@@ -562,11 +641,15 @@ cv::Scalar OCVUI::magenta_max = cv::Scalar (155,255,255);
 	// This function is a loop that gets every frame from a camera
 	// and calls the image processing functions.
 	// This is the OCVUI.h main function.
+/**
+ * \fn void* ocvLoop(void* ocv_object)
+ * \brief Loop function for image processing
+ */
 void* ocvLoop(void* ocv_object)
 {
 	// The camera index allows to select the camera.
 		// 0 stands for the default camera.
-	int camIndex=2;
+	int camIndex=1;
 	//std::cout<<"camera index ?"<<std::endl;
 	//std::cin>>camIndex;
 
@@ -576,7 +659,7 @@ void* ocvLoop(void* ocv_object)
 	std::cout<<"Video Capture from camera n°"<<camIndex<<std::endl;
 	
 	if(!cap.isOpened())  // check if we succeeded to read frames
-							// from camera
+						 // from camera
 	{
 		std::cout<<"Could not open camera n°"<<camIndex<<" !"<<std::endl;
 		
@@ -590,19 +673,13 @@ void* ocvLoop(void* ocv_object)
    	{
 
    	    cap >> frame;							// Get frame from camera
-   	    cv::cvtColor(frame, hsv, CV_BGR2HSV);		// Convert frame to HSV format 
-   	    											// in order to use "inRange"
-   	            														
-		ocv->detectObjects(hsv, frame);				// Objects Detection function
+       														
+		ocv->imageProcessing(frame);				// Objects Detection function
 	
    		/*** Show image ***/
    		cv::imshow("Tracking", frame);
 
    		ocv->empty();								// Empty the objects and parameters storages
-     	
-   		/*** break ***/
-  		//if(cv::waitKey(27) >= 0) break;
-
    	}
    	
    	ocv->exitThread();

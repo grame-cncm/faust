@@ -30,15 +30,15 @@ class VectorCodeContainer : public virtual CodeContainer {
 
         void moveStack2Struct();
         
-        StatementInst* generateDAGLoopVariant0(const string& counter);
-        StatementInst* generateDAGLoopVariant1(const string& counter);
+        BlockInst* generateDAGLoopVariant0(const string& counter);
+        BlockInst* generateDAGLoopVariant1(const string& counter);
         
         void processFIR(void);
         BlockInst* flattenFIR(void);
 
     protected:
 
-        StatementInst* fDAGBlock;
+        BlockInst* fDAGBlock;
 
     public:
 

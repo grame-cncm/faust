@@ -111,13 +111,12 @@ class InstructionsCompiler : public virtual Garbageable {
 
         CodeContainer* signal2Container(const string& name, Tree sig);
 
-        string getFreshID(const string& prefix);
         int getSharingCount(Tree sig);
         void setSharingCount(Tree sig, int count);
         void sharingAnalysis(Tree t);
         void sharingAnnotation(int vctxt, Tree sig);
 
-        FIRIndex getCurrentLoopIndex(void)
+        FIRIndex getCurrentLoopIndex()
         {
             return FIRIndex(fContainer->getCurLoop()->getLoopIndex());
         }

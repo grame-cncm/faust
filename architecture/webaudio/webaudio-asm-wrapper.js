@@ -224,7 +224,7 @@ function mydspMixer(global, foreign, buffer) {
         var level = 0.;
         for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
             for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
-                level = max(+level, +(abs(+(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
+                level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
                 HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] 
                     = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) + 
                       +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
@@ -495,16 +495,12 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         that.scriptProcessor.onaudioprocess = that.compute;
     
         if (that.numIn > 0) {
-            // allocate memory for input / output arrays
             that.ins = Module._malloc(that.ptrsize * that.numIn);
-             
-            // Assign to our array of pointer elements an array of 32bit floats, one for each channel. currently we assume pointers are 32bits
             for (i = 0; i < that.numIn; i++) { 
-                // Assign memory at that.ins[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 HEAP32[(that.ins >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize); 
             }
 
-            // Prepare Ins/out buffer tables
+            // Prepare Ins buffer tables
             that.dspInChannnels = [];
             var dspInChans = HEAP32.subarray(that.ins >> 2, (that.ins + that.numIn * that.ptrsize) >> 2);
             for (i = 0; i < that.numIn; i++) {
@@ -513,15 +509,12 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         }
             
         if (that.numOut > 0) {
-            //ptrsize, change to eight or use Runtime.QUANTUM? or what?
             that.outs = Module._malloc(that.ptrsize * that.numOut); 
-             
-            // Assign to our array of pointer elements an array of 64bit floats, one for each channel. Currently we assume pointers are 32bits
             for (i = 0; i < that.numOut; i++) { 
-                // Assign memory at that.outs[i] to a new ptr value. Maybe there's an easier way, but this is clearer to me than any typed array magic beyond the presumably TypedArray HEAP32
                 HEAP32[(that.outs >> 2) + i] = Module._malloc(that.buffer_size * that.samplesize);
             }
          
+            // Prepare Out buffer tables
             that.dspOutChannnels = [];
             var dspOutChans = HEAP32.subarray(that.outs >> 2, (that.outs + that.numOut * that.ptrsize) >> 2);
             for (i = 0; i < that.numOut; i++) {
@@ -544,20 +537,20 @@ faust.deleteDSPInstance = function (that) {
     that.stop();
     var i;
      
-    for (i = 0; i < that.numIn; i++) { 
-        Module._free(HEAP32[(that.ins >> 2) + i]); 
-    }
-     
-    for (i = 0; i < that.numOut; i++) { 
-        Module._free(HEAP32[(that.outs >> 2) + i]);
-    }
-    
     if (that.numIn > 0) {
+        for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]); 
+        }
         Module._free(that.ins);
     }
+     
     if (that.numOut > 0) {
+        for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i]);
+        }
         Module._free(that.outs);
     }
+  
     Module._free(that.dsp);
 };
 
@@ -896,23 +889,23 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
 faust.deletePolyDSPInstance = function (that) {
     that.stop();
     var i;
-     
-    for (i = 0; i < that.numIn; i++) { 
-        Module._free(HEAP32[(that.ins >> 2) + i]); 
-    }
-     
-    for (i = 0; i < that.numOut; i++) { 
-        Module._free(HEAP32[(that.outs >> 2) + i]);
-        Module._free(HEAP32[(that.mixing >> 2) + i])
-    }
     
     if (that.numIn > 0) {
+        for (i = 0; i < that.numIn; i++) { 
+            Module._free(HEAP32[(that.ins >> 2) + i]); 
+        }
         Module._free(that.ins);
     }
+     
     if (that.numOut > 0) {
+        for (i = 0; i < that.numOut; i++) { 
+            Module._free(HEAP32[(that.outs >> 2) + i]);
+            Module._free(HEAP32[(that.mixing >> 2) + i])
+        }
         Module._free(that.outs);
         Module._free(that.mixing);
     }
+    
     for (i = 0; i < that.polyphony; i++) {
         Module._free(that.dsp_voices[i]);
     }

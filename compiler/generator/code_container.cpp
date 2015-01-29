@@ -329,23 +329,23 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     }
 }
 
-void CodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index_string)
+void CodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
-    for (int index = 0; index < inputs(); index++) {
-        string name1 = subst("fInput$0", T(index));
-        string name2 = subst("fInput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1, InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadLoopVar(index_string))));
+    for (int i = 0; i < inputs(); i++) {
+        string name1 = subst("fInput$0", T(i));
+        string name2 = subst("fInput$0_ptr", T(i));
+        loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1, InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
-void CodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index_string)
+void CodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* ouput0 = &ouput0_ptr[index];
-    for (int index = 0; index < outputs(); index++) {
-        string name1 = subst("fOutput$0", T(index));
-        string name2 = subst("fOutput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1, InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadLoopVar(index_string))));
+    for (int i = 0; i < outputs(); i++) {
+        string name1 = subst("fOutput$0", T(i));
+        string name2 = subst("fOutput$0_ptr", T(i));
+        loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1, InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 

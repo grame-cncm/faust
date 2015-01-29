@@ -1,0 +1,39 @@
+\chapter{Metadata}
+\label{chap:spec}
+You might not want to use the float or bool standard messages for your topic, and compile the dsp file directly with the right topic name. In order to accomplish this, you can use \ros metadata.
+\section{DSP writing}
+It all starts in the widgets definition. Until now, maybe that you only wrote :
+\begin{lstlisting}
+param = hslider("level", etc);
+\end{lstlisting}
+To use \ros metadata, you simply have to add square brackets with your topic parameters :
+\begin{lstlisting}
+param = hslider("level [ros:/my/topic/name msg_type msg_name field_name]", etc);
+\end{lstlisting}
+~\\
+As an example, if you intend to use integers in a foo/bar/baz topic, you can type :
+\begin{lstlisting}
+param = hslider("level [foo/bar/baz std_msgs Int32 data]", etc);
+\end{lstlisting}
+And if you intend to use the y field of a Point32 geometry\_msg, then type :
+\begin{lstlisting}
+param = hslider("level [foo/bar/baz geometry_msgs Point32 y]", etc);
+\end{lstlisting}
+You can also add the minimal and maximal values of the signal (4.1 and 9.3 for instance) by adding in the metadata declaration :
+\begin{lstlisting}
+param = hslider("level [foo/bar/baz std_msgs Int32 data 4.1 9.3]", etc);
+\end{lstlisting}
+\paragraph{\color{yoheader}BE CAREFUL !}The minimal and maximal values must be floats ! Otherwise, compilation fails.
+\newpage
+\section{Compilation}
+To compile your dsp file, just do like you used to do before to find out this wonderful chapter about metadata : \lstinline'faust2ros' or \lstinline'faust2rosgtk'. It will add a RosCallbacks class in your C++ file, containing specific callbacks.
+\paragraph{Comment : }Even without any declared \ros metadata, a rosCallbacks class is created, but it does not contain any callback implementation. It is just an empty class.\\
+
+You can then build your executable using \lstinline'catkin_make'.
+
+\section{Run}
+To run your node, just do as usual, using \lstinline'rosrun' or a launch file you wrote. The \faust node creates two kinds of topics :
+\begin{itemize}
+	\item Default topics, using Float32 and Bool standard messages
+	\item Customized topics, created from \ros metadata.
+\end{itemize}

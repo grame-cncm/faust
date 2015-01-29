@@ -54,7 +54,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
                 inst->fAddress->setAccess(Address::kLink);
             }
             
-            // The dispatch and possibly rewrite 'value' access
+            // Then dispatch and possibly rewrite 'value' access
             DispatchVisitor::visit(inst);
         }
 

@@ -10,6 +10,7 @@ LINKS=""
 SVG=""
 EMCC="false"
 POLY="false"
+EXPAND="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -42,8 +43,11 @@ for p in $@; do
 				a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
 				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
-            <a href=\"DSP.dsp\" target=\"_blank\">code</a>  <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
+            <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
+            <a href=\"DSP_exp.dsp\" target=\"_blank\">code</a>
+            <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
+        EXPAND="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
     elif [ $p = "-emcc" ]; then
@@ -90,10 +94,15 @@ for f in $FILES; do
     else
         faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js
     fi
+    
+    # prepare the expanded version
+    if [ $EXPAND = "true" ] ; then
+        faust -e $f 
+    fi
      
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
-        if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
+        if [ $POLY = false ]; then
             EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
         else
             EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
@@ -101,8 +110,7 @@ for f in $FILES; do
         # compile the C++ code to asm.js
         emcc -O2 --memory-init-file 0 $name.cpp -s EMCC_DEBUG=2 -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
-        # add final footer of JS page
-        echo "}());" >> $name-temp1.js
+ 
         # remove intermediate C++  file
         rm $name.cpp
     fi
@@ -119,7 +127,7 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    cat $name-temp1.js >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html 
     echo "</head>" >> $name-temp2.html
     echo "<body>" >> $name-temp2.html

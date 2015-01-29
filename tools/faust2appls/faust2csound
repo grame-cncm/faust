@@ -21,7 +21,7 @@
 PATH=$PATH:/usr/local/bin
 
 if [[ $(uname) == Darwin ]]; then
-    LIB="-I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib"
+    LIB="-I/Library/Frameworks/CsoundLib64.framework/Headers -I/usr/local/include -framework CsoundLib64 -L/usr/local/lib -dynamiclib"
     EXT=".dylib"
 else
     LIB="-I/usr/include/csound -shared -fPIC"

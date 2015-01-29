@@ -51,11 +51,12 @@
 
 // Parser
 extern FILE* yyin;
-extern const char * yyfilename;
+extern const char* yyfilename;
 
+// CG globals
 list<Garbageable*> global::gObjectTable;
 bool global::gHeapCleanup = false;
-
+  
 /*
 faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation error).
 So we use a lower value here.
@@ -290,7 +291,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gPrintJSONSwitch = false;
     gPrintDocSwitch = false;
     gBalancedSwitch = 0;
-    gArchFile = 0;
+    gArchFile = "";
     gExportDSP = false;
 
     gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
@@ -376,6 +377,10 @@ void global::init()
     setlocale(LC_ALL, "C");
     
     gAllocationCount = 0;
+    
+    // source file injection
+    gInjectFlag = false;    // inject an external source file into the architecture file
+    gInjectFile  = "";      // instead of a compiled dsp file
 }
     
 global::~global()
@@ -395,6 +400,20 @@ void global::allocate()
 void global::destroy()
 {
     delete gGlobal;
+}
+
+/*****************************************************************************
+						getFreshID
+*****************************************************************************/
+
+string global::getFreshID(const string& prefix)
+{
+	if (gIDCounters.find(prefix) == gIDCounters.end()) {
+		gIDCounters[prefix] = 0;
+	}
+	int n = gIDCounters[prefix];
+	gIDCounters[prefix] = n+1;
+	return subst("$0$1", prefix, T(n));
 }
 
 Garbageable::Garbageable()
