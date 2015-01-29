@@ -2,12 +2,13 @@
 
 #-------------------------------------------------------------------
 # Wrapping resources
-HTML_FOOTER=webaudio-asm-footer.html
-CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
+HTML_FOOTER=""
+CODE_WRAPPER=""
+JS_WRAPPER=""
 
-JS_WRAPPER=webaudio-asm-footer.js
 LINKS=""
 SVG=""
+
 EMCC="false"
 POLY="false"
 EXPAND="false"
@@ -52,7 +53,6 @@ for p in $@; do
         POLY="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
-        CODE_WRAPPER=webaudio-asm.cpp
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -63,19 +63,28 @@ for p in $@; do
 done
 
 #-------------------------------------------------------------------
-# set the 'poly' compilation mode
+# Set the compilation wrapping files depending of the compilation options
 #
 
 if [ $POLY = true ]; then
+    HTML_FOOTER=webaudio-asm-poly-footer.html
     if [ $EMCC = emcc ]; then
-        echo "emcc poly"
-        HTML_FOOTER=webaudio-asm-poly-footer.html
+        echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-asm-poly-footer.js
     else
-        echo "asm.js poly"
-        HTML_FOOTER=webaudio-asm-poly-footer.html
+        echo "Compiled with 'asm.js' backend in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
+    fi
+else
+    HTML_FOOTER=webaudio-asm-footer.html
+    if [ $EMCC = emcc ]; then
+        echo "Compiled with 'emcc'"
+        CODE_WRAPPER=webaudio-asm.cpp
+        JS_WRAPPER=webaudio-asm-footer.js
+    else
+        echo "Compiled with 'asm.js' backend"
+        CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
     fi
 fi
 
@@ -108,7 +117,7 @@ for f in $FILES; do
             EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
         fi
         # compile the C++ code to asm.js
-        emcc -O2 --memory-init-file 0 $name.cpp -s EMCC_DEBUG=2 -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
  
         # remove intermediate C++  file

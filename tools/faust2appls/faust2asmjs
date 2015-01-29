@@ -11,6 +11,8 @@ COMB_EXPORTED=
 COMB_WRAPPED=
 COMB_WRAPPED_FILES=
 COMB_SEP=
+EMCC="false"
+POLY="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
