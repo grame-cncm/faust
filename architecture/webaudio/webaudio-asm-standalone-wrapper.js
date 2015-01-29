@@ -100,7 +100,7 @@ faust.mydsp = function (context, buffer_size) {
     that.dsp = that.dsp_start;
  
     // ASM module
-    that.factory = mydspFactory(window, null, that.HEAP);
+    that.factory = mydspModule(window, null, that.HEAP);
     console.log(that.factory);
  
     that.pathTable = getPathTablemydsp();

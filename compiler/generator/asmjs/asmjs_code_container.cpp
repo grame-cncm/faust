@@ -181,7 +181,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     // Global declarations
     tab(n, *fOut);
     gGlobal->gASMJSVisitor->Tab(n);
-    tab(n, *fOut); *fOut << "function " << fKlassName << "Factory(global, foreign, buffer) {";
+    tab(n, *fOut); *fOut << "function " << fKlassName << "Module(global, foreign, buffer) {";
     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "'use asm';"; 

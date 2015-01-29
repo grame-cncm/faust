@@ -284,7 +284,7 @@ faust.createDSPFactory = function (code) {
     eval(factory_code);
 
     // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    var factory = eval(factory_name + "Factory(window, null, buffer)");        
+    var factory = eval(factory_name + "Module(window, null, buffer)");        
     console.log(factory);
 
     var path_table_function = eval("getPathTable" + factory_name); 
