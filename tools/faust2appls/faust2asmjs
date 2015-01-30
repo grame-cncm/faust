@@ -5,7 +5,6 @@
 
 CODE_WRAPPER=""
 JS_WRAPPER=""
-
 COMB="false"
 COMB_SRC=
 COMB_EXPORTED=
@@ -40,7 +39,12 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-comb" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2asmjs [-poly] [-comb] [-emcc] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emcripten runtime"
+        echo "Use '-emcc' to compile C++ generated code to asm.js with Emcripten, otherwise the internal asm.js backend is used"
+    elif [ $p = "-comb" ]; then
         COMB="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
@@ -84,7 +88,7 @@ fi
 #
 BINARIES=""
 
-if [ $COMB = false ]; then
+if [ $COMB = "false" ]; then
 
 for f in $FILES; do
     name=${f%.dsp}

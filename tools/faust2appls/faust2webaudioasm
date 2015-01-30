@@ -36,7 +36,12 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-links" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2webaudioasm [-poly] [-links] [-emcc] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
+        echo "Use '-emcc' to compile C++ generated code to asm.js with Emcripten, otherwise the internal asm.js backend is used"
+    elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>
@@ -66,7 +71,7 @@ done
 # Set the compilation wrapping files depending of the compilation options
 #
 
-if [ $POLY = true ]; then
+if [ $POLY = "true" ]; then
     HTML_FOOTER=webaudio-asm-poly-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
@@ -111,7 +116,7 @@ for f in $FILES; do
      
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
-        if [ $POLY = false ]; then
+        if [ $POLY = "false" ]; then
             EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
             
         else
