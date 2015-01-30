@@ -33,7 +33,11 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-links" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2webaudioasm [-poly] [-links] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
+    elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>

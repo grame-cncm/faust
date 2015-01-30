@@ -5,7 +5,7 @@
 
 CPP_WRAPPER=webaudio-asm.cpp
 JS_WRAPPER=webaudio-asm-footer.js
-COMB=0
+COMB="false"
 COMB_SRC=
 COMB_EXPORTED=
 COMB_WRAPPED=
@@ -36,8 +36,12 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-comb" ]; then
-        COMB=1
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2asmjs [-poly] [-comb] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emcripten runtime"
+    elif [ $p = "-comb" ]; then
+        COMB="true"
     elif [ $p = "-poly" ]; then
         CPP_WRAPPER=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-asm-poly-footer.js
@@ -55,7 +59,7 @@ done
 #
 BINARIES=""
 
-if [ $COMB = 0 ]; then
+if [ $COMB = "false" ]; then
 
 for f in $FILES; do
     name=${f%.dsp}
