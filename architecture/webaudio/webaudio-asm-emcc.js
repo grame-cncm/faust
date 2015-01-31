@@ -14,22 +14,23 @@
  Additional code : GRAME 2014
 */
 
-// Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with keyOn, keyOff events.
+var faust = faust || {};
 
-var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number','number']);
-var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
-var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
-var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
-var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['number']);
-var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', 'number', ['number']);
-var DSP_poly_setValue = Module.cwrap('DSP_poly_setValue', null, ['number', 'number', 'number']);
-var DSP_poly_getValue = Module.cwrap('DSP_poly_getValue', 'number', ['number', 'number']);
-var DSP_poly_keyOn = Module.cwrap('DSP_poly_keyOn', null, ['number', 'number', 'number', 'number']);
-var DSP_poly_keyOff = Module.cwrap('DSP_poly_keyOff', null, ['number', 'number', 'number']);
-var DSP_poly_ctrlChange = Module.cwrap('DSP_poly_ctrlChange', null, ['number', 'number', 'number', 'number']);
-var DSP_poly_pitchWheel = Module.cwrap('DSP_poly_pitchWheel', null, ['number', 'number', 'number']);
+// Shim AudioContext on webkit
+window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
-faust.DSP_poly = function (context, buffer_size, max_polyphony) {
+var DSP_constructor = Module.cwrap('DSP_constructor', 'number', ['number']);
+var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
+var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
+var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
+var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', ['number']);
+var DSP_getJSON = Module.cwrap('DSP_getJSON', 'number', ['number']);
+var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
+var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
+
+// Standard Faust DSP
+
+faust.DSP = function (context, buffer_size) {
     var that = {};
     
     faust.context = context;
@@ -46,39 +47,19 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     // input items
     that.inputs_items = [];
     
-    that.ptr = DSP_poly_constructor(faust.context.sampleRate, buffer_size, max_polyphony);
+    that.ptr = DSP_constructor(faust.context.sampleRate);
     
     // Bind to C++ Member Functions
     
     that.getNumInputs = function () 
     {
-        return DSP_poly_getNumInputs(that.ptr);
+        return DSP_getNumInputs(that.ptr);
     };
     
     that.getNumOutputs = function () 
     {
-        return DSP_poly_getNumOutputs(that.ptr);
+        return DSP_getNumOutputs(that.ptr);
     };
-    
-    that.keyOn = function (channel, pitch, velocity)
-    {
-        DSP_poly_keyOn(that.ptr, channel, pitch, velocity);
-    }
-    
-    that.keyOff = function (channel, pitch)
-    {
-        DSP_poly_keyOff(that.ptr, channel, pitch);
-    }
-    
-    that.ctrlChange = function (channel, ctrl, value)
-    {
-        DSP_poly_ctrlChange(that.ptr, channel, ctrl, value);
-    }
-    
-    that.pitchWheel = function (channel, pitchWheel)
-    {
-        DSP_poly_pitchWheel(that.ptr, channel, pitchWheel);
-    }
     
     that.update_outputs = function () 
     {
@@ -87,7 +68,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
             var i;
             for (i = 0; i < that.ouputs_items.length; i++) {
                 Module.writeStringToMemory(that.ouputs_items[i], that.pathPtr);
-                that.handler(that.ouputs_items[i], DSP_poly_getValue(that.ptr, that.pathPtr));
+                that.handler(that.ouputs_items[i], DSP_getValue(that.ptr, that.pathPtr));
             }
         }
     };
@@ -106,8 +87,8 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
         }
         
         // Compute
-        DSP_poly_compute(that.ptr, that.buffer_size, that.ins, that.outs);
-        
+        DSP_compute(that.ptr, that.buffer_size, that.ins, that.outs);
+       
         // Update bargraph
         that.update_outputs();
         
@@ -123,7 +104,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     
     that.destroy = function ()
     {
-        DSP_poly_destructor(that.ptr);
+        DSP_destructor(that.ptr);
         
         if (that.numIn > 0) {
             for (i = 0; i < that.numIn; i++) { 
@@ -164,7 +145,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     that.setHandler = function (handler)
     {
         that.handler = handler;
-    }
+    };
     
     // Bind to Web Audio, external API
     that.start = function () 
@@ -180,18 +161,18 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     that.setValue = function (path, val) 
     {
         Module.writeStringToMemory(path, that.pathPtr);
-        DSP_poly_setValue(that.ptr, that.pathPtr, val);
+        DSP_setValue(that.ptr, that.pathPtr, val);
     };
     
     that.getValue = function (path) 
     {
         Module.writeStringToMemory(path, that.pathPtr);
-        return DSP_poly_getValue(that.ptr, that.pathPtr);
+        return DSP_getValue(that.ptr, that.pathPtr);
     };
-    
+     
     that.json = function ()
     {
-        return Pointer_stringify(DSP_poly_getJSON(that.ptr));
+        return Pointer_stringify(DSP_getJSON(that.ptr));
     }
     
     that.controls = function()
@@ -235,7 +216,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
             that.inputs_items.push(item.address);
         }
     }
-    
+      
     that.init = function ()
     {
         var i;
@@ -278,7 +259,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
                 that.dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + that.buffer_size * that.ptrsize) >> 2);
             }
         }
-        
+                                
         // bargraph
         that.parse_ui(JSON.parse(that.json()).ui);
     };

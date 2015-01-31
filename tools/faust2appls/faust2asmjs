@@ -67,7 +67,7 @@ if [ $POLY = true ]; then
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-footer.js
+        JS_WRAPPER=webaudio-asm-poly-emcc.js
     else
         echo "Compiled with 'asm.js' backend in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
@@ -76,7 +76,7 @@ else
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER=webaudio-asm.cpp
-        JS_WRAPPER=webaudio-asm-footer.js       
+        JS_WRAPPER=webaudio-asm-emcc.js       
     else
         echo "Compiled with 'asm.js' backend"
         CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
@@ -113,7 +113,7 @@ EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$n
         fi
     
         # compile the C++ code to asm.js
-        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
        
         # compose the asm.js code
@@ -178,7 +178,7 @@ done
 
 if [ $EMCC = emcc ]; then
     # compile final file
-    emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
+    emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 $COMB_WRAPPED -o comb.js \
         -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
 rm $COMB_SRC
