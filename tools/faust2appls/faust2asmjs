@@ -4,7 +4,7 @@
 # Wrapping resources
 
 CPP_WRAPPER=webaudio-asm.cpp
-JS_WRAPPER=webaudio-asm-footer.js
+JS_WRAPPER=webaudio-asm-emcc.js
 COMB="false"
 COMB_SRC=
 COMB_EXPORTED=
@@ -44,7 +44,7 @@ for p in $@; do
         COMB="true"
     elif [ $p = "-poly" ]; then
         CPP_WRAPPER=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-footer.js
+        JS_WRAPPER=webaudio-asm-poly-emcc.js
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -74,7 +74,7 @@ for f in $FILES; do
 	fi
     
     # compile the C++ code to asm.js
-    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
         -s EXPORTED_FUNCTIONS=$EXPORTED
    
     # compose the asm.js code
@@ -120,7 +120,7 @@ for f in $FILES; do
 done
 
 # compile final file
-emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
+emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 $COMB_WRAPPED -o comb.js \
     -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
 # collect binary file name for FaustWorks
