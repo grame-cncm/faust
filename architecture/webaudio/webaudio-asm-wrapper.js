@@ -200,6 +200,7 @@ function mydspMixer(global, foreign, buffer) {
     
     var max = global.Math.max;
     var abs = global.Math.abs;
+    var sqrt = global.Math.sqrt;
     
     function clearOutput(count, channels, outputs) {
         count = count | 0;
@@ -224,7 +225,7 @@ function mydspMixer(global, foreign, buffer) {
         var j = 0;
         var level = 0.;
         var gain_level = 0.;
-        gain_level = 1. / +polyphony;
+        gain_level = 1. / +sqrt(polyphony);
         for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
             for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
                 level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
