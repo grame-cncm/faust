@@ -87,7 +87,8 @@ struct mydsp_poly
     inline float mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
     {
     	float level = 0;
-        float gain_level = 1./(float)fMaxPolyphony;
+        // Normalize sample by the max polyphony (as in vst.cpp file)
+        float gain_level = 1./sqrt(fMaxPolyphony);
         for (int i = 0; i < fNumOutputs; i++) {
             float* mixChannel = mixBuffer[i];
             float* outChannel = outputBuffer[i];
