@@ -1,0 +1,132 @@
+/* faustModules.css */
+
+/*	---------------------------------------------------------------------------
+ *	:: Type
+ *
+ *  - Fonts
+ *	- Base
+ *	- Links
+ *	-------------------------------------------------------------------------*/
+
+div.createEquivalentButton {
+	position:fixed;
+	color: white;
+	bottom: 2px;
+	right: 200px;
+	text-align: center;
+	
+/* 	background: url('../img/ico-plus.png') .9em 50% no-repeat #fff; */
+/* 	background-color : #FF4901; */
+	background-color: #FCD21C;
+
+/* 	background : qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 , stop: 1 #22427C); */
+	border-radius: 5px;
+	color: #4c4c4c;
+/* 	display: block; */
+	font-size: 1em; /* 11 / 16 */
+/* 	padding: .1em 1em .1em .15em; */
+    padding-top: 5px;
+    padding-right: 10px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+	text-transform: uppercase;
+}
+
+/* Modules */
+.moduleFaust {
+	background-color:white;
+	color:orange;
+	border-radius: 5px;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+	display: inline-block;
+	position: absolute;
+}
+
+.moduleFaust .content {
+	background: #fff;
+	border-radius: 5px;
+	min-width: 10em;
+	overflow: hidden;
+	padding: 1em 1.25em 1.25em 1.25em;
+	position: relative;
+}
+.moduleFaust .content img {
+	display: block;
+	margin: 0 auto;
+}
+.moduleFaust.has-footer .content {
+	border-bottom: 1px solid #dbdbdb;
+	border-radius: 5px 5px 0 0;
+}
+.moduleFaust h6 {
+	font-size: .75em;
+	margin: 1em 1em 1em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+/* Module nodes */
+.moduleFaust .node {
+	position: absolute;
+	margin-top: -16px;
+	top: 50%;
+}
+.moduleFaust .node-input {
+	left: -18px;
+}
+.moduleFaust .node-output {
+	right: -18px;
+}
+
+/* Module close */
+.moduleFaust .close {
+	background: url('../img/ico-close.gif') 0 0 no-repeat;
+	height: 8px;
+	text-indent: -999em;
+	position: absolute;
+	right: 8px;
+	top: 8px;
+	width: 9px;
+}
+.moduleFaust .close:hover {
+	opacity: .8
+}
+
+.moduleFaust.analyzer {
+}
+
+/* Module footer */
+.moduleFaust footer {
+	background-color: #fff;
+	background-image: -webkit-linear-gradient(top, rgb(255, 255, 255), rgb(219, 219, 219));
+	background-image: linear-gradient(top, rgb(255, 255, 255), rgb(219, 219, 219));
+	border-radius: 0 0 5px 5px;
+	overflow: hidden;
+	padding: 0em .4em .1em;	
+}
+.moduleFaust footer select {
+	background: url('../img/ico-arrow.png') 100% 50% no-repeat;
+	border: none;
+	box-sizing: border-box;
+	cursor: default;
+	font-family: 'Droid Serif', Georgia, serif;
+	font-size: .625em;
+	font-style: italic;
+	outline: none;
+	white-space: pre;
+	width: 100%;
+	-webkit-appearance: none;
+	-webkit-box-align: center;
+}
+.moduleFaust.has-loop footer select {
+	width: 70%;
+}
+.moduleFaust footer .loop {
+	border-left: 1px solid #dbdbdb;
+	display: inline;
+	float: right;
+	font-size: .625em;
+	padding: .4em 0 .4em .6em;
+	text-transform: uppercase;
+	width: 23%;
+}

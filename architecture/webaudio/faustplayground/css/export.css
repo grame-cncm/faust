@@ -1,0 +1,44 @@
+
+#filedrag{
+	font-weight: bold;
+	text-align: center;
+	padding: 1em 0;
+	margin: 1em 0;
+	color: #CECECE;
+	border: 8px dashed #CECECE;
+	border-radius: 7px;
+	cursor: default;
+	font-size : 20px;
+}
+
+#filedrag.hover{
+	color: #FF7F00;
+	border-color: #FF7F00;
+	border-style: solid;
+}
+			
+#export{
+	text-align: center;
+	padding: 1em 0;
+	margin: 1em 0;
+	color: #CECECE;
+	border: 3px solid #CECECE;
+	cursor: default;
+	font-size : 16px;
+}
+
+h1{
+	font-size : 20px;
+	font-weight: bold;
+	color: #CECECE;
+}
+
+input{
+	text-align: center;
+	padding: 1em 0;
+	margin: 1em 0;
+	color: white;
+	border: 3px solid #CECECE;
+	cursor: default;
+	font-size : 16px;
+}
