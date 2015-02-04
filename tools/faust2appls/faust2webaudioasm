@@ -36,7 +36,12 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-links" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2webaudioasm [-poly] [-links] [-emcc] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
+        echo "Use '-emcc' to compile C++ generated code to asm.js with Emcripten, otherwise the internal asm.js backend is used"
+    elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>
@@ -66,12 +71,12 @@ done
 # Set the compilation wrapping files depending of the compilation options
 #
 
-if [ $POLY = true ]; then
+if [ $POLY = "true" ]; then
     HTML_FOOTER=webaudio-asm-poly-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-footer.js
+        JS_WRAPPER=webaudio-asm-poly-emcc.js
     else
         echo "Compiled with 'asm.js' backend in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
@@ -81,7 +86,7 @@ else
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER=webaudio-asm.cpp
-        JS_WRAPPER=webaudio-asm-footer.js
+        JS_WRAPPER=webaudio-asm-emcc.js
     else
         echo "Compiled with 'asm.js' backend"
         CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
@@ -111,7 +116,7 @@ for f in $FILES; do
      
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
-        if [ $POLY = false ]; then
+        if [ $POLY = "false" ]; then
             EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
             
         else
@@ -119,7 +124,7 @@ for f in $FILES; do
                   
         fi
         # compile the C++ code to asm.js
-        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
  
         # remove intermediate C++  file
