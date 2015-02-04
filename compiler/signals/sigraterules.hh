@@ -19,6 +19,8 @@ class RateInferrer
 public:
     RateInferrer(Tree lsig);        ///< list of signals we want to inferre the rates
     int rate(Tree sig);             ///< returns the rate of sig assuming that sig is a subexpression of lsig
+    string clock(Tree sig);         ///< returns sig's C clock expression : C_{r_i}(t) = (t*r_i)/r_c
+    string tick(Tree sig);          ///< returns sig's C tick expression  : T_{r_i}(t) = ((t % (r_c/r_i)) == 0)
     int commonRate();               ///< returns the least common multiple rate
     
     int periodicity(Tree sig)       { int r = rate(sig); return fCommonRate/r; }
@@ -26,3 +28,4 @@ public:
 };
 
 #endif // SIGRATERULES_HH
+

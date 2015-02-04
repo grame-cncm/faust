@@ -37,6 +37,7 @@
 
 #include "sigtyperules.hh"
 #include "sigraterules.hh"
+#include "Text.hh"
 
 
 
@@ -882,3 +883,22 @@ int RateInferrer::commonRate()
     return fCommonRate;
 }
 
+string RateInferrer::clock(Tree sig)         ///< returns sig's C clock expression : C_{r_i}(t) = (t*r_i)/r_c
+{
+    int p = periodicity(sig);
+    if (p>1) {
+        return subst("(i/$0)", T(p));
+    } else {
+        return "i";
+    }
+}
+
+string RateInferrer::tick(Tree sig)          ///< returns sig's C tick expression  : T_{r_i}(t) = ((t % (r_c/r_i)) == 0)
+{
+    int p = periodicity(sig);
+    if (p>1) {
+        return subst("((i%$0)==0)", T(p));
+    } else {
+        return "true";
+    }
+}

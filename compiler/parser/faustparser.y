@@ -105,7 +105,7 @@ Tree unquote(char* str)
 %left DELAY1
 %left APPL DOT
 
-%left HASH
+%right HASH
 
 %token MEM
 %token PREFIX
@@ -207,6 +207,7 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
+/* multi rate extension */
 %token VECTORIZE
 %token SERIALIZE
 %token HASH

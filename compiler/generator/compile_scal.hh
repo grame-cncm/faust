@@ -150,9 +150,15 @@ class ScalarCompiler : public Compiler
     int             pow2limit(int x);
 
     void            declareWaveform(Tree sig, string& vname, int& size);
-    
+
     string          generateDownSample(Tree sig, Tree w, Tree x);
     string          generateUpSample(Tree sig, Tree w, Tree x);
+
+    string          generateVectorize(Tree sig, Tree x, Tree y);
+    string          generateSerialize(Tree sig, Tree x);
+
+    string          generateConcat(Tree sig, Tree x, Tree y);
+    string          generateVectorAt(Tree sig, Tree x, Tree y);
 
 
 

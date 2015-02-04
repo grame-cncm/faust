@@ -50,6 +50,7 @@
 #include "compatibility.hh"
 #include "ppsig.hh"
 #include "sigToGraph.hh"
+#include "Text.hh"
 
 using namespace std;
 
@@ -275,68 +276,72 @@ string  ScalarCompiler::CS (Tree sig)
 string	ScalarCompiler::generateCode (Tree sig)
 {
 #if 0
-	fprintf(stderr, "CALL generateCode(");
-        printSignal(sig, stderr);
-	fprintf(stderr, ")\n");
+    fprintf(stderr, "CALL generateCode(");
+    printSignal(sig, stderr);
+    fprintf(stderr, ")\n");
 #endif
 
-	int 	i;
-	double	r;
+    int 	i;
+    double	r;
     Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
 
-	//printf("compilation of %p : ", sig); print(sig); printf("\n");
+    //printf("compilation of %p : ", sig); print(sig); printf("\n");
 
-		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
-	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
-	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
+    if ( getUserData(sig) )                         { return generateXtended(sig); }
+    else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
+    else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
     else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
-	else if ( isSigInput(sig, &i) ) 				{ fClass->setInputRate(i, fRates->rate(sig)); return generateInput(sig, T(i)); 			}
-	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
+    else if ( isSigInput(sig, &i) ) 				{ fClass->setInputRate(i, fRates->rate(sig)); return generateInput(sig, T(i)); 			}
+    else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
-	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
-	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix 	(sig, x, y); 			}
-	else if ( isSigIota(sig, x) ) 					{ return generateIota 		(sig, x); 				}
+    else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
+    else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix 	(sig, x, y); 			}
+    else if ( isSigIota(sig, x) ) 					{ return generateIota 		(sig, x); 				}
 
-	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 	(sig, i, x, y); 		}
-	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun 		(sig, ff, largs); 		}
+    else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 	(sig, i, x, y); 		}
+    else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun 		(sig, ff, largs); 		}
     else if ( isSigFConst(sig, type, name, file) )  { return generateFConst(sig, tree2str(file), tree2str(name)); }
     else if ( isSigFVar(sig, type, name, file) )    { return generateFVar(sig, tree2str(file), tree2str(name)); }
 
-	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable 	(sig, x, y); 			}
-	else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl 	(sig, x, y, z); 		}
-	else if ( isSigRDTbl(sig, x, y) ) 				{ return generateRDTbl 	(sig, x, y); 			}
+    else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable 	(sig, x, y); 			}
+    else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl 	(sig, x, y, z); 		}
+    else if ( isSigRDTbl(sig, x, y) ) 				{ return generateRDTbl 	(sig, x, y); 			}
 
-	else if ( isSigSelect2(sig, sel, x, y) ) 		{ return generateSelect2 	(sig, sel, x, y); 		}
-	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ return generateSelect3 	(sig, sel, x, y, z); 	}
+    else if ( isSigSelect2(sig, sel, x, y) ) 		{ return generateSelect2 	(sig, sel, x, y); 		}
+    else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ return generateSelect3 	(sig, sel, x, y, z); 	}
 
-	else if ( isSigGen(sig, x) ) 					{ return generateSigGen 	(sig, x); 				}
+    else if ( isSigGen(sig, x) ) 					{ return generateSigGen 	(sig, x); 				}
 
-    else if ( isProj(sig, &i, x) )                  { return generateRecProj    (sig, x, i);    }
+    else if ( isProj(sig, &i, x) )                  { return generateRecProj    (sig, x, i);            }
 
-	else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast   (sig, x); 				}
-	else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast (sig, x); 				}
+    else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast   (sig, x); 				}
+    else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast (sig, x); 				}
 
-	else if ( isSigButton(sig, label) ) 			{ return generateButton   	(sig, label); 			}
-	else if ( isSigCheckbox(sig, label) ) 			{ return generateCheckbox 	(sig, label); 			}
-	else if ( isSigVSlider(sig, label,c,x,y,z) )	{ return generateVSlider 	(sig, label, c,x,y,z); }
-	else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return generateHSlider 	(sig, label, c,x,y,z); }
-	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return generateNumEntry 	(sig, label, c,x,y,z); }
+    else if ( isSigButton(sig, label) ) 			{ return generateButton   	(sig, label); 			}
+    else if ( isSigCheckbox(sig, label) ) 			{ return generateCheckbox 	(sig, label); 			}
+    else if ( isSigVSlider(sig, label,c,x,y,z) )	{ return generateVSlider 	(sig, label, c,x,y,z);  }
+    else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return generateHSlider 	(sig, label, c,x,y,z);  }
+    else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return generateNumEntry 	(sig, label, c,x,y,z);  }
 
-	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
-	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
-	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
+    else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z));  }
+    else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z));  }
+    else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x));          }
 
-    else if ( isSigUpSample(sig, x, y) )            { return generateUpSample(sig, x, y); }
-    else if ( isSigDownSample(sig, x, y) )          { return generateDownSample(sig, x, y); }
+    else if ( isSigUpSample(sig, x, y) )            { return generateUpSample   (sig, x, y);    }
+    else if ( isSigDownSample(sig, x, y) )          { return generateDownSample (sig, x, y);    }
+    else if ( isSigVectorize(sig, x, y) )           { return generateVectorize  (sig, x, y);    }
+    else if ( isSigSerialize(sig, x) )              { return generateSerialize  (sig, x);       }
+    else if ( isSigConcat(sig, x, y) )              { return generateConcat     (sig, x, y);    }
+    else if ( isSigVectorAt(sig, x, y) )            { return generateVectorAt   (sig, x, y);    }
 
 
-	else {
-		printf("Error in compiling signal, unrecognized signal : ");
-		print(sig);
-		printf("\n");
-		exit(1);
-	}
-	return "error in generate code";
+    else {
+        printf("Error in compiling signal, unrecognized signal : ");
+        print(sig);
+        printf("\n");
+        exit(1);
+    }
+    return "error in generate code";
 }
 
 
@@ -484,10 +489,17 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 
 void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
-    if (t->nature() == kInt) {
-        ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+    VectorType* v = isVectorType(t);
+    if (v) {
+        // it is a vector type
+        ctype = v->typeName(); vname = subst("v$0", getFreshID(prefix));
     } else {
-        ctype = ifloat(); vname = subst("f$0", getFreshID(prefix));
+        // it is a scalar type
+        if (t->nature() == kInt) {
+            ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+        } else {
+            ctype = ifloat(); vname = subst("f$0", getFreshID(prefix));
+        }
     }
 }
 
@@ -1419,6 +1431,88 @@ string ScalarCompiler::generateUpSample(Tree sig, Tree x, Tree n)
 string ScalarCompiler::generateDownSample(Tree sig, Tree x, Tree n)
 {
     return generateSeparateCode(sig, CS(x));
+}
+
+/**
+ * Generate s = vectorize(n:int, x:(A,r))
+ *  A is the type of samples of x
+ *  r is the rate of x
+ *  c is the clock of x
+ *  tick(x) = clock(x)!=clock(x)'
+ *
+ *  decl: struct VnA { A data[n]; }
+ *  decl: VnA I1, I2, *Iw, *Ir;
+ *  init: Iw=&I1; Ir=&I2;
+ *  stmt: if (tick(x)) (*Iw).data[(clock(x)+(n-1))%n] = CS[[x]];
+ *  stmt: if (tick(s)) swap(Iw,Ir);
+ *  ------------------------------
+ *  rtrn: (*Ir)
+ */
+
+string ScalarCompiler::generateVectorize(Tree sig, Tree n, Tree x)
+{
+    int vsize;
+    if (isSigInt(n,&vsize)) {
+        string code = CS(x);
+        Type t1 = getCertifiedSigType(sig);
+        string typ1 = t1->typeName();
+        Type t2 = getCertifiedSigType(x);
+        string typ2 = t2->typeName();
+        string id = getFreshID("V");
+
+        fClass->addDeclCode(subst("struct $0 { $2 data[$1]; };", typ1, T(vsize), typ2));
+        fClass->addDeclCode(subst("$0    $1_1,$1_2,*$1w,*$1r;", typ1, id));
+        fClass->addInitCode(subst("$0w=&$0_1; $0r=&$0_2;", id));
+        fClass->addExecCode(subst("if ($0) $5w->data[($1+$2)%$3]=$4;",
+                                    fRates->tick(x),
+                                    fRates->clock(x),
+                                    T(vsize-1),
+                                    T(vsize),
+                                    code, id        ) );
+        fClass->addExecCode(subst("if ($0) {$1* t=$2w; $2w=$2r; $2r=t;}", fRates->tick(sig), typ1, id));
+        return subst("(*$0r)", id);
+    } else {
+        return "vectorize error";
+    }
+}
+
+/**
+ * Generate Serialize
+ */
+
+string ScalarCompiler::generateSerialize(Tree sig, Tree x)
+{
+    string code = CS(x);
+    Type t1 = getCertifiedSigType(x);
+    VectorType* vt = isVectorType(t1);
+    if (vt) {
+        return subst("$0.data[$1%$2]", code, fRates->clock(sig), T(vt->size()) );
+    } else {
+        return "error serialize";
+    }
+    //(*RD).data[i%5];
+}
+
+/**
+ * Generate Concat
+ */
+
+string ScalarCompiler::generateConcat(Tree sig, Tree x, Tree y)
+{
+    string c1 = CS(x);
+    string c2 = CS(y);
+    return subst("concat($0,$1)", c1, c2);
+}
+
+/**
+ * Generate vector access
+ */
+
+string ScalarCompiler::generateVectorAt(Tree sig, Tree x, Tree y)
+{
+    string c1 = CS(x);
+    string c2 = CS(y);
+    return subst("$0.data[$1]", c1, c2);
 }
 
 

@@ -30,6 +30,7 @@
 #include "tree.hh"
 #include "smartpointer.hh"
 #include "interval.hh"
+#include "Text.hh"
 
 
 /*********************************************************************
@@ -127,7 +128,7 @@ class AudioType
     virtual bool    isMaximal() const               = 0;        ///< true when type is maximal (and therefore can't change depending of hypothesis)
 	
     virtual AudioType* dimensions(vector<int>& D)   = 0;        /// Fill D with the dimensions of the type and returns its base type
-
+    virtual string typeName()                       = 0;        /// return a string representing a valid C++ typename
   protected:	
 	void		setInterval(const interval& r)	{ fInterval = r;}
 
@@ -264,8 +265,13 @@ class SimpleType : public AudioType
 // 	}
     virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // scalar have no dimensions
 
-    virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    virtual bool    isMaximal() const;                  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 
+    virtual string  typeName()  {
+        if (fNature == kInt) { return "int"; }
+        else { return "float"; }
+    }
+        ///< return a string representing a valid C++ typename
 
 
 };
@@ -335,6 +341,8 @@ class TableType : public AudioType
 
     virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // tables have no dimensions
 
+    virtual string  typeName()  { return "tabletype!!!"; }
+
 };
 
 
@@ -375,6 +383,7 @@ class TupletType : public AudioType
   
     virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // tuples have no dimensions
+    virtual string  typeName()  { return "tupletype!!!"; }
 
 };
 
@@ -417,6 +426,8 @@ class VectorType : public AudioType
     virtual bool    isMaximal() const                   { return false; }           ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual AudioType* dimensions(vector<int>& D)       { AudioType* t = fContent->dimensions(D); D.push_back(fSize); return t;}    ///< vectors have a dimension
 
+    string generateDeclaration();
+    virtual string typeName()                           { return subst("v$0$1", T(fSize),  fContent->typeName()); }
 
 };
 
