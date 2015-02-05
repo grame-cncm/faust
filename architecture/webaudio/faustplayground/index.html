@@ -1,0 +1,94 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" >
+<html class="no-js" lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	
+	<title>Web Audio Playground including Faust Modules</title>
+
+	<link rel="shortcut icon" href="favicon.ico" />
+
+<!-- CSS DESCRIPTIONS -->
+	<link rel="stylesheet" href="css/reset.css" />
+	<link rel="stylesheet" href="css/main.css" />
+	<link rel="stylesheet" href="css/faustModules.css" />
+		
+<!-- JAVASCRIPT FUNCTIONS -->
+    <script src="js/AudioContextMonkeyPatch.js"></script>
+	<script src="js/Connect.js"></script>
+	<script src="js/Utilitary.js"></script>
+<!-- 	<script src="js/ConnectInterface.js"></script> -->
+	<script src="js/Tests.js"></script>
+	<script src="js/Dragging.js"></script>
+	<script src="js/analyser.js"></script>
+	<script src="js/analyser.js"></script>
+	<script src="js/Export.js"></script>
+	<script src="js/FaustModule.js"></script>
+	<script src="js/FaustModuleInterface.js"></script>
+	<script src="js/EquivalentFaust.js"></script>
+	<script src="js/Scene.js"></script>
+	
+<!-- JAVASCRIPT LIBRARIES USED -->
+	<script src="qrcodejs/qrcode.js"></script>
+		
+	<script src="file:///Users/denoux/faudiostream-code_FAUST2/architecture/httpdlib/src/hexa/jsscripts"></script>
+	<script src="http://faust.grame.fr/www/libfaust.js"></script>
+
+	<script src="file:///Users/denoux/faudiostream-code_FAUST2/architecture/webaudio/webaudio-asm-wrapper.js"></script>
+
+	
+	<script>
+	if (window != window.top)
+		document.write("<style>header {display:none}</style>")
+	</script>
+</head>
+<!-- <body background-color="white"> -->
+<body>
+	<div id="main" class="container">
+		<header id="header">
+			<img src="img/logo.png" alt="Web Audio Playground: A demonstration of the web audio API // v 1.0" />
+			<p id="PatchName" contenteditable="true" class="PatchName">Patch</p>		
+		</header>
+		<section id="modules" class="container">
+
+		</section>
+
+		<div class="createEquivalentButton">
+			<a id="cfe">Create Faust Equivalent</a>
+		</div>
+		
+	<div class="link">Extension of the WebAudio Playground by <a href="https://github.com/cwilso/WebAudio">Chris Wilson</a></div>
+	</div> <!-- /#main -->
+		<div id="input" class="source">
+		</div>
+	<div id="output" class="destination">
+		<div class="node node-input"><span class="node-button">&nbsp;</span></div>
+		</br>
+		<input id="faustweburl" value="http://faustservice.grame.fr"/>
+		</br>
+		</br>
+		<input class="exportButton" type="submit" onclick="UploadTargets(event)" value="Refresh"/>
+		</br>
+		</br>
+		<div class="exportTitle">Export Patch As:</div>
+		</br>
+		</br>
+		<select id="platforms" class="platforms" onChange="updateArchitectures()"></select>
+		</br>
+		<select id="architectures" class="architectures"></select> 
+		</br>
+		</br>
+		</br>
+		<input class="exportButton" type="submit" onclick="exportPatch(event)" value="Export"/>
+		</br>
+		</br>
+		</br>
+		
+	</div>
+	
+	<svg id=svgCanvas xmlns="http://www.w3.org/2000/svg" version="1.1" style="position:absolute; width:100%; height:100%; top:0; left:0; z-index:-1;"></svg>
+</body>
+</html>
+
+

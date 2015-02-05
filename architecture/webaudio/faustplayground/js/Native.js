@@ -13,7 +13,7 @@ wavetable
 
 
 var audioContext = null;
-var tempx=30, tempy=200;
+var tempx=120, tempy=200;
 var idX = 0;
 var lastBufferLoaded = null;
 var buffers = new Array();
@@ -41,13 +41,12 @@ function extract_binary(input, bytebuffer) {
 			
 // Audio input handling
 function activateAudioInput(){
-	console.log("activateAudioInput");
+
 	if (!navigator.getUserMedia) {
 		navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     }
         
 	if (navigator.getUserMedia) {
-		console.log("On est quand meme tout a fait sensé passer par là");
 	
     	navigator.getUserMedia({audio:true}, getDevice, function(e) {
         alert('Error getting audio input');
