@@ -644,7 +644,8 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
         case kSamp :
 
             getTypedNames(t, "Temp", ctype, vname);
-            fClass->addExecCode(subst("$0 $1;", ctype, vname));
+//          fClass->addExecCode(subst("$0 $1;", ctype, vname));
+            fClass->addZone2(subst("$0 $1;", ctype, vname));
             fClass->addExecCode(wrapPeriodicity(fRates->periodicity(sig), subst("$0 = $1", vname, exp)));
             break;
     }
