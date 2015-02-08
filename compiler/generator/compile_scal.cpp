@@ -1271,11 +1271,8 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 {
 	int 	mxd, d;
 	string 	vecname;
-	Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
     int period = fRates->periodicity(sig);
-
-    cerr << "ENTER generateFixDelay : " << ppsig(sig) << " with periodicity " << period << endl;
 
     //cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
     //cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
