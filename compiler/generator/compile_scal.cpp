@@ -585,6 +585,16 @@ string wrapPeriodicity(int p, const string& code)
     }
 }
 
+
+string wrapPostPeriodicity(int p, const string& code)
+{
+    if (p==1) {
+        return subst("$0;", code);
+    } else {
+        return subst("if (((i+1)%$0)==0) { $1; }", T(p), code);
+    }
+}
+
 // like generateCacheCode but we force caching like if sharing was always > 1
 string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 {
@@ -1263,7 +1273,9 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 	string 	vecname;
 	Occurences* o = fOccMarkup.retrieveOccurences(sig);
 
-    int rate = fRates->rate(sig);
+    int period = fRates->periodicity(sig);
+
+    cerr << "ENTER generateFixDelay : " << ppsig(sig) << " with periodicity " << period << endl;
 
     //cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
     //cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
@@ -1296,7 +1308,7 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 		// long delay : we use a ring buffer of size 2^x
 		int 	N 	= pow2limit( mxd+1 );
-		return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N-1)));
+        return generateCacheCode(sig, subst("$0[(IOTA/$3-$1)&$2]", vecname, CS(delay), T(N-1), T(period)));
 	}
 }
 
@@ -1336,12 +1348,12 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 
         // generate post processing copy code to update delay values
         if (mxd == 1) {
-            fClass->addPostCode(wrapPeriodicity(p, subst("$0[1] = $0[0]", vname)));
+            fClass->addPostCode(wrapPostPeriodicity(p, subst("$0[1] = $0[0]", vname)));
         } else if (mxd == 2) {
             //fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-            fClass->addPostCode(wrapPeriodicity(p, subst("$0[2] = $0[1]; $0[1] = $0[0]", vname)));
+            fClass->addPostCode(wrapPostPeriodicity(p, subst("$0[2] = $0[1]; $0[1] = $0[0]", vname)));
         } else {
-            fClass->addPostCode(wrapPeriodicity(p, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1]", T(mxd), vname)));
+            fClass->addPostCode(wrapPostPeriodicity(p, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1]", T(mxd), vname)));
         }
         setVectorNameProperty(sig, vname);
         return subst("$0[0]", vname);
@@ -1391,11 +1403,11 @@ void ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const stri
 
         // generate post processing copy code to update delay values
         if (mxd == 1) {
-            fClass->addPostCode(wrapPeriodicity(p, subst("$0[1] = $0[0]", vname)));
+            fClass->addPostCode(wrapPostPeriodicity(p, subst("$0[1] = $0[0]", vname)));
         } else if (mxd == 2) {
-            fClass->addPostCode(wrapPeriodicity(p, subst("$0[2] = $0[1]; $0[1] = $0[0]", vname)));
+            fClass->addPostCode(wrapPostPeriodicity(p, subst("$0[2] = $0[1]; $0[1] = $0[0]", vname)));
         } else {
-            fClass->addPostCode(wrapPeriodicity(p, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1]", T(mxd), vname)));
+            fClass->addPostCode(wrapPostPeriodicity(p, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1]", T(mxd), vname)));
         }
 
     } else {
@@ -1460,7 +1472,7 @@ string ScalarCompiler::generateVectorize(Tree sig, Tree n, Tree x)
         string typ2 = t2->typeName();
         string id = getFreshID("V");
 
-        fClass->addDeclCode(subst("struct $0 { $2 data[$1]; };", typ1, T(vsize), typ2));
+        fClass->addDeclCode(subst("struct $0 { $2 data[$1]; $0(int n=0) { for(int i=0;i<$1;i++) data[i]=0;} };", typ1, T(vsize), typ2));
         fClass->addDeclCode(subst("$0    $1_1,$1_2,*$1w,*$1r;", typ1, id));
         fClass->addInitCode(subst("$0w=&$0_1; $0r=&$0_2;", id));
         fClass->addExecCode(subst("if ($0) $5w->data[($1+$2)%$3]=$4;",
@@ -1470,7 +1482,7 @@ string ScalarCompiler::generateVectorize(Tree sig, Tree n, Tree x)
                                     T(vsize),
                                     code, id        ) );
         fClass->addExecCode(subst("if ($0) {$1* t=$2w; $2w=$2r; $2r=t;}", fRates->tick(sig), typ1, id));
-        return subst("(*$0r)", id);
+        return generateCacheCode(sig, subst("(*$0r)", id));
     } else {
         return "vectorize error";
     }
@@ -1486,7 +1498,7 @@ string ScalarCompiler::generateSerialize(Tree sig, Tree x)
     Type t1 = getCertifiedSigType(x);
     VectorType* vt = isVectorType(t1);
     if (vt) {
-        return subst("$0.data[$1%$2]", code, fRates->clock(sig), T(vt->size()) );
+        return generateCacheCode(sig, subst("$0.data[$1%$2]", code, fRates->clock(sig), T(vt->size()) ));
     } else {
         return "error serialize";
     }
