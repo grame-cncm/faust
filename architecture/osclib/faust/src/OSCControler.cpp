@@ -49,6 +49,7 @@ static const char* kUDPOutOpt	= "-outport";
 static const char* kUDPErrOpt	= "-errport";
 static const char* kUDPDestOpt	= "-desthost";
 static const char* kXmitOpt		= "-xmit";
+static const char* kXmitFilterOpt = "-xmitfilter";
 
 bool OSCControler::gXmit = false;		// a static variable to control the transmission of values
 										// i.e. the use of the interface as a controler
@@ -89,6 +90,25 @@ static bool getXmitOption (int argc, char *argv[], const std::string& option, bo
 	return defaultValue;
 }
 
+static void treatXmitFilterOption (int argc, char *argv[], const std::string& option)
+    {
+        for (int i=0; i < argc-1; i++) {
+            
+            if (option == argv[i]) {
+                int j = i+1;
+                
+                while(j<argc){
+                    if(argv[j][0] == '-')
+                        return;
+                    else
+                        OSCControler::addFilteredPath(argv[j]);
+                    
+                    j++;
+                }
+            }
+        }
+    }
+
 
 //--------------------------------------------------------------------------
 OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
@@ -99,6 +119,9 @@ OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCal
 	fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
 	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
 	gXmit = getXmitOption (argc, argv, kXmitOpt, false);
+    
+    treatXmitFilterOption(argc, argv, kXmitFilterOpt);
+    
 
 	fFactory = new FaustFactory(ui, io);
 	fOsc	= new OSCSetup(errCallback, arg);
