@@ -51,7 +51,7 @@ static const char * kDestMsg		= "desthost";
 static const char * kUdpOutPortMsg	= "outport";
 static const char * kUdpErrPortMsg	= "errport";
 static const char * kXmitMsg		= "xmit";
-
+static const char * kXmitFilter     = "xmitfilter";
 
 //--------------------------------------------------------------------------
 // ip address utility
@@ -234,7 +234,20 @@ bool RootNode::accept( const Message* msg )
 		}
 		else if ((val == kXmitMsg) && (msg->param(1, num)))
 			OSCControler::gXmit = num ? true : false;
+        
+        else if(val == kXmitFilter){
+            
+            for(int i = 1 ; i<msg->size(); i++){
+                msg->param(i, str);
+                OSCControler::addFilteredPath(str);
+            }
+        }
 	}
+    else if((msg->size() == 1) && (msg->param(0, val))){
+        if(val == kXmitFilter)
+            OSCControler::resetFilteredPaths();
+    }
+    
 	else if (fIO)							// when still not handled and if a IO controler is set
 		return acceptSignal (msg);			// try to read signal data
 	return false;
