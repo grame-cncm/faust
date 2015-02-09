@@ -34,6 +34,8 @@
 #include "OSCFError.h"
 #include "RootNode.h"
 
+#include "OSCRegexp.h"
+
 using namespace std;
 
 namespace oscfaust
@@ -51,6 +53,8 @@ static const char* kXmitOpt		= "-xmit";
 bool OSCControler::gXmit = false;		// a static variable to control the transmission of values
 										// i.e. the use of the interface as a controler
 
+std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
+    
 //--------------------------------------------------------------------------
 // utilities for command line arguments 
 //--------------------------------------------------------------------------
@@ -149,6 +153,35 @@ void OSCControler::run ()
 //--------------------------------------------------------------------------
 const char*	OSCControler::getRootName()	const { return fFactory->root()->getName(); }
 
+    
+//--------------------------------------------------------------------------    
+void OSCControler::addFilteredPath(std::string path){
+        
+    OSCRegexp* regexp = new OSCRegexp(path.c_str());
+    fFilteredPaths.push_back(regexp);
+}
+    
+bool OSCControler::isPathFiltered(std::string path){
+        
+    for(size_t i=0; i<fFilteredPaths.size(); i++){
+            
+        if(fFilteredPaths[i]->match(path.c_str()))
+            return true;
+    }
+        
+    return false;
+}
+    
+void OSCControler::resetFilteredPaths(){
+    
+    for(int i=fFilteredPaths.size()-1; i>=0; i--){
+        
+        OSCRegexp* reg = fFilteredPaths[i];
+
+        fFilteredPaths.erase(fFilteredPaths.begin()+i);
+        delete reg;
+    }
+}  
 //--------------------------------------------------------------------------
 void OSCControler::quit ()
 {

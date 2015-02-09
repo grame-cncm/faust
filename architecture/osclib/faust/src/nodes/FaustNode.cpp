@@ -31,10 +31,10 @@ namespace oscfaust
 
 //--------------------------------------------------------------------------
 template<> void FaustNode<float>::sendOSC () const {
-		if (OSCControler::gXmit) oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << OSCEnd();
+		if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << OSCEnd();
 }
 template<> void FaustNode<double>::sendOSC () const {
-		if (OSCControler::gXmit) oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << OSCEnd();
+		if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << OSCEnd();
 }
 
 //--------------------------------------------------------------------------
