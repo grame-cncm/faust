@@ -12,7 +12,7 @@ function getElementsByClassName(tag, className){
 function getOutputNodeFromDiv(div){
 
 	for(var i=0 ; i<div.childNodes.length; i++){
-		if(div.childNodes[i].className.indexOf("node node-output")>=0){
+		if(div.childNodes[i].className && div.childNodes[i].className.indexOf("node node-output")>=0){
 			return div.childNodes[i];
 		}
 	}
@@ -30,3 +30,14 @@ function getInputNodeFromDiv(div){
 	
 	return null;
 }
+
+// function unzipBlob(blob, callback) {
+// 	zip.createReader(new zip.BlobReader(blob), function(zipReader) {
+// 		zipReader.getEntries(function(entries) {
+// 			entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), function(data) {
+// 				zipReader.close();
+// 				callback(data);
+// 			});
+// 		});
+// 	}, onerror);
+// }

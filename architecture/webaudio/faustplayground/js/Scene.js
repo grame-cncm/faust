@@ -1,7 +1,6 @@
 
 //************* GLOBALS
 var audioContext = null;
-var tempx=120, tempy=200;
 var idX = 0;
 
 window.addEventListener('load', init, false);
@@ -11,6 +10,14 @@ window.addEventListener('load', init, false);
 ********************************************************************/
 
 function init() {
+
+// DISABLE THE USE OF WEB WORKERS
+// 	zip.useWebWorkers = false;
+// 	zip.workerScriptsPath = "WebContent/";
+// 	zip.workerScripts = {
+//  		 deflater: ['WebContent/z-worker.js', 'WebContent/deflate.js'],
+// 		  inflater: ['WebContent/z-worker.js', 'WebContent/inflate.js']
+// 	};
 
     try {
       window.audioContext = new AudioContext();
@@ -57,7 +64,7 @@ function getDevice(device) {
 	i.className="node node-output";
 	i.addEventListener( "mousedown", startDraggingConnector, true );
 	i.innerHTML = "<span class='node-button'>&nbsp;</span>";
-	document.getElementById("input").appendChild(i);
+	src.appendChild(i);
 }
 
 function activateAudioOutput(){
@@ -104,14 +111,6 @@ function createFaustModule(x, y, name){
 	e.style.left="" + x + "px";
 	e.style.top="" + y + "px";
 	
-	if (tempx > 700) {
-		tempy += 250;
-		tempx = 50;
-	} else
-		tempx += 250;
-	if (tempy > 600)
-		tempy = 100;
-	
 	var content = document.createElement("div");
 	content.className="content";
 	e.appendChild(content);
@@ -156,14 +155,14 @@ function preventDefaultAction(e) {
     e.preventDefault();
 }
 
-function createDSPinDiv(name, sourcecode){
+function createDSPinNewDiv(name, sourcecode, x, y){
 
 	// Create new DSP in div (sender)
     var DSP = createDSP(sourcecode);
 					
 	if(DSP){
 	// In case the file is not dropped on an existing module, it is created
-		var faustDiv = createFaustModule(tempx, tempy, name);	
+		var faustDiv = createFaustModule(x, y, name);	
  		
 		saveModuleCharacteristics(faustDiv, name, DSP, sourcecode);
 		createFaustInterface(faustDiv);
@@ -175,23 +174,25 @@ function updateDSPinDiv(faustDiv, name, sourcecode){
 	
 	// Create new DSP in div (sender)
     var DSP = createDSP(sourcecode);
-    
-// 	TO DO : DISCONNECT AND RECONNECT WHAT CAN BE !!	
-					
+    	
 	if(DSP){
 	
 // 	 Saving connections
 		var outNode = getOutputNodeFromDiv(faustDiv);
-		var outputConnections;
+		var outputConnections = null;
 	
-		if(outNode)
-			outputConnections = new Array().concat(getNodeOutputConnections(outNode))
-
+		if(outNode){
+			if(getNodeOutputConnections(outNode))
+				outputConnections = new Array().concat(getNodeOutputConnections(outNode))
+		}
+		
 		var inNode = getInputNodeFromDiv(faustDiv);
 	
-		var inputConnections;
-		if(inNode)
-			inputConnections = new Array().concat(getNodeInputConnections(inNode))
+		var inputConnections = null;
+		if(inNode){
+			if(getNodeInputConnections(inNode))
+				inputConnections = new Array().concat(getNodeInputConnections(inNode));
+		}
 	
 	// Removing existing interface
 		disconnectNode(faustDiv);
@@ -215,11 +216,16 @@ function updateDSPinDiv(faustDiv, name, sourcecode){
 	}
 }
 
+
+
 //-- Upload content dropped on the page and create a Faust DSP with it
 function uploadFile(e) {
     
 	if (!e)
     	e = window.event;
+	
+	var x = e.x;
+	var y = e.y;
 	
   	preventDefaultAction(e);
   	
@@ -243,7 +249,7 @@ function uploadFile(e) {
 	    	    var dsp_code ="process = vgroup(\"" + filename + "\",environment{" + xmlhttp.responseText + "}.process);";
 
 				if(!faustDiv)
-					createDSPinDiv(filename, dsp_code);
+					createDSPinNewDiv(filename, dsp_code, e.x, e.y);
 				else
 					updateDSPinDiv(faustDiv, filename, dsp_code);
         	}
@@ -260,7 +266,7 @@ function uploadFile(e) {
 	    	dsp_code ="process = vgroup(\"" + "TEXT" + "\",environment{" + dsp_code + "}.process);";
 		
 			if(!faustDiv)
-				createDSPinDiv("TEXT", dsp_code);
+				createDSPinNewDiv("TEXT", dsp_code, e.x, e.y);
 			else
 				updateDSPinDiv(faustDiv, "TEXT", dsp_code);
 				
@@ -284,12 +290,16 @@ function uploadFile(e) {
 
     	    	if (ext == "dsp")
         	    	reader.readAsText(file);  
-        	    	
+        	    
+//         	    if(ext == "zip"){
+//         	    	console.log("HEY JE SUIS UN ZIP");
+//         	    }
+        	    
 	    		reader.onloadend = function(e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
 
 					if(!faustDiv)
-						createDSPinDiv(filename, dsp_code);
+						createDSPinNewDiv(filename, dsp_code, x, y);
 					else
 						updateDSPinDiv(faustDiv, filename, dsp_code);
 	    		};
