@@ -18,8 +18,6 @@ function createDSP(dsp_code){
 	}
                 
     var DSP = faust.createDSPInstance(factory, window.audioContext, 1024);
-           
-	_f4u$t.main_loop = function() {}
 
    	return DSP;		
 }
