@@ -67,6 +67,8 @@ class OSCStream
 	osc::OutboundPacketStream	fOutStream;
 	UdpSocket*					fSocket;
 	
+    static    int         fRefCount; // For this stream is shared, a counter is needed to know when to delete object.
+    
 //	void initSocket();
 	
 	public:
