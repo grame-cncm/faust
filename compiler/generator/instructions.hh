@@ -1919,30 +1919,36 @@ struct InstBuilder
 
     // Helper build methods
 
+    /*
     static DeclareVarInst* genDecVar(string vname, Address::AccessType var_access, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), type, exp);
     }
+    */
     
     static DeclareVarInst* genDecArrayVar(string vname, Address::AccessType var_access, Typed* type, int size)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
     }
 
+    /*
     static LoadVarInst* genLoadVar(string vname, Address::AccessType var_access)
     {
         return genLoadVarInst(genNamedAddress(vname, var_access));
     }
+    */
 
     static LoadVarInst* genLoadArrayVar(string vname, Address::AccessType var_access, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
     }
 
+    /*
     static StoreVarInst* genStoreVar(string vname, Address::AccessType var_access, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, var_access), exp);
     }
+    */
 
     static StoreVarInst* genStoreArrayVar(string vname, Address::AccessType var_access, ValueInst* index, ValueInst* exp)
     {
@@ -1955,6 +1961,11 @@ struct InstBuilder
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
     }
     
+    static DeclareVarInst* genDecVolatileStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)), type, exp);
+    }
+    
     static DeclareVarInst* genDecArrayStructVar(string vname, Typed* type, int size)
     {
         return genDecArrayVar(vname, Address::kStruct, type, size);
@@ -1963,6 +1974,11 @@ struct InstBuilder
     static LoadVarInst* genLoadStructVar(string vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
+    }
+    
+    static LoadVarInst* genVolatileLoadStructVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)));
     }
 
     template <typename Iterator>
@@ -2001,7 +2017,12 @@ struct InstBuilder
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
     }
-
+    
+    static StoreVarInst* genVolatileStoreStructVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)), exp);
+    }
+ 
     template <typename Iterator>
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
     {
