@@ -57,6 +57,7 @@
 #include "java_code_container.hh"
 #include "js_code_container.hh"
 #include "asmjs_code_container.hh"
+#include "clang_code_container.hh"
 #if LLVM_BUILD
 #include "llvm_code_container.hh"
 #endif
@@ -934,9 +935,19 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     startTiming("generateCode");
     
     if (gGlobal->gOutputLang == "llvm") {
+    
+        container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
+        
+        printf("clang_container %x\n", clang_container);
+  
+        gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile.c_str());
+        gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
+    
+    /*
         
     #if LLVM_BUILD
-
+       
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (gGlobal->gVectorSwitch) {
@@ -973,6 +984,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     #else
         throw faustexception("ERROR : -lang llvm not supported since LLVM backend is not built\n");
     #endif
+        */
  
     } else {
     

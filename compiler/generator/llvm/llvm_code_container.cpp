@@ -615,7 +615,6 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
     
     if (filename != "") {
         std::string err;
-        
         raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
         WriteBitcodeToFile(fResult->fModule, out);
     }

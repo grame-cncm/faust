@@ -24,6 +24,9 @@
 
 #include "libfaust.h"
 #include "cpp_code_container.hh"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 using namespace llvm;
@@ -35,16 +38,21 @@ class ClangCodeContainer : public virtual CodeContainer {
     protected:
      
         LLVMResult* fResult;
+        
+        CodeContainer* fContainer;
+        std::stringstream fOut;
        
         LLVMContext& getContext();
-
+   
     public:
 
         ClangCodeContainer(const string& name, int numInputs, int numOutputs);
         ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
         virtual ~ClangCodeContainer();
       
-        virtual LLVMResult* produceModule(const string& filename);
+        virtual LLVMResult* produceModule(Tree signals, const string& filename);
+        
+        virtual void produceInternal() { fContainer->produceClass(); }
     
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

@@ -56,7 +56,7 @@ LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
 EXE = .exe
 endif
 
-CXXFLAGS ?= -O3 -g -Wall -Wuninitialized 
+CXXFLAGS ?= -g -Wall -Wuninitialized 
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
@@ -128,6 +128,7 @@ else
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
 
+CLANGLIBS= -lclangFrontend -lclangParse -lclangSema -lclangAnalysis -lclangAST -lclangLex -lclangBasic -lclangDriver -lclangSerialization
 
 all : faust libfaust.a
 
@@ -174,9 +175,9 @@ main.o : main.cpp
 
 faust : $(objects) main.o libcode.o global.o 
 ifneq ($(findstring MINGW32, $(system)),)
-	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
 endif
 
 scheduler.ll : ../architecture/scheduler.cpp
@@ -196,7 +197,7 @@ ifneq ($(findstring MINGW32, $(system)),)
 	ranlib $@
 
     libfaust.dll : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(LIBS) -lpthread
+	$(CXX) -shared $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
 else
     libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
