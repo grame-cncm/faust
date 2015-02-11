@@ -91,20 +91,12 @@ function saveConnection(src, dst, connector, connectorShape){
 //************* ACCESSORS TO INPUT CONNECTIONS STRUCTURE
 
 function getNodeInputConnections(node){
-
-
-		console.log("LENGTH INPUTS ===>");
-		console.log(node.parentNode.inputConnections);
-
 	return node.parentNode.inputConnections;	
 }
 
 function setNodeInputConnections(node, inputConnections){
 
 	if(inputConnections && node){
-		console.log("LENGTH INPUT CONNECTIONS===>");
-		console.log(inputConnections.length);
-	
 		for(var j=0; j<inputConnections.length; j++)
 			createConnection(getOutputNodeFromDiv(inputConnections[j].source), node);
 	}
