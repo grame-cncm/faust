@@ -17,10 +17,8 @@ function computeNode(node){
 	var faustResult = "";
 	
 // Iterate on input Nodes to compute them
-	if(nodeInputs){
-		
-		//Making sure that nodeInputs is not empty
-		if(element in nodeInputs){
+	if(nodeInputs && nodeInputs.length != 0){
+	
 			faustResult += "(";
 			for(element in nodeInputs){
 
@@ -34,7 +32,6 @@ function computeNode(node){
 				}
 			}	
 			faustResult += "):> ";
-		}
 	}
 	
 	
@@ -55,13 +52,15 @@ function computeUnconnectedNodes(faustModuleList){
 	var computationString = "";
 
 	for(var i=0 ; i<faustModuleList.length; i++){
+	
 		var outputNode = getOutputNodeFromDiv(faustModuleList[i]);
-		if(outputNode && !outputNode.outputConnections){
+		
+		if(outputNode && !faustModuleList[i].outputConnections){
 		
 			if(j != 0)
 				computationString += ",";
 		
-			computationString += computeNode(faustModuleList[i]);
+			computationString += computeNode(faustModuleList[i]) + ":>_,_";
 				
 			j++;
 		}
@@ -181,7 +180,7 @@ function createFaustEquivalent(){
 			createFaustInterface(faustDiv);
 			addInputOutputNodesToModule(faustDiv);				    
 	
-// 			recallParams(parent, fullParams);
+			recallParams(faustDiv, fullParams);
 
 		// Connect Automatically to Output
 			var myoutput;

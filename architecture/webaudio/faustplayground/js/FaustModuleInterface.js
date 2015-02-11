@@ -174,9 +174,10 @@ function parse_items(items, content){
     
 function parse_item(item, content){
 
-	if( content.params && content.params[item.address])
-		item.init = content.params[item.address];
-
+	if( content.parentNode.params && content.parentNode.params[item.address]){
+		item.init = content.parentNode.params[item.address];
+	}
+	
 	if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup")
     	parse_items(item.items, content);
 
@@ -319,7 +320,7 @@ function recallParams(faustDiv){
 
 	var params = faustDiv.params;
 
-	for (var key in params)
+	for (key in params)
 		faustDiv.DSP.setValue(key, params[key]);
 }
 
@@ -377,6 +378,8 @@ function recompileSource(event){
 	var filename = faustDiv.Name;
 
 	updateDSPinDiv(faustDiv, filename, dsp_code);
+	
+	recallParams(faustDiv);
 	
 	event.target.src = "img/edit.png";
 	event.target.onclick = editSource;

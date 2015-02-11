@@ -206,7 +206,6 @@ function updateDSPinDiv(faustDiv, name, sourcecode){
 		addInputOutputNodesToModule(faustDiv);
 
 	// Recalling parameters and connections
-// 		recallParams(faustDiv);
 	
 		inNode = getInputNodeFromDiv(faustDiv);
 		outNode = getOutputNodeFromDiv(faustDiv);
