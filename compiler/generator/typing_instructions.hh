@@ -100,7 +100,7 @@ struct TypingVisitor : public InstVisitor {
                 } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
                     fCurType = Typed::kInt;
                 } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                   fCurType = Typed::kInt;
+                   fCurType = Typed::kBool;
                 } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kBool) {
                     fCurType = Typed::kFloat;
                 } else if (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
