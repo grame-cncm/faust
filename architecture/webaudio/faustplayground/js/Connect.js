@@ -22,7 +22,7 @@ function connectNodes( src, dst ) {
 		if(dst.audioNode)
 			src.audioNode.connect(dst.audioNode);
 		else if(dst.scriptProcessor)
-			src.connect(dst.scriptProcessor);
+			src.audioNode.connect(dst.scriptProcessor);
 // 		src.connect(dstCpy.scriptProcessor.audioNode);
 	}
 	else if(src.scriptProcessor){
@@ -86,13 +86,15 @@ function saveConnection(src, dst, connector, connectorShape){
 	connector.destination = dst;
 	dst.inputConnections.push(connector);
 	
-	console.log(src.outputConnections);
-	console.log(dst.inputConnections);
 }
 
 //************* ACCESSORS TO INPUT CONNECTIONS STRUCTURE
 
 function getNodeInputConnections(node){
+
+
+		console.log("LENGTH INPUTS ===>");
+		console.log(node.parentNode.inputConnections);
 
 	return node.parentNode.inputConnections;	
 }
@@ -100,6 +102,9 @@ function getNodeInputConnections(node){
 function setNodeInputConnections(node, inputConnections){
 
 	if(inputConnections && node){
+		console.log("LENGTH INPUT CONNECTIONS===>");
+		console.log(inputConnections.length);
+	
 		for(var j=0; j<inputConnections.length; j++)
 			createConnection(getOutputNodeFromDiv(inputConnections[j].source), node);
 	}
