@@ -490,7 +490,9 @@ struct FunTyped : public Typed {
         :fArgsTypes(args), fResult(result), fAttribute(attribute)
     {}
 
-    VarType getType() { assert(false); return fResult->getType(); }
+    VarType getType() { return fResult->getType(); }
+    
+    Typed* getTyped() { return fResult; }
     
     int getSize(); // moved in "instructions.cpp"
 
@@ -1205,16 +1207,10 @@ struct DeclareFunInst : public StatementInst
     FunTyped* fType;     // Describes type of all arguments and function result
     BlockInst* fCode;    // Code is a list of StatementInst*
 
-    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
-        :fName(name), fType(type), fCode(code)
-    {}
-    DeclareFunInst(const string& name, FunTyped* type)
-        :fName(name), fType(type), fCode(new BlockInst())
-    {}
+    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
     
-    virtual ~DeclareFunInst()
-    {}
-
+    virtual ~DeclareFunInst();
+ 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }

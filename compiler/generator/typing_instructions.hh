@@ -122,6 +122,15 @@ struct TypingVisitor : public InstVisitor {
             inst->fThen->accept(this);
         }
         
+        virtual void visit(FunCallInst* inst) 
+        { 
+            if (gGlobal->gVarTypeTable.find(inst->fName) != gGlobal->gVarTypeTable.end()) {
+                fCurType = gGlobal->gVarTypeTable[inst->fName]->getType();
+            } else {
+                fCurType = Typed::kNoType;
+            }
+        }
+        
 };
 
 #endif
