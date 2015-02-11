@@ -2,6 +2,14 @@
 ***********************  CREATE FAUST EQUIVALENT ********************
 ********************************************************************/
 
+//*** The faust equivalent of a scene is calculated following these rules:
+//*** The tree starting from the output node is computed (tree 1)
+//*** Then if there are unconnected output nodes, there nodes are computed (tree 2, ..., n)
+//*** All trees are composed in parallel
+
+//*** Every Faust Expression is "Stereoized" before composition with other expressions to ensure composability
+
+// Computing a node is computing its entries and merging them in the node's own faust code.
 function computeNode(node){
 
 	var nodeInputs = node.inputConnections;
@@ -9,23 +17,24 @@ function computeNode(node){
 	var faustResult = "";
 	
 // Iterate on input Nodes to compute them
-	
 	if(nodeInputs){
-		faustResult += "(";
-		for(element in nodeInputs){
+		
+		//Making sure that nodeInputs is not empty
+		if(element in nodeInputs){
+			faustResult += "(";
+			for(element in nodeInputs){
 
-			var sourceNode = nodeInputs[element].source;
-	
-			console.log(sourceNode);
+				var sourceNode = nodeInputs[element].source;
 
-			if(sourceNode){		
-				if(element != 0)
-					faustResult += "),(";
+				if(sourceNode){		
+					if(element != 0)
+						faustResult += "),(";
 
-				faustResult += computeNode(sourceNode);
-			}
-		}	
-		faustResult += "):> ";
+					faustResult += computeNode(sourceNode);
+				}
+			}	
+			faustResult += "):> ";
+		}
 	}
 	
 	
@@ -34,15 +43,31 @@ function computeNode(node){
 	if(node.id == "output" || node.id == "input")
 		nodeCode = "process=_,_;";
 
-// vgroup(\"[" + window.index + "]component" + window.index + "\", ..... )
-// stereoize()
-
-
 	faustResult += "stereoize(environment{" + nodeCode + "}.process)";	
 	
-	// window.index++;
-	
 	return faustResult;
+}
+
+// Computing the trees unconnected to the output
+function computeUnconnectedNodes(faustModuleList){
+
+	var j = 0;
+	var computationString = "";
+
+	for(var i=0 ; i<faustModuleList.length; i++){
+		var outputNode = getOutputNodeFromDiv(faustModuleList[i]);
+		if(outputNode && !outputNode.outputConnections){
+		
+			if(j != 0)
+				computationString += ",";
+		
+			computationString += computeNode(faustModuleList[i]);
+				
+			j++;
+		}
+	}
+	
+	return computationString;
 }
 
 // To avoid sharing instances of a same factory in the resulting Faust Equivalent
@@ -54,12 +79,13 @@ function wrapSourceCodesInGroups(){
 		modules[i].Source = "process = vgroup(\"component"+ i.toString() + "\",environment{" + modules[i].Source + "}.process);";
 }
 
+//Calculate Faust Equivalent of the Scene
 function getFaustEquivalent(){
 
-	if(getElementsByClassName("div", "moduleFaust").length > 0){
-// 	if(window.myArray.length != 0){
+	var faustModuleList = getElementsByClassName("div", "moduleFaust");
+
+	if(faustModuleList.length > 0){
 		var dest = document.getElementById("output");
-// 	dest.audioNode = audioContext.destination;
 	
 		faustResult = "stereoize(p) = S(inputs(p), outputs(p))\n\
 				with {\n\
@@ -88,14 +114,27 @@ function getFaustEquivalent(){
 
 		var patchName = document.getElementById("PatchName").innerHTML;
 	
-		faustResult += "process = vgroup(\""+ patchName + "\"," + computeNode(dest) +");";
+		var unConnectedComputation = computeUnconnectedNodes(faustModuleList);
 	
+		if(dest.inputConnections){
+		
+			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(dest);
+
+			if(unConnectedComputation)
+				faustResult += "," + unConnectedComputation;	
+		
+			faustResult += "));";
+		}
+		else
+			faustResult += "process = vgroup(\""+ patchName + "\",(" + unConnectedComputation + "));";;	
+		
 		return faustResult;
 	}
 	else
 		return null;
 }
 
+//Create Faust Equivalent Module of the Scene
 function createFaustEquivalent(){
 
 	var patchName = document.getElementById("PatchName").innerHTML;
@@ -134,7 +173,7 @@ function createFaustEquivalent(){
 	    	
 			cleanScene();
 			
-			var faustDiv = createFaustModule(tempx, tempy, patchName);
+			var faustDiv = createFaustModule(document.body.scrollWidth/3, document.body.scrollHeight/3, patchName);
 
 			faustDiv.params = fullParams;
 	    
