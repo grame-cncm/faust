@@ -1432,6 +1432,7 @@ void ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const stri
 string ScalarCompiler::generateUpSample(Tree sig, Tree x, Tree n)
 {
     return generateSeparateCode(sig, CS(x));
+//    return CS(x);
 }
 
 /**
@@ -1465,12 +1466,11 @@ string ScalarCompiler::generateVectorize(Tree sig, Tree n, Tree x)
     if (isSigInt(n,&vsize)) {
         string code = CS(x);
         Type t1 = getCertifiedSigType(sig);
-        string typ1 = t1->typeName();
+        string typ1 = declareCType(sig);
         Type t2 = getCertifiedSigType(x);
         string typ2 = t2->typeName();
         string id = getFreshID("V");
 
-        fClass->addDeclCode(subst("struct $0 { $2 data[$1]; $0(int n=0) { for(int i=0;i<$1;i++) data[i]=0;} };", typ1, T(vsize), typ2));
         fClass->addDeclCode(subst("$0    $1_1,$1_2,*$1w,*$1r;", typ1, id));
         fClass->addInitCode(subst("$0w=&$0_1; $0r=&$0_2;", id));
         fClass->addExecCode(subst("if ($0) $5w->data[($1+$2)%$3]=$4;",
@@ -1504,14 +1504,65 @@ string ScalarCompiler::generateSerialize(Tree sig, Tree x)
 }
 
 /**
- * Generate Concat
+ * declareCType(sig) : generate c++ declaration for the type of sig.
+ * the declaration is added to the class only if it is a vector type
+ * not declared yet.
+ *
  */
+string   ScalarCompiler::declareCType (Tree sig)
+{
+    Type t = getCertifiedSigType(sig);
+    string vtname = t->typeName();
+    if (fDeclaredTypes.count(vtname)==0) {
+        VectorType* vt = isVectorType(t);
+        if (vt) {
+            string decl = subst("struct $0 { $2 data[$1]; $0(int n=0) { for(int i=0;i<$1;i++) data[i]=0;} };", vtname, T(vt->size()), vt->content()->typeName());
+            //std::cerr << "DECLARATION : " << decl << std::endl;
+            fClass->addDeclCode(decl);
+        }
+        fDeclaredTypes.insert(vtname);
+    }
+    return vtname;
+}
 
+
+/**
+ * Generate Concat
+ * 			// vTemp4 = concat(vTemp1,vTemp3)
+ *           if ((i%5)==0) {
+ *				for (int j=0; j<3; j++) vTemp4.data[j]   = vTemp1.data[j];
+ *				for (int j=0; j<2; j++) vTemp4.data[j+3] = vTemp3.data[j];
+ *			}
+ */
 string ScalarCompiler::generateConcat(Tree sig, Tree x, Tree y)
 {
     string c1 = CS(x);
     string c2 = CS(y);
-    return subst("concat($0,$1)", c1, c2);
+    Type t1 = getCertifiedSigType(sig);
+    Type tx = getCertifiedSigType(x);
+    Type ty = getCertifiedSigType(y);
+    VectorType* vt = isVectorType(t1);
+    VectorType* vx = isVectorType(tx);
+    VectorType* vy = isVectorType(ty);
+    if (vt && vx && vy) {
+
+        string vtname = declareCType(sig);
+        string id = getFreshID("V");
+
+        // create temporary variable to store the concatenation
+        fClass->addZone2(subst("$0 $1;", vtname, id));
+        fClass->addExecCode(subst("if ($0) { for (int j=0; j<$1; j++) $2.data[j] = $3.data[j]; for (int j=0; j<$4; j++) $2.data[j+$1] = $5.data[j]; }",
+                     fRates->tick(sig),
+                     T(vx->size()),
+                     id,
+                     c1,
+                     T(vy->size()),
+                     c2
+                     ));
+        return id;
+    } else {
+        return "concat internal error";
+    }
 }
 
 /**

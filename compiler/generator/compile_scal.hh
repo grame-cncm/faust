@@ -25,6 +25,7 @@
 #define _COMPILE_SCAL_
 
 #include <utility>
+#include <set>
 #include "compile.hh"
 #include "sigtyperules.hh"
 #include "sigraterules.hh"
@@ -40,6 +41,7 @@
 class ScalarCompiler : public Compiler
 {
   protected:
+    set<string>                 fDeclaredTypes;                 // Used to avoid duplicated type declaration
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
     property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
@@ -98,7 +100,8 @@ class ScalarCompiler : public Compiler
 	
 	
 	// generation du code
-	
+    string          declareCType        (Tree sig);     ///< Add C type declaration to class, return ctype name
+
     string          generateXtended		(Tree sig);
 	virtual string 	generateFixDelay	(Tree sig, Tree arg, Tree size);
     string          generatePrefix 		(Tree sig, Tree x, Tree e);
