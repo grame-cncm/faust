@@ -139,7 +139,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
     BlockInst* loop_code = fComputeBlockInstructions;
 
     loop_code->pushBackInst(InstBuilder::genStoreStructVar(fullcount, InstBuilder::genLoadFunArgsVar(counter)));
-    loop_code->pushBackInst(InstBuilder::genStoreVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genIntNumInst(0)));
+    loop_code->pushBackInst(InstBuilder::genVolatileStoreStructVar(index, InstBuilder::genIntNumInst(0)));
     
     generateDAGLoopWSSAux1(dag, loop_code, -1); // -1 means dispath ready tasks on all WSQ
 
@@ -162,7 +162,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     string index = "fIndex";
     
     // Needed in the struct
-    pushDeclare(InstBuilder::genDecVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecVolatileStructVar(index, InstBuilder::genBasicTyped(Typed::kInt)));
     pushDeclare(InstBuilder::genDecStructVar(fullcount, InstBuilder::genBasicTyped(Typed::kInt)));
     pushDeclare(InstBuilder::genDecStructVar("fScheduler", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
   
@@ -226,7 +226,7 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& i
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1,
-                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genVolatileLoadStructVar(index_string))));
     }
 }
 
@@ -237,7 +237,7 @@ void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& 
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStackVar(name1,
-                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar(index_string, (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genVolatileLoadStructVar(index_string))));
     }
 }
 
@@ -267,12 +267,9 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Last task
     BlockInst* last_block = InstBuilder::genBlockInst();
     last_block->pushBackInst(InstBuilder::genLabelInst("/* Last task */"));
-    last_block->pushBackInst(InstBuilder::genStoreVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile),
-                                InstBuilder::genAdd(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                                    gGlobal->gVecSize)));
-     
-    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                                InstBuilder::genLoadStructVar(fullcount));
+    last_block->pushBackInst(InstBuilder::genVolatileStoreStructVar(index, InstBuilder::genAdd(InstBuilder::genVolatileLoadStructVar(index), gGlobal->gVecSize)));
+  
+    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genVolatileLoadStructVar(index), InstBuilder::genLoadStructVar(fullcount));
    
     BlockInst* then_block = InstBuilder::genBlockInst();
     BlockInst* else_block = InstBuilder::genBlockInst();
@@ -293,13 +290,12 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Generates global "switch/case"
     int loop_num = START_TASK_MAX;  // First index to be used for remaining tasks
 
-    ValueInst* while_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                InstBuilder::genLoadStructVar(fullcount));
+    ValueInst* while_cond = InstBuilder::genLessThan(InstBuilder::genVolatileLoadStructVar(index), InstBuilder::genLoadStructVar(fullcount));
     BlockInst* switch_block_code = InstBuilder::genBlockInst();
 
     // Generates switch/case block "header"
     ValueInst* init1 = InstBuilder::genLoadStructVar(fullcount);
-    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadVar(index, (Address::AccessType)(Address::kStruct|Address::kVolatile)));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genVolatileLoadStructVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);

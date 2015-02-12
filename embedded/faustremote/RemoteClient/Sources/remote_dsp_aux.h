@@ -137,7 +137,14 @@ extern "C"
         
         remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error);
         
-        bool        init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, const string& sha_key, string& error_msg, int opt_level);
+        bool        init(int argc, const char *argv[], 
+                        const string& ip_server, 
+                        int port_server, 
+                        const string& name_app, 
+                        const string& dsp_content, 
+                        const string& sha_key, 
+                        string& error_msg, 
+                        int opt_level);
         void        stop();
         
         void        metadataRemoteDSPFactory(Meta* m);  
