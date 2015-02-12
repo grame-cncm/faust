@@ -128,10 +128,9 @@ string searchIP();
 
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 //
-struct slave_dsp{
+struct slave_dsp {
     
     string          fInstanceKey;
-    
     string          fName;
     
     //    NETJACK PARAMETERS
@@ -142,10 +141,9 @@ struct slave_dsp{
     string          fLatency;
     
     server_netjackaudio*   fAudio; //NETJACK SLAVE 
-    
     llvm_dsp*              fDSP;   //Real DSP Instance 
     
-//    llvm_dsp_factory*     fSlaveFactory;   //RelatedFactory
+//  llvm_dsp_factory*     fSlaveFactory;   //RelatedFactory
     
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
@@ -167,31 +165,28 @@ struct slave_dsp{
 slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
 void deleteSlaveDSPInstance(slave_dsp* smartPtr);
     
-class Server{
+class Server {
         
-    string          fError;
+private:
+
+    pthread_t       fThread;
+    TMutex          fLocker;
+    int             fPort;
+    
+    // Factories that can be instanciated. 
+    // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
+    // SHAKey, pair<NameApp, Factory>
+    map<string, pair<string, llvm_dsp_factory*> > fAvailableFactories;
         
+// List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
+    list<slave_dsp*> fRunningDsp;
+    struct MHD_Daemon* fDaemon; //Running http daemon
+
 public :
         
     Server();
     ~Server();
-    
-    pthread_t       fThread;
         
-    TMutex          fLocker;
-    
-    int              fPort;
-        
-// Factories that can be instanciated. 
-// The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
-//    SHAKey, pair<NameApp, Factory>
-    map<string, pair<string, llvm_dsp_factory*> >         fAvailableFactories;
-        
-// List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
-    list<slave_dsp*>          fRunningDsp;
-        
-    struct          MHD_Daemon* fDaemon; //Running http daemon
-    
 //  Start server on specified port 
     bool            start(int port = 7777);
     void            stop();
@@ -220,7 +215,6 @@ public :
     static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
         
     static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
-
         
 // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
     bool        compile_Data(connection_info_struct* con_info);
@@ -235,7 +229,7 @@ public :
     void        stopAudio(const string& shakey);
     
 // Register Service as Available
-    static void*        registration(void* arg);
+    static void* registration(void* arg);
 };
     
 #endif
