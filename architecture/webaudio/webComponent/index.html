@@ -34,6 +34,11 @@
 		<h1>Faust component without editor</h1>
 		<faust-compiler faustCode="false">process = hgroup("mixer", _*vslider("Volume1", 0, 0, 1, 0.1), _*vslider("Volume2", 0, 0, 1, 0.1));</faust-compiler>
 	</section>
+    
+    <section>
+		<h1>Faust component without editor</h1>
+		<faust-compiler faustCode="false">process = _*vslider("Volume", 0, 0, 1, 0.1);</faust-compiler>
+	</section>
 	
 </body>
 </html>

@@ -416,15 +416,8 @@
         
         // Setup UI
         _f4u$t.main_loop = function() {}
-        
-        faustsvg = $('<div />');
-        $('body').append(faustsvg);
-        //container.append(faustsvg);
-        //container.innerHTML = faustsvg;
-        var handler = _f4u$t.main(DSP.json(), faustsvg, DSP.setValue);
+        var handler = _f4u$t.main(DSP.json(), container.innerHTML, DSP.setValue);
         DSP.setHandler(handler);
-        
-        container.innerHTML = faustsvg;
         
         console.log(DSP.getNumInputs());
         console.log(DSP.getNumOutputs());
