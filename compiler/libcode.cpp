@@ -952,11 +952,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 throw faustexception(llvm_error.str());
             }
             
-            /*
             if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
             }
-            */
             
         } else {
             // To trigger 'sig.dot' generation

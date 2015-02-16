@@ -667,6 +667,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     fJIT->DisableLazyCompilation(true);
     
     try {
+        /*
         fNew = (newDspFun)LoadOptimize("new_" + fClassName);
         fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
         fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
@@ -675,6 +676,17 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fInit = (initFun)LoadOptimize("init_" + fClassName);
         fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
         fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
+        */
+        
+        fNew = (newDspFun)LoadOptimize("new" + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete" + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fClassName);
+        fInit = (initFun)LoadOptimize("init" + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute" + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata" + fClassName);
+        
         endTiming("initJIT");
         return true;
      } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
@@ -1026,7 +1038,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             argv1[argc1++] = argv[i];
         }
     }
-        
+
     string expanded_dsp;
     string sha_key;
     

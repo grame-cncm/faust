@@ -23,8 +23,9 @@
 #define _CLANG_CODE_CONTAINER_H
 
 #include "libfaust.h"
-#include "cpp_code_container.hh"
+#include "dag_instructions_compiler.hh"
 #include "c_code_container.hh"
+#include "cpp_code_container.hh"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -40,6 +41,7 @@ class ClangCodeContainer : public virtual CodeContainer {
      
         LLVMResult* fResult;
         
+        InstructionsCompiler* fCompiler;
         CodeContainer* fContainer;
         //std::stringstream fOut;
         std::ofstream fOut;

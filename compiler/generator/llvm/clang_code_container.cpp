@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include "clang_code_container.hh"
-#include "dag_instructions_compiler.hh"
 
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Bitcode/ReaderWriter.h>
@@ -66,13 +65,21 @@ using namespace clang;
 using namespace clang::driver;
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
-    :fOut("/var/tmp/LLVM.c")
+    :fOut("/var/tmp/FaustLLVM.c")
 {
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fContext = new LLVMContext();
+    
+    fOut << "#include </usr/local/include/faust/gui/CUI.h>" << endl;
      
-    //fContainer = CPPCodeContainer::createContainer(name, "", numInputs, numOutputs, &fOut);
+    //fContainer = CPPCodeContainer::createContainer(name, "dsp", numInputs, numOutputs, &fOut);
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fOut);
+    
+    if (gGlobal->gVectorSwitch) {
+        fCompiler = new DAGInstructionsCompiler(fContainer);
+    } else {
+        fCompiler = new InstructionsCompiler(fContainer);
+    }
 }
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
@@ -97,30 +104,20 @@ std::string GetExecutablePath(const char *Argv0) {
 
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
 {
-    InstructionsCompiler* comp;
-
-    if (gGlobal->gVectorSwitch) {
-        comp = new DAGInstructionsCompiler(fContainer);
-    } else {
-        comp = new InstructionsCompiler(fContainer);
-    }
-    
-    comp->compileMultiSignal(signals);
+    fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
     //cout << fOut.str();
-    //llvm::MemoryBuffer * buffer = llvm::MemoryBuffer::getMemBufferCopy(fOut.str(), "src");
+    //llvm::MemoryBuffer* buffer = llvm::MemoryBuffer::getMemBufferCopy(fOut.str(), "src");
     
     int argc = 2;
     const char* argv[2];
-    
-    argv[1] = "/var/tmp/LLVM.c";
+    argv[1] = "/var/tmp/FaustLLVM.c";
     
     void *MainAddr = (void*) (intptr_t) GetExecutablePath;
     std::string Path = GetExecutablePath(argv[0]);
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
-    TextDiagnosticPrinter *DiagClient =
-    new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
+    TextDiagnosticPrinter *DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
 
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
     DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
@@ -130,7 +127,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // FIXME: This is a hack to try to force the driver to do something we can
     // recognize. We need to extend the driver library to support this use model
     // (basically, exactly one input, and the operation mode is hard wired).
-    SmallVector<const char *, 16> Args(argv, argv + argc);
+    SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
     //Args.push_back("-O0");
     //Args.push_back("-ffast-math");
@@ -163,11 +160,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Initialize a compiler invocation object from the clang (-cc1) arguments.
     const driver::ArgStringList &CCArgs = Cmd->getArguments();
     OwningPtr<CompilerInvocation> CI(new CompilerInvocation);
-    CompilerInvocation::CreateFromArgs(*CI,
-                                     const_cast<const char **>(CCArgs.data()),
-                                     const_cast<const char **>(CCArgs.data()) +
-                                       CCArgs.size(),
-                                     Diags);
+    CompilerInvocation::CreateFromArgs(*CI, const_cast<const char**>(CCArgs.data()),
+                                            const_cast<const char**>(CCArgs.data()) + CCArgs.size(), Diags);
 
     // Show the invocation, with -v.
     if (CI->getHeaderSearchOpts().Verbose) {
@@ -184,8 +178,9 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
 
     // Create the compilers actual diagnostics engine.
     Clang.createDiagnostics();
-    if (!Clang.hasDiagnostics())
+    if (!Clang.hasDiagnostics()) {
         return NULL;
+    }
 
     // Infer the builtin include path if unspecified.
     if (Clang.getHeaderSearchOpts().UseBuiltinIncludes &&
@@ -195,67 +190,15 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     }
 
     // Create and execute the frontend to generate an LLVM bitcode module.
-    OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction());
+    OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction(fResult->fContext));
     if (!Clang.ExecuteAction(*Act)) {
         return NULL;
     }
 
     if (llvm::Module *Module = Act->takeModule()) {
         fResult->fModule = Module;
-        Module->dump();
     }
-   
-    /*
-    CompilerInstance CI;
-	CI.createDiagnostics(0, NULL);
-	Diagnostic & Diags = CI.getDiagnostics();	
-	TextDiagnosticBuffer * client = new TextDiagnosticBuffer;
-	Diags.setClient(client);
-	CompilerInvocation::CreateFromArgs(CI.getInvocation(), NULL, NULL, Diags);
-	
-	LangOptions& lang = CI.getInvocation().getLangOpts();
-	// The fateful line
-	lang.CPlusPlus = options.CPlusPlus;
-	lang.Bool = 1;
-	lang.BCPLComment = 1;
-	lang.RTTI = 0;
-	lang.PICLevel = 1;
-	lang.InlineVisibilityHidden = 1;
-    
-    CI.createSourceManager();
-	CI.getSourceManager().createMainFileIDForMemBuffer(buffer);
-	CI.createFileManager();
-    
-    // Create the target instance.
-    CI.setTarget(TargetInfo::CreateTargetInfo(CI.getDiagnostics(), CI.getTargetOpts()));
-    
-    CI.createPreprocessor();
-	Preprocessor &PP = CI.getPreprocessor();
-    
-    PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(), PP.getLangOptions().NoBuiltin);
-    
-    CI.createASTContext();
-    
-    CodeGenOptions CGO;
-    CGO.CXAAtExit = 0;
-    
-    CodeGenerator* codegen = CreateLLVMCodeGen(Diags, "FaustModule", CGO, fResult->fContext);
-    
-    ParseAST(CI.getPreprocessor(),
-			codegen,
-			CI.getASTContext(),
-			// PrintState= false,
-			true,
-			0);
-	
-	llvm::Module* module = codegen->ReleaseModule();
-
-    module->dump();
-    
-    */
-    
-    //assert(false);
-    
+  
     if (filename != "") {
         std::string err;
         raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
@@ -265,7 +208,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     LLVMResult* result = fResult;
     fResult = NULL; // Will be deallocated later on in the compilation chain...
     return result;
-
 }
 
 CodeContainer* ClangCodeContainer::createScalarContainer(const string& name, int sub_container_type)
