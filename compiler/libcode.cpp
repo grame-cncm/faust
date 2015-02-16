@@ -934,7 +934,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     startTiming("generateCode");
     
-    if (gGlobal->gOutputLang == "llvm") {
+    if (gGlobal->gOutputLang == "cllvm") {
     
         if (generate) {
     

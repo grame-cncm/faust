@@ -426,6 +426,7 @@ void llvm_dsp_factory::Init()
     fInit = 0;
     fCompute = 0;
     fClassName = "mydsp";
+    fPrefix = "_";
     fExtName = "ModuleDSP";
 }
 
@@ -667,26 +668,14 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     fJIT->DisableLazyCompilation(true);
     
     try {
-        /*
-        fNew = (newDspFun)LoadOptimize("new_" + fClassName);
-        fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_" + fClassName);
-        fInit = (initFun)LoadOptimize("init_" + fClassName);
-        fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
-        fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
-        */
-        
-        fNew = (newDspFun)LoadOptimize("new" + fClassName);
-        fDelete = (deleteDspFun)LoadOptimize("delete" + fClassName);
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fClassName);
-        fInit = (initFun)LoadOptimize("init" + fClassName);
-        fCompute = (computeFun)LoadOptimize("compute" + fClassName);
-        fMetadata = (metadataFun)LoadOptimize("metadata" + fClassName);
-        
+        fNew = (newDspFun)LoadOptimize("new" + fPrefix + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete" + fPrefix + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fPrefix + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fPrefix + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fPrefix + fClassName);
+        fInit = (initFun)LoadOptimize("init" + fPrefix + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute" + fPrefix + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata" + fPrefix + fClassName);
         endTiming("initJIT");
         return true;
      } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...

@@ -77,6 +77,7 @@ class llvm_dsp_factory : public smartable {
         int fOptLevel;
         string fTarget;
         string fClassName;
+        string fPrefix;
         string fSHAKey;
         string fExtName;
     
