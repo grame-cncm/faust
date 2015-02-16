@@ -80,9 +80,7 @@ void CCodeContainer::produceInfoFunctions(int tabs, const string& classname, boo
 void CCodeContainer::produceInternal()
 {
     int n = 0;
-    
-    *fOut << "#include </usr/local/include/faust/gui/CUI.h>" << endl;
-
+  
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
@@ -158,19 +156,6 @@ void CCodeContainer::produceClass()
     
     // for LLVM 
     tab(n, *fOut);
-    //*fOut << "void* malloc(int size);" << endl;
-    //*fOut << "void free(void *ptr);" << endl;
-    
-    *fOut << "#include </usr/local/include/faust/gui/CUI.h>" << endl;
-
-    /*
-    *fOut << "#ifndef FAUSTFLOAT" << endl;
-    *fOut << "#define FAUSTFLOAT float" << endl;
-    *fOut << "#endif " << endl;
-    
-    *fOut << "typedef void (* metaDeclareFun) (void* ui_interface, const char* key, const char* value);" << endl;
-    *fOut << "typedef struct { void* mInterface; metaDeclareFun declare; } MetaGlue; " << endl;
-    */
   
     tab(n, *fOut); 
     *fOut << "#ifndef FAUSTCLASS " << endl;

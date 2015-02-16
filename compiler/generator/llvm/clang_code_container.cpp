@@ -44,8 +44,6 @@
 
 #include <llvm/ADT/OwningPtr.h>
 #include <llvm/ADT/SmallString.h>
-//#include <llvm/ExecutionEngine/ExecutionEngine.h"
-//#include <llvm/ExecutionEngine/JIT.h"
 #include <llvm/IR/Module.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Host.h>
