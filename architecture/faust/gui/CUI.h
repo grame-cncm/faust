@@ -26,6 +26,8 @@
 #define FAUSTFLOAT float
 #endif
 
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -353,14 +353,22 @@ iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
+
+CLANGLIBS= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
+            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
+            -lclangSema -lclangStaticAnalyzerFrontend \
+            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
+            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
+            -lclangEdit -lclangLex 
+
 faust-tools: 
-	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all` -lcrypto -o bench-llvm
+	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all` -lcrypto $(CLANGLIBS) -o bench-llvm
 	$(CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
-	#llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/libfaust.a $(LIB)/libHTTPDFaust.a  -lcrypto -o faust-jack-gtk
-	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -L/usr/local/lib/faust -lfaust $(LIB)/libHTTPDFaust.a  -lcrypto -o faust-jack-gtk
+	#llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/libfaust.a $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
+	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -L/usr/local/lib/faust -lfaust $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
 
 
-	llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/libfaust.a  -ljacknet  -lcrypto -o faust-netjack-gtk
+	llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/libfaust.a  -ljacknet  -lcrypto $(CLANGLIBS) -o faust-netjack-gtk
 
 scheduler:
 	$(CLANG) -arch i386 -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll	

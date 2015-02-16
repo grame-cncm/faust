@@ -29,6 +29,28 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/TextDiagnosticBuffer.h>
 
+#include <clang/CodeGen/CodeGenAction.h>
+#include <clang/Basic/DiagnosticOptions.h>
+#include <clang/Driver/Compilation.h>
+#include <clang/Driver/Driver.h>
+#include <clang/Driver/Tool.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/FrontendDiagnostic.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+
+#include <llvm/ADT/OwningPtr.h>
+#include <llvm/ADT/SmallString.h>
+//#include <llvm/ExecutionEngine/ExecutionEngine.h"
+//#include <llvm/ExecutionEngine/JIT.h"
+#include <llvm/IR/Module.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/ManagedStatic.h>
+#include <llvm/Support/Path.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
+
 #if defined(LLVM_35)
 #include <llvm/Support/FileSystem.h>
 #define sysfs_binary_flag sys::fs::F_None
@@ -41,13 +63,16 @@
 using namespace std;
 using namespace llvm;
 using namespace clang;
+using namespace clang::driver;
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
+    :fOut("/var/tmp/LLVM.c")
 {
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fContext = new LLVMContext();
-    
-    fContainer = CPPCodeContainer::createContainer(name, "", numInputs, numOutputs, &fOut);
+     
+    //fContainer = CPPCodeContainer::createContainer(name, "", numInputs, numOutputs, &fOut);
+    fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fOut);
 }
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
@@ -56,6 +81,18 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
 ClangCodeContainer::~ClangCodeContainer()
 {
     // fContainer is Garbageable
+}
+
+// This function isn't referenced outside its translation unit, but it
+// can't use the "static" keyword because its address is used for
+// GetMainExecutable (since some platforms don't support taking the
+// address of main, and some platforms can't implement GetMainExecutable
+// without being given the address of a function in the main executable).
+std::string GetExecutablePath(const char *Argv0) {
+  // This just needs to be some symbol in the binary; C++ doesn't
+  // allow taking the address of ::main however.
+  void *MainAddr = (void*) (intptr_t) GetExecutablePath;
+  return llvm::sys::fs::getMainExecutable(Argv0, MainAddr);
 }
 
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
@@ -68,15 +105,106 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
         comp = new InstructionsCompiler(fContainer);
     }
     
-    printf("ClangCodeContainer::produceModule\n");
-    
     comp->compileMultiSignal(signals);
     fContainer->produceClass();
     
-    cout << fOut.str();
+    //cout << fOut.str();
+    //llvm::MemoryBuffer * buffer = llvm::MemoryBuffer::getMemBufferCopy(fOut.str(), "src");
     
-    llvm::MemoryBuffer * buffer = llvm::MemoryBuffer::getMemBufferCopy(fOut.str(), "src");
+    int argc = 2;
+    const char* argv[2];
     
+    argv[1] = "/var/tmp/LLVM.c";
+    
+    void *MainAddr = (void*) (intptr_t) GetExecutablePath;
+    std::string Path = GetExecutablePath(argv[0]);
+    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
+    TextDiagnosticPrinter *DiagClient =
+    new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
+
+    IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
+    DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
+    Driver TheDriver(Path, llvm::sys::getProcessTriple(), "a.out", Diags);
+    TheDriver.setTitle("clang interpreter");
+
+    // FIXME: This is a hack to try to force the driver to do something we can
+    // recognize. We need to extend the driver library to support this use model
+    // (basically, exactly one input, and the operation mode is hard wired).
+    SmallVector<const char *, 16> Args(argv, argv + argc);
+    Args.push_back("-fsyntax-only");
+    //Args.push_back("-O0");
+    //Args.push_back("-ffast-math");
+    //Args.push_back("-fslp-vectorize");
+    //Args.push_back("-fslp-vectorize-aggressive");
+    OwningPtr<Compilation> C(TheDriver.BuildCompilation(Args));
+    if (!C) {
+        return NULL;
+    }
+
+    // FIXME: This is copied from ASTUnit.cpp; simplify and eliminate.
+
+    // We expect to get back exactly one command job, if we didn't something
+    // failed. Extract that job from the compilation.
+    const driver::JobList &Jobs = C->getJobs();
+    if (Jobs.size() != 1 || !isa<driver::Command>(*Jobs.begin())) {
+        SmallString<256> Msg;
+        llvm::raw_svector_ostream OS(Msg);
+        Jobs.Print(OS, "; ", true);
+        Diags.Report(diag::err_fe_expected_compiler_job) << OS.str();
+        return NULL;
+    }
+
+    const driver::Command *Cmd = cast<driver::Command>(*Jobs.begin());
+    if (llvm::StringRef(Cmd->getCreator().getName()) != "clang") {
+        Diags.Report(diag::err_fe_expected_clang_command);
+        return NULL;
+    }
+
+    // Initialize a compiler invocation object from the clang (-cc1) arguments.
+    const driver::ArgStringList &CCArgs = Cmd->getArguments();
+    OwningPtr<CompilerInvocation> CI(new CompilerInvocation);
+    CompilerInvocation::CreateFromArgs(*CI,
+                                     const_cast<const char **>(CCArgs.data()),
+                                     const_cast<const char **>(CCArgs.data()) +
+                                       CCArgs.size(),
+                                     Diags);
+
+    // Show the invocation, with -v.
+    if (CI->getHeaderSearchOpts().Verbose) {
+        llvm::errs() << "clang invocation:\n";
+        Jobs.Print(llvm::errs(), "\n", true);
+        llvm::errs() << "\n";
+    }
+
+    // FIXME: This is copied from cc1_main.cpp; simplify and eliminate.
+
+    // Create a compiler instance to handle the actual work.
+    CompilerInstance Clang;
+    Clang.setInvocation(CI.take());
+
+    // Create the compilers actual diagnostics engine.
+    Clang.createDiagnostics();
+    if (!Clang.hasDiagnostics())
+        return NULL;
+
+    // Infer the builtin include path if unspecified.
+    if (Clang.getHeaderSearchOpts().UseBuiltinIncludes &&
+      Clang.getHeaderSearchOpts().ResourceDir.empty()) {
+        Clang.getHeaderSearchOpts().ResourceDir =
+            CompilerInvocation::GetResourcesPath(argv[0], MainAddr);
+    }
+
+    // Create and execute the frontend to generate an LLVM bitcode module.
+    OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction());
+    if (!Clang.ExecuteAction(*Act)) {
+        return NULL;
+    }
+
+    if (llvm::Module *Module = Act->takeModule()) {
+        fResult->fModule = Module;
+        Module->dump();
+    }
+   
     /*
     CompilerInstance CI;
 	CI.createDiagnostics(0, NULL);
@@ -125,6 +253,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     module->dump();
     
     */
+    
+    //assert(false);
     
     if (filename != "") {
         std::string err;

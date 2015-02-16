@@ -936,13 +936,32 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     
     if (gGlobal->gOutputLang == "llvm") {
     
-        container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
-        ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
-        
-        printf("clang_container %x\n", clang_container);
-  
-        gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile.c_str());
-        gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
+        if (generate) {
+    
+            container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+            ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
+       
+            gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile.c_str());
+            gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
+           
+            // Possibly link with additional LLVM modules
+            char error[256];
+            if (!link_all_modules(gGlobal->gLLVMResult->fContext, gGlobal->gLLVMResult->fModule, error)) {
+                stringstream llvm_error;
+                llvm_error << "ERROR : " << error << endl;
+                throw faustexception(llvm_error.str());
+            }
+            
+            /*
+            if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
+                outs() << *gGlobal->gLLVMResult->fModule;
+            }
+            */
+            
+        } else {
+            // To trigger 'sig.dot' generation
+            comp->prepare(signals);
+        }
     
     /*
         

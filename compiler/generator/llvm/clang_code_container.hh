@@ -24,6 +24,7 @@
 
 #include "libfaust.h"
 #include "cpp_code_container.hh"
+#include "c_code_container.hh"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -40,7 +41,8 @@ class ClangCodeContainer : public virtual CodeContainer {
         LLVMResult* fResult;
         
         CodeContainer* fContainer;
-        std::stringstream fOut;
+        //std::stringstream fOut;
+        std::ofstream fOut;
        
         LLVMContext& getContext();
    

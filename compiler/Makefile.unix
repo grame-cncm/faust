@@ -128,7 +128,13 @@ else
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
 
-CLANGLIBS= -lclangFrontend -lclangParse -lclangSema -lclangAnalysis -lclangAST -lclangLex -lclangBasic -lclangDriver -lclangSerialization
+CLANGLIBS= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
+            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
+            -lclangSema -lclangStaticAnalyzerFrontend \
+            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
+            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
+            -lclangEdit -lclangLex 
+
 
 all : faust libfaust.a
 
