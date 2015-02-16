@@ -71,7 +71,7 @@
 #include "libfaust.h"
 #include "Text.hh"
 
-#define FAUSTVERSION        "2.0.a33"
+#define FAUSTVERSION        "2.0.a34"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
 using namespace std;

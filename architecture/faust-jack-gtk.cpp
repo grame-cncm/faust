@@ -170,10 +170,10 @@ int main(int argc, char *argv[])
         */
         
         std::string error_msg3;
-        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
+        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 0);
         //deleteDSPFactory(factory3);
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
-        factory4 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
+        //factory4 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         
         /*
         for (int i = 0; i < 10; i++) {
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
             DSP = createDSPInstance(factory3);
             assert(DSP);
          } else {
-            printf("Cannot create factory : %s", error_msg3.c_str());
+            printf("Cannot create factory : %s\n", error_msg3.c_str());
             return 1;
         }
         

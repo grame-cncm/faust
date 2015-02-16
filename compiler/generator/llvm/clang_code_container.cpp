@@ -66,15 +66,21 @@ using namespace llvm;
 using namespace clang;
 using namespace clang::driver;
 
+#include <math.h>
+
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
     :fOut("/var/tmp/FaustLLVM.c")
 {
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fContext = new LLVMContext();
     
-    fOut << "#include </usr/local/include/faust/gui/CUI.h>" << endl;
-     
-    //fContainer = CPPCodeContainer::createContainer(name, "dsp", numInputs, numOutputs, &fOut);
+    fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+    
+    fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
+    fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
+    
+    printheader(fOut);
+       
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fOut);
     
     if (gGlobal->gVectorSwitch) {
@@ -87,8 +93,10 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
     if (gGlobal->gPrintDocSwitch) fCompiler->setDescription(new Description());
 }
 
+/*
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
 {}
+*/
 
 ClangCodeContainer::~ClangCodeContainer()
 {
@@ -112,9 +120,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
-    //cout << fOut.str();
-    //llvm::MemoryBuffer* buffer = llvm::MemoryBuffer::getMemBufferCopy(fOut.str(), "src");
-    
     int argc = 2;
     const char* argv[2];
     argv[1] = "/var/tmp/FaustLLVM.c";
@@ -134,7 +139,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // (basically, exactly one input, and the operation mode is hard wired).
     SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
-    //Args.push_back("-O0");
+    //Args.push_back("-O3");
     //Args.push_back("-ffast-math");
     //Args.push_back("-fslp-vectorize");
     //Args.push_back("-fslp-vectorize-aggressive");
@@ -219,6 +224,7 @@ CodeContainer* ClangCodeContainer::createScalarContainer(const string& name, int
 {
     // TODO
     //return new ClangCodeContainer(name, 0, 1, fOut, sub_container_type);
+    assert(false);
 }
 
 CodeContainer* ClangCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)

@@ -373,4 +373,6 @@ inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
 	return S.find(l) != S.end();
 }
 
+void printheader(ostream& dst);
+
 #endif

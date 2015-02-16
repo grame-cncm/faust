@@ -43,7 +43,6 @@ class ClangCodeContainer : public virtual CodeContainer {
         
         InstructionsCompiler* fCompiler;
         CodeContainer* fContainer;
-        //std::stringstream fOut;
         std::ofstream fOut;
        
         LLVMContext& getContext();
@@ -51,7 +50,7 @@ class ClangCodeContainer : public virtual CodeContainer {
     public:
 
         ClangCodeContainer(const string& name, int numInputs, int numOutputs);
-        ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
+        //ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
         ClangCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out) {}
         virtual ~ClangCodeContainer();
       

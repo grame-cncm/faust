@@ -282,7 +282,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
             }
         }
         
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type, FunTyped::kInline), block));
+        pushGlobalDeclare(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
 
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));
