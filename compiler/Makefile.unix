@@ -731,9 +731,9 @@ libcode.o: generator/omp_code_container.hh generator/wss_code_container.hh gener
 libcode.o: generator/cpp/cpp_instructions.hh generator/opencl_instructions.hh generator/cpp/cpp_gpu_code_container.hh
 libcode.o: generator/java/java_code_container.hh generator/java/java_instructions.hh generator/typing_instructions.hh
 libcode.o: generator/js/js_code_container.hh generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
-libcode.o: generator/asmjs/asmjs_instructions.hh generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
-libcode.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh
-libcode.o: errors/exception.hh libfaust.h export.hh
+libcode.o: generator/asmjs/asmjs_instructions.hh generator/llvm/clang_code_container.hh libfaust.h export.hh
+libcode.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh draw/schema/schema.h
+libcode.o: draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh errors/exception.hh
 global.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 global.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
 global.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh

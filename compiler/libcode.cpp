@@ -934,8 +934,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     startTiming("generateCode");
     
+#if LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
-    
+
         if (generate) {
     
             container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
@@ -960,11 +961,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             // To trigger 'sig.dot' generation
             comp->prepare(signals);
         }
-    
-    /*
-        
-    #if LLVM_BUILD
-       
+
+    } else if (gGlobal->gOutputLang == "llvm") {
+   
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (gGlobal->gVectorSwitch) {
@@ -998,10 +997,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             // To trigger 'sig.dot' generation
             comp->prepare(signals);
         }
-    #else
+    
+#else
+    if (gGlobal->gOutputLang == "llvm" || gGlobal->gOutputLang == "cllvm") {
         throw faustexception("ERROR : -lang llvm not supported since LLVM backend is not built\n");
-    #endif
-        */
+#endif
  
     } else {
     

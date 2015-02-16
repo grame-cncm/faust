@@ -19,6 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#include "compatibility.hh"
+
+#if LLVM_BUILD
+
 #include "clang_code_container.hh"
 
 #include <llvm/Support/raw_ostream.h>
@@ -80,6 +84,9 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
     } else {
         fCompiler = new InstructionsCompiler(fContainer);
     }
+    
+    if (gGlobal->gPrintXMLSwitch) fCompiler->setDescription(new Description());
+    if (gGlobal->gPrintDocSwitch) fCompiler->setDescription(new Description());
 }
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
@@ -211,9 +218,31 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
 }
 
 CodeContainer* ClangCodeContainer::createScalarContainer(const string& name, int sub_container_type)
-{}
+{
+    // TODO
+    //return new ClangCodeContainer(name, 0, 1, fOut, sub_container_type);
+}
 
 CodeContainer* ClangCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {
     return new ClangCodeContainer(name, numInputs, numOutputs);
 }
+
+
+// Scalar
+ClangScalarCodeContainer::ClangScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
+    :ClangCodeContainer(name, super, numInputs, numOutputs, out)
+{
+    fSubContainerType = sub_container_type;
+}
+
+ClangScalarCodeContainer::~ClangScalarCodeContainer()
+{}
+
+void ClangScalarCodeContainer::generateCompute(int n)
+{
+    // TODO
+    //fContainer->generateCompute(n);
+}
+
+#endif // LLVM_BUILD
