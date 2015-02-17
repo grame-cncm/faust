@@ -163,6 +163,7 @@ class ScalarCompiler : public Compiler
     string          generateConcat(Tree sig, Tree x, Tree y);
     string          generateVectorAt(Tree sig, Tree x, Tree y);
 
+    void            pointwise(const string& op, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2);
 
 
 

@@ -438,25 +438,69 @@ string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string
 /*****************************************************************************
 							   BINARY OPERATION
 *****************************************************************************/
+//dst, d3, src1, d1, src2, d2
+void ScalarCompiler::pointwise(const string& op, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2 )
+{
+    if (idx == 0) {
+        fClass->addExecCode(subst("$0 = $1 $2 $3;", dst, src1, op, src2));
+    } else {
+        fClass->addExecCode(subst("for (int k$0=0; k$0<$1; k$0++) {", T(idx), T(d3[idx-1])));
+        if (idx > d1.size()) {
+            pointwise(op, idx-1, subst("$0.data[k$1]", dst, T(idx)), d3, src1, d1, subst("$0.data[k$1]", src2, T(idx)), d2);
+        } else if (idx > d2.size()) {
+            pointwise(op, idx-1, subst("$0.data[k$1]", dst, T(idx)), d3, subst("$0.data[k$1]", src1, T(idx)), d1, src2, d2);
+        } else {
+            pointwise(op, idx-1, subst("$0.data[k$1]", dst, T(idx)), d3, subst("$0.data[k$1]", src1, T(idx)), d1, subst("$0.data[k$1]", src2, T(idx)), d2);
+        }
+        fClass->addExecCode("}");
+    }
+}
 
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
-    if (opcode == kDiv) {
-        // special handling for division, we always want a float division
-        Type        t1 = getCertifiedSigType(arg1);
-        Type        t2 = getCertifiedSigType(arg2);
+    Type        t0 = getCertifiedSigType(sig);
+    Type        t1 = getCertifiedSigType(arg1);
+    Type        t2 = getCertifiedSigType(arg2);
 
-        if (t1->nature()==kInt && t2->nature()==kInt ) {
-            return generateCacheCode(sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
-        } else if (t1->nature()==kInt && t2->nature()==kReal ) {
-            return generateCacheCode(sig, subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
-        } else if (t1->nature()==kReal && t2->nature()==kInt ) {
-            return generateCacheCode(sig, subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
-        } else  {
-            return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+    // get dimensions of arguments
+    vector<int> d1; t1->dimensions(d1);
+    vector<int> d2; t2->dimensions(d2);
+
+
+    if ((d1.size() == 0) && (d2.size() == 0)) {
+        // we deal with scalars
+       if (opcode == kDiv) {
+            // special handling for division, we always want a float division
+
+            if (t1->nature()==kInt && t2->nature()==kInt ) {
+                return generateCacheCode(sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            } else if (t1->nature()==kInt && t2->nature()==kReal ) {
+                return generateCacheCode(sig, subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            } else if (t1->nature()==kReal && t2->nature()==kInt ) {
+                return generateCacheCode(sig, subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            } else  {
+                return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            }
+        } else {
+            return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
         }
     } else {
-        return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+        // we have to deal with at least one vector
+        vector<int> d3;
+        if (maxdimensions(d1,d2,d3)) {
+            // vectors are compatibles
+            string src1 = CS(arg1);
+            string src2 = CS(arg2);
+            string vtname = declareCType(sig);
+            string dst = getFreshID("V");
+            fClass->addZone2(subst("$0 $1;", vtname, dst));
+            fClass->addExecCode(subst("if ($0) {", fRates->tick(sig)));
+            pointwise(gBinOpTable[opcode]->fName, d3.size(), dst, d3, src1, d1, src2, d2);
+            fClass->addExecCode("}");
+            return dst;
+        } else {
+            // incompatible
+        }
     }
 }
 
