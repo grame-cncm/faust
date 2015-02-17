@@ -66,8 +66,6 @@ using namespace llvm;
 using namespace clang;
 using namespace clang::driver;
 
-#include <math.h>
-
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
     :fOut("/var/tmp/FaustLLVM.c")
 {
@@ -96,18 +94,6 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
 ClangCodeContainer::~ClangCodeContainer()
 {}
 
-// This function isn't referenced outside its translation unit, but it
-// can't use the "static" keyword because its address is used for
-// GetMainExecutable (since some platforms don't support taking the
-// address of main, and some platforms can't implement GetMainExecutable
-// without being given the address of a function in the main executable).
-std::string GetExecutablePath(const char *Argv0) {
-  // This just needs to be some symbol in the binary; C++ doesn't
-  // allow taking the address of ::main however.
-  void *MainAddr = (void*) (intptr_t) GetExecutablePath;
-  return llvm::sys::fs::getMainExecutable(Argv0, MainAddr);
-}
-
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
 {
     fCompiler->compileMultiSignal(signals);
@@ -117,14 +103,12 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     const char* argv[2];
     argv[1] = "/var/tmp/FaustLLVM.c";
     
-    void* MainAddr = (void*) (intptr_t) GetExecutablePath;
-    std::string Path = GetExecutablePath(argv[0]);
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
 
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
     DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
-    Driver TheDriver(Path, llvm::sys::getProcessTriple(), "a.out", Diags);
+    Driver TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
     TheDriver.setTitle("clang interpreter");
 
     // FIXME: This is a hack to try to force the driver to do something we can
@@ -166,15 +150,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     CompilerInvocation::CreateFromArgs(*CI, const_cast<const char**>(CCArgs.data()),
                                             const_cast<const char**>(CCArgs.data()) + CCArgs.size(), Diags);
 
-    // Show the invocation, with -v.
-    if (CI->getHeaderSearchOpts().Verbose) {
-        llvm::errs() << "clang invocation:\n";
-        Jobs.Print(llvm::errs(), "\n", true);
-        llvm::errs() << "\n";
-    }
-
-    // FIXME: This is copied from cc1_main.cpp; simplify and eliminate.
-
+   
     // Create a compiler instance to handle the actual work.
     CompilerInstance Clang;
     Clang.setInvocation(CI.take());
@@ -183,13 +159,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     Clang.createDiagnostics();
     if (!Clang.hasDiagnostics()) {
         return NULL;
-    }
-
-    // Infer the builtin include path if unspecified.
-    if (Clang.getHeaderSearchOpts().UseBuiltinIncludes &&
-      Clang.getHeaderSearchOpts().ResourceDir.empty()) {
-        Clang.getHeaderSearchOpts().ResourceDir =
-            CompilerInvocation::GetResourcesPath(argv[0], MainAddr);
     }
 
     // Create and execute the frontend to generate an LLVM bitcode module.

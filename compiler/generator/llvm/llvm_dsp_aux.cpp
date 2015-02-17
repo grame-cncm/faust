@@ -794,14 +794,14 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     }
      
     try {
-        fNew = (newDspFun)LoadOptimize("new_" + fClassName);
-        fDelete = (deleteDspFun)LoadOptimize("delete_" + fClassName);
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_" + fClassName);
-        fInit = (initFun)LoadOptimize("init_" + fClassName);
-        fCompute = (computeFun)LoadOptimize("compute_" + fClassName);
-        fMetadata = (metadataFun)LoadOptimize("metadata_" + fClassName);
+        fNew = (newDspFun)LoadOptimize("new" + fPrefix + fClassName);
+        fDelete = (deleteDspFun)LoadOptimize("delete" + fPrefix + fClassName);
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fPrefix + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fPrefix + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fPrefix + fClassName);
+        fInit = (initFun)LoadOptimize("init" + fPrefix + fClassName);
+        fCompute = (computeFun)LoadOptimize("compute" + fPrefix + fClassName);
+        fMetadata = (metadataFun)LoadOptimize("metadata" + fPrefix + fClassName);
         endTiming("initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...

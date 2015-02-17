@@ -112,7 +112,6 @@ void CCodeContainer::produceInternal()
     produceInfoFunctions(n, fKlassName, false);
     
     // Init
-    //tab(n, *fOut);
     tab(n, *fOut); *fOut << "static void " << "instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
@@ -153,10 +152,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-    
-    // for LLVM 
-    tab(n, *fOut);
-  
+      
     tab(n, *fOut); 
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
@@ -238,20 +234,25 @@ void CCodeContainer::produceClass()
     produceInfoFunctions(n, fKlassName, false);
 
     // Inits
-    //tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "classInit" << fKlassName << "(int samplingFreq) {";
-        tab(n+1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation (UGLY : does not work with kisane.dsp => to correct)  
-        CInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n+1);
-        generateStaticInit(&codeproducer);
+        {
+            tab(n+1, *fOut);
+            // Local visitor here to avoid DSP object type wrong generation  
+            CInstVisitor codeproducer(fOut, "");
+            codeproducer.Tab(n+1);
+            generateStaticInit(&codeproducer);
+        }
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
-        tab(n+1, *fOut);
-        fCodeProducer.Tab(n+1);
-        generateInit(&fCodeProducer);
+        {
+            tab(n+1, *fOut);
+            // Local visitor here to avoid DSP object type wrong generation
+            CInstVisitor codeproducer(fOut, "");
+            codeproducer.Tab(n+1);
+            generateInit(&codeproducer);
+        }
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
