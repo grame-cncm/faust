@@ -66,7 +66,7 @@ class Symbol
 	void*			fData;										///< Field to user disposal to store additional data
 	
  // Constructors & destructors
-    Symbol (const char* str, unsigned int hsh, Symbol* nxt); 	///< Constructs a new symbol ready to be placed in the hash table
+    Symbol (char* str, unsigned int hsh, Symbol* nxt);          ///< Constructs a new symbol ready to be placed in the hash table
    ~Symbol ();													///< The Destructor is never used
 	
  // Others
