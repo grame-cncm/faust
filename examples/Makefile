@@ -362,7 +362,7 @@ CLANGLIBS= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
             -lclangEdit -lclangLex 
 
 faust-tools: 
-	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all` -lcrypto $(CLANGLIBS) -o bench-llvm
+	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.dylib  `llvm-config --ldflags --libs all` -lcrypto $(CLANGLIBS) -o bench-llvm
 	$(CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	#llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/libfaust.a $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
 	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -L/usr/local/lib/faust -lfaust $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
