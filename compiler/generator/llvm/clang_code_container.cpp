@@ -93,15 +93,8 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
     if (gGlobal->gPrintDocSwitch) fCompiler->setDescription(new Description());
 }
 
-/*
-ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result)
-{}
-*/
-
 ClangCodeContainer::~ClangCodeContainer()
-{
-    // fContainer is Garbageable
-}
+{}
 
 // This function isn't referenced outside its translation unit, but it
 // can't use the "static" keyword because its address is used for
@@ -124,10 +117,10 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     const char* argv[2];
     argv[1] = "/var/tmp/FaustLLVM.c";
     
-    void *MainAddr = (void*) (intptr_t) GetExecutablePath;
+    void* MainAddr = (void*) (intptr_t) GetExecutablePath;
     std::string Path = GetExecutablePath(argv[0]);
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
-    TextDiagnosticPrinter *DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
+    TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
 
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
     DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
@@ -161,7 +154,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
         return NULL;
     }
 
-    const driver::Command *Cmd = cast<driver::Command>(*Jobs.begin());
+    const driver::Command* Cmd = cast<driver::Command>(*Jobs.begin());
     if (llvm::StringRef(Cmd->getCreator().getName()) != "clang") {
         Diags.Report(diag::err_fe_expected_clang_command);
         return NULL;
@@ -205,7 +198,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
         return NULL;
     }
 
-    if (llvm::Module *Module = Act->takeModule()) {
+    if (llvm::Module* Module = Act->takeModule()) {
         fResult->fModule = Module;
     }
   
@@ -220,33 +213,9 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     return result;
 }
 
-CodeContainer* ClangCodeContainer::createScalarContainer(const string& name, int sub_container_type)
-{
-    // TODO
-    //return new ClangCodeContainer(name, 0, 1, fOut, sub_container_type);
-    assert(false);
-}
-
 CodeContainer* ClangCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {
     return new ClangCodeContainer(name, numInputs, numOutputs);
-}
-
-
-// Scalar
-ClangScalarCodeContainer::ClangScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    :ClangCodeContainer(name, super, numInputs, numOutputs, out)
-{
-    fSubContainerType = sub_container_type;
-}
-
-ClangScalarCodeContainer::~ClangScalarCodeContainer()
-{}
-
-void ClangScalarCodeContainer::generateCompute(int n)
-{
-    // TODO
-    //fContainer->generateCompute(n);
 }
 
 #endif // LLVM_BUILD

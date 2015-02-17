@@ -941,8 +941,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     
             container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
             ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
-       
             gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile.c_str());
+            if (!gGlobal->gLLVMResult) {
+                throw faustexception("Cannot compile C generated code to LLVM IR\n");
+            }
             gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
            
             // Possibly link with additional LLVM modules

@@ -44,36 +44,19 @@ class ClangCodeContainer : public virtual CodeContainer {
         InstructionsCompiler* fCompiler;
         CodeContainer* fContainer;
         std::ofstream fOut;
-       
-        LLVMContext& getContext();
-   
+    
     public:
 
         ClangCodeContainer(const string& name, int numInputs, int numOutputs);
-        //ClangCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
-        ClangCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out) {}
         virtual ~ClangCodeContainer();
       
         virtual LLVMResult* produceModule(Tree signals, const string& filename);
         
         virtual void produceInternal() { fContainer->produceInternal(); }
     
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type) { assert(false); } // Not used
 
         static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
-
-};
-
-class ClangScalarCodeContainer : public ClangCodeContainer {
-
-    protected:
-
-    public:
-
-        ClangScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~ClangScalarCodeContainer();
-
-        void generateCompute(int tab);
 
 };
 
