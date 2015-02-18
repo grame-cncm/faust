@@ -202,6 +202,8 @@ class CPPInstVisitor : public TextInstVisitor {
         {
             generateFunCall(inst, inst->fName);
         }
+        
+        static void cleanup() { gFunctionSymbolTable.clear(); }
 
 };
 

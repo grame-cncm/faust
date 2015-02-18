@@ -39,11 +39,10 @@ class ClangCodeContainer : public virtual CodeContainer {
 
     protected:
      
-        LLVMResult* fResult;
-        
         InstructionsCompiler* fCompiler;
         CodeContainer* fContainer;
         std::ofstream fOut;
+        std::stringstream fStrOut;
     
     public:
 

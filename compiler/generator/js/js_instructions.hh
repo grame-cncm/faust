@@ -238,6 +238,8 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
             generateFunCall(inst, fun_name);
         }
+        
+        static void cleanup() { gFunctionSymbolTable.clear(); gMathLibTable.clear(); }
 
 };
 

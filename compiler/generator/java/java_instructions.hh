@@ -484,6 +484,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
         
+         static void cleanup() { gFunctionSymbolTable.clear(); gMathLibTable.clear(); }
 };
 
 #endif

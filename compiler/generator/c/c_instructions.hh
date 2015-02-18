@@ -245,6 +245,8 @@ class CInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
              }
         }
+        
+       static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
 #endif

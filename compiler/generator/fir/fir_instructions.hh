@@ -59,7 +59,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual ~FIRInstVisitor()
         {}
-    
        
         void Tab(int n) {fTab = n;}
 
@@ -615,6 +614,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "EndSWitch";
             tab(fTab, *fOut);
         }
+        
+        static void cleanup() { gFunctionSymbolTable.clear(); }
 
 };
 

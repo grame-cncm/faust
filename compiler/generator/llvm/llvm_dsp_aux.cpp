@@ -165,7 +165,6 @@ EXPORT void stopMTDSPFactories()
 
 // ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work 
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
-
 class FaustObjectCache : public ObjectCache {
 
     private:
@@ -193,7 +192,6 @@ class FaustObjectCache : public ObjectCache {
         string getMachineCode() { return fMachineCode; }
         
 };
-
 #endif
 
 #ifdef LLVM_35
@@ -217,13 +215,21 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
     return (void*)fJIT->getFunctionAddress(function);
+    void* fun = (void*)fJIT->getFunctionAddress(function);
+    if (fun) {
+        return fun;
+    } else {
+        stringstream error;
+        error << "LoadOptimize failed for '" << function << "'";
+        throw faustexception(error.str());
+    }
 #else
     llvm::Function* fun_ptr = fResult->fModule->getFunction(function);
     if (fun_ptr) {
         return fJIT->getPointerToFunction(fun_ptr);
     } else {
         stringstream error;
-        error << "LoadOptimize : getPointerToFunction failed for " << function;
+        error << "LoadOptimize failed for '" << function << "'";
         throw faustexception(error.str());
     }
 #endif

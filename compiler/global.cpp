@@ -46,6 +46,11 @@
 #include "instructions.hh"
 
 #include "asmjs_instructions.hh"
+#include "c_code_container.hh"
+#include "cpp_code_container.hh"
+#include "js_code_container.hh"
+#include "java_code_container.hh"
+#include "fir_code_container.hh"
 
 #include <limits.h>
 
@@ -70,9 +75,9 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     EVALPROPERTY = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
     
-    gResult             = 0;
-    gResult2            = 0;
-    gExpandedDefList    = 0;
+    gResult          = 0;
+    gResult2         = 0;
+    gExpandedDefList = 0;
     
     gDetailsSwitch  = false;
     gDrawSignals    = false;
@@ -389,6 +394,13 @@ global::~global()
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
     setlocale(LC_ALL, gCurrentLocal);
+    
+    // Cleanup
+    CInstVisitor::cleanup();
+    CPPInstVisitor::cleanup();
+    JAVAScriptInstVisitor::cleanup();
+    JAVAInstVisitor::cleanup();
+    FIRInstVisitor::cleanup();
 }
 
 void global::allocate()

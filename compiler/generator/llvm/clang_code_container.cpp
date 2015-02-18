@@ -69,17 +69,22 @@ using namespace clang::driver;
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
     :fOut("/var/tmp/FaustLLVM.c")
 {
-    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
-    fResult->fContext = new LLVMContext();
-    
+
     fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
-    
     fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
     fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
-    
     printheader(fOut);
        
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fOut);
+
+    /*
+    fStrOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+    fStrOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
+    fStrOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
+    printheader(fStrOut);
+       
+    fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fStrOut);
+    */
     
     if (gGlobal->gVectorSwitch) {
         fCompiler = new DAGInstructionsCompiler(fContainer);
@@ -94,18 +99,58 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
 ClangCodeContainer::~ClangCodeContainer()
 {}
 
+//static clang::CodeGenAction* compile(const string& code)
+static clang::CodeGenAction* compile()
+{
+    // Arguments to pass to the clang frontend
+    vector<const char*> args;
+    args.push_back("/var/tmp/FaustLLVM.c");
+    //args.push_back(tmpPath);
+    //args.push_back("-x");
+    //args.push_back("c++");
+    
+    // The compiler invocation needs a DiagnosticsEngine so it can report problems
+    clang::DiagnosticOptions* opts = new clang::DiagnosticOptions();
+    clang::TextDiagnosticPrinter* DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), opts);
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+    clang::DiagnosticsEngine Diags(DiagID, opts, DiagClient);
+    
+    // Create the compiler invocation
+    llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+    clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
+    
+    // Create the compiler instance
+    clang::CompilerInstance Clang;
+    Clang.setInvocation(CI.take());
+    
+    // Get ready to report problems
+    //Clang.createDiagnostics(args.size(), &args[0]);
+    Clang.createDiagnostics();
+    if (!Clang.hasDiagnostics())
+        return NULL;
+    
+    // Create an action and make the compiler instance carry it out
+    clang::CodeGenAction *Act = new clang::EmitLLVMOnlyAction();
+    if (!Clang.ExecuteAction(*Act))
+        return NULL;
+    
+    //unlink(tmpPath);
+    return Act;
+}
+
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
 {
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
+    /*
     int argc = 2;
     const char* argv[2];
     argv[1] = "/var/tmp/FaustLLVM.c";
     
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
-
+    
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
     DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
     Driver TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
@@ -162,24 +207,70 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     }
 
     // Create and execute the frontend to generate an LLVM bitcode module.
-    OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction(fResult->fContext));
+    //OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction(fResult->fContext));
+    OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction());
     if (!Clang.ExecuteAction(*Act)) {
         return NULL;
     }
-
-    if (llvm::Module* Module = Act->takeModule()) {
-        fResult->fModule = Module;
-    }
-  
-    if (filename != "") {
-        std::string err;
-        raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
-        WriteBitcodeToFile(fResult->fModule, out);
-    }
+    */
     
-    LLVMResult* result = fResult;
-    fResult = NULL; // Will be deallocated later on in the compilation chain...
-    return result;
+    // Arguments to pass to the clang frontend
+    vector<const char*> args;
+    args.push_back("/var/tmp/FaustLLVM.c");
+    //args.push_back(tmpPath);
+    //args.push_back("-x");
+    //args.push_back("c++");
+    
+    // The compiler invocation needs a DiagnosticsEngine so it can report problems
+    clang::DiagnosticOptions* opts = new clang::DiagnosticOptions();
+    clang::TextDiagnosticPrinter* DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), opts);
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+    clang::DiagnosticsEngine Diags(DiagID, opts, DiagClient);
+    
+    // Create the compiler invocation
+    llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+    clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
+    
+    // Create the compiler instance
+    clang::CompilerInstance Clang;
+    Clang.setInvocation(CI.take());
+    
+    //Clang.getPreprocessorOpts().addRemappedFile("Faust.c", llvm::MemoryBuffer::getMemBuffer(fStrOut.str()));
+    /*
+    llvm::MemoryBuffer * buffer = llvm::MemoryBuffer::getMemBufferCopy(fStrOut.str(), "src");
+    Clang.createFileManager();
+    Clang.createSourceManager(Clang.getFileManager());
+	Clang.getSourceManager().createMainFileIDForMemBuffer(buffer);
+    */
+    
+    // Get ready to report problems
+    Clang.createDiagnostics();
+    if (!Clang.hasDiagnostics())
+        return NULL;
+    
+    // Create an action and make the compiler instance carry it out
+    clang::CodeGenAction *Act = new clang::EmitLLVMOnlyAction();
+    if (!Clang.ExecuteAction(*Act))
+        return NULL;
+    
+    if (llvm::Module* Module = Act->takeModule()) {
+    
+        LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
+        result->fModule = Module;
+        result->fContext = Act->takeLLVMContext();
+        
+        //Module->dump();
+        
+        if (filename != "") {
+            std::string err;
+            raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
+            WriteBitcodeToFile(result->fModule, out);
+        }
+        
+        return result;
+    } else {
+        return NULL;
+    }
 }
 
 CodeContainer* ClangCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
