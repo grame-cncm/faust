@@ -455,7 +455,48 @@ void ScalarCompiler::pointwise(const string& op, int idx, const string& dst, con
         fClass->addExecCode("}");
     }
 }
+//dst, d3, src1, d1, src2, d2
+void ScalarCompiler::unarywise(xtended* foo, Type t, int idx, const string& dst, const vector<int>& D, const string& src1)
+{
+    if (idx == 0) {
+        vector<string> 	args;
+        vector<Type> 	types;
+        args.push_back(src1);
+        types.push_back(t);
 
+        string exp = foo->generateCode(fClass, args, types);
+        fClass->addExecCode(subst("$0 = $1;", dst, exp));
+    } else {
+        fClass->addExecCode(subst("for (int k$0=0; k$0<$1; k$0++) {", T(idx), T(D[idx-1])));
+        unarywise(foo, t, idx-1, subst("$0.data[k$1]", dst, T(idx)), D, subst("$0.data[k$1]", src1, T(idx)));
+        fClass->addExecCode("}");
+    }
+}
+//dst, d3, src1, d1, src2, d2
+void ScalarCompiler::binarywise(xtended* foo, Type t1, Type t2, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2 )
+{
+    if (idx == 0) {
+        vector<string> 	args;
+        vector<Type> 	types;
+        args.push_back(src1);
+        args.push_back(src2);
+        types.push_back(t1);
+        types.push_back(t2);
+
+        string exp = foo->generateCode(fClass, args, types);
+        fClass->addExecCode(subst("$0 = $1;", dst, exp));
+    } else {
+        fClass->addExecCode(subst("for (int k$0=0; k$0<$1; k$0++) {", T(idx), T(d3[idx-1])));
+        if (idx > d1.size()) {
+            binarywise(foo, t1, t2, idx-1, subst("$0.data[k$1]", dst, T(idx)), d3, src1, d1, subst("$0.data[k$1]", src2, T(idx)), d2);
+        } else if (idx > d2.size()) {
+            binarywise(foo, t1, t2, idx-1, subst("$0.data[k$1]", dst, T(idx)), d3, subst("$0.data[k$1]", src1, T(idx)), d1, src2, d2);
+        } else {
+            binarywise(foo, t1, t2, idx-1, subst("$0.data[k$1]", dst, T(idx)), d3, subst("$0.data[k$1]", src1, T(idx)), d1, subst("$0.data[k$1]", src2, T(idx)), d2);
+        }
+        fClass->addExecCode("}");
+    }
+}
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     Type        t0 = getCertifiedSigType(sig);
@@ -1223,20 +1264,48 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
  */
 string ScalarCompiler::generateXtended 	(Tree sig)
 {
-	xtended* 		p = (xtended*) getUserData(sig);
-	vector<string> 	args;
-	vector<Type> 	types;
+    xtended* 		p = (xtended*) getUserData(sig);
+    vector<string> 	args;
+    vector<Type> 	types;
 
-	for (int i=0; i<sig->arity(); i++) {
-		args.push_back(CS(sig->branch(i)));
-		types.push_back(getCertifiedSigType(sig->branch(i)));
-	}
+    Type            t = getCertifiedSigType(sig);
+    vector<int>     D; t->dimensions(D);
+    if ((sig->arity()==1) && (D.size()>0)) {
+        string src = CS(sig->branch(0));
+        string vtname = declareCType(sig);
+        string dst = getFreshID("V");
+        fClass->addZone2(subst("$0 $1;", vtname, dst));
+        fClass->addExecCode(subst("if ($0) {", fRates->tick(sig)));
+        unarywise(p, t, D.size(), dst, D, src);
+        fClass->addExecCode("}");
+        return dst;
+    } else if ((sig->arity()==2) && (D.size()>0)) {
+        string src1 = CS(sig->branch(0));
+        string src2 = CS(sig->branch(1));
+        Type t1 = getCertifiedSigType(sig->branch(0));
+        Type t2 = getCertifiedSigType(sig->branch(1));
+        vector<int> D1; t1->dimensions(D1);
+        vector<int> D2; t2->dimensions(D2);
 
-	if (p->needCache()) {
-		return generateCacheCode(sig, p->generateCode(fClass, args, types));
-	} else {
-		return p->generateCode(fClass, args, types);
-	}
+         string vtname = declareCType(sig);
+        string dst = getFreshID("V");
+        fClass->addZone2(subst("$0 $1;", vtname, dst));
+        fClass->addExecCode(subst("if ($0) {", fRates->tick(sig)));
+        binarywise(p, t1, t2, D.size(), dst, D, src1, D1, src2, D2);
+        fClass->addExecCode("}");
+        return dst;
+    } else {
+        for (int i=0; i<sig->arity(); i++) {
+            args.push_back(CS(sig->branch(i)));
+            types.push_back(getCertifiedSigType(sig->branch(i)));
+        }
+
+        if (p->needCache()) {
+            return generateCacheCode(sig, p->generateCode(fClass, args, types));
+        } else {
+            return p->generateCode(fClass, args, types);
+        }
+    }
 }
 
 
@@ -1555,11 +1624,14 @@ string ScalarCompiler::generateSerialize(Tree sig, Tree x)
  */
 string   ScalarCompiler::declareCType (Tree sig)
 {
+    return declareCType(getCertifiedSigType(sig));
+    /*
     Type t = getCertifiedSigType(sig);
     string vtname = t->typeName();
     if (fDeclaredTypes.count(vtname)==0) {
         VectorType* vt = isVectorType(t);
         if (vt) {
+            string ctname = declareCType()
             string decl = subst("struct $0 { $2 data[$1]; $0(int n=0) { for(int i=0;i<$1;i++) data[i]=0;} };", vtname, T(vt->size()), vt->content()->typeName());
             //std::cerr << "DECLARATION : " << decl << std::endl;
             fClass->addDeclCode(decl);
@@ -1567,8 +1639,25 @@ string   ScalarCompiler::declareCType (Tree sig)
         fDeclaredTypes.insert(vtname);
     }
     return vtname;
+    */
 }
 
+string  ScalarCompiler::declareCType (Type t)
+{
+    string vtname = t->typeName();
+    if (fDeclaredTypes.count(vtname)==0) {
+        VectorType* vt = isVectorType(t);
+        if (vt) {
+            string ctname = declareCType(vt->content());
+            string decl = subst("struct $0 { $2 data[$1]; $0(int n=0) { for(int i=0;i<$1;i++) data[i]=0;} };", vtname, T(vt->size()), ctname);
+            //std::cerr << "DECLARATION : " << decl << std::endl;
+            fClass->addDeclCode(decl);
+        }
+        fDeclaredTypes.insert(vtname);
+    }
+    return vtname;
+
+}
 
 /**
  * Generate Concat

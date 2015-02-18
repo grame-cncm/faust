@@ -31,6 +31,7 @@
 #include "sigraterules.hh"
 #include "occurences.hh"
 #include "property.hh"
+#include "xtended.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -101,6 +102,7 @@ class ScalarCompiler : public Compiler
 	
 	// generation du code
     string          declareCType        (Tree sig);     ///< Add C type declaration to class, return ctype name
+    string          declareCType        (Type t);       ///< Add C type declaration to class, return ctype name
 
     string          generateXtended		(Tree sig);
 	virtual string 	generateFixDelay	(Tree sig, Tree arg, Tree size);
@@ -164,6 +166,8 @@ class ScalarCompiler : public Compiler
     string          generateVectorAt(Tree sig, Tree x, Tree y);
 
     void            pointwise(const string& op, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2);
+    void            unarywise(xtended* foo, Type t, int idx, const string& dst, const vector<int>& D, const string& src1);
+    void            binarywise(xtended* foo, Type t1, Type t2, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2 );
 
 
 
