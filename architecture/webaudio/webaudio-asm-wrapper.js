@@ -339,6 +339,9 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
      
     // input items
     that.inputs_items = [];
+    
+    // Allocate table for 'setValue'
+    that.valueTable = [];
            
     that.getNumInputs = function () 
     {
@@ -371,6 +374,16 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             var dspInput = that.dspInChannnels[i];
             for (j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
+            }
+        }
+        
+        // Update control state
+        for (var i = 0; i < that.inputs_items.length; i++) {
+            var path = that.inputs_items[i];
+            var values = that.valueTable[path];
+            if (that.factory.getValue(that.dsp, that.factory.pathTable[path]) != values[0]) {
+                that.factory.setValue(that.dsp, that.factory.pathTable[path], values[0]);
+                values[0] = values[1];
             }
         }
 
@@ -427,7 +440,11 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     
     that.setValue = function (path, val) 
     {
-        that.factory.setValue(that.dsp, that.factory.pathTable[path], val);
+        var values = that.valueTable[path];
+        if (that.factory.getValue(that.dsp, that.factory.pathTable[path]) == values[0]) {
+            values[0] = val;
+        } 
+        values[1] = val;
     };
     
     that.getValue = function (path) 
@@ -531,6 +548,14 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
 
         // Init DSP
         that.factory.init(that.dsp, faust.context.sampleRate);
+        
+         // Init 'value' table
+        for (var i = 0; i < that.inputs_items.length; i++) {
+            var path = that.inputs_items[i];
+            var values = new Float32Array(2);
+            values[0] = that.factory.getValue(that.dsp, that.factory.pathTable[path]);
+            that.valueTable[path] = values;
+        }
     };
     
     that.init();
@@ -759,7 +784,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     
     that.getValue = function (path) 
     {
-        that.factory.getValue(that.dsp_voices[0], that.factory.pathTable[path]);
+        return that.factory.getValue(that.dsp_voices[0], that.factory.pathTable[path]);
     };
     
     that.json = function ()

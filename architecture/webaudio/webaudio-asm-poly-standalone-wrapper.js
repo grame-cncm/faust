@@ -330,7 +330,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
     
     that.getValue = function (path) 
     {
-        that.factory.getValue(that.dsp_voices[0], that.pathTable[path]);
+        return that.factory.getValue(that.dsp_voices[0], that.pathTable[path]);
     };
     
     that.controls = function()
