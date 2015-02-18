@@ -831,7 +831,13 @@ int RateInferrer::computeRate(Tree sig)
 
         VectorType* vt = isVectorType(getCertifiedSigType(sig));
         assert(vt);
-        return rate(x) / vt->size();
+        int rx = rate(x);
+        int ry = vt->size();
+        if ((rx % ry) != 0) {
+            std::cerr << "ERROR : non integer rate " << rx << '/' << ry << " for signal " << ppsig(sig) << std::endl;
+            exit(1);
+        }
+        return rx / ry;
 
     } else if ( isSigSerialize(sig, x)) {
 
