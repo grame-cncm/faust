@@ -224,6 +224,7 @@ inline interval mergeinterval(const vector<Type>& v)
 
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i);
+AudioType* makeSimpleType(const vector<int>& dim, int n, int v, int c, int vec, int b, const interval& i);
 
 AudioType* makeTableType(const Type& ct);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec);
@@ -276,18 +277,19 @@ class SimpleType : public AudioType
 
 };
 
-inline Type intCast (Type t)	{ return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type floatCast (Type t)	{ return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type sampCast (Type t)	{ return makeSimpleType(t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type boolCast (Type t)   { return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
-inline Type numCast (Type t)    { return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), kNum, t->getInterval()); }
-inline Type vecCast (Type t)    { return makeSimpleType(t->nature(), t->variability(), t->computability(), kVect, t->boolean(), t->getInterval()); }
-inline Type scalCast (Type t)   { return makeSimpleType(t->nature(), t->variability(), t->computability(), kScal, t->boolean(), t->getInterval()); }
-inline Type truescalCast (Type t){ return makeSimpleType(t->nature(), t->variability(), t->computability(), kTrueScal, t->boolean(), t->getInterval()); }
+inline Type intCast (Type t)	{ vector<int> D; t->dimensions(D); return makeSimpleType(D, kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type floatCast (Type t)	{ vector<int> D; t->dimensions(D); return makeSimpleType(D, kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type sampCast (Type t)	{ vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type boolCast (Type t)   { vector<int> D; t->dimensions(D); return makeSimpleType(D, kInt, t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
+inline Type numCast (Type t)    { vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), t->vectorability(), kNum, t->getInterval()); }
+inline Type vecCast (Type t)    { vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), kVect, t->boolean(), t->getInterval()); }
+inline Type scalCast (Type t)   { vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), kScal, t->boolean(), t->getInterval()); }
+inline Type truescalCast (Type t){ vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), kTrueScal, t->boolean(), t->getInterval()); }
 
 inline Type castInterval (Type t, const interval& i)	
 { 
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean(), i);
+    vector<int> D; t->dimensions(D);
+    return makeSimpleType(D, t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean(), i);
 }
 
 /**

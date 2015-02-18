@@ -474,7 +474,15 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
     }
 }
 
-
+AudioType* makeSimpleType(const vector<int>& dim, int n, int v, int c, int vec, int b, const interval& i)
+{
+    AudioType* t = makeSimpleType(n,v,c,vec,b,i);
+    if (dim.size()>0) {
+        return makeVectorType(t,dim);
+    } else {
+        return t;
+    }
+}
 /**
  * Code a table type as a tree in order to benefit of memoization
  */
