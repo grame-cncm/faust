@@ -66,11 +66,12 @@ using namespace llvm;
 using namespace clang;
 using namespace clang::driver;
 
-ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
-    :fOut("/var/tmp/FaustLLVM.c")
-{
+#define FAUST_FILENAME "/var/tmp/FaustLLVM.c"
 
-    fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
+    :fOut(FAUST_FILENAME)
+{
+   fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
     fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
     fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
     printheader(fOut);
@@ -99,45 +100,6 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
 ClangCodeContainer::~ClangCodeContainer()
 {}
 
-//static clang::CodeGenAction* compile(const string& code)
-static clang::CodeGenAction* compile()
-{
-    // Arguments to pass to the clang frontend
-    vector<const char*> args;
-    args.push_back("/var/tmp/FaustLLVM.c");
-    //args.push_back(tmpPath);
-    //args.push_back("-x");
-    //args.push_back("c++");
-    
-    // The compiler invocation needs a DiagnosticsEngine so it can report problems
-    clang::DiagnosticOptions* opts = new clang::DiagnosticOptions();
-    clang::TextDiagnosticPrinter* DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), opts);
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine Diags(DiagID, opts, DiagClient);
-    
-    // Create the compiler invocation
-    llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
-    clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
-    
-    // Create the compiler instance
-    clang::CompilerInstance Clang;
-    Clang.setInvocation(CI.take());
-    
-    // Get ready to report problems
-    //Clang.createDiagnostics(args.size(), &args[0]);
-    Clang.createDiagnostics();
-    if (!Clang.hasDiagnostics())
-        return NULL;
-    
-    // Create an action and make the compiler instance carry it out
-    clang::CodeGenAction *Act = new clang::EmitLLVMOnlyAction();
-    if (!Clang.ExecuteAction(*Act))
-        return NULL;
-    
-    //unlink(tmpPath);
-    return Act;
-}
-
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
 {
     fCompiler->compileMultiSignal(signals);
@@ -146,7 +108,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     /*
     int argc = 2;
     const char* argv[2];
-    argv[1] = "/var/tmp/FaustLLVM.c";
+    argv[1] = FAUST_FILENAME;
     
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
@@ -161,6 +123,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // (basically, exactly one input, and the operation mode is hard wired).
     SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
+    Args.push_back("-I/Documents/faust-sf/examples/faust-stk");
     //Args.push_back("-O3");
     //Args.push_back("-ffast-math");
     //Args.push_back("-fslp-vectorize");
@@ -216,10 +179,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     
     // Arguments to pass to the clang frontend
     vector<const char*> args;
-    args.push_back("/var/tmp/FaustLLVM.c");
-    //args.push_back(tmpPath);
-    //args.push_back("-x");
-    //args.push_back("c++");
+    args.push_back(FAUST_FILENAME);
+    args.push_back("-I/Documents/faust-sf/examples/faust-stk");
     
     // The compiler invocation needs a DiagnosticsEngine so it can report problems
     clang::DiagnosticOptions* opts = new clang::DiagnosticOptions();
@@ -234,14 +195,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Create the compiler instance
     clang::CompilerInstance Clang;
     Clang.setInvocation(CI.take());
-    
-    //Clang.getPreprocessorOpts().addRemappedFile("Faust.c", llvm::MemoryBuffer::getMemBuffer(fStrOut.str()));
-    /*
-    llvm::MemoryBuffer * buffer = llvm::MemoryBuffer::getMemBufferCopy(fStrOut.str(), "src");
-    Clang.createFileManager();
-    Clang.createSourceManager(Clang.getFileManager());
-	Clang.getSourceManager().createMainFileIDForMemBuffer(buffer);
-    */
     
     // Get ready to report problems
     Clang.createDiagnostics();

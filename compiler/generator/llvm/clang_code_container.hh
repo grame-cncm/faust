@@ -42,7 +42,6 @@ class ClangCodeContainer : public virtual CodeContainer {
         InstructionsCompiler* fCompiler;
         CodeContainer* fContainer;
         std::ofstream fOut;
-        std::stringstream fStrOut;
     
     public:
 
