@@ -188,7 +188,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Arguments to pass to the clang frontend
     vector<const char*> args;
     args.push_back(FAUST_FILENAME);
-    args.push_back("-fsyntax-only");
+    args.push_back("-x");
+    args.push_back("c++");
     
     // Add path for 'include'
     list<string>::iterator it;

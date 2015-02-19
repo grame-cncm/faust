@@ -152,6 +152,11 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
+    
+    tab(n, *fOut); 
+    *fOut << "#ifdef __cplusplus" << endl;
+    *fOut << "extern \"C\" {" << endl;
+    *fOut << "#endif" << endl;
       
     tab(n, *fOut); 
     *fOut << "#ifndef FAUSTCLASS " << endl;
@@ -284,6 +289,11 @@ void CCodeContainer::produceClass()
 		tab(n, *fOut); *fOut << "#endif";
         tab(n, *fOut);
 	}
+    
+    tab(n, *fOut);
+    *fOut << "#ifdef __cplusplus" << endl;
+    *fOut << "}" << endl;
+    *fOut << "#endif" << endl;
 }
 
 // Scalar
