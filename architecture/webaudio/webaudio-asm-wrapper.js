@@ -381,10 +381,8 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         for (var i = 0; i < that.inputs_items.length; i++) {
             var path = that.inputs_items[i];
             var values = that.valueTable[path];
-            if (that.factory.getValue(that.dsp, that.factory.pathTable[path]) != values[0]) {
-                that.factory.setValue(that.dsp, that.factory.pathTable[path], values[0]);
-                values[0] = values[1];
-            }
+            that.factory.setValue(that.dsp, that.factory.pathTable[path], values[0]);
+            values[0] = values[1];
         }
 
         // Compute
@@ -553,7 +551,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         for (var i = 0; i < that.inputs_items.length; i++) {
             var path = that.inputs_items[i];
             var values = new Float32Array(2);
-            values[0] = that.factory.getValue(that.dsp, that.factory.pathTable[path]);
+            values[0] = values[1] = that.factory.getValue(that.dsp, that.factory.pathTable[path]);
             that.valueTable[path] = values;
         }
     };
