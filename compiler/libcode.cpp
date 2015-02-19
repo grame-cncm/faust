@@ -936,10 +936,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     
 #if LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
+    
+        container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (generate) {
-    
-            container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        
             ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
             gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile);
             if (!gGlobal->gLLVMResult) {
@@ -961,6 +962,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
         } else {
             // To trigger 'sig.dot' generation
+            comp = new InstructionsCompiler(container);
             comp->prepare(signals);
         }
 

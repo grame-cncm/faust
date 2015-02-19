@@ -71,7 +71,7 @@ using namespace clang::driver;
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
     :fOut(FAUST_FILENAME)
 {
-   fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+    fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
     fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
     fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
     printheader(fOut);
@@ -123,11 +123,19 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // (basically, exactly one input, and the operation mode is hard wired).
     SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
-    Args.push_back("-I/Documents/faust-sf/examples/faust-stk");
+     
+    list<string>::iterator it;
+    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+        string path = "-I" + (*it);
+        Args.push_back(strdup(path.c_str()));
+    }
+ 
+    //Args.push_back("-I/Documents/faust-sf/examples/faust-stk");
     //Args.push_back("-O3");
     //Args.push_back("-ffast-math");
     //Args.push_back("-fslp-vectorize");
     //Args.push_back("-fslp-vectorize-aggressive");
+    
     OwningPtr<Compilation> C(TheDriver.BuildCompilation(Args));
     if (!C) {
         return NULL;
@@ -180,8 +188,15 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Arguments to pass to the clang frontend
     vector<const char*> args;
     args.push_back(FAUST_FILENAME);
-    args.push_back("-I/Documents/faust-sf/examples/faust-stk");
+    args.push_back("-fsyntax-only");
     
+    // Add path for 'include'
+    list<string>::iterator it;
+    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+        string path = "-I" + (*it);
+        args.push_back(strdup(path.c_str()));
+    }
+ 
     // The compiler invocation needs a DiagnosticsEngine so it can report problems
     clang::DiagnosticOptions* opts = new clang::DiagnosticOptions();
     clang::TextDiagnosticPrinter* DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), opts);
@@ -198,22 +213,21 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     
     // Get ready to report problems
     Clang.createDiagnostics();
-    if (!Clang.hasDiagnostics())
+    if (!Clang.hasDiagnostics()) {
         return NULL;
+    }
     
     // Create an action and make the compiler instance carry it out
     clang::CodeGenAction *Act = new clang::EmitLLVMOnlyAction();
-    if (!Clang.ExecuteAction(*Act))
+    if (!Clang.ExecuteAction(*Act)) {
         return NULL;
+    }
     
     if (llvm::Module* Module = Act->takeModule()) {
     
         LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
         result->fModule = Module;
         result->fContext = Act->takeLLVMContext();
-        
-        //Module->dump();
-        
         if (filename != "") {
             std::string err;
             raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
