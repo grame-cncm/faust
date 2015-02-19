@@ -105,7 +105,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
-    /*
     int argc = 2;
     const char* argv[2];
     argv[1] = FAUST_FILENAME;
@@ -176,6 +175,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     if (!Clang.hasDiagnostics()) {
         return NULL;
     }
+    
+    CompilerInvocation::setLangDefaults(Clang.getLangOpts(), IK_CXX, LangStandard::lang_unspecified);
 
     // Create and execute the frontend to generate an LLVM bitcode module.
     //OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction(fResult->fContext));
@@ -183,8 +184,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     if (!Clang.ExecuteAction(*Act)) {
         return NULL;
     }
-    */
     
+    /*
     // Arguments to pass to the clang frontend
     vector<const char*> args;
     args.push_back(FAUST_FILENAME);
@@ -223,6 +224,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     if (!Clang.ExecuteAction(*Act)) {
         return NULL;
     }
+    */
     
     if (llvm::Module* Module = Act->takeModule()) {
     

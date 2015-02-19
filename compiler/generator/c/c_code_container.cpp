@@ -153,7 +153,6 @@ void CCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
     
-    tab(n, *fOut); 
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "extern \"C\" {" << endl;
     *fOut << "#endif" << endl;
@@ -290,7 +289,6 @@ void CCodeContainer::produceClass()
         tab(n, *fOut);
 	}
     
-    tab(n, *fOut);
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;
     *fOut << "#endif" << endl;
