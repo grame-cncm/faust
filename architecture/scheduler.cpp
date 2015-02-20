@@ -57,9 +57,9 @@
 
 
 #ifdef __ICC
-#define INLINE __forceinline
+    #define INLINE __forceinline
 #else
-#define INLINE inline
+    #define INLINE inline
 #endif
 
 #ifdef __linux__
@@ -76,12 +76,12 @@
 #endif
 
 #ifdef __APPLE__
-#    include <mach/mach.h>
+    #include <mach/mach.h>
 #elif defined(_WIN32)
-#    include <windows.h>
+    #include <windows.h>
 #else
-#    include <semaphore.h>
-#    include <errno.h>
+    #include <semaphore.h>
+    #include <errno.h>
 #endif
 
 /*
@@ -1037,7 +1037,7 @@ class DSPThread {
     public: 
     
         DSPThread(int num_thread, DSPThreadPool* pool, void* dsp)
-            :fSemaphore(0), fThreadPool(pool), fNumThread(num_thread), fDSP(dsp), fRealTime(false)
+            :fThreadPool(pool), fSemaphore(0), fRealTime(false), fNumThread(num_thread), fDSP(dsp) 
         {}
 
         virtual ~DSPThread()

@@ -66,16 +66,22 @@ using namespace llvm;
 using namespace clang;
 using namespace clang::driver;
 
+#include "CUI_exp.h"
+//#include "scheduler_exp.h"
+
 #define FAUST_FILENAME "/var/tmp/FaustLLVM.c"
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
     :fOut(FAUST_FILENAME)
 {
-    fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+    //fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+    fOut << ___architecture_faust_gui_CUI_h;
+    //fOut << ___architecture_scheduler_cpp;
+    fOut << endl;
     fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
     fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
     printheader(fOut);
-       
+  
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fOut);
 
     /*
@@ -105,10 +111,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
-    int argc = 2;
-    const char* argv[2];
-    argv[1] = FAUST_FILENAME;
-    
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
     
@@ -117,33 +119,27 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     Driver TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
     TheDriver.setTitle("clang interpreter");
 
-    // FIXME: This is a hack to try to force the driver to do something we can
-    // recognize. We need to extend the driver library to support this use model
-    // (basically, exactly one input, and the operation mode is hard wired).
-    SmallVector<const char*, 16> Args(argv, argv + argc);
+    vector<const char*> argv;
+    argv.push_back("clang");
+    argv.push_back(FAUST_FILENAME);
+    SmallVector<const char*, 16> Args(&argv[0], &argv[0] + argv.size());
     Args.push_back("-fsyntax-only");
+    //Args.push_back("-O3");
+    //Args.push_back("-ffast-math");
+    //Args.push_back("-fslp-vectorize");
+    //Args.push_back("-fslp-vectorize-aggressive");
      
     list<string>::iterator it;
     for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
         string path = "-I" + (*it);
         Args.push_back(strdup(path.c_str()));
     }
- 
-    //Args.push_back("-I/Documents/faust-sf/examples/faust-stk");
-    //Args.push_back("-O3");
-    //Args.push_back("-ffast-math");
-    //Args.push_back("-fslp-vectorize");
-    //Args.push_back("-fslp-vectorize-aggressive");
     
     OwningPtr<Compilation> C(TheDriver.BuildCompilation(Args));
     if (!C) {
         return NULL;
     }
 
-    // FIXME: This is copied from ASTUnit.cpp; simplify and eliminate.
-
-    // We expect to get back exactly one command job, if we didn't something
-    // failed. Extract that job from the compilation.
     const driver::JobList &Jobs = C->getJobs();
     if (Jobs.size() != 1 || !isa<driver::Command>(*Jobs.begin())) {
         SmallString<256> Msg;
@@ -179,7 +175,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     CompilerInvocation::setLangDefaults(Clang.getLangOpts(), IK_CXX, LangStandard::lang_unspecified);
 
     // Create and execute the frontend to generate an LLVM bitcode module.
-    //OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction(fResult->fContext));
     OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction());
     if (!Clang.ExecuteAction(*Act)) {
         return NULL;
