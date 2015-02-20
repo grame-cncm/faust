@@ -85,7 +85,6 @@ private:
     int inChanNumb;
     int outChanNumb;
     bool on;
-    float polyCoef;
     
     TiPhoneCoreAudioRenderer fAudioDevice;
     mydsp DSP;
@@ -123,8 +122,8 @@ public:
         if (jsonString.find("keyboard") != std::string::npos ||
            jsonString.find("poly") != std::string::npos){
             polyMax = 4;
-            polyCoef = 1.0f / polyMax;
-            DSPpoly = new mydsp_poly(sr, bufferSize, polyMax);
+            DSPpoly = new mydsp_poly(bufferSize, polyMax);
+            DSPpoly->init(sr);
         } else{
             polyMax = 0;
         }
