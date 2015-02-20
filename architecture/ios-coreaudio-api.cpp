@@ -76,7 +76,9 @@
 using namespace std;
 
 class dsp_faust {
+
 private:
+
     int sr;
     int bufferLength;
     int polyMax;
@@ -93,8 +95,9 @@ private:
     string jsonString;
     
 public:
-    dsp_faust() : json(DSP.getNumInputs(), DSP.getNumOutputs()),DSPpoly(0),on(false) {};
-    virtual ~dsp_faust() {delete DSPpoly;};
+
+    dsp_faust() : json(DSP.getNumInputs(), DSP.getNumOutputs()),DSPpoly(0),on(false) {}
+    virtual ~dsp_faust() { delete DSPpoly; }
     
     /*
      * init(samplingRate, bufferFrames)
@@ -117,18 +120,16 @@ public:
         
         jsonString = json.JSON();
         
-        if(jsonString.find("keyboard") != std::string::npos ||
+        if (jsonString.find("keyboard") != std::string::npos ||
            jsonString.find("poly") != std::string::npos){
             polyMax = 4;
             polyCoef = 1.0f / polyMax;
             DSPpoly = new mydsp_poly(sr, bufferSize, polyMax);
-        }
-        else{
+        } else{
             polyMax = 0;
         }
         
-        if(fAudioDevice.Open(&DSP, inChanNumb, outChanNumb, bufferLength, sr) < 0) return false;
-        else return true;
+        return (fAudioDevice.Open(((polyMax > 0) ? DSPpoly : &DSP), inChanNumb, outChanNumb, bufferLength, sr) == 0);
     }
     
     /*
@@ -138,10 +139,9 @@ public:
      * On Android it also creates the native thread where the
      * DSP tasks will be computed.
      */
-    bool start(){
+    bool start() {
         on = true;
-        if (fAudioDevice.Start() < 0) return false;
-        else return true;
+        return (fAudioDevice.Start() == 0);
     }
     
     /*
@@ -149,7 +149,7 @@ public:
      * Stops the processing, closes the audio engine and terminates
      * the native thread on Android.
      */
-    void stop(){
+    void stop() {
         on = false;
         fAudioDevice.Stop();
     }
@@ -172,12 +172,12 @@ public:
      * polyphonic and 1 otherwise.
      */
     int keyOn(int pitch, int velocity) {
-        if(polyMax > 0){
+        if (polyMax > 0) {
             DSPpoly->keyOn(0, pitch, velocity);
             return 1;
-        }
-        else
+        } else {
             return 0;
+        }
     }
     
     /*
@@ -189,12 +189,12 @@ public:
      * and 1 otherwise.
      */
     int keyOff(int pitch) {
-        if(polyMax > 0){
+        if (polyMax > 0) {
             DSPpoly->keyOff(0, pitch);
             return 1;
-        }
-        else
+        } else {
             return 0;
+        }
     }
     
     /*
@@ -205,13 +205,13 @@ public:
      * is used in the Faust code. pitchBend will return 0
      * if the object is not polyphonic and 1 otherwise.
      */
-    int pitchBend(int refPitch, float pitch){
-        if(polyMax > 0){
+    int pitchBend(int refPitch, float pitch) {
+        if (polyMax > 0) {
             DSPpoly->pitchBend(0,refPitch, pitch);
             return 1;
-        }
-        else
+        } else {
             return 0;
+        }
     }
     
     /*
@@ -237,21 +237,19 @@ public:
      * value.
      */
     float getParam(const char* address) {
-        if (polyMax == 0)
-            return mapUI.getValue(address);
-        else
-            return DSPpoly->getValue(address);
-    }
+        return (polyMax == 0) ? mapUI.getValue(address) : DSPpoly->getValue(address);
+     }
     
     /*
      * setParam(address,value)
      * Sets the value of the parameter associated with address.
      */
     void setParam(const char* address, float value) {
-        if (polyMax == 0)
+        if (polyMax == 0) {
             mapUI.setValue(address, value);
-        else
+        } else {
             DSPpoly->setValue(address, value);
+        }
     }
     
     /*
@@ -263,11 +261,12 @@ public:
      * and 1 otherwise.
      */
     int setVoiceParam(const char* address, int pitch, float value) {
-        if(polyMax > 0){
+        if (polyMax > 0) {
             DSPpoly->setValue(address, pitch, value);
             return 1;
+        } else {
+            return 0;
         }
-        else return 0;
     }
     
     /*
@@ -278,11 +277,12 @@ public:
      * object is not polyphonic and 1 otherwise.
      */
     int setVoiceGain(int pitch, float gain){
-        if(polyMax > 0){
+        if (polyMax > 0) {
             setVoiceParam(DSPpoly->fGainLabel.c_str(),pitch,gain);
             return 1;
+        } else {
+            return 0;
         }
-        else return 0;
     }
     
     /*
