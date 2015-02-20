@@ -560,8 +560,6 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
 {
     generateSR();
 
-    fKlassName = "_" + fKlassName;
-
     // Sub containers
     generateSubContainers();
 

@@ -72,17 +72,18 @@ using namespace clang::driver;
 #define FAUST_FILENAME "/var/tmp/FaustLLVM.c"
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
-    :fOut(FAUST_FILENAME)
 {
+    fOut = new ofstream(getTempName());
+   
     //fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
-    fOut << ___architecture_faust_gui_CUI_h;
+    *fOut << ___architecture_faust_gui_CUI_h;
     //fOut << ___architecture_scheduler_cpp;
-    fOut << endl;
-    fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
-    fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
-    printheader(fOut);
+    *fOut << endl;
+    *fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
+    *fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
+    printheader(*fOut);
   
-    fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fOut);
+    fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, fOut);
 
     /*
     fStrOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
@@ -104,7 +105,9 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
 }
 
 ClangCodeContainer::~ClangCodeContainer()
-{}
+{
+    delete fOut;
+}
 
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
 {
@@ -119,16 +122,24 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     Driver TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
     TheDriver.setTitle("clang interpreter");
 
-    vector<const char*> argv;
-    argv.push_back("clang");
-    argv.push_back(FAUST_FILENAME);
-    SmallVector<const char*, 16> Args(&argv[0], &argv[0] + argv.size());
+   // vector<const char*> argv;
+   // argv.push_back("clang");
+    //argv.push_back(FAUST_FILENAME);
+    //argv.push_back(fTmpPath);
+    
+    int argc = 2;
+    const char* argv[argc];
+    argv[0] = "clang";
+    argv[1] = getTempName();
+    SmallVector<const char*, 16> Args(argv, argv + argc);
+
+    //SmallVector<const char*, 16> Args(&argv[0], &argv[0] + argv.size());
     Args.push_back("-fsyntax-only");
     //Args.push_back("-O3");
     //Args.push_back("-ffast-math");
     //Args.push_back("-fslp-vectorize");
     //Args.push_back("-fslp-vectorize-aggressive");
-     
+      
     list<string>::iterator it;
     for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
         string path = "-I" + (*it);
@@ -161,7 +172,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     CompilerInvocation::CreateFromArgs(*CI, const_cast<const char**>(CCArgs.data()),
                                             const_cast<const char**>(CCArgs.data()) + CCArgs.size(), Diags);
 
-   
     // Create a compiler instance to handle the actual work.
     CompilerInstance Clang;
     Clang.setInvocation(CI.take());

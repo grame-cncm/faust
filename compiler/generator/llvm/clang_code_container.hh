@@ -41,7 +41,17 @@ class ClangCodeContainer : public virtual CodeContainer {
      
         InstructionsCompiler* fCompiler;
         CodeContainer* fContainer;
-        std::ofstream fOut;
+        std::ofstream* fOut;
+        string fTmpFile;
+        
+        const char* getTempName() 
+        { 
+            if (fTmpFile == "") {
+                char path[256];
+                fTmpFile = string(tmpnam(path)) + ".c"; 
+            }
+            return fTmpFile.c_str(); 
+        }
     
     public:
 

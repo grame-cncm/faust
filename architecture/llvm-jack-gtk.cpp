@@ -71,18 +71,18 @@ extern "C"
 
 struct llvm_dsp {};
 
-llvm_dsp* new_mydsp();
-void delete_mydsp(llvm_dsp*);
+llvm_dsp* newmydsp();
+void deletemydsp(llvm_dsp*);
 
-int getNumInputs_mydsp(llvm_dsp*);
-int getNumOutputs_mydsp(llvm_dsp*);
+int getNumInputsmydsp(llvm_dsp*);
+int getNumOutputsmydsp(llvm_dsp*);
 
-void init_mydsp(llvm_dsp*, int);
-void classInit_mydsp(int);
-void instanceInit_mydsp(llvm_dsp*, int);
-void buildUserInterface_mydsp(llvm_dsp*, UIGlue*);
+void initmydsp(llvm_dsp*, int);
+void classInitmydsp(int);
+void instanceInitmydsp(llvm_dsp*, int);
+void buildUserInterfacemydsp(llvm_dsp*, UIGlue*);
 
-void compute_mydsp(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
+void computemydsp(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
 
 #ifdef __cplusplus
 }
@@ -98,29 +98,29 @@ class llvmdsp : public dsp {
 
 	llvmdsp()
 	{
-        fDsp = new_mydsp();
+        fDsp = newmydsp();
     }
 
 	virtual ~llvmdsp()
 	{
-		delete_mydsp(fDsp);
+		deletemydsp(fDsp);
 	}
 
-	virtual int getNumInputs() 	{ return getNumInputs_mydsp(fDsp); }
-	virtual int getNumOutputs() { return getNumOutputs_mydsp(fDsp); }
+	virtual int getNumInputs()  { return getNumInputsmydsp(fDsp); }
+	virtual int getNumOutputs() { return getNumOutputsmydsp(fDsp); }
 
 	static void classInit(int samplingFreq)
     {
-        classInit_mydsp(samplingFreq);
+        classInitmydsp(samplingFreq);
     }
 
 	virtual void instanceInit(int samplingFreq)
     {
-		instanceInit_mydsp(fDsp, samplingFreq);
+		instanceInitmydsp(fDsp, samplingFreq);
 	}
 
 	virtual void init(int samplingFreq) {
-		init_mydsp(fDsp, samplingFreq);
+		initmydsp(fDsp, samplingFreq);
 	}
 
 	virtual void buildUserInterface(UI* interface)
@@ -139,13 +139,13 @@ class llvmdsp : public dsp {
         glue.addHorizontalBargraph = addHorizontalBargraphGlue;
         glue.addVerticalBargraph = addVerticalBargraphGlue;
         glue.declare = declareGlue;
-        buildUserInterface_mydsp(fDsp, &glue);
+        buildUserInterfacemydsp(fDsp, &glue);
  	}
 
 	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     {
         AVOIDDENORMALS;
-		compute_mydsp(fDsp, count, input, output);
+		computemydsp(fDsp, count, input, output);
 	}
 };
 
