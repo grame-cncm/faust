@@ -276,7 +276,7 @@ public:
      * is used in the Faust code. setVoiceGain will return 0 if the
      * object is not polyphonic and 1 otherwise.
      */
-    int setVoiceGain(int pitch, float gain){
+    int setVoiceGain(int pitch, float gain) {
         if (polyMax > 0) {
             setVoiceParam(DSPpoly->fGainLabel.c_str(),pitch,gain);
             return 1;

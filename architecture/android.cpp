@@ -79,7 +79,7 @@ string jsonString;
 
 // Global variables
 int SR, bufferSize, vecSamps, polyMax, inChanNumb, outChanNumb;
-float **bufferout, **bufferin, polyCoef;
+float **bufferout, **bufferin;
 bool on;
 
 /*
@@ -106,14 +106,14 @@ void init(int samplingRate, int bufferFrames) {
 
 	jsonString = json.JSON();
 
-	if (jsonString.find("keyboard") != std::string::npos ||
-       jsonString.find("poly") != std::string::npos){
-		polyMax = 6;
-		polyCoef = 1.0f / polyMax;
-		DSPpoly = new mydsp_poly(SR, bufferSize, polyMax);
-	} else {
-		polyMax = 0;
-	}
+    if (jsonString.find("keyboard") != std::string::npos ||
+        jsonString.find("poly") != std::string::npos){
+        polyMax = 6;
+        DSPpoly = new mydsp_poly(bufferSize, polyMax);
+        DSPpoly->init(SR);
+    } else {
+        polyMax = 0;
+    }
 
 	// Allocating memory for output channels. Only the first two channels
 	// are played. Additional output channels are ignored.
