@@ -719,6 +719,7 @@ generator/js/js_code_container.o: tlib/occurrences.hh generator/floats.hh genera
 generator/js/js_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
 generator/js/js_code_container.o: generator/js/js_instructions.hh generator/text_instructions.hh
 generator/js/js_code_container.o: generator/type_manager.hh errors/exception.hh
+generator/llvm/clang_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_dsp_aux.o: tlib/compatibility.hh
 ../libraries/loki/SafeFormat.o: ../libraries/loki/SafeFormat.h ../libraries/loki/LokiExport.h
@@ -752,6 +753,11 @@ global.o: extended/minprim.hh extended/maxprim.hh extended/logprim.hh extended/l
 global.o: extended/floorprim.hh extended/expprim.hh extended/cosprim.hh extended/ceilprim.hh extended/atanprim.hh
 global.o: extended/atan2prim.hh extended/asinprim.hh generator/asmjs/asmjs_instructions.hh
 global.o: generator/text_instructions.hh generator/type_manager.hh generator/typing_instructions.hh
+global.o: generator/c/c_code_container.hh generator/c/c_instructions.hh generator/vec_code_container.hh
+global.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
+global.o: generator/cpp/cpp_instructions.hh generator/opencl_instructions.hh generator/js/js_code_container.hh
+global.o: generator/js/js_instructions.hh generator/java/java_code_container.hh generator/java/java_instructions.hh
+global.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
 main.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 main.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
 main.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh

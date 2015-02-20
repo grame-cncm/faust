@@ -1009,12 +1009,24 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
     } 
 }
 
+static bool isGenFileOption(const char* str)
+{
+    return (strcmp(str,"-svg") == 0 || 
+           strcmp(str,"-ps") == 0 || 
+           strcmp(str,"-tg") == 0 || 
+           strcmp(str,"-sg") == 0 || 
+           strcmp(str,"-mdoc") == 0 || 
+           strcmp(str,"-mdlang") == 0 || 
+           strcmp(str,"-stripdoc") == 0 || 
+           strcmp(str,"-xml") == 0);
+}
+
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, 
                                                     int argc, const char* argv[], 
                                                     const string& target, 
                                                     string& error_msg, int opt_level)
 {
-    TLock lock(gDSPFactoriesLock);
+TLock lock(gDSPFactoriesLock);
     
     const char* argv1[64];
     int argc1 = 0;
@@ -1033,7 +1045,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             argv1[argc1++] = argv[i];
         }
     }
-
+        
     string expanded_dsp;
     string sha_key;
     

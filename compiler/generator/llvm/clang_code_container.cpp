@@ -25,15 +25,7 @@
 
 #include "clang_code_container.hh"
 
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-#include <llvm/IR/LLVMContext.h>
-
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/TextDiagnosticBuffer.h>
-
 #include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Driver/Compilation.h>
 #include <clang/Driver/Driver.h>
 #include <clang/Driver/Tool.h>
@@ -41,13 +33,9 @@
 #include <clang/Frontend/CompilerInvocation.h>
 #include <clang/Frontend/FrontendDiagnostic.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
-
-#include <llvm/ADT/OwningPtr.h>
-#include <llvm/ADT/SmallString.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Host.h>
-#include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/Path.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
@@ -125,11 +113,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
     Driver TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
     TheDriver.setTitle("clang interpreter");
-
-   // vector<const char*> argv;
-   // argv.push_back("clang");
-    //argv.push_back(FAUST_FILENAME);
-    //argv.push_back(fTmpPath);
     
     int argc = 2;
     const char* argv[argc];
