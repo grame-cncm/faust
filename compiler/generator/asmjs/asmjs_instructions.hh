@@ -345,6 +345,37 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             *fOut << fEnd;
         }
         
+        void visitAuxFloat(BinopInst* inst)
+        {
+            *fOut << "+(";
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
+        }
+        
+        void visitAuxInt(BinopInst* inst)
+        {
+            // Special case of 32 bits integer multiply
+            if (inst->fOpcode == kMul) {
+                *fOut << "(imul(";
+                inst->fInst1->accept(this);
+                *fOut << ", ";
+                inst->fInst2->accept(this);
+                *fOut << ") | 0)";
+            } else {
+                *fOut << "((";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ") | 0)";
+            }
+        }
+        
         virtual void visit(BinopInst* inst)
         {
             if (isBoolOpcode(inst->fOpcode)) {
@@ -356,55 +387,32 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst2->accept(this);
                 *fOut << ") | 0)";
             } else {
-                
+            
                 inst->fInst1->accept(&fTypingVisitor);
                 Typed::VarType type1 = fTypingVisitor.fCurType;
                 
-                inst->fInst2->accept(&fTypingVisitor);
-                Typed::VarType type2 = fTypingVisitor.fCurType;
-                
-                if ((isIntType(type1) && isIntType(type2)) 
-                    || (isIntType(type1) && type2 == Typed::kBool)
-                    || (type1 == Typed::kBool && isIntType(type2))
-                    || (type1 == Typed::kBool && type2 == Typed::kBool)) {
-                    // Special case of 32 bits integer multiply
-                    if (inst->fOpcode == kMul) {
-                        *fOut << "(imul(";
-                        inst->fInst1->accept(this);
-                        *fOut << ", ";
-                        inst->fInst2->accept(this);
-                        *fOut << ") | 0)";
+                if (isRealType(type1)) {
+                    visitAuxFloat(inst);
+                } else {
+                    inst->fInst2->accept(&fTypingVisitor);
+                    Typed::VarType type2 = fTypingVisitor.fCurType;
+                    type2 = fTypingVisitor.fCurType;
+                     if (isRealType(type2)) {
+                        visitAuxFloat(inst);
+                    } else if (isIntType(type1) || isIntType(type2)) {
+                        visitAuxInt(inst);
+                    } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                        visitAuxInt(inst);
                     } else {
-                        *fOut << "((";
+                        *fOut << "(";
                         inst->fInst1->accept(this);
                         *fOut << " ";
                         *fOut << gBinOpTable[inst->fOpcode]->fName;
                         *fOut << " ";
                         inst->fInst2->accept(this);
-                        *fOut << ") | 0)";
+                        *fOut << ")";
                     }
-                } else if ((isIntType(type1) && isRealType(type2))
-                           || (isRealType(type1) && isIntType(type2))
-                           || (isRealType(type1) && isRealType(type2))
-                           || (isRealType(type1) && type2 == Typed::kBool)
-                           || (type1 == Typed::kBool && isRealType(type2))) {
-                    *fOut << "+(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << ")";
-                } else { // Default
-                    assert(type1 == Typed::kNoType && type2 == Typed::kNoType);
-                    *fOut << "(";
-                    inst->fInst1->accept(this);
-                    *fOut << " ";
-                    *fOut << gBinOpTable[inst->fOpcode]->fName;
-                    *fOut << " ";
-                    inst->fInst2->accept(this);
-                    *fOut << ")";
-                }  
+                }
             }
             
             fTypingVisitor.visit(inst);

@@ -53,6 +53,9 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
 static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
 static inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }
 
+static inline ValueInst* cast2real(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastNumFloatInst(val) : val; }
+static inline ValueInst* cast2int(int type, ValueInst* val) { return (type == kInt) ? InstBuilder::genCastNumIntInst(val) : val; }
+
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool allow_foreign_function)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)), 
             fDescription(0), fLoadedIota(false), fAllowForeignFunction(allow_foreign_function)
@@ -650,16 +653,15 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
    
     // Logical operations work on kInt, so cast both operands here
     if (isLogicalOpcode(opcode)) {
-        res = InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2));
-    // One of a1 or a2 is kReal, operation is done on kReal
+        res = cast2real(t3, InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2)));
+     // One of a1 or a2 is kReal, operation is done on kReal
     } else if ((t1 == kReal) || (t2 == kReal)) {
-        res = InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2));
+        res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
     // kInt operation
     } else {
-        res = InstBuilder::genBinopInst(opcode, v1, v2);
+        res = cast2real(t3, InstBuilder::genBinopInst(opcode, v1, v2));
     }
     
-    res = InstBuilder::genCastNumInst(res, genBasicFIRTyped(t3));
     return generateCacheCode(sig, res);
 }
 
@@ -867,11 +869,11 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     
     // Check types and possibly cast written value
     int table_type = getCertifiedSigType(tbl)->nature();
-    int date_type = getCertifiedSigType(data)->nature();
+    int data_type = getCertifiedSigType(data)->nature();
      
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), 
                                                              CS(idx), 
-                                                             (table_type != date_type) ? InstBuilder::genCastNumInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
+                                                             (table_type != data_type) ? InstBuilder::genCastNumInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
 
     // Return table access
     return InstBuilder::genLoadStructVar(load_value->fAddress->getName());

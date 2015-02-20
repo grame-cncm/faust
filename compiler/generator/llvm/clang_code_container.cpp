@@ -76,6 +76,10 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
     fOut = new ofstream(getTempName());
    
     //fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
+    if (gGlobal->gFloatSize == 2) {
+        *fOut << "#define FAUSTFLOAT double" << "\n\n";
+    }
+    
     *fOut << ___architecture_faust_gui_CUI_h;
     //fOut << ___architecture_scheduler_cpp;
     *fOut << endl;
@@ -232,7 +236,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     */
     
     if (llvm::Module* Module = Act->takeModule()) {
-    
         LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
         result->fModule = Module;
         result->fContext = Act->takeLLVMContext();
@@ -241,7 +244,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
             raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
             WriteBitcodeToFile(result->fModule, out);
         }
-        
         return result;
     } else {
         return NULL;
