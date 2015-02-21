@@ -114,9 +114,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
     //Args.push_back("-O3");
-    //Args.push_back("-ffast-math");
-    //Args.push_back("-fslp-vectorize");
-    //Args.push_back("-fslp-vectorize-aggressive");
+    Args.push_back("-ffast-math");
       
     list<string>::iterator it;
     for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {

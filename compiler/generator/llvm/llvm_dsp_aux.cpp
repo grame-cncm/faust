@@ -125,7 +125,11 @@
 #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
+#if defined(LLVM_34) || defined(LLVM_35)
+#define MAX_OPT_LEVEL 5
+#else 
 #define MAX_OPT_LEVEL 4
+#endif
 
 using namespace llvm;
 
@@ -589,8 +593,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         builder.setMCPU(llvm::sys::getHostCPUName());
         
         TargetOptions targetOptions;
-        targetOptions.NoFramePointerElim = true;
-        targetOptions.LessPreciseFPMADOption = true;
+        //targetOptions.NoFramePointerElim = true;
+        //targetOptions.LessPreciseFPMADOption = true;
         targetOptions.UnsafeFPMath = true;
         targetOptions.NoInfsFPMath = true;
         targetOptions.NoNaNsFPMath = true;

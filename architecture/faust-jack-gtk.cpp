@@ -170,13 +170,14 @@ int main(int argc, char *argv[])
         */
         
         std::string error_msg3;
-        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 0);
+        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 4);
         ///deleteDSPFactory(factory3);
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
         
-        factory4 = createDSPFactoryFromString("toto", "process = +;", argc-2, (const char**)argv[argc-1], "", error_msg3, 3);
+        //factory4 = createDSPFactoryFromString("titi", "process = +,+,+;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
         
-        factory4 = createDSPFactoryFromString("titi", "process = +,+;", argc-2, (const char**)argv[argc-1], "", error_msg3, 3);
+        //factory4 = createDSPFactoryFromString("toto", "process = +;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
+        
         
         /*
         for (int i = 0; i < 10; i++) {
@@ -194,7 +195,7 @@ int main(int argc, char *argv[])
         }
         */
         
-        /*
+        
         if (factory3) {
             DSP = createDSPInstance(factory3);
             assert(DSP);
@@ -202,8 +203,8 @@ int main(int argc, char *argv[])
             printf("Cannot create factory : %s\n", error_msg3.c_str());
             return 1;
         }
-        */
         
+        /*
         if (factory4) {
             DSP = createDSPInstance(factory4);
             assert(DSP);
@@ -211,7 +212,7 @@ int main(int argc, char *argv[])
             printf("Cannot create factory : %s\n", error_msg3.c_str());
             return 1;
         }
-        
+        */
        
         /*
         meta;
