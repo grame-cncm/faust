@@ -39,6 +39,8 @@
 #include <string>
 #include <math.h>
 #include <algorithm>
+#include <ostream>
+#include <sstream>
 
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
@@ -63,12 +65,12 @@ struct mydsp_voice : public MapUI {
     mydsp fVoice;
     int fNote;
     
-    mydsp_voice(int sample_rate)
+    mydsp_voice()
     {
-        fVoice.init(sample_rate);
         fVoice.buildUserInterface(this);
         fNote = kFreeVoice;
     }
+ 
 };
 
 // Polyphonic DSP
@@ -133,6 +135,19 @@ class mydsp_poly : public dsp
         {
             fMaxPolyphony = max_polyphony;
             fBufferSize = buffer_size;
+            fVoiceTable = new mydsp_voice*[fMaxPolyphony];
+            
+             // Init it with supplied sample_rate 
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i] = new mydsp_voice();
+            }
+            
+            // Init audio output buffers
+            fNumOutputs = fVoiceTable[0]->fVoice.getNumOutputs();
+            fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
+            for (int i = 0; i < fNumOutputs; i++) {
+                fNoteOutputs[i] = new FAUSTFLOAT[fBufferSize];
+            }
         }
         
         virtual ~mydsp_poly()
@@ -145,21 +160,13 @@ class mydsp_poly : public dsp
             for (int i = 0; i < fMaxPolyphony; i++) {
                 delete fVoiceTable[i];
             }
-            delete [] fVoiceTable;
+            delete[] fVoiceTable;
         }
         
         void init(int sample_rate) 
         {
-            // Init it with supplied sample_rate 
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i] = new mydsp_voice(sample_rate);
-            }
-            
-            // Init audio output buffers
-            fNumOutputs = fVoiceTable[0]->fVoice.getNumOutputs();
-            fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
-            for (int i = 0; i < fNumOutputs; i++) {
-                fNoteOutputs[i] = new FAUSTFLOAT[fBufferSize];
+                fVoiceTable[i]->fVoice.init(sample_rate);
             }
             
             // Creates JSON
@@ -193,7 +200,9 @@ class mydsp_poly : public dsp
                 if (fVoiceTable[i]->fNote != kFreeVoice){
                     fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
                     float level = mixVoice(count, fNoteOutputs, outputs);
-                    if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) fVoiceTable[i]->fNote = kFreeVoice;
+                    if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
+                        fVoiceTable[i]->fNote = kFreeVoice;
+                    }
                 }
             }
         }
@@ -208,7 +217,17 @@ class mydsp_poly : public dsp
             return fVoiceTable[0]->fVoice.getNumOutputs();
         }
         
-        void buildUserInterface(UI* ui_interface) {}
+        void buildUserInterface(UI* ui_interface) 
+        {   
+            ui_interface->openTabBox("Polyphonic instrument");
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                std::stringstream voice; voice << "Voice" << i;
+                ui_interface->openHorizontalBox(voice.str().c_str());
+                fVoiceTable[i]->fVoice.buildUserInterface(ui_interface);
+                ui_interface->closeBox();
+            }
+            ui_interface->closeBox();
+        }
         
         void keyOn(int channel, int pitch, int velocity)
         {

@@ -67,13 +67,15 @@
 
 <<includeclass>>
 
+#include "faust/audio/poly-dsp.h"
+
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp* DSP;
+mydsp_poly*	DSP;
 
-std::list<GUI*> GUI::fGuiList;
+std::list<GUI*>               GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -87,7 +89,7 @@ int main(int argc, char *argv[])
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 	
-	DSP = new mydsp();
+	DSP = new mydsp_poly(2048, 4);
 	if (DSP==0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(appname, argc, argv);
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
 	DSP->buildUserInterface(oscinterface);
 #endif
 	
@@ -115,6 +117,11 @@ int main(int argc, char *argv[])
 	audio.init(appname, DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
+    
+    DSP->keyOn(0, 60, 100);
+    DSP->keyOn(0, 63, 100);
+    DSP->keyOn(0, 67, 100);
+    DSP->keyOn(0, 70, 100);
 	
 #ifdef HTTPCTRL
 	httpdinterface->run();

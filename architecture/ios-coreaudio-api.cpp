@@ -79,8 +79,6 @@ class dsp_faust {
 
 private:
 
-    int sr;
-    int bufferLength;
     int polyMax;
     int inChanNumb;
     int outChanNumb;
@@ -108,9 +106,7 @@ public:
      * should be called before start.
      */
     bool init(int samplingRate, int bufferSize) {
-        sr = samplingRate;
-        bufferLength = bufferSize;
-        DSP.init(sr);
+        DSP.init(samplingRate);
         inChanNumb = DSP.getNumInputs();
         outChanNumb = DSP.getNumOutputs();
         
@@ -123,12 +119,12 @@ public:
            jsonString.find("poly") != std::string::npos){
             polyMax = 4;
             DSPpoly = new mydsp_poly(bufferSize, polyMax);
-            DSPpoly->init(sr);
+            DSPpoly->init(samplingRate);
         } else{
             polyMax = 0;
         }
         
-        return (fAudioDevice.Open(((polyMax > 0) ? DSPpoly : &DSP), inChanNumb, outChanNumb, bufferLength, sr) == 0);
+        return (fAudioDevice.Open(((polyMax > 0) ? DSPpoly : &DSP), inChanNumb, outChanNumb, bufferSize, samplingRate) == 0);
     }
     
     /*
