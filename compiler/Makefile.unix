@@ -178,14 +178,7 @@ global.o : global.cpp
 
 main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
-
-faust : $(objects) main.o libcode.o global.o 
-ifneq ($(findstring MINGW32, $(system)),)
-	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
-else
-	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
-endif
-
+    
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
     
@@ -194,6 +187,14 @@ CUI_exp.h : ../architecture/faust/gui/CUI.h
 
 scheduler_exp.h : ../architecture/scheduler.cpp
 	xxd -i ../architecture/scheduler.cpp generator/llvm/scheduler_exp.h
+
+
+faust : $(objects) main.o libcode.o global.o CUI_exp.h
+ifneq ($(findstring MINGW32, $(system)),)
+	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
+else
+	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
+endif
 
 ifeq ($(system), Darwin)
     libfaust.a : $(objects) libcode.o libmain.o global.o CUI_exp.h 
