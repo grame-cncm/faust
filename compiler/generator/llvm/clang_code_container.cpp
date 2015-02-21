@@ -63,7 +63,6 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
 {
     fOut = new ofstream(getTempName());
    
-    //fOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
     if (gGlobal->gFloatSize == 2) {
         *fOut << "#define FAUSTFLOAT double" << "\n\n";
     }
@@ -76,15 +75,6 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
     printheader(*fOut);
   
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, fOut);
-
-    /*
-    fStrOut << "#include </usr/local/include/faust/gui/CUI.h>" << "\n\n";
-    fStrOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
-    fStrOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
-    printheader(fStrOut);
-       
-    fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, &fStrOut);
-    */
     
     if (gGlobal->gVectorSwitch) {
         fCompiler = new DAGInstructionsCompiler(fContainer);
@@ -103,9 +93,11 @@ ClangCodeContainer::~ClangCodeContainer()
 
 LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filename)
 {
+    // Compile DSP and generate C code
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
+    // Compile it with 'clang'
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
     
@@ -119,8 +111,6 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     argv[0] = "clang";
     argv[1] = getTempName();
     SmallVector<const char*, 16> Args(argv, argv + argc);
-
-    //SmallVector<const char*, 16> Args(&argv[0], &argv[0] + argv.size());
     Args.push_back("-fsyntax-only");
     //Args.push_back("-O3");
     //Args.push_back("-ffast-math");
@@ -177,47 +167,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
         return NULL;
     }
     
-    /*
-    // Arguments to pass to the clang frontend
-    vector<const char*> args;
-    args.push_back(FAUST_FILENAME);
-    args.push_back("-x");
-    args.push_back("c++");
-    
-    // Add path for 'include'
-    list<string>::iterator it;
-    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-        string path = "-I" + (*it);
-        args.push_back(strdup(path.c_str()));
-    }
- 
-    // The compiler invocation needs a DiagnosticsEngine so it can report problems
-    clang::DiagnosticOptions* opts = new clang::DiagnosticOptions();
-    clang::TextDiagnosticPrinter* DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), opts);
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine Diags(DiagID, opts, DiagClient);
-    
-    // Create the compiler invocation
-    llvm::OwningPtr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
-    clang::CompilerInvocation::CreateFromArgs(*CI, &args[0], &args[0] + args.size(), Diags);
-    
-    // Create the compiler instance
-    clang::CompilerInstance Clang;
-    Clang.setInvocation(CI.take());
-    
-    // Get ready to report problems
-    Clang.createDiagnostics();
-    if (!Clang.hasDiagnostics()) {
-        return NULL;
-    }
-    
-    // Create an action and make the compiler instance carry it out
-    clang::CodeGenAction *Act = new clang::EmitLLVMOnlyAction();
-    if (!Clang.ExecuteAction(*Act)) {
-        return NULL;
-    }
-    */
-    
+    // Get the compiled LLVM module
     if (llvm::Module* Module = Act->takeModule()) {
         LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
         result->fModule = Module;
