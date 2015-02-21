@@ -42,6 +42,10 @@
 // For AVOIDDENORMALS
 #include "faust/audio/dsp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Globals
 
 #define WORK_STEALING_INDEX 0
@@ -54,7 +58,6 @@
 #define KDSPMESURE 50
 
 #define MEAN_TRESHOLD 0.1f   // in percentage
-
 
 #ifdef __ICC
     #define INLINE __forceinline
@@ -1314,11 +1317,6 @@ class WorkStealingScheduler {
 /*
 C scheduler interface
 */
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 void* createScheduler(int task_queue_size, int init_task_list_size)
 {

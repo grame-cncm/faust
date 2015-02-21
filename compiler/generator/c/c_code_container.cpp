@@ -418,7 +418,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
 
     tab(n, *fOut); *fOut << "}" << endl;
 
-    tab(n, *fOut); *fOut << "void " << "computeThreadExternal(void* dsp, int num_thread) {";
+    tab(n, *fOut); *fOut << "extern \"C\" void computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "computeThread((" << fKlassName << "*)dsp, num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
 }

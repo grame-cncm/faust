@@ -260,16 +260,14 @@ int main(int argc, char *argv[])
 	GUI* oscinterface = new OSCUI(filename, argc, argv);
 	DSP->buildUserInterface(oscinterface);
 #endif
-
+  
 	jackaudio audio;
     if (!audio.init(filename, DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);
 	audio.start();
-    
-    //return -1;
-
+  
 #ifdef HTTPCTRL
 	httpdinterface->run();
 #endif

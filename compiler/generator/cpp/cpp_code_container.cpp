@@ -403,7 +403,7 @@ void CPPWorkStealingCodeContainer::produceClass()
     // Inherited method
     CPPCodeContainer::produceClass();
 
-    *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
+    *fOut << "extern \"C\" void computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
 }
