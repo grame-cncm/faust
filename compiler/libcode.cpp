@@ -730,7 +730,7 @@ static void printhelp()
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, fir (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -962,7 +962,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
         } else {
             // To trigger 'sig.dot' generation
-            comp = new InstructionsCompiler(container);
+            if (gGlobal->gVectorSwitch) {
+                comp = new DAGInstructionsCompiler(container);
+            } else {
+                comp = new InstructionsCompiler(container);
+            }
             comp->prepare(signals);
         }
 

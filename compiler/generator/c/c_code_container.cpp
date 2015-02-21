@@ -138,7 +138,13 @@ void CCodeContainer::produceInternal()
 void CCodeContainer::produceClass()
 {
     int n = 0;
-
+ 
+    tab(n, *fOut); 
+    *fOut << "#ifdef __cplusplus" << endl;
+    *fOut << "extern \"C\" {" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut); 
+    
     generateSR();
     
     // Libraries
@@ -152,10 +158,6 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-    
-    *fOut << "#ifdef __cplusplus" << endl;
-    *fOut << "extern \"C\" {" << endl;
-    *fOut << "#endif" << endl;
       
     tab(n, *fOut); 
     *fOut << "#ifndef FAUSTCLASS " << endl;
@@ -292,6 +294,7 @@ void CCodeContainer::produceClass()
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;
     *fOut << "#endif" << endl;
+    tab(n, *fOut);
 }
 
 // Scalar
