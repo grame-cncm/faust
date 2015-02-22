@@ -35,7 +35,11 @@
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 
 #include <llvm/Bitcode/ReaderWriter.h>
+#if defined(LLVM_34) || defined(LLVM_35)
 #include <llvm/IR/Module.h>
+#else
+#include <llvm/Module.h>
+#endif
 #include <llvm/Support/Host.h>
 #include <llvm/Support/Path.h>
 #include <llvm/Support/TargetSelect.h>
@@ -98,6 +102,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
+#if defined(LLVM_34) || defined(LLVM_35)
     // Compile it with 'clang'
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
@@ -165,7 +170,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     if (!Clang.ExecuteAction(*Act)) {
         return NULL;
     }
-    
+
     // Get the compiled LLVM module
     if (llvm::Module* Module = Act->takeModule()) {
         LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
@@ -180,6 +185,9 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     } else {
         return NULL;
     }
+#else
+    return NULL;
+#endif
 }
 
 CodeContainer* ClangCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)

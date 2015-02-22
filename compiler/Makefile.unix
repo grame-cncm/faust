@@ -66,6 +66,14 @@ else
     LLVM_CLANG = clang++
 endif
 
+CLANGLIBSLIST= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
+            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
+            -lclangSema -lclangStaticAnalyzerFrontend \
+            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
+            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
+            -lclangEdit -lclangLex 
+
+
 ifeq ($(LLVM_VERSION), 3.1)
     LLVM_VERSION = LLVM_31
 endif
@@ -80,18 +88,22 @@ endif
 
 ifeq ($(LLVM_VERSION), 3.4)
     LLVM_VERSION = LLVM_34
+    CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(LLVM_VERSION), 3.4.1)
     LLVM_VERSION = LLVM_34
+    CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(LLVM_VERSION), 3.4.2)
     LLVM_VERSION = LLVM_34
+    CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(LLVM_VERSION), 3.5.0)
     LLVM_VERSION = LLVM_35
+    CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
 endif
 
@@ -127,14 +139,6 @@ ifeq ($(LLVMSHLIB),)
 else
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
-
-CLANGLIBS= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
-            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
-            -lclangSema -lclangStaticAnalyzerFrontend \
-            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
-            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
-            -lclangEdit -lclangLex 
-
 
 all : faust libfaust.a
 

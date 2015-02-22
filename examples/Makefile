@@ -16,6 +16,14 @@ FAUSTINC := $(if $(wildcard $(ck12)),/usr/local/include/faust,$(FAUSTINC))
 FAUSTINC := $(if $(wildcard $(ck13)),/usr/include/faust,$(FAUSTINC))
 FAUSTINC := $(if $(wildcard $(ck14)),$(FAUST_INC_PATH),$(FAUSTINC))
 
+
+CLANGLIBSLIST= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
+            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
+            -lclangSema -lclangStaticAnalyzerFrontend \
+            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
+            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
+            -lclangEdit -lclangLex 
+
 LLVM_VERSION = $(shell llvm-config --version)
 
 ifeq ($(LLVM_VERSION), 3.1)
@@ -36,11 +44,13 @@ endif
 ifeq ($(LLVM_VERSION), 3.4)
 LLVM_VERSION  = LLVM_34
 CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
+CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(LLVM_VERSION), 3.4.2)
 LLVM_VERSION  = LLVM_34
 CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
+CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(LLVM_VERSION), 3.4.2)
@@ -51,6 +61,7 @@ endif
 ifeq ($(LLVM_VERSION), 3.5)
 LLVM_VERSION  = LLVM_35
 CLANG = /opt/local/libexec/llvm-3.5/bin/clang++
+CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(LLVM_VERSION), 3.6.0)
@@ -358,13 +369,6 @@ iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
-
-CLANGLIBS= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
-            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
-            -lclangSema -lclangStaticAnalyzerFrontend \
-            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
-            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
-            -lclangEdit -lclangLex 
 
 faust-tools: 
 	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.dylib  `llvm-config --ldflags --libs all` -lcrypto $(CLANGLIBS) -o bench-llvm
