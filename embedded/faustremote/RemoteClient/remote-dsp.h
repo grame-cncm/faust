@@ -74,7 +74,12 @@ extern "C"
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
-    remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
+    remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename, 
+                                                        int argc, const char* argv[], 
+                                                        const std::string& ip_server, 
+                                                        int port_server, 
+                                                        std::string& error_msg, 
+                                                        int opt_level = 3);
     
     /**
      * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
@@ -90,7 +95,13 @@ extern "C"
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
-    remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], const std::string& ip_server, int port_server, std::string& error_msg, int opt_level = 3);
+    remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app, 
+                                                        const std::string& dsp_content, 
+                                                        int argc, const char* argv[], 
+                                                        const std::string& ip_server, 
+                                                        int port_server, 
+                                                        std::string& error_msg, 
+                                                        int opt_level = 3);
     
     /**
      * Destroy a Faust DSP factory.

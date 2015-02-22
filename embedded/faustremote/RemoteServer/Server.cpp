@@ -50,13 +50,9 @@ string getJson(connection_info_struct* con_info) {
     JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
     dsp->buildUserInterface(&json);    
     string answer = json.JSON();
-    
     printf("JSON = %s\n", answer.c_str());
         
     deleteDSPInstance(dsp);
-    
-//    con_info->fNumInstances = 1;
-    
     return answer;
 }
 
@@ -87,21 +83,48 @@ slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory,
                     const string& mtu, 
                     const string& latency, 
                     Server* server) 
-                    : fCV(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server) 
+                    : fCV(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server), fAudio(NULL) 
 {
-    fAudio = NULL;
-//  fSlaveFactory = smartFactory->clone();
     fDSP = createDSPInstance(smartFactory);
 }
 
-bool slave_dsp::start_audio() 
+bool slave_dsp::startAudio() 
 {
     return fAudio->start();
 }
 
-void slave_dsp::stop_audio()
+void slave_dsp::stopAudio()
 {
     fAudio->stop();
+}
+
+bool slave_dsp::startAudioConnection()
+{
+    bool success = false;
+    
+    if (fServer->fLocker.Lock()) {
+        fAudio = new server_netjackaudio(atoi(fCV.c_str()), 
+                                        fIP, 
+                                        atoi(fPort.c_str()), 
+                                        atoi(fMTU.c_str()), 
+                                        atoi(fLatency.c_str()));
+        
+        if (fAudio->init(fName.c_str(), fDSP)) {
+            if (!fAudio->start()) {
+                printf("Start slave audio failed\n");
+            } else {
+                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", fDSP->getNumInputs(), fDSP->getNumOutputs());
+                fServer->fRunningDsp.push_back(this);
+                success = true;
+            }
+        } else {
+            printf("Init slave audio failed\n");
+        }
+             
+        fServer->fLocker.Unlock();
+    }
+
+    return success;
 }
 
 // Desallocation of slave dsp resources
@@ -116,7 +139,7 @@ slave_dsp::~slave_dsp()
 Server::Server() :fDaemon(NULL), fPort(-1) 
 {}
 
-Server::~Server(){}
+Server::~Server() {}
     
 //---- START/STOP SERVER
 bool Server::start(int port) 
@@ -126,9 +149,9 @@ bool Server::start(int port)
                                port, 
                                NULL, 
                                NULL, 
-                               &answer_to_connection, 
+                               &answerToConnection, 
                                this, MHD_OPTION_NOTIFY_COMPLETED, 
-                               request_completed, NULL, MHD_OPTION_END);
+                               requestCompleted, NULL, MHD_OPTION_END);
 
     if (fDaemon) {
         
@@ -155,58 +178,33 @@ void Server::stop()
 }
 
 //---- Callback of another thread to wait netjack audio connection without blocking the server
-void* Server::start_audioSlave(void *arg) 
+void* Server::startAudioSlave(void *arg) 
 {
     slave_dsp* dspToStart = (slave_dsp*)arg;
     
-    if (dspToStart->fServer->fLocker.Lock()) {
-        
-        bool success = false;
-        dspToStart->fAudio = new server_netjackaudio(atoi(dspToStart->fCV.c_str()), 
-                                                    dspToStart->fIP, 
-                                                    atoi(dspToStart->fPort.c_str()), 
-                                                    atoi(dspToStart->fMTU.c_str()), 
-                                                    atoi(dspToStart->fLatency.c_str()));
-        
-        if (dspToStart->fAudio->init(dspToStart->name().c_str(), dspToStart->fDSP)) {
-            if (!dspToStart->fAudio->start()) {
-                printf("Start slave audio failed\n");
-            } else {
-                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fDSP->getNumInputs(), dspToStart->fDSP->getNumOutputs());
-                dspToStart->fServer->fRunningDsp.push_back(dspToStart);
-                success = true;
-            }
-        } else {
-            printf("Init slave audio failed\n");
-        }
-        
-        if (!success) {
-            deleteSlaveDSPInstance(dspToStart);
-        }
-            
-        dspToStart->fServer->fLocker.Unlock();
+    if (!dspToStart->startAudioConnection()) {
+        deleteSlaveDSPInstance(dspToStart);
     }
+    
     return NULL;
 }
  
 //---- Creating response page with right header syntaxe
-int Server::send_page(MHD_Connection *connection, const char *page, int length, int status_code, const char * type)
+int Server::sendPage(MHD_Connection *connection, const char *page, int length, int status_code, const char * type)
 {
-    struct MHD_Response *response;
-    response = MHD_create_response_from_buffer(length, (void*)page,
-                                               MHD_RESPMEM_PERSISTENT);
-    if (!response) {
+    struct MHD_Response *response = MHD_create_response_from_buffer(length, (void*)page, MHD_RESPMEM_PERSISTENT);
+    if (response) {
+        MHD_add_response_header(response, "Content-Type", type ? type : "text/plain");
+        return MHD_queue_response(connection, status_code, response);
+    } else {
         return MHD_NO;
     }
-    
-    MHD_add_response_header(response, "Content-Type", type ? type : "text/plain");
-   return MHD_queue_response(connection, status_code, response);
 }
 
 //-------------------RESPONSE TO CONNEXION
 
 // Checking if every running DSP is really running or if any has stopped
-void Server::stop_NotActive_DSP()
+void Server::stopNotActiveDSP()
 {
     list<slave_dsp*>::iterator it = fRunningDsp.begin();
     
@@ -223,21 +221,22 @@ void Server::stop_NotActive_DSP()
 }
 
 // Allocation/Initialization of connection struct
-connection_info_struct* Server::allocate_connection_struct(MHD_Connection *connection, const char *method)
+connection_info_struct* Server::allocateConnectionStruct(MHD_Connection *connection, const char *method)
 {
     struct connection_info_struct *con_info;
     con_info = new connection_info_struct();
-    con_info->init();
     
-    if (NULL == con_info) {
+    if (!con_info) {
         return NULL;
     }
     
-    if (0 == strcmp(method, "POST")) {
+    con_info->init();
+    
+    if (strcmp(method, "POST") == 0) {
         
-        con_info->fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, &iterate_post, (void*)con_info);
+        con_info->fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, &iteratePost, (void*)con_info);
         
-        if (NULL == con_info->fPostprocessor) {
+        if (!con_info->fPostprocessor) {
             delete con_info;
             return NULL;
         }
@@ -252,7 +251,7 @@ connection_info_struct* Server::allocate_connection_struct(MHD_Connection *conne
 }
 
 //---- Callback for any type of connection to the server
-int Server::answer_to_connection(void *cls, 
+int Server::answerToConnection(void *cls, 
                                 MHD_Connection *connection, 
                                 const char *url, 
                                 const char *method, 
@@ -262,11 +261,11 @@ int Server::answer_to_connection(void *cls,
                                 void **con_cls)
 {
     Server *server = (Server*)cls;
-    server->stop_NotActive_DSP();
+    server->stopNotActiveDSP();
     
 // If connection is new, a connection structure is allocated
-    if (NULL == *con_cls){
-        connection_info_struct* con_struct = server->allocate_connection_struct(connection, method);
+    if (!*con_cls){
+        connection_info_struct* con_struct = server->allocateConnectionStruct(connection, method);
         if (con_struct) {
             *con_cls = (void*) con_struct;
             return MHD_YES;
@@ -277,32 +276,32 @@ int Server::answer_to_connection(void *cls,
     
 // Once connection struct is allocated, the request is treated
     if (0 == strcmp(method, "GET")) {
-        return server->answer_get(connection, url);
+        return server->answerGet(connection, url);
     
     } else if (0 == strcmp(method, "POST")) {
-        return server->answer_post(connection, url, upload_data, upload_data_size, con_cls);
+        return server->answerPost(connection, url, upload_data, upload_data_size, con_cls);
     
     } else {
-        return server->send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
+        return server->sendPage(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
     }
 }
     
 // For now GET is not a request supported for now
-int Server::answer_get(MHD_Connection* connection, const char *url)
+int Server::answerGet(MHD_Connection* connection, const char *url)
 {
     printf("IS IT A GET REQUEST\n");
     
     if (strcmp(url, "/GetAvailableFactories") == 0) {
         
         printf("GetAvailableFactories %ld\n", fAvailableFactories.size());
-        string answerstring("");
+        string answerstring = "";
         
         for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++) {
             answerstring += " " + it->first;
             answerstring += " " + it->second.first;
         }
         
-        return send_page(connection, answerstring.c_str(), answerstring.size(), MHD_HTTP_OK, "text/plain");
+        return sendPage(connection, answerstring.c_str(), answerstring.size(), MHD_HTTP_OK, "text/plain");
     } else {
         return MHD_NO;
     }
@@ -314,7 +313,7 @@ int Server::answer_get(MHD_Connection* connection, const char *url)
 // - /GetJson --> Receive faust code / Compile Data / Send back jsonInterface
 // - /CreateInstance --> Receive factoryIndex / Create instance 
 // - /DeleteFactory --> Receive factoryIndex / Delete Factory
-int Server::answer_post(MHD_Connection *connection, const char *url, const char *upload_data, size_t *upload_data_size, void **con_cls)
+int Server::answerPost(MHD_Connection *connection, const char *url, const char *upload_data, size_t *upload_data_size, void **con_cls)
 {
     struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
     
@@ -322,30 +321,30 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
         
         MHD_post_process(con_info->fPostprocessor, upload_data, *upload_data_size);
         *upload_data_size = 0;
-        
         return MHD_YES;
+        
     } else {
         
         if (strcmp(url, "/GetJson") == 0) {
             
-            if (compile_Data(con_info)) {
-                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
+            if (compileData(con_info)) {
+                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
             } else {
-                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/GetJsonFromKey") == 0) {
             
             if (getJsonFromKey(con_info)) {
-                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
+                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
             } else {
-                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/CreateInstance") == 0) {
             
             if (createInstance(con_info)) {
-                return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
+                return sendPage(connection, "", 0, MHD_HTTP_OK, "text/html");
             } else {
-                return send_page(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
             }
             
         }
@@ -365,12 +364,12 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
 //        }
         else if (strcmp(url, "/StartAudio") == 0) {
             startAudio(con_info->fSHAKey);
-            return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
+            return sendPage(connection, "", 0, MHD_HTTP_OK, "text/html");
         } else if(strcmp(url, "/StopAudio") == 0){
             stopAudio(con_info->fSHAKey);
-            return send_page(connection, "", 0, MHD_HTTP_OK, "text/html");
+            return sendPage(connection, "", 0, MHD_HTTP_OK, "text/html");
         } else{
-            return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
+            return sendPage(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
         }
     }
 }
@@ -386,57 +385,55 @@ static string nameWithoutSpaces(const string& name)
 
 // Callback processing the received data.
 // The datas are stocked in connection_info_struct
-int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/, 
+int Server::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, 
                         const char *key, 
                         const char */*filename*/, 
                         const char */*content_type*/, 
                         const char */*transfer_encoding*/, 
                         const char *data, 
                         uint64_t /*off*/, 
-                        size_t size){
+                        size_t size) {
     
     struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
-    
-//    printf("FLServer::iterate_post %s\n", key);
-    
+     
     if (size > 0) {
         
-        if(strcmp(key,"name") == 0){
-            con_info->fNameApp+=nameWithoutSpaces(data);
-            if(con_info->fNameApp.compare("") == 0)
+        if (strcmp(key,"name") == 0){
+            con_info->fNameApp += nameWithoutSpaces(data);
+            if (con_info->fNameApp.compare("") == 0)
                 con_info->fNameApp = "RemoteServer_DefaultName";
         }
-        if(strcmp(key,"data") == 0)
-            con_info->fFaustCode+=data;        
+        if (strcmp(key,"data") == 0)
+            con_info->fFaustCode += data;        
             
-        if(strcmp(key,"NJ_ip") == 0) 
+        if (strcmp(key,"NJ_ip") == 0) 
             con_info->fIP = data;
         
-        if(strcmp(key,"NJ_port") == 0) 
-            con_info->fPort =data;   
+        if (strcmp(key,"NJ_port") == 0) 
+            con_info->fPort = data;   
         
-        if(strcmp(key,"NJ_latency") == 0)
+        if (strcmp(key,"NJ_latency") == 0)
             con_info->fLatency = data;
         
-        if(strcmp(key,"NJ_compression") == 0)
+        if (strcmp(key,"NJ_compression") == 0)
             con_info->fCV = data;        
         
-        if(strcmp(key,"NJ_mtu") == 0) 
+        if (strcmp(key,"NJ_mtu") == 0) 
             con_info->fMTU = data;
         
-        if(strcmp(key,"shaKey") == 0)
+        if (strcmp(key,"shaKey") == 0)
             con_info->fSHAKey = data;
         
-        if(strcmp(key,"instanceKey") == 0)
+        if (strcmp(key,"instanceKey") == 0)
             con_info->fInstanceKey = data;
         
-        if(strcmp(key,"factoryKey") == 0)
+        if (strcmp(key,"factoryKey") == 0)
             con_info->fFactoryKey = data;
         
-        if(strcmp(key,"options") == 0)
+        if (strcmp(key,"options") == 0)
             con_info->fCompilationOptions.push_back(string(data));
         
-        if(strcmp(key,"opt_level") == 0)
+        if (strcmp(key,"opt_level") == 0)
             con_info->fOptLevel = data;
     }
     
@@ -445,7 +442,7 @@ int Server::iterate_post(void *coninfo_cls, MHD_ValueKind /*kind*/,
 }
 
 // Callback when connection is ended
-void Server::request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe) 
+void Server::requestCompleted(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe) 
 {
     struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
     
@@ -467,7 +464,7 @@ bool Server::startAudio(const string& shakey)
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey.compare((*it)->key()) == 0) {
-            if ((*it)->start_audio()) {
+            if ((*it)->startAudio()) {
                 return true;
             }
         }
@@ -482,7 +479,8 @@ void Server::stopAudio(const string& shakey)
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey.compare((*it)->key()) == 0) {
-            (*it)->stop_audio();
+            (*it)->stopAudio();
+            return;
         }
     }
 }
@@ -503,16 +501,15 @@ bool Server::getJsonFromKey(connection_info_struct* con_info)
 }
 
 // Create DSP Factory 
-bool Server::compile_Data(connection_info_struct* con_info) {
+bool Server::compileData(connection_info_struct* con_info) {
     
     if (con_info->fSHAKey != "") {
         
         // Sort out compilation options
-        
         int argc = con_info->fCompilationOptions.size();
         const char* argv[argc];
         
-        for (int i=0; i<argc; i++) {
+        for (int i = 0; i < argc; i++) {
             argv[i] = (con_info->fCompilationOptions[i]).c_str();
         }
         
@@ -547,7 +544,7 @@ bool Server::createInstance(connection_info_struct* con_info)
         dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
         pthread_t myNewThread;
         
-        if (pthread_create(&myNewThread, NULL, Server::start_audioSlave, dsp) == 0){
+        if (pthread_create(&myNewThread, NULL, Server::startAudioSlave, dsp) == 0){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {

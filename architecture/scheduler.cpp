@@ -272,7 +272,7 @@ static INLINE UInt64 DSP_rdtsc(void)
 	} count;
 	
 	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
-     return count.i64;
+    return count.i64;
 }
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -586,14 +586,9 @@ int get_max_cpu()
     int physical_count = 0;
     size_t size = sizeof(physical_count);
     sysctlbyname("hw.physicalcpu", &physical_count, &size, NULL, 0);
-    //printf("physical cpu cores: %d\n", physical_count);
-    
     int logical_count = 0;
     sysctlbyname("hw.logicalcpu", &logical_count, &size, NULL, 0);
-    //printf("logical cpu cores: %d\n", logical_count);
-    
     return physical_count;
-    //return logical_count;
 }
 
 #endif
@@ -842,7 +837,7 @@ class TaskQueue
 
 		INLINE void MeasureStealingDur()
 		{
-            // Takes first timetamp
+            // Takes first timestamp
             if (fStealingStart == 0) {
                 fStealingStart = DSP_rdtsc();
             } else if ((DSP_rdtsc() - fStealingStart) > fMaxStealing) {
