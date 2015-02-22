@@ -126,26 +126,26 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     
     // getNumInputs/getNumOutputs
     tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs" << fKlassName << "(dsp) {";
-    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-    tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
+        tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+        tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
     tab(n+1, *fOut); *fOut << "}";
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs" << fKlassName << "(dsp) {";
-    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-    tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
+        tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+        tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
     tab(n+1, *fOut); *fOut << "}";
     tab(n+1, *fOut);
     
     // Inits
     tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
-    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-    tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
-    tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
+        tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+        tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
+        tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
-    // Moves all variables declaration at the beginning of the block
-    MoveVariablesInFront2 mover1;
-    BlockInst* block1 = mover1.getCode(fInitInstructions); 
-    block1->accept(gGlobal->gASMJSVisitor);
+        // Moves all variables declaration at the beginning of the block
+        MoveVariablesInFront2 mover1;
+        BlockInst* block1 = mover1.getCode(fInitInstructions); 
+        block1->accept(gGlobal->gASMJSVisitor);
     
     tab(n+1, *fOut); *fOut << "}";
     
@@ -153,19 +153,19 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     string counter = "count";
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
-    tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-    tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
-    tab(n+2, *fOut); *fOut << "output = output | 0;";
-    tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
+        tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+        tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
+        tab(n+2, *fOut); *fOut << "output = output | 0;";
+        tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
-    // Generates one single scalar loop and put is the the block
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-    fComputeBlockInstructions->pushBackInst(loop);
-    
-    // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
-    MoveVariablesInFront2 mover2;
-    BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
-    block2->accept(gGlobal->gASMJSVisitor);
+        // Generates one single scalar loop and put is the the block
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+        fComputeBlockInstructions->pushBackInst(loop);
+        
+        // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
+        MoveVariablesInFront2 mover2;
+        BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
+        block2->accept(gGlobal->gASMJSVisitor);
     tab(n+1, *fOut); *fOut << "}";
 }
 
@@ -296,14 +296,14 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Exported functions (DSP only)
         tab(n+1, *fOut);
         *fOut << "return { ";
-        *fOut << "getNumInputs" << ": " << "getNumInputs" << ", ";
-        *fOut << "getNumOutputs" << ": " << "getNumOutputs" << ", ";
-        *fOut << "classInit" << ": " << "classInit" << ", ";
-        *fOut << "instanceInit" << ": " << "instanceInit" << ", ";
-        *fOut << "init" << ": " << "init" << ", ";
-        *fOut << "setValue" << ": " << "setValue" << ", ";
-        *fOut << "getValue" << ": " << "getValue" << ", ";
-        *fOut << "compute" << ": " << "compute";
+        *fOut << "getNumInputs : getNumInputs, ";
+        *fOut << "getNumOutputs : getNumOutputs, ";
+        *fOut << "classInit : classInit, ";
+        *fOut << "instanceInit : instanceInit, ";
+        *fOut << "init : init, ";
+        *fOut << "setValue : setValue, ";
+        *fOut << "getValue : getValue, ";
+        *fOut << "compute : compute";
         *fOut << " };";
    
     tab(n, *fOut); *fOut << "}" << endl;
