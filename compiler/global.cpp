@@ -453,7 +453,6 @@ void Garbageable::cleanup()
     global::gObjectTable.clear();
 }
 
-
 void* Garbageable::operator new(size_t size)
 {
     // HACK : add 16 bytes to avoid unsolved memory smashing bug...
@@ -466,7 +465,6 @@ void Garbageable::operator delete(void* ptr)
 {
     // We may have cases when a pointer will be deleted during 
     // a compilation, thus the pointer has to be removed from the list.
-    
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
@@ -485,7 +483,6 @@ void Garbageable::operator delete[](void* ptr)
 {
     // We may have cases when a pointer will be deleted during 
     // a compilation, thus the pointer has to be removed from the list.
-    
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }

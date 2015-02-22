@@ -674,7 +674,7 @@ generator/cpp/cpp_code_container.o: global.hh parser/sourcereader.hh boxes/boxes
 generator/cpp/cpp_code_container.o: tlib/occurrences.hh generator/floats.hh generator/function_builder.hh
 generator/cpp/cpp_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
 generator/cpp/cpp_code_container.o: generator/cpp/cpp_instructions.hh generator/text_instructions.hh
-generator/cpp/cpp_code_container.o: generator/type_manager.hh generator/opencl_instructions.hh
+generator/cpp/cpp_code_container.o: generator/type_manager.hh generator/cpp/opencl_instructions.hh
 generator/cpp/cpp_code_container.o: generator/omp_code_container.hh generator/vec_code_container.hh
 generator/cpp/cpp_code_container.o: generator/wss_code_container.hh generator/cpp/cpp_gpu_code_container.hh
 generator/cpp/cpp_code_container.o: errors/exception.hh
@@ -688,7 +688,7 @@ generator/cpp/cpp_gpu_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh 
 generator/cpp/cpp_gpu_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
 generator/cpp/cpp_gpu_code_container.o: generator/json_instructions.hh generator/cpp/cpp_instructions.hh
 generator/cpp/cpp_gpu_code_container.o: generator/text_instructions.hh generator/type_manager.hh
-generator/cpp/cpp_gpu_code_container.o: generator/opencl_instructions.hh generator/omp_code_container.hh
+generator/cpp/cpp_gpu_code_container.o: generator/cpp/opencl_instructions.hh generator/omp_code_container.hh
 generator/cpp/cpp_gpu_code_container.o: generator/vec_code_container.hh generator/wss_code_container.hh
 generator/cpp/cpp_gpu_code_container.o: generator/fir_to_fir.hh
 generator/fir/fir_code_container.o: generator/fir/fir_code_container.hh generator/code_container.hh
@@ -740,9 +740,10 @@ libcode.o: parallelize/code_loop.hh generator/json_instructions.hh generator/occ
 libcode.o: generator/dag_instructions_compiler.hh generator/c/c_code_container.hh generator/c/c_instructions.hh
 libcode.o: generator/text_instructions.hh generator/type_manager.hh generator/vec_code_container.hh
 libcode.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
-libcode.o: generator/cpp/cpp_instructions.hh generator/opencl_instructions.hh generator/cpp/cpp_gpu_code_container.hh
-libcode.o: generator/java/java_code_container.hh generator/java/java_instructions.hh generator/typing_instructions.hh
-libcode.o: generator/js/js_code_container.hh generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
+libcode.o: generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh
+libcode.o: generator/cpp/cpp_gpu_code_container.hh generator/java/java_code_container.hh
+libcode.o: generator/java/java_instructions.hh generator/typing_instructions.hh generator/js/js_code_container.hh
+libcode.o: generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
 libcode.o: generator/asmjs/asmjs_instructions.hh generator/llvm/clang_code_container.hh libfaust.h export.hh
 libcode.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh draw/schema/schema.h
 libcode.o: draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh errors/exception.hh
@@ -760,7 +761,7 @@ global.o: extended/atan2prim.hh extended/asinprim.hh generator/asmjs/asmjs_instr
 global.o: generator/text_instructions.hh generator/type_manager.hh generator/typing_instructions.hh
 global.o: generator/c/c_code_container.hh generator/c/c_instructions.hh generator/vec_code_container.hh
 global.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
-global.o: generator/cpp/cpp_instructions.hh generator/opencl_instructions.hh generator/js/js_code_container.hh
+global.o: generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh generator/js/js_code_container.hh
 global.o: generator/js/js_instructions.hh generator/java/java_code_container.hh generator/java/java_instructions.hh
 global.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
 main.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh

@@ -161,10 +161,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 	}
 
 	occ->incOccurences(v,r,d);
-
 }
-
-
 
 Occurences* OccMarkup::getOcc(Tree t)
 {
@@ -176,12 +173,10 @@ Occurences* OccMarkup::getOcc(Tree t)
 	}
 }
 
-
 void OccMarkup::setOcc(Tree t, Occurences* occ)
 {
 	t->setProperty(fPropKey, tree(occ));
 }
-
 
 #if 0
 
