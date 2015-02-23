@@ -48,7 +48,7 @@ endif
 endif
 
 LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles)
-LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
+LLVM_CUR_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
@@ -86,17 +86,7 @@ ifeq ($(LLVM_VERSION), 3.3)
     LLVM_VERSION = LLVM_33
 endif
 
-ifeq ($(LLVM_VERSION), 3.4)
-    LLVM_VERSION = LLVM_34
-    CLANGLIBS=$(CLANGLIBSLIST)
-endif
-
-ifeq ($(LLVM_VERSION), 3.4.1)
-    LLVM_VERSION = LLVM_34
-    CLANGLIBS=$(CLANGLIBSLIST)
-endif
-
-ifeq ($(LLVM_VERSION), 3.4.2)
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION),3.4, 3.4.1, 3.4.2))
     LLVM_VERSION = LLVM_34
     CLANGLIBS=$(CLANGLIBSLIST)
 endif
