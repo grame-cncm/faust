@@ -297,6 +297,14 @@ class mydsp_poly : public dsp
         {
             return fVoiceTable[0]->getValue(path);
         }
+        
+        void setVoiceGain(int pitch, float value)
+        {   
+            int voice = getVoice(pitch);
+            if (voice >= 0) {
+                fVoiceTable[voice]->setValue(fGainLabel, value);
+            }
+        }
     
 };
    

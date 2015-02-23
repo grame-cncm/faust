@@ -60,7 +60,7 @@ Symbol* Symbol::get(const char* rawstr)
 {
     // ---replaces control characters with white spaces---
     char* str = strdup(rawstr);
-    for (int i = 0; i < strlen(rawstr); i++) {
+    for (size_t i = 0; i < strlen(rawstr); i++) {
         char c = rawstr[i];
         str[i] = (c >= 0 && c < 32) ? 32 : c;
     }

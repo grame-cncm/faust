@@ -18,7 +18,7 @@
  ************************************************************************/
 
 void init(int, int);
-int start(void);
+bool start(void);
 void stop(void);
 bool isRunning(void);
 int keyOn(int, int);
