@@ -193,7 +193,7 @@ scheduler_exp.h : ../architecture/scheduler.cpp
 	xxd -i ../architecture/scheduler.cpp generator/llvm/scheduler_exp.h
 
 
-faust : $(objects) main.o libcode.o global.o CUI_exp.h
+faust : $(objects) main.o libcode.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
@@ -201,27 +201,27 @@ else
 endif
 
 ifeq ($(system), Darwin)
-    libfaust.a : $(objects) libcode.o libmain.o global.o CUI_exp.h 
+    libfaust.a : $(objects) libcode.o libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
-    libfaust.dylib : $(objects) libcode.o libmain.o global.o CUI_exp.h 
+    libfaust.dylib : $(objects) libcode.o libmain.o global.o 
 	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else	
 ifneq ($(findstring MINGW32, $(system)),)
-    libfaust.a : $(objects) libcode.o libmain.o global.o CUI_exp.h 
+    libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
 	ar cq $@ $(objects) libcode.o libmain.o global.o
 	ranlib $@
 
-    libfaust.dll : $(objects) libcode.o libmain.o global.o CUI_exp.h 
+    libfaust.dll : $(objects) libcode.o libmain.o global.o 
 	$(CXX) -shared $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
 else
-    libfaust.a : $(objects) libcode.o libmain.o global.o CUI_exp.h 
+    libfaust.a : $(objects) libcode.o libmain.o global.o 
 	rm -f $@
 	ar cq $@ $(objects) libcode.o libmain.o global.o
 	ranlib $@
 
-    libfaust.so : $(objects) libcode.o libmain.o global.o CUI_exp.h 
+    libfaust.so : $(objects) libcode.o libmain.o global.o 
 	$(CXX) -shared -fPIC $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++ 
 endif
 endif
@@ -724,7 +724,7 @@ generator/js/js_code_container.o: tlib/occurrences.hh generator/floats.hh genera
 generator/js/js_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
 generator/js/js_code_container.o: generator/js/js_instructions.hh generator/text_instructions.hh
 generator/js/js_code_container.o: generator/type_manager.hh errors/exception.hh
-generator/llvm/clang_code_container.o: tlib/compatibility.hh
+generator/llvm/clang_code_container.o: tlib/compatibility.hh CUI_exp.h scheduler_exp.h
 generator/llvm/llvm_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_dsp_aux.o: tlib/compatibility.hh
 ../libraries/loki/SafeFormat.o: ../libraries/loki/SafeFormat.h ../libraries/loki/LokiExport.h
