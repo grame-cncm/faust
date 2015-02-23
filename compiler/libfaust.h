@@ -22,7 +22,7 @@
 #ifndef __LIB_FAUST__
 #define __LIB_FAUST__
 
-#include <string.h>
+#include <string>
 #include <vector>
 #include "export.hh"
 
