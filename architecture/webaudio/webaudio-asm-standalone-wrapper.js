@@ -104,7 +104,10 @@ faust.mydsp = function (context, buffer_size) {
     console.log(that.factory);
  
     that.pathTable = getPathTablemydsp();
-       
+    
+    // Allocate table for 'setValue'
+    that.valueTable = [];
+        
     that.update_outputs = function () 
     {
         if (that.ouputs_items.length > 0 && that.handler && that.ouputs_timer-- === 0) {
@@ -127,6 +130,14 @@ faust.mydsp = function (context, buffer_size) {
             for (j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
             }
+        }
+        
+        // Update control state
+        for (var i = 0; i < that.inputs_items.length; i++) {
+            var path = that.inputs_items[i];
+            var values = that.valueTable[path];
+            that.factory.setValue(that.dsp, that.pathTable[path], values[0]);
+            values[0] = values[1];
         }
         
         // Compute
@@ -187,12 +198,16 @@ faust.mydsp = function (context, buffer_size) {
     
     that.setValue = function (path, val) 
     {
-        that.factory.setValue(that.dsp, that.pathTable[path], val);
+        var values = that.valueTable[path];
+        if (that.factory.getValue(that.dsp, that.pathTable[path]) == values[0]) {
+            values[0] = val;
+        } 
+        values[1] = val;
     };
     
     that.getValue = function (path) 
     {
-        that.factory.getValue(that.dsp, that.pathTable[path]);
+        return that.factory.getValue(that.dsp, that.pathTable[path]);
     };
     
     that.controls = function()
@@ -283,6 +298,14 @@ faust.mydsp = function (context, buffer_size) {
         
         // Init DSP
         that.factory.init(that.dsp, faust.context.sampleRate);
+        
+        // Init 'value' table
+        for (var i = 0; i < that.inputs_items.length; i++) {
+            var path = that.inputs_items[i];
+            var values = new Float32Array(2);
+            values[0] = values[1] = that.factory.getValue(that.dsp, that.pathTable[path]);
+            that.valueTable[path] = values;
+        }
     };
     
     that.init();

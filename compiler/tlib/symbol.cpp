@@ -50,8 +50,6 @@ Symbol* Symbol::get(const string& str)
     return Symbol::get(str.c_str());
 }
 
-
-
 /**
  * Search the hash table for the symbol of name \p str or returns a new one.
  * \param str the name of the symbol
@@ -61,14 +59,12 @@ Symbol* Symbol::get(const string& str)
 Symbol* Symbol::get(const char* rawstr)
 {
     // ---replaces control characters with white spaces---
-    char            str[1024];
-    char*           p = &str[0];
-    char            c;
-    unsigned int    n = 0;
-    while ((++n<1024) && (c=*rawstr++)) { *p++ = (c >= 0 && c < 32) ? 32 : c; }
-    *p++ = 0;
-    //----------------------------------------------------
-
+    char* str = strdup(rawstr);
+    for (size_t i = 0; i < strlen(rawstr); i++) {
+        char c = rawstr[i];
+        str[i] = (c >= 0 && c < 32) ? 32 : c;
+    }
+ 
     unsigned int 	hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
@@ -150,15 +146,15 @@ unsigned int Symbol::calcHashKey (const char* str)
 
 /**
  * Constructs a symbol ready to be placed in the hash table. 
- * It makes a private copy of its name.
+ * Gets a string to be kept.
  * \param str the name of the symbol
  * \param hsh the hash key of the symbol
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
-Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
+Symbol::Symbol(char* str, unsigned int hsh, Symbol* nxt)
 {
-    fName = strdup(str);
+    fName = str;
     fHash = hsh;
     fNext = nxt;
 	fData = 0;
