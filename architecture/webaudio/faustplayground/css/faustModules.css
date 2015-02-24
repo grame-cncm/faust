@@ -30,6 +30,7 @@ div.createEquivalentButton {
     padding-bottom: 5px;
     padding-left: 10px;
 	text-transform: uppercase;
+	font-size:20px;
 }
 
 /* Modules */
@@ -40,9 +41,13 @@ div.createEquivalentButton {
 	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 	display: inline-block;
 	position: absolute;
+	margin-left:auto;
+	margin-right:auto;
+	z-index:5;
 }
 
 .moduleFaust .content {
+	display: inline-block;
 	background: #fff;
 	border-radius: 5px;
 	min-width: 10em;
