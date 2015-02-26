@@ -748,6 +748,15 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         }
     }
     
+    that.allNotesOff = function ()
+    {
+        var i;
+        for (i = 0; i < that.polyphony; i++) {
+            that.factory.setValue(that.dsp_voices[i], that.fGateLabel, 0.0);
+            that.dsp_voices_state[i] = that.kReleaseVoice;
+        }
+    }
+    
     that.ctrlChange = function (channel, ctrl, value)
     {}
     
