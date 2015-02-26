@@ -762,7 +762,7 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-static void printHeader(ostream& dst)
+void printHeader(ostream& dst)
 {
     // defines the metadata we want to print as comments at the begin of in the file
     set<Tree> selectedKeys;

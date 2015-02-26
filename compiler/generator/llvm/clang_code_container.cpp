@@ -77,7 +77,7 @@ ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int nu
     *fOut << endl;
     *fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
     *fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
-    printheader(*fOut);
+    printHeader(*fOut);
   
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, fOut);
     
