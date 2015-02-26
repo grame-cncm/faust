@@ -64,7 +64,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
                 handler(ouputs_items[i], DSP_poly_getValue(ptr, path_ptr));
             }
         }
-    };
+    }
     
     // JSON parsing
     function parse_ui (ui) 
@@ -293,5 +293,5 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
         }
     }
 
-};
+}
 
