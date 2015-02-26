@@ -255,6 +255,14 @@ class mydsp_poly : public dsp
             }
         }
         
+        void allNotesOff()
+        {
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
+                fVoiceTable[i]->fNote = kReleaseVoice;
+            }
+        }
+        
         void pitchWheel(int channel, int wheel)
         {
             // TODO
@@ -272,6 +280,8 @@ class mydsp_poly : public dsp
         
         void ctrlChange(int channel, int ctrl, int value)
         {}
+        
+        
         
         const char* getJSON()
         {
@@ -351,6 +361,11 @@ extern "C" {
     void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch)
     {
         poly->keyOff(channel, pitch);
+    }
+    
+    void mydsp_poly_allNotesOff(mydsp_poly* poly)
+    {
+        poly->allNotesOff();
     }
     
     void mydsp_poly_ctrlChange(mydsp_poly* poly, int channel, int ctrl, int value)
