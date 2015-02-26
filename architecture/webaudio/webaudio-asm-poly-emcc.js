@@ -39,6 +39,9 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
   
     var handler = null;
     var ins, outs;
+    var numIn, numOut;
+    
+    var scriptProcessor;
     
     // Path string
     var path_ptr = Module._malloc(512);
@@ -128,8 +131,8 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
     function init ()
     {
         var i;
-        ptrsize = 4; //assuming pointer in emscripten are 32bits
-        samplesize = 4;
+        var ptrsize = 4; //assuming pointer in emscripten are 32bits
+        var samplesize = 4;
         
         // Get input / output counts
         numIn = DSP_poly_getNumInputs(ptr);
@@ -243,7 +246,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
             }
         },
 
-        disconnect: function (node) 
+        disconnect : function (node) 
         {
             if (node.scriptProcessor) {
                 scriptProcessor.disconnect(node.scriptProcessor);
