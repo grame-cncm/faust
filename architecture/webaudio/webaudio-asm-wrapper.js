@@ -577,11 +577,12 @@ faust.deleteDSPInstance = function (dsp) {
 }
 
 // 'poly' DSP
-faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyphony) {
+faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyphony, callback) {
     
     var handler = null;
     var ins, outs;
     var numIn, numOut;
+    var compute_callback = callback;
     
     var scriptProcessor;
 
@@ -636,6 +637,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             for (j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
             }
+        }
+        
+        // Possibly call an externally given callback (for instance to play a MIDIFile...)
+        if (compute_callback) {
+            compute_callback(buffer_size);
         }
 
         // First clear the outputs
@@ -899,6 +905,19 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         json : function ()
         {
             return factory.getJSON();
+        },
+        
+        getSampleRate : function ()
+        {
+            return context.sampleRate;
+        },
+        
+        setComputeCallback : function (callback) {
+            compute_callback = callback;
+        },
+        
+        getComputeCallback : function () {
+            return compute_callback;
         }
     }
 }

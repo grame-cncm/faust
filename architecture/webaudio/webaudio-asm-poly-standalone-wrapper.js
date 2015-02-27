@@ -74,11 +74,12 @@ function mydspMixer(global, foreign, buffer) {
 }
 
 // Polyphonic Faust DSP
-faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
+faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
 
     var handler = null;
     var ins, outs;
     var numIn, numOut;
+    var compute_callback = callback;
     
     var scriptProcessor;
     
@@ -193,6 +194,11 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
             for (j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
             }
+        }
+        
+        // Possibly call an externally given callback (for instance to play a MIDIFile...)
+        if (compute_callback) {
+            compute_callback(buffer_size);
         }
         
         // First clear the outputs
@@ -457,6 +463,19 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony) {
         json : function ()
         {
             return getJSONmydsp();
+        },
+        
+        getSampleRate : function ()
+        {
+            return context.sampleRate;
+        },
+        
+        setComputeCallback : function (callback) {
+            compute_callback = callback;
+        },
+        
+        getComputeCallback : function () {
+            return compute_callback;
         }
     }
 }
