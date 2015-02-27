@@ -869,7 +869,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         {
             var voice = getVoice(refPitch);
             if (voice >= 0) {
-                factory.setValue(dsp_voices[voice], fGateLabel, midiToFreq(pitch))
+                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch))
             } else {
                 console.log("Playing voice not found...\n");
             }
