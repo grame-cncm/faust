@@ -35,11 +35,12 @@ var DSP_poly_allNotesOff = Module.cwrap('DSP_poly_allNotesOff', null, ['number']
 var DSP_poly_ctrlChange = Module.cwrap('DSP_poly_ctrlChange', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_pitchWheel = Module.cwrap('DSP_poly_pitchWheel', null, ['number', 'number', 'number']);
 
-faust.DSP_poly = function (context, buffer_size, max_polyphony) {
+faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
   
     var handler = null;
     var ins, outs;
     var numIn, numOut;
+    var compute_callback = callback;
     
     var scriptProcessor;
     
@@ -110,6 +111,11 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
             for (var j = 0; j < input.length; j++) {
                 dspInput[j] = input[j];
             }
+        }
+        
+        // Possibly call an externally given callback (for instance to play a MIDIFile...)
+        if (compute_callback) {
+            compute_callback(buffer_size);
         }
         
         // Compute
@@ -281,15 +287,28 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony) {
             Module.writeStringToMemory(path, path_ptr);
             return DSP_poly_getValue(ptr, path_ptr);
         },
+                
+        controls : function ()
+        {
+            return inputs_items;
+        },
         
         json : function ()
         {
             return Pointer_stringify(DSP_poly_getJSON(ptr));
         },
         
-        controls : function ()
+        getSampleRate : function ()
         {
-            return inputs_items;
+            return context.sampleRate;
+        },
+        
+        setComputeCallback : function (callback) {
+            compute_callback = callback;
+        },
+        
+        getComputeCallback : function () {
+            return compute_callback;
         }
     }
 
