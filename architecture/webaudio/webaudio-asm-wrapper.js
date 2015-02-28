@@ -192,20 +192,20 @@ Utf8.decode = function(strUtf) {
 // asm.js mixer
 function mydspMixer(global, foreign, buffer) {
 	
-	'use asm';
-	
+    'use asm';
+
     var HEAP32 = new global.Int32Array(buffer);
-	var HEAPF32 = new global.Float32Array(buffer);
-    
+    var HEAPF32 = new global.Float32Array(buffer);
+
     var max = global.Math.max;
     var abs = global.Math.abs;
     var sqrt = global.Math.sqrt;
-    
+
     function clearOutput(count, channels, outputs) {
         count = count | 0;
         channels = channels | 0;
-		outputs = outputs | 0;
-    	var i = 0;
+        outputs = outputs | 0;
+        var i = 0;
         var j = 0;
         for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
             for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
@@ -213,8 +213,8 @@ function mydspMixer(global, foreign, buffer) {
             }
         }
     }
-		
-	function mixVoice(count, channels, inputs, outputs, polyphony) {
+
+    function mixVoice(count, channels, inputs, outputs, polyphony) {
         count = count | 0;
         channels = channels | 0;
         inputs = inputs | 0;
@@ -235,8 +235,8 @@ function mydspMixer(global, foreign, buffer) {
         }
         return +level;
     }
-	
-	return { mixVoice: mixVoice, clearOutput: clearOutput};
+
+    return { mixVoice: mixVoice, clearOutput: clearOutput};
 }
 
 var faust = faust || {};
