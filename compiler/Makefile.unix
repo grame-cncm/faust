@@ -48,7 +48,7 @@ endif
 endif
 
 LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles)
-LLVM_CUR_VERSION = $(shell $(LLVM_CONFIG) --version)
+LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
