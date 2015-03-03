@@ -293,15 +293,10 @@ faust.createDSPFactory = function (code) {
     var path_table_function = eval("getPathTable" + factory_name); 
     factory.pathTable = path_table_function();
 
-    var json_function = eval("getJSON" + factory_name);
-    factory.getJSON = function() { return json_function(); }
-
-    var metadata_function = eval("metadata" + factory_name);
-    factory.metadata = function(m) { return metadata_function(m); }
-
-    var getdspsize_function = eval("getSize" + factory_name);
-    factory.getSize = function(m) { return getdspsize_function(m); }
-
+    factory.getJSON = eval("getJSON" + factory_name);
+    factory.metadata = eval("metadata" + factory_name);
+    factory.getSize = eval("getSize" + factory_name);
+    
     factory.factory_name = factory_name;
     factory.sha_key = sha_key;
     faust.factory_table[sha_key] = factory;

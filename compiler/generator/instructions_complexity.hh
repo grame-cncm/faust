@@ -42,7 +42,7 @@ class InstComplexityVisitor : public InstVisitor {
 
         int fLoad;
         int fStore;
-        int fNumerical;
+        int fBinop;
         int fNumbers;
         int fDeclare;
         int fCast;
@@ -52,7 +52,7 @@ class InstComplexityVisitor : public InstVisitor {
     public:
 
         InstComplexityVisitor()
-            :fLoad(0), fStore(0), fNumerical(0), fNumbers(0);
+            :fLoad(0), fStore(0), fBinop(0), fNumbers(0);
             fDeclare(0), fCast(0), fSelect(0), fLoop(0)
         {}
         virtual ~InstComplexityVisitor()
@@ -71,7 +71,7 @@ class InstComplexityVisitor : public InstVisitor {
         virtual void visit(BoolNumInst* inst) { fNumbers++; }
         virtual void visit(DoubleNumInst* inst) { fNumbers++; }
 
-        virtual void visit(BinopInst* inst) { fNumerical++; inst->fInst1->accept(this); inst->fInst2->accept(this);}
+        virtual void visit(BinopInst* inst) { fBinop++; inst->fInst1->accept(this); inst->fInst2->accept(this);}
         virtual void visit(CastNumInst* inst) { fCast++; inst->fInst->accept(this); }
 
         virtual void visit(FunCallInst* inst) {}    // Needs a cost table for a set of standard functions?
@@ -91,7 +91,7 @@ class InstComplexityVisitor : public InstVisitor {
             if (then_branch.cost() > else_branch.cost()) {
                 fLoad += then_branch.fLoad;
                 fStore += then_branch.fStore;
-                fNumerical += then_branch.fNumerical;
+                fBinop += then_branch.fBinop;
                 fNumbers += then_branch.fNumbers;
                 fDeclare += then_branch.fDeclare;
                 fCast += then_branch.fCast;
@@ -100,7 +100,7 @@ class InstComplexityVisitor : public InstVisitor {
             } else {
                 fLoad += else_branch.fLoad;
                 fStore += else_branch.fStore;
-                fNumerical += else_branch.fNumerical;
+                fBinop += else_branch.fBinop;
                 fNumbers += else_branch.fNumbers;
                 fDeclare += else_branch.fDeclare;
                 fCast += else_branch.fCast;
