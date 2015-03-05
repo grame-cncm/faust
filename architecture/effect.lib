@@ -276,9 +276,7 @@ with {
 moog_vcf_demo = bypass1(bp,vcf) with {
    mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)
       [tooltip: See Faust's effect.lib for info and references]",x);
-
-   meter_group(x) = mvcf_group(vgroup("[0]",x));
-   cb_group(x) = meter_group(hgroup("[0]",x));
+   cb_group(x) = mvcf_group(hgroup("[0]",x));
 
    bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
    archsw = cb_group(checkbox("[1] Use Biquads
@@ -286,7 +284,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
    bqsw = cb_group(checkbox("[2] Normalized Ladders
    [tooltip: If using biquads, make them normalized ladders (moog_vcf_2bn)]"));
 
-   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob]
+   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK]
    [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above.]",
    25, 1, 88, 0.01) : pianokey2hz) : smooth(0.999);
 
@@ -294,7 +292,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
    [tooltip: Amount of resonance near VCF corner frequency (specified between 0 and 1)]",
    0.9, 0, 1, 0.01));
 
-   outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB]
+   outgain  = mvcf_group(hslider("[3] VCF Output Level [unit:dB] [style:knob]
    [tooltip: output level in decibels]",
    5, -60, 20, 0.1)) : component("music.lib").db2linear : smooth(0.999);
 
@@ -686,6 +684,7 @@ amp_follower(rel) = abs : env with {
 
 //--------------------------- amp_follower_ud ---------------------------
 // Envelope follower with different up and down time-constants
+// (also called a "peak detector").
 //
 // USAGE:
 //    _ : amp_follower_ud(att,rel) : _
@@ -695,11 +694,22 @@ amp_follower(rel) = abs : env with {
 //  rel = release time = amplitude-envelope time constant (sec) going down
 //
 // NOTE: We assume rel >> att.  Otherwise, consider rel ~ max(rel,att).
-// For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01)
+// For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01).
+// See
+//
+//   _ : lag_ud(att,rel) : _
+//
+// below for an illustration of how to remove this restriction.
+//
+// REFERENCE:
+//   "Digital Dynamic Range Compressor Design—A Tutorial and Analysis", by
+//   Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss
+//   http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
 // Begin contributions by Jonatan Liljedahl at http://kymatica.com
+// (in addition to his refinement of amp_follower above)
 
 /*****************************************************
     _ : amp_follower_ar(att,rel) : _;

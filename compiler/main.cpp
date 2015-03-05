@@ -849,14 +849,9 @@ int main (int argc, char* argv[])
         streamCopyUntilEnd(*enrobage, *dst);
 
     } else {
-
-		C->getClass()->printLibrary(*dst);
-        C->getClass()->printIncludeFile(*dst);
-        C->getClass()->printAdditionalCode(*dst);
         printfloatdef(*dst);
         C->getClass()->println(0,*dst);
-
-	}
+    }
 
 
     /****************************************************************
