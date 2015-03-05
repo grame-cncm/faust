@@ -128,7 +128,7 @@ const char* OSCUI::tr(const char* label) const
 				*ptr++ = '_';
 				break;
 			case '#': case '*': case ',': case '/': case '?':
-			case '[': case ']': case '{': case '}':
+			case '[': case ']': case '{': case '}': case '(': case ')':
 				*ptr++ = '_';
 				break;
 			default: 
