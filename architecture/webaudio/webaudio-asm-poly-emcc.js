@@ -316,6 +316,11 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
         getComputeCallback : function () {
             return compute_callback;
         }
+        
+        getProcessor : function ()
+        {
+            return scriptProcessor;
+        }
     }
 
 }
