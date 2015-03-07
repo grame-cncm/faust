@@ -482,8 +482,9 @@
                     }
                 } 
                 
-                // Create a DSP factory from the dsp code                        
-                factory = faust.createDSPFactory(dsp_code);
+                // Create a DSP factory from the dsp code    
+                var args = ["-I", "http://faust.grame.fr/faustcode/"];                   
+                factory = faust.createDSPFactory(dsp_code, args);
                 if (!factory) {
                     alert(faust.getErrorMessage());
                     return;

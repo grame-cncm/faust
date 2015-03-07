@@ -590,9 +590,13 @@ static bool process_cmdline(int argc, const char* argv[])
          
         } else if (isCmd(argv[i], "-I", "--import-dir")) {
             char temp[PATH_MAX+1];
-            char* path = realpath(argv[i+1], temp);
-            if (path) {
-                gGlobal->gImportDirList.push_back(path);
+            if (strstr(argv[i+1], "http://") != 0) {
+                gGlobal->gImportDirList.push_back(argv[i+1]);
+            } else {
+                char* path = realpath(argv[i+1], temp);
+                if (path) {
+                    gGlobal->gImportDirList.push_back(path);
+                }
             }
             i += 2;
             

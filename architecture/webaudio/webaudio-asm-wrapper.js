@@ -244,7 +244,7 @@ var faust = faust || {};
 // Shim AudioContext on webkit
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
-faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number']);
+faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
 
 faust.error_msg = null;
@@ -253,7 +253,7 @@ faust.factory_table = [];
 
 faust.getErrorMessage = function() { return faust.error_msg; }
 
-faust.createDSPFactory = function (code) {
+faust.createDSPFactory = function (code, argv) {
 
     var sha_key = Sha1.hash(code, true);
     var factory = faust.factory_table[sha_key];
@@ -268,13 +268,26 @@ faust.createDSPFactory = function (code) {
     var name = "FaustDSP";
     var name_ptr = Module._malloc(name.length + 1);
     var error_msg_ptr = Module._malloc(256);
-    var factory_name_ptr = Module._malloc(factory_name.length + 1);
     
     Module.writeStringToMemory(name, name_ptr);
     Module.writeStringToMemory(code, code_ptr);
-    Module.writeStringToMemory(factory_name, factory_name_ptr);
     
-    var factory_code_ptr = faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, factory_name_ptr, error_msg_ptr);
+    // Add 'cn' option with the factory name
+    argv = (argv == null) ? new Array() : argv;
+    argv.push("-cn", factory_name);
+    
+    // Prepare 'argv' array for C side
+    var argv_ptr = null;
+    var ptr_size = 4; 
+    argv_ptr = Module._malloc(argv.length * ptr_size);
+    var argv_ptr_buffer = new Int32Array(Module.HEAP32.buffer, argv_ptr, argv.length); 
+    for (var i = 0; i < argv.length; i++) {
+        var arg_ptr = Module._malloc(argv[i].length + 1);
+        Module.writeStringToMemory(argv[i], arg_ptr);
+        argv_ptr_buffer[i] = arg_ptr; 
+    }
+     
+    var factory_code_ptr = faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr);
     var factory_code = Pointer_stringify(factory_code_ptr);
     faust.error_msg = Pointer_stringify(error_msg_ptr);
     if (factory_code === "") {
@@ -302,14 +315,19 @@ faust.createDSPFactory = function (code) {
     faust.factory_table[sha_key] = factory;
     console.log(sha_key);
     
-    /// Free strings
+    // Free strings
     Module._free(code_ptr);
     Module._free(name_ptr);
     Module._free(error_msg_ptr);
-    Module._free(factory_name_ptr);
     
     // Free C allocated asm.js module
     faust.freeCDSP(factory_code_ptr);
+    
+    // Free 'argv' C side arry
+    for (var i = 0; i < argv.length; i++) {
+        Module._free(argv_ptr_buffer[i]);
+    }
+    Module._free(argv_ptr);
     
     return factory;
 }
@@ -422,7 +440,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     {
         // Setup web audio context
         var i;
-        var ptr_size = 4; //assuming pointer in emscripten are 32bits
+        var ptr_size = 4; 
         var sample_size = 4;
          
         // Get input / output counts
@@ -716,7 +734,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     {
         // Setup web audio context
         var i;
-        var ptr_size = 4; //assuming pointer in emscripten are 32bits
+        var ptr_size = 4; 
         var sample_size = 4;
          
         // Get input / output counts

@@ -256,9 +256,14 @@ Tree SourceReader::parsefile(string fname)
         
     #ifdef EMCC
         // Try to open with the complete URL
-        string url = "http://faust.grame.fr/faustcode/" + fname;
-        printf("url %s\n", url.c_str());
-        return parsefile(url);
+        Tree res = 0;
+        for (list<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
+            string url = *i + fname;
+            if ((res = parsefile(url))) return res;
+        }
+        stringstream error;
+        error << "ERROR : unable to open file " << yyfilename << endl;
+        throw faustexception(error.str());
     #else
         string fullpath;
         FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
@@ -337,7 +342,7 @@ Tree SourceReader::getlist(string fname)
         }
 	}
     if (fFileCache[fname] == 0) {
-        throw faustexception("getlist\n");
+        throw faustexception("getlist");
     }
     return fFileCache[fname];
 }

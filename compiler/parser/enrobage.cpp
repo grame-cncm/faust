@@ -311,7 +311,6 @@ bool check_url(const char* filename)
             error << "ERROR : cannot open file '" << filename << "' : " << http_strerror() << "; for help type \"faust --help\"" << endl;
             throw faustexception(error.str());
         }
-        
         // Tries to open as a http URL
     } else if (strstr(filename, "http://") != 0) {
         if (http_fetch(filename, &fileBuf) != -1) {
