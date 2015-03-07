@@ -547,7 +547,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         json : function ()
         {
             return factory.getJSON();
-        }
+        },
         
         getProcessor : function ()
         {
@@ -918,7 +918,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         
         getComputeCallback : function () {
             return compute_callback;
-        }
+        },
         
         getProcessor : function ()
         {

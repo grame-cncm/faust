@@ -316,7 +316,7 @@ faust.mydsp = function (context, buffer_size) {
         json : function ()
         {
             return getJSONmydsp();
-        }
+        },
         
         getProcessor : function ()
         {
