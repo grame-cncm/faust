@@ -130,7 +130,7 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP_poly.scriptProcessor);
+    audio_input.connect(DSP_poly.getProcessor());
 }
 
 function startDSPAux(buffer_size) 
@@ -138,7 +138,7 @@ function startDSPAux(buffer_size)
     activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
-            audio_input.disconnect(DSP_poly.scriptProcessor);
+            audio_input.disconnect(DSP_poly.getProcessor());
         }
         _f4u$t.hard_delete(faustsvg);
         DSP_poly.stop();

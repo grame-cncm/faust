@@ -317,6 +317,11 @@ faust.mydsp = function (context, buffer_size) {
         {
             return getJSONmydsp();
         }
+        
+        getProcessor : function ()
+        {
+            return scriptProcessor;
+        }
     }
 }
 
