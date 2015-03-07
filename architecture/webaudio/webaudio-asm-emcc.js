@@ -260,7 +260,7 @@ faust.DSP = function (context, buffer_size) {
         controls : function ()
         {
             return inputs_items;
-        }
+        },
         
         getProcessor : function ()
         {
