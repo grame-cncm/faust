@@ -35,6 +35,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef EMCC 
+#include <emscripten.h>
+#endif
+
 #include "sourcereader.hh"
 #include "sourcefetcher.hh"
 #include "enrobage.hh"
@@ -198,17 +202,40 @@ Tree formatDefinitions(Tree rldef)
  * @param fname the name of the file to parse
  * @return the list of definitions it contains
  */
-
 Tree SourceReader::parsefile(string fname)
 {
- 	yyerr = 0;
+    yyerr = 0;
     yylineno = 1;
-  	yyfilename = fname.c_str();
+    yyfilename = fname.c_str();
     string fullpath;
-    
+ 
+    // We are requested to parse an URL file
     if (strstr(yyfilename,"http://") != 0) {
-        // We are requested to parse an URL file
         char* buffer = 0;
+    #ifdef EMCC
+        // Call JS code to load URL
+        buffer = (char*)EM_ASM_INT({
+            var xmlhttp = new XMLHttpRequest();
+            var dsp_code = "";
+            xmlhttp.open("GET", Module.Pointer_stringify($0), false);
+            xmlhttp.send();
+            if (xmlhttp.status == 200) {
+                dsp_code = xmlhttp.responseText;
+            } 
+            return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
+        }, yyfilename);
+        
+        Tree res = 0;
+        if (strlen(buffer) == 0) {
+            stringstream error;
+            error << "ERROR : unable to access URL '" << fname << "' : " << endl;
+            throw faustexception(error.str());
+        } else {
+            yy_scan_string(buffer);
+            res = parse(yyfilename);
+        }
+    #else
+        // Otherwise use http URL fetch code
         if (http_fetch(yyfilename, &buffer) == -1) {
             stringstream error;
             error << "ERROR : unable to access URL '" << fname << "' : " << http_strerror() << endl;
@@ -217,7 +244,9 @@ Tree SourceReader::parsefile(string fname)
         yy_scan_string(buffer);
         Tree res = parse(yyfilename);
         free(buffer);
+    #endif
         return res;
+
     } else {
         
         // Test for local url

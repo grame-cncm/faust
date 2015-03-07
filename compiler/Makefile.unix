@@ -140,7 +140,7 @@ ios : libfaust.a
 
 emcc : CC=emcc
 emcc : CXX=emcc
-emcc : CXXFLAGS = -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : CXXFLAGS = -DEMCC -I../architecture -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js
