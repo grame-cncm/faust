@@ -254,18 +254,24 @@ Tree SourceReader::parsefile(string fname)
 			yyfilename  = &yyfilename[7]; // skip 'file://'
 		}
         
+    #ifdef EMCC
+        // Try to open with the complete URL
+        string url = "http://faust.grame.fr/faustcode/" + fname;
+        printf("url %s\n", url.c_str());
+        return parsefile(url);
+    #else
         string fullpath;
         FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
-        
         if (yyin == NULL) {
             stringstream error;
             error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
         }
-        
         Tree res = parse(fullpath);
         fclose(tmp_file);
         return res;
+    #endif
+    
     }
 }
 
