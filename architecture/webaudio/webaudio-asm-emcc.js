@@ -261,6 +261,11 @@ faust.DSP = function (context, buffer_size) {
         {
             return inputs_items;
         }
+        
+        getProcessor : function ()
+        {
+            return scriptProcessor;
+        }
     }
    
 }
