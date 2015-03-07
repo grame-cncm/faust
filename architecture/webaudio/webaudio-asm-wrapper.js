@@ -343,6 +343,9 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     var numIn, numOut;
     
     var scriptProcessor; 
+    
+    var dspInChannnels = [];
+    var dspOutChannnels = [];
 
     // bargraph
     var ouputs_timer = 5;
@@ -459,7 +462,6 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             }
 
             // Prepare Ins buffer tables
-            dspInChannnels = [];
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
@@ -473,7 +475,6 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             }
          
             // Prepare Out buffer tables
-            dspOutChannnels = [];
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
@@ -599,11 +600,14 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     
     var handler = null;
     var ins, outs;
-    var numIn, numOut;
+    var numIn, numOut, mixing;
     var compute_callback = callback;
     
     var scriptProcessor;
-
+    
+    var dspInChannnels = [];
+    var dspOutChannnels = [];
+  
     // bargraph
     var ouputs_timer = 5;
     var ouputs_items = [];
@@ -755,7 +759,6 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
 
             // Prepare ins/out buffer tables
-            dspInChannnels = [];
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
@@ -772,11 +775,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
                 HEAP32[(outs >> 2) + i] = Module._malloc(buffer_size * sample_size);
                 HEAP32[(mixing >> 2) + i] = Module._malloc(buffer_size * sample_size);
             }
-         
-            dspOutChannnels = [];
             
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
-            var mixingChans = HEAP32.subarray(outs >> 2, (mixing + numOut * ptr_size) >> 2);
             
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
