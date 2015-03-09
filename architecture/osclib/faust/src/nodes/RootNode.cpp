@@ -220,7 +220,7 @@ bool RootNode::accept( const Message* msg )
 	if (MessageDriven::accept (msg))
 		return true;
 
-	else if ((msg->size() == 2) && (msg->param(0, val))) {
+	else if ((msg->size() >= 2) && (msg->param(0, val))) {
 		string str; int num;
 		if ((val == kDestMsg) && (msg->param(1, str)))
 			oscout.setAddress(str);
