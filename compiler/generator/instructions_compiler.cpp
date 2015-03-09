@@ -53,9 +53,9 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
 static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
 static inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }
 
-InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
+InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool allow_foreign_function)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)), 
-            fDescription(0), fLoadedIota(false)
+            fDescription(0), fLoadedIota(false), fAllowForeignFunction(allow_foreign_function)
 {}
 
 /*****************************************************************************
@@ -671,8 +671,13 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     fContainer->addIncludeFile(ffincfile(ff));
 	fContainer->addLibrary(fflibfile(ff));
-    
     string funname = ffname(ff);
+    
+    if (!fAllowForeignFunction) {
+        stringstream error;
+        error << "ERROR : calling foreign function '"<< funname  << "'" << " is not allowed in this compilation mode!" << endl;
+        throw faustexception(error.str());
+    }
    
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
