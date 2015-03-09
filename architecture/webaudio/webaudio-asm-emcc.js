@@ -267,7 +267,6 @@ faust.DSP = function (context, buffer_size) {
         {
             return scriptProcessor;
         }
-    }
-   
-}
+    };
+};
 
