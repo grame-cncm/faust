@@ -210,6 +210,8 @@ bool RootNode::acceptSignal( const Message* msg )
 //--------------------------------------------------------------------------
 bool RootNode::accept( const Message* msg )
 {
+    printf("Accept fonction\n");
+    
 	string val;
 	// checks for the 'hello' message first
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg) ) {
@@ -220,7 +222,7 @@ bool RootNode::accept( const Message* msg )
 	if (MessageDriven::accept (msg))
 		return true;
 
-	else if ((msg->size() == 2) && (msg->param(0, val))) {
+	else if ((msg->size() >= 2) && (msg->param(0, val))) {
 		string str; int num;
 		if ((val == kDestMsg) && (msg->param(1, str)))
 			oscout.setAddress(str);
@@ -237,8 +239,11 @@ bool RootNode::accept( const Message* msg )
         
         else if(val == kXmitFilter){
             
+            printf("XMITFILER WITH %i params\n", msg->size());
+            
             for(int i = 1 ; i<msg->size(); i++){
                 msg->param(i, str);
+                printf("XMITFILTER WITH MSG = %s\n", str.c_str());
                 OSCControler::addFilteredPath(str);
             }
         }
