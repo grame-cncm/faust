@@ -91,12 +91,12 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs != undefined) ? jon_object.inputs : 0;
+        return (jon_object.inputs !== undefined) ? jon_object.inputs : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs != undefined) ? jon_object.outputs : 0;
+        return (jon_object.outputs !== undefined) ? jon_object.outputs : 0;
     }
 
     // Memory allocator
@@ -144,7 +144,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     // Setup buffer offset
     var audio_heap_inputs = audio_heap_ptr_mixing + (getNumOutputsAux() * ptr_size);
     var audio_heap_outputs = audio_heap_inputs + (getNumInputsAux() * buffer_size * sample_size);
-    var audio_heap_mixing = audio_heap_outputs + (getNumOutputsAux() * buffer_size * sample_size)
+    var audio_heap_mixing = audio_heap_outputs + (getNumOutputsAux() * buffer_size * sample_size);
     
     // Setup DSP voices offset
     var dsp_start = audio_heap_mixing + (getNumOutputsAux() * buffer_size * sample_size);
@@ -426,7 +426,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         {
             var voice = getVoice(refPitch);
             if (voice >= 0) {
-                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch))
+                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
             } else {
                 console.log("Playing voice not found...\n");
             }
@@ -481,6 +481,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         {
             return scriptProcessor;
         }
-    }
-}
+    };
+};
 

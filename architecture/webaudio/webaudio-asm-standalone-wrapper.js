@@ -41,12 +41,12 @@ faust.mydsp = function (context, buffer_size) {
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs != undefined) ? jon_object.inputs : 0;
+        return (jon_object.inputs !== undefined) ? jon_object.inputs : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs != undefined) ? jon_object.outputs : 0;
+        return (jon_object.outputs !== undefined) ? jon_object.outputs : 0;
     }
      
     // Memory allocator
@@ -239,7 +239,7 @@ faust.mydsp = function (context, buffer_size) {
             values[0] = values[1] = factory.getValue(dsp, pathTable[path]);
             valueTable[path] = values;
         }
-    };
+    }
     
     init();
     
@@ -306,7 +306,7 @@ faust.mydsp = function (context, buffer_size) {
 
         getValue : function (path) 
         {
-            return factory.getValue(dsp, that.pathTable[path]);
+            return factory.getValue(dsp, pathTable[path]);
         },
         
         controls : function()
@@ -323,6 +323,6 @@ faust.mydsp = function (context, buffer_size) {
         {
             return scriptProcessor;
         }
-    }
-}
+    };
+};
 

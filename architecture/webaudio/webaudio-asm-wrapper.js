@@ -251,7 +251,7 @@ faust.error_msg = null;
 faust.factory_number = 0;
 faust.factory_table = [];
 
-faust.getErrorMessage = function() { return faust.error_msg; }
+faust.getErrorMessage = function() { return faust.error_msg; };
 
 faust.createDSPFactory = function (code, argv) {
 
@@ -273,7 +273,7 @@ faust.createDSPFactory = function (code, argv) {
     Module.writeStringToMemory(code, code_ptr);
     
     // Add 'cn' option with the factory name
-    argv = (argv == null) ? new Array() : argv;
+    argv = (argv === null) ? new Array() : argv;
     argv.push("-cn", factory_name);
     
     // Prepare 'argv' array for C side
@@ -300,7 +300,7 @@ faust.createDSPFactory = function (code, argv) {
     eval(factory_code);
 
     // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    var factory = eval(factory_name + "Module(window, null, buffer)");        
+    factory = eval(factory_name + "Module(window, null, buffer)");        
     console.log(factory);
 
     var path_table_function = eval("getPathTable" + factory_name); 
@@ -330,9 +330,9 @@ faust.createDSPFactory = function (code, argv) {
     Module._free(argv_ptr);
     
     return factory;
-}
+};
 
-faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; }
+faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
 
 // 'mono' DSP
 faust.createDSPInstance = function (factory, context, buffer_size) {
@@ -942,8 +942,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         {
             return scriptProcessor;
         }
-    }
-}
+    };
+};
 
 faust.deletePolyDSPInstance = function (dsp) {
     dsp.stop();
@@ -964,7 +964,7 @@ faust.deletePolyDSPInstance = function (dsp) {
         Module._free(dsp.mixing);
     }
     
-    for (i = 0; i < dsp.max_polyphony; i++) {
+    for (var i = 0; i < dsp.max_polyphony; i++) {
         Module._free(dsp.dsp_voices[i]);
     }
-}
+};
