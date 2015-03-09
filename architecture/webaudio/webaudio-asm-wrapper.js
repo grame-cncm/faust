@@ -273,7 +273,7 @@ faust.createDSPFactory = function (code, argv) {
     Module.writeStringToMemory(code, code_ptr);
     
     // Add 'cn' option with the factory name
-    argv = (argv === null) ? new Array() : argv;
+    argv = (argv === undefined) ? new Array() : argv;
     argv.push("-cn", factory_name);
     
     // Prepare 'argv' array for C side
@@ -355,7 +355,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     var inputs_items = [];
     
     // Allocate table for 'setValue'
-    var valueTable = [];
+    var value_table = [];
     
     function update_outputs () 
     {
@@ -383,7 +383,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         // Update control state
         for (var i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
-            var values = valueTable[path];
+            var values = value_table[path];
             factory.setValue(dsp, factory.pathTable[path], values[0]);
             values[0] = values[1];
         }
@@ -492,7 +492,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             var path = inputs_items[i];
             var values = new Float32Array(2);
             values[0] = values[1] = factory.getValue(dsp, factory.pathTable[path]);
-            valueTable[path] = values;
+            value_table[path] = values;
         }
     }
    
@@ -546,7 +546,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         
         setValue : function (path, val) 
         {
-            var values = valueTable[path];
+            var values = value_table[path];
             if (factory.getValue(dsp, factory.pathTable[path]) == values[0]) {
                 values[0] = val;
             } 

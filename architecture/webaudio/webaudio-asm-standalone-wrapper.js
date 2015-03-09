@@ -102,7 +102,7 @@ faust.mydsp = function (context, buffer_size) {
     var pathTable = getPathTablemydsp();
     
     // Allocate table for 'setValue'
-    var valueTable = [];
+    var value_table = [];
         
     function update_outputs () 
     {
@@ -130,7 +130,7 @@ faust.mydsp = function (context, buffer_size) {
         // Update control state
         for (var i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
-            var values = valueTable[path];
+            var values = value_table[path];
             factory.setValue(dsp, pathTable[path], values[0]);
             values[0] = values[1];
         }
@@ -233,11 +233,11 @@ faust.mydsp = function (context, buffer_size) {
         factory.init(dsp, context.sampleRate);
         
         // Init 'value' table
-        for (var i = 0; i < inputs_items.length; i++) {
+        for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = new Float32Array(2);
             values[0] = values[1] = factory.getValue(dsp, pathTable[path]);
-            valueTable[path] = values;
+            value_table[path] = values;
         }
     }
     
@@ -297,7 +297,7 @@ faust.mydsp = function (context, buffer_size) {
 
         setValue : function (path, val) 
         {
-            var values = valueTable[path];
+            var values = value_table[path];
             if (factory.getValue(dsp, pathTable[path]) == values[0]) {
                 values[0] = val;
             } 
