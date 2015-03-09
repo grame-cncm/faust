@@ -37,6 +37,9 @@ faust.DSP = function (context, buffer_size) {
     var numIn, numOut;
     
     var scriptProcessor;
+    
+    var dspInChannnels = [];
+    var dspOutChannnels = [];
    
     // Path string
     var path_ptr = Module._malloc(512);
@@ -144,7 +147,6 @@ faust.DSP = function (context, buffer_size) {
             }
             
             // Prepare Ins buffer tables
-            dspInChannnels = [];
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptrsize) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptrsize) >> 2);
@@ -159,7 +161,6 @@ faust.DSP = function (context, buffer_size) {
             }
            
             // Prepare Outs buffer tables
-            dspOutChannnels = [];
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptrsize) >> 2);
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptrsize) >> 2);
