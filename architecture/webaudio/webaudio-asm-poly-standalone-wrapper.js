@@ -78,10 +78,13 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
 
     var handler = null;
     var ins, outs;
-    var numIn, numOut;
+    var numIn, numOut, mixing;
     var compute_callback = callback;
     
     var scriptProcessor;
+    
+    var dspInChannnels = [];
+    var dspOutChannnels = [];
     
     // Keep JSON parsed object
     var jon_object = JSON.parse(getJSONmydsp());
@@ -291,7 +294,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             }
      
             // Prepare ins/out buffer tables
-            dspInChannnels = [];
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
@@ -307,11 +309,8 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
                 HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
                 HEAP32[(mixing >> 2) + i] = audio_heap_mixing + ((buffer_size * sample_size) * i);
             }
-          
-            dspOutChannnels = [];
             
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
-            var mixingChans = HEAP32.subarray(outs >> 2, (mixing + numOut * ptr_size) >> 2);
             
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);

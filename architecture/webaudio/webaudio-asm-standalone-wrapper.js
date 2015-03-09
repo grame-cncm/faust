@@ -32,6 +32,9 @@ faust.mydsp = function (context, buffer_size) {
     var numIn, numOut;
     
     var scriptProcessor;
+    
+    var dspInChannnels = [];
+    var dspOutChannnels = [];
    
     // Keep JSON parsed object
     var jon_object = JSON.parse(getJSONmydsp());
@@ -205,7 +208,6 @@ faust.mydsp = function (context, buffer_size) {
             }
      
             // Prepare Ins/out buffer tables
-            dspInChannnels = [];
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
@@ -218,7 +220,6 @@ faust.mydsp = function (context, buffer_size) {
                 HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
             }
           
-            dspOutChannnels = [];
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
