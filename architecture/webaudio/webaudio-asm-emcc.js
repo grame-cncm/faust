@@ -14,6 +14,8 @@
  Additional code : GRAME 2014
 */
 
+'use strict';
+
 var faust = faust || {};
 
 // Shim AudioContext on webkit
