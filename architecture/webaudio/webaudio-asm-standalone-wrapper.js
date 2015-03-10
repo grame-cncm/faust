@@ -14,6 +14,8 @@
  Additional code : GRAME 2014
  
  */
+ 
+'use strict';
 
 var faust = faust || {};
 
@@ -128,7 +130,7 @@ faust.mydsp = function (context, buffer_size) {
         }
         
         // Update control state
-        for (var i = 0; i < inputs_items.length; i++) {
+        for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = value_table[path];
             factory.setValue(dsp, pathTable[path], values[0]);

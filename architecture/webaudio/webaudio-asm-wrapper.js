@@ -189,6 +189,8 @@ Utf8.decode = function(strUtf) {
  Additional code : GRAME 2014-2015
 */
 
+'use strict';
+
 // asm.js mixer
 function mydspMixer(global, foreign, buffer) {
 	
@@ -381,7 +383,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         }
         
         // Update control state
-        for (var i = 0; i < inputs_items.length; i++) {
+        for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = value_table[path];
             factory.setValue(dsp, factory.pathTable[path], values[0]);

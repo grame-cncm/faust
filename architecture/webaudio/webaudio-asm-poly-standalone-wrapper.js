@@ -15,6 +15,8 @@
  
 */
 
+'use strict';
+
 var faust = faust || {};
 
 // Shim AudioContext on webkit
