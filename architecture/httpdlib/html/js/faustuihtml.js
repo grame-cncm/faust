@@ -139,10 +139,10 @@ function sliderhandler(dest, value, id) {
 // poll current values from the server
 //-----------------------------------------------------------------------------
 function dispatch (data) {
-	var lines = data.split('\n');
+	var lines = data.toString().split('\n');
 	var limit = lines.length;
 	for (i=0; i < limit; i++) {
-		var values = lines[i].split(' ');
+		var values = lines[i].toString().split(' ');
 		if (values.length > 1) {
 			var address = values[0];
 			var value = Math.round(values[1]*10000)/10000;
