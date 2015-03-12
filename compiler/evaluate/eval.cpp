@@ -453,7 +453,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		return evalIdDef(exp, visited, localValEnv);
 
 	} else if (isBoxWithLocalDef(exp, body, ldef)) {
-        Tree expandedldef = gReader.expandlist(ldef);
+        Tree expandedldef = gGlobal->gReader.expandlist(ldef);
         return eval(body, visited, pushMultiClosureDefs(expandedldef, visited, localValEnv));
 	
 	} else if (isBoxAppl(exp, fun, arg)) {
