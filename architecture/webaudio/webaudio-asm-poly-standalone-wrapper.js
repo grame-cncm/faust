@@ -380,9 +380,9 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             }
         },
         
-        setHandler : function (handler)
+        setHandler : function (hd)
         {
-            handler = handler;
+            handler = hd;
         },
         
         keyOn : function (channel, pitch, velocity)

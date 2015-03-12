@@ -282,9 +282,9 @@ faust.mydsp = function (context, buffer_size) {
             }
         },
         
-        setHandler : function (handler)
+        setHandler : function (hd)
         {
-            handler = handler;
+            handler = hd;
         },
         
         start : function () 

@@ -325,7 +325,7 @@ faust.createDSPFactory = function (code, argv) {
     // Free C allocated asm.js module
     faust.freeCDSP(factory_code_ptr);
     
-    // Free 'argv' C side arry
+    // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {
         Module._free(argv_ptr_buffer[i]);
     }
@@ -531,9 +531,9 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             }
         },
 
-        setHandler : function (handler)
+        setHandler : function (hd)
         {
-            handler = handler;
+            handler = hd;
         },
         
         start : function () 
@@ -841,9 +841,9 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         },
         
-        setHandler : function (handler)
+        setHandler : function (hd)
         {
-            handler = handler;
+            handler = hd;
         },
         
         keyOn : function (channel, pitch, velocity)
