@@ -12,6 +12,7 @@ QT -= core gui
 QMAKE_CXXFLAGS_WARN_ON += -Wno-parentheses -Wno-unused-parameter
 
 INCLUDEPATH += . \
+			   ../architecture \
                tlib \
                signals \
                normalize \
