@@ -279,10 +279,9 @@ faust.createDSPFactory = function (code, argv) {
     argv.push("-cn", factory_name);
     
     // Prepare 'argv' array for C side
-    var argv_ptr = null;
     var ptr_size = 4; 
-    argv_ptr = Module._malloc(argv.length * ptr_size);
-    var argv_ptr_buffer = new Int32Array(Module.HEAP32.buffer, argv_ptr, argv.length); 
+    var argv_ptr = Module._malloc(argv.length * ptr_size);  // Get buffer from emscripten.
+    var argv_ptr_buffer = new Int32Array(Module.HEAP32.buffer, argv_ptr, argv.length);  // Get a integer view on the newly allocated buffer.
     for (var i = 0; i < argv.length; i++) {
         var arg_ptr = Module._malloc(argv[i].length + 1);
         Module.writeStringToMemory(argv[i], arg_ptr);
