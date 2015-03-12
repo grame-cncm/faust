@@ -270,9 +270,9 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
             }
         },
     
-        setHandler: function (handler)
+        setHandler: function (hd)
         {
-            handler = handler;
+            handler = hd;
         },
        
         start : function () 
