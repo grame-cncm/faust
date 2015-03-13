@@ -196,6 +196,7 @@ allpass_comb(maxdel,N,aN) = (+ <:
 
 allpass_fcomb(maxdel,N,aN) = (+ <: fdelay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
 allpass_fcomb5(maxdel,N,aN) = (+ <: fdelay5(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
+allpass_fcomb1a(maxdel,N,aN) = (+ <: fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
 // Interpolation helps - look at an fft of faust2octave on
 // 1-1' <: allpass_fcomb(1024,10.5,0.95), allpass_fcomb5(1024,10.5,0.95);
 

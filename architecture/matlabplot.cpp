@@ -403,6 +403,7 @@ int main(int argc, char *argv[] )
 {
     float			fStartAtSample;
 	float			fnbsamples;
+    float 			srate;
 
 
     CMDUI* interface = new CMDUI(argc, argv);
@@ -410,6 +411,7 @@ int main(int argc, char *argv[] )
 	
     interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
 	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
+    interface->addOption("-r", &srate, 44100.0, 1.0, 100000000.0);
 
 //     if (DSP.getNumInputs() > 0) {
 //         fprintf(stderr,
@@ -418,7 +420,7 @@ int main(int argc, char *argv[] )
 //     }
 
     // init signal processor and the user interface values:
-    DSP.init(44100);
+    DSP.init(int(srate));
 
     // modify the UI values according to the command-line options:
     interface->process_command();
