@@ -616,6 +616,10 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     // input items
     var inputs_items = [];
     
+    var fFreqLabel;
+    var fGateLabel;
+    var fGainLabel;
+    
     // asm.js mixer
     var mixer = mydspMixer(window, null, buffer);
     

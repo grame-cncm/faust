@@ -88,6 +88,10 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var dspInChannnels = [];
     var dspOutChannnels = [];
     
+    var fFreqLabel;
+    var fGateLabel;
+    var fGainLabel;
+    
     // Keep JSON parsed object
     var jon_object = JSON.parse(getJSONmydsp());
     
