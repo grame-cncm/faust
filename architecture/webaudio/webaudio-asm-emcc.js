@@ -18,9 +18,6 @@
 
 var faust = faust || {};
 
-// Shim AudioContext on webkit
-window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
-
 var DSP_constructor = Module.cwrap('DSP_constructor', 'number', ['number']);
 var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
