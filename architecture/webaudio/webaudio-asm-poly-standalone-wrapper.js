@@ -363,19 +363,20 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             // Nothing to do
         },
     
+        // Connect/disconnect to another node
         connect : function (node) 
         {
-            if (node.scriptProcessor) {
-                scriptProcessor.connect(node.scriptProcessor);
+            if (node.getProcessor !== undefined) {
+                scriptProcessor.connect(node.getProcessor());
             } else {
                 scriptProcessor.connect(node);
             }
         },
 
-        disconnect: function (node) 
+        disconnect : function (node) 
         {
-            if (node.scriptProcessor) {
-                scriptProcessor.disconnect(node.scriptProcessor);
+            if (node.getProcessor !== undefined) {
+                scriptProcessor.disconnect(node.getProcessor());
             } else {
                 scriptProcessor.disconnect(node);
             }
