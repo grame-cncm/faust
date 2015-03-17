@@ -18,9 +18,6 @@
 
 var faust = faust || {};
 
-// Shim AudioContext on webkit
-window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
-
 // Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with keyOn, keyOff events.
 
 var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number','number']);
