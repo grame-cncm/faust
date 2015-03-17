@@ -5,6 +5,7 @@
     <LLVM_DIR>C:\LLVM</LLVM_DIR>
     <LLVM_BUILD_DIR>C:\LLVM-build</LLVM_BUILD_DIR>
     <OPENSSL_DIR>C:\openssl</OPENSSL_DIR>
+    <LLVM_VER>LLVM_34</LLVM_VER>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
@@ -17,6 +18,9 @@
     </BuildMacro>
     <BuildMacro Include="OPENSSL_DIR">
       <Value>$(OPENSSL_DIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LLVM_VER">
+      <Value>$(LLVM_VER)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>
