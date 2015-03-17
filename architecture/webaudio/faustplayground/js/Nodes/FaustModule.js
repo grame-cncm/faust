@@ -8,9 +8,10 @@
 ********************************************************************/
 
 //---- Create DSP Factory/Instance
-function createDSP(dsp_code){
-			         			            
-    var factory = faust.createDSPFactory(dsp_code);
+function createDSP(dsp_code){		         			   
+	         			            
+	var args = ["-I", "http://faust.grame.fr/faustcode/"]; 			         			 
+    var factory = faust.createDSPFactory(dsp_code, args);
 	
 	if (!factory) {
     	alert(faust.getErrorMessage());    
@@ -27,23 +28,10 @@ function createDSP(dsp_code){
 ********************************************************************/
 
 //---- Delete the DSP, it's connections and remove it from list
-function deleteDSP(DSP){
-
-// 	TO DO SAFELY --> FOR NOW CRASHES SOMETIMES
-	if(DSP){
-	    faust.deleteDSPInstance(DSP);
-	} 	
-}
-
-/******************************************************************** 
-************************  SAVE CHARACTERISTICS **********************
-********************************************************************/
-
-//Mapping Div --> (Name, DSP, SourceCode)
-function saveModuleCharacteristics(faustDiv, dspName, faustDSP, sourceCode){
-
-	faustDiv.Name = dspName;
-	faustDiv.DSP = faustDSP;
-	faustDiv.Source = sourceCode;
-}
-
+// function deleteDSP(DSP){
+// 
+// // 	TO DO SAFELY --> FOR NOW CRASHES SOMETIMES
+// 	if(DSP){
+// 	    faust.deleteDSPInstance(DSP);
+// 	} 	
+// }

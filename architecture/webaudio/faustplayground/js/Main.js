@@ -1,3 +1,4 @@
+"use strict";
 
 //************* GLOBALS
 var audioContext = null;
@@ -11,30 +12,64 @@ window.addEventListener('load', init, false);
 
 function init() {
 
-// DISABLE THE USE OF WEB WORKERS
-// 	zip.useWebWorkers = false;
-// 	zip.workerScriptsPath = "WebContent/";
-// 	zip.workerScripts = {
-//  		 deflater: ['WebContent/z-worker.js', 'WebContent/deflate.js'],
-// 		  inflater: ['WebContent/z-worker.js', 'WebContent/inflate.js']
-// 	};
-
     try {
       window.audioContext = new AudioContext();
     } catch(e) {
       alert('The Web Audio API is apparently not supported in this browser.');
     }
-
-	activateAudioInput();
-	activateAudioOutput();
-
-	setGeneralDragAndDrop();
+    
+	createAllScenes();
 	
-	setClickHandler( "cfe", createFaustEquivalent);
+	showFirstScene();
+}
 
-	window.buttonVal = 0;
+function showFirstScene(){
+	window.scenes[0].showScene();	
+}
+
+function createAllScenes(){
+	window.scenes = [];
 	
-	UploadTargets();
+	if(isTooltipEnabled()){
+	
+		window.scenes[0] = createScene("Accueil", function(){}, function(){});
+		welcomePage(window.scenes[0]);
+		window.scenes[1] = createScene("Pedagogie", startPeda, stopPeda);
+		pedagogiePage(window.scenes[1]);
+		window.scenes[2] = createScene("Export", setExport, resetExportPage);
+		exportPage(window.scenes[2]);
+	}
+	else{
+		window.scenes[0] = createScene("Normal", startPage, stopPage);
+		normalPage(window.scenes[0]);
+	}
+	window.currentScene = 0;
+}
+
+function nextScene(){
+
+	var index = window.currentScene;
+	
+	window.scenes[index].hideScene();
+	window.scenes[index].stopScene();
+	
+	window.scenes[index+1].showScene();
+	window.scenes[index+1].startScene();
+			
+	window.currentScene = index+1;
+}
+
+function previousScene(){
+
+	var index = window.currentScene;
+	
+	window.scenes[index].hideScene();
+	window.scenes[index].stopScene();
+	
+	window.scenes[index-1].showScene();
+	window.scenes[index-1].startScene();
+		
+	window.currentScene = index-1;
 }
 
 function activateAudioInput(){
@@ -47,7 +82,6 @@ function activateAudioInput(){
 	
     	navigator.getUserMedia({audio:true}, getDevice, function(e) {
         alert('Error getting audio input');
-//         console.log(e);
     	});
 	} else {
         alert('Audio input API not available');
@@ -67,10 +101,14 @@ function getDevice(device) {
 	src.appendChild(i);
 }
 
-function activateAudioOutput(){
-	var dest = document.getElementById("output");
-	dest.audioNode = window.audioContext.destination;
+function activateAudioOutput(sceneOutput){
 	
+	var out = document.createElement("div");
+	out.id = "audioOutput";
+	out.audioNode = window.audioContext.destination;
+	document.body.appendChild(out);
+	
+	connectNodes(sceneOutput, out);
 }
 
 //-- Init drag and drop reactions
@@ -85,6 +123,13 @@ function setGeneralDragAndDrop(){
 		return true;
 	};
 }
+//-- Init drag and drop reactions
+function resetGeneralDragAndDrop(div){
+
+	window.ondragover = function () { return false; };
+ 	window.ondragend = function () { return false; };
+	window.ondrop = function (e) { return false; };
+}
 
 function setClickHandler( id, handler ) {
     var el = document.getElementById( id );
@@ -96,46 +141,6 @@ function setClickHandler( id, handler ) {
 /******************************************************************** 
 **********************  CREATE/DELETE FAUST DIV *********************
 ********************************************************************/
-
-//---- Create an empty Faust module
-function createFaustModule(x, y, name){
-
-// 	nodeType = 'Drop your Faust DSP in Here';
-	var input = true;
-	var output = true;
-
-	var e=document.createElement("div");
-// 	e.className="module " + nodeType;
-	e.className="moduleFaust";
-	e.id = "module" + idX++;
-	e.style.left="" + x + "px";
-	e.style.top="" + y + "px";
-	
-	var content = document.createElement("div");
-	content.className="content";
-	e.appendChild(content);
-    e.addEventListener("mousedown", startDraggingNode, false);
-	    
-	var close = document.createElement("a");
-	close.href = "#";
-	close.className = "close";
-	close.onclick = deleteModule;
-	e.appendChild( close );
-
-	var footer = document.createElement("footer");
-	footer.id = "moduleFooter";
-	var editImg = document.createElement("img");
-	editImg.src = "img/edit.png";
-	editImg.onclick = editSource;
-	
-	footer.appendChild(editImg);
-	e.appendChild(footer);
-
-	// add the node into the soundfield
-	document.getElementById("modules").appendChild(e);
-	
-	return e;
-}
 
 //---- Delete an entire Faust Module (window and content)
 function deleteFaustModule(faustDiv){
@@ -157,81 +162,71 @@ function preventDefaultAction(e) {
 
 function createDSPinNewDiv(name, sourcecode, x, y){
 
+// 	mute(document.getElementById("sceneOutput"));
+
 	// Create new DSP in div (sender)
     var DSP = createDSP(sourcecode);
 					
 	if(DSP){
-	// In case the file is not dropped on an existing module, it is created
-		var faustDiv = createFaustModule(x, y, name);	
+
+		var faustModule;
+
+		if(isTooltipEnabled())
+	 		faustModule = createNode(idX++, x, y, name, document.getElementById("modules"), window.scenes[1].removeModule);
+ 		else
+ 			faustModule = createNode(idX++, x, y, name, document.getElementById("modules"), window.scenes[0].removeModule);
+ 	
+ 		faustModule.setDSP(sourcecode);
+ 		faustModule.createInterface();
+ 		faustModule.addInputOutputNodesToModule();
  		
-		saveModuleCharacteristics(faustDiv, name, DSP, sourcecode);
-		createFaustInterface(faustDiv);
-		addInputOutputNodesToModule(faustDiv);				    
+ 		window.scenes[window.currentScene].addModule(faustModule);
 	}
 }
 
-function updateDSPinDiv(faustDiv, name, sourcecode){
+function terminateUpload(){	
 	
-	// Create new DSP in div (sender)
-    var DSP = createDSP(sourcecode);
-    	
-	if(DSP){
-	
-// 	 Saving connections
-		var outNode = getOutputNodeFromDiv(faustDiv);
-		var outputConnections = null;
-	
-		if(outNode){
-			if(getNodeOutputConnections(outNode))
-				outputConnections = new Array().concat(getNodeOutputConnections(outNode))
-		}
-		
-		var inNode = getInputNodeFromDiv(faustDiv);
-	
-		var inputConnections = null;
-		if(inNode){
-			if(getNodeInputConnections(inNode))
-				inputConnections = new Array().concat(getNodeInputConnections(inNode));
-		}
-	
-	// Removing existing interface
-		disconnectNode(faustDiv);
-		
-	    deleteFaustInterface(faustDiv);
- 		deleteInputOutputNodesToModule(faustDiv);	
- 		
- 	// Creating new interface
-		saveModuleCharacteristics(faustDiv, name, DSP, sourcecode);
-		createFaustInterface(faustDiv);
-		addInputOutputNodesToModule(faustDiv);
-
-	// Recalling parameters and connections
-	
-		inNode = getInputNodeFromDiv(faustDiv);
-		outNode = getOutputNodeFromDiv(faustDiv);
-
-		setNodeInputConnections(inNode, inputConnections);
-		setNodeOutputConnections(outNode, outputConnections);
-	}
+	var uploadTitle = document.getElementById("upload");
+	uploadTitle.textContent = ""; 
+			
+	if(isTooltipEnabled() && sceneHasInstrumentAndEffect())
+		toolTipForConnections();
+			
+	if(sceneHasInstrumentAndEffect())
+		changeSceneToolTip();
 }
 
+function uploadFile(e){
 
-
-//-- Upload content dropped on the page and create a Faust DSP with it
-function uploadFile(e) {
-    
 	if (!e)
     	e = window.event;
+    	
+    var alreadyInNode = false;
+    	
+	var modules = window.scenes[window.currentScene].getModules();
+
+	for(var i=0; i<modules.length; i++){
+    	if(modules[i].isPointInNode(e.clientX, e.clientY))
+    		alreadyInNode = true;
+    }
+    
+	if(!alreadyInNode){
 	
-	var x = e.x;
-	var y = e.y;
+		var x = e.clientX;
+		var y = e.clientY;
+	
+		uploadOn(null, x, y, e);
+	}
+}
+
+//-- Upload content dropped on the page and create a Faust DSP with it
+function uploadOn(node, x, y, e) {
 	
   	preventDefaultAction(e);
   	
-	var faustDiv = e.srcElement || e.target;
-
-	while (faustDiv && faustDiv.className != "moduleFaust")
-    	faustDiv = faustDiv.parentNode;
+    var uploadTitle = document.getElementById("upload");
+    
+    uploadTitle.textContent = "CHARGEMENT EN COURS ...";
      
 // CASE 1 : THE DROPPED OBJECT IS A URL TO SOME FAUST CODE   
     if(e.dataTransfer.getData('URL') && e.dataTransfer.getData('URL').split(':').shift() != "file"){
@@ -247,11 +242,13 @@ function uploadFile(e) {
     	    {
 	    	    var dsp_code ="process = vgroup(\"" + filename + "\",environment{" + xmlhttp.responseText + "}.process);";
 
-				if(!faustDiv)
-					createDSPinNewDiv(filename, dsp_code, e.x, e.y);
+				if(node==null)
+					createDSPinNewDiv(filename, dsp_code, x, y);
 				else
-					updateDSPinDiv(faustDiv, filename, dsp_code);
+					node.updateDSP(filename, dsp_code);
         	}
+        	
+        	terminateUpload();
     	}
 		xmlhttp.open("GET", url, false );
     	xmlhttp.send(); 
@@ -264,11 +261,12 @@ function uploadFile(e) {
 		if(dsp_code){
 	    	dsp_code ="process = vgroup(\"" + "TEXT" + "\",environment{" + dsp_code + "}.process);";
 		
-			if(!faustDiv)
-				createDSPinNewDiv("TEXT", dsp_code, e.x, e.y);
+			if(!node)
+				createDSPinNewDiv("TEXT", dsp_code, x, y);
 			else
-				updateDSPinDiv(faustDiv, "TEXT", dsp_code);
+				node.updateDSP("TEXT", dsp_code);
 				
+			terminateUpload();	
 		}
 // CASE 3 : THE DROPPED OBJECT IS A FILE CONTAINING SOME FAUST CODE		
 	    else{ 
@@ -297,47 +295,23 @@ function uploadFile(e) {
 	    		reader.onloadend = function(e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
 
-					if(!faustDiv)
+					if(!node)
 						createDSPinNewDiv(filename, dsp_code, x, y);
 					else
-						updateDSPinDiv(faustDiv, filename, dsp_code);
+						node.updateDSP(filename, dsp_code);
+						
+					terminateUpload();
 	    		};
 			}
 		}
 	}
 // CASE 4 : ANY OTHER STRANGE THING
 	else{
+		terminateUpload();
 		window.alert("THIS OBJECT IS NOT FAUST COMPILABLE");
 	}
-
 }
 
-/******************************************************************** 
-**************************  DELETE ELEMENTS *************************
-********************************************************************/
 
-function getElementsByClassName(tag, className){
-    var elements = document.getElementsByTagName(tag);
-    var results = new Array();
-    for(var i=0; i<elements.length; i++){
-        if(elements[i].className == className){
-            results[results.length] = elements[i];
-        }
-    }
-    return results;
-}
-
-//---- Delete all modules
-function cleanScene(){
-		    	
-// 	var children = document.getElementById("modules").childNodes;
-		var children = getElementsByClassName("div", "moduleFaust");
-	
-	for(var i=0; i<children.length; i++){
-// 		if(children[i].className == "moduleFaust")
-			disconnectNode(children[i]);
-			deleteFaustModule(children[i]);	
-	}
-}
 
 

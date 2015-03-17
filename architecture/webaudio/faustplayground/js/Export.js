@@ -14,13 +14,15 @@ function clearComboBox(id){
 
 function updateArchitectures(){
 
+	console.log("updateArch");
+
 	clearComboBox('architectures');
-			
+		
 	var data = JSON.parse(window.jsonText);
 			
 	var e = document.getElementById('platforms');//get the combobox
 	var selPlatform = e.options[e.selectedIndex].value;
-								
+											
     var dataCopy = data[selPlatform];
 	var iterator = 0;
 							
@@ -34,42 +36,14 @@ function updateArchitectures(){
 	   	}	
 	}
 }
-			
-function getSHAKey(){
 
-	var sceneName = document.getElementById("PatchName").value;
-	console.log(sceneName);
+function exportCallback(sha){
 
-	var exportDiv = event.target;
-	
-	while(exportDiv && exportDiv.className != "export")
-		exportDiv = exportDiv.parentNode;
-
-	var file = new File([event.target.sourceCode], "freeverb.dsp");
-
-	var newRequest = new XMLHttpRequest();
-
-	var params = new FormData();
-	params.append('file', file);
-
-// 	var urlToTarget = "http://faustservice.grame.fr/filepost";
-// 	var urlToTarget = window.exportURL + "/filepost";
-	var urlToTarget = document.getElementById("faustweburl").value + "/filepost";	
-	
-	newRequest.open("POST", urlToTarget, true);
-
-	newRequest.onreadystatechange = function() {
-		if(newRequest.readyState == 4 && newRequest.status == 200) {
-			exportFaustCode(exportDiv, newRequest.responseText);
-    	}
-	}
-				
-	newRequest.send(params);
+	var exportDiv = document.getElementById("export");
+	exportFaustCode(exportDiv, sha);
 }
-			
-function exportFaustCode(exportDiv, shaKey){
-
-	console.log(exportDiv);
+		
+function exportFaustCode(shaKey){
 
 	var xhr = new XMLHttpRequest();
 				
@@ -79,9 +53,6 @@ function exportFaustCode(exportDiv, shaKey){
 	e = document.getElementById("architectures");//get the combobox
 	var selArch = e.options[e.selectedIndex].value;
 			    
-// 	var serverUrl = document.getElementById("serverUrl").value;
-// 	var	serverUrl = "http://faustservice.grame.fr";
-//	var serverUrl = window.exportURL;
  	var serverUrl = document.getElementById("faustweburl").value;
  		
 	var appType = "binary.zip";
@@ -89,7 +60,7 @@ function exportFaustCode(exportDiv, shaKey){
 	if(selArch == "android")
 		appType = "binary.apk";
 	
-	var url = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/"+appType;
+// 	var url = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/"+appType;
 	
 	var link = document.createElement('a');
 	
@@ -98,52 +69,25 @@ function exportFaustCode(exportDiv, shaKey){
 	title.appendChild(document.createTextNode("Download Me"));
 	
 	link.appendChild(title);
-	link.href = url;
-	
-	var myWhiteDiv = document.createElement('div');
-	myWhiteDiv.setAttribute('id','qrcodeDiv');
-	myWhiteDiv.setAttribute('class','qrcodeDiv');
-	myWhiteDiv.style.backgroundColor = 'transparent';
-// 	myWhiteDiv.style.position = 'relative';
-	
-// 60 - La moitié de la taille du qrcode... pas terrible !
-	var whiteDivLeft = exportDiv.getBoundingClientRect().width/2-60;
-	
-	myWhiteDiv.style.right = whiteDivLeft.toString() + 'px';
-	
-	var qqDiv = document.createElement('qrcode');
-	
-// 	var qq = new QRCode(qqDiv, url);
-	var qq = new QRCode(qqDiv, {
-    	text: url,
-	    width: 120,
-    	height: 120,
-	    colorDark : "#000000",
-    	colorLight : "#ffffff",
-	    correctLevel : QRCode.CorrectLevel.H
-	});
+	link.href = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/"+appType;
 
-	myWhiteDiv.appendChild(link);
-	if(selArch == "android")
-		myWhiteDiv.appendChild(qqDiv);
-	
-	
-// 	Delete existing content if existing
+	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
 	if(qrcodeSpan)
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
 	
-	exportDiv.appendChild(myWhiteDiv);
-	
-	var element = document.createElement('div');
+	var myWhiteDiv = getQrCode(serverUrl, shaKey, selPlatform, selArch, appType);
+	document.getElementById("sceneOutput").appendChild(myWhiteDiv);
+	myWhiteDiv.appendChild(link);
+// 	myWhiteDiv.style.cssText = "position: relative;";
+	myWhiteDiv.style.right = '15px';
+
 }
 	
 function UploadTargets(){
 
 	clearComboBox('platforms');
 	
-// 	window.exportURL = "http://faustservice.grame.fr";
-// 	window.exportURL = "http://192.168.1.136:8888";
 	window.exportURL = document.getElementById("faustweburl").value;
 			
 	var getrequest = new XMLHttpRequest();
@@ -162,69 +106,20 @@ function UploadTargets(){
     	}
 	}
 				
-// 	var targetsUrl = document.getElementById("serverUrl").value;
-// 	var targetsUrl = "http://faustservice.grame.fr";
 	var targetsUrl = window.exportURL + "/targets";
 				
 	getrequest.open("GET", targetsUrl, true);
 	getrequest.send(null);
 }		
 
-function addExporter(source_code, container){
-		    
-	var div=document.createElement('div');
-	div.setAttribute('class', 'export');
-				
-	var sel1=document.createElement('select');
-	sel1.setAttribute('id', 'platforms');
-	sel1.setAttribute('onChange', 'updateArchitectures()');
-												
-	var sel2=document.createElement('select');
-	sel2.setAttribute('id', 'architectures');
-				
-	var inp2=document.createElement('input');
-	inp2.setAttribute('className',"exportButton");
-	inp2.setAttribute('type', 'submit');
-	inp2.setAttribute('value', ' Export ');
-	inp2.setAttribute('onclick', 'getSHAKey()');
-	inp2.sourceCode = source_code;
-
-	div.setAttribute('id', "export");
-	
-	div.appendChild(sel1);
-	div.appendChild(sel2);
-	div.appendChild(inp2);
-		    	
-	container.appendChild(div);
-				
-	UploadTargets();
-}
-
 function exportPatch(event){
 
-	var sceneName = document.getElementById("PatchName").innerHTML + ".dsp";
+	var sceneName = document.getElementById("PatchName").innerHTML;
 
-	var exportDiv = event.target.parentNode;
-
-	var file = new File([getFaustEquivalent()], sceneName);
-
-	var newRequest = new XMLHttpRequest();
-
-	var params = new FormData();
-	params.append('file', file);
-
-// 	var urlToTarget = "http://faustservice.grame.fr/filepost";				
-	var urlToTarget = document.getElementById("faustweburl").value + "/filepost";
-	
-	newRequest.open("POST", urlToTarget, true);
-
-	newRequest.onreadystatechange = function() {
-		if(newRequest.readyState == 4 && newRequest.status == 200) {
-			exportFaustCode(exportDiv, newRequest.responseText);
-    	}
-	}
-				
-	newRequest.send(params);
+	getSHAKey(document.getElementById("faustweburl").value, sceneName, getFaustEquivalent(window.scenes[0], sceneName), exportFaustCode);
 
 }
+
+
+
 

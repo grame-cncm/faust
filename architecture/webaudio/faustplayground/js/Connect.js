@@ -2,35 +2,38 @@
 /***** Audio Connection/Deconnection of nodes ******/
 /***************************************************/
 
+"use strict";
+
 // Connect Nodes in Web Audio Graph
 function connectNodes( src, dst ) {
 
-	// We want to be dealing with the audio node elements from here on
-	src = src.parentNode;
-	dst = dst.parentNode;
-
 // Searching for src/dst DSP if existing
-	if(dst.DSP)
-		dst = dst.DSP;	
-	if(src.DSP)
-		src = src.DSP;
-	
+	if(dst.getDSP){
+// 		dst = document.getElementById("audioOutput");
+		dst = dst.getDSP();	
+	}
+	if(src.getDSP){
+		src = src.getDSP();
+	}
+		
 	// if the source has an audio node, connect them up.  
 	// AudioBufferSourceNodes may not have an audio node yet.
 	if (src.audioNode ){
 		
 		if(dst.audioNode)
 			src.audioNode.connect(dst.audioNode);
-		else if(dst.scriptProcessor)
-			src.audioNode.connect(dst.scriptProcessor);
-// 		src.connect(dstCpy.scriptProcessor.audioNode);
+		else if(dst.getProcessor)
+			src.audioNode.connect(dst.getProcessor());
+			
+		src.connect(dstCpy.getProcessor().audioNode);
 	}
-	else if(src.scriptProcessor){
+	else if(src.getProcessor){
 		
-		if(dst.scriptProcessor) 
-			src.scriptProcessor.connect(dst.scriptProcessor)
+		if(dst.audioNode)
+			src.getProcessor().connect(dst.audioNode);
 		else
-			src.scriptProcessor.connect(dst.audioNode);
+			src.getProcessor().connect(dst.getProcessor())
+
 	}
 
 	if (dst.onConnectInput)
@@ -41,24 +44,23 @@ function connectNodes( src, dst ) {
 function disconnectNodes(src, dst){
 	
 	// We want to be dealing with the audio node elements from here on
-	var srcP = src.parentNode;
-	var dstP = dst.parentNode;
+	var srcCpy = src;
 	
-	var srcCpy = srcP;
-	var dstCpy = dstP;
-
-	if(srcCpy.DSP)
-		srcCpy = srcCpy.DSP;
+	// Searching for src/dst DSP if existing
+	if(srcCpy.getDSP)
+		srcCpy = srcCpy.getDSP();
 
 	if(srcCpy.audioNode)
 		srcCpy.audioNode.disconnect();
 	else
-		srcCpy.scriptProcessor.disconnect();
+		srcCpy.getProcessor().disconnect();
 		
 // Reconnect all disconnected connections (because disconnect API cannot break a single connection)
-	for(var i=0; i<srcP.outputConnections.length; i++){
-		if(srcP.outputConnections[i].destination != dstP)
-			connectNodes(src, getInputNodeFromDiv(srcP.outputConnections[i].destination));
+	if(src.getOutputConnections()){
+		for(var i=0; i<src.getOutputConnections().length; i++){
+			if(src.getOutputConnections()[i].destination != dst)
+				connectNodes(src, src.getOutputConnections()[i].destination);
+		}
 	}
 }
 
@@ -69,23 +71,9 @@ function disconnectNodes(src, dst){
 //----- Add connection to src and dst connections structures
 function saveConnection(src, dst, connector, connectorShape){
 
-// Put an entry into the source's outputs
-	if (!src.outputConnections)
-		src.outputConnections = new Array();
-
 	connector.line = connectorShape;
 	connector.destination = dst;
-	src.outputConnections.push(connector);
-
-// Put an entry into the destinations's inputs
-	if (!dst.inputConnections)
-		dst.inputConnections = new Array();
-
-	connector.line = connectorShape;
 	connector.source = src;
-	connector.destination = dst;
-	dst.inputConnections.push(connector);
-	
 }
 
 //************* ACCESSORS TO INPUT CONNECTIONS STRUCTURE
@@ -98,7 +86,7 @@ function setNodeInputConnections(node, inputConnections){
 
 	if(inputConnections && node){
 		for(var j=0; j<inputConnections.length; j++)
-			createConnection(getOutputNodeFromDiv(inputConnections[j].source), node);
+			createConnection(inputConnections[j].source, inputConnections[j].source.getOutputNode(), node, node.getInputNode());
 	}
 }
 
@@ -113,7 +101,7 @@ function setNodeOutputConnections(node, outputConnections){
 	
 	if(outputConnections && node){
 		for(var i=0; i<outputConnections.length; i++)
-			createConnection(node, getInputNodeFromDiv(outputConnections[i].destination));
+			createConnection(node, node.getOutputNode(), outputConnections[i].destination, outputConnections[i].destination.getInputNode());
 	}
 }
 
@@ -121,9 +109,9 @@ function setNodeOutputConnections(node, outputConnections){
 /**************** Create/Break Connection(s) *******************/
 /***************************************************************/
 
-function createConnection(src, dst){
-	startDraggingConnection(src);
-	stopDraggingConnection(dst);
+function createConnection(src, outtarget, dst, intarget){
+	startDraggingConnection(src, outtarget);
+	stopDraggingConnection(dst, intarget);
 }
 
 function deleteConnection() {
@@ -133,18 +121,15 @@ function deleteConnection() {
 
 function breakSingleInputConnection( src, dst, connector ) {
 
-	var srcP = src.parentNode;
-	var dstP = dst.parentNode;	
-		
 	disconnectNodes(src, dst);
 		
 	// delete connection from src .outputConnections,
-	if(srcP.outputConnections && srcP.outputConnections.indexOf( connector ) >= 0)
-		srcP.outputConnections.splice( srcP.outputConnections.indexOf( connector ), 1);
+	if(src.getOutputConnections)
+		src.removeOutputConnection(connector);
 
 	// delete connection from dst .inputConnections,
-	if(dstP.inputConnections && dstP.inputConnections.indexOf(connector) >= 0)
-		dstP.inputConnections.splice( dstP.inputConnections.indexOf( connector ), 1);
+	if(dst.getInputConnections)
+		dst.removeInputConnection(connector);
 		
 	// and delete the line
 	if(connector.line)
@@ -155,15 +140,28 @@ function breakSingleInputConnection( src, dst, connector ) {
 function disconnectNode( nodeElement) {
 
 	//for all output nodes
-	if(nodeElement.outputConnections){
-		while(nodeElement.outputConnections.length>0)
-			breakSingleInputConnection(getOutputNodeFromDiv(nodeElement), getInputNodeFromDiv(nodeElement.outputConnections[0].destination), nodeElement.outputConnections[0].line.inputConnection);
+	if(nodeElement.getOutputConnections && nodeElement.getOutputConnections()){
+	
+		while(nodeElement.getOutputConnections().length>0)
+			breakSingleInputConnection(nodeElement, nodeElement.getOutputConnections()[0].destination, nodeElement.getOutputConnections()[0]);
 	}
 	
 	//for all input nodes 
-	if(nodeElement.inputConnections){
-		while(nodeElement.inputConnections.length>0)
-			breakSingleInputConnection(getOutputNodeFromDiv(nodeElement.inputConnections[0].source), getInputNodeFromDiv(nodeElement), nodeElement.inputConnections[0].line.inputConnection);
+	if(nodeElement.getInputConnections && nodeElement.getInputConnections()){
+		while(nodeElement.getInputConnections().length>0)
+			breakSingleInputConnection(nodeElement.getInputConnections()[0].source, nodeElement, nodeElement.getInputConnections()[0]);
 	}
 }
 
+// Connect/Disconnect output node to physical audio output
+function mute(dest){
+
+	var out = document.getElementById("audioOutput");
+	disconnectNodes(dest, out);
+}
+
+function unmute(dest){
+	
+	var out = document.getElementById("audioOutput");
+	connectNodes(dest, out);
+}

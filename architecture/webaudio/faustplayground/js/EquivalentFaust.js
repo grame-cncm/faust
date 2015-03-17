@@ -1,4 +1,93 @@
 /******************************************************************** 
+*************  ALGORITHME DE DÉRECURSIVATION DU PATCH ***************
+********************************************************************/
+"use strict";
+
+function isNodeExisting(Node){
+
+	if(window.recursiveMap[Node.patchID])
+		return true;
+		
+	return false;
+
+}
+
+function giveIdToModules(scene){
+	
+	var modules = scene.getModules();
+	
+	for(var i=0; i<modules.length; i++){
+		modules[i].patchID = i+1;
+	}
+}
+
+function treatRecursiveNode(Node){
+			
+// 	Save recursion in map and flag it
+	var nodeToReplace = getFirstOccurenceOfNodeInCourse(Node);
+	
+	window.recursiveMap[Node.patchID] = nodeToReplace;
+	
+	nodeToReplace.recursiveFlag = true;
+}
+
+function getFirstOccurenceOfNodeInCourse(Node){
+	
+	for(var i=0; i< Node.course.length; i++){
+		if(Node.patchID == Node.course[i].patchID){
+			return Node.course[i];
+		}
+	}
+	
+	return null;
+}
+
+function createTree(node, parent){
+	var myNode = document.createElement("div");
+	myNode.patchID = node.patchID;
+	myNode.course = [];
+	
+	if(parent){
+	
+// 		COPY PARENT COURSE
+		for(var k=0; k<parent.course.length; k++)
+			myNode.course[k] = parent.course[k];
+	}
+		
+	myNode.nodeInputs = [];
+	myNode.recursiveFlag = false;
+		
+	if(isNodeExisting(myNode)){
+	
+		var nodeToReuse = window.recursiveMap[myNode.patchID];
+		
+		myNode.sourceCode = nodeToReuse.sourceCode;
+		myNode.nodeInputs = nodeToReuse.nodeInputs;
+		
+	}
+	else if(getFirstOccurenceOfNodeInCourse(myNode)){
+
+		treatRecursiveNode(myNode);
+		
+// 	Stop Recursion in Tree		
+		myNode = null;
+	}
+	else{
+		myNode.sourceCode = node.getSource();
+
+		myNode.course[myNode.course.length] = myNode; 
+
+		if(node.getInputConnections()){
+			for(var j=0; j<node.getInputConnections().length; j++)
+				myNode.nodeInputs[j] = createTree(node.getInputConnections()[j].source, myNode);
+		}
+	}
+	
+	
+	return myNode;
+}
+
+/******************************************************************** 
 ***********************  CREATE FAUST EQUIVALENT ********************
 ********************************************************************/
 
@@ -12,35 +101,48 @@
 // Computing a node is computing its entries and merging them in the node's own faust code.
 function computeNode(node){
 
-	var nodeInputs = node.inputConnections;
-
+// 	var nodeInputs = node.inputConnections;
+	var nodeInputs = node.nodeInputs;
+	
 	var faustResult = "";
 	
 // Iterate on input Nodes to compute them
 	if(nodeInputs && nodeInputs.length != 0){
 	
-			faustResult += "(";
-			for(element in nodeInputs){
+// 			faustResult += "(";
 
-				var sourceNode = nodeInputs[element].source;
+			var inputCode = "";
 
-				if(sourceNode){		
-					if(element != 0)
-						faustResult += "),(";
+			for(var i=0; i<nodeInputs.length; i++){
+				if(nodeInputs[i]){
 
-					faustResult += computeNode(sourceNode);
+					if(nodeInputs[i].sourceCode && nodeInputs[i].sourceCode.length>0){		
+						if(i != 0)
+							inputCode += ",";
+// 							inputCode += "),(";
+
+						inputCode += computeNode(nodeInputs[i]);
+					}
 				}
 			}	
-			faustResult += "):> ";
+// 			faustResult += "):> ";
+			if(inputCode != ""){
+				if(node.recursiveFlag)
+					faustResult += "(" + inputCode + ":> ";
+				else
+					faustResult += inputCode + ":> ";
+			}
 	}
 	
+	var nodeCode = node.sourceCode;
 	
-	var nodeCode = node.Source;
-	
-	if(node.id == "output" || node.id == "input")
-		nodeCode = "process=_,_;";
+// 	if(node.id == "output" || node.id == "input")
+// 		nodeCode = "process=_,_;";
 
-	faustResult += "stereoize(environment{" + nodeCode + "}.process)";	
+	if(node.recursiveFlag)
+		faustResult += "stereoize(environment{" + nodeCode + "}.process))~(_,_)";
+	else
+		faustResult += "stereoize(environment{" + nodeCode + "}.process)";
 	
 	return faustResult;
 }
@@ -53,9 +155,9 @@ function computeUnconnectedNodes(faustModuleList){
 
 	for(var i=0 ; i<faustModuleList.length; i++){
 	
-		var outputNode = getOutputNodeFromDiv(faustModuleList[i]);
+		var outputNode = faustModuleList[i].getOutputNode();
 		
-		if(outputNode && !faustModuleList[i].outputConnections){
+		if(outputNode && !faustModuleList[i].getOutputConnections()){
 		
 			if(j != 0)
 				computationString += ",";
@@ -79,14 +181,15 @@ function wrapSourceCodesInGroups(){
 }
 
 //Calculate Faust Equivalent of the Scene
-function getFaustEquivalent(){
+function getFaustEquivalent(scene, patchName){
 
-	var faustModuleList = getElementsByClassName("div", "moduleFaust");
+	var faustModuleList = scene.getModules();
 
 	if(faustModuleList.length > 0){
-		var dest = document.getElementById("output");
 	
-		faustResult = "stereoize(p) = S(inputs(p), outputs(p))\n\
+		var dest = scene.audioOutput();
+				
+		var faustResult = "stereoize(p) = S(inputs(p), outputs(p))\n\
 				with {\n\
 				  // degenerated processor with no outputs\n\
 				S(n,0) = !,! : 0,0; 		// just in case, probably a rare case\n\
@@ -111,13 +214,20 @@ function getFaustEquivalent(){
 			recursivize(p,q) = (_,_,_,_ :> stereoize(p)) ~ stereoize(q);\n\
 			";
 
-		var patchName = document.getElementById("PatchName").innerHTML;
-	
 		var unConnectedComputation = computeUnconnectedNodes(faustModuleList);
 	
-		if(dest.inputConnections){
+		window.recursiveMap = [];
+// 		var destNode = document.createElement("div");
+// 		dest.patchID = "0";
+// 		dest.Source = "process=_,_;";
 		
-			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(dest);
+		giveIdToModules(scene);	
+		
+		var destinationDIVVV = createTree(dest, null);
+		
+		if(dest.getInputConnections()){
+		
+			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(destinationDIVVV);
 
 			if(unConnectedComputation)
 				faustResult += "," + unConnectedComputation;	
@@ -127,6 +237,8 @@ function getFaustEquivalent(){
 		else
 			faustResult += "process = vgroup(\""+ patchName + "\",(" + unConnectedComputation + "));";;	
 		
+// 		console.log(faustResult);
+		
 		return faustResult;
 	}
 	else
@@ -134,69 +246,53 @@ function getFaustEquivalent(){
 }
 
 //Create Faust Equivalent Module of the Scene
-function createFaustEquivalent(){
-
-	var patchName = document.getElementById("PatchName").innerHTML;
+function createFaustEquivalent(scene, patchName, parent){
 
 // Save All Params	
-	var modules = getElementsByClassName("div", "moduleFaust");
+	var modules = scene.getModules();
 	
-	for (var i = 0; i < modules.length; i++)		
-		saveParams(modules[i]);
+	for (var i = 0; i < modules.length; i++){	
+		if(modules[i])
+			modules[i].saveParams();
+	}
 	
 // Concatenate All Params
 	var fullParams = new Array();
 
 	for (var i = 0; i < modules.length; i++) {
 		
-		var arrayParams = modules[i].params;
+		if(modules[i]){
+		
+			var arrayParams = modules[i].getParams;
 		
 //   BIDOUILLE!!!!! Adding component wrapping to avoid merging of 2 instances of same factory
-		for(key in arrayParams){
-			var newKey = "/" + patchName + "/component" + i.toString() + key;
-			fullParams[newKey] = arrayParams[key];
+			for(key in arrayParams){
+				var newKey = "/" + patchName /*+ "/component" + i.toString()*/ + key;
+				fullParams[newKey] = arrayParams[key];
+			}
 		}
 	}
 
-	wrapSourceCodesInGroups();
+// 	wrapSourceCodesInGroups();
 	
-	var faustResult = getFaustEquivalent();
+	var faustResult = getFaustEquivalent(scene, patchName);
 	
 	if(faustResult){
 
 // Save concatenated params in new DIV
 
 		var DSP = createDSP(faustResult);
-		
+					
 		if(DSP){
-	    	
-			cleanScene();
-			
-			var faustDiv = createFaustModule(document.body.scrollWidth/3, document.body.scrollHeight/3, patchName);
 
-			faustDiv.params = fullParams;
-	    
-			saveModuleCharacteristics(faustDiv, patchName, DSP, faustResult);
-			createFaustInterface(faustDiv);
-			addInputOutputNodesToModule(faustDiv);				    
-	
-			recallParams(faustDiv, fullParams);
+			var faustModule = createNode(idX++, document.body.scrollWidth/3, document.body.scrollHeight/3, patchName, parent, window.scenes[2].removeModule);
+ 			faustModule.setDSP(faustResult);
+ 			faustModule.setParams(fullParams);
 
-		// Connect Automatically to Output
-			var myoutput;
-		
-			for(var i=0; i<faustDiv.childNodes.length; i++){
-				if(faustDiv.childNodes[i].className == "node node-output"){
-		
-					myoutput = faustDiv.childNodes[i];
-			
-					for(var j=0 ; j<document.getElementById("output").childNodes.length; j++){
-						if(document.getElementById("output").childNodes[j].className && document.getElementById("output").childNodes[j].className.indexOf("node node-input")>=0)
-							createConnection(myoutput, document.getElementById("output").childNodes[j]);
-					}
-				}
-			}
+ 			return faustModule;
 		}
 	}
+	return null;
 }
+
 
