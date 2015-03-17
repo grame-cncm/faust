@@ -23,6 +23,7 @@
 #include "mergeSchema.h"
 #include <iostream>
 #include <assert.h>
+#include <algorithm>
 
 using namespace std;
 
