@@ -30,6 +30,12 @@ CXX = /opt/local/libexec/llvm-3.5/bin/clang++
 LLC = /opt/local/libexec/llvm-3.5/bin/llc
 endif
 
+ifeq ($(LLVM_VERSION), 3.6.0)
+LLVM_VERSION  = LLVM_36
+CXX = /opt/local/libexec/llvm-3.6/bin/clang++
+LLC = /opt/local/libexec/llvm-3.6/bin/llc
+endif
+
 ifeq ($(system), Darwin)
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math '
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -fvectorize -fslp-vectorize'

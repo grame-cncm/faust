@@ -28,7 +28,7 @@
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
-#if defined(LLVM_35)
+#if defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/Support/FileSystem.h>
 #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)

@@ -39,7 +39,7 @@
 #include "timing.hh"
 #include "exception.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IRReader/IRReader.h>

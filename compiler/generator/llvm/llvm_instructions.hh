@@ -41,7 +41,7 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>

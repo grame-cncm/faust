@@ -22,7 +22,7 @@
 #ifndef __COMPATIBILITY__
 #define __COMPATIBILITY__
 
-#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35)
+#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35 || LLVM_36)
 
 unsigned faust_alarm(unsigned seconds);
 

@@ -100,6 +100,11 @@ ifeq ($(LLVM_VERSION), 3.5.1)
     CXXFLAGS += -std=gnu++11
 endif
 
+ifeq ($(LLVM_VERSION), 3.6.0)
+    LLVM_VERSION = LLVM_36
+    CXXFLAGS += -std=gnu++11
+endif
+
 ifeq ($(system), Darwin)
     #CXXFLAGS += -g
     CXXFLAGS += -O3
