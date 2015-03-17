@@ -209,8 +209,8 @@ faust.DSP = function (context, buffer_size) {
         // Connect/disconnect to another node
         connect : function (node) 
         {
-            if (node.scriptProcessor) {
-                scriptProcessor.connect(node.scriptProcessor);
+            if (node.getProcessor !== undefined) {
+                scriptProcessor.connect(node.getProcessor());
             } else {
                 scriptProcessor.connect(node);
             }
@@ -218,8 +218,8 @@ faust.DSP = function (context, buffer_size) {
 
         disconnect : function (node) 
         {
-            if (node.scriptProcessor) {
-                scriptProcessor.disconnect(node.scriptProcessor);
+            if (node.getProcessor !== undefined) {
+                scriptProcessor.disconnect(node.getProcessor());
             } else {
                 scriptProcessor.disconnect(node);
             }
