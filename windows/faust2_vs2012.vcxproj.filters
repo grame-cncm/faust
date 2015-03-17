@@ -267,7 +267,6 @@
     <ClCompile Include="..\compiler\utils\names.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\compiler\main.cpp" />
     <ClCompile Include="..\compiler\draw\schema\connectorSchema.cpp">
       <Filter>draw\schema</Filter>
     </ClCompile>

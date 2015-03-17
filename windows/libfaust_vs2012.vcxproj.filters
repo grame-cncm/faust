@@ -267,7 +267,6 @@
     <ClCompile Include="..\compiler\utils\names.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\compiler\main.cpp" />
     <ClCompile Include="..\compiler\draw\schema\connectorSchema.cpp">
       <Filter>draw\schema</Filter>
     </ClCompile>
@@ -372,6 +371,7 @@
     <ClCompile Include="..\compiler\generator\llvm\llvm_dsp_aux.cpp">
       <Filter>generator\llvm</Filter>
     </ClCompile>
+    <ClCompile Include="..\compiler\libcode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
