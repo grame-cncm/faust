@@ -374,6 +374,7 @@
     <ClCompile Include="..\compiler\generator\wss_code_container.cpp">
       <Filter>generator</Filter>
     </ClCompile>
+    <ClCompile Include="..\compiler\libcode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
