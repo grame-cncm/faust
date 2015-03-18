@@ -41,7 +41,7 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -895,24 +895,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
-        static string replaceChar(string str, char ch1, char ch2) 
-        {
-            for (unsigned int i = 0; i < str.length(); ++i) {
-                if (str[i] == ch1) {
-                    str[i] = ch2;
-                }
-            }
-            return str;
-        }
-    
-        static string removeQuote(string str) 
-        {
-            return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
-        }
-
         GlobalVariable* addStringConstant(string arg)
         {
-            string str = replaceChar(removeQuote(arg), '@', '_');
+            string str = replaceChar(unquote(arg), '@', '_');
 
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
@@ -1209,7 +1194,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 if (inst->fValue) {
                     // Result is in fCurValue;
                     inst->fValue->accept(this);
-                    fBuilder->CreateStore(fCurValue, fDSPStackVars[name]);
+                    genVectorStore(fDSPStackVars[name], fCurValue, 1, false, false);
                 }
                 
             } else if (inst->fAddress->getAccess() & Address::kGlobal || inst->fAddress->getAccess() & Address::kStaticStruct) {
@@ -1561,14 +1546,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
 
             } else {
-                //cerr << "genVectorStore scalar" << endl;
-               
-                // HACK : special case if we store a 0 (null pointer) in a void* (used in "allocate" function in scheduler mode...)
-                if ((store_ptr->getType() == PointerType::get(PointerType::get(fBuilder->getInt8Ty(), 0), 0))
-                    && (store_ptr->getType() != PointerType::get(store->getType(), 0))
+                // HACK : special case if we store a 0 (null pointer) in a adress (used in vec mode and in "allocate" function in scheduler mode...)
+                if ((store_ptr->getType() != PointerType::get(store->getType(), 0))
                     && (store->getType() == llvm::Type::getInt32Ty(fModule->getContext()))) {
-                        // Cast Int value to "null"
-                        Value* casted_store = ConstantPointerNull::get(PointerType::get(fBuilder->getInt8Ty(), 0));
+                        Value* casted_store = ConstantPointerNull::get((llvm::PointerType*)store_ptr->getType()->getContainedType(0));
                         fBuilder->CreateStore(casted_store, store_ptr, isvolatile);
                 } else {
                     fBuilder->CreateStore(store, store_ptr, isvolatile);

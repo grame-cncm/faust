@@ -33,7 +33,7 @@
 
 /*!
  \addtogroup llvmcpp C++ interface for compiling Faust code. Note that the API is not thread safe and must be used with 
- appropiate protections (like mutexes) in a multi-thread context.
+ appropriate protections (like mutexes) in a multi-thread context.
  @{
  */
 
@@ -371,7 +371,7 @@ llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 void deleteDSPInstance(llvm_dsp* dsp);
 
 /**
- * Compute a SHA1 hey from a string
+ * Compute a SHA1 key from a string
  * 
  * @param data - the string to be converted in SHA1 key
  *

@@ -35,6 +35,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef EMCC 
+#include <emscripten.h>
+#endif
+
 #include "sourcereader.hh"
 #include "sourcefetcher.hh"
 #include "enrobage.hh"
@@ -198,17 +202,40 @@ Tree formatDefinitions(Tree rldef)
  * @param fname the name of the file to parse
  * @return the list of definitions it contains
  */
-
 Tree SourceReader::parsefile(string fname)
 {
- 	yyerr = 0;
+    yyerr = 0;
     yylineno = 1;
-  	yyfilename = fname.c_str();
+    yyfilename = fname.c_str();
     string fullpath;
-    
+ 
+    // We are requested to parse an URL file
     if (strstr(yyfilename,"http://") != 0) {
-        // We are requested to parse an URL file
         char* buffer = 0;
+    #ifdef EMCC
+        // Call JS code to load URL
+        buffer = (char*)EM_ASM_INT({
+            var xmlhttp = new XMLHttpRequest();
+            var dsp_code = "";
+            xmlhttp.open("GET", Module.Pointer_stringify($0), false);
+            xmlhttp.send();
+            if (xmlhttp.status == 200) {
+                dsp_code = xmlhttp.responseText;
+            } 
+            return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
+        }, yyfilename);
+        
+        Tree res = 0;
+        if (strlen(buffer) == 0) {
+            stringstream error;
+            error << "ERROR : unable to access URL '" << fname << "' : " << endl;
+            throw faustexception(error.str());
+        } else {
+            yy_scan_string(buffer);
+            res = parse(yyfilename);
+        }
+    #else
+        // Otherwise use http URL fetch code
         if (http_fetch(yyfilename, &buffer) == -1) {
             stringstream error;
             error << "ERROR : unable to access URL '" << fname << "' : " << http_strerror() << endl;
@@ -217,7 +244,9 @@ Tree SourceReader::parsefile(string fname)
         yy_scan_string(buffer);
         Tree res = parse(yyfilename);
         free(buffer);
+    #endif
         return res;
+
     } else {
         
         // Test for local url
@@ -225,18 +254,29 @@ Tree SourceReader::parsefile(string fname)
 			yyfilename  = &yyfilename[7]; // skip 'file://'
 		}
         
+    #ifdef EMCC
+        // Try to open with the complete URL
+        Tree res = 0;
+        for (list<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
+            string url = *i + fname;
+            if ((res = parsefile(url))) return res;
+        }
+        stringstream error;
+        error << "ERROR : unable to open file " << yyfilename << endl;
+        throw faustexception(error.str());
+    #else
         string fullpath;
         FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
-        
         if (yyin == NULL) {
             stringstream error;
             error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
         }
-        
         Tree res = parse(fullpath);
         fclose(tmp_file);
         return res;
+    #endif
+    
     }
 }
 
@@ -302,7 +342,7 @@ Tree SourceReader::getlist(string fname)
         }
 	}
     if (fFileCache[fname] == 0) {
-        throw faustexception("getlist\n");
+        throw faustexception("getlist");
     }
     return fFileCache[fname];
 }

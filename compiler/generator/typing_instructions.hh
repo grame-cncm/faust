@@ -44,6 +44,7 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
             } else {
+                //printf("LoadVarInst : %s\n", inst->getName().c_st()): 
                 fCurType = Typed::kNoType;
             }
         }
@@ -73,41 +74,37 @@ struct TypingVisitor : public InstVisitor {
         {
             fCurType = Typed::kDouble;
         }
-    
+        
+        inline bool isRealType(Typed::VarType type) 
+        { 
+            return (type == Typed::kFloat 
+                || type == Typed::kFloatMacro 
+                || type == Typed::kDouble); 
+        }
+   
         virtual void visit(BinopInst* inst)
         {
             if (isBoolOpcode(inst->fOpcode)) {
                 fCurType = Typed::kBool;
             } else {
-                
                 inst->fInst1->accept(this);
                 Typed::VarType type1 = fCurType;
-                 
-                inst->fInst2->accept(this);
-                Typed::VarType type2 = fCurType;
-                             
-                if (type1 == Typed::kInt && type2 == Typed::kInt) {
-                    fCurType = Typed::kInt;
-                } else if (type1 == Typed::kInt && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
+                
+                if (isRealType(type1)) {
                     fCurType = Typed::kFloat;
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kInt) {
-                    fCurType = Typed::kFloat;   
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) 
-                           && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
-                    fCurType = Typed::kFloat;
-                } else if (type1 == Typed::kInt && type2 == Typed::kBool) {
-                    fCurType = Typed::kInt;
-                } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
-                    fCurType = Typed::kInt;
-                } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                   fCurType = Typed::kInt;
-                } else if ((type1 == Typed::kFloat || type1 == Typed::kFloatMacro || type1 == Typed::kDouble) && type2 == Typed::kBool) {
-                    fCurType = Typed::kFloat;
-                } else if (type1 == Typed::kBool && (type2 == Typed::kFloat || type2 == Typed::kFloatMacro || type2 == Typed::kDouble)) {
-                    fCurType = Typed::kFloat;
-                } else { // Default
-                    fCurType = Typed::kNoType;
-                }   
+                } else {
+                    inst->fInst2->accept(this);
+                    Typed::VarType type2 = fCurType;
+                    if (isRealType(type2)) {
+                        fCurType = Typed::kFloat;
+                    } else if (type1 == Typed::kInt || type2 == Typed::kInt) {
+                         fCurType = Typed::kInt;
+                    } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                        fCurType = Typed::kBool;
+                    } else {
+                        fCurType = Typed::kNoType;
+                    }
+                }
             }
         }
 
@@ -120,6 +117,16 @@ struct TypingVisitor : public InstVisitor {
         {
             // Type in the one of 'then' or 'else'
             inst->fThen->accept(this);
+        }
+        
+        virtual void visit(FunCallInst* inst) 
+        { 
+            if (gGlobal->gVarTypeTable.find(inst->fName) != gGlobal->gVarTypeTable.end()) {
+                fCurType = gGlobal->gVarTypeTable[inst->fName]->getType();
+            } else {
+                //printf("FunCallInst : %s\n", inst->fName.c_st()): 
+                fCurType = Typed::kNoType;
+            }
         }
         
 };

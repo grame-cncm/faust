@@ -34,6 +34,8 @@
 #include "OSCFError.h"
 #include "RootNode.h"
 
+#include "OSCRegexp.h"
+
 using namespace std;
 
 namespace oscfaust
@@ -47,10 +49,13 @@ static const char* kUDPOutOpt	= "-outport";
 static const char* kUDPErrOpt	= "-errport";
 static const char* kUDPDestOpt	= "-desthost";
 static const char* kXmitOpt		= "-xmit";
+static const char* kXmitFilterOpt = "-xmitfilter";
 
 bool OSCControler::gXmit = false;		// a static variable to control the transmission of values
 										// i.e. the use of the interface as a controler
 
+std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
+    
 //--------------------------------------------------------------------------
 // utilities for command line arguments 
 //--------------------------------------------------------------------------
@@ -85,6 +90,25 @@ static bool getXmitOption (int argc, char *argv[], const std::string& option, bo
 	return defaultValue;
 }
 
+static void treatXmitFilterOption (int argc, char *argv[], const std::string& option)
+    {
+        for (int i=0; i < argc-1; i++) {
+            
+            if (option == argv[i]) {
+                int j = i+1;
+                
+                while(j<argc){
+                    if(argv[j][0] == '-')
+                        return;
+                    else
+                        OSCControler::addFilteredPath(argv[j]);
+                    
+                    j++;
+                }
+            }
+        }
+    }
+
 
 //--------------------------------------------------------------------------
 OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
@@ -95,6 +119,9 @@ OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCal
 	fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
 	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
 	gXmit = getXmitOption (argc, argv, kXmitOpt, false);
+    
+    treatXmitFilterOption(argc, argv, kXmitFilterOpt);
+    
 
 	fFactory = new FaustFactory(ui, io);
 	fOsc	= new OSCSetup(errCallback, arg);
@@ -149,6 +176,35 @@ void OSCControler::run ()
 //--------------------------------------------------------------------------
 const char*	OSCControler::getRootName() const { return fFactory->root()->getName(); }
 
+    
+//--------------------------------------------------------------------------    
+void OSCControler::addFilteredPath(std::string path){
+        
+    OSCRegexp* regexp = new OSCRegexp(path.c_str());
+    fFilteredPaths.push_back(regexp);
+}
+    
+bool OSCControler::isPathFiltered(std::string path){
+        
+    for(size_t i=0; i<fFilteredPaths.size(); i++){
+            
+        if(fFilteredPaths[i]->match(path.c_str()))
+            return true;
+    }
+        
+    return false;
+}
+    
+void OSCControler::resetFilteredPaths(){
+    
+    for(int i=fFilteredPaths.size()-1; i>=0; i--){
+        
+        OSCRegexp* reg = fFilteredPaths[i];
+
+        fFilteredPaths.erase(fFilteredPaths.begin()+i);
+        delete reg;
+    }
+}  
 //--------------------------------------------------------------------------
 void OSCControler::quit ()
 {

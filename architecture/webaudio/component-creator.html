@@ -496,7 +496,7 @@
 		        var audio_input = window.audio_context.createMediaStreamSource(device);
         
         	// Connect it to the destination.
-		        audio_input.connect(window.DSP.scriptProcessor);
+		        audio_input.connect(window.DSP.getProcessor());
     		}
 
    			function FileDragHover(e) {
@@ -551,7 +551,7 @@
                 
 	            _f4u$t.main_loop = function() {}
       					
-            	var handler = _f4u$t.main(DSP.json(), faustDiv, DSP.update);
+            	var handler = _f4u$t.main(DSP.json(), faustDiv, DSP.setValue);
    
                 console.log(DSP.json());
                 

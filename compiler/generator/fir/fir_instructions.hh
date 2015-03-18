@@ -172,7 +172,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            *fOut << "AddMetaDeclareInst(" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
+            *fOut << "AddMetaDeclareInst(" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")"; EndLine();
         }
 
         virtual void visit(OpenboxInst* inst)
@@ -198,9 +198,9 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "AddButtonInst(" << "\"" << inst->fLabel << "\"" << inst->fZone;
+                *fOut << "AddButtonInst(" << quote(inst->fLabel) << inst->fZone;
             } else {
-                *fOut << "AddCheckButtonInst(" << "\"" << inst->fLabel << "\"" << inst->fZone;
+                *fOut << "AddCheckButtonInst(" << quote(inst->fLabel) << inst->fZone;
             }
             *fOut << ")";
             EndLine();
@@ -211,13 +211,16 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "AddHorizontalSlider"; break;
+                    name = "AddHorizontalSlider("; break;
                 case AddSliderInst::kVertical:
-                    name = "AddVerticalSlider"; break;
+                    name = "AddVerticalSlider("; break;
                 case AddSliderInst::kNumEntry:
                     name = "AddNumEntry"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+            *fOut << name  << quote(inst->fLabel) << ", " 
+            << inst->fZone << ", " << checkReal(inst->fInit) << ", " 
+            << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) 
+            << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -226,11 +229,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "AddHorizontalBargraph"; break;
+                    name = "AddHorizontalBargraph("; break;
                 case AddBargraphInst::kVertical:
-                    name = "AddVerticalBargraph"; break;
+                    name = "AddVerticalBargraph("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << quote(inst->fLabel) << ", " 
+            << inst->fZone << ", "<< checkReal(inst->fMin) 
+            << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

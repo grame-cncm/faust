@@ -32,8 +32,25 @@ using namespace std;
 extern "C" {
 #endif
 
-    // Public C interface using asm.js
-    EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, const char* class_name, char* error_msg);
+     /**
+     * Create a Faust DSP asm.js module and additional helpers functions from a DSP source code. 
+     * 
+     * @param name_app - the name of the Faust program
+     * @param dsp_content - the Faust program as a string
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters
+     * @param error_msg - the error string to be filled, has to be 256 characters long
+     *
+     * @return a valid DSP asm.js module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
+     */ 
+    EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    
+    /**
+     * The free function to be used on memory returned by createAsmCDSPFactoryFromString.
+     * 
+     * @param ptr - the pointer to be deleted.
+     */
+    EXPORT void freeCDSP(void* ptr);
     
 #ifdef __cplusplus
 }

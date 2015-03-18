@@ -23,6 +23,8 @@
 #ifndef  __mydsp_H__
 #define  __mydsp_H__
 
+#include <unistd.h> 
+
 #include <libgen.h>
 #include <math.h>
 #include <iostream>
@@ -32,6 +34,7 @@
 #define __misc__
 
 #include <map>
+#include <stdio.h> 
 #include <string.h>
 #include <stdlib.h>
  
@@ -418,13 +421,13 @@ int main(int argc, char *argv[])
 /*
 Compilation :
 
-g++ faust-llvm.cpp /usr/local/lib/faust/libfaust.a `llvm-config --ldflags --libs all` -o faust-llvm-static
-g++ faust-llvm.cpp -lfaust -L /usr/local/lib/faust `llvm-config --ldflags --libs all` -o faust-llvm-shared
+g++ faust-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all` -lcrypto -lz -lcurses -o faust-llvm-static
+g++ faust-llvm.cpp -lfaust -L /usr/local/lib/faust `llvm-config --ldflags --libs all` -lcrypto -lz -lcurses -o faust-llvm-shared
 
-Usage (possibly with explicit parameters given to the compiler)
+Usage (possibly with explicit parameters given to the compiler) : 
 
-./faust-llvm karplus.dsp
-./faust-llvm -vec -lv 1 karplus.dsp
-./faust-llvm -double -vec -lv 0 -vs 64 karplus.dsp
+./faust-llvm-static karplus.dsp
+./faust-llvm-static -vec -lv 1 karplus.dsp
+./faust-llvm-static -double -vec -lv 0 -vs 64 karplus.dsp
 */
 

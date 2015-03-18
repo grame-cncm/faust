@@ -42,10 +42,9 @@ static size_t store_Response(void *buf, size_t size, size_t nmemb, void* userp)
 //The response string stores the data received 
 //(can be error or real data... depending on return value)
 //The errorCode stores the error encoded as INT
-static bool send_request(const string& ip, const string& finalRequest, string& response, int& errorCode){
-
+static bool send_request(const string& ip, const string& finalRequest, string& response, int& errorCode)
+{
     CURL *curl = curl_easy_init();
-    
     bool isInitSuccessfull = false;
     
     if (curl) {
@@ -71,40 +70,38 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
         } else{
             
             long respcode; //response code of the http transaction
-            
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
-            if(respcode == 200){
+            if (respcode == 200) {
                 response = oss.str();
                 isInitSuccessfull = true;
-            }
-            else if(respcode == 400){
+            } else if (respcode == 400) {
                 
                 printf("INFO Failed\n");
                 
-//                Is String Int ?
+                // Is String Int ?
                 bool isInt = true;
-                   
                 const char* intermediateString = oss.str().c_str();
                 
-                for(size_t i=0; i<strlen(intermediateString); i++){
-                    if(!isdigit(intermediateString[i])){
+                for (size_t i=0; i<strlen(intermediateString); i++) {
+                    if (!isdigit(intermediateString[i])) {
                         isInt = false;
                         break;
                     }
                 }
                 
-                if(isInt)
+                if (isInt) {
                     errorCode = atoi(intermediateString);
-                else
+                } else {
                     response = oss.str();
+                }
             }
         }
         
         curl_easy_cleanup(curl);
-    }
-    else
+    } else {
         errorCode = ERROR_CURL_CONNECTION;
+    }
     
     return isInitSuccessfull;
 }
@@ -114,10 +111,16 @@ static bool send_request(const string& ip, const string& finalRequest, string& r
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /GetJson
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
-bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_server, int port_server, const string& name_app, string dsp_content, const string& sha_key, string& error, int opt_level){
+bool remote_dsp_factory::init(int argc, const char *argv[], 
+                            const string& ip_server, 
+                            int port_server, 
+                            const string& name_app, 
+                            const string& dsp_content, 
+                            const string& sha_key, 
+                            string& error, 
+                            int opt_level){
 
     bool isInitSuccessfull = false;
-    
     fSHAKey = sha_key;
     
     CURL *curl = curl_easy_init();
@@ -136,7 +139,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
         
         finalRequest += nb.str();
         
-        for(int i=0; i<argc; i++){
+        for (int i=0; i<argc; i++) {
             finalRequest += "&options=";
             finalRequest += argv[i];
         }
@@ -173,14 +176,12 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
         
         string response("");
         int errorCode = -1;
-        if(send_request(ip, finalRequest, response, errorCode)){
+        if (send_request(ip, finalRequest, response, errorCode)) {
             decodeJson(response);
             isInitSuccessfull = true;
-        }
-        else if(errorCode != -1){
+        } else if(errorCode != -1) {
             error = "Curl Connection Failed";
-        }
-        else {
+        } else {
             error = response;
         }
         
@@ -194,18 +195,16 @@ bool remote_dsp_factory::init(int argc, const char *argv[], const string& ip_ser
 void remote_dsp_factory::stop(){
     
     CURL *curl = curl_easy_init();
-    
     printf("fIndex = %s\n", fSHAKey.c_str());
         
     // The index of the factory to delete has to be sent
     string finalRequest = string("shaKey=") + fSHAKey;
     string ip = fServerIP + string("/DeleteFactory");
-        
-        printf("ip = %s\n", ip.c_str());
+    printf("ip = %s\n", ip.c_str());
     
-    string response("");
+    string response;
     int errorCode;
-    if(!send_request(ip, finalRequest, response, errorCode)){
+    if (!send_request(ip, finalRequest, response, errorCode)) {
         printf("curl_easy_perform() failed: %s || code %i\n", response.c_str(), errorCode);
     }
 }
@@ -214,8 +213,8 @@ void remote_dsp_factory::stop(){
 // fUiItems : Structure containing the graphical items
 // fMetadatas : Structure containing the metadatas
 // Some "extra" metadatas are kept separatly
-void remote_dsp_factory::decodeJson(const string& json){
-    
+void remote_dsp_factory::decodeJson(const string& json)
+{
     const char* p = json.c_str();
     parseJson(p, fMetadatas, fUiItems);
     
@@ -227,25 +226,22 @@ void remote_dsp_factory::decodeJson(const string& json){
 }
 
 // Declaring meta datas
-void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) { 
-    
+void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) 
+{ 
     map<string,string>::iterator it;
-    
     for(it = fMetadatas.begin() ; it != fMetadatas.end(); it++) {
         m->declare(it->first.c_str(), it->second.c_str());
     }
 }   
 
 // Create Remote DSP Instance from factory
-remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(
-        int argc, const char *argv[], 
-        int sampling_rate, int buffer_size, 
-        RemoteDSPErrorCallback error_callback, void* error_callback_arg, 
-        int& error){
- 
+remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
+                                                            int sampling_rate, int buffer_size, 
+                                                            RemoteDSPErrorCallback error_callback, 
+                                                            void* error_callback_arg, 
+                                                            int& error){
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
-    
-    if(dsp->init(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error)){
+    if (dsp->init(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error)) {
         return dsp; 
     } else {
         delete dsp;
@@ -324,8 +320,14 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
     }
 }
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[],  const string& ip_server, int port_server, string& error_msg, int opt_level){
-    
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, 
+                                                        int argc, 
+                                                        const char *argv[],
+                                                        const string& ip_server, 
+                                                        int port_server, 
+                                                        string& error_msg, 
+                                                        int opt_level)
+{
     string base = basename((char*)filename.c_str());
     int pos = base.find(".dsp");
       
@@ -338,7 +340,14 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     }
 }
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ip_server, int port_server, string& error_msg, int opt_level)
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, 
+                                                            const string& dsp_content, 
+                                                            int argc, 
+                                                            const char* argv[], 
+                                                            const string& ip_server, 
+                                                            int port_server, 
+                                                            string& error_msg, 
+                                                            int opt_level)
 {
     // Compute SHA1 key using the non-expanded version, IP and port
     stringstream ss;
@@ -352,7 +361,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     bool factoryStillExisting = false;
     
-    for(int i=0; i<factories_list.size(); i++){
+    for (int i=0; i<factories_list.size(); i++) {
         if(sha_key == factories_list[i].second.c_str()){
            factoryStillExisting = true;
             break;
@@ -394,9 +403,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
         remote_dsp_factory* factory = new remote_dsp_factory();
         if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
-            
             printf("Factory pushed in fFactory Table\n");
-            
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         } else {
@@ -449,8 +456,8 @@ EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
 
 //--------------------INSTANCES
 
-remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
-    
+remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
+{
     fFactory = factory;
     fNetJack = NULL;
     
@@ -471,9 +478,9 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory){
     printf("remote_dsp_aux::remote_dsp_aux = %p\n", this);
 }
         
-remote_dsp_aux::~remote_dsp_aux(){
-    
-    if (fNetJack){
+remote_dsp_aux::~remote_dsp_aux()
+{
+    if (fNetJack) {
     
         jack_net_master_close(fNetJack); 
         
@@ -493,8 +500,8 @@ remote_dsp_aux::~remote_dsp_aux(){
     delete[] fControlOutputs;
 }
 
-void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer){
-    
+void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer)
+{
     // Cleanup audio buffers only 
     for (int i = 0; i < channels; i++) {
         memset(&buffer[i][offset], 0, sizeof(float)*size);
@@ -502,8 +509,8 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
 }
 
 // Fonction for command line parsing
-const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue){
-	
+const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue)
+{
     for (int i = 0; i<argc; i++){
         if (strcmp(argv[i], key) == 0) {
             return argv[i+1];   
@@ -528,7 +535,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui){
     int counterIn = 0;
     int counterOut = 0;
     
-    for(it = jsonItems.begin(); it != jsonItems.end() ; it++){
+    for (it = jsonItems.begin(); it != jsonItems.end() ; it++) {
         
         float init = strtod((*it)->init.c_str(), NULL);
         float min = strtod((*it)->min.c_str(), NULL);
@@ -647,8 +654,8 @@ void remote_dsp_aux::recvSlice(int buffer_size)
 }
 
 // Compute of the DSP, adding the controls to the input/output passed
-void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output){
-    
+void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
     if (fRunningFlag) {
         
         // If count > fBufferSize : the cycle is divided in numberOfCycles NetJack cycles, and a lastCycle one
@@ -657,10 +664,7 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int lastCycle = count%fBufferSize;
         
         int i = 0;
-        
         for (i = 0; i < numberOfCycles; i++) {
-            
-            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
@@ -668,7 +672,6 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         }
         
         if (lastCycle > 0) {
-            
             setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
@@ -706,7 +709,13 @@ void remote_dsp_aux::init(int /*sampling_rate*/){}
 // The URL extension used is /CreateInstance
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
-bool remote_dsp_aux::init(int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error){
+bool remote_dsp_aux::init(int argc, const char *argv[], 
+                        int sampling_rate, 
+                        int buffer_size, 
+                        RemoteDSPErrorCallback error_callback, 
+                        void* error_callback_arg, 
+                        int& error)
+{
     
     fBufferSize = buffer_size;
     
@@ -759,10 +768,9 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int sampling_rate, int b
     finalRequest += "&instanceKey=";
     
     stringstream s;
-    s<<this;
+    s << this;
     
     finalRequest += s.str();
-    
     printf("finalRequest = %s\n", finalRequest.c_str());
     
     bool isInitSuccessfull = false;
@@ -795,11 +803,11 @@ bool remote_dsp_aux::init(int argc, const char *argv[], int sampling_rate, int b
     return isInitSuccessfull;
 }                        
 
-void remote_dsp_aux::stopAudio(){
-
+void remote_dsp_aux::stopAudio()
+{
     string finalRequest = "instanceKey=";
     stringstream s;
-    s<<this;
+    s << this;
     
     finalRequest += s.str();
     
@@ -813,12 +821,12 @@ void remote_dsp_aux::stopAudio(){
     send_request(ip, finalRequest, response, errorCode);
 }
 
-void remote_dsp_aux::startAudio(){
-
-    string finalRequest = "instanceKey=";
+void remote_dsp_aux::startAudio()
+{
+   string finalRequest = "instanceKey=";
     
     stringstream s;
-    s<<this;
+    s << this;
     
     finalRequest += s.str();
     
@@ -839,7 +847,14 @@ EXPORT int remote_dsp_factory::numOutputs(){return fNumOutputs;}
 
 //---------INSTANCES
 
-EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int sampling_rate, int buffer_size, RemoteDSPErrorCallback error_callback, void* error_callback_arg, int& error)
+EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
+                                        int argc, 
+                                        const char *argv[], 
+                                        int sampling_rate, 
+                                        int buffer_size, 
+                                        RemoteDSPErrorCallback error_callback, 
+                                        void* error_callback_arg, 
+                                        int& error)
 {
     FactoryTableIt it;
     if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
@@ -1022,7 +1037,6 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
     printf("remoteDSP::getRemoteFactoriesAvailable\n");
     
     bool isSuccessfull = false;
-    
     CURL *curl = curl_easy_init();
     
     if (curl) {

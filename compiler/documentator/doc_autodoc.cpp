@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <iostream>
 #include <string>
 #include <set>
@@ -85,7 +84,6 @@ void declareAutoDoc()
 	/** The latex maketitle macro. */
 	autodoc = cons(docTxt("\\maketitle\n"), autodoc);
 
-	
 	/** Insert all declared metadatas in a latex tabular environment. */
 	if (! gGlobal->gMetaDataSet.empty()) {
 		autodoc = cons(docTxt("\\begin{tabular}{ll}\n"), autodoc);
@@ -106,7 +104,6 @@ void declareAutoDoc()
 		autodoc = cons(docTxt("\\end{tabular}\n"), autodoc);
 		autodoc = cons(docTxt("\\bigskip\n"), autodoc);
 	}
-
 
 	/** Autodoc's "body", with equation and diagram of process, and notice and listing. */
 	
@@ -143,7 +140,6 @@ void declareAutoDoc()
 	declareDoc(autodoc);
 }
 
-
 /** 
  * Dispatch initialization of autodoc container.
  */
@@ -152,12 +148,9 @@ void initDocAutodoc()
 	initDocAutodocKeySet();
 }
 
-
-
 /*****************************************************************************
 						Static functions
  *****************************************************************************/
-
 
 /** 
  * Initialize gGlobal->gDocAutodocKeySet, a set containing all the keywords.
@@ -181,7 +174,6 @@ static void initDocAutodocKeySet() {
 	gGlobal->gDocAutodocKeySet.insert("autolsttitle2");
 	gGlobal->gDocAutodocKeySet.insert("autolsttext2");
 }
-
 
 #if 0
 /** 

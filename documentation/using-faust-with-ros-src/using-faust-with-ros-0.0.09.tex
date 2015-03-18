@@ -1,0 +1,189 @@
+\documentclass[a4paper,10pt]{book}
+
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{supertabular}
+\usepackage{xspace}
+\usepackage{pdfpages}
+\usepackage{hyperref} 
+\usepackage{listings}
+\usepackage{color} 
+\usepackage{colortbl}
+\usepackage{ctable}
+\usepackage{enumitem}
+
+\usepackage[cc]{titlepic}
+\usepackage{sectsty}
+\usepackage[T1]{fontenc}
+\usepackage[urw-garamond]{mathdesign}
+\usepackage{fncychap}
+\usepackage{fancyhdr}
+\usepackage{lscape}
+
+\usepackage{dirtree}
+\usepackage{tikz}
+\usetikzlibrary{arrows, shapes, positioning}
+\usepackage{adjustbox}
+
+\usepackage{rail}
+\railoptions{-t -h}
+
+\fancyhead{} % clear all header fields
+\fancyheadoffset[LE,RO]{\marginparsep+\marginparwidth}
+\fancyhead[RO,LE]{\thepage}
+\fancyhead[LO]{\rightmark}
+\fancyhead[RE]{\leftmark}
+\renewcommand{\headrulewidth}{0.1pt}
+
+\fancyfoot{}
+
+
+\hypersetup{%
+            colorlinks = true, %true, false
+            linkcolor = black,
+            citecolor = blue,
+            urlcolor = blue,
+}
+\urlstyle{sf} %rm
+\newcommand{\myurl}[1]{\textcolor{blue}{\underbar{\url{#1}}}}
+
+
+%%%%%%%%%%%%%%%%%%%command imported from lac paper
+\newcommand{\code}[1]	{\lstinline'#1'}
+\newcommand{\OSTab}[1]	{\multicolumn{3}{|l|}{\hspace{14mm}\emph{#1}}}
+\newcommand{\htab}		{\hspace*{3mm}}
+
+\newcommand{\ros}		{\textsc{ROS}\xspace}
+
+\newcommand{\faust}		{\textsc{Faust}\xspace}
+\newcommand{\grame}		{\textsc{Grame}\xspace}
+\newcommand{\cierec}	{\textsc{Cierec}\xspace}
+\newcommand{\ccrma}		{\textsc{Ccrma}\xspace}
+\newcommand{\cnmat}		{\textsc{Cnmat}\xspace}
+\newcommand{\create}	{\textsc{Create}\xspace}
+\newcommand{\mines}		{\textsc{Mines} ParisTech\xspace}
+\newcommand{\pdf}		{\textsc{Pdf}\xspace}
+\newcommand{\ie}		{i.e.\ }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%% MY COLORS
+\definecolor{yoheader}{rgb}{0.71,0.01,0.0}
+
+\definecolor{darkcerulean}{rgb}{0.03, 0.27, 0.49}
+\definecolor{darkpastelblue}{rgb}{0.47, 0.62, 0.8}
+\definecolor{indigodye}{rgb}{0.0, 0.25, 0.42}
+
+\definecolor{roscolor}{HTML}{1F2A44}
+\definecolor{faustcolor}{HTML}{E76E18}
+
+
+%%%% margin par
+\definecolor{margincolor}{rgb}{0.52,0.02,0.02} % grey red.
+\definecolor{yobg}{rgb}{0.9,0.9,1}
+\definecolor{yotxt}{rgb}{0.01,0.01,0.52}
+\definecolor{mylstcmt}{rgb}{0.01,0.52,0.01} % a dark green..
+\definecolor{mylstdoc}{rgb}{0.80,0.30,0.80} % a medium pink.
+\definecolor{mylstkey}{rgb}{0.52,0.01,0.01} % a dark red.
+
+\setlength{\marginparwidth}{1.2in}
+\let\oldmarginpar\marginpar
+\renewcommand\marginpar[1]{\-\oldmarginpar[\raggedleft\color{margincolor}\footnotesize #1]%
+{\raggedright\color{margincolor}\footnotesize #1}}
+
+
+
+% \relax
+
+\begin{document} 
+
+\ChRuleWidth{1pt}
+\ChNumVar{\raggedleft\Huge\color{yoheader}}
+\ChTitleVar{\raggedleft\sffamily\fontsize{30}{32}\bf\color{yoheader}}
+
+\chapterfont{\color{yoheader}}
+\sectionfont{\color{yoheader}}
+\subsectionfont{\color{yoheader}}
+\subsubsectionfont{\color{yoheader}}
+
+% parameters for listings
+\lstset{
+  tabsize=4,
+  showspaces=false,
+  showstringspaces=false,
+  language=C++, 
+  basicstyle=\ttfamily\color{yotxt},
+  numbers=none,
+  stepnumber=2,
+  commentstyle=\slshape\color{mylstcmt},
+  breaklines=true, 
+  emph={component, declare, environment, import, library, process},
+  emph={[2]ffunction, fconstant, fvariable},
+  emph={[3]button, checkbox, vslider, hslider, nentry, vgroup, hgroup, tgroup, vbargraph, hbargraph, attach},
+  emphstyle=\color{mylstkey},
+  morecomment=[s][\color{mylstdoc}]{<mdoc>}{</mdoc>},
+  backgroundcolor=\color{yobg},
+  captionpos=b
+}
+
+\lstloadlanguages{C++,[LaTeX]TeX}
+
+\title{\Huge\color{yoheader}Using FAUST with ROS\\\Large(version 0.0.09)}
+\author{\textsc{Grame}\\Centre National de Cr\'eation Musicale}
+\date{December 2014} 
+
+
+\railalias{recur}{$\sim$}
+\railalias{lbrace}{\{}
+\railalias{rbrace}{\}}
+\railalias{dollar}{\$}
+\railalias{mod}{\%}
+\railalias{arobase}{@}
+\railalias{ampersand}{\&}
+\railalias{hat}{$\land$}
+\railalias{kot}{'}
+\railalias{pipe}{$|$}
+\railalias{fdelay}{}
+\railalias{backslash}{\char"5C}
+\railterm{recur,lbrace,rbrace,dollar,mod,kot,arobase,ampersand,backslash,fdelay, pipe, hat}
+
+\newcommand{\farg}[1]{\textrm{\textit{#1}}}
+\newcommand{\ldbrack}{[\![ \,}
+\newcommand{\rdbrack}{\, ]\!] }
+\newcommand{\rdbrackC}{\rdbrack_{\mathrm{C}}\,}
+\newcommand{\dbrack}[1]{\ldbrack #1 \rdbrack}
+\newcommand{\semantic}[1]{\ldbrack #1 \rdbrack}
+\newcommand{\dbrackC}[1]{\ldbrack #1 \rdbrackC}
+
+\newcommand{\latex}{\LaTeX\xspace}
+\newcommand{\ircam}{\textsc{Ircam}\xspace}
+\newcommand{\astree}{\textsc{Astree}\xspace}
+\newcommand{\svg}{\textsc{Svg}\xspace}
+ 
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+
+\maketitle
+
+\tableofcontents
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            		CHAPTERS                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{chapters/introduction}
+\input{chapters/compilation}
+\input{chapters/running}
+\input{chapters/spec}
+%\input{chapters/messages}
+\input{chapters/errors}
+\input{chapters/cheatsheet}
+\input{chapters/tuto}
+
+\end{document}

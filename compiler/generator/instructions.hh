@@ -490,7 +490,9 @@ struct FunTyped : public Typed {
         :fArgsTypes(args), fResult(result), fAttribute(attribute)
     {}
 
-    VarType getType() { assert(false); return fResult->getType(); }
+    VarType getType() { return fResult->getType(); }
+    
+    Typed* getTyped() { return fResult; }
     
     int getSize(); // moved in "instructions.cpp"
 
@@ -648,7 +650,7 @@ struct NamedAddress : public Address {
     Address::AccessType getAccess() { return fAccess; }
 
     void setName(const string& name) { fName = name; }
-    string getName() {return fName; }
+    string getName() { return fName; }
 
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -1034,7 +1036,7 @@ struct BinopInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct CastNumInst : public ValueInst, public SimpleValueInst
+struct CastNumInst : public ValueInst
 {
     Typed* fType;
     ValueInst* fInst;
@@ -1205,16 +1207,10 @@ struct DeclareFunInst : public StatementInst
     FunTyped* fType;     // Describes type of all arguments and function result
     BlockInst* fCode;    // Code is a list of StatementInst*
 
-    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
-        :fName(name), fType(type), fCode(code)
-    {}
-    DeclareFunInst(const string& name, FunTyped* type)
-        :fName(name), fType(type), fCode(new BlockInst())
-    {}
+    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
     
-    virtual ~DeclareFunInst()
-    {}
-
+    virtual ~DeclareFunInst();
+ 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1769,7 +1765,8 @@ struct InstBuilder
         return (type == Typed::kInt 
                 || type == Typed::kInt_ptr 
                 || type == Typed::kFloat_ptr
-                || type == Typed::kFloatMacro_ptr) ? genIntNumInst(0) : genRealNumInst(type, 0.);
+                || type == Typed::kFloatMacro_ptr
+                || type == Typed::kObj_ptr) ? genIntNumInst(0) : genRealNumInst(type, 0.);
     }
     
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
@@ -1917,30 +1914,15 @@ struct InstBuilder
     static IndexedAddress* genIndexedAddress(Address* address, ValueInst* index) { return new IndexedAddress(address, index); }
 
     // Helper build methods
-
-    static DeclareVarInst* genDecVar(string vname, Address::AccessType var_access, Typed* type, ValueInst* exp = NULL)
-    {
-        return genDeclareVarInst(genNamedAddress(vname, var_access), type, exp);
-    }
-    
+  
     static DeclareVarInst* genDecArrayVar(string vname, Address::AccessType var_access, Typed* type, int size)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
     }
 
-    static LoadVarInst* genLoadVar(string vname, Address::AccessType var_access)
-    {
-        return genLoadVarInst(genNamedAddress(vname, var_access));
-    }
-
     static LoadVarInst* genLoadArrayVar(string vname, Address::AccessType var_access, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
-    }
-
-    static StoreVarInst* genStoreVar(string vname, Address::AccessType var_access, ValueInst* exp)
-    {
-        return genStoreVarInst(genNamedAddress(vname, var_access), exp);
     }
 
     static StoreVarInst* genStoreArrayVar(string vname, Address::AccessType var_access, ValueInst* index, ValueInst* exp)
@@ -1954,6 +1936,11 @@ struct InstBuilder
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
     }
     
+    static DeclareVarInst* genDecVolatileStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)), type, exp);
+    }
+    
     static DeclareVarInst* genDecArrayStructVar(string vname, Typed* type, int size)
     {
         return genDecArrayVar(vname, Address::kStruct, type, size);
@@ -1963,6 +1950,11 @@ struct InstBuilder
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
     }
+    
+    static LoadVarInst* genVolatileLoadStructVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)));
+    }
 
     template <typename Iterator>
     static LoadVarInst* genLoadArrayStructVar(string vname, Iterator indexBegin, Iterator indexEnd)
@@ -1971,7 +1963,7 @@ struct InstBuilder
         Rit rbegin (indexEnd);
         Rit rend (indexBegin);
 
-        Address * address = genNamedAddress(vname, Address::kStruct);
+        Address* address = genNamedAddress(vname, Address::kStruct);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
@@ -2000,7 +1992,12 @@ struct InstBuilder
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
     }
-
+    
+    static StoreVarInst* genVolatileStoreStructVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)), exp);
+    }
+ 
     template <typename Iterator>
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
     {
@@ -2008,7 +2005,7 @@ struct InstBuilder
         Rit rbegin (indexEnd);
         Rit rend (indexBegin);
 
-        Address * address = genNamedAddress(vname, Address::kStruct);
+        Address* address = genNamedAddress(vname, Address::kStruct);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
@@ -2051,7 +2048,7 @@ struct InstBuilder
         Rit rbegin (indexEnd);
         Rit rend (indexBegin);
 
-        Address * address = genNamedAddress(vname, Address::kStaticStruct);
+        Address* address = genNamedAddress(vname, Address::kStaticStruct);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
@@ -2064,6 +2061,28 @@ struct InstBuilder
         vector<ValueInst*> indices;
         indices.push_back(index);
         return genLoadArrayStaticStructVar(vname, indices.begin(), indices.end());
+    }
+    
+    template <typename Iterator>
+    static StoreVarInst* genStoreArrayStaticStructVar(string vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
+    {
+        typedef reverse_iterator<Iterator> Rit;
+        Rit rbegin (indexEnd);
+        Rit rend (indexBegin);
+
+        Address* address = genNamedAddress(vname, Address::kStaticStruct);
+        for (Rit it = rbegin; it != rend; ++it) {
+            address = genIndexedAddress(address, *it);
+        }
+
+        return genStoreVarInst(address, exp);
+    }
+
+    static StoreVarInst* genStoreArrayStaticStructVar(string vname, ValueInst* index, ValueInst* exp)
+    {
+        vector<ValueInst*> indices;
+        indices.push_back(index);
+        return genStoreArrayStructVar(vname, exp, indices.begin(), indices.end());
     }
 
     // Stack variable

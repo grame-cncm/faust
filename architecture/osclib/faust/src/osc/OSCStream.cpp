@@ -32,6 +32,7 @@ OSCStream* _oscerr = 0;				// OSC standard error stream
 
 static UdpSocket* _socket = 0;		// a shared transmit socket
 
+int OSCStream::fRefCount = 0;
 
 //--------------------------------------------------------------------------
 OSCStream::OSCStream ()
@@ -51,18 +52,22 @@ bool OSCStream::start ()
     
     if(_oscerr == 0)
         _oscerr = new OSCStream(_socket);
-
+        
+    fRefCount++;
 	return (_socket && _oscout && _oscerr);
 }
 
 //--------------------------------------------------------------------------
 void OSCStream::stop ()
 {
-	delete _socket;
-	delete _oscout;
-	delete _oscerr;
-	_oscout = _oscerr = 0;
-	_socket = 0;
+    if(fRefCount == 0){
+        
+        delete _socket;
+        delete _oscout;
+        delete _oscerr;
+        _oscout = _oscerr = 0;
+        _socket = 0;
+    }
 }
 
 //--------------------------------------------------------------------------

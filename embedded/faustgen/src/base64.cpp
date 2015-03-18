@@ -56,8 +56,9 @@ std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_
           char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
           char_array_4[3] = char_array_3[2] & 0x3f;
 
-          for(i = 0; (i <4) ; i++)
+          for(i = 0; (i <4) ; i++) {
             ret += base64_chars[char_array_4[i]];
+          }
           i = 0;
         }
       }

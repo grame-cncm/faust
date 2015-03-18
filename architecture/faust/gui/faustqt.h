@@ -1439,7 +1439,6 @@ class QTGUI : public QWidget, public GUI
         if (fLogSet.count(zone) > 0) return uiSlider::kLog;
 		if (fExpSet.count(zone) > 0) return uiSlider::kExp;
 		return uiSlider::kLin;
-		
     }
     
     /**

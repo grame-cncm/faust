@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2010-2014 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2010-2015 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -1362,7 +1362,7 @@ int main(void)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s", FAUSTGEN_VERSION);
     post("LLVM powered Faust embedded compiler");
-    post("Copyright (c) 2012-2014 Grame");
+    post("Copyright (c) 2012-2015 Grame");
   
     // Process all messages coming to the object using a custom method
     REGISTER_METHOD_GIMME(faustgen, anything);

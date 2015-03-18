@@ -1,0 +1,42 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        applicationId "com.grame.faust"
+        minSdkVersion 16
+        targetSdkVersion 21
+
+        ndk {
+            moduleName "dsp_faust"
+            cFlags "-O3 -fexceptions -frtti"
+            ldLibs "OpenSLES"
+            ldLibs "log"
+            stl "gnustl_static"
+            abiFilters "armeabi-v7a"
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("tools/faust2android.keystore")
+            storePassword "mephisto"
+            keyAlias "faust2an"
+            keyPassword "mephisto"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:21.0.3'
+}

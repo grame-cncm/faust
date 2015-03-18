@@ -58,6 +58,7 @@ class InstructionsCompiler : public virtual Garbageable {
         Tree fUIRoot;
         Description* fDescription;
         bool fLoadedIota;
+        bool fAllowForeignFunction;
     
         void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
@@ -111,20 +112,19 @@ class InstructionsCompiler : public virtual Garbageable {
 
         CodeContainer* signal2Container(const string& name, Tree sig);
 
-        string getFreshID(const string& prefix);
         int getSharingCount(Tree sig);
         void setSharingCount(Tree sig, int count);
         void sharingAnalysis(Tree t);
         void sharingAnnotation(int vctxt, Tree sig);
 
-        FIRIndex getCurrentLoopIndex(void)
+        FIRIndex getCurrentLoopIndex()
         {
             return FIRIndex(fContainer->getCurLoop()->getLoopIndex());
         }
 
     public:
 
-        InstructionsCompiler(CodeContainer* container);
+        InstructionsCompiler(CodeContainer* container, bool allow_foreign_function = true);
       
         virtual ~InstructionsCompiler()
         {}

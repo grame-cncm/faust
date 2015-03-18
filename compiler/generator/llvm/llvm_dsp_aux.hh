@@ -67,7 +67,7 @@ class llvm_dsp_factory : public smartable {
         int getOptlevel();
 
         ExecutionEngine* fJIT;
-    #if defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
         FaustObjectCache* fObjectCache;
     #endif
         LLVMResult* fResult;
@@ -142,9 +142,9 @@ class llvm_dsp_factory : public smartable {
         
         void metadataDSPFactory(MetaGlue* glue);
     
-        std::string getSHAKey() { return fSHAKey; }
-    
         std::string getName();
+        
+        std::string getSHAKey() { return fSHAKey; }
     
         std::vector<std::string> getLibraryList() { return fResult->fPathnameList; }
     
@@ -281,6 +281,12 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                     char* error_msg, int opt_level);
     
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
+
+EXPORT char* getCName(llvm_dsp_factory* factory);
+
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
+
+EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
     
 EXPORT void deleteAllCDSPFactories();
     
@@ -330,7 +336,9 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void generateCSha1(const char* data, char* key);
+EXPORT void generateCSHA1(const char* data, char* key);
+
+EXPORT void freeCDSP(void* ptr);
 
 #ifdef __cplusplus
 }

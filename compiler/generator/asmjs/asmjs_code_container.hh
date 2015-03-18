@@ -23,6 +23,7 @@
 #define _ASMJAVASCRIPT_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "vec_code_container.hh"
 #include "asmjs_instructions.hh"
 
 using namespace std;
@@ -31,7 +32,8 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        // One gASMJSVisitor static visitor for subcontainers and global container moved in global
+        // One gASMJSVisitor static visitor for subcontainers and global container moved in global,
+        // so that subcontainers and 'mydsp' class are generated with a unique visitor, using a single memory area.
         std::ostream* fOut;
         string fObjPrefix;
  
@@ -60,6 +62,19 @@ class ASMJAVAScriptScalarCodeContainer : public ASMJAVAScriptCodeContainer {
 
         ASMJAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~ASMJAVAScriptScalarCodeContainer();
+
+        void generateCompute(int tab);
+
+};
+
+class ASMJAVAScriptVectorCodeContainer : public VectorCodeContainer, public ASMJAVAScriptCodeContainer {
+
+    protected:
+
+    public:
+
+        ASMJAVAScriptVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        virtual ~ASMJAVAScriptVectorCodeContainer();
 
         void generateCompute(int tab);
 

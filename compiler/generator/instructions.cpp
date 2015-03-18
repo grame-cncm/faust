@@ -28,20 +28,30 @@
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
 void DeclareVarInst::cleanup() { gGlobal->gVarTypeTable.clear(); }
 
+// Variable types are kept in the global num <===> type table
 DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
     :fAddress(address), fType(typed), fValue(value)
 {
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[fAddress->getName()] = typed;
-        //printf("DeclareVarInst : variable = %s type = %d\n", fAddress->getName().c_str(), typed->getType());
-    } else {
-        //printf("DeclareVarInst : variable = %s already typed...\n", fAddress->getName().c_str());
     }
 }
 
 DeclareVarInst::~DeclareVarInst()
 {}
 
+// Function types (return type) are kept in the global num <===> type table
+DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
+        :fName(name), fType(type), fCode(code)
+{
+    if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
+        gGlobal->gVarTypeTable[name] = type->getTyped();
+    }
+}
+ 
+DeclareFunInst::~DeclareFunInst()
+{}
+  
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 {
     // If not defined, add the type in the table

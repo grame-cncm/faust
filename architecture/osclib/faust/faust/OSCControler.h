@@ -38,7 +38,8 @@ namespace oscfaust
 
 class OSCIO;
 class OSCSetup;
-
+class OSCRegexp;
+    
 //--------------------------------------------------------------------------
 /*!
 	\brief the main Faust OSC Lib API
@@ -96,6 +97,13 @@ class OSCControler
 		const char*	getDestAddress() const { return fDestAddress.c_str(); }
 		const char*	getRootName() const;	// probably useless, introduced for UI extension experiments
 
+    
+//      By default, an osc interface emits all parameters. You can filter specific params dynamically.
+        static std::vector<OSCRegexp*>     fFilteredPaths; // filtered paths will not be emitted
+        static void addFilteredPath(std::string path);
+        static bool isPathFiltered(std::string path);
+        static void resetFilteredPaths();
+    
 		static float version();				// the Faust OSC library version number
 		static const char* versionstr();	// the Faust OSC library version number as a string
 		static bool	gXmit;				// a static variable to control the transmission of values

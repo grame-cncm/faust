@@ -53,24 +53,10 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
 static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
 static inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }
 
-InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
+InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool allow_foreign_function)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)), 
-            fDescription(0), fLoadedIota(false)
+            fDescription(0), fLoadedIota(false), fAllowForeignFunction(allow_foreign_function)
 {}
-
-/*****************************************************************************
-						getFreshID
-*****************************************************************************/
-
-string InstructionsCompiler::getFreshID(const string& prefix)
-{
-	if (gGlobal->gIDCounters.find(prefix) == gGlobal->gIDCounters.end()) {
-		gGlobal->gIDCounters[prefix] = 0;
-	}
-	int n = gGlobal->gIDCounters[prefix];
-	gGlobal->gIDCounters[prefix] = n+1;
-	return subst("$0$1", prefix, T(n));
-}
 
 /*****************************************************************************
 						    prepare
@@ -205,10 +191,10 @@ void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::
 {
     if (t->nature() == kInt) {
         ctype = Typed::kInt;
-        vname = subst("i$0", getFreshID(prefix));
+        vname = subst("i$0", gGlobal->getFreshID(prefix));
     } else {
         ctype = itfloat();
-        vname = subst("f$0", getFreshID(prefix));
+        vname = subst("f$0", gGlobal->getFreshID(prefix));
     }
 }
 
@@ -341,11 +327,11 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputRate(index, rate);
     }
 
-  generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
-	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-	if (fDescription) {
-		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
-	}
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    if (fDescription) {
+        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
@@ -629,8 +615,8 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 
 ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
- 	string vperm = getFreshID("M");
-	string vtemp = getFreshID("T");
+ 	string vperm = gGlobal->getFreshID("M");
+	string vtemp = gGlobal->getFreshID("T");
     Typed::VarType type = ctType(getCertifiedSigType(sig));
 
     // Table declaration
@@ -685,8 +671,13 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     fContainer->addIncludeFile(ffincfile(ff));
 	fContainer->addLibrary(fflibfile(ff));
-    
     string funname = ffname(ff);
+    
+    if (!fAllowForeignFunction) {
+        stringstream error;
+        error << "ERROR : calling foreign function '"<< funname  << "'" << " is not allowed in this compilation mode!" << endl;
+        throw faustexception(error.str());
+    }
    
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
@@ -916,8 +907,8 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 
 ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 {
-    string cname = getFreshID(fContainer->getClassName() + "SIG");
-	string signame = getFreshID("sig");
+    string cname = gGlobal->getFreshID(fContainer->getClassName() + "SIG");
+    string signame = gGlobal->getFreshID("sig");
 
     CodeContainer* subcontainer = signal2Container(cname, content);
 	fContainer->addSubContainer(subcontainer);
@@ -940,8 +931,8 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 
 ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 {
-    string cname = getFreshID(fContainer->getClassName() + "SIG");
-	string signame = getFreshID("sig");
+    string cname = gGlobal->getFreshID(fContainer->getClassName() + "SIG");
+    string signame = gGlobal->getFreshID("sig");
 
 	CodeContainer* subcontainer = signal2Container(cname, content);
 	fContainer->addSubContainer(subcontainer);
@@ -994,7 +985,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, ValueInst* 
 ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* sel, ValueInst* v1, ValueInst* v2)
 {
     ValueInst* cond = InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
-    string vname = (type == Typed::kInt) ? getFreshID("iSel") : getFreshID("fSel");
+    string vname = gGlobal->getFreshID(((type == Typed::kInt) ? "iSel" :"fSel"));
     BlockInst* block1 = InstBuilder::genBlockInst();
     BlockInst* block2 = InstBuilder::genBlockInst();
     
@@ -1122,7 +1113,7 @@ ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 
 ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const string& name)
 {
-    string varname = getFreshID(name);
+    string varname = gGlobal->getFreshID(name);
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
@@ -1144,7 +1135,7 @@ ValueInst* InstructionsCompiler::generateCheckbox(Tree sig, Tree path)
 
 ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name)
 {
-    string varname = getFreshID(name);
+    string varname = gGlobal->getFreshID(name);
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
@@ -1170,7 +1161,7 @@ ValueInst* InstructionsCompiler::generateNumEntry(Tree sig, Tree path, Tree cur,
 
 ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name)
 {
-    string varname = getFreshID(name);
+    string varname = gGlobal->getFreshID(name);
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kFloatMacro)));
  	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
@@ -1291,7 +1282,7 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 {
     ValueInst* init = InstBuilder::genTypedZero(ctype);
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-    string index = getFreshID("i");
+    string index = gGlobal->getFreshID("i");
 
     // Generates table declaration
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
@@ -1309,7 +1300,7 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 
 StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int delay)
 {
-    string index = getFreshID("j");
+    string index = gGlobal->getFreshID("j");
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
@@ -1332,7 +1323,7 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname, int 
 
 StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, const string& vname_from, int size)
 {
-    string index = getFreshID("j");
+    string index = gGlobal->getFreshID("j");
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
@@ -1657,7 +1648,6 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
 
     Typed::VarType ctype;
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
-
     size = sig->arity();
     
     // Declares the Waveform
@@ -1697,8 +1687,15 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     } else {
         assert(false);
     }
-   
-    pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    
+    // Ugly hack: in asm.js waveforms are allocated in the DSP object memory, itself allocted in a unique global heap
+    // so initialisation is moved in "init" method
+    if (gGlobal->gOutputLang == "ajs") {
+        pushInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    } else {
+        pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+    }
+    
     string idx = subst("$0_idx", vname);
     pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
     pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));

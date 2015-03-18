@@ -516,9 +516,8 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
                 | fvariable                     { $$ = $1; }
                 | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
-                | ENVIRONMENT LBRAQ deflist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
+                | ENVIRONMENT LBRAQ stmtlist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
                 | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
-
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }
 				| vslider						{ $$ = $1; }

@@ -87,13 +87,13 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fOrient) {
                 case 0:
-                    name = "ui_interface.openVerticalBox"; break;
+                    name = "ui_interface.openVerticalBox("; break;
                 case 1:
-                    name = "ui_interface.openHorizontalBox"; break;
+                    name = "ui_interface.openHorizontalBox("; break;
                 case 2:
-                    name = "ui_interface.openTabBox"; break;
+                    name = "ui_interface.openTabBox("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
+            *fOut << name << quote(inst->fName) << ")";
             EndLine();
         }
 
@@ -105,9 +105,9 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", ";
+                *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", ";
             } else {
-                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", ";
+                *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", ";
             }
             
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this))";
@@ -119,13 +119,13 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "ui_interface.addHorizontalSlider"; break;
+                    name = "ui_interface.addHorizontalSlider("; break;
                 case AddSliderInst::kVertical:
-                    name = "ui_interface.addVerticalSlider"; break;
+                    name = "ui_interface.addVerticalSlider("; break;
                 case AddSliderInst::kNumEntry:
-                    name = "ui_interface.addNumEntry"; break;
+                    name = "ui_interface.addNumEntry("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
+            *fOut << name << quote(inst->fLabel) << ", ";
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
             *fOut << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
             EndLine();
@@ -136,11 +136,11 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "ui_interface.addHorizontalBargraph"; break;
+                    name = "ui_interface.addHorizontalBargraph("; break;
                 case AddBargraphInst::kVertical:
-                    name = "ui_interface.addVerticalBargraph"; break;
+                    name = "ui_interface.addVerticalBargraph("; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
+            *fOut << name << quote(inst->fLabel) << ", ";
             *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
             *fOut << ", " << inst->fMin << ", " << inst->fMax << ")";
             EndLine();

@@ -49,7 +49,7 @@ class WSSCodeContainer : public virtual CodeContainer {
             fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
         {
             initializeCodeContainer(numInputs, numOutputs);
-            fFullCount = "fullcount";
+            fFullCount = "count";
         }
 
     protected:

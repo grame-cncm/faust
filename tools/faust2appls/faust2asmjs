@@ -3,16 +3,17 @@
 #-------------------------------------------------------------------
 # Wrapping resources
 
-CPP_WRAPPER=webaudio-asm.cpp
-CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
-JS_WRAPPER=webaudio-asm-footer.js
-COMB=0
+CODE_WRAPPER=""
+JS_WRAPPER=""
+COMB="false"
 COMB_SRC=
 COMB_EXPORTED=
 COMB_WRAPPED=
 COMB_WRAPPED_FILES=
 COMB_SEP=
-EMCC="NO"
+
+EMCC="false"
+POLY="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -38,11 +39,15 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-comb" ]; then
-        COMB=1
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2asmjs [-poly] [-comb] [-emcc] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emcripten runtime"
+        echo "Use '-emcc' to compile C++ generated code to asm.js with Emcripten, otherwise the internal asm.js backend is used"
+    elif [ $p = "-comb" ]; then
+        COMB="true"
     elif [ $p = "-poly" ]; then
-        CPP_WRAPPER=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-footer.js
+        POLY="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
     elif [ ${p:0:1} = "-" ]; then
@@ -55,92 +60,134 @@ for p in $@; do
 done
 
 #-------------------------------------------------------------------
+# Set the compilation wrapping files depending of the compilation options
+#
+
+if [ $POLY = true ]; then
+    if [ $EMCC = emcc ]; then
+        echo "Compiled with 'emcc' in polyphonic mode"
+        CODE_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-emcc.js
+    else
+        echo "Compiled with 'asm.js' backend in polyphonic mode"
+        CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
+    fi
+else
+    if [ $EMCC = emcc ]; then
+        echo "Compiled with 'emcc'"
+        CODE_WRAPPER=webaudio-asm.cpp
+        JS_WRAPPER=webaudio-asm-emcc.js       
+    else
+        echo "Compiled with 'asm.js' backend"
+        CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
+    fi
+fi
+
+#-------------------------------------------------------------------
 # compile the *.dsp files
 #
 BINARIES=""
 
-if [ $COMB = 0 ]; then
+if [ $COMB = "false" ]; then
 
 for f in $FILES; do
     name=${f%.dsp}
     
-    # compile the C++ code or asm.js code
+    # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
-        faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     else
         faust -lang ajs -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name.js
     fi
     
-    if [ $EMCC = emcc ] ; then
-        # prepare emcc compilation files
-        if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
-            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
-        else
-            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff']"       
-        fi
+    if [ $EMCC = emcc ]; then
         
+        # prepare emcc compilation files
+        if [ $POLY = false ]; then
+
+EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+
+        else
+        EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']"       
+	
+        fi
+    
         # compile the C++ code to asm.js
-        emcc -O2 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
        
         # compose the asm.js code
         sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
         
-        # add final footer of JS page
-        echo "}());" >> $name.js
-        
         rm $name-temp.js
         rm $name.cpp
     fi
 
-	# collect binary file name for FaustWorks
+	# collect binary file name
 	BINARIES="$BINARIES$name.js;"
 
 done
 
 else
 
+echo "Compiled with 'comb' mode"
+
 for f in $FILES; do
     name=${f%.dsp}
     
-    # compile the C++ code
-    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
-    
-    if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
-        EXPORTED="'_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON'"
+    # compile the Faust DSP to C++ or asm.js code
+    if [ $EMCC = emcc ] ; then
+        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     else
-        EXPORTED="'_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_noteOn','_"$name"_poly_noteOff'"       
-	fi
+        faust -lang ajs -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp.js
+    fi
     
-    # compose the asm.js code
-    sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/$JS_WRAPPER > $name-wrapper.js
+    if [ $EMCC = emcc ]; then
     
-    COMB_SRC+=$name.cpp
-    COMB_SRC+=" "
+        # prepare emcc compilation files
+        if [ $POLY = false ]; then
+
+EXPORTED="'_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON'"
+        else
+        EXPORTED="'_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend'"       
+	
+        fi
     
-    COMB_EXPORTED+=$COMB_SEP$EXPORTED
-    COMB_SEP=","
-    
-    COMB_WRAPPED_FILES+=$name-wrapper.js
-    COMB_WRAPPED_FILES+=" "
-    
-    COMB_WRAPPED+=" --post-js "
-    COMB_WRAPPED+=$name-wrapper.js
+        # compose the asm.js code
+        sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/$JS_WRAPPER > $name-wrapper.js
+        
+        COMB_SRC+=$name.cpp
+        COMB_SRC+=" "
+        
+        COMB_EXPORTED+=$COMB_SEP$EXPORTED
+        COMB_SEP=","
+        
+        COMB_WRAPPED_FILES+=$name-wrapper.js
+        COMB_WRAPPED_FILES+=" "
+        
+        COMB_WRAPPED+=" --post-js "
+        COMB_WRAPPED+=$name-wrapper.js
+        
+    else
+        echo $name-temp.js
+        cat $name-temp.js >> comb.js
+        rm $name-temp.js
+    fi
   	
 done
 
-# compile final file
-emcc -O2 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js $COMB_WRAPPED -o comb.js \
-    -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
-
-# add final footer of JS page
-echo "}());" >> comb.js
-    
-# collect binary file name for FaustWorks
-BINARIES="comb.js;"
+if [ $EMCC = emcc ]; then
+    # compile final file
+    emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 $COMB_WRAPPED -o comb.js \
+        -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
 rm $COMB_SRC
 rm $COMB_WRAPPED_FILES
+
+fi
+
+# collect binary file name
+BINARIES="comb.js;"
 
 fi
 

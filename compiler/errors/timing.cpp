@@ -30,11 +30,12 @@
 #include "timing.hh"
 #include "global.hh"
 
+// Timing can be used outside of the scope of 'gGlobal'
 bool gTimingSwitch;
-static int gTimingIndex;
-static double gStartTime[1024];
-static double gEndTime[1024];
-static ostream* gTimingLog = NULL;
+int gTimingIndex;
+double gStartTime[1024];
+double gEndTime[1024];
+ostream* gTimingLog = 0;
 
 #ifndef _WIN32
 double mysecond()
@@ -51,20 +52,17 @@ double mysecond() { return 0; }
 
 void startTiming(const char* msg)
 {
-    if (!gTimingLog) {
-        gTimingLog = (getenv("FAUST_TIMING")) ? new ofstream("FAUST_TIMING_LOG", ios::app) : NULL;
-        if (gTimingLog) {
-            *gTimingLog << endl;
-        }
+    // timing
+    gTimingLog = (getenv("FAUST_TIMING")) ? new ofstream("FAUST_TIMING_LOG", ios::app) : NULL;
+    if (gTimingLog) {
+        *gTimingLog << endl;
     }
     
     if (gTimingSwitch) {
         assert(gTimingIndex < 1023);
         if (gTimingLog) {
-            /*
             tab(gTimingIndex, *gTimingLog);
             *gTimingLog << "start " << msg << endl;
-            */
         } else {
             tab(gTimingIndex, cerr);
             cerr << "start " << msg << endl;
@@ -79,10 +77,6 @@ void endTiming(const char* msg)
         assert(gTimingIndex > 0);
         gEndTime[--gTimingIndex] = mysecond();
         if (gTimingLog) {
-            /*
-            tab(gTimingIndex, *gTimingLog);
-            *gTimingLog << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")" << endl;
-            */
             *gTimingLog << msg << "\t" << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << endl;
             gTimingLog->flush();
         } else {

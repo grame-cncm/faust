@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Use of template</title>
+  <link rel="import" href="template/faustTemplate.html" />
+  <style>
+	section {
+		margin : 1em;
+		padding : 1em;
+		border: 0.1em solid;
+		border-radius: 3em;
+	}
+  </style>
+  
+</head>
+<body>
+	<div>
+		<p>
+        This document is a simple example of web component to have a easy integration of Faust in an html page. A tag faust-compiler is created and integrated in the html page.
+        </p>
+        <p>
+        You have to run it with a http server because template is in an external file and
+        most of browser doesn't allow cross browsing domain.
+		</p>
+		<p>
+            You can use the python SimpleHTTPServer on linux. (type "python -m SimpleHTTPServer 8000" in a console). The server have to be launched in parent directory of html file (to have the libfaust.js file).
+        </p>
+		<p>
+			Your browser must support import files.
+		</p>
+	</div>
+	<section>
+		<h1>Faust component without editor</h1>
+		<faust-compiler faustCode="false">process = hgroup("mixer", _*vslider("Volume1", 0, 0, 1, 0.1), _*vslider("Volume2", 0, 0, 1, 0.1));</faust-compiler>
+	</section>
+    
+    <section>
+		<h1>Faust component without editor</h1>
+		<faust-compiler faustCode="false">process = _*vslider("Volume", 0, 0, 1, 0.1);</faust-compiler>
+	</section>
+	
+</body>
+</html>

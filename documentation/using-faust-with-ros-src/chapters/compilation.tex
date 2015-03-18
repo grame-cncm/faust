@@ -1,0 +1,143 @@
+\chapter{Compiling a FAUST Program for ROS Use}
+\label{chap:compilation}
+
+To compile a \faust program for a \ros use, you can use either the \lstinline'faust2ros' command, or the \lstinline'faust2rosgtk' one, which adds a gtk graphic user interface to the simple \lstinline'faust2ros' command.
+Note that all the \faust compilation options remain.
+\paragraph{Comment :}The compilation can last between 10 and 20 seconds. This is completely normal ! The bash script includes some \ros compilation with \lstinline'catkin_make'.
+
+\paragraph{\color{yoheader}BE CAREFUL !}To run these commands, you need to have \ros installed on your machine. They are indeed using \lstinline'catkin_make' and \lstinline'rosrun', which are \ros commands.
+
+\section{How does it work ?}
+\lstinline'faust2ros' (or \lstinline'faust2rosgtk') is a small command, which hides a lot of things. This section aims for a clarification.
+\subsection{Different steps}
+\label{subsec:steps}
+\newcounter{descriptcount}
+\begin{description}[%
+  before={\setcounter{descriptcount}{0}},%
+  ,font=\bfseries\stepcounter{descriptcount}Step \arabic{descriptcount}.~]
+\item [Workspace Creation :] if asked, a workspace can be created if it does not already exist. A workspace is considered as a \ros workspace if it contains a non-writable CMakeLists.txt in its \lstinline'src' folder. If the user wants to get a .zip file, a temporary workspace is created.
+\item [First compilation :] the .dsp file is compiled a first time thanks to the \faust compiler and the ros-callbacks.cpp architecture file. This step is dedicated to the \ros metadata. The C$++$ file is then compiled into an executable thanks to \lstinline'catkin', which uses CMake.
+\item [Second compilation :]the .dsp file is compiled again, thanks to the \faust compiler and the jack-ros.cpp architecture file (respectively jack-gtk-ros.cpp). This step creates the \ros code, with a missing class. This class is then included with the execution of the previous executable, and the C$++$ file can be compiled with \lstinline'catkin'.
+\item[Cleaning :] the package is compressed into a .zip archive and the temporary folder deleted.
+\end{description}
+
+\subsection{With an example}
+Let's imagine that I want to compile the harpe.dsp file. There are three parameters that can be 
+changed : attenuation, hand and level. I want \textit{hand} to be controlled through a topic 
+called \texttt{/my/robot/topic}. This topic is going to deliver messages of type 
+std\_msgs/Int64. \\
+My metadata declaration line will look like 
+\lstinline'[ros:/my/robot/topic std_msgs Int64 data]'.
+The second compilation (step 3 below in subsection \ref{subsec:steps}) will add a class called RosCallbacks in which are :
+\begin{itemize}
+\item a ranging function, that re-scales values from the topic to fit with the \faust sliders scale.
+\item a specific callback, called callback0, which sets the audio parameter value to the message value : \begin{lstlisting}
+void callback0(const std_msgs::Int64ConstPtr& msg, FAUSTFLOAT* zone)
+\end{lstlisting}
+\item a subscribing function, which calls callback0 in the \ros way : 
+\begin{lstlisting}
+void Subscribe(std::vector<FAUSTFLOAT*> zones)
+{
+ros::Subscriber* my_sub0 = new ros::Subscriber();
+*my_sub0 = nh_.subscribe<std_msgs::Int64>("my/robot/topic", 1, boost::bind(&RosCallbacks::callback0, this, _1, zones[0]));
+}
+\end{lstlisting}
+\end{itemize}
+
+\newpage
+\section{Compiling in a FAUST Archive}
+In order to compile a DSP file into a \faust archive, just type the command followed by your file : 
+\begin{lstlisting}
+faust2ros file.dsp
+\end{lstlisting}
+It should output :
+\begin{lstlisting}
+file.zip;
+\end{lstlisting}
+and the resulting  \lstinline'file.zip' folder should contain a package called \lstinline'file', which contains a .cpp file corresponding to the DSP file.\\
+
+If the DSP file is not in the current directory, make sure to type the right path. For instance :
+\begin{lstlisting}
+faust2ros ~/faust/examples/myfile.dsp
+\end{lstlisting}
+
+
+\paragraph{Comments:}
+\begin{itemize}
+	\item If you want to use the \lstinline'faust2rosgtk' command, the output will have a \lstinline'_gtk' extension. For instance :
+		\begin{lstlisting}
+faust2rosgtk file.dsp
+		\end{lstlisting}
+		should output :
+		\begin{lstlisting}
+file_gtk.zip;
+		\end{lstlisting}
+	\item The zip file is located in the current directory.
+	
+\end{itemize} 
+
+\newpage
+\section{Compiling in a Workspace}
+Thanks to the option \lstinline'-install', you have the possibility to create a package from your DSP file directly in a workspace you choose.
+Just type :
+\begin{lstlisting}
+faust2ros -install faust_ws file.dsp
+\end{lstlisting}
+
+It should output : 
+\begin{lstlisting}
+file.cpp; 
+\end{lstlisting}
+and you should have a faust\_ws repository looking like this :\\
+
+\dirtree{%
+.1 faust\_ws. 
+	.2 build. 
+	.2 devel. 
+	.2 src. 
+		.3 file :  \begin{minipage}[t]{10cm}
+						File Package{}
+				\end{minipage}. 
+			.4 include. 
+			.4 src. 
+				.5 \textcolor{margincolor}{file.cpp} : 
+						\begin{minipage}[t]{10cm}
+						File generated with the \faust compiler{}
+					   \end{minipage}. 
+			.4 CMakeLists.txt. 
+			.4 package.xml. 
+}
+
+%\section{Renaming DSP file}
+%If the dsp file name does not fit you, you can change it using the \lstinline'-o' command.
+%For instance, if you want the package generated from DSP file to have a different name that your DSP file name, you can type :
+%\begin{lstlisting}
+%	faust2ros -o foobar file.dsp
+%\end{lstlisting}
+%The output is going to be : \\
+%
+%\dirtree{%
+%.1 foobar.zip. 
+%	.2 faust\_msgs. 
+%	.2 foobar. 
+%}
+
+\section{Example}
+Here is an example of a three files compilation.\\
+
+Input :
+\begin{lstlisting}
+faust2rosgtk -install foo_ws -o foo1 file1.dsp 
+			 -install foo_ws -o foo2 file2.dsp 
+			 -install bar_ws -o bar file3.dsp
+\end{lstlisting}
+
+Output :\\
+\dirtree{%
+.1 \~{ }. 	
+	.2 foo\_ws. 
+		.3 foo1. 
+		.3 foo2. 
+	.2 bar\_ws. 
+		.3 bar. 
+}

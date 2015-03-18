@@ -51,7 +51,7 @@ static const char * kDestMsg		= "desthost";
 static const char * kUdpOutPortMsg	= "outport";
 static const char * kUdpErrPortMsg	= "errport";
 static const char * kXmitMsg		= "xmit";
-
+static const char * kXmitFilter     = "xmitfilter";
 
 //--------------------------------------------------------------------------
 // ip address utility
@@ -210,6 +210,8 @@ bool RootNode::acceptSignal( const Message* msg )
 //--------------------------------------------------------------------------
 bool RootNode::accept( const Message* msg )
 {
+    printf("Accept fonction\n");
+    
 	string val;
 	// checks for the 'hello' message first
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg) ) {
@@ -220,7 +222,7 @@ bool RootNode::accept( const Message* msg )
 	if (MessageDriven::accept (msg))
 		return true;
 
-	else if ((msg->size() == 2) && (msg->param(0, val))) {
+	else if ((msg->size() >= 2) && (msg->param(0, val))) {
 		string str; int num;
 		if ((val == kDestMsg) && (msg->param(1, str)))
 			oscout.setAddress(str);
@@ -234,7 +236,23 @@ bool RootNode::accept( const Message* msg )
 		}
 		else if ((val == kXmitMsg) && (msg->param(1, num)))
 			OSCControler::gXmit = num ? true : false;
+        
+        else if(val == kXmitFilter){
+            
+            printf("XMITFILER WITH %i params\n", msg->size());
+            
+            for(int i = 1 ; i<msg->size(); i++){
+                msg->param(i, str);
+                printf("XMITFILTER WITH MSG = %s\n", str.c_str());
+                OSCControler::addFilteredPath(str);
+            }
+        }
 	}
+    else if((msg->size() == 1) && (msg->param(0, val))){
+        if(val == kXmitFilter)
+            OSCControler::resetFilteredPaths();
+    }
+    
 	else if (fIO)							// when still not handled and if a IO controler is set
 		return acceptSignal (msg);			// try to read signal data
 	return false;

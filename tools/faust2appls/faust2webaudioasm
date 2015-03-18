@@ -2,13 +2,16 @@
 
 #-------------------------------------------------------------------
 # Wrapping resources
+HTML_FOOTER=""
+CODE_WRAPPER=""
+JS_WRAPPER=""
 
-HTML_FOOTER=webaudio-asm-footer.html
-CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
-JS_WRAPPER=webaudio-asm-footer.js
 LINKS=""
 SVG=""
-EMCC="NO"
+
+EMCC="false"
+POLY="false"
+EXPAND="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -18,10 +21,10 @@ then
   FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/lib/faust/music.lib ]
 then
-  FAUSTLIB=/usr/local/lib/faust/
+  FAUSTLIB=/usr/local/lib/faust
 elif [ -f /usr/lib/faust/music.lib ]
 then
-  FAUSTLIB=/usr/lib/faust/
+  FAUSTLIB=/usr/lib/faust
 else
   error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
 fi
@@ -33,7 +36,12 @@ fi
 #
 
 for p in $@; do
-    if [ $p = "-links" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2webaudioasm [-poly] [-links] [-emcc] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
+        echo "Use '-emcc' to compile C++ generated code to asm.js with Emcripten, otherwise the internal asm.js backend is used"
+    elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>
@@ -41,17 +49,15 @@ for p in $@; do
 				a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
 				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
-            <a href=\"DSP.dsp\" target=\"_blank\">code</a>  <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
+            <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
+            <a href=\"DSP_exp.dsp\" target=\"_blank\">code</a>
+            <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
+        EXPAND="true"
     elif [ $p = "-poly" ]; then
-        HTML_FOOTER=webaudio-asm-poly-footer.html
-        CODE_WRAPPER=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-footer.js
-        # Force emcc compilation for now
-        EMCC=emcc 
+        POLY="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
-        CODE_WRAPPER=webaudio-asm.cpp
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -62,8 +68,35 @@ for p in $@; do
 done
 
 #-------------------------------------------------------------------
+# Set the compilation wrapping files depending of the compilation options
+#
+
+if [ $POLY = "true" ]; then
+    HTML_FOOTER=webaudio-asm-poly-footer.html
+    if [ $EMCC = emcc ]; then
+        echo "Compiled with 'emcc' in polyphonic mode"
+        CODE_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-emcc.js
+    else
+        echo "Compiled with 'asm.js' backend in polyphonic mode"
+        CODE_WRAPPER=webaudio-asm-poly-standalone-wrapper.js
+    fi
+else
+    HTML_FOOTER=webaudio-asm-footer.html
+    if [ $EMCC = emcc ]; then
+        echo "Compiled with 'emcc'"
+        CODE_WRAPPER=webaudio-asm.cpp
+        JS_WRAPPER=webaudio-asm-emcc.js
+    else
+        echo "Compiled with 'asm.js' backend"
+        CODE_WRAPPER=webaudio-asm-standalone-wrapper.js
+    fi
+fi
+
+#-------------------------------------------------------------------
 # compile the *.dsp files
 #
+
 BINARIES=""
 
 for f in $FILES; do
@@ -75,19 +108,25 @@ for f in $FILES; do
     else
         faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js
     fi
+    
+    # prepare the expanded version
+    if [ $EXPAND = "true" ] ; then
+        faust -e $f 
+    fi
      
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
-        if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
+        if [ $POLY = "false" ]; then
             EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+            
         else
-            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"       
+            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']" 
+                  
         fi
         # compile the C++ code to asm.js
-        emcc -O2 $name.cpp -s EMCC_DEBUG=2 -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --pre-js $FAUSTLIB/webaudio/webaudio-asm-header.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
-        # add final footer of JS page
-        echo "}());" >> $name-temp1.js
+ 
         # remove intermediate C++  file
         rm $name.cpp
     fi
@@ -103,7 +142,8 @@ for f in $FILES; do
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
-    cat $name-temp1.js >> $name-temp2.html
+    cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html 
     echo "</head>" >> $name-temp2.html
     echo "<body>" >> $name-temp2.html
@@ -116,6 +156,7 @@ for f in $FILES; do
     rm $name-temp1.js
     rm $name-temp2.html
  
+    # collect binary file name
 	BINARIES="$BINARIES$name.html;"
 
 done

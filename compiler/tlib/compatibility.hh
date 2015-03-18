@@ -22,7 +22,7 @@
 #ifndef __COMPATIBILITY__
 #define __COMPATIBILITY__
 
-#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35)
+#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35 || LLVM_36)
 
 unsigned faust_alarm(unsigned seconds);
 
@@ -45,7 +45,7 @@ struct timezone
 	int  tz_dsttime;     /* type of dst correction */
 };
 
-#define alarm(x)
+#define alarm(x) 0
 #ifndef __MINGW32__
 // mingw has these in its headers.
 #define strdup _strdup

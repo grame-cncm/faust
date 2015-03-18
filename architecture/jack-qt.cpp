@@ -71,17 +71,16 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp*	DSP;
+mydsp* DSP;
 
-std::list<GUI*>               GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    
-	char	appname[256];
+ 	char	appname[256];
 	char	rcfilename[256];
 	char* 	home = getenv("HOME");
 
@@ -120,7 +119,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
 	httpdinterface->run();
 #ifdef QRCODECTRL
-    interface->displayQRCode( httpdinterface->getTCPPort() );
+    interface->displayQRCode(httpdinterface->getTCPPort());
 #endif
 #endif
 	

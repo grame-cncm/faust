@@ -56,7 +56,7 @@ LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
 EXE = .exe
 endif
 
-CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
+CXXFLAGS ?= -O3 -g -Wall -Wuninitialized 
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
@@ -92,6 +92,16 @@ endif
 
 ifeq ($(LLVM_VERSION), 3.5.0)
     LLVM_VERSION = LLVM_35
+    CXXFLAGS += -std=gnu++11
+endif
+
+ifeq ($(LLVM_VERSION), 3.5.1)
+    LLVM_VERSION = LLVM_35
+    CXXFLAGS += -std=gnu++11
+endif
+
+ifeq ($(LLVM_VERSION), 3.6.0)
+    LLVM_VERSION = LLVM_36
     CXXFLAGS += -std=gnu++11
 endif
 
@@ -135,20 +145,17 @@ ios : libfaust.a
 
 emcc : CC=emcc
 emcc : CXX=emcc
-emcc : CXXFLAGS = -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : CXXFLAGS = -DEMCC -I../architecture -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js
-emcc : EXPORTED="['_createAsmCDSPFactoryFromString']"
+emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_freeCDSP']"
 
 ##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
 
-libfaust.js : $(objects) libcode.o global.o
-	$(CXX) -O2 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
-
-libcode.o : libcode.cpp
-	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
+libfaust.js : $(objects) libcode.o libmain.o global.o
+	$(CXX) -O2 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
 
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
@@ -622,9 +629,9 @@ generator/asmjs/asmjs_code_container.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/asmjs/asmjs_code_container.o: signals/signals.hh generator/uitree.hh global.hh parser/sourcereader.hh
 generator/asmjs/asmjs_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh tlib/occurrences.hh generator/floats.hh
 generator/asmjs/asmjs_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
-generator/asmjs/asmjs_code_container.o: generator/json_instructions.hh generator/asmjs/asmjs_instructions.hh
-generator/asmjs/asmjs_code_container.o: generator/text_instructions.hh generator/type_manager.hh
-generator/asmjs/asmjs_code_container.o: generator/typing_instructions.hh errors/exception.hh
+generator/asmjs/asmjs_code_container.o: generator/json_instructions.hh generator/vec_code_container.hh
+generator/asmjs/asmjs_code_container.o: generator/asmjs/asmjs_instructions.hh generator/text_instructions.hh
+generator/asmjs/asmjs_code_container.o: generator/type_manager.hh generator/typing_instructions.hh errors/exception.hh
 generator/asmjs/asmjs_dsp_aux.o: tlib/compatibility.hh generator/asmjs/asmjs_dsp_aux.hh export.hh libfaust.h
 generator/c/c_code_container.o: generator/c/c_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/c/c_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh

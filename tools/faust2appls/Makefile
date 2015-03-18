@@ -65,6 +65,7 @@ install:
 	install faust2owl $(dest)
 	install faust2webaudioasm $(dest)
 	install faust2asmjs $(dest)
+	install faust2api $(dest)
 	
 
 uninstall:

@@ -29,12 +29,15 @@ pole(p) = + ~ *(p);
 
 integrator = + ~ _ ;
 
-//----------------------- tau2pole ---------------------------
+//------------------ tau2pole, pole2tau ----------------------
 // tau2pole(tau) returns a real pole giving exponential decay with
 // tau = time-constant in seconds
 // Note that t60 (time to decay 60 dB) is ~6.91 time constants.
+// pole2tau(pole) returns the time-constant, in seconds, 
+// corresponding to the given real, positive pole in (0,1).
 
 tau2pole(tau) = exp(-1.0/(tau*SR));
+pole2tau(pole) = -1.0/(log(pole)*ml.SR);
 
 //---------------------- smooth(s) --------------------------
 // Exponential smoothing by a unity-dc-gain one-pole lowpass
@@ -152,8 +155,8 @@ ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 // Reference: 
 //   https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html
 
-fb_comb (maxdel,N,b0,aN) = (+ <:  delay(maxdel,N),_) ~ *(-aN) : !,*(b0);
-fb_fcomb(maxdel,N,b0,aN) = (+ <: fdelay(maxdel,N),_) ~ *(-aN) : !,*(b0);
+fb_comb (maxdel,N,b0,aN) = (+ <:  delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
+fb_fcomb(maxdel,N,b0,aN) = (+ <: fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0):mem;
 
 // The "rev1 section" dates back to the 1960s in computer-music reverberation.
 // See the jcrev and brassrev in effect.lib for usage examples.
@@ -190,6 +193,12 @@ ffbcombfilter(maxdel,del,g) = (+ : fdelay(maxdel,del)) ~ *(g);
 allpass_comb(maxdel,N,aN) = (+ <: 
    delay(maxdel,N-1),*(aN)) ~ *(-aN)
    : mem,_ : + ;
+
+allpass_fcomb(maxdel,N,aN) = (+ <: fdelay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
+allpass_fcomb5(maxdel,N,aN) = (+ <: fdelay5(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
+allpass_fcomb1a(maxdel,N,aN) = (+ <: fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
+// Interpolation helps - look at an fft of faust2octave on
+// 1-1' <: allpass_fcomb(1024,10.5,0.95), allpass_fcomb5(1024,10.5,0.95);
 
 // The "rev2 section" dates back to the 1960s in computer-music reverberation:
 rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);

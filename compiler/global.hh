@@ -398,7 +398,7 @@ struct global {
     
     // FIR 
     map<Typed::VarType, BasicTyped*> gTypeTable;    
-    map<string, Typed*> gVarTypeTable;          // Types of variables
+    map<string, Typed*> gVarTypeTable;          // Types of variables or functions
     map<Typed::VarType, int> gTypeSizeMap;      // Size in bytes on types
     
     // colorize
@@ -427,8 +427,12 @@ struct global {
     bool gPrintJSONSwitch;
     bool gPrintDocSwitch;
     int gBalancedSwitch;
-    const char* gArchFile;
+    string gArchFile;
     bool gExportDSP;
+    
+    // source file injection
+    bool gInjectFlag;
+    string gInjectFile;
 
     int gTimeout;   // time out to abort compiler (in seconds)
     bool gLLVMOut;
@@ -442,8 +446,8 @@ struct global {
    
     // GC
     static list<Garbageable*> gObjectTable;
-	static bool gHeapCleanup;
-      
+    static bool gHeapCleanup;
+
     global();
     ~global();
     
@@ -451,12 +455,14 @@ struct global {
     
     static void allocate();
     static void destroy();
+    
+    string getFreshID(const string& prefix);
 };
 
+// Unique shared global pointer
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
-
 #define MAX_STACK_SIZE 50000
 
 #endif

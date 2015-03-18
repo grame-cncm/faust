@@ -59,10 +59,10 @@ _f4u$t.getnumspecs = function(dct) {
     integer = true;
   }
 
-  var maxsplit = dct["max"] ? dct["max"].split('.') : ['',''];
-  var minsplit = dct["min"] ? dct["min"].split('.') : ['',''];
-  var stepsplit = dct["step"] ? dct["step"].split('.') : ['',''];
-  var initsplit = dct["init"] ? dct["init"].split('.') : ['',''];
+  var maxsplit = dct["max"] ? dct["max"].toString().split('.') : ['',''];
+  var minsplit = dct["min"] ? dct["min"].toString().split('.') : ['',''];
+  var stepsplit = dct["step"] ? dct["step"].toString().split('.') : ['',''];
+  var initsplit = dct["init"] ? dct["init"].toString().split('.') : ['',''];
   maxsplit[1] = maxsplit[1] || '';
   minsplit[1] = minsplit[1] || '';
   stepsplit[1] = stepsplit[1] || '';

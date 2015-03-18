@@ -11,10 +11,10 @@ _f4u$t.parseURLParams = function(url) {
   if (query === url || query === "")
     return params;
 
-  var nvPairs = query.replace(/\+/g, " ").split("&");
+  var nvPairs = query.replace(/\+/g, " ").toString().split("&");
 
   for (var i=0; i<nvPairs.length; i++) {
-    var nv = nvPairs[i].split("=");
+    var nv = nvPairs[i].toString().split("=");
     var n  = decodeURIComponent(nv[0]);
     var v  = decodeURIComponent(nv[1]);
     if (!(n in params)) {
