@@ -101,15 +101,11 @@ function createTree(node, parent){
 // Computing a node is computing its entries and merging them in the node's own faust code.
 function computeNode(node){
 
-// 	var nodeInputs = node.inputConnections;
-	var nodeInputs = node.nodeInputs;
-	
+	var nodeInputs = node.nodeInputs;	
 	var faustResult = "";
 	
 // Iterate on input Nodes to compute them
 	if(nodeInputs && nodeInputs.length != 0){
-	
-// 			faustResult += "(";
 
 			var inputCode = "";
 
@@ -119,13 +115,12 @@ function computeNode(node){
 					if(nodeInputs[i].sourceCode && nodeInputs[i].sourceCode.length>0){		
 						if(i != 0)
 							inputCode += ",";
-// 							inputCode += "),(";
 
 						inputCode += computeNode(nodeInputs[i]);
 					}
 				}
 			}	
-// 			faustResult += "):> ";
+
 			if(inputCode != ""){
 				if(node.recursiveFlag)
 					faustResult += "(" + inputCode + ":> ";
@@ -136,9 +131,6 @@ function computeNode(node){
 	
 	var nodeCode = node.sourceCode;
 	
-// 	if(node.id == "output" || node.id == "input")
-// 		nodeCode = "process=_,_;";
-
 	if(node.recursiveFlag)
 		faustResult += "stereoize(environment{" + nodeCode + "}.process))~(_,_)";
 	else
@@ -148,27 +140,23 @@ function computeNode(node){
 }
 
 // Computing the trees unconnected to the output
-function computeUnconnectedNodes(faustModuleList){
+function connectUnconnectedNodes(faustModuleList, output){
 
-	var j = 0;
-	var computationString = "";
-
-	for(var i=0 ; i<faustModuleList.length; i++){
+	for(var i in faustModuleList){
 	
 		var outputNode = faustModuleList[i].getOutputNode();
 		
-		if(outputNode && !faustModuleList[i].getOutputConnections()){
+		if(outputNode && (!faustModuleList[i].getOutputConnections() || faustModuleList[i].getOutputConnections())){
 		
-			if(j != 0)
-				computationString += ",";
+			connectNodes(faustModuleList[i], output);
+			var connector = new Object();
+
+			saveConnection(faustModuleList[i], output, connector, null);
 		
-			computationString += computeNode(faustModuleList[i]) + ":>_,_";
-				
-			j++;
+			output.addInputConnection(connector);
+			faustModuleList[i].addOutputConnection(connector);			
 		}
 	}
-	
-	return computationString;
 }
 
 // To avoid sharing instances of a same factory in the resulting Faust Equivalent
@@ -214,30 +202,16 @@ function getFaustEquivalent(scene, patchName){
 			recursivize(p,q) = (_,_,_,_ :> stereoize(p)) ~ stereoize(q);\n\
 			";
 
-		var unConnectedComputation = computeUnconnectedNodes(faustModuleList);
+		connectUnconnectedNodes(faustModuleList, dest);
 	
 		window.recursiveMap = [];
-// 		var destNode = document.createElement("div");
-// 		dest.patchID = "0";
-// 		dest.Source = "process=_,_;";
 		
 		giveIdToModules(scene);	
 		
 		var destinationDIVVV = createTree(dest, null);
 		
-		if(dest.getInputConnections()){
-		
-			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(destinationDIVVV);
-
-			if(unConnectedComputation)
-				faustResult += "," + unConnectedComputation;	
-		
-			faustResult += "));";
-		}
-		else
-			faustResult += "process = vgroup(\""+ patchName + "\",(" + unConnectedComputation + "));";;	
-		
-// 		console.log(faustResult);
+		if(dest.getInputConnections())
+			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(destinationDIVVV) + "));";
 		
 		return faustResult;
 	}
