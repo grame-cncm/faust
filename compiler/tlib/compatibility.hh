@@ -52,7 +52,9 @@ struct timezone
 #define snprintf _snprintf
 #endif
 extern "C" {
+#if (_MSC_VER<=1700)
 double  rint(double nr);
+#endif
 int		gettimeofday(struct timeval *tv, struct timezone *tz);
 int chdir(const char *path);
 int		mkdir(const char* path, unsigned int attribute);
@@ -75,10 +77,10 @@ char*	basename(const char* fullpath);
 #if !defined(__MINGW32__)
 #if (_MSC_VER<=1700)
 	double	remainder(double numerator, double denominator);
+	double rint(double nr);
 #endif
 
 	/* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
-	double rint(double nr);
 	#define S_IRWXU 0
 #endif
 

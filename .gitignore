@@ -15,3 +15,6 @@ compile.sh
 .DS_Store
 *tmp*
 *dir*
+windows/_output/
+*.opensdf
+*.sdf

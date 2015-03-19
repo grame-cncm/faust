@@ -1,0 +1,22 @@
+	 		FAUST : a programming language for
+	 		  audio applications and plugins
+					==============
+	 Grame, Centre National de Creation Musicale
+	 			 http://www.grame.fr
+
+
+
+BUILDING LIBFAUST ON VISUAL STUDIO
+----------------------------------
+
+1- Compile dependencies
+	LLVM
+	openssl
+	
+2- Copy template.props and name it faust.props
+	
+3- Modify faust.props with the paths to your dependencies
+
+
+
+tested on visual studio 2012 with LLVM 3.4
