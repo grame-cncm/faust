@@ -57,7 +57,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -91,28 +91,28 @@
     <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>liboscpack</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>faust</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>liboscpack</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>faust</TargetName>
   </PropertyGroup>
@@ -210,4 +210,4 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  </Project>
+</Project>

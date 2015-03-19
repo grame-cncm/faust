@@ -20,7 +20,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>libfaust_vs2012</ProjectName>
+    <ProjectName>libfaust</ProjectName>
     <ProjectGuid>{DA6B561F-98A0-4C2D-A9B3-22F959F7C010}</ProjectGuid>
     <RootNamespace>faust_vs2008</RootNamespace>
     <Keyword>Win32Proj</Keyword>
@@ -28,19 +28,19 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -72,28 +72,28 @@
     <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>faust</TargetName>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>faust</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>faust</TargetName>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>_output\$(Platform)\$(ProjectName)\$(Configuration)\Int\</IntDir>
+    <OutDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>_output\$(Platform)\$(Configuration)\$(ProjectName)\Int\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>faust</TargetName>
   </PropertyGroup>
