@@ -299,7 +299,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             // Prepare ins/out buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
+                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
@@ -316,7 +316,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
+                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
