@@ -128,8 +128,8 @@ faust.DSP = function (context, buffer_size) {
     function init ()
     {
         var i;
-        var ptrsize = 4; //assuming pointer in emscripten are 32bits
-        var samplesize = 4;
+        var ptr_size = 4; //assuming pointer in emscripten are 32bits
+        var sample_size = 4;
         
         // Get input / output counts
         numIn = DSP_getNumInputs(ptr);
@@ -140,29 +140,29 @@ faust.DSP = function (context, buffer_size) {
         scriptProcessor.onaudioprocess = compute;
         
         if (numIn > 0) {
-            ins = Module._malloc(ptrsize * numIn);
+            ins = Module._malloc(ptr_size * numIn);
             for (i = 0; i < numIn; i++) { 
-                HEAP32[(ins >> 2) + i] = Module._malloc(buffer_size * samplesize); 
+                HEAP32[(ins >> 2) + i] = Module._malloc(buffer_size * sample_size); 
             }
             
             // Prepare Ins buffer tables
-            var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptrsize) >> 2);
+            var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptrsize) >> 2);
+                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
         if (numOut > 0) {
         
-            outs = Module._malloc(ptrsize * numOut); 
+            outs = Module._malloc(ptr_size * numOut); 
             for (i = 0; i < numOut; i++) { 
-                HEAP32[(outs >> 2) + i] = Module._malloc(buffer_size * samplesize);
+                HEAP32[(outs >> 2) + i] = Module._malloc(buffer_size * sample_size);
             }
            
             // Prepare Outs buffer tables
-            var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptrsize) >> 2);
+            var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptrsize) >> 2);
+                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
                                 
