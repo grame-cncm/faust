@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LLVM_DIR>C:\Users\Sarah\DevTools\llvm-3.4</LLVM_DIR>
+    <LLVM_BUILD_DIR>C:\Users\Sarah\DevTools\llvm-3.4</LLVM_BUILD_DIR>
+    <OPENSSL_DIR>C:\Users\Sarah\DevTools\libopenssl</OPENSSL_DIR>
+    <LLVM_VER>LLVM_34</LLVM_VER>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+    <BuildMacro Include="LLVM_DIR">
+      <Value>$(LLVM_DIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LLVM_BUILD_DIR">
+      <Value>$(LLVM_BUILD_DIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OPENSSL_DIR">
+      <Value>$(OPENSSL_DIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LLVM_VER">
+      <Value>$(LLVM_VER)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

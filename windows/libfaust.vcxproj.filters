@@ -53,25 +53,25 @@
       <UniqueIdentifier>{9e340713-4d42-49cf-976e-f1bcc63136c6}</UniqueIdentifier>
     </Filter>
     <Filter Include="generator\asmjs">
-      <UniqueIdentifier>{11e098ee-7a3c-4354-99d8-de96671f4b1c}</UniqueIdentifier>
+      <UniqueIdentifier>{611afe80-cb37-4442-b717-18365984aed1}</UniqueIdentifier>
     </Filter>
     <Filter Include="generator\c">
-      <UniqueIdentifier>{972d318c-14eb-481e-911e-4e8816fe17c1}</UniqueIdentifier>
+      <UniqueIdentifier>{03641f27-25d0-4678-b89e-20dd19007e90}</UniqueIdentifier>
     </Filter>
     <Filter Include="generator\cpp">
-      <UniqueIdentifier>{ba88d3c1-0ac4-49f9-bc33-6f1a70aaf951}</UniqueIdentifier>
+      <UniqueIdentifier>{33c4349c-7535-4182-a3e6-b5c4d269a545}</UniqueIdentifier>
     </Filter>
     <Filter Include="generator\fir">
-      <UniqueIdentifier>{a6dd1142-fade-48ec-a890-cf5f313c6a74}</UniqueIdentifier>
+      <UniqueIdentifier>{42f69bff-af53-46ff-9dc1-a5fb9684ff31}</UniqueIdentifier>
     </Filter>
     <Filter Include="generator\java">
-      <UniqueIdentifier>{33d67fba-ef8e-4c95-bd86-f98afbb792b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="generator\js">
-      <UniqueIdentifier>{4b8d9707-1d6d-4033-81ed-10f05d9c8afb}</UniqueIdentifier>
+      <UniqueIdentifier>{3564c25f-9c67-41f4-a93c-10f5d8f1e530}</UniqueIdentifier>
     </Filter>
     <Filter Include="generator\llvm">
-      <UniqueIdentifier>{8534699d-b4c4-44f7-b3ac-3648d8e0ba13}</UniqueIdentifier>
+      <UniqueIdentifier>{28014d46-de30-4362-a2ec-4310cc2e98c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="generator\js">
+      <UniqueIdentifier>{4c291a9c-8c8c-498a-82f6-e4c304435915}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -267,7 +267,6 @@
     <ClCompile Include="..\compiler\utils\names.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\compiler\main.cpp" />
     <ClCompile Include="..\compiler\draw\schema\connectorSchema.cpp">
       <Filter>draw\schema</Filter>
     </ClCompile>
@@ -276,6 +275,48 @@
     </ClCompile>
     <ClCompile Include="..\compiler\global.cpp" />
     <ClCompile Include="..\compiler\libmain.cpp" />
+    <ClCompile Include="..\compiler\generator\code_container.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\contextor.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\dag_instructions_compiler.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\description.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\fir_to_fir.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\floats.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\instructions.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\instructions_compiler.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\occurences.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\omp_code_container.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\Text.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\uitree.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\vec_code_container.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\wss_code_container.cpp">
+      <Filter>generator</Filter>
+    </ClCompile>
     <ClCompile Include="..\compiler\parallelize\code_loop.cpp">
       <Filter>parallelize</Filter>
     </ClCompile>
@@ -296,6 +337,9 @@
     </ClCompile>
     <ClCompile Include="..\compiler\utils\files.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compiler\generator\dsp_aux.cpp">
+      <Filter>generator</Filter>
     </ClCompile>
     <ClCompile Include="..\compiler\generator\asmjs\asmjs_code_container.cpp">
       <Filter>generator\asmjs</Filter>
@@ -327,54 +371,7 @@
     <ClCompile Include="..\compiler\generator\llvm\llvm_dsp_aux.cpp">
       <Filter>generator\llvm</Filter>
     </ClCompile>
-    <ClCompile Include="..\compiler\generator\code_container.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\contextor.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\dag_instructions_compiler.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\description.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\dsp_aux.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\fir_to_fir.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\floats.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\instructions.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\instructions_compiler.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\occurences.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\omp_code_container.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\Text.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\tools.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\uitree.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\vec_code_container.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\compiler\generator\wss_code_container.cpp">
-      <Filter>generator</Filter>
-    </ClCompile>
+    <ClCompile Include="..\compiler\libcode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
@@ -503,6 +500,63 @@
     <ClInclude Include="..\compiler\tlib\garbageable.hh">
       <Filter>tlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\compiler\generator\code_container.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\contextor.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\dag_instructions_compiler.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\description.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\fir_to_fir.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\floats.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\function_builder.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\instructions.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\instructions_compiler.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\instructions_complexity.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\occurences.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\omp_code_container.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\opencl_instructions.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\Text.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\text_instructions.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\type_manager.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\uitree.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\vec_code_container.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\wss_code_container.hh">
+      <Filter>generator</Filter>
+    </ClInclude>
     <ClInclude Include="..\compiler\boxes\boxcomplexity.hh">
       <Filter>boxes</Filter>
     </ClInclude>
@@ -526,9 +580,6 @@
     </ClInclude>
     <ClInclude Include="..\compiler\generator\llvm\llvm-dsp.h">
       <Filter>generator\llvm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\compiler\generator\smartpointer.h">
-      <Filter>generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -679,8 +730,8 @@
     <None Include="..\compiler\utils\files.hh">
       <Filter>utils</Filter>
     </None>
-    <None Include="..\compiler\utils\files.hh">
-      <Filter>utils</Filter>
+    <None Include="..\compiler\generator\dsp_aux.hh">
+      <Filter>generator</Filter>
     </None>
     <None Include="..\compiler\generator\asmjs\asmjs_code_container.hh">
       <Filter>generator\asmjs</Filter>
@@ -732,75 +783,6 @@
     </None>
     <None Include="..\compiler\generator\llvm\llvm_instructions.hh">
       <Filter>generator\llvm</Filter>
-    </None>
-    <None Include="..\compiler\generator\code_container.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\contextor.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\dag_instructions_compiler.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\description.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\dsp_aux.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\fir_to_fir.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\floats.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\function_builder.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\instructions.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\instructions_compiler.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\instructions_complexity.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\json_instructions.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\occurences.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\omp_code_container.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\opencl_instructions.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\Text.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\text_instructions.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\tools.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\type_manager.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\typing_instructions.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\uitree.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\vec_code_container.hh">
-      <Filter>generator</Filter>
-    </None>
-    <None Include="..\compiler\generator\wss_code_container.hh">
-      <Filter>generator</Filter>
     </None>
   </ItemGroup>
 </Project>
