@@ -23,6 +23,7 @@
 
 #include <string>
 #include <sstream>
+#include <stdio.h>
 
 #ifndef _WIN32
 #include <unistd.h>
