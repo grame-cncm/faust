@@ -1,5 +1,5 @@
 
-importScripts('libfaust.js');
+importScripts('libfaustworker.js');
 
 onmessage = function(e) {
   

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC>
 <html>
 <head>
@@ -293,15 +292,16 @@
 </div>
 
 <form id="upload" action="CompilerResponse" method="POST" enctype="multipart/form-data">
-<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="5000000" />
+<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="50000000" />
 </form>
 
-<script src="jsscripts.js"></script>
-<script src="libfaust.js"></script>
-<script src="webaudio-asm-wrapper.js"></script>
-<script src="WebMIDIAPI.js"></script>
+<script src="file://localhost/usr/local/lib/faust/js/jsscripts.js"></script>
+<script src="file://localhost/usr/local/lib/faust/webaudio/webaudio-asm-worker-wrapper.js"></script>
+<script src="file://localhost/usr/local/lib/faust/webaudio/WebMIDIAPI.js"></script>
         
 <script type="text/javascript">
+
+// Faust part
 
 (function() {
 
@@ -402,7 +402,7 @@
             alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
         }
     }
-    
+ 
     // Audio input handling
     function activateAudioInput()
     {
@@ -410,7 +410,7 @@
         if (!navigator.getUserMedia) {
             navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
         }
-       
+        
         if (navigator.getUserMedia) {
             navigator.getUserMedia({audio:true}, getDevice, function(e) {
                     alert('Error getting audio input');
@@ -430,24 +430,26 @@
         audio_input.connect(DSP.getProcessor());
     }
 
-    function FileDragHover(e) {
+    function FileDragHover(e) 
+    {
         e.stopPropagation();
         e.preventDefault();
         e.target.className = (e.type == "dragover" ? "hover" : "");
     }
 
-    function FileSelectHandler(e) {
+    function FileSelectHandler(e) 
+    {
         FileDragHover(e);
         var files = e.target.files || e.dataTransfer.files;
         f = files[0];
         UploadFile(f);
     }
 
-    function UploadFile(e) {
-    
+    function UploadFile(e) 
+    {
         var intAltKey = e.altKey;
         var intShiftKey = e.shiftKey;
-
+     
         FileDragHover(e);
         var files = e.target.files || e.dataTransfer.files;
         var file = files[0];
@@ -466,7 +468,7 @@
 
             reader.onloadend = function(e) {
                 dsp_code = reader.result;
-                console.log(dsp_code);
+                //console.log(dsp_code);
                 
                 // Remove the current div in ALT key was pressed
                 if (intAltKey) {
@@ -488,30 +490,31 @@
                     console.log("Poly DSP");
                     
                     // Create a poly DSP factory from the dsp code    
-                    factory = faust.createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16);
+                    faust.createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16, function(factory) {
                     
-                    if (!factory) {
-                        alert(faust.getErrorMessage());
-                        return;
-                    }
-                    
-                    DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size);
-                    if (DSP.getNumInputs() > 0) {
-                        activateAudioInput();
-                    }
-                    
-                    // Setup UI
-                    _f4u$t.main_loop = function() {}
-                    
-                    faustsvg = $('<div />');
-                    $('body').append(faustsvg);
-                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                    DSP.setHandler(handler);
-                                  
-                    console.log(DSP.getNumInputs());
-                    console.log(DSP.getNumOutputs());
-                    
-                    DSP.start();
+                        if (!factory) {
+                            alert(faust.getErrorMessage());
+                            return;
+                        }
+                        
+                        DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size);
+                        if (DSP.getNumInputs() > 0) {
+                            activateAudioInput();
+                        }
+                        
+                        // Setup UI
+                        _f4u$t.main_loop = function() {}
+                        
+                        faustsvg = $('<div />');
+                        $('body').append(faustsvg);
+                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                        DSP.setHandler(handler);
+                                      
+                        console.log(DSP.getNumInputs());
+                        console.log(DSP.getNumOutputs());
+                        
+                        DSP.start();
+                    });
                 
                 } else {
                 
@@ -519,39 +522,38 @@
                     console.log("Mono DSP");
                      
                     // Create a mono DSP factory from the dsp code    
-                    factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+                    faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
                     
-                    if (!factory) {
-                        alert(faust.getErrorMessage());
-                        return;
-                    }
-                   
-                    DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
-                    if (DSP.getNumInputs() > 0) {
-                        activateAudioInput();
-                    }
-                    
-                    // Setup UI
-                    _f4u$t.main_loop = function() {}
-                    
-                    faustsvg = $('<div />');
-                    $('body').append(faustsvg);
-                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                    DSP.setHandler(handler);
-                                  
-                    console.log(DSP.getNumInputs());
-                    console.log(DSP.getNumOutputs());
-                    
-                    DSP.start();
-
+                        if (!factory) {
+                            alert(faust.getErrorMessage());
+                            return;
+                        }
+                       
+                        DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
+                        if (DSP.getNumInputs() > 0) {
+                            activateAudioInput();
+                        }
+                        
+                        // Setup UI
+                        _f4u$t.main_loop = function() {}
+                        
+                        faustsvg = $('<div />');
+                        $('body').append(faustsvg);
+                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                        DSP.setHandler(handler);
+                                      
+                        console.log(DSP.getNumInputs());
+                        console.log(DSP.getNumOutputs());
+                        
+                        DSP.start();
+                    });
                 }
             };
-            
         }  else {
             alert("DSP file is too big!");
         }
     }
-
+    
     function Init() 
     {
         activateMIDIInput();
@@ -559,15 +561,6 @@
         filedrag1.addEventListener("dragover", FileDragHover, false);
         filedrag1.addEventListener("dragleave", FileDragHover, false);
         filedrag1.addEventListener("drop", UploadFile, false);
-
-        /*
-        var xx = new XMLHttpRequest();
-        if (xx.upload) {
-            filedrag1.addEventListener("dragover", FileDragHover, false);
-            filedrag1.addEventListener("dragleave", FileDragHover, false);
-            filedrag1.addEventListener("drop", UploadFile, false);
-        }
-        */
     }
 
     if (window.File && window.FileList && window.FileReader) {

@@ -297,8 +297,7 @@
 </form>
 
 <script src="jsscripts.js"></script>
-<script src="libfaust.js"></script>
-<script src="webaudio-asm-wrapper.js"></script>
+<script src="webaudio-asm-worker-wrapper.js"></script>
 <script src="WebMIDIAPI.js"></script>
         
 <script type="text/javascript">
@@ -488,30 +487,31 @@
                     console.log("Poly DSP");
                     
                     // Create a poly DSP factory from the dsp code    
-                    factory = faust.createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16);
+                    faust.createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16, function(factory) {
                     
-                    if (!factory) {
-                        alert(faust.getErrorMessage());
-                        return;
-                    }
-                    
-                    DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size);
-                    if (DSP.getNumInputs() > 0) {
-                        activateAudioInput();
-                    }
-                    
-                    // Setup UI
-                    _f4u$t.main_loop = function() {}
-                    
-                    faustsvg = $('<div />');
-                    $('body').append(faustsvg);
-                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                    DSP.setHandler(handler);
-                                  
-                    console.log(DSP.getNumInputs());
-                    console.log(DSP.getNumOutputs());
-                    
-                    DSP.start();
+                        if (!factory) {
+                            alert(faust.getErrorMessage());
+                            return;
+                        }
+                        
+                        DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size);
+                        if (DSP.getNumInputs() > 0) {
+                            activateAudioInput();
+                        }
+                        
+                        // Setup UI
+                        _f4u$t.main_loop = function() {}
+                        
+                        faustsvg = $('<div />');
+                        $('body').append(faustsvg);
+                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                        DSP.setHandler(handler);
+                                      
+                        console.log(DSP.getNumInputs());
+                        console.log(DSP.getNumOutputs());
+                        
+                        DSP.start();
+                    });
                 
                 } else {
                 
@@ -519,34 +519,33 @@
                     console.log("Mono DSP");
                      
                     // Create a mono DSP factory from the dsp code    
-                    factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+                    faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
                     
-                    if (!factory) {
-                        alert(faust.getErrorMessage());
-                        return;
-                    }
-                   
-                    DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
-                    if (DSP.getNumInputs() > 0) {
-                        activateAudioInput();
-                    }
-                    
-                    // Setup UI
-                    _f4u$t.main_loop = function() {}
-                    
-                    faustsvg = $('<div />');
-                    $('body').append(faustsvg);
-                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                    DSP.setHandler(handler);
-                                  
-                    console.log(DSP.getNumInputs());
-                    console.log(DSP.getNumOutputs());
-                    
-                    DSP.start();
-
+                        if (!factory) {
+                            alert(faust.getErrorMessage());
+                            return;
+                        }
+                       
+                        DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
+                        if (DSP.getNumInputs() > 0) {
+                            activateAudioInput();
+                        }
+                        
+                        // Setup UI
+                        _f4u$t.main_loop = function() {}
+                        
+                        faustsvg = $('<div />');
+                        $('body').append(faustsvg);
+                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                        DSP.setHandler(handler);
+                                      
+                        console.log(DSP.getNumInputs());
+                        console.log(DSP.getNumOutputs());
+                        
+                        DSP.start();
+                    });
                 }
             };
-            
         }  else {
             alert("DSP file is too big!");
         }
