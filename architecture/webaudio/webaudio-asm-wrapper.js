@@ -761,7 +761,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
         }
     }
     
-    function midiToFreq  (note) 
+    function midiToFreq (note) 
     {
         return 440.0 * Math.pow(2.0, (note - 69.0) / 12.0);
     }

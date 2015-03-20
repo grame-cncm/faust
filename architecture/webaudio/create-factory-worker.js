@@ -16,7 +16,7 @@ onmessage = function(e) {
     Module.writeStringToMemory(name, name_ptr);
     Module.writeStringToMemory(code, code_ptr);
     
-    var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
+    var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number']);
     var freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
     
     argv = (argv === null) ? new Array() : argv;
