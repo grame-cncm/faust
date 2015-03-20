@@ -304,8 +304,7 @@ faust.createDSPFactoryTmp = function (factory_code, factory_name, sha_key, max_p
     factory.HEAP = HEAP;
     factory.HEAP32 = new Int32Array(factory.HEAP);
     factory.HEAPF32 = new Float32Array(factory.HEAP);
-    factory.dsp_num = 0;
- 
+   
     var path_table_function = eval("getPathTable" + factory_name); 
     factory.pathTable = path_table_function();
 
@@ -323,6 +322,26 @@ faust.createDSPFactoryTmp = function (factory_code, factory_name, sha_key, max_p
     factory.factory_name = factory_name;
     factory.sha_key = sha_key;
     faust.factory_table[sha_key] = factory;
+    
+    // Prepare instance table
+    factory.instances = [];
+    for (var i = 0; i < faust.max_dsp_num; i++) {
+        factory.instances.push(true);
+    }
+    
+    factory.allocInstance = function () {
+        for (var i = 0; i < faust.max_dsp_num; i++) {
+            if (factory.instances[i]) {
+                factory.instances[i] = false;
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+    factory.destroyInstance = function (index) {
+        factory.instances[index] = true;
+    }
     
     console.log(factory);
     return factory;
@@ -380,7 +399,9 @@ faust.deletePolyDSPFactory = function (factory) { faust.factory_table[factory.sh
 // 'mono' DSP
 faust.createDSPInstance = function (factory, context, buffer_size) {
 
-    if (factory.dsp_num === faust.max_dsp_num) {
+    var dsp_num = factory.allocInstance();
+    console.log(factory.instances);
+    if (dsp_num === -1) {
         console.log("Maximum of DSP instances reached!");
         return null;
     }
@@ -402,7 +423,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     var inputs_items = [];
     
     // Start of HEAP index
-    var audio_heap_ptr = factory.dsp_memory_size * factory.dsp_num++;
+    var audio_heap_ptr = factory.dsp_memory_size * dsp_num;
      
     // Setup pointers offset
     var audio_heap_ptr_inputs = audio_heap_ptr; 
@@ -632,19 +653,26 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         getProcessor : function ()
         {
             return scriptProcessor;
+        },
+        
+        destroy : function ()
+        {
+            factory.destroyInstance(dsp_num);
         }
     }
 }
 
 faust.deleteDSPInstance = function (dsp) {
     dsp.stop();
+    dsp.destroy();
 }
 
 // 'poly' DSP
 faust.createPolyDSPInstance = function (factory, context, buffer_size, callback) {
 
-    if (factory.dsp_num === faust.max_dsp_num) {
-        console.log("Maximum of poly DSP instances reached!");
+    var dsp_num = factory.allocInstance();
+    if (dsp_num === -1) {
+        console.log("Maximum of DSP instances reached!");
         return null;
     }
     
@@ -666,7 +694,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
     var inputs_items = [];
     
     // Start of HEAP index
-    var audio_heap_ptr = factory.dsp_memory_size * factory.dsp_num++;
+    var audio_heap_ptr = factory.dsp_memory_size * dsp_num;
      
     // Setup pointers offset
     var audio_heap_ptr_inputs = audio_heap_ptr; 
@@ -1003,10 +1031,16 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
         getProcessor : function ()
         {
             return scriptProcessor;
+        },
+        
+        destroy : function ()
+        {
+            factory.destroyInstance(dsp_num);
         }
     };
 };
 
 faust.deletePolyDSPInstance = function (dsp) {
     dsp.stop();
+    dsp.destroy();
 };
