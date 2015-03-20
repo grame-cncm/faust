@@ -483,40 +483,41 @@
                 } 
                 
                 // Create a DSP factory from the dsp code    
-                var args = ["-I", "http://faust.grame.fr/faustcode/"];                   
-                factory = faust.createDSPFactory(dsp_code, args);
-                if (!factory) {
-                    alert(faust.getErrorMessage());
-                    return;
-                }
+                faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
                 
-                // Then creates one DSP instance
-                if (intShiftKey) {
-                    isPoly = true;
-                    console.log("Poly DSP");
-                    DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
-                } else {
-                    isPoly = false;
-                    console.log("Mono DSP");
-                    DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
-                }
-                
-                if (DSP.getNumInputs() > 0) {
-                    activateAudioInput();
-                }
-                
-                // Setup UI
-                _f4u$t.main_loop = function() {}
-                
-                faustsvg = $('<div />');
-                $('body').append(faustsvg);
-                var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                DSP.setHandler(handler);
-                              
-                console.log(DSP.getNumInputs());
-                console.log(DSP.getNumOutputs());
-                
-                DSP.start();
+                    if (!factory) {
+                        alert(faust.getErrorMessage());
+                        return;
+                    }
+                    
+                    // Then creates one DSP instance
+                    if (intShiftKey) {
+                        isPoly = true;
+                        console.log("Poly DSP");
+                        DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
+                    } else {
+                        isPoly = false;
+                        console.log("Mono DSP");
+                        DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
+                    }
+                    
+                    if (DSP.getNumInputs() > 0) {
+                        activateAudioInput();
+                    }
+                    
+                    // Setup UI
+                    _f4u$t.main_loop = function() {}
+                    
+                    faustsvg = $('<div />');
+                    $('body').append(faustsvg);
+                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                    DSP.setHandler(handler);
+                                  
+                    console.log(DSP.getNumInputs());
+                    console.log(DSP.getNumOutputs());
+                    
+                    DSP.start();
+                });
             };
         }  else {
             alert("DSP file is too big!");

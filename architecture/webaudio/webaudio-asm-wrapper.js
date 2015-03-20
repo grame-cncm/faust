@@ -243,102 +243,125 @@ function mydspMixer(global, foreign, buffer) {
 
 var faust = faust || {};
 
-// Shim AudioContext on webkit
-window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
-
-faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
-faust.freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
-
 faust.error_msg = null;
 faust.factory_number = 0;
 faust.factory_table = [];
 
+faust.ptr_size = 4; 
+faust.sample_size = 4;
+faust.max_buffer_size = 8192;
+faust.max_dsp_num = 16;
+
 faust.getErrorMessage = function() { return faust.error_msg; };
 
-faust.createDSPFactory = function (code, argv) {
+faust.pow2limit = function (x) {
+    var n = 2;
+    while (n < x) { n = 2 * n; }
+    return (n < 4096) ? 4096 : n;
+}
 
-    var sha_key = Sha1.hash(code, true);
-    var factory = faust.factory_table[sha_key];
-    if (factory) {
-        // Existing factory, do not create it...
-        return factory;
-    }
+faust.createDSPFactoryAux = function (factory_code, factory_name, sha_key) {
     
-    // Allocate strings on the HEAP
-    var factory_name = "mydsp" + faust.factory_number++;
-    var code_ptr = Module._malloc(code.length + 1);
-    var name = "FaustDSP";
-    var name_ptr = Module._malloc(name.length + 1);
-    var error_msg_ptr = Module._malloc(256);
-    
-    Module.writeStringToMemory(name, name_ptr);
-    Module.writeStringToMemory(code, code_ptr);
-    
-    // Add 'cn' option with the factory name
-    argv = (argv === undefined) ? new Array() : argv;
-    argv.push("-cn", factory_name);
-    
-    // Prepare 'argv' array for C side
-    var ptr_size = 4; 
-    var argv_ptr = Module._malloc(argv.length * ptr_size);  // Get buffer from emscripten.
-    var argv_ptr_buffer = new Int32Array(Module.HEAP32.buffer, argv_ptr, argv.length);  // Get a integer view on the newly allocated buffer.
-    for (var i = 0; i < argv.length; i++) {
-        var arg_ptr = Module._malloc(argv[i].length + 1);
-        Module.writeStringToMemory(argv[i], arg_ptr);
-        argv_ptr_buffer[i] = arg_ptr; 
-    }
-     
-    var factory_code_ptr = faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr);
-    var factory_code = Pointer_stringify(factory_code_ptr);
-    faust.error_msg = Pointer_stringify(error_msg_ptr);
-    if (factory_code === "") {
-        return null;
-    }
-
     console.log(factory_code);
 
     // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
     eval(factory_code);
-
+    
+    // Memory allocator
+    var getSize = eval("getSize" + factory_name);
+    var getJSON = eval("getJSON" + factory_name);
+    
+    // Keep JSON parsed object
+    var jon_object = JSON.parse(getJSON());
+    
+    function getNumInputsAux () 
+    {
+        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+    }
+    
+    function getNumOutputsAux () 
+    {
+        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+    }
+    
+    console.log("in %d", getNumInputsAux());
+    console.log("out %d", getNumOutputsAux());
+    console.log("getSize() %d", getSize());
+    
+    var dsp_memory_size = faust.pow2limit(((getNumInputsAux() + getNumOutputsAux()) * (faust.ptr_size + faust.max_buffer_size * faust.sample_size)) + getSize());
+    var HEAP = new ArrayBuffer(dsp_memory_size * faust.max_dsp_num);
+     
+    console.log(dsp_memory_size);
+ 
     // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    factory = eval(factory_name + "Module(window, null, buffer)");        
+    var factory = eval(factory_name + "Module(window, null, HEAP)");
+    
     console.log(factory);
-
+    
+    factory.dsp_memory_size = dsp_memory_size;
+    factory.HEAP = HEAP;
+    factory.HEAP32 = new Int32Array(factory.HEAP);
+    factory.HEAPF32 = new Float32Array(factory.HEAP);
+    factory.dsp_num = 0;
+    
+    console.log(factory.HEAP);
+    console.log(factory.HEAP32);
+    console.log(factory.HEAPF32);
+ 
     var path_table_function = eval("getPathTable" + factory_name); 
     factory.pathTable = path_table_function();
 
-    factory.getJSON = eval("getJSON" + factory_name);
+    factory.getJSON = getJSON;
+    factory.getSize = getSize;
     factory.metadata = eval("metadata" + factory_name);
-    factory.getSize = eval("getSize" + factory_name);
     
     factory.factory_name = factory_name;
     factory.sha_key = sha_key;
     faust.factory_table[sha_key] = factory;
-    console.log(sha_key);
     
-    // Free strings
-    Module._free(code_ptr);
-    Module._free(name_ptr);
-    Module._free(error_msg_ptr);
-    
-    // Free C allocated asm.js module
-    faust.freeCDSP(factory_code_ptr);
-    
-    // Free 'argv' C side array
-    for (var i = 0; i < argv.length; i++) {
-        Module._free(argv_ptr_buffer[i]);
-    }
-    Module._free(argv_ptr);
-    
+    console.log(factory);
+ 
     return factory;
+}
+
+faust.createDSPFactory = function (code, argv, callback) {
+
+    var sha_key = Sha1.hash(code, true);
+    var factory = faust.factory_table[sha_key];
+    if (factory) {
+        if (callback) callback(factory);
+        return;
+    }
+    
+    // use a Worker to compile the code...
+    var factory_name = "mydsp" + faust.factory_number++;
+    var worker = new Worker("create-factory-worker.js");
+    
+    worker.onmessage = function(event) {
+        var factory_code = event.data.factory_code;
+        var factory = null;
+        faust.error_msg = event.data.error_msg;
+        if (factory_code) {
+            factory = faust.createDSPFactoryAux(factory_code, factory_name, sha_key);
+        }
+        if (callback) {
+            callback(factory);
+        }
+    };
+    
+    worker.postMessage({code: code, argv: argv, factory_name: factory_name});
 };
 
 faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
 
 // 'mono' DSP
 faust.createDSPInstance = function (factory, context, buffer_size) {
- 
-    var dsp = Module._malloc(factory.getSize());
+
+    if (factory.dsp_num === faust.max_dsp_num) {
+        console.log("Maximum of DSP instances reached!");
+        return null;
+    }
+    
     var handler = null;
     var ins, outs;
     var numIn, numOut;
@@ -354,6 +377,25 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
      
     // input items
     var inputs_items = [];
+    
+    // Start of HEAP index
+    var audio_heap_ptr = factory.dsp_memory_size * factory.dsp_num++;
+    
+    console.log(audio_heap_ptr);
+     
+    // Setup pointers offset
+    var audio_heap_ptr_inputs = audio_heap_ptr; 
+    var audio_heap_ptr_outputs = audio_heap_ptr_inputs + (factory.getNumInputs() * faust.ptr_size);
+     
+    // Setup buffer offset
+    var audio_heap_inputs = audio_heap_ptr_outputs + (factory.getNumOutputs() * faust.ptr_size);
+    var audio_heap_outputs = audio_heap_inputs + (factory.getNumInputs() * buffer_size * faust.sample_size);
+     
+    // Setup DSP offset
+    var dsp_start = audio_heap_outputs + (factory.getNumOutputs() * buffer_size * faust.sample_size);
+     
+    // Start of DSP memory
+    var dsp = dsp_start;
     
     // Allocate table for 'setValue'
     var value_table = [];
@@ -444,44 +486,40 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     {
         // Setup web audio context
         var i;
-        var ptr_size = 4; 
-        var sample_size = 4;
          
         // Get input / output counts
         numIn = factory.getNumInputs(dsp);
         numOut = factory.getNumOutputs(dsp);
-                 
+               
         // Setup web audio context
         console.log("buffer_size %d", buffer_size);
         scriptProcessor = context.createScriptProcessor(buffer_size, numIn, numOut);
         scriptProcessor.onaudioprocess = compute;
-    
+        
         if (numIn > 0) {
-            ins = Module._malloc(ptr_size * numIn);
+            ins = audio_heap_ptr_inputs; 
             for (i = 0; i < numIn; i++) { 
-                HEAP32[(ins >> 2) + i] = Module._malloc(buffer_size * sample_size); 
+                factory.HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * faust.sample_size) * i);
             }
-
-            // Prepare Ins buffer tables
-            var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
+     
+            var dspInChans = factory.HEAP32.subarray(ins >> 2, (ins + numIn * faust.ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
+                dspInChannnels[i] = factory.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * faust.sample_size) >> 2);
             }
         }
-            
+        
         if (numOut > 0) {
-            outs = Module._malloc(ptr_size * numOut); 
+            outs = audio_heap_ptr_outputs; 
             for (i = 0; i < numOut; i++) { 
-                HEAP32[(outs >> 2) + i] = Module._malloc(buffer_size * sample_size);
+                factory.HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * faust.sample_size) * i);
             }
-         
-            // Prepare Out buffer tables
-            var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
+          
+            var dspOutChans = factory.HEAP32.subarray(outs >> 2, (outs + numOut * faust.ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
+                dspOutChannnels[i] = factory.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * faust.sample_size) >> 2);
             }
         }
-                                
+                                   
         // bargraph
         parse_ui(JSON.parse(factory.getJSON()).ui);
 
@@ -560,7 +598,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             return factory.getValue(dsp, factory.pathTable[path]);
         },
         
-        controls : function()
+        controls : function ()
         {
             return inputs_items;
         },
@@ -579,22 +617,6 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
 
 faust.deleteDSPInstance = function (dsp) {
     dsp.stop();
-     
-    if (dsp.numIn > 0) {
-        for (var i = 0; i < dsp.numIn; i++) { 
-            Module._free(HEAP32[(dsp.ins >> 2) + i]); 
-        }
-        Module._free(dsp.ins);
-    }
-     
-    if (dsp.numOut > 0) {
-        for (var i = 0; i < dsp.numOut; i++) { 
-            Module._free(HEAP32[(dsp.outs >> 2) + i]);
-        }
-        Module._free(dsp.outs);
-    }
-  
-    Module._free(dsp.dsp);
 }
 
 // 'poly' DSP
@@ -621,8 +643,10 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     var fGateLabel;
     var fGainLabel;
     
+    var mixer;
+    
     // asm.js mixer
-    var mixer = mydspMixer(window, null, buffer);
+    mixer = mydspMixer(window, null, buffer);
     
     // Start of DSP memory ('polyphony' DSP voices)
     var dsp_voices = [];

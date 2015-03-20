@@ -51,7 +51,6 @@ faust.mydsp = function (context, buffer_size) {
     // Memory allocator
     var ptr_size = 4; 
     var sample_size = 4;
-    var maxBufferSize = 8192;
     
     function pow2limit (x)
     {
@@ -60,7 +59,7 @@ faust.mydsp = function (context, buffer_size) {
         return (n < 4096) ? 4096 : n;
     }
      
-    var memory_size = pow2limit(getSizemydsp() + (getNumInputsAux() + getNumOutputsAux()) * (ptr_size + maxBufferSize * sample_size));
+    var memory_size = pow2limit(getSizemydsp() + (getNumInputsAux() + getNumOutputsAux()) * (ptr_size + (buffer_size * sample_size)));
    
     var HEAP = new ArrayBuffer(memory_size);
     var HEAP32 = new Int32Array(HEAP);

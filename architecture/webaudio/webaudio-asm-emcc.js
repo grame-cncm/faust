@@ -153,7 +153,6 @@ faust.DSP = function (context, buffer_size) {
         }
         
         if (numOut > 0) {
-        
             outs = Module._malloc(ptr_size * numOut); 
             for (i = 0; i < numOut; i++) { 
                 HEAP32[(outs >> 2) + i] = Module._malloc(buffer_size * sample_size);

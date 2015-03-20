@@ -105,7 +105,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     // Memory allocator
     var ptr_size = 4; 
     var sample_size = 4;
-    var maxBufferSize = 8192;
     
     function pow2limit(x)
     {
@@ -115,7 +114,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     }
     
     // Output * 2 to handle mixing channels
-    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + maxBufferSize * sample_size)));
+    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size))));
   
     console.log(getNumInputsAux());
     console.log(getNumOutputsAux());
