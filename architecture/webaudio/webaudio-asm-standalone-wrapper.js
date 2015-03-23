@@ -40,18 +40,17 @@ faust.mydsp = function (context, buffer_size) {
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs !== undefined) ? jon_object.inputs : 0;
+        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs !== undefined) ? jon_object.outputs : 0;
+        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
      
     // Memory allocator
     var ptr_size = 4; 
     var sample_size = 4;
-    var maxBufferSize = 8192;
     
     function pow2limit (x)
     {
@@ -60,11 +59,11 @@ faust.mydsp = function (context, buffer_size) {
         return (n < 4096) ? 4096 : n;
     }
      
-    var memory_size = pow2limit(getSizemydsp() + (getNumInputsAux() + getNumOutputsAux()) * (ptr_size + maxBufferSize * sample_size));
-  
+    var memory_size = pow2limit(getSizemydsp() + (getNumInputsAux() + getNumOutputsAux()) * (ptr_size + (buffer_size * sample_size)));
+   
     var HEAP = new ArrayBuffer(memory_size);
-    var HEAP32 = new window.Int32Array(HEAP);
-    var HEAPF32 = new window.Float32Array(HEAP);
+    var HEAP32 = new Int32Array(HEAP);
+    var HEAPF32 = new Float32Array(HEAP);
      
     console.log(HEAP);
     console.log(HEAP32);
@@ -194,7 +193,7 @@ faust.mydsp = function (context, buffer_size) {
         // Get input / output counts
         numIn = getNumInputsAux();
         numOut = getNumOutputsAux();
-        
+         
         // Setup web audio context
         console.log("buffer_size %d", buffer_size);
         scriptProcessor = context.createScriptProcessor(buffer_size, numIn, numOut);
@@ -206,10 +205,9 @@ faust.mydsp = function (context, buffer_size) {
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
             }
      
-            // Prepare Ins/out buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
+                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
@@ -221,7 +219,7 @@ faust.mydsp = function (context, buffer_size) {
           
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
+                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
                                 

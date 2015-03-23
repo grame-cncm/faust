@@ -94,18 +94,17 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs !== undefined) ? jon_object.inputs : 0;
+        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs !== undefined) ? jon_object.outputs : 0;
+        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
 
     // Memory allocator
     var ptr_size = 4; 
     var sample_size = 4;
-    var maxBufferSize = 8192;
     
     function pow2limit(x)
     {
@@ -115,15 +114,15 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     }
     
     // Output * 2 to handle mixing channels
-    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + maxBufferSize * sample_size)));
+    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size))));
   
     console.log(getNumInputsAux());
     console.log(getNumOutputsAux());
     console.log(memory_size);
     
     var HEAP = new ArrayBuffer(memory_size);
-    var HEAP32 = new window.Int32Array(HEAP);
-    var HEAPF32 = new window.Float32Array(HEAP);
+    var HEAP32 = new Int32Array(HEAP);
+    var HEAPF32 = new Float32Array(HEAP);
      
     console.log(HEAP);
     console.log(HEAP32);
@@ -289,34 +288,28 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         scriptProcessor.onaudioprocess = compute;
         
         if (numIn > 0) {
- 
             ins = audio_heap_ptr_inputs; 
-            
             for (i = 0; i < numIn; i++) { 
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
             }
      
-            // Prepare ins/out buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * ptr_size) >> 2);
+                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
         if (numOut > 0) {
- 
             outs = audio_heap_ptr_outputs; 
             mixing = audio_heap_ptr_mixing; 
-            
             for (i = 0; i < numOut; i++) { 
                 HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
                 HEAP32[(mixing >> 2) + i] = audio_heap_mixing + ((buffer_size * sample_size) * i);
             }
             
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
-            
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * ptr_size) >> 2);
+                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
