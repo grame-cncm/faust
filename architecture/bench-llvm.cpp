@@ -307,8 +307,7 @@ class FaustLLVMOptimizer {
             
             closeMesure();
             double res = getstats(VSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            
-            cout << "getstats = " << res << endl;
+            cout << res << endl;
              
             freeBuffers(numOutChan, outChannel);
             return res;
@@ -426,10 +425,10 @@ class FaustLLVMOptimizer {
             fLibraryPath = library_path;
             fTarget = target;
             
-            NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            ITER    = 10;       // number of iterations per measure
-            VSIZE   = size;     // size of a vector in samples
-            IDX     = 0;        // current vector number (0 <= VIdx < NV)
+            NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
+            ITER = 10;     // number of iterations per measure
+            VSIZE = size;  // size of a vector in samples
+            IDX = 0;       // current vector number (0 <= VIdx < NV)
             
             init();
         }
@@ -442,10 +441,10 @@ class FaustLLVMOptimizer {
             fLibraryPath = library_path;
             fTarget = target;
            
-            NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            ITER    = 10;       // number of iterations per measure
-            VSIZE   = size;     // size of a vector in samples
-            IDX     = 0;        // current vector number (0 <= VIdx < NV)
+            NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
+            ITER = 10;     // number of iterations per measure
+            VSIZE = size;  // size of a vector in samples
+            IDX  = 0;      // current vector number (0 <= VIdx < NV)
             
             init();
         }
@@ -486,15 +485,13 @@ class FaustLLVMOptimizer {
             for (int i = 0; i < item.size(); i++) {
                 cout << " " << item[i];
             }
-            cout << std::endl;
+            cout << " : ";
         }
         
         bool computeOne(int index, double& res)
         {
             vector <string> item = fOptionsTable[index];
-            
             printItem(item);
-            
             int opt_level = 4;
     
             if (fInput == "") { 
@@ -587,7 +584,7 @@ int main(int argc, char* argv[])
 {
     int index = 1;
     if (isopt(argv, "-vec")) index += 2;
-    int VSIZE = lopt(argv, "-vec",  512);
+    int VSIZE = lopt(argv, "-vec", 512);
     
     FaustLLVMOptimizer optimizer(argv[index], "", "", VSIZE);
     vector<string> options = optimizer.findOptimize();
