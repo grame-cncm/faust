@@ -93,7 +93,9 @@ class FaustLLVMOptimizer {
         unsigned int NV;        // number of vectors in BIG buffer (should exceed cache)
         unsigned int ITER;      // number of iterations per measure
         unsigned int VSIZE;     // size of a vector in samples
-        unsigned int IDX ;      // current vector number (0 <= VIdx < NV)
+        unsigned int IDX;       // current vector number (0 <= VIdx < NV)
+        
+        int fOptLevel;      
         
         llvm_dsp_factory* fFactory;
         llvm_dsp* fDSP;
@@ -321,7 +323,7 @@ class FaustLLVMOptimizer {
             
             // Scalar mode
             vector <string> t0;
-            t0.push_back("-scalar");
+            t0.push_back("-scal");
             fOptionsTable.push_back(t0);
             
             fMeasure = 0;
@@ -417,13 +419,14 @@ class FaustLLVMOptimizer {
             */
         }
     
-        FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int size)
+        FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int size, int opt_level_max = 3)
         {
             fBuffer = 0;
             fFilename = filename;
             fInput = "";
             fLibraryPath = library_path;
             fTarget = target;
+            fOptLevel = opt_level_max;
             
             NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
             ITER = 10;     // number of iterations per measure
@@ -433,18 +436,19 @@ class FaustLLVMOptimizer {
             init();
         }
         
-        FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int size)
+        FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int size, int opt_level_max = 3)
         {
             fBuffer = 0;
             fFilename = "";
             fInput = input;
             fLibraryPath = library_path;
             fTarget = target;
+            fOptLevel = opt_level_max;
            
             NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
             ITER = 10;     // number of iterations per measure
             VSIZE = size;  // size of a vector in samples
-            IDX  = 0;      // current vector number (0 <= VIdx < NV)
+            IDX = 0;      // current vector number (0 <= VIdx < NV)
             
             init();
         }
@@ -492,8 +496,7 @@ class FaustLLVMOptimizer {
         {
             vector <string> item = fOptionsTable[index];
             printItem(item);
-            int opt_level = 4;
-    
+       
             if (fInput == "") { 
             
                 int argc = item.size() + 2;
@@ -504,7 +507,7 @@ class FaustLLVMOptimizer {
                     argv[i + 2] = item[i].c_str();
                 }
             
-                fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, opt_level);
+                fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, fOptLevel);
                 
             } else {
                 
@@ -514,7 +517,7 @@ class FaustLLVMOptimizer {
                     argv[i] = item[i].c_str();
                 }
                 
-                fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fInput, fError, opt_level);
+                fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fTarget, fError, fOptLevel);
             }
             
             if (!fFactory)  {
