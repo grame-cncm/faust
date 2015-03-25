@@ -47,7 +47,7 @@
 #include "faust/audio/dsp.h"
 
 // ends_with(<str>,<end>) : returns true if <str> ends with <end>
-static bool ends_with (std::string const& str, std::string const& end)
+static bool ends_with(std::string const& str, std::string const& end)
 {
 	unsigned int l1 = str.length();
 	unsigned int l2 = end.length();
@@ -61,13 +61,21 @@ static bool ends_with (std::string const& str, std::string const& end)
 
 // One voice of polyphony
 struct mydsp_voice : public MapUI {
-    
+   
+#ifdef LLVM_DSP
+    dsp* fVoice;
+#else
     mydsp fVoice;
+#endif
     int fNote;
     
     mydsp_voice()
     {
-        fVoice.buildUserInterface(this);
+    #ifdef LLVM_DSP
+       fVoice->buildUserInterface(this);
+    #else
+       fVoice.buildUserInterface(this);
+    #endif
         fNote = kFreeVoice;
     }
  
@@ -280,8 +288,6 @@ class mydsp_poly : public dsp
         
         void ctrlChange(int channel, int ctrl, int value)
         {}
-        
-        
         
         const char* getJSON()
         {
