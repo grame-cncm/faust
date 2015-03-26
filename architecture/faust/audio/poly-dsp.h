@@ -46,39 +46,46 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
-// ends_with(<str>,<end>) : returns true if <str> ends with <end>
-static bool ends_with(std::string const& str, std::string const& end)
-{
-	unsigned int l1 = str.length();
-	unsigned int l2 = end.length();
-    return (l1 >= l2) && (0 == str.compare (l1 - l2, l2, end));
-}
-
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
 
 #define VOICE_STOP_LEVEL   0.001
 
+// ends_with(<str>,<end>) : returns true if <str> ends with <end>
+static bool ends_with(std::string const& str, std::string const& end)
+{
+	unsigned int l1 = str.length();
+	unsigned int l2 = end.length();
+    return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
+}
+
 // One voice of polyphony
-struct mydsp_voice : public MapUI {
-   
-#ifdef LLVM_DSP
-    dsp* fVoice;
-#else
-    mydsp fVoice;
-#endif
+struct dsp_voice : public MapUI, public dsp {
+       
     int fNote;
-    
-    mydsp_voice()
+
+    dsp_voice()
     {
-    #ifdef LLVM_DSP
-       fVoice->buildUserInterface(this);
-    #else
-       fVoice.buildUserInterface(this);
-    #endif
         fNote = kFreeVoice;
     }
  
+};
+
+struct mydsp_voice : public dsp_voice {
+
+    mydsp fVoice;
+     
+    mydsp_voice():dsp_voice()
+    {
+        fVoice.buildUserInterface(this);
+    }
+    
+    virtual int getNumInputs() { return fVoice.getNumInputs(); }
+    virtual int getNumOutputs() { return fVoice.getNumOutputs(); }
+    virtual void buildUserInterface(UI* ui_interface) { fVoice.buildUserInterface(ui_interface); }
+    virtual void init(int samplingRate) { fVoice.init(samplingRate); }
+    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
+    
 };
 
 // Polyphonic DSP
@@ -151,7 +158,7 @@ class mydsp_poly : public dsp
             }
             
             // Init audio output buffers
-            fNumOutputs = fVoiceTable[0]->fVoice.getNumOutputs();
+            fNumOutputs = fVoiceTable[0]->getNumOutputs();
             fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
             for (int i = 0; i < fNumOutputs; i++) {
                 fNoteOutputs[i] = new FAUSTFLOAT[fBufferSize];
@@ -174,13 +181,13 @@ class mydsp_poly : public dsp
         void init(int sample_rate) 
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i]->fVoice.init(sample_rate);
+                fVoiceTable[i]->init(sample_rate);
             }
             
             // Creates JSON
-            JSONUI builder(fVoiceTable[0]->fVoice.getNumInputs(), fVoiceTable[0]->fVoice.getNumOutputs());
+            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
             mydsp::metadata(&builder);
-            fVoiceTable[0]->fVoice.buildUserInterface(&builder);
+            fVoiceTable[0]->buildUserInterface(&builder);
             fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
@@ -206,7 +213,7 @@ class mydsp_poly : public dsp
             // Then mix all voices
             for (int i = 0; i < fMaxPolyphony; i++) {
                 if (fVoiceTable[i]->fNote != kFreeVoice){
-                    fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
+                    fVoiceTable[i]->compute(count, inputs, fNoteOutputs);
                     float level = mixVoice(count, fNoteOutputs, outputs);
                     if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                         fVoiceTable[i]->fNote = kFreeVoice;
@@ -217,12 +224,12 @@ class mydsp_poly : public dsp
         
         int getNumInputs()
         {
-            return fVoiceTable[0]->fVoice.getNumInputs();
+            return fVoiceTable[0]->getNumInputs();
         }
         
         int getNumOutputs()
         {
-            return fVoiceTable[0]->fVoice.getNumOutputs();
+            return fVoiceTable[0]->getNumOutputs();
         }
         
         void buildUserInterface(UI* ui_interface) 
@@ -231,7 +238,7 @@ class mydsp_poly : public dsp
             for (int i = 0; i < fMaxPolyphony; i++) {
                 std::stringstream voice; voice << "Voice" << i;
                 ui_interface->openHorizontalBox(voice.str().c_str());
-                fVoiceTable[i]->fVoice.buildUserInterface(ui_interface);
+                fVoiceTable[i]->buildUserInterface(ui_interface);
                 ui_interface->closeBox();
             }
             ui_interface->closeBox();
