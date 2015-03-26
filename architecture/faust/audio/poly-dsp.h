@@ -98,6 +98,8 @@ struct llvm_dsp_voice : public dsp_voice {
     virtual void init(int samplingRate) { fVoice->init(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice->compute(len, inputs, outputs); }
     
+    virtual void metadata(Meta* meta) { fVoice->metadata(meta); }
+    
 };
 
 struct llvm_dsp_voice_factory : public voice_factory {
@@ -106,7 +108,7 @@ struct llvm_dsp_voice_factory : public voice_factory {
     
     llvm_dsp_voice_factory(llvm_dsp* dsp):fDSP(dsp) {}
 
-    virtual dsp_voice* create() { return fDSP->copy(); }
+    virtual dsp_voice* create() { return new llvm_dsp_voice(fDSP->copy()); }
 };
 
 #else
@@ -216,7 +218,7 @@ class mydsp_poly : public dsp
     public: 
     
     #ifdef LLVM_DSP
-        mydsp_poly(int buffer_size, int max_polyphony, llvm_dsp* dsp)
+        mydsp_poly(int buffer_size, int max_polyphony, llvm_dsp* dsp = NULL)
         {
             llvm_dsp_voice_factory factory(dsp);
             init(buffer_size, max_polyphony, &factory);
