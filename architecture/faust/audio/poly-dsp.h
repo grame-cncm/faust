@@ -119,16 +119,16 @@ class mydsp_poly : public dsp
         FAUSTFLOAT** fNoteOutputs;
         int fNumOutputs;
         
-        inline float mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
+        inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
         {
-            float level = 0;
+            FAUSTFLOAT level = 0;
             // Normalize sample by the max polyphony (as in vst.cpp file)
-            float gain_level = 1./sqrt(fMaxPolyphony);
+            FAUSTFLOAT gain_level = 1./sqrt(fMaxPolyphony);
             for (int i = 0; i < fNumOutputs; i++) {
-                float* mixChannel = mixBuffer[i];
-                float* outChannel = outputBuffer[i];
+                FAUSTFLOAT* mixChannel = mixBuffer[i];
+                FAUSTFLOAT* outChannel = outputBuffer[i];
                 for (int j = 0; j < count; j++) {
-                    level = std::max(level, (float)fabs(outChannel[j]));
+                    level = std::max(level, (FAUSTFLOAT)fabs(outChannel[j]));
                     mixChannel[j] += outChannel[j] * gain_level;
                 }
             }
@@ -231,7 +231,7 @@ class mydsp_poly : public dsp
             for (int i = 0; i < fMaxPolyphony; i++) {
                 if (fVoiceTable[i]->fNote != kFreeVoice){
                     fVoiceTable[i]->compute(count, inputs, fNoteOutputs);
-                    float level = mixVoice(count, fNoteOutputs, outputs);
+                    FAUSTFLOAT level = mixVoice(count, fNoteOutputs, outputs);
                     if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                         fVoiceTable[i]->fNote = kFreeVoice;
                     }
