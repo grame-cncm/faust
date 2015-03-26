@@ -340,18 +340,20 @@ bool generateAuxFilesFromString(const std::string& name_app, const std::string& 
  */
 class llvm_dsp : public dsp {
     
-public:
-    
-    void metadata(Meta* m);
-    
-    virtual int getNumInputs();
-    virtual int getNumOutputs();
-    
-    virtual void init(int samplingFreq);
-    
-    virtual void buildUserInterface(UI* inter);
-    
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    public:
+        
+        void metadata(Meta* m);
+        
+        virtual int getNumInputs();
+        virtual int getNumOutputs();
+        
+        virtual void init(int samplingFreq);
+        
+        virtual void buildUserInterface(UI* inter);
+        
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        
+        virtual llvm_dsp* copy();
 };
 
 /**

@@ -841,6 +841,11 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
+llvm_dsp_aux* llvm_dsp_aux::copy()
+{
+    return fDSPFactory->createDSPInstance();
+}
+
 void llvm_dsp_aux::metadata(Meta* m)
 {
     MetaGlue glue;
@@ -1382,6 +1387,11 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
+EXPORT llvm_dsp* llvm_dsp::copy()
+{
+    return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->copy());
+}
+
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromSHAKey(const char* sha_key)
@@ -1630,6 +1640,11 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
     if (dsp) {
         reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
     }
+}
+
+EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(dsp)->copy()) : 0;
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
