@@ -87,9 +87,9 @@ struct llvm_dsp_voice : public dsp_voice {
 
     llvm_dsp* fVoice;
 
-    llvm_dsp_voice(llvm_dsp* voice):dsp_voice()
+    llvm_dsp_voice(llvm_dsp_factory* factory):dsp_voice()
     {
-        fVoice = voice;
+        fVoice = createDSPInstance(factory);
         fVoice->buildUserInterface(this);
     }
     
@@ -111,7 +111,7 @@ struct llvm_dsp_voice_factory : public voice_factory {
     
     llvm_dsp_voice_factory(llvm_dsp_factory* factory):fFactory(factory) {}
 
-    virtual dsp_voice* create() { return new llvm_dsp_voice(createDSPInstance(fFactory)); }
+    virtual dsp_voice* create() { return new llvm_dsp_voice(fFactory); }
 };
 
 #else
