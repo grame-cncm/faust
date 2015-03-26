@@ -71,6 +71,13 @@ struct dsp_voice : public MapUI, public dsp {
  
 };
 
+struct voice_factory {
+
+    virtual dsp_voice* create() = 0;
+};
+
+//typedef dsp_voice* (* createVoiceFun) (void* arg);
+
 struct mydsp_voice : public dsp_voice {
 
     mydsp fVoice;
@@ -86,6 +93,12 @@ struct mydsp_voice : public dsp_voice {
     virtual void init(int samplingRate) { fVoice.init(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
     
+    static dsp_voice* create_mydsp_voice(void* arg) { return new mydsp_voice(); }
+};
+
+struct mydsp_voice_factory : public voice_factory {
+
+    virtual dsp_voice* create() { return new mydsp_voice(); }
 };
 
 // Polyphonic DSP
@@ -96,7 +109,7 @@ class mydsp_poly : public dsp
   
         std::string fJSON;
         
-        mydsp_voice** fVoiceTable;
+        dsp_voice** fVoiceTable;
         
         std::string fGateLabel;
         std::string fGainLabel;
@@ -143,18 +156,16 @@ class mydsp_poly : public dsp
             }
             return kReleaseVoice;
         }
-    
-    public: 
-    
-        mydsp_poly(int buffer_size, int max_polyphony)
+        
+        inline void init(int buffer_size, int max_polyphony, voice_factory* factory)
         {
             fMaxPolyphony = max_polyphony;
             fBufferSize = buffer_size;
-            fVoiceTable = new mydsp_voice*[fMaxPolyphony];
+            fVoiceTable = new dsp_voice*[fMaxPolyphony];
             
              // Init it with supplied sample_rate 
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i] = new mydsp_voice();
+                fVoiceTable[i] = factory->create();
             }
             
             // Init audio output buffers
@@ -164,7 +175,15 @@ class mydsp_poly : public dsp
                 fNoteOutputs[i] = new FAUSTFLOAT[fBufferSize];
             }
         }
-        
+    
+    public: 
+    
+        mydsp_poly(int buffer_size, int max_polyphony)
+        {
+            mydsp_voice_factory factory;
+            init(buffer_size, max_polyphony, &factory);
+        }
+          
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
