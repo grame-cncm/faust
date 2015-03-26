@@ -81,6 +81,8 @@ struct voice_factory {
 
 #ifdef LLVM_DSP
 
+#include "faust/llvm-dsp.h"
+
 struct llvm_dsp_voice : public dsp_voice {
 
     llvm_dsp* fVoice;
@@ -105,11 +107,11 @@ struct llvm_dsp_voice : public dsp_voice {
 
 struct llvm_dsp_voice_factory : public voice_factory {
 
-    llvm_dsp* fDSP;
+    llvm_dsp_factory* fFactory;
     
-    llvm_dsp_voice_factory(llvm_dsp* dsp):fDSP(dsp) {}
+    llvm_dsp_voice_factory(llvm_dsp_factory* factory):fFactory(factory) {}
 
-    virtual dsp_voice* create() { return new llvm_dsp_voice(fDSP->copy()); }
+    virtual dsp_voice* create() { return new llvm_dsp_voice(createDSPInstance(fFactory)); }
 };
 
 #else
@@ -216,16 +218,16 @@ class mydsp_poly : public dsp
     public: 
     
     #ifdef LLVM_DSP
-        mydsp_poly(int max_polyphony, llvm_dsp* dsp = NULL)
+        mydsp_poly(int max_polyphony, llvm_dsp_factory* factory = NULL)
         {
-            llvm_dsp_voice_factory factory(dsp);
-            init( max_polyphony, &factory);
+            llvm_dsp_voice_factory dsp_factory(factory);
+            init(max_polyphony, &dsp_factory);
         }
     #else
          mydsp_poly(int max_polyphony)
         {
-            mydsp_voice_factory factory;
-            init(max_polyphony, &factory);
+            mydsp_voice_factory dsp_factory;
+            init(max_polyphony, &dsp_factory);
         }
     #endif
           
