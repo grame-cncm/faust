@@ -76,6 +76,39 @@ struct voice_factory {
     virtual dsp_voice* create() = 0;
 };
 
+#ifdef LLVM_DSP
+
+struct llvm_dsp_voice : public dsp_voice {
+
+    llvm_dsp* fVoice;
+
+    llvm_dsp_voice(llvm_dsp* voice):dsp_voice()
+    {
+        fVoice = voice;
+        fVoice->buildUserInterface(this);
+    }
+    
+    virtual ~llvm_dsp_voice() { deleteDSPInstance(fVoice); }
+    
+    virtual int getNumInputs() { return fVoice->getNumInputs(); }
+    virtual int getNumOutputs() { return fVoice->getNumOutputs(); }
+    virtual void buildUserInterface(UI* ui_interface) { fVoice->buildUserInterface(ui_interface); }
+    virtual void init(int samplingRate) { fVoice->init(samplingRate); }
+    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice->compute(len, inputs, outputs); }
+    
+};
+
+struct llvm_dsp_voice_factory : public voice_factory {
+
+    llvm_dsp* fDSP;
+    
+    llvm_dsp_voice_factory(llvm_dsp* dsp):fDSP(dsp) {}
+
+    virtual dsp_voice* create() { return fDSP->copy(); }
+};
+
+#else
+
 struct mydsp_voice : public dsp_voice {
 
     mydsp fVoice;
@@ -98,6 +131,8 @@ struct mydsp_voice_factory : public voice_factory {
 
     virtual dsp_voice* create() { return new mydsp_voice(); }
 };
+
+#endif
 
 // Polyphonic DSP
 class mydsp_poly : public dsp
@@ -176,11 +211,19 @@ class mydsp_poly : public dsp
     
     public: 
     
+    #ifdef LLVM_DSP
+        mydsp_poly(int buffer_size, int max_polyphony, llvm_dsp* dsp)
+        {
+            llvm_dsp_voice_factory factory(dsp);
+            init(buffer_size, max_polyphony, &factory);
+        }
+    #else
         mydsp_poly(int buffer_size, int max_polyphony)
         {
             mydsp_voice_factory factory;
             init(buffer_size, max_polyphony, &factory);
         }
+    #endif
           
         virtual ~mydsp_poly()
         {
