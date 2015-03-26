@@ -128,10 +128,9 @@ struct mydsp_voice : public dsp_voice {
     virtual void buildUserInterface(UI* ui_interface) { fVoice.buildUserInterface(ui_interface); }
     virtual void init(int samplingRate) { fVoice.init(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
-    
+
     virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
-    
-    static dsp_voice* create_mydsp_voice(void* arg) { return new mydsp_voice(); }
+
 };
 
 struct mydsp_voice_factory : public voice_factory {
