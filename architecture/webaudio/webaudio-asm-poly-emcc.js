@@ -20,7 +20,7 @@ var faust = faust || {};
 
 // Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with keyOn, keyOff events.
 
-var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number','number','number']);
+var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number', 'number']);
 var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
@@ -57,7 +57,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
     // input items
     var inputs_items = [];
     
-    var ptr = DSP_poly_constructor(context.sampleRate, buffer_size, max_polyphony);
+    var ptr = DSP_poly_constructor(context.sampleRate, max_polyphony);
      
     function update_outputs () 
     {

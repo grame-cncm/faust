@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 	
-	DSP = new mydsp_poly(2048, 4);
+	DSP = new mydsp_poly(4);
 	if (DSP==0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);

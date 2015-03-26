@@ -49,7 +49,8 @@
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
 
-#define VOICE_STOP_LEVEL   0.001
+#define VOICE_STOP_LEVEL  0.001
+#define MIX_BUFFER_SIZE   16384
 
 // ends_with(<str>,<end>) : returns true if <str> ends with <end>
 static bool ends_with(std::string const& str, std::string const& end)
@@ -118,9 +119,8 @@ class mydsp_poly : public dsp
         std::string fFreqLabel;
         
         int fMaxPolyphony;
-        int fBufferSize;
         
-        FAUSTFLOAT** fNoteOutputs;
+        FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
         
         inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
@@ -159,10 +159,9 @@ class mydsp_poly : public dsp
             return kReleaseVoice;
         }
         
-        inline void init(int buffer_size, int max_polyphony, voice_factory* factory)
+        inline void init(int max_polyphony, voice_factory* factory)
         {
             fMaxPolyphony = max_polyphony;
-            fBufferSize = buffer_size;
             fVoiceTable = new dsp_voice*[fMaxPolyphony];
             
              // Init it with supplied sample_rate 
@@ -172,26 +171,26 @@ class mydsp_poly : public dsp
             
             // Init audio output buffers
             fNumOutputs = fVoiceTable[0]->getNumOutputs();
-            fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
+            fMixBuffer = new FAUSTFLOAT*[fNumOutputs];
             for (int i = 0; i < fNumOutputs; i++) {
-                fNoteOutputs[i] = new FAUSTFLOAT[fBufferSize];
+                fMixBuffer[i] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
             }
         }
     
     public: 
     
-        mydsp_poly(int buffer_size, int max_polyphony)
+        mydsp_poly(int max_polyphony)
         {
             mydsp_voice_factory factory;
-            init(buffer_size, max_polyphony, &factory);
+            init(max_polyphony, &factory);
         }
           
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
-                delete[] fNoteOutputs[i];
+                delete[] fMixBuffer[i];
             }
-            delete[] fNoteOutputs;
+            delete[] fMixBuffer;
             
             for (int i = 0; i < fMaxPolyphony; i++) {
                 delete fVoiceTable[i];
@@ -228,14 +227,16 @@ class mydsp_poly : public dsp
         
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
+            assert(count < MIX_BUFFER_SIZE);
+            
             // First clear the outputs
             clearOutput(count, outputs);
               
             // Then mix all voices
             for (int i = 0; i < fMaxPolyphony; i++) {
-                if (fVoiceTable[i]->fNote != kFreeVoice){
-                    fVoiceTable[i]->compute(count, inputs, fNoteOutputs);
-                    FAUSTFLOAT level = mixVoice(count, fNoteOutputs, outputs);
+                if (fVoiceTable[i]->fNote != kFreeVoice) {
+                    fVoiceTable[i]->compute(count, inputs, fMixBuffer);
+                    FAUSTFLOAT level = mixVoice(count, fMixBuffer, outputs);
                     if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                         fVoiceTable[i]->fNote = kFreeVoice;
                     }
@@ -355,9 +356,9 @@ class mydsp_poly : public dsp
 extern "C" {
     
     // C like API
-    mydsp_poly* mydsp_poly_constructor(int sample_rate, int buffer_size, int max_polyphony) 
+    mydsp_poly* mydsp_poly_constructor(int sample_rate, int max_polyphony) 
     {
-        mydsp_poly* poly = new mydsp_poly(buffer_size, max_polyphony);
+        mydsp_poly* poly = new mydsp_poly(max_polyphony);
         if (poly) poly->init(sample_rate);
         return poly;
     }
