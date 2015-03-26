@@ -76,8 +76,6 @@ struct voice_factory {
     virtual dsp_voice* create() = 0;
 };
 
-//typedef dsp_voice* (* createVoiceFun) (void* arg);
-
 struct mydsp_voice : public dsp_voice {
 
     mydsp fVoice;
