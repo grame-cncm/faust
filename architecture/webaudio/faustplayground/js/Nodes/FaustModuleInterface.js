@@ -3,20 +3,7 @@
 		- creation/deletion of Faust Module Interface
 */
 
-/******************************************************************** 
-*******************  CREATE/DELETE FAUST INTERFACE *****************
-********************************************************************/
-
 "use strict";
-
-//---- Delete Module from close button
-function deleteModule() {
-
-	var faustDiv = this.parentNode;	
-	disconnectNode(faustDiv);
-// 	deleteDSP(faustDiv.DSP);
- 	deleteFaustModule(faustDiv);	
-}
 
 /******************************************************************** 
 ************************  CREATE INTERFACES *************************

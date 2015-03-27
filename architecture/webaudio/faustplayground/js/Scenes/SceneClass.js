@@ -20,15 +20,23 @@ var createScene = function (identifiant, start, stop){
 // 		document.body.removeChild(scene);
 // 	},
 	getSceneContainer: function(){ return scene;},
+	integrateOutput: function(factory){
+		
+		if(audioOutput){
+		 	audioOutput.setSource("process=_,_;");
+			audioOutput.setDSP(factory);
+			activateAudioOutput(document.getElementById("sceneOutput"));
+// 			this.unmuteScene();
+		}
+	},
+	integrateSceneInPage: function(afterWork){
 	
-	integrateSceneInPage: function(){
 		document.body.appendChild(scene);
-	
-	 	audioOutput = createNode(idX++, 0, 0, name, scene, this.removeModule);
-	 	audioOutput.setDSP("process=_,_;");
- 		audioOutput.hideNode();
- 		
-//  		moduleList.push(audioOutput);
+
+		audioOutput = createNode(idX++, 0, 0, "output", scene, this.removeModule);
+		audioOutput.hideNode();
+		compileFaust("output", "process=_,_;", 0, 0, this.integrateOutput);
+		afterWork();
 	},
 	
 	showScene: function(){ scene.style.visibility = "visible";},

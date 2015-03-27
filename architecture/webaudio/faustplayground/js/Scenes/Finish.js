@@ -1,3 +1,5 @@
+"use strict";
+
 function drawArrow(svgCanvas, x1, y1, x2, y2){
 	// Create a connector visual line
 	var svgns = "http://www.w3.org/2000/svg";
@@ -5,43 +7,45 @@ function drawArrow(svgCanvas, x1, y1, x2, y2){
 	var line1 = document.createElementNS(svgns, "line");
 	line1.setAttributeNS(null, "x1", x1);
 	line1.setAttributeNS(null, "y1", y1);
-    line1.setAttributeNS(null, "x2", x2);
+    line1.setAttributeNS(null, "x2", x2-25);
     line1.setAttributeNS(null, "y2", y1);
     line1.setAttributeNS(null, "stroke", "black");
-	line1.setAttributeNS(null, "stroke-width", "2");
+	line1.setAttributeNS(null, "stroke-width", "10");
 	dragObj.connectorShape=line1;
 
-	var line2 = document.createElementNS(svgns, "line");
-	line2.setAttributeNS(null, "x1", x2);
-	line2.setAttributeNS(null, "y1", y1);
-    line2.setAttributeNS(null, "x2", x2);
-    line2.setAttributeNS(null, "y2", y2);
-    line2.setAttributeNS(null, "stroke", "black");
-	line2.setAttributeNS(null, "stroke-width", "2");
-	dragObj.connectorShape=line2;
+// 	var line2 = document.createElementNS(svgns, "line");
+// 	line2.setAttributeNS(null, "x1", x2);
+// 	line2.setAttributeNS(null, "y1", y1);
+//     line2.setAttributeNS(null, "x2", x2);
+//     line2.setAttributeNS(null, "y2", y2);
+//     line2.setAttributeNS(null, "stroke", "black");
+// 	line2.setAttributeNS(null, "stroke-width", "2");
+// 	dragObj.connectorShape=line2;
 
-	var baseY = y2 - 10;
-	var baseX = x2 - 5;
+	var baseY = y2 - 5;
+	var baseX = x2 - 30;
 	
-	var rightY = baseY;
-	var rightX = baseX + 10;
+	var baseXX = x2 -20;
+	
+	var rightY = baseY + 10;
+	var rightX = baseX;
 
-	var dOption = "M" + baseX + "," + baseY + "L" + rightX + "," + rightY + "L" + x2 + "," + y2 + "Z";
+	var dOption = "M" + baseX + "," + baseY + "L" + rightX + "," + rightY + "L" + baseXX + "," + y2 + "Z";
 
 	var triangle = document.createElementNS(svgns, "path");
 	triangle.setAttributeNS(null, "d", dOption);
     triangle.setAttributeNS(null, "stroke", "black");
-	triangle.setAttributeNS(null, "stroke-width", "5");
+	triangle.setAttributeNS(null, "stroke-width", "15");
 	triangle.setAttributeNS(null, "fill", "black");
 	dragObj.connectorShape=triangle;
 
     svgCanvas.appendChild(line1);
-    svgCanvas.appendChild(line2);
+//     svgCanvas.appendChild(line2);
     svgCanvas.appendChild(triangle);
 }
 
 function setExport(scene){
-	document.body.style.background = "url('img/output-bkg.gif') 0 0 repeat";
+	document.body.style.background = "url('"+window.baseImg + "output-bkg.gif') 0 0 repeat";
 	var appName = prompt("Choisis le nom de ton application", "");
 
 	if(appName == null)
@@ -64,92 +68,51 @@ function setExportPage(scene, name){
 	mySceneName.style.cssText = "color:black";
 	mySceneName.textContent = name;
 	head.appendChild(mySceneName);
-
-	var svgCanvas = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	svgCanvas.version="1.1";
-	svgCanvas.style.cssText="position:absolute; width:100%; height:100%; top:0; left:0; z-index:-1;";
-	container.appendChild(svgCanvas);
-
-	var webPage = document.createElement("div");
-	webPage.id= "webButton";
-	webPage.className= "grayButton";
-	webPage.style.cssText = "position:absolute; top:70%; left:5%;";
 	
-	var webImg = document.createElement("img");
-	webImg.id = "webImg";
-	webImg.src = "img/loader.gif";
-	webPage.appendChild(webImg);
-	
-	container.appendChild(webPage);
+	var mySceneSub = document.createElement("div");
+	mySceneSub.className = "sceneSubtitle";
+	mySceneSub.style.cssText = "color:black";
+	mySceneSub.textContent = "Télécharge ton Application Android";
+	head.appendChild(mySceneSub);
 
 	var androidApp = document.createElement("div");
 	androidApp.id= "androidButton";
-	androidApp.className= "grayButton";
-	androidApp.style.cssText = "position:absolute; top:70%; right:5%;";	
+// 	androidApp.className= "grayButton";
+
+// 	androidApp.style.cssText = "position:absolute;width:100%; height:100%; text-align:center;";	
 // 	androidApp.onclick = getAndroidApp;
 	container.appendChild(androidApp);
 
 	var androidImg = document.createElement("img");
 	androidImg.id = "androidImg";
-	androidImg.src = "img/loader.gif";
+	androidImg.src = window.baseImg + "loader.gif";
+	androidImg.style.cssText = "position:relative; left:49%;";
 	androidApp.appendChild(androidImg);
 
 	if(isTooltipEnabled()){
 		changeSceneToolTip(0);
 		disableTooltips();
 	}
-	
-	var circle = document.createElement("div");
-	circle.id = "bubble";
-	circle.className = "bubble";
-	container.appendChild(circle);
-
-//  DRAW ARROWS TO BUTTONS
-	
-	var y1 = document.body.scrollHeight/2;
-	var x1 = circle.getBoundingClientRect().right;
-
-	var y2 = androidApp.getBoundingClientRect().top - 5;
-	var x2 = androidApp.getBoundingClientRect().left + androidApp.getBoundingClientRect().width/2;
-
-	drawArrow(svgCanvas, x1, y1, x2, y2);
-	
-	var x3 = circle.getBoundingClientRect().left;
-	var x4 = webPage.getBoundingClientRect().left + webPage.getBoundingClientRect().width/2;
-	
-	drawArrow(svgCanvas, x3, y1, x4, y2);	
-	
-	var faustModule = createMyFaustEquivalent(scene, name, circle);
-	
-	if(faustModule){
-		faustModule.createInterface();
-//  		faustModule.addInputOutputNodesToModule();
-	 	faustModule.recallParams();
-		scene.addModule(faustModule);
-	}
-	
-	var width = faustModule.getContainer().getBoundingClientRect().width + 70;
-	var height = faustModule.getContainer().getBoundingClientRect().height + 100;
-		
-	circle.style.width = width.toString() + "px";
-	circle.style.height = height.toString() + "px";
-	
 	var backImg = document.createElement("img");
 	backImg.id = "backImg";
-	backImg.src = "img/BACK.png";
+	backImg.src = window.baseImg + "BACK.png";
 	backImg.style.cssText = "position:absolute; top:2%; left:2%;";
 	backImg.onclick = function(){ previousScene()};
 	container.appendChild(backImg);
 	
-	getWebApp(faustModule);
-	getAndroidApp(faustModule);
 
-	scene.unmuteScene();
+	var faustSource = getFaustEquivalent(window.scenes[1], name)
+	
+	if(faustSource)
+		getAndroidApp(name, faustSource);
+
+	
+	document.body.appendChild(container);
 }
 
 function resetExportPage(scene){
 
-	scene.muteScene();
+// 	scene.muteScene();
 	scene.cleanDSPs();
 	
 	var children = scene.getSceneContainer().childNodes;
@@ -160,16 +123,30 @@ function resetExportPage(scene){
 
 function exportPage(scene){
 	
-	scene.integrateSceneInPage();
+// 	scene.integrateSceneInPage(function(){});
 }
 
-//Create Faust Equivalent Module of the Scene
-function createMyFaustEquivalent(scene, patchName, parent){
-	
-	var faustModule = createFaustEquivalent(window.scenes[1], patchName, parent);
-	
-	disconnectNode(faustModule);
-// 	faustModule.deleteInputOutputNodesToModule();
+// ----------
+function equFaustModule(factory){
+
+	if (!factory) {
+    	alert(faust.getErrorMessage());    
+        return null;
+	}
+       
+    var scene = window.scenes[2];   
+     
+	var faustModule = createNode(idX++, window.x, window.y, window.name, window.parent, scene.removeModule);
+
+ 	faustModule.setSource(window.source);
+ 	faustModule.setDSP(factory); 	
+	faustModule.createInterface();
+ 	faustModule.addInputOutputNodesToModule();
+ 		
+	faustModule.setParams(window.savedParams);
+ 		
+ 	disconnectNode(faustModule);
+	faustModule.deleteInputOutputNodesToModule();
 	connectNodes(faustModule, scene.audioOutput());
 	var connector = new Object();
 
@@ -178,12 +155,28 @@ function createMyFaustEquivalent(scene, patchName, parent){
 	scene.audioOutput().addInputConnection(connector);
 	faustModule.addOutputConnection(connector);
 	
-	
-	faustModule.getContainer().style.cssText = "position:relative; margin-left:auto; margin-right:auto; top:10%; ";
-	faustModule.removeListener(faustModule.getContainer(), "mousedown");
-	
-	return 	faustModule;
+	faustModule.getContainer().style.cssText = "position:relative; margin-left:auto; margin-right:auto; top:10%; width: 170px;";
+	faustModule.removeListener(faustModule.getContainer(), "mousedown");	
+ 	
+ 	scene.addModule(faustModule);
+ 	
+ 	var circle = document.getElementById("bubble");
+ 		
+	var width = faustModule.getContainer().getBoundingClientRect().width + 70;
+	var height = faustModule.getContainer().getBoundingClientRect().height + 100;
+		
+	circle.style.width = width.toString() + "px";
+	circle.style.height = height.toString() + "px";
+
+// 	scene.unmuteScene();
+		
+// 	getWebApp(faustModule);
+	getAndroidApp(window.name, window.source);
 }
+
+/******************************************************************** 
+***********************  EXPORT DSP  ***********************
+********************************************************************/
 
 function terminateWebMenu(sha){
 
@@ -205,14 +198,17 @@ function terminateAndroidMenu(sha){
 
 	document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
 
-	var url = "http://faustservice.grame.fr" + "/" + sha +"/android/android/binary.apk";
+	var url = "http://faustservice.grame.fr";
 	
-	document.getElementById("androidButton").textContent = "Télécharger application Android";
+// 	document.getElementById("androidButton").textContent = "Télécharger application Android";
 	
-	var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk");
+	var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk", 170);
 	
-	document.getElementById("androidButton").appendChild(qrcodeDiv);
-	qrcodeDiv.style.cssText = "left:20%;";
+		document.getElementById("androidButton").appendChild(qrcodeDiv);
+// 	qrcodeDiv.style.cssText = "display:block; position:relative; margin-left:auto; margin-right:auto; text-align: center;";
+		qrcodeDiv.style.cssText = "position:relative; left:46%;";
+		qrcodeDiv.onclick = getAndroidApp;
+// 	qrcodeDiv.style.cssText = "left:20%;";
 }
 
 function exportAndroidCallback(sha){
@@ -225,9 +221,9 @@ function exportWebCallback(sha){
 	sendPrecompileRequest("http://faustservice.grame.fr", sha, "web", "asmjs", terminateWebMenu);
 }	
 
-function getAndroidApp(faustDiv){
+function getAndroidApp(name, source){
 
-	var shaKey = getSHAKey("http://faustservice.grame.fr", faustDiv.getName(), faustDiv.getSource(), exportAndroidCallback);
+	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
 }
 
 function getWebApp(faustDiv){

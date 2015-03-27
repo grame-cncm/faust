@@ -7,7 +7,7 @@ var idX = 0;
 window.addEventListener('load', init, false);
 
 /******************************************************************** 
-**************************  INITIALIZATION **************************
+**************************  INITIALISATION **************************
 ********************************************************************/
 
 function init() {
@@ -44,32 +44,6 @@ function createAllScenes(){
 		normalPage(window.scenes[0]);
 	}
 	window.currentScene = 0;
-}
-
-function nextScene(){
-
-	var index = window.currentScene;
-	
-	window.scenes[index].hideScene();
-	window.scenes[index].stopScene();
-	
-	window.scenes[index+1].showScene();
-	window.scenes[index+1].startScene();
-			
-	window.currentScene = index+1;
-}
-
-function previousScene(){
-
-	var index = window.currentScene;
-	
-	window.scenes[index].hideScene();
-	window.scenes[index].stopScene();
-	
-	window.scenes[index-1].showScene();
-	window.scenes[index-1].startScene();
-		
-	window.currentScene = index-1;
 }
 
 function activateAudioInput(){
@@ -131,24 +105,81 @@ function resetGeneralDragAndDrop(div){
 	window.ondrop = function (e) { return false; };
 }
 
-function setClickHandler( id, handler ) {
-    var el = document.getElementById( id );
-    if (el) {
-	    el.addEventListener( "mousedown", handler, true );
-	}
+/******************************************************************** 
+**********************  NAVIGATION BETWEEN SCENES *******************
+********************************************************************/
+
+function nextScene(){
+
+	var index = window.currentScene;
+	
+	window.scenes[index].hideScene();
+	window.scenes[index].stopScene();
+	
+	window.scenes[index+1].showScene();
+	window.scenes[index+1].startScene();
+			
+	window.currentScene = index+1;
+}
+
+function previousScene(){
+
+	var index = window.currentScene;
+	
+	window.scenes[index].hideScene();
+	window.scenes[index].stopScene();
+	
+	window.scenes[index-1].showScene();
+	window.scenes[index-1].startScene();
+		
+	window.currentScene = index-1;
 }
 
 /******************************************************************** 
-**********************  CREATE/DELETE FAUST DIV *********************
+****************  CREATE FAUST FACTORIES AND MODULES ****************
 ********************************************************************/
 
-//---- Delete an entire Faust Module (window and content)
-function deleteFaustModule(faustDiv){
+function compileFaust(name, sourcecode, x, y, callback){
+
+	window.name = name;
+	window.source = sourcecode;
+	window.x = x;
+	window.y = y;
+
+	var currentScene = 	window.scenes[window.currentScene];
+
+// 	if(currentScene)
+// 		currentScene.muteScene();
+
+	var args = ["-I", "http://faust.grame.fr/faustcode/"];		 
+	var factory = faust.createDSPFactory(sourcecode, args);
+    callback(factory);
+
+// 	if(currentScene)
+// 		currentScene.unmuteScene();
+
+}
+
+function createFaustModule(factory){
 	
-	if(faustDiv){
-	// Then delete the visual element
-		faustDiv.parentNode.removeChild( faustDiv );
-	}	
+	if (!factory) {
+    	alert(faust.getErrorMessage());    
+        return null;
+	}
+        
+	var faustModule;
+
+	if(isTooltipEnabled())
+		faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[1].removeModule);
+ 	else
+ 		faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[0].removeModule);
+
+ 	faustModule.setSource(window.source);
+ 	faustModule.setDSP(factory); 	
+	faustModule.createInterface();
+ 	faustModule.addInputOutputNodesToModule();
+ 		
+ 	window.scenes[window.currentScene].addModule(faustModule);
 }
 
 /******************************************************************** 
@@ -158,30 +189,6 @@ function deleteFaustModule(faustDiv){
 //-- Prevent Defaul Action of the browser from happening
 function preventDefaultAction(e) {
     e.preventDefault();
-}
-
-function createDSPinNewDiv(name, sourcecode, x, y){
-
-// 	mute(document.getElementById("sceneOutput"));
-
-	// Create new DSP in div (sender)
-    var DSP = createDSP(sourcecode);
-					
-	if(DSP){
-
-		var faustModule;
-
-		if(isTooltipEnabled())
-	 		faustModule = createNode(idX++, x, y, name, document.getElementById("modules"), window.scenes[1].removeModule);
- 		else
- 			faustModule = createNode(idX++, x, y, name, document.getElementById("modules"), window.scenes[0].removeModule);
- 	
- 		faustModule.setDSP(sourcecode);
- 		faustModule.createInterface();
- 		faustModule.addInputOutputNodesToModule();
- 		
- 		window.scenes[window.currentScene].addModule(faustModule);
-	}
 }
 
 function terminateUpload(){	
@@ -243,9 +250,9 @@ function uploadOn(node, x, y, e) {
 	    	    var dsp_code ="process = vgroup(\"" + filename + "\",environment{" + xmlhttp.responseText + "}.process);";
 
 				if(node==null)
-					createDSPinNewDiv(filename, dsp_code, x, y);
+					compileFaust(filename, dsp_code, x, y, createFaustModule);
 				else
-					node.updateDSP(filename, dsp_code);
+					node.updateFactory(filename, dsp_code);
         	}
         	
         	terminateUpload();
@@ -262,9 +269,9 @@ function uploadOn(node, x, y, e) {
 	    	dsp_code ="process = vgroup(\"" + "TEXT" + "\",environment{" + dsp_code + "}.process);";
 		
 			if(!node)
-				createDSPinNewDiv("TEXT", dsp_code, x, y);
+				compileFaust("TEXT", dsp_code, x, y, createFaustModule);
 			else
-				node.updateDSP("TEXT", dsp_code);
+				node.updateFactory("TEXT", dsp_code);
 				
 			terminateUpload();	
 		}
@@ -296,9 +303,9 @@ function uploadOn(node, x, y, e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
 
 					if(!node)
-						createDSPinNewDiv(filename, dsp_code, x, y);
+						compileFaust(filename, dsp_code, x, y, createFaustModule);
 					else
-						node.updateDSP(filename, dsp_code);
+						node.updateFactory(filename, dsp_code);
 						
 					terminateUpload();
 	    		};

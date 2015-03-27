@@ -21,7 +21,7 @@ function sceneHasInstrumentAndEffect(){
 		var hasInstrument = false;
 		var hasEffect = false;
 				
-		for (var i = 0; i < window.modules.length; i++) {
+		for (var i = 0; i < modules.length; i++) {
 			if(modules[i].getInputNode())
 				hasEffect = true;
 			else
@@ -112,33 +112,19 @@ function toolTipForConnections(){
 function changeSceneToolTip(toolTipNumber){
 
 	var subtitle;
-// 	var image;
-
-// 	if(document.getElementById("tooltipNumber"))
-// 		image = document.getElementById("tooltipNumber");
-// 	else{
-// 		image = document.createElement('span');
-// 		image.id = "tooltipNumber";
-// 		image.className= "number";
-// 		document.getElementById("header").appendChild(image);
-// 	}
 
 	if(document.getElementById("sceneToolTip"))
 		subtitle = document.getElementById("sceneToolTip");
 	else{
 		subtitle = document.createElement('span');
-// 		subtitle = document.createTextNode("");
 		subtitle.id="sceneToolTip";
 		document.getElementById("header").appendChild(subtitle);
 	}
-	
-// 	image.textContent = toolTipNumber.toString();
 
 	if(toolTipNumber == 0){
 		subtitle.textContent = "    Choisis de télécharger ton application, " + document.getElementById("PatchName").innerHTML + ", pour ton smartphone ou sous forme de page web";
 	}
 	else if(toolTipNumber == 1){
-// 		subtitle.textContent = "";
 		subtitle.textContent = "    Glisse ta souris sur la bibliothèque Faust pour découvrir son contenu";
 	}
 	else if(toolTipNumber == 3){

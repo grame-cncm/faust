@@ -35,7 +35,7 @@ function onLinkDrag(event){
 
 	if(event.x > document.getElementById("library").getBoundingClientRect().width){
 		var img = document.getElementById("arrow");
-		img.src = "img/open.png";
+		img.src = window.baseImg + "open.png";
 		img.state = "closed";
 		
 		DeleteLibraryList(img);
@@ -64,13 +64,13 @@ function DeleteFolderContent(selector){
 function ChangeSectionState(event){
 			
 	if(event.target.state == "closed"){
-		event.target.src = "img/triangleOpen.png";
+		event.target.src = window.baseImg + "triangleOpen.png";
 		event.target.state = "opened";
 			
 		ViewFolderContent(event.target);
 	}
 	else{
-		event.target.src = "img/triangleClose.png";
+		event.target.src = window.baseImg + "triangleClose.png";
 		event.target.state = "closed";
 		
 		DeleteFolderContent(event.target);
@@ -123,7 +123,7 @@ function ViewLibraryList(selector){
 			
 				
 				var imageNode = document.createElement('img');
-				imageNode.src= "img/triangleClose.png";
+				imageNode.src= window.baseImg + "triangleClose.png";
 				imageNode.state = "closed";
 				imageNode.section = section;
 				imageNode.onclick = ChangeSectionState;
@@ -174,14 +174,14 @@ function ChangeLibraryState(event){
 	var img = document.getElementById("arrow");
 			
 	if(event.type == "mouseover" && img.state == "closed"){
-		img.src = "img/close.png";
+		img.src = window.baseImg + "close.png";
 		img.state = "opened";
 		
 		ViewLibraryList(img);
 	}
 	else if(event.type == "mouseout" && (event.clientX > boudingRect.right || event.clientX < boudingRect.left || event.clientY < boudingRect.top || event.clientY > boudingRect.bottom)){
 	
-		img.src = "img/open.png";
+		img.src = window.baseImg + "open.png";
 		img.state = "closed";
 		
 		DeleteLibraryList(img);
@@ -204,7 +204,7 @@ function initLibrary(parent){
 
 	var imageNode = document.createElement('img');
 	imageNode.id = "arrow";
-	imageNode.src= "img/open.png";
+	imageNode.src= window.baseImg + "open.png";
 	imageNode.state = "closed";
 	imageNode.style.cssText = "display: block; margin-left: auto; margin-right: auto; z-index:3;";
 // 	imageNode.onclick = ChangeLibraryState;

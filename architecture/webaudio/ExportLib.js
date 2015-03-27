@@ -19,7 +19,7 @@ function getTargets(exportUrl, callback, errCallback){
 			errCallback(getrequest.responseText);
 	}
 				
-	var targetsUrl = exportURL + "/targets";
+	var targetsUrl = exportUrl + "/targets";
 				
 	getrequest.open("GET", targetsUrl, true);
 	getrequest.send(null);
@@ -79,34 +79,32 @@ function sendPrecompileRequest(exportUrl, sha, platform, architecture, callback)
 }
 
 //--- Transform target 
+// WARNING = THIS FUNCTION REQUIRES QRCODE.JS TO BE INCLUDED IN YOUR HTML FILE
 // @exportUrl : url of FaustWeb service to target
 // @sha : sha key of DSP
 // @platform/architecture/target : platform/architecture/target compiled
-function getQrCode(url, sha, plateform, architecture, target){
+// @cote : width and height of the returned QrCode
+function getQrCode(url, sha, plateform, architecture, target, size){
 
 	var downloadString = url + "/" + sha + "/" + plateform + "/" + architecture + "/" + target;
-
-	var myWhiteDiv = document.createElement('div');
-	myWhiteDiv.setAttribute('id','qrcodeDiv');
-	myWhiteDiv.setAttribute('class','qrcodeDiv');
-	myWhiteDiv.style.backgroundColor = 'transparent';
+	
+	var whiteContainer = document.createElement('div');
+	whiteContainer.style.cssText = "width:" + size.toString() + "px; height:" + size.toString() + "px; background-color:white; position:relative; margin-left:auto; margin-right:auto; padding:3px;";
 	
 	var qqDiv = document.createElement('qrcode');
 	
 	var qq = new QRCode(qqDiv, {
     	text: downloadString,
-	    width: 120,
-    	height: 120,
+	    width: size,
+    	height: size,
 	    colorDark : "#000000",
     	colorLight : "#ffffff",
 	    correctLevel : QRCode.CorrectLevel.H
 	});
-	
-	qqDiv.style.cssText = "position:relative; margin-left:auto; margin-right:auto;";
 
-	myWhiteDiv.appendChild(qqDiv);
+	whiteContainer.appendChild(qqDiv);
 
-	return myWhiteDiv;
+	return whiteContainer;
 }
 
 // Return the array of available platforms from the json description
@@ -132,15 +130,13 @@ function getArchitectures(json, platform){
 	var architectures = [];
 		
 	var data = JSON.parse(json);
-								
-    var archs = data[platform];
-	var index = 0;
-							
-	for (var a in archs) {
-		architectures[index] = a;
-		index++;
-	}
-	
-	return architectures;
+		
+	return data[platform]						
+//     var archs = data[platform];
+			
+// 	for (var i =0; i<archs.length; i++)
+// 		architectures[i] = archs[i];
+// 	
+// 	return architectures;
 }
 

@@ -39,7 +39,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 	footer.id = "moduleFooter";
 	
 	var editImg = document.createElement("img");
-	editImg.src = "img/edit.png";
+	editImg.src = window.baseImg + "edit.png";
 	editImg.onclick = function(){that.edit();};
 	
 	footer.appendChild(editImg);
@@ -51,6 +51,8 @@ var createNode = function (ID, x, y, name, parent, callback){
 	var DSP;
 	var Name = name;
 	var Source;
+	var tempSource;
+	var tempName;
 	var Params = new Array();
 	var InputNode;
 	var OutputNode;
@@ -59,6 +61,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 	var inputConnections = null;
 		
 	function dragCallback(event){
+	
 		if(event.type == "mousedown")
 			startDraggingNode(event, that);
 		else if(event.type == "mouseup")	
@@ -76,10 +79,8 @@ var createNode = function (ID, x, y, name, parent, callback){
 			whileDraggingConnector(that, event);
 	};
 
-// 	function 
   return {
 /**********************************************************************/
-
     deleteNode: function() {
     	disconnectNode(that);
 // 	deleteDSP(faustDiv.DSP);
@@ -92,7 +93,6 @@ var createNode = function (ID, x, y, name, parent, callback){
 		that.deleteDSP(DSP);	
 		deleteCallback();
     },
-	integrateNodeInScene: function(){},
 	
 /*************** ACTIONS ON IN/OUTPUT NODES ***************************/
 	getOutputNode: function(){return OutputNode;},
@@ -105,6 +105,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 	getOutputConnections: function(){
 		return outputConnections;
 	},
+	
 	addOutputConnection: function(connector){
 		if(!outputConnections)
 			outputConnections = new Array();
@@ -118,6 +119,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 			
 		inputConnections.push(connector);
 	},
+	
 	removeOutputConnection: function(connector){
 		outputConnections.splice(outputConnections.indexOf(connector), 1);
 	},
@@ -125,32 +127,30 @@ var createNode = function (ID, x, y, name, parent, callback){
 			
 		inputConnections.splice(inputConnections.indexOf(connector), 1);
 	},
-/**********************************************************************/
+	
+/********************* SHOW/HIDE MODULE IN SCENE **********************/
 	showNode: function(){container.style.visibility = "visible";},
 	hideNode: function(){ container.style.visibility = "hidden";},
 	
-/**********************************************************************/
-	setDSP: function(dsp_code){
-		 that = this; 
+/********************** GET/SET SOURCE/NAME/DSP ***********************/
+	setSource: function(code){
+    	Source = code;
+	},
+	getSource: function(){return Source;},
 
-		var args = ["-I", "http://faust.grame.fr/faustcode/"]; 
-	 
-	    var factory = faust.createDSPFactory(dsp_code, args);
+	getName: function(){return Name;},
 	
-		if (!factory) {
-    		alert(faust.getErrorMessage());    
-        	return false;
-		}
-                
-    	DSP = faust.createDSPInstance(factory, window.audioContext, 1024);
-    	Source = dsp_code;
-    	
-    	return true;
+	setDSP: function(factory){
+	
+		that = this;
+	
+    	DSP = faust.createDSPInstance(factory, window.audioContext, 1024);	
 	},
 	getDSP: function(){
 		return DSP;
 	},
-	updateDSP: function(codeName, code){
+
+	updateDSP: function(factory){
 	
 		var toDelete = DSP;
 	
@@ -159,21 +159,19 @@ var createNode = function (ID, x, y, name, parent, callback){
 			
 		disconnectNode(that);
 	
-		if(that.setDSP(code)){
-		
-		    that.deleteFaustInterface();
- 			that.deleteInputOutputNodesToModule();	
+		that.deleteFaustInterface();
+ 		that.deleteInputOutputNodesToModule();	
  		
  	// Creating new interface
  	
-// 	 		title.textContent = codeName;
-	 		Name = codeName;
-	 		Source = code;
-			that.createInterface();
-			that.addInputOutputNodesToModule();
+// 	 	title.textContent = codeName;
+		that.setDSP(factory);
+	 	Name = tempName;
+	 	Source = tempSource;
+		that.createInterface();
+		that.addInputOutputNodesToModule();
 		
-			that.deleteDSP(toDelete);
-		}
+		that.deleteDSP(toDelete);
 
 	// Recalling connections
 // 		outputConnections = saveOutCnx;
@@ -198,15 +196,46 @@ var createNode = function (ID, x, y, name, parent, callback){
 // 		if(todelete)
 // 		    faust.deleteDSPInstance(todelete);
 	},
-	getSource: function(){return Source;},
-	getName: function(){return Name;},
+/******************** EDIT SOURCE & RECOMPILE *************************/
+	edit: function(){
+
+		that.saveParams();
 		
-//---- Create/Delete the interface of a DSP in the "Content" Div of the FaustDiv	
+		that.deleteFaustInterface();
+		
+		var textArea = document.createElement("textarea");
+		textArea.rows = 15;
+		textArea.cols = 60;
+		textArea.value = Source;
+		content.appendChild(textArea);
+			
+		editImg.src = window.baseImg + "enter.png";
+		editImg.onclick = that.recompileSource;
+		editImg.area = textArea;
+	},
+	updateFactory: function(name, code){
+		tempName = name;
+		tempSource = code;
+	
+		compileFaust(name, code, x, y, that.updateDSP);
+	},
+	recompileSource: function(event){
+	
+		var dsp_code = event.target.area.value;
+
+		that.updateFactory(title.textContent, dsp_code);
+		that.recallParams();
+	
+		editImg.src = window.baseImg + "edit.png";
+		editImg.onclick = that.edit;
+	},
+	
+/***************** CREATE/DELETE the DSP Interface ********************/
 	createInterface: function(){
 
 		title.textContent = Name;
-
-		parse_ui(JSON.parse(DSP.json()).ui, this); 
+		var that = this;
+			parse_ui(JSON.parse(DSP.json()).ui, that); 
 	},
 	deleteFaustInterface: function(){
 			
@@ -281,7 +310,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 		Params = parameters;
 	},
 		
-/**********************************************************************/
+/******************* GET/SET INPUT/OUTPUT NODES **********************/
 	addInputOutputNodesToModule : function (){
 		
 		if(DSP.getNumInputs() > 0) {
@@ -320,7 +349,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 		OutputNode = output;	
 	},
 	
-/**********************************************************************/
+/****************** ADD/REMOVE ACTION LISTENERS **********************/
 	addListener: function (type){
 		document.addEventListener(type, dragCallback, true);
 	},
@@ -351,42 +380,13 @@ var createNode = function (ID, x, y, name, parent, callback){
 			
 		return false;
 	},
-		
+
 	isPointInNode: function (x, y ){
 	
 		if(container && container.getBoundingClientRect().left < x && x < container.getBoundingClientRect().right && container.getBoundingClientRect().top < y && y < container.getBoundingClientRect().bottom)
 			return true;
 			
 		return false;
-	},
-
-/**********************************************************************/
-
-	edit: function(){
-
-		that.saveParams();
-		
-		that.deleteFaustInterface();
-		
-		var textArea = document.createElement("textarea");
-		textArea.rows = 15;
-		textArea.cols = 60;
-		textArea.value = Source;
-		content.appendChild(textArea);
-			
-		editImg.src = "img/enter.png";
-		editImg.onclick = that.recompileSource;
-		editImg.area = textArea;
-	},
-	recompileSource: function(event){
-	
-		var dsp_code = event.target.area.value;
-
-		that.updateDSP(title.textContent, dsp_code);
-		that.recallParams();
-	
-		editImg.src = "img/edit.png";
-		editImg.onclick = that.edit;
 	}
   }
 }
