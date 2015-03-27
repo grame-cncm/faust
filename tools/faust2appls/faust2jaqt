@@ -45,6 +45,14 @@ QTDEFS=""
 OSCLIB=""
 
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2jaqt [-osc] [-http] [-poly] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-http' to activate HTTP control"
+        echo "Use '-qrcode' to activate QR code generation"
+    fi
+    
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -58,8 +66,8 @@ for p in $@; do
     elif [ $p = "-poly" ]; then
         ARCHFILE="jack-poly-qt.cpp"
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
+        OSCDEFS="DEFINES += OSCCTRL"
+        OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
@@ -69,12 +77,10 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
-	else
+    else
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
 
 #-------------------------------------------------------------------
 # Check darwin specifics
@@ -91,7 +97,6 @@ if [[ $(uname) == Darwin ]]; then
 	fi
     EXT=".app"
 fi
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

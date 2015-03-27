@@ -118,9 +118,14 @@ int main(int argc, char *argv[])
 	finterface->recallState(rcfilename);	
 	audio.start();
     
+    // Test some notes...
+    usleep(500000);
     DSP->keyOn(0, 60, 100);
+    usleep(500000);
     DSP->keyOn(0, 63, 100);
+    usleep(500000);
     DSP->keyOn(0, 67, 100);
+    usleep(500000);
     DSP->keyOn(0, 70, 100);
 	
 #ifdef HTTPCTRL
