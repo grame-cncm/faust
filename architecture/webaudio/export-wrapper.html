@@ -1,12 +1,12 @@
 <!-- Add FaustWeb Compilation service to Page -->
-<div id="export" style="color:white; position: absolute; top: 0%; right: 0%; width:400px; box-shadow: 0px 2px 2px 0px white; border-radius: 0px 0px 0px 25px; border-bottom:3px solid white; border-left:3px solid white; padding:2px 2px 2px 2px; background-color:7F7F7F; visibility:hidden; ">
+<div id="export" style="color:white; position: absolute; width:400px; padding:2px 2px 2px 2px; background-color:7F7F7F; visibility:hidden; ">
 
 <div id="centerDiv" style="position:relative; margin-right:auto; margin-left:auto; text-align:center;">
-<input id="exportUrl" style="color:white; border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; position:relative; margin-left:auto; maring-right: auto; text-align:center;" contenteditable="true" value="http://faustservice.grame.fr"/>
+<input id="exportUrl" style="color:white; border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; position:relative; margin-left:auto; maring-right: auto; text-align:center;" contenteditable="true" value="http://faustservice.grame.fr" onkeyup="onEnterKey()"/>
 </br>
 </br>
 </br>
-
+  <img id="refreshButton" src="reset.png" onclick="updateFWTargets()" style="position:absolute; left:10px; top:46px;"/>
   <select id="Platform" style="width:250px;" onChange="changeArchs()">
   </select>
   </br>
@@ -22,13 +22,22 @@
 </div>
   </br>
 </div>
-<img id="plusImg" src="plus.png" style="position: absolute; top: 0px; right:0px; z-index=3; visibility:visible;" onclick="openExport()"/>
-<img id="moinsImg" src="moins.png" style="position: absolute; top: 0px; right:0px; z-index=3; visibility:hidden;" onclick="closeExport()"/>
+<img id="plusImg" src="plus.png" style="position: absolute; z-index=3; visibility:visible;" onclick="openExport()"/>
+<img id="moinsImg" src="moins.png" style="position: absolute; z-index=3; visibility:hidden;" onclick="closeExport()"/>
 
 <script src="ExportLib.js"></script>
 <script src="qrcode.js"></script>
 
 <script >
+
+function onEnterKey(e){
+	if (!e) { var e = window.event; } 
+	
+	if (e.keyCode == 13){ 
+		e.preventDefault(); 
+		updateFWTargets();
+	}
+}
 
 function openExport(){
 
@@ -39,9 +48,15 @@ function openExport(){
 
 function closeExport(){
 
-	document.getElementById("plusImg").style.visibility = "visible";
-	document.getElementById("moinsImg").style.visibility = "hidden";
-	document.getElementById("export").style.visibility = "hidden";	
+	var target = event.target
+	while(target && target != document.getElementById("export"))
+		target= target.parentNode;
+
+	if(!target && event.target != document.getElementById("plusImg")){
+		document.getElementById("plusImg").style.visibility = "visible";
+		document.getElementById("moinsImg").style.visibility = "hidden";
+		document.getElementById("export").style.visibility = "hidden";	
+	}
 }
 
 function updateQrCode(sha){
@@ -93,14 +108,18 @@ function getFaustSource(){
     xmlhttp.send(); 
 }
 
-function changeArchs(){
 
-// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
-	var id = "Architecture";
-
+function cleanComboBox(id){
+	
 	while(document.getElementById(id).childNodes.length>0) {
 		document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
 	}
+}
+
+function changeArchs(){
+
+// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
+	cleanComboBox("Architecture");
 
 	var plat = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
 
@@ -114,7 +133,11 @@ function changeArchs(){
 	}
 }
 
-function getFWTargets(){
+function updateFWTargets(){
+
+// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
+	cleanComboBox("Platform");
+	cleanComboBox("Architecture");
 
 	getTargets(document.getElementById("exportUrl").value, function(json){
 	
@@ -133,7 +156,71 @@ function getFWTargets(){
 	}, function(){});
 }
 
-getFWTargets();
+function changeOrientation(orientation){
+	if(orientation == "topright"){
+		document.getElementById("plusImg").style.top = "0px";
+		document.getElementById("plusImg").style.right = "0px";		
+		document.getElementById("moinsImg").style.top = "0px";
+		document.getElementById("moinsImg").style.right = "0px";		
+		
+		document.getElementById("export").style.top = "0%";
+		document.getElementById("export").style.right = "0%";
+		document.getElementById("export").style.boxShadow ="0px 2px 2px 0px white";
+		document.getElementById("export").style.borderRadius ="0px 0px 0px 25px";
+		document.getElementById("export").style.borderBottom = "3px solid white";
+		document.getElementById("export").style.borderLeft ="3px solid white";
+		 		
+	}
+	else if(orientation == "bottomright"){
+	
+		document.getElementById("plusImg").style.bottom = "0px";
+		document.getElementById("plusImg").style.right = "0px";			
+		document.getElementById("moinsImg").style.bottom = "0px";
+		document.getElementById("moinsImg").style.right = "0px";			
+		
+		document.getElementById("export").style.bottom = "0%";
+		document.getElementById("export").style.right = "0%";
+		document.getElementById("export").style.boxShadow ="2px 2px 0px px white";
+		document.getElementById("export").style.borderRadius ="25px 0px 0px 0px";
+		document.getElementById("export").style.borderTop = "3px solid white";
+		document.getElementById("export").style.borderLeft ="3px solid white";
+	}
+	else if(orientation == "bottomleft"){
+		document.getElementById("plusImg").style.bottom = "0px";
+		document.getElementById("plusImg").style.left = "0px";		
+		document.getElementById("moinsImg").style.bottom = "0px";
+		document.getElementById("moinsImg").style.left = "0px";
+		
+		document.getElementById("export").style.bottom = "0%";
+		document.getElementById("export").style.left = "0%";
+		document.getElementById("export").style.boxShadow ="2px 0px 2px 0px white";
+		document.getElementById("export").style.borderRadius ="0px 25px 0px 0px";
+		document.getElementById("export").style.borderTop = "3px solid white";
+		document.getElementById("export").style.borderRight ="3px solid white";		
+	}
+	else if(orientation == "topleft"){
+		document.getElementById("plusImg").style.top = "0px";
+		document.getElementById("plusImg").style.left = "0px";		
+		document.getElementById("moinsImg").style.top = "0px";
+		document.getElementById("moinsImg").style.left = "0px";
+
+		document.getElementById("export").style.top = "0%";
+		document.getElementById("export").style.left = "0%";
+		document.getElementById("export").style.boxShadow ="0px 0px 2px 2px white";
+		document.getElementById("export").style.borderRadius ="0px 0px 25px 0px";
+		document.getElementById("export").style.borderBottom = "3px solid white";
+		document.getElementById("export").style.borderRight ="3px solid white";		
+	}
+}
+
+changeOrientation("topright");
+// changeOrientation("bottomright");
+// changeOrientation("bottomleft");
+// changeOrientation("topleft");
+
+updateFWTargets();
+
+document.body.addEventListener("click", closeExport, false);
 </script>
 
 <!-- End FaustWeb Compilation Service -->
