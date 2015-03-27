@@ -222,17 +222,16 @@ EXPORT bool link_modules(Module* dst, Module* src, char* error_msg)
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
 {
-    int argc1 = argc + 4;
- 	const char* argv1[32];
-    
+    int argc1 = argc + 3;
+    const char* argv1[32];
+
     argv1[0] = "faust";
-	argv1[1] = "-lang";
+    argv1[1] = "-lang";
     argv1[2] = "llvm";
-    argv1[3] = "-flist";
     for (int i = 0; i < argc; i++) {
-        argv1[i+4] = argv[i];
+        argv1[i+3] = argv[i];
     }
-    
+
     return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
 }
 
@@ -842,6 +841,11 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
+llvm_dsp_aux* llvm_dsp_aux::copy()
+{
+    return fDSPFactory->createDSPInstance();
+}
+
 void llvm_dsp_aux::metadata(Meta* m)
 {
     MetaGlue glue;
@@ -1383,6 +1387,11 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
+EXPORT llvm_dsp* llvm_dsp::copy()
+{
+    return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->copy());
+}
+
 // Public C interface
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromSHAKey(const char* sha_key)
@@ -1631,6 +1640,11 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
     if (dsp) {
         reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
     }
+}
+
+EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(dsp)->copy()) : 0;
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)

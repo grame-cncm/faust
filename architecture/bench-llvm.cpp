@@ -77,30 +77,9 @@ using namespace std;
 #define KSKIP 20
 #define KMESURE 20000
 
-#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#include <MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
-
-static void get_affinity(pthread_t thread)
-{
-    thread_affinity_policy theTCPolicy;
-    mach_msg_type_number_t count = THREAD_AFFINITY_POLICY_COUNT;
-    boolean_t get_default = false;
-    kern_return_t res = thread_policy_get(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, &count, &get_default);
-    if (res == KERN_SUCCESS)  {
-        printf("get_affinity = %d\n", theTCPolicy.affinity_tag);
-    }
-}
-
-static void set_affinity(pthread_t thread, int tag)
-{
-    thread_affinity_policy theTCPolicy;
-    theTCPolicy.affinity_tag = tag;
-    kern_return_t res = thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (thread_policy_t)&theTCPolicy, THREAD_AFFINITY_POLICY_COUNT);
-    if (res == KERN_SUCCESS)  {
-        printf("set_affinity = %d\n", theTCPolicy.affinity_tag);
-    }
-}
 
 class FaustLLVMOptimizer {
 
@@ -111,11 +90,12 @@ class FaustLLVMOptimizer {
 
         FAUSTFLOAT* fBuffer;    // a buffer of NV*VSize samples
 
-        unsigned int COUNT;     // number of measures
         unsigned int NV;        // number of vectors in BIG buffer (should exceed cache)
         unsigned int ITER;      // number of iterations per measure
         unsigned int VSIZE;     // size of a vector in samples
-        unsigned int IDX ;      // current vector number (0 <= VIdx < NV)
+        unsigned int IDX;       // current vector number (0 <= VIdx < NV)
+        
+        int fOptLevel;      
         
         llvm_dsp_factory* fFactory;
         llvm_dsp* fDSP;
@@ -180,7 +160,6 @@ class FaustLLVMOptimizer {
         {
             // If the environment variable CLOCKSPERSEC is defined
             // we use it instead of our own measurement
-            /*
             char* str = getenv("CLOCKSPERSEC");
             if (str) {
                 int64 cps = (int64)atoll(str);
@@ -188,7 +167,6 @@ class FaustLLVMOptimizer {
                     return cps;
                 } 
             }
-            */
             
             if (fTv2.tv_sec != fTv1.tv_sec) {
                 return double(fLastRDTSC - fFirstRDTSC) / double(fTv2.tv_sec - fTv1.tv_sec);
@@ -244,25 +222,24 @@ class FaustLLVMOptimizer {
           
             // Mean of 10 best values (gives relatively stable results)
             uint64 meavalx = meanValue(V.begin(), V.begin() + 10);		
-          
             return megapersec(bsize, ichans + ochans, meavalx);
         }
         
         bool setRealtimePriority()
         {
-            struct passwd *         pw;
-            int                     err;
-            uid_t                   uid;
-            int                     policy;
-            struct sched_param      param;
+            struct passwd* pw;
+            int err;
+            uid_t uid;
+            int policy;
+            struct sched_param param;
 
             uid = getuid();
-            pw = getpwnam ("root");
+            pw = getpwnam("root");
             setuid(pw->pw_uid);
 
             pthread_getschedparam(pthread_self(), &policy, &param);
             policy = SCHED_RR;
-            param.sched_priority = 50;
+            param.sched_priority = 80;
             err = pthread_setschedparam(pthread_self(), policy, &param);
 
             setuid(uid);
@@ -281,7 +258,7 @@ class FaustLLVMOptimizer {
                 R0_0 = R0temp0;
             }
             
-            // allocate output channels (not initialized)
+            // Allocate output channels (not initialized)
             for (int i = 0; i < numOutChan; i++) {
                 outChannel[i] = (FAUSTFLOAT*)calloc(VSIZE, sizeof(FAUSTFLOAT));
             }
@@ -312,17 +289,17 @@ class FaustLLVMOptimizer {
             
             openMesure();
 
-            // allocate input buffers (initialized with white noise)
+            // Allocate input buffers (initialized with white noise)
             allocBuffers(numOutChan, outChannel);
             
-            // init the dsp with a reasonable sampling rate
+            // Init the dsp with a reasonable sampling rate
             fDSP->init(48000);
        
             AVOIDDENORMALS;
             bool running = true;
             
             while (running) {
-                // allocate new input buffers to avoid L2 cache
+                // Allocate new input buffers to avoid L2 cache
                 for (int c = 0; c < numInChan; c++) { inChannel[c] = nextVect(); }
                 STARTMESURE
                 fDSP->compute(VSIZE, inChannel, outChannel);
@@ -332,8 +309,7 @@ class FaustLLVMOptimizer {
             
             closeMesure();
             double res = getstats(VSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            
-            printf("VSIZE = %d getstats = %f\n", VSIZE, res);
+            cout << res << endl;
              
             freeBuffers(numOutChan, outChannel);
             return res;
@@ -343,10 +319,11 @@ class FaustLLVMOptimizer {
     
         void init()
         {
-            //cout << "COUNT " << COUNT << endl;
+            setRealtimePriority();
             
             // Scalar mode
             vector <string> t0;
+            t0.push_back("-scal");
             fOptionsTable.push_back(t0);
             
             fMeasure = 0;
@@ -372,9 +349,8 @@ class FaustLLVMOptimizer {
             fOptionsTable.push_back(t1);
             */
             
-            /*
             // vec -lv 0
-            for (int size = 16; size <= VSIZE; size *= 2) {
+            for (int size = 8; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -385,11 +361,9 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            */
-            
             
             // vec -lv 1
-            for (int size = 16; size <= VSIZE; size *= 2) {
+            for (int size = 8; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -403,7 +377,7 @@ class FaustLLVMOptimizer {
             
             /*
             // vec -lv 0 -dfs
-            for (int size = 16; size <= VSIZE; size *= 2) {
+            for (int size = 8; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -417,7 +391,7 @@ class FaustLLVMOptimizer {
             } 
             
             // vec -lv 1 -dfs
-            for (int size = 16; size <= VSIZE; size *= 2) {
+            for (int size = 8; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -429,10 +403,11 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-             */
+            */
             
+            /*
             // sch
-            for (int size = 16; size <= VSIZE; size *= 2) {
+            for (int size = 8; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -441,39 +416,39 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            
+            */
         }
     
-        FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int count, int size)
+        FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int size, int opt_level_max = 3)
         {
             fBuffer = 0;
             fFilename = filename;
             fInput = "";
             fLibraryPath = library_path;
             fTarget = target;
+            fOptLevel = opt_level_max;
             
-            COUNT   = count;    // number of measures
-            NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            ITER    = 10;       // number of iterations per measure
-            VSIZE   = size;     // size of a vector in samples
-            IDX     = 0;        // current vector number (0 <= VIdx < NV)
+            NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
+            ITER = 10;     // number of iterations per measure
+            VSIZE = size;  // size of a vector in samples
+            IDX = 0;       // current vector number (0 <= VIdx < NV)
             
             init();
         }
         
-        FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int count, int size)
+        FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int size, int opt_level_max = 3)
         {
             fBuffer = 0;
             fFilename = "";
             fInput = input;
             fLibraryPath = library_path;
             fTarget = target;
+            fOptLevel = opt_level_max;
            
-            COUNT   = count;    // number of measures
-            NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            ITER    = 10;       // number of iterations per measure
-            VSIZE   = size;     // size of a vector in samples
-            IDX     = 0;        // current vector number (0 <= VIdx < NV)
+            NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
+            ITER = 10;     // number of iterations per measure
+            VSIZE = size;  // size of a vector in samples
+            IDX = 0;      // current vector number (0 <= VIdx < NV)
             
             init();
         }
@@ -492,7 +467,7 @@ class FaustLLVMOptimizer {
                 if (computeOne(i, res)) {
                     table_res.push_back(make_pair(i, res));
                 } else {
-                    printf("computeOne error...\n");
+                    cout << "computeOne error..." << endl;
                 }
             }
             
@@ -502,11 +477,10 @@ class FaustLLVMOptimizer {
                 return fOptionsTable[table_res[0].first];
             } else {
                 // Scalar...
-                printf("findOptimize no options found...\n");
+                cout <<  "findOptimize no options found..." << endl;
                 return fOptionsTable[0];
             }
         }
-    
         
         const char* getError() { return fError.c_str(); }
     
@@ -515,18 +489,14 @@ class FaustLLVMOptimizer {
             for (int i = 0; i < item.size(); i++) {
                 cout << " " << item[i];
             }
-            cout << std::endl;
+            cout << " : ";
         }
         
         bool computeOne(int index, double& res)
         {
             vector <string> item = fOptionsTable[index];
-            
             printItem(item);
-            
-            //int opt_level = 4;
-            int opt_level = 5;
-    
+       
             if (fInput == "") { 
             
                 int argc = item.size() + 2;
@@ -537,7 +507,7 @@ class FaustLLVMOptimizer {
                     argv[i + 2] = item[i].c_str();
                 }
             
-                fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, opt_level);
+                fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, fOptLevel);
                 
             } else {
                 
@@ -547,18 +517,27 @@ class FaustLLVMOptimizer {
                     argv[i] = item[i].c_str();
                 }
                 
-                fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fInput, fError, opt_level);
+                fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fTarget, fError, fOptLevel);
             }
             
             if (!fFactory)  {
-                printf("Cannot create factory... %s\n", fError.c_str());
+                cout << "Cannot create factory : " << fError.c_str() << endl;
                 return false;
             } 
+            
+            /*
+            std::vector<std::string> path_list = getLibraryList(fFactory);
+            std::vector<std::string>::iterator it;
+            for (it = path_list.begin(); it != path_list.end(); it++) {
+                std::string file = *it;
+                cout << "file " << file.c_str() << endl;
+            }
+            */
             
             fDSP = createDSPInstance(fFactory);
             
             if (!fDSP)  {
-                printf("Cannot create instance...\n");
+                cout << "Cannot create instance..." << endl;
                 return false;
             } 
             
@@ -582,10 +561,10 @@ int getStackSize()
     int res;
     
     if ((res = pthread_attr_getstacksize(&attributes, &size))) {
-        printf("pthread_attr_getstacksize error %d\n", res);
+        cout << "pthread_attr_getstacksize error " << res << endl;
         return 0;
     } else {
-        printf("getStackSize size = %d\n", size);
+        cout << "getStackSize size = " << size << endl;
         return size;
     }
 }
@@ -597,24 +576,23 @@ void setStackSize(size_t size)
     int res;
     
     if ((res = pthread_attr_setstacksize(&attributes, size))) {
-        printf("pthread_attr_setstacksize error %d\n", res);
+         cout << "pthread_attr_setstacksize error " << res << endl;
     } 
     
-    printf("setStackSize size = %d\n", size);
+    cout << "setStackSize size = " << size << endl;
 }
 
 #ifdef MAIN_LLVM
 int main(int argc, char* argv[])
 {
-    int COUNT = lopt(argv, "-count", 2000);
-    int VSIZE = lopt(argv, "-vec",  512);
+    int index = 1;
+    if (isopt(argv, "-vec")) index += 2;
+    int VSIZE = lopt(argv, "-vec", 512);
     
-    FaustLLVMOptimizer optimizer(argv[1], "", "", COUNT, VSIZE);
-    
+    FaustLLVMOptimizer optimizer(argv[index], "", "", VSIZE);
     vector<string> options = optimizer.findOptimize();
     
-    cout << argv[1] << " ";
-    
+    cout << "Best compilation parameters for '" << argv[1] << "' are : ";
     for (int i = 0; i < options.size(); i++) {
         cout << options[i] << " ";
     }

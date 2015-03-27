@@ -40,6 +40,8 @@
 #include <map> 
 
 #include "faust/llvm-dsp.h"
+#define LLVM_DSP 1
+#include "faust/audio/poly-dsp.h"
 #include "faust/gui/JSONUI.h"
 #include "maxcpp5.h"
 

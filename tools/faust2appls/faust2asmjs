@@ -113,7 +113,7 @@ EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$n
         fi
     
         # compile the C++ code to asm.js
-        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED
        
         # compose the asm.js code
@@ -178,7 +178,7 @@ done
 
 if [ $EMCC = emcc ]; then
     # compile final file
-    emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 $COMB_WRAPPED -o comb.js \
+    emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_MEMORY=100663296 $COMB_WRAPPED -o comb.js \
         -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
 
 rm $COMB_SRC

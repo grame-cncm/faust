@@ -629,10 +629,12 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         setValue : function (path, val) 
         {
             var values = value_table[path];
-            if (factory.getValue(dsp, factory.pathTable[path]) == values[0]) {
-                values[0] = val;
-            } 
-            values[1] = val;
+            if (values) {
+                if (factory.getValue(dsp, factory.pathTable[path]) == values[0]) {
+                    values[0] = val;
+                } 
+                values[1] = val;
+            }
         },
         
         getValue : function (path) 

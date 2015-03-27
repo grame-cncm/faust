@@ -76,7 +76,6 @@ EXPORT string expandDSPFromString(const string& name_app,
 
     error_msg = error_msg_aux;
     sha_key = sha_key_aux;
-    printf("SHA KEY GENERATED : %s\n", sha_key.c_str());
     return res;
 }
 

@@ -46,32 +46,101 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
 
-// ends_with(<str>,<end>) : returns true if <str> ends with <end>
-static bool ends_with (std::string const& str, std::string const& end)
-{
-	unsigned int l1 = str.length();
-	unsigned int l2 = end.length();
-    return (l1 >= l2) && (0 == str.compare (l1 - l2, l2, end));
-}
-
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
 
-#define VOICE_STOP_LEVEL   0.001
+#define VOICE_STOP_LEVEL  0.001
+#define MIX_BUFFER_SIZE   16384
+
+// ends_with(<str>,<end>) : returns true if <str> ends with <end>
+static bool ends_with(std::string const& str, std::string const& end)
+{
+	unsigned int l1 = str.length();
+	unsigned int l2 = end.length();
+    return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
+}
 
 // One voice of polyphony
-struct mydsp_voice : public MapUI {
-    
-    mydsp fVoice;
+struct dsp_voice : public MapUI, public dsp {
+       
     int fNote;
-    
-    mydsp_voice()
+
+    dsp_voice()
     {
-        fVoice.buildUserInterface(this);
         fNote = kFreeVoice;
     }
+    
+    virtual void metadata(Meta* meta) = 0;
  
 };
+
+struct voice_factory {
+
+    virtual dsp_voice* create() = 0;
+};
+
+#ifdef LLVM_DSP
+
+#include "faust/llvm-dsp.h"
+
+struct llvm_dsp_voice : public dsp_voice {
+
+    llvm_dsp* fVoice;
+
+    llvm_dsp_voice(llvm_dsp_factory* factory):dsp_voice()
+    {
+        fVoice = createDSPInstance(factory);
+        fVoice->buildUserInterface(this);
+    }
+    
+    virtual ~llvm_dsp_voice() { deleteDSPInstance(fVoice); }
+    
+    virtual int getNumInputs() { return fVoice->getNumInputs(); }
+    virtual int getNumOutputs() { return fVoice->getNumOutputs(); }
+    virtual void buildUserInterface(UI* ui_interface) { fVoice->buildUserInterface(ui_interface); }
+    virtual void init(int samplingRate) { fVoice->init(samplingRate); }
+    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice->compute(len, inputs, outputs); }
+    
+    virtual void metadata(Meta* meta) { fVoice->metadata(meta); }
+    
+};
+
+struct llvm_dsp_voice_factory : public voice_factory {
+
+    llvm_dsp_factory* fFactory;
+    
+    llvm_dsp_voice_factory(llvm_dsp_factory* factory):fFactory(factory) {}
+
+    virtual dsp_voice* create() { return new llvm_dsp_voice(fFactory); }
+};
+
+#else
+
+struct mydsp_voice : public dsp_voice {
+
+    mydsp fVoice;
+     
+    mydsp_voice():dsp_voice()
+    {
+        fVoice.buildUserInterface(this);
+    }
+    
+    virtual int getNumInputs() { return fVoice.getNumInputs(); }
+    virtual int getNumOutputs() { return fVoice.getNumOutputs(); }
+    virtual void buildUserInterface(UI* ui_interface) { fVoice.buildUserInterface(ui_interface); }
+    virtual void init(int samplingRate) { fVoice.init(samplingRate); }
+    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
+
+    virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
+
+};
+
+struct mydsp_voice_factory : public voice_factory {
+
+    virtual dsp_voice* create() { return new mydsp_voice(); }
+};
+
+#endif
 
 // Polyphonic DSP
 class mydsp_poly : public dsp
@@ -81,28 +150,27 @@ class mydsp_poly : public dsp
   
         std::string fJSON;
         
-        mydsp_voice** fVoiceTable;
+        dsp_voice** fVoiceTable;
         
         std::string fGateLabel;
         std::string fGainLabel;
         std::string fFreqLabel;
         
         int fMaxPolyphony;
-        int fBufferSize;
         
-        FAUSTFLOAT** fNoteOutputs;
+        FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
         
-        inline float mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
+        inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
         {
-            float level = 0;
+            FAUSTFLOAT level = 0;
             // Normalize sample by the max polyphony (as in vst.cpp file)
-            float gain_level = 1./sqrt(fMaxPolyphony);
+            FAUSTFLOAT gain_level = 1./sqrt(fMaxPolyphony);
             for (int i = 0; i < fNumOutputs; i++) {
-                float* mixChannel = mixBuffer[i];
-                float* outChannel = outputBuffer[i];
+                FAUSTFLOAT* mixChannel = mixBuffer[i];
+                FAUSTFLOAT* outChannel = outputBuffer[i];
                 for (int j = 0; j < count; j++) {
-                    level = std::max(level, (float)fabs(outChannel[j]));
+                    level = std::max(level, (FAUSTFLOAT)fabs(outChannel[j]));
                     mixChannel[j] += outChannel[j] * gain_level;
                 }
             }
@@ -128,34 +196,47 @@ class mydsp_poly : public dsp
             }
             return kReleaseVoice;
         }
-    
-    public: 
-    
-        mydsp_poly(int buffer_size, int max_polyphony)
+        
+        inline void init(int max_polyphony, voice_factory* factory)
         {
             fMaxPolyphony = max_polyphony;
-            fBufferSize = buffer_size;
-            fVoiceTable = new mydsp_voice*[fMaxPolyphony];
+            fVoiceTable = new dsp_voice*[fMaxPolyphony];
             
              // Init it with supplied sample_rate 
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i] = new mydsp_voice();
+                fVoiceTable[i] = factory->create();
             }
             
             // Init audio output buffers
-            fNumOutputs = fVoiceTable[0]->fVoice.getNumOutputs();
-            fNoteOutputs = new FAUSTFLOAT*[fNumOutputs];
+            fNumOutputs = fVoiceTable[0]->getNumOutputs();
+            fMixBuffer = new FAUSTFLOAT*[fNumOutputs];
             for (int i = 0; i < fNumOutputs; i++) {
-                fNoteOutputs[i] = new FAUSTFLOAT[fBufferSize];
+                fMixBuffer[i] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
             }
         }
-        
+    
+    public: 
+    
+    #ifdef LLVM_DSP
+        mydsp_poly(int max_polyphony, llvm_dsp_factory* factory = NULL)
+        {
+            llvm_dsp_voice_factory dsp_factory(factory);
+            init(max_polyphony, &dsp_factory);
+        }
+    #else
+         mydsp_poly(int max_polyphony)
+        {
+            mydsp_voice_factory dsp_factory;
+            init(max_polyphony, &dsp_factory);
+        }
+    #endif
+          
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
-                delete[] fNoteOutputs[i];
+                delete[] fMixBuffer[i];
             }
-            delete[] fNoteOutputs;
+            delete[] fMixBuffer;
             
             for (int i = 0; i < fMaxPolyphony; i++) {
                 delete fVoiceTable[i];
@@ -166,13 +247,13 @@ class mydsp_poly : public dsp
         void init(int sample_rate) 
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i]->fVoice.init(sample_rate);
+                fVoiceTable[i]->init(sample_rate);
             }
             
             // Creates JSON
-            JSONUI builder(fVoiceTable[0]->fVoice.getNumInputs(), fVoiceTable[0]->fVoice.getNumOutputs());
-            mydsp::metadata(&builder);
-            fVoiceTable[0]->fVoice.buildUserInterface(&builder);
+            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
+            fVoiceTable[0]->metadata(&builder);
+            fVoiceTable[0]->buildUserInterface(&builder);
             fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
@@ -192,14 +273,16 @@ class mydsp_poly : public dsp
         
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
+            assert(count < MIX_BUFFER_SIZE);
+            
             // First clear the outputs
             clearOutput(count, outputs);
               
             // Then mix all voices
             for (int i = 0; i < fMaxPolyphony; i++) {
-                if (fVoiceTable[i]->fNote != kFreeVoice){
-                    fVoiceTable[i]->fVoice.compute(count, inputs, fNoteOutputs);
-                    float level = mixVoice(count, fNoteOutputs, outputs);
+                if (fVoiceTable[i]->fNote != kFreeVoice) {
+                    fVoiceTable[i]->compute(count, inputs, fMixBuffer);
+                    FAUSTFLOAT level = mixVoice(count, fMixBuffer, outputs);
                     if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                         fVoiceTable[i]->fNote = kFreeVoice;
                     }
@@ -209,12 +292,12 @@ class mydsp_poly : public dsp
         
         int getNumInputs()
         {
-            return fVoiceTable[0]->fVoice.getNumInputs();
+            return fVoiceTable[0]->getNumInputs();
         }
         
         int getNumOutputs()
         {
-            return fVoiceTable[0]->fVoice.getNumOutputs();
+            return fVoiceTable[0]->getNumOutputs();
         }
         
         void buildUserInterface(UI* ui_interface) 
@@ -223,7 +306,7 @@ class mydsp_poly : public dsp
             for (int i = 0; i < fMaxPolyphony; i++) {
                 std::stringstream voice; voice << "Voice" << i;
                 ui_interface->openHorizontalBox(voice.str().c_str());
-                fVoiceTable[i]->fVoice.buildUserInterface(ui_interface);
+                fVoiceTable[i]->buildUserInterface(ui_interface);
                 ui_interface->closeBox();
             }
             ui_interface->closeBox();
@@ -281,8 +364,6 @@ class mydsp_poly : public dsp
         void ctrlChange(int channel, int ctrl, int value)
         {}
         
-        
-        
         const char* getJSON()
         {
             return fJSON.c_str();
@@ -321,9 +402,9 @@ class mydsp_poly : public dsp
 extern "C" {
     
     // C like API
-    mydsp_poly* mydsp_poly_constructor(int sample_rate, int buffer_size, int max_polyphony) 
+    mydsp_poly* mydsp_poly_constructor(int sample_rate, int max_polyphony) 
     {
-        mydsp_poly* poly = new mydsp_poly(buffer_size, max_polyphony);
+        mydsp_poly* poly = new mydsp_poly(max_polyphony);
         if (poly) poly->init(sample_rate);
         return poly;
     }

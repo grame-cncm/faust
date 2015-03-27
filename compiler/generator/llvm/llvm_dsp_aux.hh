@@ -179,9 +179,11 @@ class llvm_dsp_aux : public dsp {
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        
+        virtual llvm_dsp_aux* copy();
     
         llvm_dsp_factory* getFactory() { return fDSPFactory; }
-     
+       
 };
 
 // Public C++ interface using LLVM
@@ -258,6 +260,8 @@ class EXPORT llvm_dsp : public dsp {
         virtual void buildUserInterface(UI* ui_interface);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        
+        virtual llvm_dsp* copy();
      
 };
 
@@ -332,6 +336,8 @@ EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+
+EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp);
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
