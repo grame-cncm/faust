@@ -647,7 +647,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
             pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
             outDataSize = sizeof(CFStringRef);
-            osErr = AudioObjectSetPropertyData(fAggregateDeviceID, &pluginAOPA, 0, NULL, outDataSize, &captureDeviceUID[0]);  // First capture is master...
+            osErr = AudioObjectSetPropertyData(fAggregateDeviceID, &pluginAOPA, 0, NULL, outDataSize, &playbackDeviceUID[0]);  // First playback is master...
             if (osErr != noErr) {
                 printf("TCoreAudioRenderer::CreateAggregateDeviceAux : AudioObjectSetPropertyData for master device error\n");
                 printError(osErr);
