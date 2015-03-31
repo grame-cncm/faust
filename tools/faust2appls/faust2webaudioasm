@@ -3,6 +3,7 @@
 #-------------------------------------------------------------------
 # Wrapping resources
 
+EXPORT_FOOTER=""
 HTML_FOOTER=webaudio-asm-footer.html
 CPP_WRAPPER=webaudio-asm.cpp
 JS_WRAPPER=webaudio-asm-emcc.js
@@ -50,6 +51,7 @@ for p in $@; do
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
         EXPAND="true"
+        EXPORT_FOOTER=export-wrapper.html
     elif [ $p = "-poly" ]; then
         HTML_FOOTER=webaudio-asm-poly-footer.html
         CPP_WRAPPER=webaudio-asm-poly.cpp
@@ -105,6 +107,7 @@ for f in $FILES; do
     echo "<body>" >> $name-temp2.html
     echo $LINKS >> $name-temp2.html
     cat $FAUSTLIB/webaudio/$HTML_FOOTER >> $name-temp2.html
+    cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
     echo "</body>" >> $name-temp2.html
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html

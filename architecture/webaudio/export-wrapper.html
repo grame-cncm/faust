@@ -1,0 +1,226 @@
+<!-- Add FaustWeb Compilation service to Page -->
+<div id="export" style="color:white; position: absolute; width:400px; padding:2px 2px 2px 2px; background-color:7F7F7F; visibility:hidden; ">
+
+<div id="centerDiv" style="position:relative; margin-right:auto; margin-left:auto; text-align:center;">
+<input id="exportUrl" style="color:white; border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; position:relative; margin-left:auto; maring-right: auto; text-align:center;" contenteditable="true" value="http://faustservice.grame.fr" onkeyup="onEnterKey()"/>
+</br>
+</br>
+</br>
+  <img id="refreshButton" src="reset.png" onclick="updateFWTargets()" style="position:absolute; left:10px; top:46px;"/>
+  <select id="Platform" style="width:250px;" onChange="changeArchs()">
+  </select>
+  </br>
+    <select id="Architecture" style="width:250px;">
+  </select>
+  </br>
+  </br>
+  <input id="exportButton" type="button" value="Export" onclick="getFaustSource()" style="border: 2px solid white; border-radius:8px; color:white; font-size:16px;  background-color:transparent;"/>
+	</br>
+  </br>
+  <div id="qrDiv">
+  </div>
+</div>
+  </br>
+</div>
+<img id="plusImg" src="plus.png" style="position: absolute; z-index=3; visibility:visible;" onclick="openExport()"/>
+<img id="moinsImg" src="moins.png" style="position: absolute; z-index=3; visibility:hidden;" onclick="closeExport()"/>
+
+<script src="ExportLib.js"></script>
+<script src="qrcode.js"></script>
+
+<script >
+
+function onEnterKey(e){
+	if (!e) { var e = window.event; } 
+	
+	if (e.keyCode == 13){ 
+		e.preventDefault(); 
+		updateFWTargets();
+	}
+}
+
+function openExport(){
+
+	document.getElementById("plusImg").style.visibility = "hidden";
+	document.getElementById("moinsImg").style.visibility = "visible";
+	document.getElementById("export").style.visibility = "visible";
+}
+
+function closeExport(){
+
+	var target = event.target
+	while(target && target != document.getElementById("export"))
+		target= target.parentNode;
+
+	if(!target && event.target != document.getElementById("plusImg")){
+		document.getElementById("plusImg").style.visibility = "visible";
+		document.getElementById("moinsImg").style.visibility = "hidden";
+		document.getElementById("export").style.visibility = "hidden";	
+	}
+}
+
+function updateQrCode(sha){
+	
+// Empty Div before adding new qrcode
+	var toEmpty = document.getElementById("qrDiv");
+
+	while(toEmpty.firstChild)
+    	toEmpty.removeChild(toEmpty.firstChild);
+	
+	var plateform = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
+	var architecture = document.getElementById("Architecture").options[document.getElementById("Architecture").selectedIndex].value;
+	var output = "binary.zip";
+	
+	if(plateform == "android")
+		output = "binary.apk";
+	
+	var link = document.createElement('a');
+	link.href = document.getElementById("exportUrl").value + "/" + sha +"/"+ plateform + "/" + architecture + "/"+output;
+
+	// 	Delete existing content if existing
+	var qrcodeSpan = document.getElementById('qrcodeDiv');
+	if(qrcodeSpan)
+		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
+	
+	var myWhiteDiv = getQrCode(document.getElementById("exportUrl").value, sha, plateform, architecture, output, 130);
+
+	document.getElementById("qrDiv").appendChild(link);
+	link.appendChild(myWhiteDiv);
+}
+
+function getFaustSource(){
+
+	var url = location.origin + '/' + DSP + ".dsp";
+	
+	var filename = url.toString().split( '/' ).pop();
+	filename = filename.toString().split('.').shift();
+		
+    var xmlhttp = new XMLHttpRequest();
+
+	xmlhttp.onreadystatechange=function(){
+		if (xmlhttp.readyState==4 && xmlhttp.status==200){
+			var dsp_code =xmlhttp.responseText;
+			
+			getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, null);
+    	}
+    }
+	xmlhttp.open("GET", url, false );
+    xmlhttp.send(); 
+}
+
+
+function cleanComboBox(id){
+	
+	while(document.getElementById(id).childNodes.length>0) {
+		document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
+	}
+}
+
+function changeArchs(){
+
+// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
+	cleanComboBox("Architecture");
+
+	var plat = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
+
+	var archs = getArchitectures(window.json, plat);
+		
+	for(var j=0; j<archs.length; j++){
+
+		var a=document.createElement('option');
+		a.text=archs[j];
+		document.getElementById("Architecture").options.add(a);
+	}
+}
+
+function updateFWTargets(){
+
+// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
+	cleanComboBox("Platform");
+	cleanComboBox("Architecture");
+
+	getTargets(document.getElementById("exportUrl").value, function(json){
+	
+		window.json = json;
+		
+		var plats = getPlatforms(json);	
+	
+		for(var i=0; i<plats.length; i++){
+			var o=document.createElement('option');
+			o.text=plats[i];
+			document.getElementById("Platform").options.add(o);
+			
+		}
+		
+		changeArchs();
+	}, function(){});
+}
+
+function changeOrientation(orientation){
+	if(orientation == "topright"){
+		document.getElementById("plusImg").style.top = "0px";
+		document.getElementById("plusImg").style.right = "0px";		
+		document.getElementById("moinsImg").style.top = "0px";
+		document.getElementById("moinsImg").style.right = "0px";		
+		
+		document.getElementById("export").style.top = "0%";
+		document.getElementById("export").style.right = "0%";
+		document.getElementById("export").style.boxShadow ="0px 2px 2px 0px white";
+		document.getElementById("export").style.borderRadius ="0px 0px 0px 25px";
+		document.getElementById("export").style.borderBottom = "3px solid white";
+		document.getElementById("export").style.borderLeft ="3px solid white";
+		 		
+	}
+	else if(orientation == "bottomright"){
+	
+		document.getElementById("plusImg").style.bottom = "0px";
+		document.getElementById("plusImg").style.right = "0px";			
+		document.getElementById("moinsImg").style.bottom = "0px";
+		document.getElementById("moinsImg").style.right = "0px";			
+		
+		document.getElementById("export").style.bottom = "0%";
+		document.getElementById("export").style.right = "0%";
+		document.getElementById("export").style.boxShadow ="2px 2px 0px px white";
+		document.getElementById("export").style.borderRadius ="25px 0px 0px 0px";
+		document.getElementById("export").style.borderTop = "3px solid white";
+		document.getElementById("export").style.borderLeft ="3px solid white";
+	}
+	else if(orientation == "bottomleft"){
+		document.getElementById("plusImg").style.bottom = "0px";
+		document.getElementById("plusImg").style.left = "0px";		
+		document.getElementById("moinsImg").style.bottom = "0px";
+		document.getElementById("moinsImg").style.left = "0px";
+		
+		document.getElementById("export").style.bottom = "0%";
+		document.getElementById("export").style.left = "0%";
+		document.getElementById("export").style.boxShadow ="2px 0px 2px 0px white";
+		document.getElementById("export").style.borderRadius ="0px 25px 0px 0px";
+		document.getElementById("export").style.borderTop = "3px solid white";
+		document.getElementById("export").style.borderRight ="3px solid white";		
+	}
+	else if(orientation == "topleft"){
+		document.getElementById("plusImg").style.top = "0px";
+		document.getElementById("plusImg").style.left = "0px";		
+		document.getElementById("moinsImg").style.top = "0px";
+		document.getElementById("moinsImg").style.left = "0px";
+
+		document.getElementById("export").style.top = "0%";
+		document.getElementById("export").style.left = "0%";
+		document.getElementById("export").style.boxShadow ="0px 0px 2px 2px white";
+		document.getElementById("export").style.borderRadius ="0px 0px 25px 0px";
+		document.getElementById("export").style.borderBottom = "3px solid white";
+		document.getElementById("export").style.borderRight ="3px solid white";		
+	}
+}
+
+changeOrientation("topright");
+// changeOrientation("bottomright");
+// changeOrientation("bottomleft");
+// changeOrientation("topleft");
+
+updateFWTargets();
+
+document.body.addEventListener("click", closeExport, false);
+</script>
+
+<!-- End FaustWeb Compilation Service -->
