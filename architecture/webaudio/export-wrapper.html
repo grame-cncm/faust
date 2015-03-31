@@ -90,7 +90,7 @@ function updateQrCode(sha){
 
 function getFaustSource(){
 
-	var url = location.origin + "/harpe.dsp";
+	var url = location.origin + '/' + DSP + ".dsp";
 	
 	var filename = url.toString().split( '/' ).pop();
 	filename = filename.toString().split('.').shift();
@@ -223,4 +223,8 @@ updateFWTargets();
 document.body.addEventListener("click", closeExport, false);
 </script>
 
+<<<<<<< HEAD
 <!-- End FaustWeb Compilation Service -->
+=======
+<!-- End FaustWeb Compilation Service -->
+>>>>>>> master
