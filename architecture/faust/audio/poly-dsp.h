@@ -178,7 +178,7 @@ class mydsp_poly : public dsp
     
     public: 
     
-        mydsp_poly(int max_polyphony)
+        mydsp_poly(int max_polyphony, int buffer_size = 8192)  // Second argument to remove ASAP
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory);
