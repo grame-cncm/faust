@@ -6,10 +6,6 @@ HTML_FOOTER=""
 CODE_WRAPPER=""
 JS_WRAPPER=""
 
-EXPORT_FOOTER=""
-HTML_FOOTER=webaudio-asm-footer.html
-CPP_WRAPPER=webaudio-asm.cpp
-JS_WRAPPER=webaudio-asm-emcc.js
 LINKS=""
 SVG=""
 
@@ -54,10 +50,11 @@ for p in $@; do
 				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
             <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
+            <a href=\"DSP_exp.dsp\" target=\"_blank\">code</a>
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
-        EXPORT="true"
         EXPORT_FOOTER=export-wrapper.html
+        EXPORT="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
     elif [ $p = "-emcc" ]; then
