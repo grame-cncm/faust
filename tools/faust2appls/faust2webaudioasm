@@ -9,7 +9,7 @@ CPP_WRAPPER=webaudio-asm.cpp
 JS_WRAPPER=webaudio-asm-emcc.js
 LINKS=""
 SVG=""
-EXPAND="false"
+EXPORT="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -47,10 +47,9 @@ for p in $@; do
 				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
             <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
-            <a href=\"DSP_exp.dsp\" target=\"_blank\">code</a>
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
-        EXPAND="true"
+        EXPORT="true"
         EXPORT_FOOTER=export-wrapper.html
     elif [ $p = "-poly" ]; then
         HTML_FOOTER=webaudio-asm-poly-footer.html
@@ -77,7 +76,7 @@ for f in $FILES; do
     faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
     # prepare the expanded version
-    if [ $EXPAND = "true" ] ; then
+    if [ $EXPORT = "true" ] ; then
         faust -e $f 
     fi
     
@@ -107,7 +106,9 @@ for f in $FILES; do
     echo "<body>" >> $name-temp2.html
     echo $LINKS >> $name-temp2.html
     cat $FAUSTLIB/webaudio/$HTML_FOOTER >> $name-temp2.html
-    cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
+    if [ $EXPORT = "true" ] ; then
+        cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
+    fi
     echo "</body>" >> $name-temp2.html
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
