@@ -75,11 +75,6 @@ for f in $FILES; do
     # compile the Faust DSP to C++ code
     faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
     
-    # prepare the expanded version
-    if [ $EXPORT = "true" ] ; then
-        faust -e $f 
-    fi
-    
     if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
         EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
      else
