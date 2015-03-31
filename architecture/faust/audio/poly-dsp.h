@@ -224,7 +224,7 @@ class mydsp_poly : public dsp
             init(max_polyphony, &dsp_factory);
         }
     #else
-         mydsp_poly(int max_polyphony)
+        mydsp_poly(int max_polyphony, int buffer_size = 8192)  // Second argument to remove ASAP
         {
             mydsp_voice_factory dsp_factory;
             init(max_polyphony, &dsp_factory);

@@ -15,7 +15,7 @@ SVG=""
 
 EMCC="false"
 POLY="false"
-EXPAND="false"
+EXPORT="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -54,10 +54,9 @@ for p in $@; do
 				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
             <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
-            <a href=\"DSP_exp.dsp\" target=\"_blank\">code</a>
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
-        EXPAND="true"
+        EXPORT="true"
         EXPORT_FOOTER=export-wrapper.html
     elif [ $p = "-poly" ]; then
         POLY="true"
@@ -113,11 +112,6 @@ for f in $FILES; do
     else
         faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js
     fi
-    
-    # prepare the expanded version
-    if [ $EXPAND = "true" ] ; then
-        faust -e $f 
-    fi
      
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
@@ -154,7 +148,9 @@ for f in $FILES; do
     echo "<body>" >> $name-temp2.html
     echo $LINKS >> $name-temp2.html
     cat $FAUSTLIB/webaudio/$HTML_FOOTER >> $name-temp2.html
-    cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
+    if [ $EXPORT = "true" ] ; then
+        cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
+    fi
     echo "</body>" >> $name-temp2.html
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
