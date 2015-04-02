@@ -91,7 +91,7 @@ l0 -40 -150 0 -150 0 0 40 0 40 150 0 150 0 0 -40z"/>
 <script >
 
 function onEnterKey(e){
-	if (!e) { e = window.event; } 
+	if (!e) { var e = window.event; } 
 	
 	if (e.keyCode == 13){ 
 		e.preventDefault(); 
@@ -163,7 +163,7 @@ function getFaustSource(){
 
 	document.getElementById("loader").style.visibility = "visible";
 
-	var url = location.origin + "/DSP.dsp";
+	var url = window.location.href.split('.html').shift() + ".dsp";
 	
 	var filename = url.toString().split( '/' ).pop();
 	filename = filename.toString().split('.').shift();
