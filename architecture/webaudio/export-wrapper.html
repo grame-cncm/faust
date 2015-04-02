@@ -91,7 +91,7 @@ l0 -40 -150 0 -150 0 0 40 0 40 150 0 150 0 0 -40z"/>
 <script >
 
 function onEnterKey(e){
-	if (!e) { var e = window.event; } 
+	if (!e) { e = window.event; } 
 	
 	if (e.keyCode == 13){ 
 		e.preventDefault(); 
@@ -106,7 +106,9 @@ function openExport(){
 	document.getElementById("export").style.visibility = "visible";
 }
 
-function closeExport(){
+function closeExport(event){
+
+	if (!event) { event = window.event; } 
 
 	var target = event.target
 	while(target && target != document.getElementById("export") && target != document.getElementById("plusImg") )
