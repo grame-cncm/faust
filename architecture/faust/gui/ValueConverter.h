@@ -33,6 +33,10 @@ AccDownConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 1
 AccUpDownConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 2
 AccDownUpConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 3
 
+-- lists of ZoneControl are used to implement accelerometers metadata for each axes
+
+ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter 
+
 ****************************************************************************************/
 
 
