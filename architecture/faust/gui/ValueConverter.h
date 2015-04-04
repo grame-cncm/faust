@@ -254,6 +254,10 @@ class AccDownUpConverter : public ValueConverter
 };
 
 
+//--------------------------------------------------------------------------------------
+// Association of a zone and a value converter. Useful to implement accelerometers 
+// metadata as a list of ZoneControl for each axes
+//--------------------------------------------------------------------------------------
 class ZoneControl
 {
 	FAUSTFLOAT*			fZone;
