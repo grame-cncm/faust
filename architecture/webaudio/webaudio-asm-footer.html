@@ -47,7 +47,7 @@ function startDSPAux(buffer_size)
     console.log("startDSP %d", buffer_size);
     if (DSP) {
         if (audio_input) {
-            audio_input.disconnect(DSP.scriptProcessor);
+            audio_input.disconnect(DSP.getProcessor());
         }
         _f4u$t.hard_delete(faustsvg);
         DSP.stop();
