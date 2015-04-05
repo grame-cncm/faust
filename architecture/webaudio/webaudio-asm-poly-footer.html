@@ -139,7 +139,7 @@ function startDSPAux(buffer_size)
     activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
-            audio_input.disconnect(DSP_poly.scriptProcessor);
+            audio_input.disconnect(DSP_poly.getProcessor());
         }
         _f4u$t.hard_delete(faustsvg);
         DSP_poly.stop();
