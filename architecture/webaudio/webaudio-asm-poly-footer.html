@@ -131,7 +131,7 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP_poly.scriptProcessor);
+    audio_input.connect(DSP_poly.getProcessor());
 }
 
 function startDSPAux(buffer_size) 
