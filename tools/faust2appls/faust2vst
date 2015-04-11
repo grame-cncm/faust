@@ -122,7 +122,13 @@ for p in $FILES; do
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	g++ -arch i386 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}" "${f%.dsp}.cpp" $SOURCES
+	if [[ $(uname) == "Darwin" ]]; then
+		g++ -arch i386 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.i386" "${f%.dsp}.cpp" $SOURCES
+		g++ -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" "${f%.dsp}.cpp" $SOURCES
+		lipo -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.i386" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}"
+	else
+		g++ -arch i386 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}" "${f%.dsp}.cpp" $SOURCES
+	fi
 	createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"
 	echo "BNDL????" > "${f%.dsp}$EXT/Contents/PkgInfo"
     )> /dev/null
