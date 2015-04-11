@@ -226,7 +226,7 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 // Constants
 ///////////////////////////////////////////////////////////////////
 
-#define MAX_NOUTS (64)
+#define MAX_NOUTS (2)
 
 //----------------------------------------------------------------------------
 // Faust class prototype
