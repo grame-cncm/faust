@@ -99,11 +99,13 @@ endif
 
 ifeq ($(LLVM_VERSION), 3.5.1)
     LLVM_VERSION = LLVM_35
+    CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
 endif
 
 ifeq ($(LLVM_VERSION), 3.6.0)
     LLVM_VERSION = LLVM_36
+    CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
 endif
 
