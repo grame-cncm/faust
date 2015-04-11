@@ -67,7 +67,7 @@
 <<includeclass>>
 
 #ifdef POLY
-#include "faust/audio/poly-dsp.h"
+#include "faust/midi/midi-io.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
@@ -93,8 +93,9 @@ int main(int argc, char *argv[])
 	
 #ifdef POLY
     DSP = new mydsp_poly(4);
+    MidiIO midi(DSP);
 #else
-	DSP = new mydsp();
+    DSP = new mydsp();
 #endif
 	if (DSP==0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
@@ -125,7 +126,9 @@ int main(int argc, char *argv[])
 	audio.start();
     
 #ifdef POLY
+    midi.start();
     // Test some notes...
+    /*
     usleep(500000);
     DSP->keyOn(0, 60, 100);
     usleep(500000);
@@ -134,6 +137,7 @@ int main(int argc, char *argv[])
     DSP->keyOn(0, 67, 100);
     usleep(500000);
     DSP->keyOn(0, 70, 100);
+    */
 #endif
 	
 #ifdef HTTPCTRL
@@ -155,6 +159,10 @@ int main(int argc, char *argv[])
 	audio.stop();
 	finterface->saveState(rcfilename);
     
+#ifdef POLY
+    midi.stop();
+#endif
+    
     // desallocation
     delete interface;
     delete finterface;
@@ -164,6 +172,7 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
 	 delete oscinterface;
 #endif
+
 
   	return 0;
 }
