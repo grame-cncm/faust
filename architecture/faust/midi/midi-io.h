@@ -7,8 +7,6 @@
 //
 //*****************************************//
 
-#define __MACOSX_CORE__ 1
-
 #include <iostream>
 #include <cstdlib>
 #include "faust/midi/RtMidi.cpp"

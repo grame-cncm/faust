@@ -85,6 +85,7 @@ done
 #
 if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+    CXXFLAGS+=" -D__MACOSX_CORE__"
 	if [ $SYS_VERSION -gt 12 ]
 	then
 	    SPEC="-spec macx-clang"
