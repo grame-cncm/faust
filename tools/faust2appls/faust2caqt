@@ -12,7 +12,7 @@
 CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="ca-qt.cpp"
-ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices"
+ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 PATH=$PATH:/usr/local/bin
 
 

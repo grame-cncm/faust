@@ -71,7 +71,7 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 #ifdef POLY
-#include "faust/audio/poly-dsp.h"
+#include "faust/midi/midi-io.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
@@ -102,8 +102,9 @@ int main(int argc, char *argv[])
 
 #ifdef POLY
     DSP = new mydsp_poly(4);
+    MidiIO midi(DSP);
 #else
-	DSP = new mydsp();
+    DSP = new mydsp();
 #endif
 
     long srate = (long)lopt(argv, "--frequency", -1);
@@ -132,15 +133,7 @@ int main(int argc, char *argv[])
 	audio.start();
     
 #ifdef POLY
-    // Test some notes...
-    usleep(500000);
-    DSP->keyOn(0, 60, 100);
-    usleep(500000);
-    DSP->keyOn(0, 63, 100);
-    usleep(500000);
-    DSP->keyOn(0, 67, 100);
-    usleep(500000);
-    DSP->keyOn(0, 70, 100);
+    midi.start();
 #endif
 
 #ifdef HTTPCTRL
@@ -161,6 +154,10 @@ int main(int argc, char *argv[])
     
 	audio.stop();
 	finterface->saveState(rcfilename);
+    
+#ifdef POLY
+    midi.stop();
+#endif
     
     // desallocation
     delete interface;
