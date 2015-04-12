@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <cstdlib>
-#include "faust/midi/RtMidi.h"
 #include "faust/midi/RtMidi.cpp"
 #include "faust/audio/poly-dsp.h"
 
@@ -20,20 +19,27 @@ class MidiIO {
     private:
     
         RtMidiIn* fMIDI;
-        mydsp_poly* fDSP;
+        midi* fDSP;
         
-        static void mycallback(double deltatime, std::vector<unsigned char>* message, void* arg)
+        static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
             MidiIO* midi = static_cast<MidiIO*>(arg);
             unsigned int nBytes = message->size();
             
-            for (unsigned int i = 0; i < nBytes; i++) {
+            int cmd = (int)message->at(0) >> 4;
+            int channel = (int)message->at(0) & 0xf;
             
-                int cmd = (int)message->at(0) >> 4;
-                int channel = (int)message->at(0) & 0xf;
+            if (nBytes == 2) {
+             
+                int data1 = (int)message->at(1);
+                if (cmd == 12) {
+                    midi->fDSP->progChange(channel, data1);
+                }
+            
+            } else if (nBytes == 3) {
+            
                 int data1 = (int)message->at(1);
                 int data2 = (int)message->at(2);
-      
                 if (channel == 9) {
                     return;
                 } else if (cmd == 8 || ((cmd == 9) && (data2 == 0))) { 
@@ -43,14 +49,19 @@ class MidiIO {
                 } else if (cmd == 11) {
                     midi->fDSP->ctrlChange(channel, data1, data2);
                 } else if (cmd == 14) {
-                    midi->fDSP->pitchWheel(channel, ((data2 * 128.0 + data1)-  8192) / 8192.0);
-                }  
+                    midi->fDSP->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                }
+                
+            } else {
+                 cout << "long message : " << nBytes << endl;
             }
         }
         
         bool chooseMidiPort()
         {
+            // oppen a virtual port when available on API
             fMIDI->openVirtualPort();
+            
             unsigned int i = 0, nPorts = fMIDI->getPortCount();
             
             if (nPorts == 0) {
@@ -60,7 +71,7 @@ class MidiIO {
             
             for (i = 0; i < nPorts; i++) {
                 std::string portName = fMIDI->getPortName(i);
-                std::cout << "  Input port #" << i << ": " << portName << '\n';
+                std::cout << "Input port #" << i << ": " << portName << '\n';
                 fMIDI->openPort(i);
             }
 
@@ -69,7 +80,7 @@ class MidiIO {
     
     public:
     
-        MidiIO(mydsp_poly* dsp):fMIDI(0), fDSP(dsp)
+        MidiIO(midi* dsp):fMIDI(0), fDSP(dsp)
         {}
         
         virtual ~MidiIO()
@@ -78,17 +89,12 @@ class MidiIO {
         bool start()
         {
             try {
-                // RtMidiIn constructor
+            
                 fMIDI = new RtMidiIn();
-                
-                // Call function to select port.
                 if (!chooseMidiPort()) goto cleanup;
-
-                // Set our callback function.  This should be done immediately after
-                // opening the port to avoid having incoming messages written to the
-                // queue instead of sent to the callback function.
-                fMIDI->setCallback(&mycallback, this);
+                fMIDI->setCallback(&midiCallback, this);
                 return true;
+                
             } catch (RtMidiError &error) {
                 error.printMessage();
                 return false;
