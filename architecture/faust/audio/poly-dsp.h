@@ -45,6 +45,7 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
+#include "faust/midi/midi.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
@@ -143,7 +144,7 @@ struct mydsp_voice_factory : public voice_factory {
 #endif
 
 // Polyphonic DSP
-class mydsp_poly : public dsp
+class mydsp_poly : public dsp, public midi
 {
 
     private:
@@ -362,6 +363,9 @@ class mydsp_poly : public dsp
         }
         
         void ctrlChange(int channel, int ctrl, int value)
+        {}
+        
+        void progChange(int channel, int pgm)
         {}
         
         const char* getJSON()

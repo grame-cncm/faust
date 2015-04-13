@@ -86,6 +86,8 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
+    CXXFLAGS+=" -D__MACOSX_CORE__"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -gt 12 ]
 	then
@@ -113,8 +115,8 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
-
+ 	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+  
     # compile c++ to binary
     (
 	    cd "$TMP"
