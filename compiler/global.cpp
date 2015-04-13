@@ -294,7 +294,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gArchFile = "";
     gExportDSP = false;
 
-    gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
+    gTimeout = 120;            // time out to abort compiler (in seconds)
     gLLVMOut = true;
     
     // Globals to transfer results in thread based evaluation

@@ -41,6 +41,14 @@ QTDEFS=""
 OSCLIB=""
 
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2jaqt [-osc] [-http] [-poly] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-http' to activate HTTP control"
+        echo "Use '-qrcode' to activate QR code generation"
+    fi
+    
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -51,6 +59,8 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-poly" ]; then
+        POLYDEFS="DEFINES += POLY"
     elif [ $p = "-osc" ]; then
 		 OSCDEFS="DEFINES += OSCCTRL"
 		 OSCLIBS="-lOSCFaust"
@@ -106,7 +116,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS"   
 	    qmake $SPEC
         make
     ) > /dev/null

@@ -64,14 +64,22 @@
 *******************************************************************************/
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+#ifdef POLY
+#include "faust/audio/poly-dsp.h"
+mydsp_poly*	DSP;
+#else
+mydsp* DSP;
+#endif
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 std::list<GUI*> GUI::fGuiList;
 
@@ -92,30 +100,48 @@ int main(int argc, char *argv[])
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 
+#ifdef POLY
+    DSP = new mydsp_poly(4);
+#else
+	DSP = new mydsp();
+#endif
+
     long srate = (long)lopt(argv, "--frequency", -1);
     int	fpb = lopt(argv, "--buffer", 512);
 
 	QApplication myApp(argc, argv);
     
     QTGUI* interface = new QTGUI();
-	DSP.buildUserInterface(interface);
+	DSP->buildUserInterface(interface);
 	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(finterface);
+	DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(name, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
-    DSP.buildUserInterface(httpdinterface);
+    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(httpdinterface);
  #endif
 
 #ifdef OSCCTRL
 	GUI* oscinterface = new OSCUI(name, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+	DSP->buildUserInterface(oscinterface);
 #endif
 
 	coreaudio audio(srate, fpb);
-	audio.init(name, &DSP);
+	audio.init(name, DSP);
 	finterface->recallState(rcfilename);
 	audio.start();
+    
+#ifdef POLY
+    // Test some notes...
+    usleep(500000);
+    DSP->keyOn(0, 60, 100);
+    usleep(500000);
+    DSP->keyOn(0, 63, 100);
+    usleep(500000);
+    DSP->keyOn(0, 67, 100);
+    usleep(500000);
+    DSP->keyOn(0, 70, 100);
+#endif
 
 #ifdef HTTPCTRL
 	httpdinterface->run();
@@ -148,7 +174,6 @@ int main(int argc, char *argv[])
 
   	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

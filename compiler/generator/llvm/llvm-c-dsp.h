@@ -353,6 +353,8 @@ extern "C"
     
     void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
+    llvm_dsp* copyCDSPInstance(llvm_dsp* dsp);
+    
     /**
      * Create a Faust DSP instance.
      * 
