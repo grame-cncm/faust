@@ -73,6 +73,8 @@ function getDevice(device) {
 	i.addEventListener( "mousedown", startDraggingConnector, true );
 	i.innerHTML = "<span class='node-button'>&nbsp;</span>";
 	src.appendChild(i);
+
+	connectNodes(src, window.scenes[window.currentScene].audioInput());
 }
 
 function activateAudioOutput(sceneOutput){
@@ -116,10 +118,11 @@ function nextScene(){
 	window.scenes[index].hideScene();
 	window.scenes[index].stopScene();
 	
+
+	window.currentScene = index+1;
+	
 	window.scenes[index+1].showScene();
 	window.scenes[index+1].startScene();
-			
-	window.currentScene = index+1;
 }
 
 function previousScene(){
@@ -257,7 +260,10 @@ function uploadOn(node, x, y, e) {
         	
         	terminateUpload();
     	}
+    	
 		xmlhttp.open("GET", url, false );
+// 	Avoid error "mal formé" on firefox
+		xmlhttp.overrideMimeType('text/html');
     	xmlhttp.send(); 
     }
     else if(e.dataTransfer.getData('URL').split(':').shift() != "file"){

@@ -53,7 +53,7 @@ function createTree(node, parent){
 		for(var k=0; k<parent.course.length; k++)
 			myNode.course[k] = parent.course[k];
 	}
-		
+
 	myNode.nodeInputs = [];
 	myNode.recursiveFlag = false;
 		
@@ -71,6 +71,10 @@ function createTree(node, parent){
 		
 // 	Stop Recursion in Tree		
 		myNode = null;
+	}
+	else if(node.patchID == "input"){
+		myNode.sourceCode = node.getSource();
+		myNode.course[myNode.course.length] = myNode; 
 	}
 	else{
 		myNode.sourceCode = node.getSource();
@@ -136,6 +140,7 @@ function computeNode(node){
 	else
 		faustResult += "stereoize(environment{" + nodeCode + "}.process)";
 	
+
 	return faustResult;
 }
 
@@ -176,6 +181,8 @@ function getFaustEquivalent(scene, patchName){
 	if(faustModuleList.length > 0){
 	
 		var dest = scene.audioOutput();
+		var src = scene.audioInput();
+		src.patchID = "input";
 				
 		var faustResult = "stereoize(p) = S(inputs(p), outputs(p))\n\
 				with {\n\
@@ -213,6 +220,8 @@ function getFaustEquivalent(scene, patchName){
 		if(dest.getInputConnections())
 			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(destinationDIVVV) + "));";
 		
+		console.log(faustResult);
+	
 		return faustResult;
 	}
 	else

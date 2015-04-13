@@ -25,7 +25,7 @@ function connectNodes( src, dst ) {
 		else if(dst.getProcessor)
 			src.audioNode.connect(dst.getProcessor());
 			
-		src.connect(dstCpy.getProcessor().audioNode);
+// 		src.connect(dst.getProcessor().audioNode);
 	}
 	else if(src.getProcessor){
 		

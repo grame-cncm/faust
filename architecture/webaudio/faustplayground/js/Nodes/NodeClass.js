@@ -309,6 +309,9 @@ var createNode = function (ID, x, y, name, parent, callback){
 	setParams: function(parameters){
 		Params = parameters;
 	},
+	addParam: function(path, value){
+		Params[path] = value;
+	},
 		
 /******************* GET/SET INPUT/OUTPUT NODES **********************/
 	addInputOutputNodesToModule : function (){
@@ -346,7 +349,12 @@ var createNode = function (ID, x, y, name, parent, callback){
 	setInputOutputNodes : function (input, output){
 		
 		InputNode = input;
+		if(InputNode)
+	    	that.addCnxListener(InputNode, "mousedown");
+	    	
 		OutputNode = output;	
+		if(OutputNode)
+	    	that.addCnxListener(OutputNode, "mousedown");
 	},
 	
 /****************** ADD/REMOVE ACTION LISTENERS **********************/
@@ -368,13 +376,14 @@ var createNode = function (ID, x, y, name, parent, callback){
 		
 /**********************************************************************/
 	isPointInOutput: function (x, y ){
-		if(OutputNode && OutputNode.getClientBoundingRect().left < x && x < OutputNode.getClientBoundingRect().right && OutputNode.getClientBoundingRect().top < y && y< OutputNode.getClientBoundingRect().bottom)
+	
+		if(OutputNode && OutputNode.getBoundingClientRect().left < x && x < OutputNode.getBoundingClientRect().right && OutputNode.getBoundingClientRect().top < y && y< OutputNode.getBoundingClientRect().bottom)
 			return true;
 			
 		return false;
 	},
 	isPointInInput: function(x, y){
-			
+					
 		if(InputNode && InputNode.getBoundingClientRect().left < x && x < InputNode.getBoundingClientRect().right && InputNode.getBoundingClientRect().top < y && y < InputNode.getBoundingClientRect().bottom)
 			return true;
 			

@@ -140,8 +140,11 @@ function normalPage(scene){
 	scene.integrateSceneInPage(function(){
 	
 		scene.audioOutput().setInputOutputNodes(node, null);
-	
-		activateAudioInput();
+		scene.audioInput().setInputOutputNodes(null, input);
+			
+// 		activateAudioInput();
+		
+		console.log("inputActivation");
 // 	activateAudioOutput(destDiv);
 // 	scene.hideScene();
 	
