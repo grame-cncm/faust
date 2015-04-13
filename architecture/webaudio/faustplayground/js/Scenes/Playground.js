@@ -37,74 +37,6 @@ function normalPage(scene){
 		moduleContainer.className = "container";
 		container.appendChild(moduleContainer);
 	
-//----------- FOOTER
-		var footer = document.createElement("div");
-		footer.id = "footer";
-		footer.style.cssText = "width:85%; height:15%;";
-		container.appendChild(footer);
-
-		var imageDiv = document.createElement('div');
-// 	imageDiv.style.cssText = "float:left; display:block; margin:12px; padding:0;";
-		footer.appendChild(imageDiv);
-			
-		var imageLogo = document.createElement('img');
-// 	imageLogo.style.cssText = "float:left; display:block; margin:12px; padding:0;";
-		imageLogo.className = "logoGrame";
-		imageLogo.src= "img/grame.png";
-		imageDiv.appendChild(imageLogo);
-
-// 		var titleDiv = document.createElement("div");
-// 		titleDiv.textContent = "EXPORT PATCH : ";
-// 		titleDiv.style.cssText = "position:absolute; left: 15%; top: 30%; font-size : 20px;";
-// 		footer.appendChild(titleDiv);
-	
-		var subfooter = document.createElement('div');
-		subfooter.style.cssText = "position: relative; left: 40%; top:20px;";
-		footer.appendChild(subfooter);
-
-		var fwurl = document.createElement("input");
-		fwurl.id = "faustweburl";
-		fwurl.style.cssText = " width: 250px; float:left; display:block; margin-top:50px; margin-right:90px; padding:1px; color:white; border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; text-align:center;" 
-// 		contenteditable="true" 
-// 		fwurl.style.cssText = "float:left; display:block; margin-top:30px; margin-right:20px; padding:1px; background-color:transparent;";
-		fwurl.value = "http://faustservice.grame.fr";
-		footer.appendChild(fwurl);
-
-		var selectDiv = document.createElement("div");
-		selectDiv.style.cssText = "float:left; display:block; margin:12px; padding:0;";
-		subfooter.appendChild(selectDiv);
-	
-		var selectPlatform = document.createElement("select");
-		selectPlatform.id = "platforms";
-		selectPlatform.style.cssText = "float:bottom; display:block; margin:5px; padding:0;";
-		selectPlatform.className = "platforms";
-		selectPlatform.onchange = updateArchitectures;
-		selectDiv.appendChild(selectPlatform);
-	
-		var selectArch = document.createElement("select");
-		selectArch.id = "architectures";
-		selectArch.style.cssText = "float:bottom; display:block; margin:5px; padding:0;";
-		selectArch.className = "architectures";
-		selectDiv.appendChild(selectArch);
-	
-		var equButton = document.createElement("input");
-		equButton.type = "submit";
-		equButton.className = "grayButton";
-		equButton.style.cssText = "float:left; display:block; position:relative; margin-top: 20px; margin-left: 20px;";
-		equButton.onclick = exportPatch;
-		equButton.value = "Export";
-		subfooter.appendChild(equButton);
-
-		var linkWilson = document.createElement("div");
-		linkWilson.className = "link";
-		linkWilson.style.left = "10px";
-		linkWilson.textContent = "Extension of the WebAudio Playground by ";
-		footer.appendChild(linkWilson);
-
-		var alink = document.createElement("a");
-		alink.href = "https://github.com/cwilso/WebAudio";
-		alink.textContent = "Chris Wilson";
-		linkWilson.appendChild(alink);
 
 //------------ INPUT/OUTPUT
 		var destDiv = document.createElement("div");
@@ -112,6 +44,67 @@ function normalPage(scene){
 		destDiv.className = "destination";
 // 	destDiv.DSP = createDSP("process=_,_;");
 		container.appendChild(destDiv);
+
+
+// 		var footer = document.createElement("div");
+// 		footer.id = "footer";
+// 		footer.style.cssText = "width:85%; height:15%; z-index:0;";
+// 		container.appendChild(footer);
+
+// 		var titleDiv = document.createElement("div");
+// 		titleDiv.textContent = "EXPORT PATCH : ";
+// 		titleDiv.style.cssText = "position:absolute; left: 15%; top: 30%; font-size : 20px;";
+// 		footer.appendChild(titleDiv);
+// 	
+		var subfooter = document.createElement('div');
+// 		subfooter.style.cssText = "position: relative; left: 40%; top:20px;";
+		destDiv.appendChild(subfooter);
+
+		var fwurl = document.createElement("input");
+		fwurl.id = "faustweburl";
+		fwurl.style.cssText = " border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; text-align:center;margin-bottom:30px;" 
+// 		contenteditable="true" 
+// 		fwurl.style.cssText = "float:left; display:block; margin-top:30px; margin-right:20px; padding:1px; background-color:transparent;";
+		fwurl.value = "http://faustservice.grame.fr";
+		subfooter.appendChild(fwurl);
+
+		var selectDiv = document.createElement("div");
+// 		selectDiv.style.cssText = "float:left; display:block; margin:12px; padding:0;";
+		subfooter.appendChild(selectDiv);
+	
+		var selectPlatform = document.createElement("select");
+		selectPlatform.id = "platforms";
+		selectPlatform.style.cssText = "float:bottom; display:block; margin-bottom:5px; padding:0;";
+		selectPlatform.className = "platforms";
+		selectPlatform.onchange = updateArchitectures;
+		selectDiv.appendChild(selectPlatform);
+	
+		var selectArch = document.createElement("select");
+		selectArch.id = "architectures";
+		selectArch.style.cssText = "float:bottom; display:block; margin-bottom:15px; padding:0;";
+		selectArch.className = "architectures";
+		selectDiv.appendChild(selectArch);
+	
+		var equButton = document.createElement("input");
+		equButton.type = "submit";
+		equButton.className = "grayButton";
+		equButton.style.cssText = "position:absolute; top:60%; left:50px;";
+// 		equButton.style.cssText = "float:left; display:block; position:absolute; bottom: 170px; left:50px;";
+// 		equButton.style.cssText = "float:left; display:block; position:relative; margin-top: 20px; margin-left: 20px;";
+		equButton.onclick = exportPatch;
+		equButton.value = "Export";
+		subfooter.appendChild(equButton);
+
+		var linkWilson = document.createElement("div");
+		linkWilson.className = "link";
+		linkWilson.style.cssText = "left:100px; z-index:2;";
+		linkWilson.textContent = "Extension of the WebAudio Playground by ";
+		container.appendChild(linkWilson);
+
+		var alink = document.createElement("a");
+		alink.href = "https://github.com/cwilso/WebAudio";
+		alink.textContent = "Chris Wilson";
+		linkWilson.appendChild(alink);
 	
 		var srcDiv = document.createElement("div");
 		srcDiv.id = "input";
@@ -120,11 +113,23 @@ function normalPage(scene){
 	
 		var inText = document.createElement("span");
 		inText.className = "text";
+		inText.style.cssText = "position:absolute; top:30%;";
 		inText.textContent = "PHYSICAL INPUT";
 		srcDiv.appendChild(inText);
 	
+		var imageDiv = document.createElement('div');
+		imageDiv.style.cssText = "bottom:4px; position:absolute; margin-left:auto; margin-right : auto; ";
+		srcDiv.appendChild(imageDiv);
+			
+		var imageLogo = document.createElement('img');
+// 	imageLogo.style.cssText = "float:left; display:block; margin:12px; padding:0;";
+		imageLogo.className = "logoGrame";
+		imageLogo.src= "img/grame.png";
+		imageDiv.appendChild(imageLogo);
+	
 		var outText = document.createElement("span");
 		outText.className = "text";
+		outText.style.cssText = "position:absolute; top:30%;";
 		outText.textContent = "PHYSICAL OUTPUT";
 		destDiv.appendChild(outText);
 	

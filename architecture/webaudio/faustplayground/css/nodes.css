@@ -39,6 +39,8 @@
 	display: block;
 	height: 100%;
 	position: absolute;
+	padding-right:20px;
+	padding-left:20px;
 	left: 0;
 	width: 10%;
 	z-index: 1;
@@ -76,7 +78,9 @@
 	display: block;
 	height: 100%;
 	position: absolute;
-	right: 0;
+	padding-right:20px;
+	padding-left:20px;
+	right: 0%;
 	top: 0%;
 	width: 15%;
 	z-index: 4;
@@ -90,10 +94,14 @@
 	top: 50%;
 }
 
-#sceneOutput .exportTitle{
-	color: black;
+#sceneOutput .export-title {
+	color: black;	
 	font-size: 20px;
 	text-align:center;
+	font-size: 14px;
+	margin: 0 0 1em;
+	text-align: center;
+	text-transform: uppercase;
 }
 
 #sceneOutput .architectures, #sceneOutput .platforms{
@@ -109,13 +117,5 @@
 	position: fixed;
 	right: 60px;
 }
-
-#sceneOutput .export-title {
-	font-size: 14px;
-	margin: 0 0 1em;
-	text-align: center;
-	text-transform: uppercase;
-}
-
 
 
