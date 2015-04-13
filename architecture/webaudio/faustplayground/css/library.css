@@ -2,7 +2,7 @@
 #library {
 	background:orange;
 	height: 85%;
-	position: absolute;
+	position: fixed;
 	left: 0%;
 	top: 0%;
 	bottom: 15%;

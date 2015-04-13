@@ -77,7 +77,7 @@
 	bottom: 0;
 	display: block;
 	height: 100%;
-	position: absolute;
+	position: fixed;
 	padding-right:20px;
 	padding-left:20px;
 	right: 0%;
