@@ -108,8 +108,8 @@ class MidiUI : public UI, public midi
         }
         
         void allNotesOff() {}
-        void void pitchWheel(int channel, int wheel) {}
-        void void pitchBend(int channel, int refPitch, float pitch) {}
+        void pitchWheel(int channel, int wheel) {}
+        void pitchBend(int channel, int refPitch, float pitch) {}
     
 };
 
