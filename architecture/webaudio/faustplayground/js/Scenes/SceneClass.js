@@ -5,7 +5,7 @@ var createScene = function (identifiant, start, stop){
 	var scene = document.createElement("div");
 	scene.id = identifiant;
 
-	var audioOutput;
+	var audioOutput, audioInput;
 	
 	var moduleList = new Array();
 	
@@ -29,13 +29,25 @@ var createScene = function (identifiant, start, stop){
 // 			this.unmuteScene();
 		}
 	},
+	integrateInput: function(factory){			
+		if(audioInput){
+		 	audioInput.setSource("process=_,_;");
+			audioInput.setDSP(factory);
+// 			document.getElementById("sceneInput")
+			activateAudioInput();
+// 			this.unmuteScene();
+		}
+	},
 	integrateSceneInPage: function(afterWork){
 	
 		document.body.appendChild(scene);
 
 		audioOutput = createNode(idX++, 0, 0, "output", scene, this.removeModule);
+		audioInput = createNode(idX++, 0, 0, "input", scene, this.removeModule);
+		audioInput.hideNode();
 		audioOutput.hideNode();
 		compileFaust("output", "process=_,_;", 0, 0, this.integrateOutput);
+		compileFaust("input", "process=_,_;", 0, 0, this.integrateInput);
 		afterWork();
 	},
 	
@@ -67,6 +79,7 @@ var createScene = function (identifiant, start, stop){
 		stop(this);
 	},
 	
-	audioOutput: function(){ return audioOutput;}
+	audioOutput: function(){ return audioOutput;},
+	audioInput: function(){ return audioInput;}
   }
 }
