@@ -40,8 +40,38 @@ static string getTarget()
     int tmp;
     return (sizeof(&tmp) == 8) ? "" : "i386-apple-darwin10.6.0";
 }
+
+#include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/IOKitLib.h>
+
+// Returns the serial number as a CFString. 
+// It is the caller's responsibility to release the returned CFString when done with it.
+string GetSerialNumber()
+{
+    io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault,
+                                                                     IOServiceMatching("IOPlatformExpertDevice"));
+
+    if (platformExpert) {
+        CFTypeRef serialNumberAsCFString = 
+            IORegistryEntryCreateCFProperty(platformExpert,
+                                            CFSTR(kIOPlatformSerialNumberKey),
+                                            kCFAllocatorDefault, 0);
+        if (serialNumberAsCFString) {
+            char serial_name[256];
+            CFStringGetCString((CFStringRef)serialNumberAsCFString, serial_name, 256, NULL);
+            return serial_name;
+        }
+
+        IOObjectRelease(platformExpert);
+    }
+    return "";
+}
+
 #else
 static string getTarget() { return ""; }
+
+string GetSerialNumber() { return "Windows"; }
+
 #endif
 
 static string getFolderFromFilename(const string& fullpath)
@@ -366,9 +396,17 @@ void faustgen_factory::default_compile_options()
 
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
-    // Read sourcecode "faustgen_version" key
+    // Read machine serial number 
+    const char* serial_number;  
+    t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
+    if (err != MAX_ERR_NONE || strcmp(serial_number, GetSerialNumber().c_str()) != 0) {
+        post("Patch compiled on another machine, so ignore bitcode, force recompilation and use default compileoptions");
+        goto read_sourcecode;
+    }
+  
+    // Read sourcecode "version" key
     const char* faustgen_version;  
-    t_max_err err = dictionary_getstring(d, gensym("version"), &faustgen_version);  
+    err = dictionary_getstring(d, gensym("version"), &faustgen_version);  
       
     if (err != MAX_ERR_NONE) {
         post("Cannot read \"version\" key, so ignore bitcode, force recompilation and use default compileoptions");
@@ -429,6 +467,9 @@ default_sourcecode:
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
     post("Saving object version, sourcecode and bitcode...");
+    
+    // Save machine serial number 
+    dictionary_appendstring(d, gensym("serial_number"), GetSerialNumber().c_str());
     
     // Save faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
