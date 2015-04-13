@@ -523,7 +523,9 @@ class FaustLLVMOptimizer {
             if (!fFactory)  {
                 cout << "Cannot create factory : " << fError.c_str() << endl;
                 return false;
-            } 
+            } else {
+                cout << "Factory correctly generated" << endl;
+            }
             
             /*
             std::vector<std::string> path_list = getLibraryList(fFactory);

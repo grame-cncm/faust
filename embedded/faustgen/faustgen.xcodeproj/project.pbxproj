@@ -45,6 +45,8 @@
 		4BC4BF9C17A7E98100161338 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BE5E41415F1569F00AFD014 /* base64.cpp */; };
 		4BC4BF9E17A7E98100161338 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B5A392915F3B05B007317F4 /* CoreFoundation.framework */; };
 		4BE5E41715F1569F00AFD014 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BE5E41415F1569F00AFD014 /* base64.cpp */; };
+		4BF47AC41ADBFAE200ED318F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BF47AC31ADBFAE200ED318F /* IOKit.framework */; };
+		4BF47AC51ADBFAE200ED318F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BF47AC31ADBFAE200ED318F /* IOKit.framework */; };
 		5B3AA39D158B65190050941C /* faustgen~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BCA75A0156D13B200C3299A /* faustgen~.cpp */; };
 /* End PBXBuildFile section */
 
@@ -65,6 +67,7 @@
 		4BC4BFA517A7E98100161338 /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BE5E41415F1569F00AFD014 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = src/base64.cpp; sourceTree = "<group>"; };
 		4BE5E41515F1569F00AFD014 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = src/base64.h; sourceTree = "<group>"; };
+		4BF47AC31ADBFAE200ED318F /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /Developer1/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		5B3AA3A5158B65190050941C /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BCA75A0156D13B200C3299A /* faustgen~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "faustgen~.cpp"; path = "src/faustgen~.cpp"; sourceTree = "<group>"; };
 		5BCA75A3156D13BC00C3299A /* faustgen~.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "faustgen~.h"; path = "src/faustgen~.h"; sourceTree = "<group>"; };
@@ -78,6 +81,7 @@
 				4BC4BF9E17A7E98100161338 /* CoreFoundation.framework in Frameworks */,
 				4B6188BD190FA6DD005A0E4E /* MaxAPI.framework in Frameworks */,
 				4B6188C5190FA6EA005A0E4E /* MaxAudioAPI.framework in Frameworks */,
+				4BF47AC51ADBFAE200ED318F /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +92,7 @@
 				4B5A392A15F3B05B007317F4 /* CoreFoundation.framework in Frameworks */,
 				4B6188BC190FA6DD005A0E4E /* MaxAPI.framework in Frameworks */,
 				4B6188C4190FA6EA005A0E4E /* MaxAudioAPI.framework in Frameworks */,
+				4BF47AC41ADBFAE200ED318F /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +120,7 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				4BF47AC31ADBFAE200ED318F /* IOKit.framework */,
 				4B6188C3190FA6EA005A0E4E /* MaxAudioAPI.framework */,
 				4B6188BB190FA6DD005A0E4E /* MaxAPI.framework */,
 				4B5A392915F3B05B007317F4 /* CoreFoundation.framework */,
@@ -472,7 +478,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.99b;
+				PRODUCT_VERSION = 1.00b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -635,7 +641,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.99b;
+				PRODUCT_VERSION = 1.00b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -780,7 +786,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.99b;
+				PRODUCT_VERSION = 1.00b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
@@ -928,7 +934,7 @@
 					"-lLLVMSupport",
 				);
 				PRODUCT_NAME = "faustgen~";
-				PRODUCT_VERSION = 0.99b;
+				PRODUCT_VERSION = 1.00b;
 				"SDKROOT[arch=i386]" = macosx;
 				"SDKROOT[arch=ppc]" = macosx;
 				WRAPPER_EXTENSION = mxo;
