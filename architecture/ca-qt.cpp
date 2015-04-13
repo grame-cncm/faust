@@ -99,17 +99,19 @@ int main(int argc, char *argv[])
 
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+    
+    long srate = (long)lopt(argv, "--frequency", -1);
+    int fpb = lopt(argv, "--buffer", 512);
+    int poly = lopt(argv, "--poly", 4);
 
 #ifdef POLY
-    DSP = new mydsp_poly(4);
+    DSP = new mydsp_poly(poly);
     MidiIO midi(DSP);
 #else
     DSP = new mydsp();
 #endif
 
-    long srate = (long)lopt(argv, "--frequency", -1);
-    int	fpb = lopt(argv, "--buffer", 512);
-
+  
 	QApplication myApp(argc, argv);
     
     QTGUI* interface = new QTGUI();

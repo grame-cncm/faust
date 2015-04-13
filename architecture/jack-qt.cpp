@@ -90,9 +90,11 @@ int main(int argc, char *argv[])
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    
+    int poly = lopt(argv, "--poly", 4);
 	
 #ifdef POLY
-    DSP = new mydsp_poly(4);
+    DSP = new mydsp_poly(poly);
     MidiIO midi(DSP);
 #else
     DSP = new mydsp();
