@@ -45,31 +45,30 @@ function normalPage(scene){
 // 	destDiv.DSP = createDSP("process=_,_;");
 		container.appendChild(destDiv);
 
-
 // 		var footer = document.createElement("div");
 // 		footer.id = "footer";
 // 		footer.style.cssText = "width:85%; height:15%; z-index:0;";
 // 		container.appendChild(footer);
 
-// 		var titleDiv = document.createElement("div");
-// 		titleDiv.textContent = "EXPORT PATCH : ";
-// 		titleDiv.style.cssText = "position:absolute; left: 15%; top: 30%; font-size : 20px;";
-// 		footer.appendChild(titleDiv);
-// 	
-		var subfooter = document.createElement('div');
-// 		subfooter.style.cssText = "position: relative; left: 40%; top:20px;";
-		destDiv.appendChild(subfooter);
-
 		var fwurl = document.createElement("input");
 		fwurl.id = "faustweburl";
-		fwurl.style.cssText = " border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; text-align:center;margin-bottom:30px;" 
-// 		contenteditable="true" 
-// 		fwurl.style.cssText = "float:left; display:block; margin-top:30px; margin-right:20px; padding:1px; background-color:transparent;";
+		fwurl.style.cssText = " border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; text-align:center;";
+		fwurl.onkeyup=onEnterKey;
 		fwurl.value = "http://faustservice.grame.fr";
-		subfooter.appendChild(fwurl);
+		destDiv.appendChild(fwurl);
+
+		var subfooter = document.createElement('div');
+		destDiv.appendChild(subfooter);
+
+		var refButton = document.createElement("div");
+		refButton.id = "refreshButton";
+		refButton.onclick = UploadTargets;
+		refButton.style.cssText = "position:absolute; left:0%; top:25px;";
+		refButton.innerHTML = '<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="50.000000pt" height="50.000000pt" viewBox="0 0 50.000000 50.000000" preserveAspectRatio="xMidYMid meet"><g transform="translate(0.000000,50.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none"> <path d="M186 309 c-37 -29 -37 -89 0 -118 28 -22 69 -27 93 -12 23 15 3 30 -33 24 -29 -4 -37 -1 -51 21 -16 24 -16 28 -1 51 18 27 63 34 84 13 17 -17 15 -31 -3 -24 -20 7 -19 1 6 -28 l22 -25 18 24 c20 25 25 40 9 30 -5 -3 -16 7 -24 23 -25 47 -75 56 -120 21z"/></g></svg>';
+		subfooter.appendChild(refButton);
 
 		var selectDiv = document.createElement("div");
-// 		selectDiv.style.cssText = "float:left; display:block; margin:12px; padding:0;";
+		selectDiv.style.cssText = "position:absolute; left:25%; top:35px";
 		subfooter.appendChild(selectDiv);
 	
 		var selectPlatform = document.createElement("select");
@@ -88,9 +87,7 @@ function normalPage(scene){
 		var equButton = document.createElement("input");
 		equButton.type = "submit";
 		equButton.className = "grayButton";
-		equButton.style.cssText = "position:absolute; top:60%; left:50px;";
-// 		equButton.style.cssText = "float:left; display:block; position:absolute; bottom: 170px; left:50px;";
-// 		equButton.style.cssText = "float:left; display:block; position:relative; margin-top: 20px; margin-left: 20px;";
+		equButton.style.cssText = "position:absolute; top:20%; left:25%;";
 		equButton.onclick = exportPatch;
 		equButton.value = "Export";
 		subfooter.appendChild(equButton);
@@ -113,7 +110,7 @@ function normalPage(scene){
 	
 		var inText = document.createElement("span");
 		inText.className = "text";
-		inText.style.cssText = "position:absolute; top:30%;";
+		inText.style.cssText = "position:absolute; top:60%;";
 		inText.textContent = "PHYSICAL INPUT";
 		srcDiv.appendChild(inText);
 	
@@ -129,7 +126,7 @@ function normalPage(scene){
 	
 		var outText = document.createElement("span");
 		outText.className = "text";
-		outText.style.cssText = "position:absolute; top:30%;";
+		outText.style.cssText = "position:absolute; top:60%;";
 		outText.textContent = "PHYSICAL OUTPUT";
 		destDiv.appendChild(outText);
 	
@@ -157,6 +154,15 @@ function normalPage(scene){
 // 	setGeneralDragAndDrop();
 			UploadTargets();
 		});
+}
+
+function onEnterKey(e){
+	if (!e) { var e = window.event; } 
+	
+	if (e.keyCode == 13){ 
+		e.preventDefault(); 
+		UploadTargets();
+	}
 }
 
 function startPage(scene){

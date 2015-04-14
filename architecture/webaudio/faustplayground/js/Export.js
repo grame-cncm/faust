@@ -87,6 +87,7 @@ function exportFaustCode(shaKey){
 function UploadTargets(){
 
 	clearComboBox('platforms');
+	clearComboBox('architectures');
 	
 	window.exportURL = document.getElementById("faustweburl").value;
 			
@@ -116,7 +117,10 @@ function exportPatch(event){
 
 	var sceneName = document.getElementById("PatchName").innerHTML;
 
-	getSHAKey(document.getElementById("faustweburl").value, sceneName, getFaustEquivalent(window.scenes[0], sceneName), exportFaustCode);
+	var faustCode = getFaustEquivalent(window.scenes[0], sceneName);
+	console.log(faustCode);
+
+	getSHAKey(document.getElementById("faustweburl").value, sceneName, faustCode, exportFaustCode);
 
 }
 

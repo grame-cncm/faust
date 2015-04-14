@@ -1,0 +1,54 @@
+JSON Description of the Scene
+
+{
+	"Identifier":
+	[
+		{"x":"value"},		--> left
+		{"y":"value"},		--> top
+		{"name":"value"}, 	--> module name
+		{"code":"value"},	--> faust code
+		{"inputs":			--> identifiers of its inputs
+		[
+			{"src":"identifier"},
+			{"src":"identifier"}
+		]},
+		{"outputs":			--> identifiers of its inputs
+		[
+			{"dst":"identifier"},
+			{"dst":"identifier"}
+		]},
+		{"params":			--> path/value of each DSP parameter
+		[
+			{"path":"p"},
+			{"value":"v"},
+			{"path":"p"},
+			{"value":"v"}
+		]}
+	],
+	etc,
+	"Identifier":
+	[
+		{"x":"value"},
+		{"y":"value"},
+		{"name":"value"},
+		{"code":"value"},
+		{"inputs":
+		[
+			{"src":"identifier"},
+			{"src":"identifier"}
+		]},
+		{"outputs":
+		[
+			{"dst":"identifier"},
+			{"dst":"identifier"}
+		]},
+		{"params":
+		[
+			{"path":"p"},
+			{"value":"v"},
+			{"path":"p"},
+			{"value":"v"}
+		]}
+	]
+}
+
