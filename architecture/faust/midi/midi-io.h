@@ -42,7 +42,7 @@ class MidiIO {
                 if (channel == 9) {
                     return;
                 } else if (cmd == 8 || ((cmd == 9) && (data2 == 0))) { 
-                    midi->fDSP->keyOff(channel, data1);
+                    midi->fDSP->keyOff(channel, data1, data2);
                 } else if (cmd == 9) {
                     midi->fDSP->keyOn(channel, data1, data2);
                 } else if (cmd == 11) {
@@ -112,10 +112,8 @@ class MidiIO {
                 if (!chooseMidiInputPort()) goto cleanup;
                 fInput->setCallback(&midiCallback, this);
                 
-                /*
                 fOutput = new RtMidiOut();
                 if (!chooseMidiOutPort()) goto cleanup; 
-                */
                 
                 return true;
                 
@@ -137,6 +135,40 @@ class MidiIO {
             delete fOutput;
             fInput = 0;
             fOutput = 0;
+        }
+        
+        void CtrlChange(int chan, int ctrl, int val) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 176;
+            message[1] = ctrl;
+            fOutput->sendMessage(&message);
+        }
+        
+        void ProgChange(int chan, int pgm) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 192;
+            message[1] = pgm;
+            fOutput->sendMessage(&message);
+        }
+        
+        void KeyOn(int chan, int note, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 144;
+            message[1] = note;
+            message[2] = velocity;
+            fOutput->sendMessage(&message);
+        }
+        
+        void KeyOff(int chan, int note, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 128;
+            message[1] = note;
+            message[2] = velocity;
+            fOutput->sendMessage(&message);
         }
    
 };

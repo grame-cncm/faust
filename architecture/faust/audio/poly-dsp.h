@@ -281,10 +281,11 @@ class mydsp_poly : public dsp, public midi
             }
         }
         
-        void keyOff(int channel, int pitch)
+        void keyOff(int channel, int pitch, int velocity)
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
+                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
                 fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
                 fVoiceTable[voice]->fNote = kReleaseVoice;
             } else {
@@ -396,9 +397,9 @@ extern "C" {
         poly->keyOn(channel, pitch, velocity);
     }
 
-    void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch)
+    void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch, int velocity)
     {
-        poly->keyOff(channel, pitch);
+        poly->keyOff(channel, pitch, velocity);
     }
     
     void mydsp_poly_allNotesOff(mydsp_poly* poly)
