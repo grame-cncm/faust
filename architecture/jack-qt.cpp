@@ -52,6 +52,11 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+#ifdef MIDICTRL
+#include "faust/midi/midi-io.h"
+#include "faust/gui/MidiUI.h"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -65,11 +70,6 @@
 <<includeIntrinsic>>
 
 <<includeclass>>
-
-#ifdef MIDICTRL
-#include "faust/midi/midi-io.h"
-#include "faust/gui/MidiUI.h"
-#endif
 
 #ifdef POLY
 #include "faust/midi/midi-io.h"
@@ -104,17 +104,17 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
-	if (DSP == 0) {
+    if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
-		exit(1);
-	}
+        exit(1);
+    }
 
     QApplication myApp(argc, argv);
     
-	QTGUI interface;
-	FUI finterface;
-	DSP->buildUserInterface(&interface);
-	DSP->buildUserInterface(&finterface);
+    QTGUI interface;
+    FUI finterface;
+    DSP->buildUserInterface(&interface);
+    DSP->buildUserInterface(&finterface);
     
 #ifdef MIDICTRL
     MidiUI midiUI;
