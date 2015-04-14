@@ -323,10 +323,10 @@
         }
     }
 
-    function keyOff(channel, pitch)
+    function keyOff(channel, pitch, velocity)
     {
         if (DSP && isPoly) {
-            DSP.keyOff(channel, pitch);
+            DSP.keyOff(channel, pitch, velocity);
         }
     }
 
@@ -354,7 +354,7 @@
         if (channel === 9) {
             return;
         } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) { 
-            keyOff(channel, data1);
+            keyOff(channel, data1, data2);
         } else if (cmd === 9) {
             keyOn(channel, data1, data2);
         } else if (cmd === 11) {
