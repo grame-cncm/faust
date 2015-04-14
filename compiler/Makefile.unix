@@ -145,7 +145,7 @@ ios : libfaust.a
 
 emcc : CC=emcc
 emcc : CXX=emcc
-emcc : CXXFLAGS = -DEMCC -I../architecture -O2 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
@@ -155,10 +155,10 @@ emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_freeCDSP']"
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
 
 libfaust.js : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O2 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
+	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
 
 libfaustworker.js : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O2 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
+	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
 
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
