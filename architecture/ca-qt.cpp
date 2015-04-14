@@ -70,6 +70,11 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+#ifdef MIDICTRL
+#include "faust/midi/midi-io.h"
+#include "faust/gui/MidiUI.h"
+#endif
+
 #ifdef POLY
 #include "faust/midi/midi-io.h"
 mydsp_poly*	DSP;
@@ -110,65 +115,65 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
-
-  
+    if (DSP == 0) {
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+		exit(1);
+	}
+ 
 	QApplication myApp(argc, argv);
     
-    QTGUI* interface = new QTGUI();
-	DSP->buildUserInterface(interface);
-	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(finterface);
+    QTGUI interface;
+    FUI finterface;
+	DSP->buildUserInterface(&interface);
+	DSP->buildUserInterface(&finterface);
+
+#ifdef MIDICTRL
+    MidiUI midiUI;
+    DSP->buildUserInterface(&midiUI);
+    MidiIO midi(&midiUI);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-    DSP->buildUserInterface(httpdinterface);
+    httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(&httpdinterface);
  #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(name, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+	OSCUI oscinterface(name, argc, argv);
+	DSP->buildUserInterface(&oscinterface);
 #endif
 
 	coreaudio audio(srate, fpb);
 	audio.init(name, DSP);
-	finterface->recallState(rcfilename);
+	finterface.recallState(rcfilename);
 	audio.start();
     
-#ifdef POLY
+#if defined(POLY) || defined(MIDICTRL)
     midi.start();
 #endif
 
 #ifdef HTTPCTRL
-	httpdinterface->run();
+	httpdinterface.run();
 #ifdef QRCODECTRL
-    interface->displayQRCode( httpdinterface->getTCPPort() );
+    interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+	oscinterface.run();
 #endif
-	interface->run();
+	interface.run();
 
-    myApp.setStyleSheet(interface->styleSheet());
+    myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
-    interface->stop();
+    interface.stop();
     
 	audio.stop();
-	finterface->saveState(rcfilename);
+	finterface.saveState(rcfilename);
     
-#ifdef POLY
+#if defined(POLY) || defined(MIDICTRL)
     midi.stop();
-#endif
-    
-    // desallocation
-    delete interface;
-    delete finterface;
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
-#ifdef OSCCTRL
-	 delete oscinterface;
 #endif
 
   	return 0;

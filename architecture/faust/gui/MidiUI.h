@@ -19,9 +19,13 @@
 class MidiUI : public UI, public midi
 {
 
-    map <int, FAUSTFLOAT*> fKeyOnTable;
-    map <int, map <int, FAUSTFLOAT*> > fCtrlChangeTable;
-    map <int, map <int, FAUSTFLOAT*> > fProgChangeTable;
+    private:
+    
+        std::map <int, FAUSTFLOAT*> fKeyOnTable;
+        std::map <int, std::pair<FAUSTFLOAT*, LinearValueConverter> > fCtrlChangeTable;
+        std::map <int, FAUSTFLOAT*> fProgChangeTable;
+        
+        std::vector<std::pair <std::string, std::string> > fMetaAux;
 
     public:
 
@@ -41,69 +45,93 @@ class MidiUI : public UI, public midi
         {}
 
         // -- active widgets
+        
+        void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            if (fMetaAux.size() > 0) {
+                for (size_t i = 0; i < fMetaAux.size(); i++) {
+                    unsigned num;
+                    if (fMetaAux[i].first == "midi") {
+                        if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
+                            fCtrlChangeTable[num] = std::make_pair(zone, LinearValueConverter(0., 127., double(min), double(max)));
+                        } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
+                            fProgChangeTable[num] = zone;
+                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
+                            fKeyOnTable[num] = zone;
+                        }
+                    }
+                }
+            }
+            fMetaAux.clear();
+        }
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
+            addGenericZone(zone, 0, 0, 0, 0);
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
+            addGenericZone(zone, 0, 0, 0, 0);
         }
+        
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
+            addGenericZone(zone, init, min, max, step);
         }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
+            addGenericZone(zone, init, min, max, step);
         }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
+            addGenericZone(zone, init, min, max, step);
         }
 
         // -- passive widgets
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
+            addGenericZone(zone, 0, 0, 0, 0);
         }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
+            addGenericZone(zone, 0, 0, 0, 0);
         }
 
         // -- metadata declarations
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
+            fMetaAux.push_back(std::make_pair(key, val));
         }
         
         // -- public API 
         
         void keyOn(int channel, int note, int velocity)
          {
-            if (fKeyOnTable.find(ctrl) != fKeyOnTable.end()) {
+            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 *fKeyOnTable[note] = 1.f;
             }
         }
         
-        void keyOff(int channel, int note, int velocity)
+        void keyOff(int channel, int note)
         {
-            if (fKeyOnTable.find(ctrl) != fKeyOnTable.end()) {
+            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 *fKeyOnTable[note] = 0.f;
             } 
         }
         
         void ctrlChange(int channel, int ctrl, int value)
         {
-            if (fCtrlChangeTable.find(channel) != fCtrlChangeTable.end()) {
-                if ((*fCtrlChangeTable[channel]).find(ctrl) != (*fCtrlChangeTable[channel]).end()) {
-                    (*fCtrlChangeTable[channel])[ctrl] = value;
-                }
+            if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
+               *(fCtrlChangeTable[ctrl].first) = fCtrlChangeTable[ctrl].second.ui2faust(value);
             } 
         }
         
         void progChange(int channel, int pgm)
         {
-            if (fProgChangeTable.find(channel) != fProgChangeTable.end()) {
-                if ((*fProgChangeTable[channel]).find(ctrl) != (*fProgChangeTable[channel]).end()) {
-                    (*fProgChangeTable[channel])[prog] = 1.f;
-                }
+            if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
+                *fProgChangeTable[pgm] = 1.f;
             } 
         }
         
