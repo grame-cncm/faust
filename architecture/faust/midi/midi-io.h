@@ -137,15 +137,16 @@ class MidiIO {
             fOutput = 0;
         }
         
-        void CtrlChange(int chan, int ctrl, int val) 
+        void ctrlChange(int chan, int ctrl, int val) 
         {
             std::vector<unsigned char> message;
             message[0] = 176;
             message[1] = ctrl;
+            message[2] = val;
             fOutput->sendMessage(&message);
         }
         
-        void ProgChange(int chan, int pgm) 
+        void progChange(int chan, int pgm) 
         {
             std::vector<unsigned char> message;
             message[0] = 192;
@@ -153,7 +154,7 @@ class MidiIO {
             fOutput->sendMessage(&message);
         }
         
-        void KeyOn(int chan, int note, int velocity) 
+        void keyOn(int chan, int note, int velocity) 
         {
             std::vector<unsigned char> message;
             message[0] = 144;
@@ -162,7 +163,7 @@ class MidiIO {
             fOutput->sendMessage(&message);
         }
         
-        void KeyOff(int chan, int note, int velocity) 
+        void keyOff(int chan, int note, int velocity) 
         {
             std::vector<unsigned char> message;
             message[0] = 128;
