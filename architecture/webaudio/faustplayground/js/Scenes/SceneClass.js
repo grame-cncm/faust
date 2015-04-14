@@ -10,16 +10,25 @@ var createScene = function (identifiant, start, stop){
 	var moduleList = new Array();
 	
   return {
-  
+
+  	integrateSceneInPage: function(afterWork){
+	
+		document.body.appendChild(scene);
+
+		audioOutput = createNode(idX++, 0, 0, "output", scene, this.removeModule);
+		audioInput = createNode(idX++, 0, 0, "input", scene, this.removeModule);
+		audioInput.hideNode();
+		audioOutput.hideNode();
+		compileFaust("output", "process=_,_;", 0, 0, this.integrateOutput);
+		compileFaust("input", "process=_,_;", 0, 0, this.integrateInput);
+		afterWork();
+	},
     deleteScene: function() {
 		this.cleanDSPs();
     	this.hideScene();
     	this.muteScene();
     },
-// 	deleteScene: function(){
-// 		document.body.removeChild(scene);
-// 	},
-	getSceneContainer: function(){ return scene;},
+    
 	integrateOutput: function(factory){
 		
 		if(audioOutput){
@@ -38,19 +47,7 @@ var createScene = function (identifiant, start, stop){
 // 			this.unmuteScene();
 		}
 	},
-	integrateSceneInPage: function(afterWork){
-	
-		document.body.appendChild(scene);
 
-		audioOutput = createNode(idX++, 0, 0, "output", scene, this.removeModule);
-		audioInput = createNode(idX++, 0, 0, "input", scene, this.removeModule);
-		audioInput.hideNode();
-		audioOutput.hideNode();
-		compileFaust("output", "process=_,_;", 0, 0, this.integrateOutput);
-		compileFaust("input", "process=_,_;", 0, 0, this.integrateInput);
-		afterWork();
-	},
-	
 	showScene: function(){ scene.style.visibility = "visible";},
 	hideScene: function(){ scene.style.visibility = "hidden";},
 	
@@ -63,7 +60,7 @@ var createScene = function (identifiant, start, stop){
 	addModule: function(module){ moduleList.push(module);},
 	removeModule: function(module){ moduleList.splice(moduleList.indexOf(module), 1); },
 	
-	cleanDSPs: function (){
+	cleanModules: function (){
 		
 		for(var i=moduleList.length-1; i>=0; i--){
 		
@@ -78,6 +75,8 @@ var createScene = function (identifiant, start, stop){
 	stopScene: function(){
 		stop(this);
 	},
+	
+	getSceneContainer: function(){ return scene;},
 	
 	audioOutput: function(){ return audioOutput;},
 	audioInput: function(){ return audioInput;}

@@ -45,6 +45,8 @@ function drawArrow(svgCanvas, x1, y1, x2, y2){
 }
 
 function setExport(scene){
+	saveScene(window.scenes[1]);
+
 	document.body.style.background = "url('"+window.baseImg + "output-bkg.gif') 0 0 repeat";
 	var appName = prompt("Choisis le nom de ton application", "");
 
@@ -65,28 +67,22 @@ function setExportPage(scene, name){
 	var mySceneName = document.createElement("div");
 	mySceneName.id = "exportName";
 	mySceneName.className = "sceneTitle";
-	mySceneName.style.cssText = "color:black";
-	mySceneName.textContent = name;
+	mySceneName.textContent = "Télécharge " +name;
 	head.appendChild(mySceneName);
 	
 	var mySceneSub = document.createElement("div");
-	mySceneSub.className = "sceneSubtitle";
-	mySceneSub.style.cssText = "color:black";
-	mySceneSub.textContent = "Télécharge ton Application Android";
+	mySceneSub.id = "sceneSubtitle";
+	mySceneSub.textContent = "Ton Application Android";
 	head.appendChild(mySceneSub);
 
 	var androidApp = document.createElement("div");
 	androidApp.id= "androidButton";
-// 	androidApp.className= "grayButton";
-
-// 	androidApp.style.cssText = "position:absolute;width:100%; height:100%; text-align:center;";	
 // 	androidApp.onclick = getAndroidApp;
 	container.appendChild(androidApp);
 
 	var androidImg = document.createElement("img");
 	androidImg.id = "androidImg";
 	androidImg.src = window.baseImg + "loader.gif";
-	androidImg.style.cssText = "position:relative; left:49%;";
 	androidApp.appendChild(androidImg);
 
 	if(isTooltipEnabled()){
@@ -96,7 +92,6 @@ function setExportPage(scene, name){
 	var backImg = document.createElement("img");
 	backImg.id = "backImg";
 	backImg.src = window.baseImg + "BACK.png";
-	backImg.style.cssText = "position:absolute; top:2%; left:2%;";
 	backImg.onclick = function(){ previousScene()};
 	container.appendChild(backImg);
 	
@@ -113,7 +108,7 @@ function setExportPage(scene, name){
 function resetExportPage(scene){
 
 // 	scene.muteScene();
-	scene.cleanDSPs();
+	scene.cleanModules();
 	
 	var children = scene.getSceneContainer().childNodes;
 	
@@ -126,7 +121,7 @@ function exportPage(scene){
 // 	scene.integrateSceneInPage(function(){});
 }
 
-// ----------
+// --- PLUS UTILISÉ -----------------
 function equFaustModule(factory){
 
 	if (!factory) {
@@ -174,10 +169,6 @@ function equFaustModule(factory){
 	getAndroidApp(window.name, window.source);
 }
 
-/******************************************************************** 
-***********************  EXPORT DSP  ***********************
-********************************************************************/
-
 function terminateWebMenu(sha){
 
 	document.getElementById("webButton").removeChild(document.getElementById("webImg"));
@@ -187,33 +178,10 @@ function terminateWebMenu(sha){
 	var link = document.createElement('a');
 	link.href = url;
 	var title = document.createElement("h6");
-// 	title.style.cssText = "font-size:20px; color: #4c4c4c; text-transform: uppercase;";
 	title.appendChild(document.createTextNode("Télécharger page Web"));
 	
 	link.appendChild(title);
 	document.getElementById("webButton").appendChild(link);
-}
-
-function terminateAndroidMenu(sha){
-
-	document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
-
-	var url = "http://faustservice.grame.fr";
-	
-// 	document.getElementById("androidButton").textContent = "Télécharger application Android";
-	
-	var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk", 170);
-	
-		document.getElementById("androidButton").appendChild(qrcodeDiv);
-// 	qrcodeDiv.style.cssText = "display:block; position:relative; margin-left:auto; margin-right:auto; text-align: center;";
-		qrcodeDiv.style.cssText = "position:relative; left:46%;";
-		qrcodeDiv.onclick = getAndroidApp;
-// 	qrcodeDiv.style.cssText = "left:20%;";
-}
-
-function exportAndroidCallback(sha){
-
-	sendPrecompileRequest("http://faustservice.grame.fr", sha, "android", "android", terminateAndroidMenu);
 }
 
 function exportWebCallback(sha){
@@ -221,12 +189,38 @@ function exportWebCallback(sha){
 	sendPrecompileRequest("http://faustservice.grame.fr", sha, "web", "asmjs", terminateWebMenu);
 }	
 
+function getWebApp(faustDiv){
+
+	var shaKey = getSHAKey("http://faustservice.grame.fr", faustDiv.getName(), faustDiv.getSource(), exportWebCallback);
+}
+
+/******************************************************************** 
+***********************  EXPORT DSP  ***********************
+********************************************************************/
+
+function terminateAndroidMenu(sha){
+
+	if(document.getElementById("androidImg"))
+		document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
+
+	var url = "http://faustservice.grame.fr";
+	
+// 	document.getElementById("androidButton").textContent = "Télécharger application Android";
+	
+	var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk", 170);
+	qrcodeDiv.id = "qrcode";
+	
+	document.getElementById("androidButton").appendChild(qrcodeDiv);
+	qrcodeDiv.onclick = getAndroidApp;
+}
+
+function exportAndroidCallback(sha){
+
+	sendPrecompileRequest("http://faustservice.grame.fr", sha, "android", "android", terminateAndroidMenu);
+}
+
 function getAndroidApp(name, source){
 
 	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
 }
 
-function getWebApp(faustDiv){
-
-	var shaKey = getSHAKey("http://faustservice.grame.fr", faustDiv.getName(), faustDiv.getSource(), exportWebCallback);
-}

@@ -1,4 +1,4 @@
-.bubble{
+#bubble{
 	
 	background: url('../img/output-bkg.gif') 0 0 repeat;
 	color:white;
@@ -13,3 +13,27 @@
     border: 3px solid black;
 }
 
+#exportName{
+	color:black;
+}
+
+#sceneSubtitle{
+	color:black;
+}
+
+#androidImg{
+	position:relative; 
+	left:49%;
+}
+
+#backImg{
+	position:absolute; 
+	top:2%; 
+	left:2%;
+}
+
+#androidButton{
+	position:absolute; 
+	left:43%; 
+	top:25%;
+}

@@ -19,7 +19,6 @@ function init() {
     }
     
 	createAllScenes();
-	
 	showFirstScene();
 }
 
@@ -43,6 +42,7 @@ function createAllScenes(){
 		window.scenes[0] = createScene("Normal", startPage, stopPage);
 		normalPage(window.scenes[0]);
 	}
+	
 	window.currentScene = 0;
 }
 
@@ -151,15 +151,15 @@ function compileFaust(name, sourcecode, x, y, callback){
 
 	var currentScene = 	window.scenes[window.currentScene];
 
-// 	if(currentScene)
-// 		currentScene.muteScene();
+	if(currentScene)
+		currentScene.muteScene();
 
 	var args = ["-I", "http://faust.grame.fr/faustcode/"];		 
 	var factory = faust.createDSPFactory(sourcecode, args);
     callback(factory);
 
-// 	if(currentScene)
-// 		currentScene.unmuteScene();
+	if(currentScene)
+		currentScene.unmuteScene();
 
 }
 
@@ -300,11 +300,7 @@ function uploadOn(node, x, y, e) {
 
     	    	if (ext == "dsp")
         	    	reader.readAsText(file);  
-        	    
-//         	    if(ext == "zip"){
-//         	    	console.log("HEY JE SUIS UN ZIP");
-//         	    }
-        	    
+        	    	
 	    		reader.onloadend = function(e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
 

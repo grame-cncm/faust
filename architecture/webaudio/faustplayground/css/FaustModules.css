@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<!-- Server: sfn-web-1 -->
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]>--> <html lang="en" class="no-js"> <!--<![endif]-->
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+    <title>
+  Faust : signal processing language / Code /
+  [dc1e61]
+  /architecture/webaudio/faustplayground/css/faustModules.css
+</title>
+    
+<meta id="webtracker" name="webtracker" content='{&#34;event_id&#34;: &#34;f186ff00-e2b4-11e4-8d0a-0200ac1d2933&#34;, &#34;project&#34;: &#34;faudiostream&#34;, &#34;action_type&#34;: &#34;git&#34;}' />
+<script src="http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/js/sftheme/modernizr.custom.90514.js"></script>
+<!--[if lt IE 7 ]>
+  <script src="http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/js/sftheme/dd_belatedpng.js"></script>
+  <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
+<![endif]-->
+<link href='//fonts.googleapis.com/css?family=Ubuntu:regular' rel='stylesheet' type='text/css'>
+<style type="text/css">
+    @font-face {
+        font-family: "Pictos";
+        src: url('http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/css/fonts/sftheme/pictos-web.eot');
+        src: local("☺"), url('http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/css/fonts/sftheme/pictos-web.woff') format('woff'), url('http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/css/fonts/sftheme/pictos-web.ttf') format('truetype'), url('http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/css/fonts/sftheme/pictos-web.svg') format('svg');
+    }
+</style>
+    <script type="text/javascript">
+            /*jslint onevar: false, nomen: false, evil: true, css: true, plusplus: false, white: false, forin: true, on: true, immed: false */
+            /*global confirm, alert, unescape, window, jQuery, $, net, COMSCORE */
+    </script>
+    
+      <!-- ew:head_css -->
+
+    
+      <link rel="stylesheet"
+                type="text/css"
+                href="http://a.fsdn.com/allura/nf/1428425750/_ew_/_slim/css?href=allura%2Fcss%2Fforge%2Fhilite.css"
+                >
+    
+      <link rel="stylesheet"
+                type="text/css"
+                href="/nf/tool_icon_css?1428425750"
+                >
+    
+      <link rel="stylesheet"
+                type="text/css"
+                href="http://a.fsdn.com/allura/nf/1428425750/_ew_/theme/sftheme/css/forge.css"
+                >
+    
+      
+<!-- /ew:head_css -->
+
+    
+    
+      <!-- ew:head_js -->
+
+    
+      <script type="text/javascript" src="http://a.fsdn.com/allura/nf/1428425750/_ew_/_slim/js?href=allura%2Fjs%2Fjquery-base.js"></script>
+    
+      
+<!-- /ew:head_js -->
+
+    
+
+    
+      <style type="text/css">
+        #page-body.project---init-- #top_nav { display: none; }
+#page-body.project---init-- #nav_menu_holder { display: none; margin-bottom: 0; }
+#page-body.project---init-- #content_base {margin-top: 0; }
+      </style>
+    
+    
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/p/faudiostream/code/feed.rss"/>
+    <link rel="alternate" type="application/atom+xml" title="Atom" href="/p/faudiostream/code/feed.atom"/>
+
+      <style>.XIGHaZwSxOYlZKFGfCUEw { display:none }</style>
+
+    
+    
+    
+    
+
+
+<script type="text/javascript">
+    var _gaq = _gaq || [];
+
+    function _add_tracking(prefix, tracking_id, send_user) {
+        _gaq.push([prefix+'._setAccount', tracking_id]);
+        _gaq.push([prefix+'._setCustomVar', 1, 'Page Type', 'git', 3]);_gaq.push([prefix+'._trackPageview']);
+    }
+      _add_tracking('sfnt1', 'UA-32013-6', true);
+      _add_tracking('sfnt2', 'UA-36130941-1', true);
+    
+
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
+  </head>
+
+  <body id="forge">
+    <h2 class="hidden">
+        <span style="color:red">Error:</span> CSS did not load.<br>
+        This may happen on the first request due to CSS mimetype issues.
+        Try clearing your browser cache and refreshing.
+        <hr>
+    </h2>
+    
+    
+      <!-- ew:body_top_js -->
+
+    
+      
+<!-- /ew:body_top_js -->
+
+    
+    
+    
+<header id="site-header">
+    <div class="wrapper">
+        <a href="/" class="logo">
+            <span>SourceForge</span>
+        </a>
+        
+        <form method="get" action="/directory/">
+            <input type="text" id="words" name="q" placeholder="Search">
+        </form>
+        
+        <!--Switch to {language}-->
+        <nav id="nav-site">
+            <a href="/directory/" title="Browse our software.">Browse</a>
+            <a href="/directory/enterprise" title="Browse our Enterprise software.">Enterprise</a>
+            <a href="/blog/" title="Read the latest news from the SF HQ.">Blog</a>
+            <a href="/support" title="Contact us for help and feedback.">Help</a>
+            <a href="/jobs?source=header" title="Search 80k+ tech jobs." class="featured-link">Jobs</a>
+        </nav>
+        <nav id="nav-account">
+            
+              <div class="logged_out">
+                <a href="/auth/">Log In</a>
+                <span>or</span>
+                <a href="https://sourceforge.net/user/registration/">Join</a>
+              </div>
+            
+        </nav>
+        
+    </div>
+</header>
+<header id="site-sec-header">
+    <div class="wrapper">
+        <nav id="nav-hubs">
+            <h4>Solution Centers</h4>
+            <a href="http://goparallel.sourceforge.net/">Go Parallel</a>
+            <a href="http://apmsolutions.sourceforge.net/">Performance Central</a>
+        </nav>
+        <nav id="nav-collateral">
+            <a href="http://library.slashdotmedia.com/?source=sfnet_header">Resources</a>
+            
+            <a href="">Newsletters</a>
+            
+        </nav>
+    </div>
+</header>
+    
+    
+    
+    
+    
+    <section id="page-body" class=" neighborhood-Projects project-faudiostream mountpoint-code">
+	  <div id="nav_menu_holder">
+            
+            
+
+
+
+    
+    
+    
+    
+    <nav id="breadcrumbs">
+        <ul>
+            <li itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/">Home</a></li>
+            <li itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/directory">Browse</a></li>
+            
+            
+                
+            
+            
+            
+                <li itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/p/">Projects</a></li>
+                
+            
+            
+                <li itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/p/faudiostream/">Faust : signal processing language</a></li>
+                
+            
+            
+                <li itemscope itemtype="http://data-vocabulary.org/Breadcrumb">Code</li>
+                
+            
+        </ul>
+    </nav>
+    
+    
+  
+    
+    
+  
+  
+    
+    <h1 class="project_title">
+        <a href="/p/faudiostream/" class="project_link">Faust : signal processing language</a>
+    </h1>
+    
+    
+    
+    <h2 class="project_summary">
+        Faust is a programming language for realtime audio signal processing
+    </h2>
+    
+    <div class="brought-by">
+        Brought to you by:
+        
+        
+            
+                <a href="/u/bchiffreville/">bchiffreville</a>,
+            
+            
+                <a href="/u/dfober/">dfober</a>,
+            
+            
+                <a href="/u/letz/">letz</a>,
+            
+            
+                <a href="/u/orlarey/">orlarey</a>,
+            
+            
+                <a href="/u/sdenoux/">sdenoux</a>
+            </div>
+    
+
+            
+      </div>
+      <div id="top_nav" class="">
+        
+        
+<ul class="dropdown">
+  
+    <li class="">
+        <a href="/projects/faudiostream/" class="ui-icon-tool-summary-32">
+            Summary
+        </a>
+        
+        
+    </li>
+	
+    <li class="">
+        <a href="/projects/faudiostream/files/" class="ui-icon-tool-files-32">
+            Files
+        </a>
+        
+        
+    </li>
+	
+    <li class="">
+        <a href="/projects/faudiostream/reviews" class="ui-icon-tool-reviews-32">
+            Reviews
+        </a>
+        
+        
+    </li>
+	
+    <li class="">
+        <a href="/projects/faudiostream/support" class="ui-icon-tool-support-32">
+            Support
+        </a>
+        
+        
+    </li>
+	
+    <li class="">
+        <a href="/p/faudiostream/wiki/" class="ui-icon-tool-wiki-32">
+            Wiki
+        </a>
+        
+        
+    </li>
+	
+    <li class="">
+        <a href="/p/faudiostream/mailman/" class="ui-icon-tool-mailman-32">
+            Mailing Lists
+        </a>
+        
+        
+    </li>
+	
+    <li class="selected">
+        <a href="/p/faudiostream/_list/git" class="ui-icon-tool-git-32">
+            Git ▾
+        </a>
+        
+        
+            <ul>
+                
+                    <li class="selected"><a href="/p/faudiostream/code/">Code</a></li>
+                
+                    <li class=""><a href="/p/faudiostream/faustweb/">Faustweb</a></li>
+                
+                    <li class=""><a href="/p/faudiostream/faustworks/">Faustworks</a></li>
+                
+                    <li class=""><a href="/p/faudiostream/faustlive/">Faustlive</a></li>
+                
+            </ul>
+        
+    </li>
+	
+    <li class="">
+        <a href="/p/faudiostream/news/" class="ui-icon-tool-blog-32">
+            News
+        </a>
+        
+        
+    </li>
+	
+    <li class="">
+        <a href="/p/faudiostream/discussion/" class="ui-icon-tool-discussion-32">
+            Discussion
+        </a>
+        
+        
+    </li>
+	
+</ul>
+
+        
+      </div>
+      <div id="content_base">
+      
+			  
+			    
+          
+
+
+<div id="sidebar">
+  
+    <div>&nbsp;</div>
+  
+    
+    
+      
+        
+    
+      <ul class="sidebarmenu">
+      
+    
+  <li>
+      <a href="/p/faudiostream/code/commit_browser"   >
+       <b data-icon="o" class="ico ico-folder"></b>
+      <span>Browse Commits</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/fork"   >
+       <b data-icon="R" class="ico ico-fork"></b>
+      <span>Fork</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/merge-requests/"   >
+      
+      <span class="has_small">Merge Requests</span>
+      <small>4</small> </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/forks/"   >
+      
+      <span class="has_small">Forks</span>
+      <small>10</small> </a>
+  </li>
+  
+      
+        
+    
+      </ul>
+      
+    
+    
+      <h3 class="">Branches</h3>
+    
+  
+      
+        
+    
+      <ul class="sidebarmenu">
+      
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/master/tree/"   >
+      
+      <span>master</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/0-9-67-mr2/tree/"   >
+      
+      <span>0-9-67-mr2</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/0.9.44-mr2/tree/"   >
+      
+      <span>0.9.44-mr2</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/0.9.47-mr2/tree/"   >
+      
+      <span>0.9.47-mr2</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/0.9.65-mr2/tree/"   >
+      
+      <span>0.9.65-mr2</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/faust2/tree/"   >
+      
+      <span>faust2</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/faust2-multirate-prototype/tree/"   >
+      
+      <span>faust2-multirate-prototype</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/faust2_asmjs/tree/"   >
+      
+      <span>faust2_asmjs</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/faust2_clang/tree/"   >
+      
+      <span>faust2_clang</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/jackiosui/tree/"   >
+      
+      <span>jackiosui</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ref/master/branches/"   >
+      
+      <span>More Branches</span>
+       </a>
+  </li>
+  
+      
+        
+    
+      </ul>
+      
+    
+    
+      <h3 class="">Tags</h3>
+    
+  
+      
+        
+    
+      <ul class="sidebarmenu">
+      
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-0/tree/"   >
+      
+      <span>v0-9-0</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-1/tree/"   >
+      
+      <span>v0-9-1</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-10/tree/"   >
+      
+      <span>v0-9-10</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-11/tree/"   >
+      
+      <span>v0-9-11</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-12/tree/"   >
+      
+      <span>v0-9-12</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-2/tree/"   >
+      
+      <span>v0-9-2</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-22/tree/"   >
+      
+      <span>v0-9-22</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-23/tree/"   >
+      
+      <span>v0-9-23</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-24/tree/"   >
+      
+      <span>v0-9-24</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ci/v0-9-3/tree/"   >
+      
+      <span>v0-9-3</span>
+       </a>
+  </li>
+  
+      
+        
+    
+  <li>
+      <a href="/p/faudiostream/code/ref/master/tags/"   >
+      
+      <span>More Tags</span>
+       </a>
+  </li>
+  
+      
+    
+    
+      </ul>
+      
+    
+    
+</div>
+          
+          
+			  
+			  
+          
+        
+        <div class="grid-20 pad">
+          <h2 class="dark title">
+<a href="/p/faudiostream/code/ci/dc1e61c73b5f027cb2528078889959b51521470e/">[dc1e61]</a>:
+
+  
+  
+    <a href="./../../../">architecture</a> /
+    
+  
+    <a href="./../../">webaudio</a> /
+    
+  
+    <a href="./../">faustplayground</a> /
+    
+  
+    <a href="./">css</a> /
+    
+  
+ faustModules.css
+
+            <!-- actions -->
+            <small>
+            
+
+    
+    <a id="maximize-content" href="#">
+      <b data-icon="`" class="ico ico-expand" title="Maximize"> </b> Maximize
+    </a>
+    <a id="restore-content" href="#">
+      <b data-icon="J" class="ico ico-restore" title="Restore"> </b> Restore
+    </a>
+<a href="/p/faudiostream/code/ci/dc1e61c73b5f027cb2528078889959b51521470e/log/?path=/architecture/webaudio/faustplayground/css/faustModules.css">
+  <b data-icon="N" class="ico ico-history" title="History"> </b> History
+</a>
+
+            </small>
+            <!-- /actions -->
+          </h2>
+		
+          <div>
+            
+  
+
+            
+  
+    <p><a href="?format=raw">Download this file</a></p>
+    <div class="clip grid-19 codebrowser">
+      <h3>
+        <span class="ico-l"><b data-icon="n" class="ico ico-table"></b> faustModules.css</span>
+        &nbsp;&nbsp;
+        477 lines (446 with data), 9.1 kB
+      </h3>
+      
+        <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475</pre></div></td><td class="code"><div class="codehilite"><pre><div id="l1" class="code_block"><span class="c">/* faustModules.css */</span>
+</div><div id="l2" class="code_block">
+</div><div id="l3" class="code_block"><span class="c">/*	---------------------------------------------------------------------------</span>
+</div><div id="l4" class="code_block"><span class="c"> *	:: Type</span>
+</div><div id="l5" class="code_block"><span class="c"> *</span>
+</div><div id="l6" class="code_block"><span class="c"> *  - Fonts</span>
+</div><div id="l7" class="code_block"><span class="c"> *	- Base</span>
+</div><div id="l8" class="code_block"><span class="c"> *	- Links</span>
+</div><div id="l9" class="code_block"><span class="c"> *	-------------------------------------------------------------------------*/</span>
+</div><div id="l10" class="code_block">
+</div><div id="l11" class="code_block"><span class="c">/* Modules */</span>
+</div><div id="l12" class="code_block"><span class="nf">#modules</span> <span class="p">{</span>
+</div><div id="l13" class="code_block">	<span class="k">padding-left</span><span class="o">:</span> <span class="m">2em</span><span class="p">;</span>
+</div><div id="l14" class="code_block"><span class="p">}</span>
+</div><div id="l15" class="code_block">
+</div><div id="l16" class="code_block"><span class="c">/* Modules */</span>
+</div><div id="l17" class="code_block"><span class="nc">.moduleFaust</span> <span class="p">{</span>
+</div><div id="l18" class="code_block">
+</div><div id="l19" class="code_block">	<span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">select</span><span class="o">:</span> <span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="k">none</span><span class="p">;</span>
+</div><div id="l20" class="code_block">   <span class="o">-</span><span class="n">khtml</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">select</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l21" class="code_block">   <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">select</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l22" class="code_block">   <span class="c">/*</span>
+</div><div id="l23" class="code_block"><span class="c">     Introduced in IE 10.</span>
+</div><div id="l24" class="code_block"><span class="c">     See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/</span>
+</div><div id="l25" class="code_block"><span class="c">   */</span>
+</div><div id="l26" class="code_block">   <span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">select</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l27" class="code_block">   <span class="n">user</span><span class="o">-</span><span class="n">select</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l28" class="code_block">
+</div><div id="l29" class="code_block">	<span class="k">background-color</span><span class="o">:</span><span class="nb">white</span><span class="p">;</span>
+</div><div id="l30" class="code_block">	<span class="k">color</span><span class="o">:</span><span class="nb">orange</span><span class="p">;</span>
+</div><div id="l31" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l32" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0</span> <span class="m">5px</span> <span class="m">10px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">.</span><span class="m">2</span><span class="p">);</span>
+</div><div id="l33" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="o">-</span><span class="k">block</span><span class="p">;</span>
+</div><div id="l34" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l35" class="code_block">	<span class="k">margin-left</span><span class="o">:</span><span class="k">auto</span><span class="p">;</span>
+</div><div id="l36" class="code_block">	<span class="k">margin-right</span><span class="o">:</span><span class="k">auto</span><span class="p">;</span>
+</div><div id="l37" class="code_block">	<span class="k">z-index</span><span class="o">:</span><span class="m">5</span><span class="p">;</span>
+</div><div id="l38" class="code_block"><span class="p">}</span>
+</div><div id="l39" class="code_block">
+</div><div id="l40" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.content</span> <span class="p">{</span>
+</div><div id="l41" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="o">-</span><span class="k">block</span><span class="p">;</span>
+</div><div id="l42" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l43" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l44" class="code_block">	<span class="k">min-width</span><span class="o">:</span> <span class="m">10em</span><span class="p">;</span>
+</div><div id="l45" class="code_block">	<span class="k">overflow</span><span class="o">:</span> <span class="k">hidden</span><span class="p">;</span>
+</div><div id="l46" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">1em</span> <span class="m">1.25em</span> <span class="m">1.25em</span> <span class="m">1.25em</span><span class="p">;</span>
+</div><div id="l47" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l48" class="code_block"><span class="p">}</span>
+</div><div id="l49" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.content</span> <span class="nt">img</span> <span class="p">{</span>
+</div><div id="l50" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l51" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span> <span class="k">auto</span><span class="p">;</span>
+</div><div id="l52" class="code_block"><span class="p">}</span>
+</div><div id="l53" class="code_block"><span class="nc">.moduleFaust.has-footer</span> <span class="nc">.content</span> <span class="p">{</span>
+</div><div id="l54" class="code_block">	<span class="k">border-bottom</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span> <span class="m">#dbdbdb</span><span class="p">;</span>
+</div><div id="l55" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span> <span class="m">5px</span> <span class="m">0</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l56" class="code_block"><span class="p">}</span>
+</div><div id="l57" class="code_block"><span class="nc">.moduleFaust</span> <span class="nt">h6</span> <span class="p">{</span>
+</div><div id="l58" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.75em</span><span class="p">;</span>
+</div><div id="l59" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">1em</span> <span class="m">1em</span> <span class="m">1em</span><span class="p">;</span>
+</div><div id="l60" class="code_block">	<span class="k">text-align</span><span class="o">:</span> <span class="k">center</span><span class="p">;</span>
+</div><div id="l61" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l62" class="code_block"><span class="p">}</span>
+</div><div id="l63" class="code_block">
+</div><div id="l64" class="code_block"><span class="c">/* Module nodes */</span>
+</div><div id="l65" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.node</span> <span class="p">{</span>
+</div><div id="l66" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l67" class="code_block">	<span class="k">margin-top</span><span class="o">:</span> <span class="m">-16px</span><span class="p">;</span>
+</div><div id="l68" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">50</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l69" class="code_block"><span class="p">}</span>
+</div><div id="l70" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.node-input</span> <span class="p">{</span>
+</div><div id="l71" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">-18px</span><span class="p">;</span>
+</div><div id="l72" class="code_block"><span class="p">}</span>
+</div><div id="l73" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.node-output</span> <span class="p">{</span>
+</div><div id="l74" class="code_block">	<span class="k">right</span><span class="o">:</span> <span class="m">-18px</span><span class="p">;</span>
+</div><div id="l75" class="code_block"><span class="p">}</span>
+</div><div id="l76" class="code_block">
+</div><div id="l77" class="code_block"><span class="c">/* Module close */</span>
+</div><div id="l78" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.close</span> <span class="p">{</span>
+</div><div id="l79" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/ico-close.gif&#39;)</span> <span class="m">0</span> <span class="m">0</span> <span class="k">no-repeat</span><span class="p">;</span>
+</div><div id="l80" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l81" class="code_block">	<span class="k">text-indent</span><span class="o">:</span> <span class="m">-999em</span><span class="p">;</span>
+</div><div id="l82" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l83" class="code_block">	<span class="k">right</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l84" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l85" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">9px</span><span class="p">;</span>
+</div><div id="l86" class="code_block"><span class="p">}</span>
+</div><div id="l87" class="code_block"><span class="nc">.moduleFaust</span> <span class="nc">.close</span><span class="nd">:hover</span> <span class="p">{</span>
+</div><div id="l88" class="code_block">	<span class="k">opacity</span><span class="o">:</span> <span class="o">.</span><span class="m">8</span>
+</div><div id="l89" class="code_block"><span class="p">}</span>
+</div><div id="l90" class="code_block">
+</div><div id="l91" class="code_block"><span class="nc">.moduleFaust.analyzer</span> <span class="p">{</span>
+</div><div id="l92" class="code_block"><span class="p">}</span>
+</div><div id="l93" class="code_block">
+</div><div id="l94" class="code_block"><span class="c">/* Module footer */</span>
+</div><div id="l95" class="code_block"><span class="nc">.moduleFaust</span> <span class="nt">footer</span> <span class="p">{</span>
+</div><div id="l96" class="code_block">	<span class="k">background-color</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l97" class="code_block">	<span class="k">background-image</span><span class="o">:</span> <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">linear</span><span class="o">-</span><span class="n">gradient</span><span class="p">(</span><span class="k">top</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="p">)</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="p">));</span>
+</div><div id="l98" class="code_block">	<span class="k">background-image</span><span class="o">:</span> <span class="n">linear</span><span class="o">-</span><span class="n">gradient</span><span class="p">(</span><span class="k">top</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="p">)</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="p">));</span>
+</div><div id="l99" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">5px</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l100" class="code_block">	<span class="k">overflow</span><span class="o">:</span> <span class="k">hidden</span><span class="p">;</span>
+</div><div id="l101" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">0em</span> <span class="m">.4em</span> <span class="m">.1em</span><span class="p">;</span>	
+</div><div id="l102" class="code_block"><span class="p">}</span>
+</div><div id="l103" class="code_block"><span class="nc">.moduleFaust</span> <span class="nt">footer</span> <span class="nt">select</span> <span class="p">{</span>
+</div><div id="l104" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/ico-arrow.png&#39;)</span> <span class="m">100</span><span class="o">%</span> <span class="m">50</span><span class="o">%</span> <span class="k">no-repeat</span><span class="p">;</span>
+</div><div id="l105" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l106" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">sizing</span><span class="o">:</span> <span class="k">border</span><span class="o">-</span><span class="n">box</span><span class="p">;</span>
+</div><div id="l107" class="code_block">	<span class="k">cursor</span><span class="o">:</span> <span class="k">default</span><span class="p">;</span>
+</div><div id="l108" class="code_block"><span class="c">/* 	font-family: &#39;Droid Serif&#39;, Georgia, serif; */</span>
+</div><div id="l109" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.625em</span><span class="p">;</span>
+</div><div id="l110" class="code_block">	<span class="k">font-style</span><span class="o">:</span> <span class="k">italic</span><span class="p">;</span>
+</div><div id="l111" class="code_block">	<span class="k">outline</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l112" class="code_block">	<span class="k">white-space</span><span class="o">:</span> <span class="n">pre</span><span class="p">;</span>
+</div><div id="l113" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l114" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">appearance</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l115" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">box</span><span class="o">-</span><span class="n">align</span><span class="o">:</span> <span class="k">center</span><span class="p">;</span>
+</div><div id="l116" class="code_block"><span class="p">}</span>
+</div><div id="l117" class="code_block"><span class="nc">.moduleFaust.has-loop</span> <span class="nt">footer</span> <span class="nt">select</span> <span class="p">{</span>
+</div><div id="l118" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">70</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l119" class="code_block"><span class="p">}</span>
+</div><div id="l120" class="code_block"><span class="nc">.moduleFaust</span> <span class="nt">footer</span> <span class="nc">.loop</span> <span class="p">{</span>
+</div><div id="l121" class="code_block">	<span class="k">border-left</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span> <span class="m">#dbdbdb</span><span class="p">;</span>
+</div><div id="l122" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="p">;</span>
+</div><div id="l123" class="code_block">	<span class="k">float</span><span class="o">:</span> <span class="k">right</span><span class="p">;</span>
+</div><div id="l124" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.625em</span><span class="p">;</span>
+</div><div id="l125" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">.4em</span> <span class="m">0</span> <span class="m">.4em</span> <span class="m">.6em</span><span class="p">;</span>
+</div><div id="l126" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l127" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">23</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l128" class="code_block"><span class="p">}</span>
+</div><div id="l129" class="code_block">
+</div><div id="l130" class="code_block">
+</div><div id="l131" class="code_block"><span class="c">/*	---------------------------------------------------------------------------</span>
+</div><div id="l132" class="code_block"><span class="c"> *	:: Global classes and styles</span>
+</div><div id="l133" class="code_block"><span class="c"> *</span>
+</div><div id="l134" class="code_block"><span class="c"> *	- Clearfix</span>
+</div><div id="l135" class="code_block"><span class="c"> *	- Nodes</span>
+</div><div id="l136" class="code_block"><span class="c"> *	- Modules</span>
+</div><div id="l137" class="code_block"><span class="c"> *	- Module nodes</span>
+</div><div id="l138" class="code_block"><span class="c"> *	- Module close</span>
+</div><div id="l139" class="code_block"><span class="c"> *	- Module footer</span>
+</div><div id="l140" class="code_block"><span class="c"> *	- Control group</span>
+</div><div id="l141" class="code_block"><span class="c"> *	- Slider</span>
+</div><div id="l142" class="code_block"><span class="c"> *	-------------------------------------------------------------------------*/</span>
+</div><div id="l143" class="code_block">
+</div><div id="l144" class="code_block"><span class="c">/* Nav */</span>
+</div><div id="l145" class="code_block"><span class="nf">#nav</span> <span class="p">{</span>
+</div><div id="l146" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">1.3em</span><span class="p">;</span>
+</div><div id="l147" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">1.3em</span> <span class="m">0</span> <span class="m">0</span> <span class="m">2em</span><span class="p">;</span>
+</div><div id="l148" class="code_block"><span class="p">}</span>
+</div><div id="l149" class="code_block">
+</div><div id="l150" class="code_block"><span class="c">/* Controls */</span>
+</div><div id="l151" class="code_block"><span class="nf">#controls</span> <span class="p">{</span>
+</div><div id="l152" class="code_block">	<span class="k">list-style</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l153" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l154" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l155" class="code_block"><span class="p">}</span>
+</div><div id="l156" class="code_block"><span class="nf">#controls</span> <span class="nt">li</span> <span class="p">{</span>
+</div><div id="l157" class="code_block">	<span class="k">float</span><span class="o">:</span> <span class="k">left</span><span class="p">;</span>
+</div><div id="l158" class="code_block">	<span class="k">margin-right</span><span class="o">:</span> <span class="m">.8em</span><span class="p">;</span>
+</div><div id="l159" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l160" class="code_block"><span class="p">}</span>
+</div><div id="l161" class="code_block"><span class="nf">#controls</span> <span class="nt">a</span> <span class="p">{</span>
+</div><div id="l162" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/ico-plus.png&#39;)</span> <span class="m">.9em</span> <span class="m">50</span><span class="o">%</span> <span class="k">no-repeat</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l163" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l164" class="code_block">	<span class="k">color</span><span class="o">:</span> <span class="m">#4c4c4c</span><span class="p">;</span>
+</div><div id="l165" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l166" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.625em</span><span class="p">;</span> <span class="c">/* 11 / 16 */</span>
+</div><div id="l167" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">.5em</span> <span class="m">1em</span> <span class="m">.4em</span> <span class="m">2.6em</span><span class="p">;</span>
+</div><div id="l168" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l169" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">transition</span><span class="o">:</span> <span class="k">background-color</span> <span class="m">0.1s</span> <span class="n">linear</span><span class="p">;</span>
+</div><div id="l170" class="code_block">	<span class="n">transition</span><span class="o">:</span> <span class="k">background-color</span> <span class="m">0.1s</span> <span class="n">linear</span><span class="p">;</span>
+</div><div id="l171" class="code_block"><span class="p">}</span>
+</div><div id="l172" class="code_block">
+</div><div id="l173" class="code_block"><span class="c">/* Dropdown */</span>
+</div><div id="l174" class="code_block"><span class="nf">#controls</span> <span class="nc">.sub-menu</span> <span class="p">{</span>
+</div><div id="l175" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l176" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l177" class="code_block">	<span class="k">padding-top</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l178" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l179" class="code_block">	<span class="k">z-index</span><span class="o">:</span> <span class="m">1000</span><span class="p">;</span>
+</div><div id="l180" class="code_block"><span class="p">}</span>
+</div><div id="l181" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span> <span class="p">{</span>
+</div><div id="l182" class="code_block">	<span class="k">background-color</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l183" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span> <span class="m">#aaa</span><span class="p">;</span>
+</div><div id="l184" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l185" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0</span> <span class="m">5px</span> <span class="m">10px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">.</span><span class="m">2</span><span class="p">);</span>
+</div><div id="l186" class="code_block">	<span class="k">list-style</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l187" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l188" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">.2em</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l189" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l190" class="code_block"><span class="p">}</span>
+</div><div id="l191" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span> <span class="nt">li</span> <span class="p">{</span>
+</div><div id="l192" class="code_block">	<span class="k">float</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l193" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l194" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l195" class="code_block"><span class="p">}</span>
+</div><div id="l196" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span> <span class="nt">a</span> <span class="p">{</span>
+</div><div id="l197" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l198" class="code_block">	<span class="k">background-image</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l199" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l200" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">.5em</span> <span class="m">1em</span> <span class="m">.4em</span><span class="p">;</span>
+</div><div id="l201" class="code_block">	<span class="k">white-space</span><span class="o">:</span> <span class="k">nowrap</span><span class="p">;</span>
+</div><div id="l202" class="code_block"><span class="p">}</span>
+</div><div id="l203" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span> <span class="nt">a</span><span class="nd">:hover</span> <span class="p">{</span>
+</div><div id="l204" class="code_block">	<span class="k">background-color</span><span class="o">:</span> <span class="m">#dbdbdb</span><span class="p">;</span>
+</div><div id="l205" class="code_block"><span class="p">}</span>
+</div><div id="l206" class="code_block"><span class="nf">#controls</span> <span class="nt">li</span><span class="nd">:hover</span> <span class="nc">.sub-menu</span> <span class="p">{</span>
+</div><div id="l207" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l208" class="code_block"><span class="p">}</span>
+</div><div id="l209" class="code_block">
+</div><div id="l210" class="code_block"><span class="c">/* Dropdown arrow */</span>
+</div><div id="l211" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span><span class="nd">:after</span><span class="o">,</span>
+</div><div id="l212" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span><span class="nd">:before</span> <span class="p">{</span>
+</div><div id="l213" class="code_block">	<span class="k">bottom</span><span class="o">:</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l214" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="k">solid</span> <span class="k">transparent</span><span class="p">;</span>
+</div><div id="l215" class="code_block">	<span class="k">content</span><span class="o">:</span> <span class="s2">&quot; &quot;</span><span class="p">;</span>
+</div><div id="l216" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l217" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l218" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l219" class="code_block">	<span class="k">pointer</span><span class="o">-</span><span class="n">events</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l220" class="code_block"><span class="p">}</span>
+</div><div id="l221" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span><span class="nd">:after</span> <span class="p">{</span>
+</div><div id="l222" class="code_block">	<span class="k">border-bottom-color</span><span class="o">:</span> <span class="m">#ffffff</span><span class="p">;</span>
+</div><div id="l223" class="code_block">	<span class="k">border-width</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l224" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">20</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l225" class="code_block">	<span class="k">margin-left</span><span class="o">:</span> <span class="m">-8px</span><span class="p">;</span>
+</div><div id="l226" class="code_block"><span class="p">}</span>
+</div><div id="l227" class="code_block"><span class="nf">#controls</span> <span class="nt">ul</span><span class="nd">:before</span> <span class="p">{</span>
+</div><div id="l228" class="code_block">	<span class="k">border-bottom-color</span><span class="o">:</span> <span class="m">#aaa</span><span class="p">;</span>
+</div><div id="l229" class="code_block">	<span class="k">border-width</span><span class="o">:</span> <span class="m">9px</span><span class="p">;</span>
+</div><div id="l230" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">20</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l231" class="code_block">	<span class="k">margin-left</span><span class="o">:</span> <span class="m">-9px</span><span class="p">;</span>
+</div><div id="l232" class="code_block"><span class="p">}</span>
+</div><div id="l233" class="code_block">
+</div><div id="l234" class="code_block"><span class="c">/* Clearfix */</span>
+</div><div id="l235" class="code_block"><span class="nc">.container</span><span class="nd">:before</span><span class="o">,</span> <span class="nc">.container</span><span class="nd">:after</span> <span class="p">{</span> <span class="k">content</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">;</span> <span class="k">display</span><span class="o">:</span> <span class="n">table</span><span class="p">;</span> <span class="p">}</span>
+</div><div id="l236" class="code_block"><span class="nc">.container</span><span class="nd">:after</span> <span class="p">{</span> <span class="k">clear</span><span class="o">:</span> <span class="k">both</span><span class="p">;</span> <span class="p">}</span>
+</div><div id="l237" class="code_block"><span class="nc">.container</span> <span class="p">{</span> <span class="o">*</span><span class="n">zoom</span><span class="o">:</span> <span class="m">1</span><span class="p">;</span> <span class="p">}</span>
+</div><div id="l238" class="code_block">
+</div><div id="l239" class="code_block"><span class="c">/* Nodes */</span>
+</div><div id="l240" class="code_block"><span class="nc">.node</span> <span class="p">{</span>
+</div><div id="l241" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l242" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">50</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l243" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">3px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span> <span class="o">.</span><span class="m">5</span><span class="p">);</span>
+</div><div id="l244" class="code_block">	<span class="k">cursor</span><span class="o">:</span> <span class="k">pointer</span><span class="p">;</span>
+</div><div id="l245" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">34px</span><span class="p">;</span>
+</div><div id="l246" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l247" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">34px</span><span class="p">;</span>
+</div><div id="l248" class="code_block"><span class="p">}</span>
+</div><div id="l249" class="code_block"><span class="nc">.node</span> <span class="nt">span</span> <span class="p">{</span>
+</div><div id="l250" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">50</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l251" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l252" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">24px</span><span class="p">;</span>
+</div><div id="l253" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l254" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l255" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l256" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">24px</span><span class="p">;</span>
+</div><div id="l257" class="code_block"><span class="p">}</span>
+</div><div id="l258" class="code_block"><span class="nc">.node-input</span> <span class="nt">span</span> <span class="p">{</span>
+</div><div id="l259" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="m">#67a90d</span><span class="p">;</span>
+</div><div id="l260" class="code_block"><span class="p">}</span>
+</div><div id="l261" class="code_block"><span class="nc">.node-output</span> <span class="nt">span</span> <span class="p">{</span>
+</div><div id="l262" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="m">#ec2f13</span><span class="p">;</span>
+</div><div id="l263" class="code_block"><span class="p">}</span>
+</div><div id="l264" class="code_block"><span class="nc">.node</span><span class="nd">:hover</span> <span class="p">{</span>
+</div><div id="l265" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">3px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span> <span class="m">1</span><span class="p">);</span>
+</div><div id="l266" class="code_block"><span class="p">}</span>
+</div><div id="l267" class="code_block">
+</div><div id="l268" class="code_block"><span class="c">/* Modules */</span>
+</div><div id="l269" class="code_block"><span class="nc">.module</span> <span class="p">{</span>
+</div><div id="l270" class="code_block">	<span class="k">background-color</span><span class="o">:</span><span class="nb">white</span><span class="p">;</span>
+</div><div id="l271" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l272" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0</span> <span class="m">5px</span> <span class="m">10px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">,</span> <span class="m">0</span><span class="o">.</span><span class="m">2</span><span class="p">);</span>
+</div><div id="l273" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="o">-</span><span class="k">block</span><span class="p">;</span>
+</div><div id="l274" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l275" class="code_block"><span class="p">}</span>
+</div><div id="l276" class="code_block"><span class="nc">.module</span> <span class="nc">.content</span> <span class="p">{</span>
+</div><div id="l277" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l278" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l279" class="code_block">	<span class="k">min-width</span><span class="o">:</span> <span class="m">10em</span><span class="p">;</span>
+</div><div id="l280" class="code_block">	<span class="k">overflow</span><span class="o">:</span> <span class="k">hidden</span><span class="p">;</span>
+</div><div id="l281" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">1em</span> <span class="m">1.25em</span> <span class="m">1.25em</span> <span class="m">1.25em</span><span class="p">;</span>
+</div><div id="l282" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l283" class="code_block"><span class="p">}</span>
+</div><div id="l284" class="code_block"><span class="nc">.module</span> <span class="nc">.content</span> <span class="nt">img</span> <span class="p">{</span>
+</div><div id="l285" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l286" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span> <span class="k">auto</span><span class="p">;</span>
+</div><div id="l287" class="code_block"><span class="p">}</span>
+</div><div id="l288" class="code_block"><span class="nc">.module.has-footer</span> <span class="nc">.content</span> <span class="p">{</span>
+</div><div id="l289" class="code_block">	<span class="k">border-bottom</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span> <span class="m">#dbdbdb</span><span class="p">;</span>
+</div><div id="l290" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">5px</span> <span class="m">5px</span> <span class="m">0</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l291" class="code_block"><span class="p">}</span>
+</div><div id="l292" class="code_block"><span class="nc">.module</span> <span class="nt">h6</span> <span class="p">{</span>
+</div><div id="l293" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.75em</span><span class="p">;</span>
+</div><div id="l294" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">1em</span><span class="p">;</span>
+</div><div id="l295" class="code_block">	<span class="k">text-align</span><span class="o">:</span> <span class="k">center</span><span class="p">;</span>
+</div><div id="l296" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l297" class="code_block"><span class="p">}</span>
+</div><div id="l298" class="code_block">
+</div><div id="l299" class="code_block"><span class="c">/* Module nodes */</span>
+</div><div id="l300" class="code_block"><span class="nc">.module</span> <span class="nc">.node</span> <span class="p">{</span>
+</div><div id="l301" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l302" class="code_block">	<span class="k">margin-top</span><span class="o">:</span> <span class="m">-16px</span><span class="p">;</span>
+</div><div id="l303" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">50</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l304" class="code_block"><span class="p">}</span>
+</div><div id="l305" class="code_block"><span class="nc">.module</span> <span class="nc">.node-input</span> <span class="p">{</span>
+</div><div id="l306" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">-18px</span><span class="p">;</span>
+</div><div id="l307" class="code_block"><span class="p">}</span>
+</div><div id="l308" class="code_block"><span class="nc">.module</span> <span class="nc">.node-output</span> <span class="p">{</span>
+</div><div id="l309" class="code_block">	<span class="k">right</span><span class="o">:</span> <span class="m">-18px</span><span class="p">;</span>
+</div><div id="l310" class="code_block"><span class="p">}</span>
+</div><div id="l311" class="code_block">
+</div><div id="l312" class="code_block"><span class="c">/* Module close */</span>
+</div><div id="l313" class="code_block"><span class="nc">.module</span> <span class="nc">.close</span> <span class="p">{</span>
+</div><div id="l314" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/ico-close.gif&#39;)</span> <span class="m">0</span> <span class="m">0</span> <span class="k">no-repeat</span><span class="p">;</span>
+</div><div id="l315" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l316" class="code_block">	<span class="k">text-indent</span><span class="o">:</span> <span class="m">-999em</span><span class="p">;</span>
+</div><div id="l317" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l318" class="code_block">	<span class="k">right</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l319" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">8px</span><span class="p">;</span>
+</div><div id="l320" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">9px</span><span class="p">;</span>
+</div><div id="l321" class="code_block"><span class="p">}</span>
+</div><div id="l322" class="code_block"><span class="nc">.module</span> <span class="nc">.close</span><span class="nd">:hover</span> <span class="p">{</span>
+</div><div id="l323" class="code_block">	<span class="k">opacity</span><span class="o">:</span> <span class="o">.</span><span class="m">8</span>
+</div><div id="l324" class="code_block"><span class="p">}</span>
+</div><div id="l325" class="code_block">
+</div><div id="l326" class="code_block"><span class="nc">.module.analyzer</span> <span class="p">{</span>
+</div><div id="l327" class="code_block"><span class="p">}</span>
+</div><div id="l328" class="code_block">
+</div><div id="l329" class="code_block"><span class="c">/* Module footer */</span>
+</div><div id="l330" class="code_block"><span class="nc">.module</span> <span class="nt">footer</span> <span class="p">{</span>
+</div><div id="l331" class="code_block">	<span class="k">background-color</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l332" class="code_block">	<span class="k">background-image</span><span class="o">:</span> <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">linear</span><span class="o">-</span><span class="n">gradient</span><span class="p">(</span><span class="k">top</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="p">)</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="p">));</span>
+</div><div id="l333" class="code_block">	<span class="k">background-image</span><span class="o">:</span> <span class="n">linear</span><span class="o">-</span><span class="n">gradient</span><span class="p">(</span><span class="k">top</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="o">,</span> <span class="m">255</span><span class="p">)</span><span class="o">,</span> <span class="k">rgb</span><span class="p">(</span><span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="o">,</span> <span class="m">219</span><span class="p">));</span>
+</div><div id="l334" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">5px</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l335" class="code_block">	<span class="k">overflow</span><span class="o">:</span> <span class="k">hidden</span><span class="p">;</span>
+</div><div id="l336" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">0em</span> <span class="m">.4em</span> <span class="m">.1em</span><span class="p">;</span>	
+</div><div id="l337" class="code_block"><span class="p">}</span>
+</div><div id="l338" class="code_block"><span class="nc">.module</span> <span class="nt">footer</span> <span class="nt">select</span> <span class="p">{</span>
+</div><div id="l339" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/ico-arrow.png&#39;)</span> <span class="m">100</span><span class="o">%</span> <span class="m">50</span><span class="o">%</span> <span class="k">no-repeat</span><span class="p">;</span>
+</div><div id="l340" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l341" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">sizing</span><span class="o">:</span> <span class="k">border</span><span class="o">-</span><span class="n">box</span><span class="p">;</span>
+</div><div id="l342" class="code_block">	<span class="k">cursor</span><span class="o">:</span> <span class="k">default</span><span class="p">;</span>
+</div><div id="l343" class="code_block"><span class="c">/* 	font-family: &#39;Droid Serif&#39;, Georgia, serif; */</span>
+</div><div id="l344" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.625em</span><span class="p">;</span>
+</div><div id="l345" class="code_block">	<span class="k">font-style</span><span class="o">:</span> <span class="k">italic</span><span class="p">;</span>
+</div><div id="l346" class="code_block">	<span class="k">outline</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l347" class="code_block">	<span class="k">white-space</span><span class="o">:</span> <span class="n">pre</span><span class="p">;</span>
+</div><div id="l348" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l349" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">appearance</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l350" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">box</span><span class="o">-</span><span class="n">align</span><span class="o">:</span> <span class="k">center</span><span class="p">;</span>
+</div><div id="l351" class="code_block"><span class="p">}</span>
+</div><div id="l352" class="code_block"><span class="nc">.module.has-loop</span> <span class="nt">footer</span> <span class="nt">select</span> <span class="p">{</span>
+</div><div id="l353" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">70</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l354" class="code_block"><span class="p">}</span>
+</div><div id="l355" class="code_block"><span class="nc">.module</span> <span class="nt">footer</span> <span class="nc">.loop</span> <span class="p">{</span>
+</div><div id="l356" class="code_block">	<span class="k">border-left</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span> <span class="m">#dbdbdb</span><span class="p">;</span>
+</div><div id="l357" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="p">;</span>
+</div><div id="l358" class="code_block">	<span class="k">float</span><span class="o">:</span> <span class="k">right</span><span class="p">;</span>
+</div><div id="l359" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.625em</span><span class="p">;</span>
+</div><div id="l360" class="code_block">	<span class="k">padding</span><span class="o">:</span> <span class="m">.4em</span> <span class="m">0</span> <span class="m">.4em</span> <span class="m">.6em</span><span class="p">;</span>
+</div><div id="l361" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l362" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">23</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l363" class="code_block"><span class="p">}</span>
+</div><div id="l364" class="code_block">
+</div><div id="l365" class="code_block"><span class="c">/* Control group */</span>
+</div><div id="l366" class="code_block"><span class="nc">.control-group</span> <span class="p">{</span>
+</div><div id="l367" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span> <span class="m">1.2em</span><span class="p">;</span>
+</div><div id="l368" class="code_block"><span class="p">}</span>
+</div><div id="l369" class="code_block"><span class="nc">.control-group.last</span> <span class="p">{</span>
+</div><div id="l370" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l371" class="code_block"><span class="p">}</span>
+</div><div id="l372" class="code_block">
+</div><div id="l373" class="code_block"><span class="nc">.control-group</span><span class="nd">:last-of-type</span> <span class="p">{</span>
+</div><div id="l374" class="code_block">	<span class="k">margin</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l375" class="code_block"><span class="p">}</span>
+</div><div id="l376" class="code_block">
+</div><div id="l377" class="code_block"><span class="nc">.control-group.disabled</span> <span class="nc">.slider-info</span> <span class="p">{</span>
+</div><div id="l378" class="code_block">	<span class="k">color</span><span class="o">:</span> <span class="m">#e0e0e0</span><span class="p">;</span>
+</div><div id="l379" class="code_block"><span class="p">}</span>
+</div><div id="l380" class="code_block"><span class="c">/* Slider */</span>
+</div><div id="l381" class="code_block"><span class="nc">.slider-info</span> <span class="p">{</span>
+</div><div id="l382" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.625em</span><span class="p">;</span> <span class="c">/* 10 / 16 */</span>
+</div><div id="l383" class="code_block">	<span class="k">margin-bottom</span><span class="o">:</span> <span class="m">1em</span><span class="p">;</span>
+</div><div id="l384" class="code_block">	<span class="k">overflow</span><span class="o">:</span> <span class="k">hidden</span><span class="p">;</span>
+</div><div id="l385" class="code_block">	<span class="k">padding-bottom</span><span class="o">:</span> <span class="m">.4em</span><span class="p">;</span>
+</div><div id="l386" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l387" class="code_block"><span class="p">}</span>
+</div><div id="l388" class="code_block"><span class="nc">.slider-info</span> <span class="nc">.label</span> <span class="p">{</span>
+</div><div id="l389" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="p">;</span>
+</div><div id="l390" class="code_block">	<span class="k">float</span><span class="o">:</span> <span class="k">left</span><span class="p">;</span>
+</div><div id="l391" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l392" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">49</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l393" class="code_block"><span class="p">}</span>
+</div><div id="l394" class="code_block"><span class="nc">.slider-info</span> <span class="nc">.value</span> <span class="p">{</span>
+</div><div id="l395" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">inline</span><span class="p">;</span>
+</div><div id="l396" class="code_block">	<span class="k">float</span><span class="o">:</span> <span class="k">right</span><span class="p">;</span>
+</div><div id="l397" class="code_block">	<span class="k">font-weight</span><span class="o">:</span> <span class="k">bold</span><span class="p">;</span>
+</div><div id="l398" class="code_block">	<span class="k">text-align</span><span class="o">:</span> <span class="k">right</span><span class="p">;</span>
+</div><div id="l399" class="code_block">	<span class="k">text-transform</span><span class="o">:</span> <span class="k">uppercase</span><span class="p">;</span>
+</div><div id="l400" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">49</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l401" class="code_block"><span class="p">}</span>
+</div><div id="l402" class="code_block"><span class="nc">.module</span> <span class="nc">.slider-info</span><span class="nd">:last-child</span> <span class="p">{</span>
+</div><div id="l403" class="code_block">	<span class="k">margin-bottom</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l404" class="code_block"><span class="p">}</span>
+</div><div id="l405" class="code_block">
+</div><div id="l406" class="code_block"><span class="nc">.ui-slider</span> <span class="p">{</span>
+</div><div id="l407" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/slider-bkg.gif&#39;)</span> <span class="m">0</span> <span class="m">0</span> <span class="k">repeat-x</span><span class="p">;</span>
+</div><div id="l408" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="m">0</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l409" class="code_block">	<span class="k">color</span><span class="o">:</span> <span class="m">#fff</span><span class="p">;</span>
+</div><div id="l410" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">11px</span><span class="p">;</span>
+</div><div id="l411" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l412" class="code_block">	<span class="k">text-align</span><span class="o">:</span> <span class="k">left</span><span class="p">;</span>
+</div><div id="l413" class="code_block"><span class="p">}</span>
+</div><div id="l414" class="code_block"><span class="nc">.ui-state-default</span><span class="o">,</span>
+</div><div id="l415" class="code_block"><span class="nc">.ui-widget-content</span> <span class="nc">.ui-state-default</span><span class="o">,</span>
+</div><div id="l416" class="code_block"><span class="nc">.ui-widget-header</span> <span class="nc">.ui-state-default</span> <span class="p">{</span>
+</div><div id="l417" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span> <span class="m">#cccccc</span><span class="p">;</span>
+</div><div id="l418" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="m">#f6f6f6</span><span class="p">;</span>
+</div><div id="l419" class="code_block">	<span class="k">font-weight</span><span class="o">:</span> <span class="k">bold</span><span class="p">;</span>
+</div><div id="l420" class="code_block">	<span class="k">color</span><span class="o">:</span> <span class="m">#1c94c4</span><span class="p">;</span>
+</div><div id="l421" class="code_block"><span class="p">}</span>
+</div><div id="l422" class="code_block"><span class="nc">.ui-slider</span> <span class="nc">.ui-slider-handle</span> <span class="p">{</span>
+</div><div id="l423" class="code_block">	<span class="k">background</span><span class="o">:</span> <span class="sx">url(&#39;../img/slider-handle.png&#39;)</span> <span class="m">0</span> <span class="m">1px</span> <span class="k">no-repeat</span><span class="p">;</span>
+</div><div id="l424" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="m">0</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l425" class="code_block">	<span class="k">cursor</span><span class="o">:</span> <span class="k">default</span><span class="p">;</span>
+</div><div id="l426" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">18px</span><span class="p">;</span>
+</div><div id="l427" class="code_block">	<span class="k">margin-left</span><span class="o">:</span> <span class="m">-.6em</span><span class="p">;</span>
+</div><div id="l428" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l429" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">-.3em</span><span class="p">;</span>
+</div><div id="l430" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">16px</span><span class="p">;</span>
+</div><div id="l431" class="code_block">	<span class="k">z-index</span><span class="o">:</span> <span class="m">2</span><span class="p">;</span>
+</div><div id="l432" class="code_block"><span class="p">}</span>
+</div><div id="l433" class="code_block"><span class="nc">.ui-slider</span> <span class="nc">.ui-slider-range</span> <span class="p">{</span>
+</div><div id="l434" class="code_block">	<span class="k">background-position</span><span class="o">:</span> <span class="m">0</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l435" class="code_block">	<span class="k">border</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l436" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l437" class="code_block">	<span class="k">font-size</span><span class="o">:</span> <span class="m">.7em</span><span class="p">;</span>
+</div><div id="l438" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l439" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+</div><div id="l440" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l441" class="code_block">	<span class="k">z-index</span><span class="o">:</span> <span class="m">1</span><span class="p">;</span>
+</div><div id="l442" class="code_block"><span class="p">}</span>
+</div><div id="l443" class="code_block"><span class="nc">.ui-slider</span> <span class="nc">.ui-slider-range-min</span> <span class="p">{</span>
+</div><div id="l444" class="code_block">	<span class="k">left</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l445" class="code_block"><span class="p">}</span>
+</div><div id="l446" class="code_block"><span class="nc">.ui-slider</span> <span class="nc">.ui-slider-range-max</span> <span class="p">{</span>
+</div><div id="l447" class="code_block">	<span class="k">right</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+</div><div id="l448" class="code_block"><span class="p">}</span>
+</div><div id="l449" class="code_block">
+</div><div id="l450" class="code_block"><span class="nt">input</span><span class="o">[</span><span class="nt">type</span><span class="o">=</span><span class="s2">&quot;range&quot;</span><span class="o">]</span> <span class="p">{</span>
+</div><div id="l451" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">appearance</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l452" class="code_block">	<span class="k">background-color</span><span class="o">:</span> <span class="m">#303030</span><span class="p">;</span>
+</div><div id="l453" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">2px</span><span class="p">;</span>
+</div><div id="l454" class="code_block">	<span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+</div><div id="l455" class="code_block">	<span class="k">margin-top</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+</div><div id="l456" class="code_block">	<span class="k">margin-bottom</span><span class="o">:</span> <span class="m">15px</span><span class="p">;</span>
+</div><div id="l457" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span>
+</div><div id="l458" class="code_block"><span class="p">}</span>
+</div><div id="l459" class="code_block">
+</div><div id="l460" class="code_block"><span class="nt">input</span><span class="o">[</span><span class="nt">type</span><span class="o">=</span><span class="s2">&quot;range&quot;</span><span class="o">]:</span><span class="nd">:-webkit-slider-thumb</span> <span class="p">{</span>
+</div><div id="l461" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">appearance</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+</div><div id="l462" class="code_block">	<span class="k">position</span><span class="o">:</span> <span class="k">relative</span><span class="p">;</span>
+</div><div id="l463" class="code_block">	<span class="k">top</span><span class="o">:</span> <span class="m">0px</span><span class="p">;</span>
+</div><div id="l464" class="code_block">	<span class="k">z-index</span><span class="o">:</span> <span class="m">1</span><span class="p">;</span>
+</div><div id="l465" class="code_block">	<span class="k">width</span><span class="o">:</span> <span class="m">20px</span><span class="p">;</span>
+</div><div id="l466" class="code_block">	<span class="k">height</span><span class="o">:</span> <span class="m">20px</span><span class="p">;</span>
+</div><div id="l467" class="code_block">	<span class="k">cursor</span><span class="o">:</span> <span class="k">pointer</span><span class="p">;</span>
+</div><div id="l468" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0px</span> <span class="m">6px</span> <span class="m">5px</span> <span class="m">0px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">.</span><span class="m">6</span><span class="p">);</span>
+</div><div id="l469" class="code_block">	<span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0px</span> <span class="m">6px</span> <span class="m">5px</span> <span class="m">0px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">.</span><span class="m">6</span><span class="p">);</span>
+</div><div id="l470" class="code_block">	<span class="n">box</span><span class="o">-</span><span class="n">shadow</span><span class="o">:</span> <span class="m">0px</span> <span class="m">6px</span> <span class="m">5px</span> <span class="m">0px</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">,</span><span class="m">0</span><span class="o">.</span><span class="m">6</span><span class="p">);</span>
+</div><div id="l471" class="code_block">	<span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">40px</span><span class="p">;</span>
+</div><div id="l472" class="code_block">	<span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">40px</span><span class="p">;</span>
+</div><div id="l473" class="code_block">	<span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">40px</span><span class="p">;</span>
+</div><div id="l474" class="code_block">	<span class="k">background-image</span><span class="o">:</span> <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">gradient</span><span class="p">(</span><span class="n">linear</span><span class="o">,</span> <span class="k">left</span> <span class="k">top</span><span class="o">,</span> <span class="k">left</span> <span class="k">bottom</span><span class="o">,</span> <span class="k">color</span><span class="o">-</span><span class="n">stop</span><span class="p">(</span><span class="m">0</span><span class="o">%,</span><span class="m">#ff7373</span><span class="p">)</span><span class="o">,</span> <span class="k">color</span><span class="o">-</span><span class="n">stop</span><span class="p">(</span><span class="m">50</span><span class="o">%,</span><span class="m">#a00000</span><span class="p">)</span><span class="o">,</span> <span class="k">color</span><span class="o">-</span><span class="n">stop</span><span class="p">(</span><span class="m">51</span><span class="o">%,</span><span class="m">#700000</span><span class="p">)</span><span class="o">,</span> <span class="k">color</span><span class="o">-</span><span class="n">stop</span><span class="p">(</span><span class="m">100</span><span class="o">%,</span><span class="m">#ff7373</span><span class="p">));</span>
+</div><div id="l475" class="code_block"><span class="p">}</span>
+</div></pre></div>
+</td></tr></table>
+      
+    </div>
+  
+
+          </div>
+			
+          
+        </div>
+      
+      </div>
+    </section>
+      
+<footer id="site-footer">
+    <div class="wrapper">
+        <nav>
+            <h5>SourceForge</h5>
+            <a href="/about">About</a>
+            <a href="/blog/category/sitestatus/">Site Status</a>
+            <a href="http://twitter.com/sfnet_ops">@sfnet_ops</a>
+            <a id="allura-notice" href="https://forge-allura.apache.org/p/allura/">Powered by Allura</a>
+        </nav>
+        <nav>
+            <h5>Find and Develop Software</h5>
+            <a href="/create/">Create a Project</a>
+            <a href="/directory/">Software Directory</a>
+            <a href="/top">Top Downloaded Projects</a>
+        </nav>
+        <nav>
+            <h5>Community</h5>
+            <a href="/blog/">Blog</a>
+            <a href="http://twitter.com/sourceforge">@sourceforge</a>
+            <a href="/jobs?source=footer">Job Board</a>
+            <a href="http://library.slashdotmedia.com/?source=sfnet_footer">Resources</a>
+        </nav>
+        <nav>
+            <h5>Help</h5>
+            <a href="http://p.sf.net/sourceforge/docs">Site Documentation</a>
+            <a href="/support">Support Request</a>
+            <a href="http://p.sf.net/sourceforge/irc">Real-Time Support</a>
+        </nav>
+    </div>
+</footer>
+<footer id="site-copyright-footer">
+    <div class="wrapper">
+        <div id="copyright">
+            Copyright &copy; 2015 SourceForge. All Rights Reserved.<br />
+            SourceForge is a <a href="http://www.diceholdingsinc.com/phoenix.zhtml?c=211152&amp;p=irol-landing">Dice Holdings, Inc.</a> company.
+        </div>
+        <nav>
+            <a href="http://slashdotmedia.com/terms-of-use">Terms</a>
+            <a href="http://slashdotmedia.com/privacy-statement/">Privacy</a>
+            <span id='teconsent'></span>
+            <a href="http://slashdotmedia.com/opt-out-choices">Opt Out Choices</a>
+            <a href="http://slashdotmedia.com">Advertise</a>
+            <a href="http://sourceforge.jp/">SourceForge.JP</a>
+        </nav>
+    </div>
+</footer>
+    <div id="messages">
+        
+    </div>
+    
+    
+      <!-- ew:body_js -->
+
+    
+      <script type="text/javascript" src="http://a.fsdn.com/allura/nf/1428425750/_ew_/_slim/js?href=allura%2Fjs%2Fjquery.notify.js%3Ballura%2Fjs%2Fmodernizr.js%3Ballura%2Fjs%2Fsylvester.js%3Ballura%2Fjs%2Fpb.transformie.min.js%3Ballura%2Fjs%2Fallura-base.js%3Btheme%2Fsftheme%2Fjs%2Fsftheme%2Fheader.js%3Ballura%2Fjs%2Fmaximize-content.js"></script>
+    
+      
+<!-- /ew:body_js -->
+
+    
+    
+      <!-- ew:body_js_tail -->
+
+    
+      
+<!-- /ew:body_js_tail -->
+
+    
+    
+
+<script type="text/javascript">(function() {
+  $('#access_urls .btn').click(function(evt){
+    evt.preventDefault();
+    var parent = $(this).parents('.btn-bar');
+    $(parent).find('input').val($(this).attr('data-url'));
+    $(parent).find('span').text($(this).attr('title')+' access');
+    $(this).parent().children('.btn').removeClass('active');
+    $(this).addClass('active');
+  });
+  $('#access_urls .btn').first().click();
+
+  
+  var repo_status = document.getElementById('repo_status');
+  // The repo_status div will only be present if repo.status != 'ready'
+  if (repo_status) {
+    $('.spinner').show()
+    function check_status() {
+        $.get('/p/faudiostream/code/status', function(data) {
+            if (data.status === 'ready') {
+                window.clearInterval(status_checker);
+                $('.spinner').hide()
+                $('#repo_status h2').html('Repo status: ready. <a href=".">Click here to refresh this page.</a>');
+            }
+            else {
+                $('#repo_status h2 span').html(data.status);
+            }
+        });
+    }
+    // Check repo status every 15 seconds
+    var status_checker = window.setInterval(check_status, 15000);
+    
+  }
+}());
+</script>
+
+<script type="text/javascript">(function() {
+  $(window).bind('hashchange', function(e) {
+    var hash = window.location.hash.substring(1);
+	if ('originalEvent' in e && 'oldURL' in e.originalEvent) {
+      $('#' + e.originalEvent.oldURL.split('#')[1]).css('background-color', 'transparent');
+	}
+    if (hash !== '' && hash.substring(0, 1) === 'l' && !isNaN(hash.substring(1))) {
+      $('#' + hash).css('background-color', '#ffff99');
+    }
+  }).trigger('hashchange');
+
+  var clicks = 0;
+  $('.code_block').each(function(index, element) {
+    $(element).bind('click', function() {
+      // Trick to ignore double and triple clicks
+      clicks++;
+      if (clicks == 1) {
+        setTimeout(function() {
+          if (clicks == 1) {
+            var hash = window.location.hash.substring(1);
+            if (hash !== '' && hash.substring(0, 1) === 'l' && !isNaN(hash.substring(1))) {
+              $('#' + hash).css('background-color', 'transparent');
+            }
+            $(element).css('background-color', '#ffff99');
+            window.location.href = '#' + $(element).attr('id');
+          };
+          clicks = 0;
+        }, 500);
+      };
+    });
+  });
+}());
+</script>
+
+    
+      
+    
+    
+   
+    <script src="//s.fsdn.com/con/js/webtracker.js" type="text/javascript"></script>
+    <!-- Google Code for Remarketing tag -->
+    <!-- Remarketing tags may not be associated with personally identifiable information or placed on pages related to sensitive categories. For instructions on adding this tag and more information on the above requirements, read the setup guide: google.com/ads/remarketingsetup -->
+    <script type="text/javascript">
+        /* <![CDATA[ */
+        var google_conversion_id = 1002083962;
+        var google_conversion_label = "G_uGCOaBlAQQ-qzq3QM";
+        var google_custom_params = window.google_tag_params;
+        var google_remarketing_only = true;
+        /* ]]> */
+    </script>
+    <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js"> </script>
+    <script type="text/javascript" src='//consent-st.truste.com/get?name=notice.js&domain=slashdot.org&c=teconsent&text=true'></script>
+    <noscript>
+      <div style="display:inline;">
+        <img height="1" width="1" style="border-style:none;" alt="" src="//googleads.g.doubleclick.net/pagead/viewthroughconversion/1002083962/?value=0&amp;label=G_uGCOaBlAQQ-qzq3QM&amp;guid=ON&amp;script=0"/>
+      </div>
+    </noscript>
+
+     
+      
+    
+  </body>
+</html>

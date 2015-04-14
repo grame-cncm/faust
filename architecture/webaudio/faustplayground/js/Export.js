@@ -77,10 +77,9 @@ function exportFaustCode(shaKey){
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
 	
 	var myWhiteDiv = getQrCode(serverUrl, shaKey, selPlatform, selArch, appType, 120);
+	myWhiteDiv.id = "qrcodeDiv";
 	document.getElementById("sceneOutput").appendChild(myWhiteDiv);
 	myWhiteDiv.appendChild(link);
-	myWhiteDiv.style.cssText = "position: absolute; bottom:7px; left:45px;";
-// 	myWhiteDiv.style.right = '20px';
 
 }
 	

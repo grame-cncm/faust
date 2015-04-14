@@ -107,7 +107,7 @@ function ViewLibraryList(selector){
 // 			for (section in data) {
 			
 				var div=document.createElement("ul");
-				div.style.cssText = "padding: 0; list-style-type: none;";
+				div.className = "ulElem";
 				selector.parentNode.appendChild(div);
 			
 				if(isTooltipEnabled()){
@@ -116,6 +116,7 @@ function ViewLibraryList(selector){
 				}
 			
 				var sel1=document.createElement("li");
+				sel1.id = "generalSection";
 				sel1.className="sections";
 				
 
@@ -123,15 +124,14 @@ function ViewLibraryList(selector){
 			
 				
 				var imageNode = document.createElement('img');
-				imageNode.src= window.baseImg + "triangleClose.png";
-				imageNode.state = "closed";
+				imageNode.src= window.baseImg + "triangleOpen.png";
+				imageNode.state = "opened";
 				imageNode.section = section;
 				imageNode.onclick = ChangeSectionState;
 				
 				sel1.appendChild(imageNode);
 				sel1.appendChild(document.createTextNode("  "+section));
 			
-				sel1.style.cssText=" padding: 0em 0em 0em 1.5em; list-style-type : none;";
 				div.appendChild(sel1);	
 				div.appendChild(document.createElement("br"));
 				
@@ -192,7 +192,6 @@ function initLibrary(parent){
 
 	var libraryDiv = document.createElement('div');
 	libraryDiv.id = "library";
-	libraryDiv.style.cssText = "width:50px;";
 	
 	parent.appendChild(libraryDiv);
 
@@ -206,7 +205,6 @@ function initLibrary(parent){
 	imageNode.id = "arrow";
 	imageNode.src= window.baseImg + "open.png";
 	imageNode.state = "closed";
-	imageNode.style.cssText = "display: block; margin-left: auto; margin-right: auto; z-index:3;";
 // 	imageNode.onclick = ChangeLibraryState;
 				
 	libraryDiv.appendChild(imageNode);

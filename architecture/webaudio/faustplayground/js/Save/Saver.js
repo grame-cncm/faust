@@ -74,8 +74,8 @@ function saveScene(scene){
 	json += '}';
 	
 	console.log(json);
-	recallScene(json);
-// 	return json;
+// 	recallScene(json);
+	return json;
 
 }
 
@@ -140,7 +140,6 @@ function createModuleAndConnectIt(factory){
 	}
 }
 
-
 function recallScene(json){
 
 	var data = JSON.parse(json);
@@ -174,6 +173,8 @@ function recallScene(json){
 	}		
 }
 
+
+// PAS FUNCTIONNEL 
 function createMailServer(){
 	
 	var http   = require('http'),
