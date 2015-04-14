@@ -65,6 +65,8 @@ for p in $@; do
     	ignore=" "
     elif [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
@@ -120,7 +122,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS"  
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
 	    $QMAKE $SPEC
         make
     ) > /dev/null
