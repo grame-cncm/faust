@@ -1,0 +1,13 @@
+La structure de FaustPlayground s’appuie d’une part sur la structure originelle du 
+Web Audio Playground de Chris Wilson : http://webaudioplayground.appspot.com/
+
+D’autre part, les remaniements ont abouti à une structure de telle sorte :
+
+1-	Les Modules sont créés à partir d’une simi-classe appelée « NodeClass.js » et doivent appartenir à une scène. 
+2-	Une scène est une autre simi-classe appelée « SceneClass.js » 
+3-	Les interfaces des modules sont décodées et  les objets graphiques créés dans faustModuleInterface.js
+4-	Les différentes scènes et leurs objets graphiques sont décrites chacune dans un fichier du dossier « Scenes »
+
+Le fichier Main.js est le point d’entrée du programme. 
+La fonction d’initialisation construit les différentes scènes et 
+conserve un tableau qui permet de passer d’une scène à l’autre simplement.
