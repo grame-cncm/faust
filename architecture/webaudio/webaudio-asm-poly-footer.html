@@ -27,10 +27,10 @@ function keyOn(channel, pitch, velocity)
     }
 }
 
-function keyOff(channel, pitch)
+function keyOff(channel, pitch, velocity)
 {
     if (DSP_poly) {
-        DSP_poly.keyOff(channel, pitch);
+        DSP_poly.keyOff(channel, pitch, velocity);
     }
 }
 
@@ -58,7 +58,7 @@ function midiMessageReceived(ev)
     if (channel === 9) {
         return;
     } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) { 
-        keyOff(channel, data1);
+        keyOff(channel, data1, data2);
     } else if (cmd === 9) {
         keyOn(channel, data1, data2);
     } else if (cmd === 11) {

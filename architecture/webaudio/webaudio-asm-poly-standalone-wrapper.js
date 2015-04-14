@@ -396,11 +396,12 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             }
         },
 
-        keyOff : function (channel, pitch)
+        keyOff : function (channel, pitch, velocity)
         {
             var voice = getVoice(pitch);
             if (voice >= 0) {
                 //console.log("keyOff voice %d", voice);
+                factory.setValue(dsp_voices[voice], fGainLabel, velocity/127.);
                 factory.setValue(dsp_voices[voice], fGateLabel, 0.0);
                 dsp_voices_state[voice] = kReleaseVoice;
             } else {
