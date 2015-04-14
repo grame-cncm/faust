@@ -5,7 +5,7 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/UI.h"
+#include "faust/gui/GUI.h"
 #include "faust/midi/midi.h"
 #include "faust/gui/ValueConverter.h"
 #include <vector>
@@ -16,7 +16,32 @@
  * This class decode MIDI meta data and maps incoming MIDI messages to them
  ******************************************************************************/
 
-class MidiUI : public UI, public midi
+/*
+class uiMidiCtrl : public uiItem
+{
+    private:
+    
+        LinearValueConverter fConverter;
+ 
+    public :
+    
+        uiMidiCtrl(GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+            :uiItem(ui, zone), fConverter(0., 127., double(min), double(max))
+        {}
+        virtul ~uiMidiCtrl()
+        {}
+        
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            fSlider->setValue(fConverter->faust2ui(v));
+        }
+ 
+};
+*/
+ 
+class MidiUI : public GUI, public midi
 {
 
     private:
@@ -114,7 +139,7 @@ class MidiUI : public UI, public midi
             }
         }
         
-        void keyOff(int channel, int note)
+        void keyOff(int channel, int note, int velocity)
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 *fKeyOnTable[note] = 0.f;

@@ -10,13 +10,14 @@
 #include <iostream>
 #include <cstdlib>
 #include "faust/midi/RtMidi.cpp"
-#include "faust/audio/poly-dsp.h"
+#include "faust/midi/midi.h"
 
 class MidiIO {
 
     private:
     
-        RtMidiIn* fMIDI;
+        RtMidiIn* fInput;
+        RtMidiOut* fOutput;
         midi* fDSP;
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
@@ -41,7 +42,7 @@ class MidiIO {
                 if (channel == 9) {
                     return;
                 } else if (cmd == 8 || ((cmd == 9) && (data2 == 0))) { 
-                    midi->fDSP->keyOff(channel, data1);
+                    midi->fDSP->keyOff(channel, data1, data2);
                 } else if (cmd == 9) {
                     midi->fDSP->keyOn(channel, data1, data2);
                 } else if (cmd == 11) {
@@ -55,22 +56,41 @@ class MidiIO {
             }
         }
         
-        bool chooseMidiPort()
+        bool chooseMidiInputPort()
         {
-            // oppen a virtual port when available on API
-            fMIDI->openVirtualPort();
+            // opens a virtual port when available on API
+            fInput->openVirtualPort();
             
-            unsigned int i = 0, nPorts = fMIDI->getPortCount();
-            
+            unsigned int i = 0, nPorts = fInput->getPortCount();
             if (nPorts == 0) {
                 std::cout << "No input ports available!" << std::endl;
                 return false;
             }
             
             for (i = 0; i < nPorts; i++) {
-                std::string portName = fMIDI->getPortName(i);
+                std::string portName = fInput->getPortName(i);
                 std::cout << "Input port #" << i << ": " << portName << '\n';
-                fMIDI->openPort(i);
+                fInput->openPort(i);
+            }
+
+            return true;
+        }
+        
+        bool chooseMidiOutPort()
+        {
+            // opens a virtual port when available on API
+            fOutput->openVirtualPort();
+        
+            unsigned int i = 0, nPorts = fOutput->getPortCount();
+            if (nPorts == 0) {
+                std::cout << "No output ports available!" << std::endl;
+                return false;
+            }
+            
+            for (i = 0; i < nPorts; i++) {
+                std::string portName = fOutput->getPortName(i);
+                std::cout << "Output port #" << i << ": " << portName << '\n';
+                fOutput->openPort(i);
             }
 
             return true;
@@ -78,7 +98,7 @@ class MidiIO {
     
     public:
     
-        MidiIO(midi* dsp):fMIDI(0), fDSP(dsp)
+        MidiIO(midi* dsp):fInput(0), fOutput(0), fDSP(dsp)
         {}
         
         virtual ~MidiIO()
@@ -88,9 +108,13 @@ class MidiIO {
         {
             try {
             
-                fMIDI = new RtMidiIn();
-                if (!chooseMidiPort()) goto cleanup;
-                fMIDI->setCallback(&midiCallback, this);
+                fInput = new RtMidiIn();
+                if (!chooseMidiInputPort()) goto cleanup;
+                fInput->setCallback(&midiCallback, this);
+                
+                fOutput = new RtMidiOut();
+                if (!chooseMidiOutPort()) goto cleanup; 
+                
                 return true;
                 
             } catch (RtMidiError &error) {
@@ -100,14 +124,51 @@ class MidiIO {
             
         cleanup:
 
-            delete fMIDI;
+            delete fInput;
+            delete fOutput;
             return false;
         }
         
         void stop()
         {
-            delete fMIDI;
-            fMIDI = 0;
+            delete fInput;
+            delete fOutput;
+            fInput = 0;
+            fOutput = 0;
+        }
+        
+        void CtrlChange(int chan, int ctrl, int val) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 176;
+            message[1] = ctrl;
+            fOutput->sendMessage(&message);
+        }
+        
+        void ProgChange(int chan, int pgm) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 192;
+            message[1] = pgm;
+            fOutput->sendMessage(&message);
+        }
+        
+        void KeyOn(int chan, int note, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 144;
+            message[1] = note;
+            message[2] = velocity;
+            fOutput->sendMessage(&message);
+        }
+        
+        void KeyOff(int chan, int note, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message[0] = 128;
+            message[1] = note;
+            message[2] = velocity;
+            fOutput->sendMessage(&message);
         }
    
 };

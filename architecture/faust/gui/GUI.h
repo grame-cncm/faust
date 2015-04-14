@@ -91,7 +91,7 @@ class uiItem
 	FAUSTFLOAT*		fZone;
 	FAUSTFLOAT		fCache;
 	
-	uiItem (GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+	uiItem(GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
  		ui->registerZone(zone, this); 
  	}
@@ -126,7 +126,7 @@ struct uiCallbackItem : public uiItem
 	uiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data) 
 			: uiItem(ui, zone), fCallback(foo), fData(data) {}
 	
-	virtual void 	reflectZone() {		
+	virtual void reflectZone() {		
 		FAUSTFLOAT 	v = *fZone;
 		fCache = v; 
 		fCallback(v, fData);	
