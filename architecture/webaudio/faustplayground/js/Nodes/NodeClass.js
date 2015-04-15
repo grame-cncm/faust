@@ -73,7 +73,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 	function dragCnxCallback(event){
 		if(event.type == "mousedown")
 			startDraggingConnector(that, event);
-		else if(event.type == "mouseup")	
+		else if(event.type == "mouseup")
 			stopDraggingConnector(that, event);
 		else if(event.type == "mousemove")	
 			whileDraggingConnector(that, event);
@@ -91,7 +91,7 @@ var createNode = function (ID, x, y, name, parent, callback){
 			container.parentNode.removeChild( container );
 			
 		that.deleteDSP(DSP);	
-		deleteCallback();
+		deleteCallback(that);
     },
 	
 /*************** ACTIONS ON IN/OUTPUT NODES ***************************/
@@ -382,9 +382,9 @@ var createNode = function (ID, x, y, name, parent, callback){
 			
 		return false;
 	},
-	isPointInInput: function(x, y){
-					
-		if(InputNode && InputNode.getBoundingClientRect().left < x && x < InputNode.getBoundingClientRect().right && InputNode.getBoundingClientRect().top < y && y < InputNode.getBoundingClientRect().bottom)
+	isPointInInput: function(x, y){			
+
+		if(InputNode && InputNode.getBoundingClientRect().left <= x && x <= InputNode.getBoundingClientRect().right && InputNode.getBoundingClientRect().top <= y && y <= InputNode.getBoundingClientRect().bottom)
 			return true;
 			
 		return false;
