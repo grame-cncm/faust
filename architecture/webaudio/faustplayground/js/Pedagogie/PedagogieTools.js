@@ -37,7 +37,7 @@ function isInstrumentConnected(){
 	var modules = window.scenes[window.currentScene].getModules();
 				
 	for (var i = 0; i < modules.length; i++) {
-		if(!modules[i].getInputNode && modules[i].getOutputConnections() && modules[i].getOutputConnections().length > 0)
+		if(!modules[i].getInputNode() && modules[i].getOutputConnections() && modules[i].getOutputConnections().length > 0)
 			return true;
 	}
 	
