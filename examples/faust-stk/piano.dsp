@@ -16,7 +16,7 @@ gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]
 gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 
 brightnessFactor = hslider("v:Physical_Parameters/Brightness_Factor
-[2][tooltip:A value between 0 and 1] [midi:ctrl 7]",0,0,1,0.01);
+[2][tooltip:A value between 0 and 1]",0,0,1,0.01);
 detuningFactor = hslider("v:Physical_Parameters/Detuning_Factor
 [2][tooltip:A value between 0 and 1]",0.1,0,1,0.01)*10;
 stiffnessFactor = hslider("v:Physical_Parameters/Stiffness_Factor

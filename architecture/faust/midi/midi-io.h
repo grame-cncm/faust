@@ -12,13 +12,13 @@
 #include "faust/midi/RtMidi.cpp"
 #include "faust/midi/midi.h"
 
-class MidiIO : public midiOut {
+class MidiIO : public midi {
 
     private:
     
         RtMidiIn* fInput;
         RtMidiOut* fOutput;
-        vector<midiIn*> fMidiInputs;
+        vector<midi*> fMidiInputs;
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
@@ -118,7 +118,7 @@ class MidiIO : public midiOut {
         virtual ~MidiIO()
         {}
         
-        void addMidiIn(midiIn* dsp) {fMidiInputs.push_back(dsp); }
+        void addMidiIn(midi* dsp) { fMidiInputs.push_back(dsp); }
         
         bool start()
         {

@@ -20,12 +20,12 @@ class uiMidiPgm : public uiItem
 {
     private:
         
-        midiOut* fMidiOut;
+        midi* fMidiOut;
         int fPgm;
   
     public:
     
-        uiMidiPgm(midiOut* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone)
+        uiMidiPgm(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone)
             :uiItem(ui, zone), fMidiOut(midi_out), fPgm(pgm)
         {}
         virtual ~uiMidiPgm()
@@ -46,13 +46,13 @@ class uiMidiCtrl : public uiItem
 {
     private:
     
-        midiOut* fMidiOut;
+        midi* fMidiOut;
         int fCtrl;
         LinearValueConverter fConverter;
  
     public:
     
-        uiMidiCtrl(midiOut* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        uiMidiCtrl(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
             :uiItem(ui, zone), fMidiOut(midi_out), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiCtrl()
@@ -72,7 +72,7 @@ class uiMidiCtrl : public uiItem
  
 };
 
-class MidiUI : public GUI, public midiIn
+class MidiUI : public GUI, public midi
 {
 
     private:
@@ -82,11 +82,11 @@ class MidiUI : public GUI, public midiIn
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
-        midiOut* fMidiOut;
+        midi* fMidiOut;
   
     public:
 
-        MidiUI(midiOut* midi_out):fMidiOut(midi_out) {}
+        MidiUI(MidiIO* midi_io):fMidiOut(midi_io) { midi_io->addMidiIn(this); }
 
         virtual ~MidiUI() {}
       
