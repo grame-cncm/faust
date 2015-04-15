@@ -144,7 +144,7 @@ struct mydsp_voice_factory : public voice_factory {
 #endif
 
 // Polyphonic DSP
-class mydsp_poly : public dsp, public midiIn
+class mydsp_poly : public dsp, public midi
 {
 
     private:
@@ -317,6 +317,7 @@ class mydsp_poly : public dsp, public midiIn
             }
         }
         
+        // Pure MIDI control
         void keyOn(int channel, int pitch, int velocity)
         {
             int voice = getVoice(kFreeVoice);
@@ -332,7 +333,7 @@ class mydsp_poly : public dsp, public midiIn
             }
         }
         
-        void keyOff(int channel, int pitch, int velocity)
+        void keyOff(int channel, int pitch, int velocity = 127)
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
@@ -344,17 +345,22 @@ class mydsp_poly : public dsp, public midiIn
             }
         }
         
+        void pitchWheel(int channel, int wheel)
+        {}
+        
+        void ctrlChange(int channel, int ctrl, int value)
+        {}
+        
+        void progChange(int channel, int pgm)
+        {}
+
+        // Additional API
         void allNotesOff()
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->setValue(fGateLabel, 0.0f);
                 fVoiceTable[i]->fNote = kReleaseVoice;
             }
-        }
-        
-        void pitchWheel(int channel, int wheel)
-        {
-            // TODO
         }
         
         void pitchBend(int channel, int refPitch, float pitch)
@@ -367,12 +373,7 @@ class mydsp_poly : public dsp, public midiIn
             }
         }
         
-        void ctrlChange(int channel, int ctrl, int value)
-        {}
-        
-        void progChange(int channel, int pgm)
-        {}
-        
+               
         const char* getJSON()
         {
             return fJSON.c_str();
