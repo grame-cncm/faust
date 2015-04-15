@@ -18,7 +18,7 @@ class MidiIO : public midiOut {
     
         RtMidiIn* fInput;
         RtMidiOut* fOutput;
-        midiIn* fDSP;
+        vector<midiIn*> fMidiInputs;
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
@@ -32,7 +32,9 @@ class MidiIO : public midiOut {
              
                 int data1 = (int)message->at(1);
                 if (cmd == 12) {
-                    midi->fDSP->progChange(channel, data1);
+                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->progChange(channel, data1);
+                    }
                 }
             
             } else if (nBytes == 3) {
@@ -42,13 +44,21 @@ class MidiIO : public midiOut {
                 if (channel == 9) {
                     return;
                 } else if (cmd == 8 || ((cmd == 9) && (data2 == 0))) { 
-                    midi->fDSP->keyOff(channel, data1, data2);
+                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                         midi->fMidiInputs[i]->keyOff(channel, data1, data2);
+                    }
                 } else if (cmd == 9) {
-                    midi->fDSP->keyOn(channel, data1, data2);
+                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->keyOn(channel, data1, data2);
+                    }
                 } else if (cmd == 11) {
-                    midi->fDSP->ctrlChange(channel, data1, data2);
+                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->ctrlChange(channel, data1, data2);
+                    }
                 } else if (cmd == 14) {
-                    midi->fDSP->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                    }
                 }
                 
             } else {
@@ -102,13 +112,13 @@ class MidiIO : public midiOut {
     
     public:
     
-        MidiIO():fInput(0), fOutput(0), fDSP(0)
+        MidiIO():fInput(0), fOutput(0)
         {}
         
         virtual ~MidiIO()
         {}
         
-        void setMidiIn(midiIn* dsp) { fDSP = dsp; }
+        void addMidiIn(midiIn* dsp) {fMidiInputs.push_back(dsp); }
         
         bool start()
         {

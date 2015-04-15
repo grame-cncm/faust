@@ -106,11 +106,14 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
+    
+#if defined(POLY) || defined(MIDICTRL)
+    MidiIO midi_io;
+#endif
 
 #ifdef POLY
     DSP = new mydsp_poly(poly);
-    MidiIO midi_io;
-    midi_io.setMidiIn(DSP);
+    midi_io.addMidiIn(DSP);
 #else
     DSP = new mydsp();
 #endif
@@ -128,8 +131,7 @@ int main(int argc, char *argv[])
 
 #ifdef MIDICTRL
     MidiUI midi_ui;
-    MidiIO midi_io;
-    midi_io.setMidiIn(&midi_ui);
+    midi_io.addMidiIn(&midi_ui);
     midi_ui.setMidiOut(&midi_io);
     DSP->buildUserInterface(&midi_ui);
     std::cout << "MIDI is on" << std::endl;

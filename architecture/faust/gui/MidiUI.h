@@ -16,35 +16,6 @@
  * This class decode MIDI meta data and maps incoming MIDI messages to them
  ******************************************************************************/
 
-class uiMidiKey : public uiItem
-{
-    private:
-    
-        midiOut* fMidiOut;
-  
-    public:
-    
-        uiMidiKey(midiOut* midi_out, GUI* ui, FAUSTFLOAT* zone)
-            :uiItem(ui, zone), fMidiOut(midi_out)
-        {}
-        virtual ~uiMidiKey()
-        {}
-        
-        virtual void reflectZone()
-        {
-            FAUSTFLOAT v = *fZone;
-            fCache = v;
-            //printf("uiMidiKey: reflectZone %f\n", v, fCache);
-        }
-        
-        void modifyZone(FAUSTFLOAT v) 	
-        { 
-            //printf("uiMidiKey: modifyZone %f\n", v);
-            uiItem::modifyZone(v);
-        }
-        
-};
-
 class uiMidiPgm : public uiItem
 {
     private:
@@ -64,7 +35,6 @@ class uiMidiPgm : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            //printf("uiMidiPgm: reflectZone %f\n", v, fCache);
             if (v != 0.) {
                 fMidiOut->progChange(0, fPgm);
             }
@@ -92,13 +62,11 @@ class uiMidiCtrl : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            //printf("uiMidiCtrl: reflectZone %f\n", v, fCache);
             fMidiOut->ctrlChange(0, fCtrl, fConverter.faust2ui(v));
         }
         
         void modifyZone(int v) 	
         { 
-            //printf("uiMidiCtrl: modifyZone %d %f\n", v, fConverter.ui2faust(v));
             uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
         }
  
@@ -109,7 +77,6 @@ class MidiUI : public GUI, public midiIn
 
     private:
     
-        std::map <int, vector<uiMidiKey*> > fKeyOnTable;
         std::map <int, vector<uiMidiCtrl*> > fCtrlChangeTable;
         std::map <int, vector<uiMidiPgm*> > fProgChangeTable;
         
@@ -127,7 +94,9 @@ class MidiUI : public GUI, public midiIn
         MidiUI():fMidiOut(0) {}
 
         virtual ~MidiUI() {}
-
+        
+        void setMidiOut(midiOut* midi_out) { fMidiOut = midi_out; }
+    
         // -- widget's layouts
 
         virtual void openTabBox(const char* label)
@@ -151,8 +120,6 @@ class MidiUI : public GUI, public midiIn
                             fCtrlChangeTable[num].push_back(new uiMidiCtrl(fMidiOut, num, this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiPgm(fMidiOut, num, this, zone));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
-                            fKeyOnTable[num].push_back(new uiMidiKey(fMidiOut, this, zone));
                         }
                     }
                 }
@@ -202,33 +169,10 @@ class MidiUI : public GUI, public midiIn
         
         // -- public API 
         
-        void keyOn(int channel, int note, int velocity)
-         {
-            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                for (int i = 0; i < fKeyOnTable[note].size(); i++) {
-                    fKeyOnTable[note][i]->modifyZone(1.f);
-                    /*
-                    fFreqLabel->modifyZone(midiToFreq(note));
-                    fGainLabel->modifyZone(float(velocity)/127.f);
-                    fGateLabel->modifyZone(1.f);
-                    */
-                }
-            }
-        }
+        void keyOn(int channel, int note, int velocity) {}
         
-        void keyOff(int channel, int note, int velocity)
-        {
-            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                for (int i = 0; i < fKeyOnTable[note].size(); i++) {
-                    fKeyOnTable[note][i]->modifyZone(0.f);
-                    /*
-                    fGainLabel->modifyZone(float(velocity)/127.f);
-                    fGateLabel->modifyZone(0.f);
-                    */
-                }
-            } 
-        }
-        
+        void keyOff(int channel, int note, int velocity) {}
+           
         void ctrlChange(int channel, int ctrl, int value)
         {
             if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
@@ -248,11 +192,11 @@ class MidiUI : public GUI, public midiIn
         }
         
         void allNotesOff() {}
-        void pitchWheel(int channel, int wheel) {}
-        void pitchBend(int channel, int refPitch, float pitch) {}
         
-        void setMidiOut(midiOut* midi_out) { fMidiOut = midi_out; }
-    
+        void pitchWheel(int channel, int wheel) {}
+        
+        void pitchBend(int channel, int refPitch, float pitch) {}
+       
 };
 
 #endif

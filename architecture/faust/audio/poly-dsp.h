@@ -256,14 +256,18 @@ class mydsp_poly : public dsp, public midiIn
         
         void buildUserInterface(UI* ui_interface) 
         {   
-            ui_interface->openTabBox("Polyphonic instrument");
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                std::stringstream voice; voice << "Voice" << i;
-                ui_interface->openHorizontalBox(voice.str().c_str());
-                fVoiceTable[i]->buildUserInterface(ui_interface);
+            if (fMaxPolyphony > 1) {
+                ui_interface->openTabBox("Polyphonic instrument");
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    std::stringstream voice; voice << "Voice" << i;
+                    ui_interface->openHorizontalBox(voice.str().c_str());
+                    fVoiceTable[i]->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                }
                 ui_interface->closeBox();
+            } else {
+                fVoiceTable[0]->buildUserInterface(ui_interface);
             }
-            ui_interface->closeBox();
         }
         
         void keyOn(int channel, int pitch, int velocity)
