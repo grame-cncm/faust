@@ -18,7 +18,16 @@ class FmodPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == arity());
-		return floatCast(args[0]|args[1]);
+        interval i = args[0]->getInterval();
+        interval j = args[1]->getInterval();
+
+        if (j.haszero()) {
+            // potential division by zero
+            std::cerr << "potential division by zero in fmod" << std::endl;
+            exit(1);
+        } else {
+            return castInterval(floatCast(args[0]|args[1]), fmod(i,j));
+        }
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

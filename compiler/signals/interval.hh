@@ -44,7 +44,9 @@ struct interval
 	interval (double n, double m) 	: valid(true), lo(min(n,m)), hi(max(n,m)) {}
     interval (const interval& r)	: valid(r.valid), lo(r.lo), hi(r.hi) {}
 	
-	bool isconst() { return valid & (lo == hi); }
+    bool isvalid()  { return valid; }
+    bool isconst()  { return valid && (lo == hi); }
+    bool haszero()  { return (lo <= 0) && (0 <= hi); }
 };
 
 inline ostream& operator<<(ostream& dst, const interval& i) 	
@@ -222,7 +224,18 @@ inline interval pow(const interval& x, const interval& y)
         return interval();
     }
 }
-		
+
+inline interval iint(const interval& x)
+{
+    return interval(double(int(x.lo)), double(int(x.hi)));
+}
+
+inline interval fmod(const interval& x, const interval& y)
+{
+    interval n = iint(x/y);
+    return x - n*y;
+}
+
 inline interval abs(const interval& x)
 {
 	if (x.valid) {
