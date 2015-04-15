@@ -34,7 +34,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
@@ -53,6 +52,11 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+#ifdef MIDICTRL
+#include "faust/midi/midi-io.h"
+#include "faust/gui/MidiUI.h"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -64,14 +68,22 @@
 *******************************************************************************/
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+#ifdef POLY
+#include "faust/midi/midi-io.h"
+mydsp_poly*	DSP;
+#else
+mydsp* DSP;
+#endif
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 std::list<GUI*> GUI::fGuiList;
 
@@ -91,64 +103,80 @@ int main(int argc, char *argv[])
 
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-
+    
     long srate = (long)lopt(argv, "--frequency", -1);
-    int	fpb = lopt(argv, "--buffer", 512);
+    int fpb = lopt(argv, "--buffer", 512);
+    int poly = lopt(argv, "--poly", 4);
 
+#ifdef POLY
+    DSP = new mydsp_poly(poly);
+    MidiIO midi(DSP);
+#else
+    DSP = new mydsp();
+#endif
+    if (DSP == 0) {
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        exit(1);
+    }
+ 
 	QApplication myApp(argc, argv);
     
-    QTGUI* interface = new QTGUI();
-	DSP.buildUserInterface(interface);
-	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(finterface);
+    QTGUI interface;
+    FUI finterface;
+    DSP->buildUserInterface(&interface);
+    DSP->buildUserInterface(&finterface);
+
+#ifdef MIDICTRL
+    MidiUI midiinterface;
+    DSP->buildUserInterface(&midiinterface);
+    MidiIO midi(&midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(name, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
-    DSP.buildUserInterface(httpdinterface);
+    httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(&httpdinterface);
  #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(name, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+	OSCUI oscinterface(name, argc, argv);
+	DSP->buildUserInterface(&oscinterface);
 #endif
 
 	coreaudio audio(srate, fpb);
-	audio.init(name, &DSP);
-	finterface->recallState(rcfilename);
+	audio.init(name, DSP);
+	finterface.recallState(rcfilename);
 	audio.start();
+    
+#if defined(POLY) || defined(MIDICTRL)
+    midi.start();
+#endif
 
 #ifdef HTTPCTRL
-	httpdinterface->run();
+	httpdinterface.run();
 #ifdef QRCODECTRL
-    interface->displayQRCode( httpdinterface->getTCPPort() );
+    interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+	oscinterface.run();
 #endif
-	interface->run();
+	interface.run();
 
-    myApp.setStyleSheet(interface->styleSheet());
+    myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
-    interface->stop();
+    interface.stop();
     
 	audio.stop();
-	finterface->saveState(rcfilename);
+	finterface.saveState(rcfilename);
     
-    // desallocation
-    delete interface;
-    delete finterface;
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
-#ifdef OSCCTRL
-	 delete oscinterface;
+#if defined(POLY) || defined(MIDICTRL)
+    midi.stop();
 #endif
 
   	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

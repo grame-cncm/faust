@@ -1,7 +1,6 @@
 #ifndef SIMPLEPARSER_H
 #define SIMPLEPARSER_H
 
-
 // ---------------------------------------------------------------------
 //                          Simple Parser
 // A parser returns true if it was able to parse what it is
@@ -17,8 +16,8 @@
 
 using namespace std;
 
-bool parseMenuList (const char*& p, vector<string>& names, vector<double>& values);
-bool parseMenuItem  (const char*& p, string& name, double& value);
+bool parseMenuList(const char*& p, vector<string>& names, vector<double>& values);
+bool parseMenuItem(const char*& p, string& name, double& value);
 
 void skipBlank(const char*& p);
 bool parseChar(const char*& p, char x);
@@ -28,15 +27,11 @@ bool parseSQString(const char*& p, string& s);
 bool parseDQString(const char*& p, string& s);
 bool parseDouble(const char*& p, double& x);
 
-
-
-
 // ---------------------------------------------------------------------
 //
 //                          IMPLEMENTATION
 // 
 // ---------------------------------------------------------------------
-
 
 /**
  * @brief parseMenuList, parse a menu list {'low' : 440.0; 'mid' : 880.0; 'hi' : 1760.0}...
@@ -45,7 +40,7 @@ bool parseDouble(const char*& p, double& x);
  * @param values the vector of values found
  * @return true if a menu list was found
  */
-inline bool parseMenuList (const char*& p, vector<string>& names, vector<double>& values)
+inline bool parseMenuList(const char*& p, vector<string>& names, vector<double>& values)
 {
     vector<string> tmpnames;
     vector<double> tmpvalues;
@@ -75,7 +70,6 @@ inline bool parseMenuList (const char*& p, vector<string>& names, vector<double>
     return false;
 }
 
-
 /**
  * @brief parseMenuItem, parse a menu item ...'low':440.0...
  * @param p the string to parse, then the remaining string
@@ -83,7 +77,7 @@ inline bool parseMenuList (const char*& p, vector<string>& names, vector<double>
  * @param value the value found
  * @return true if a nemu item was found
  */
-inline bool parseMenuItem  (const char*& p, string& name, double& value)
+inline bool parseMenuItem(const char*& p, string& name, double& value)
 {
     const char* saved=p;
     if (parseSQString(p,name) && parseChar(p,':') && parseDouble(p,value)) {
@@ -94,11 +88,9 @@ inline bool parseMenuItem  (const char*& p, string& name, double& value)
     }
 }
 
-
 // ---------------------------------------------------------------------
 //                          Elementary parsers
 // ---------------------------------------------------------------------
-
 
 /**
  * @brief skipBlank : advance pointer p to the first non blank character
@@ -108,7 +100,6 @@ inline void skipBlank(const char*& p)
 {
     while (isspace(*p)) { p++; }
 }
-
 
 /**
  * @brief parseChar : parse a specific character x
@@ -126,7 +117,6 @@ inline bool parseChar(const char*& p, char x)
         return false;
     }
 }
-
 
 /**
  * @brief parseWord : parse a specific string w
@@ -147,7 +137,6 @@ inline bool parseWord(const char*& p, const char* w)
     }
 }
 
-
 /**
  * @brief parseDouble : parse number [s]dddd[.dddd] and store the result in x
  * @param p the string to parse, then the remaining string
@@ -156,12 +145,12 @@ inline bool parseWord(const char*& p, const char* w)
  */
 inline bool parseDouble(const char*& p, double& x)
 {
-    double sign  = +1.0;    // sign of the number
-    double ipart = 0;       // integral part of the number
-    double dpart = 0;       // decimal part of the number before division
-    double dcoef = 1.0;     // division factor for the decimal part
+    double sign = +1.0;    // sign of the number
+    double ipart = 0;      // integral part of the number
+    double dpart = 0;      // decimal part of the number before division
+    double dcoef = 1.0;    // division factor for the decimal part
 
-    bool   valid = false;   // true if the number contains at least one digit
+    bool valid = false;   // true if the number contains at least one digit
 
     skipBlank(p);
 
@@ -193,7 +182,6 @@ inline bool parseDouble(const char*& p, double& x)
     return valid;
 }
 
-
 /**
  * @brief parseString, parse an arbitrary quoted string q...q and store the result in s
  * @param p the string to parse, then the remaining string
@@ -204,7 +192,6 @@ inline bool parseDouble(const char*& p, double& x)
 inline bool parseString(const char*& p, char quote, string& s)
 {
     string str;
-
     skipBlank(p);
 
     const char* saved = p;
@@ -221,7 +208,6 @@ inline bool parseString(const char*& p, char quote, string& s)
     return false;
 }
 
-
 /**
  * @brief parseSQString, parse a single quoted string '...' and store the result in s
  * @param p the string to parse, then the remaining string
@@ -233,7 +219,6 @@ inline bool parseSQString(const char*& p, string& s)
     return parseString(p, '\'', s);
 }
 
-
 /**
  * @brief parseDQString, parse a double quoted string "..." and store the result in s
  * @param p the string to parse, then the remaining string
@@ -244,7 +229,5 @@ inline bool parseDQString(const char*& p, string& s)
 {
     return parseString(p, '"', s);
 }
-
-
 
 #endif // SIMPLEPARSER_H

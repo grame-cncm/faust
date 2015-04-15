@@ -131,7 +131,7 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP_poly.scriptProcessor);
+    audio_input.connect(DSP_poly.getProcessor());
 }
 
 function startDSPAux(buffer_size) 
@@ -139,7 +139,7 @@ function startDSPAux(buffer_size)
     activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
-            audio_input.disconnect(DSP_poly.scriptProcessor);
+            audio_input.disconnect(DSP_poly.getProcessor());
         }
         _f4u$t.hard_delete(faustsvg);
         DSP_poly.stop();
@@ -168,6 +168,22 @@ function startNewDSP(buffer_size)
 {
     startDSPAux(buffer_size);
 }
+
+// To activate audio on iOS
+window.addEventListener('touchstart', function() {
+
+	// create empty buffer
+	var buffer = audio_context.createBuffer(1, 1, 22050);
+	var source = audio_context.createBufferSource();
+	source.buffer = buffer;
+
+	// connect to output (your speakers)
+	source.connect(audio_context.destination);
+
+	// play the file
+	source.noteOn(0);
+
+}, false);
 
 // Polyphonic instrument
 

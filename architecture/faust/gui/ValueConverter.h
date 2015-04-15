@@ -136,6 +136,10 @@ class LinearValueConverter : public ValueConverter
 	LinearValueConverter(double umin, double umax, double fmin, double fmax) :
 		fUI2F(umin,umax,fmin,fmax), fF2UI(fmin,fmax,umin,umax)
 	{}
+    
+    LinearValueConverter() :
+		fUI2F(0.,0.,0.,0.), fF2UI(0.,0.,0.,0.)
+	{}
 	virtual double ui2faust(double x) {	return fUI2F(x); }
 	virtual double faust2ui(double x) {	return fF2UI(x); }
 

@@ -39,7 +39,7 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP.scriptProcessor);
+    audio_input.connect(DSP.getProcessor());
 }
 
 function startDSPAux(buffer_size) 
@@ -47,7 +47,7 @@ function startDSPAux(buffer_size)
     console.log("startDSP %d", buffer_size);
     if (DSP) {
         if (audio_input) {
-            audio_input.disconnect(DSP.scriptProcessor);
+            audio_input.disconnect(DSP.getProcessor());
         }
         _f4u$t.hard_delete(faustsvg);
         DSP.stop();
@@ -79,6 +79,22 @@ function startNewDSP(buffer_size)
 {
     startDSPAux(buffer_size);
 }
+
+// To activate audio on iOS
+window.addEventListener('touchstart', function() {
+
+	// create empty buffer
+	var buffer = audio_context.createBuffer(1, 1, 22050);
+	var source = audio_context.createBufferSource();
+	source.buffer = buffer;
+
+	// connect to output (your speakers)
+	source.connect(audio_context.destination);
+
+	// play the file
+	source.noteOn(0);
+
+}, false);
 
 // General
 

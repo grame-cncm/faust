@@ -106,7 +106,9 @@ function openExport(){
 	document.getElementById("export").style.visibility = "visible";
 }
 
-function closeExport(){
+function closeExport(event){
+
+	if (!event) { event = window.event; } 
 
 	var target = event.target
 	while(target && target != document.getElementById("export") && target != document.getElementById("plusImg") )
@@ -161,7 +163,7 @@ function getFaustSource(){
 
 	document.getElementById("loader").style.visibility = "visible";
 
-	var url = location.origin + '/' + DSP + ".dsp";
+	var url = window.location.href.split('.html').shift() + ".dsp";
 	
 	var filename = url.toString().split( '/' ).pop();
 	filename = filename.toString().split('.').shift();

@@ -45,6 +45,7 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
+#include "faust/midi/midi.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
@@ -104,7 +105,7 @@ struct mydsp_voice_factory : public voice_factory {
 };
 
 // Polyphonic DSP
-class mydsp_poly : public dsp
+class mydsp_poly : public dsp, public midi
 {
 
     private:
@@ -280,10 +281,11 @@ class mydsp_poly : public dsp
             }
         }
         
-        void keyOff(int channel, int pitch)
+        void keyOff(int channel, int pitch, int velocity)
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
+                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
                 fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
                 fVoiceTable[voice]->fNote = kReleaseVoice;
             } else {
@@ -315,6 +317,9 @@ class mydsp_poly : public dsp
         }
         
         void ctrlChange(int channel, int ctrl, int value)
+        {}
+        
+        void progChange(int channel, int pgm)
         {}
         
         const char* getJSON()
@@ -392,9 +397,9 @@ extern "C" {
         poly->keyOn(channel, pitch, velocity);
     }
 
-    void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch)
+    void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch, int velocity)
     {
-        poly->keyOff(channel, pitch);
+        poly->keyOff(channel, pitch, velocity);
     }
     
     void mydsp_poly_allNotesOff(mydsp_poly* poly)

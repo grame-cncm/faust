@@ -64,7 +64,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-poly" ]; then
-        ARCHFILE="jack-poly-qt.cpp"
+        POLYDEFS="DEFINES += POLY"
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
@@ -86,6 +88,8 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
+    CXXFLAGS+=" -D__MACOSX_CORE__"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -gt 12 ]
 	then
@@ -113,12 +117,12 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
-
+ 	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+  
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
 	    $QMAKE $SPEC
         make
     ) > /dev/null
