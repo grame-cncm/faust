@@ -142,8 +142,8 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef OSCCTRL
-	OSCUI oscinterface(appname, argc, argv);
-	DSP->buildUserInterface(&oscinterface);
+    OSCUI oscinterface(appname, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
     std::cout << "OSC is on" << std::endl;
 #endif
 	

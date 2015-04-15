@@ -139,11 +139,13 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
+    std::cout << "HTTPD is on" << std::endl;
  #endif
 
 #ifdef OSCCTRL
 	OSCUI oscinterface(name, argc, argv);
 	DSP->buildUserInterface(&oscinterface);
+    std::cout << "OSC is on" << std::endl;
 #endif
 
 	coreaudio audio(srate, fpb);
