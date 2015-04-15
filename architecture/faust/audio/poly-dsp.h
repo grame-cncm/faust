@@ -301,7 +301,7 @@ class mydsp_poly : public dsp, public midi
         void pitchWheel(int channel, int wheel)
         {}
         
-         void ctrlChange(int channel, int ctrl, int value)
+        void ctrlChange(int channel, int ctrl, int value)
         {}
         
         void progChange(int channel, int pgm)
