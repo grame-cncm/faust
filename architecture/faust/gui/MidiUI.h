@@ -16,39 +16,86 @@
  * This class decode MIDI meta data and maps incoming MIDI messages to them
  ******************************************************************************/
 
-/*
-class uiMidiCtrl : public uiItem
+class uiMidiKey : public uiItem
 {
     private:
+  
+    public:
     
-        LinearValueConverter fConverter;
- 
-    public :
-    
-        uiMidiCtrl(GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-            :uiItem(ui, zone), fConverter(0., 127., double(min), double(max))
+        uiMidiKey(GUI* ui, FAUSTFLOAT* zone)
+            :uiItem(ui, zone)
         {}
-        virtul ~uiMidiCtrl()
+        virtual ~uiMidiKey()
         {}
         
         virtual void reflectZone()
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fSlider->setValue(fConverter->faust2ui(v));
+            printf("uiMidiKey: reflectZone %f\n", v, fCache);
+        }
+        
+};
+
+class uiMidiPgm : public uiItem
+{
+    private:
+  
+    public:
+    
+        uiMidiPgm(GUI* ui, FAUSTFLOAT* zone)
+            :uiItem(ui, zone)
+        {}
+        virtual ~uiMidiPgm()
+        {}
+        
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            printf("uiMidiPgm: reflectZone %f\n", v, fCache);
+        }
+        
+};
+
+class uiMidiCtrl : public uiItem
+{
+    private:
+    
+        LinearValueConverter fConverter;
+ 
+    public:
+    
+        uiMidiCtrl(GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+            :uiItem(ui, zone), fConverter(0., 127., double(min), double(max))
+        {}
+        virtual ~uiMidiCtrl()
+        {}
+        
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            printf("uiMidiCtrl : reflectZone %f\n", v, fCache);
+            //fSlider->setValue(fConverter.faust2ui(v));
+        }
+        
+        void modifyZone(int v) 	
+        { 
+            printf("modifyZone %d %f\n", v, fConverter.ui2faust(v));
+            uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
         }
  
 };
-*/
- 
+
 class MidiUI : public GUI, public midi
 {
 
     private:
     
-        std::map <int, FAUSTFLOAT*> fKeyOnTable;
-        std::map <int, std::pair<FAUSTFLOAT*, LinearValueConverter> > fCtrlChangeTable;
-        std::map <int, FAUSTFLOAT*> fProgChangeTable;
+        std::map <int, vector<uiMidiKey*> > fKeyOnTable;
+        std::map <int, vector<uiMidiCtrl*> > fCtrlChangeTable;
+        std::map <int, vector<uiMidiPgm*> > fProgChangeTable;
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
 
@@ -78,11 +125,11 @@ class MidiUI : public GUI, public midi
                     unsigned num;
                     if (fMetaAux[i].first == "midi") {
                         if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
-                            fCtrlChangeTable[num] = std::make_pair(zone, LinearValueConverter(0., 127., double(min), double(max)));
+                            fCtrlChangeTable[num].push_back(new uiMidiCtrl(this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
-                            fProgChangeTable[num] = zone;
+                            fProgChangeTable[num].push_back(new uiMidiPgm(this, zone));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
-                            fKeyOnTable[num] = zone;
+                            fKeyOnTable[num].push_back(new uiMidiKey(this, zone));
                         }
                     }
                 }
@@ -135,28 +182,36 @@ class MidiUI : public GUI, public midi
         void keyOn(int channel, int note, int velocity)
          {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                *fKeyOnTable[note] = 1.f;
+                for (int i = 0; i < fKeyOnTable[note].size(); i++) {
+                    fKeyOnTable[note][i]->modifyZone(1.f);
+                }
             }
         }
         
         void keyOff(int channel, int note, int velocity)
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                *fKeyOnTable[note] = 0.f;
+                for (int i = 0; i < fKeyOnTable[note].size(); i++) {
+                    fKeyOnTable[note][i]->modifyZone(0.f);
+                }
             } 
         }
         
         void ctrlChange(int channel, int ctrl, int value)
         {
             if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
-               *(fCtrlChangeTable[ctrl].first) = fCtrlChangeTable[ctrl].second.ui2faust(value);
+                for (int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
+                    fCtrlChangeTable[ctrl][i]->modifyZone(value);
+                }
             } 
         }
         
         void progChange(int channel, int pgm)
         {
             if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
-                *fProgChangeTable[pgm] = 1.f;
+                for (int i = 0; i < fProgChangeTable[pgm].size(); i++) {
+                    fProgChangeTable[pgm][i]->modifyZone(1.f);
+                }
             } 
         }
         
