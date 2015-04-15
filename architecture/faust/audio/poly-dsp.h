@@ -105,7 +105,7 @@ struct mydsp_voice_factory : public voice_factory {
 };
 
 // Polyphonic DSP
-class mydsp_poly : public dsp, public midi
+class mydsp_poly : public dsp, public midiIn
 {
 
     private:

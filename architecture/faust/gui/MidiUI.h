@@ -19,11 +19,13 @@
 class uiMidiKey : public uiItem
 {
     private:
+    
+        midiOut* fMidiOut;
   
     public:
     
-        uiMidiKey(GUI* ui, FAUSTFLOAT* zone)
-            :uiItem(ui, zone)
+        uiMidiKey(midiOut* midi_out, GUI* ui, FAUSTFLOAT* zone)
+            :uiItem(ui, zone), fMidiOut(midi_out)
         {}
         virtual ~uiMidiKey()
         {}
@@ -32,7 +34,13 @@ class uiMidiKey : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            printf("uiMidiKey: reflectZone %f\n", v, fCache);
+            //printf("uiMidiKey: reflectZone %f\n", v, fCache);
+        }
+        
+        void modifyZone(FAUSTFLOAT v) 	
+        { 
+            //printf("uiMidiKey: modifyZone %f\n", v);
+            uiItem::modifyZone(v);
         }
         
 };
@@ -40,11 +48,14 @@ class uiMidiKey : public uiItem
 class uiMidiPgm : public uiItem
 {
     private:
+        
+        midiOut* fMidiOut;
+        int fPgm;
   
     public:
     
-        uiMidiPgm(GUI* ui, FAUSTFLOAT* zone)
-            :uiItem(ui, zone)
+        uiMidiPgm(midiOut* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone)
+            :uiItem(ui, zone), fMidiOut(midi_out), fPgm(pgm)
         {}
         virtual ~uiMidiPgm()
         {}
@@ -53,7 +64,10 @@ class uiMidiPgm : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            printf("uiMidiPgm: reflectZone %f\n", v, fCache);
+            //printf("uiMidiPgm: reflectZone %f\n", v, fCache);
+            if (v != 0.) {
+                fMidiOut->progChange(0, fPgm);
+            }
         }
         
 };
@@ -62,12 +76,14 @@ class uiMidiCtrl : public uiItem
 {
     private:
     
+        midiOut* fMidiOut;
+        int fCtrl;
         LinearValueConverter fConverter;
  
     public:
     
-        uiMidiCtrl(GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiItem(ui, zone), fConverter(0., 127., double(min), double(max))
+        uiMidiCtrl(midiOut* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+            :uiItem(ui, zone), fMidiOut(midi_out), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiCtrl()
         {}
@@ -76,19 +92,19 @@ class uiMidiCtrl : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            printf("uiMidiCtrl : reflectZone %f\n", v, fCache);
-            //fSlider->setValue(fConverter.faust2ui(v));
+            //printf("uiMidiCtrl: reflectZone %f\n", v, fCache);
+            fMidiOut->ctrlChange(0, fCtrl, fConverter.faust2ui(v));
         }
         
         void modifyZone(int v) 	
         { 
-            printf("modifyZone %d %f\n", v, fConverter.ui2faust(v));
+            //printf("uiMidiCtrl: modifyZone %d %f\n", v, fConverter.ui2faust(v));
             uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
         }
  
 };
 
-class MidiUI : public GUI, public midi
+class MidiUI : public GUI, public midiIn
 {
 
     private:
@@ -98,10 +114,17 @@ class MidiUI : public GUI, public midi
         std::map <int, vector<uiMidiPgm*> > fProgChangeTable;
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
+        
+        midiOut* fMidiOut;
+        
+        inline double midiToFreq(double note) 
+        {
+            return 440.0 * pow(2.0, (note-69.0)/12.0);
+        }
 
     public:
 
-        MidiUI() {}
+        MidiUI():fMidiOut(0) {}
 
         virtual ~MidiUI() {}
 
@@ -118,18 +141,18 @@ class MidiUI : public GUI, public midi
 
         // -- active widgets
         
-        void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
             if (fMetaAux.size() > 0) {
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     unsigned num;
                     if (fMetaAux[i].first == "midi") {
                         if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
-                            fCtrlChangeTable[num].push_back(new uiMidiCtrl(this, zone, min, max));
+                            fCtrlChangeTable[num].push_back(new uiMidiCtrl(fMidiOut, num, this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
-                            fProgChangeTable[num].push_back(new uiMidiPgm(this, zone));
+                            fProgChangeTable[num].push_back(new uiMidiPgm(fMidiOut, num, this, zone));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
-                            fKeyOnTable[num].push_back(new uiMidiKey(this, zone));
+                            fKeyOnTable[num].push_back(new uiMidiKey(fMidiOut, this, zone));
                         }
                     }
                 }
@@ -139,35 +162,35 @@ class MidiUI : public GUI, public midi
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            addGenericZone(zone, 0, 0, 0, 0);
+            addGenericZone(zone, 0, 0);
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            addGenericZone(zone, 0, 0, 0, 0);
+            addGenericZone(zone, 0, 0);
         }
         
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addGenericZone(zone, init, min, max, step);
+            addGenericZone(zone, min, max);
         }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addGenericZone(zone, init, min, max, step);
+            addGenericZone(zone, min, max);
         }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addGenericZone(zone, init, min, max, step);
+            addGenericZone(zone, min, max);
         }
 
         // -- passive widgets
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            addGenericZone(zone, 0, 0, 0, 0);
+            addGenericZone(zone, 0, 0);
         }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addGenericZone(zone, 0, 0, 0, 0);
+            addGenericZone(zone, 0, 0);
         }
 
         // -- metadata declarations
@@ -184,6 +207,11 @@ class MidiUI : public GUI, public midi
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 for (int i = 0; i < fKeyOnTable[note].size(); i++) {
                     fKeyOnTable[note][i]->modifyZone(1.f);
+                    /*
+                    fFreqLabel->modifyZone(midiToFreq(note));
+                    fGainLabel->modifyZone(float(velocity)/127.f);
+                    fGateLabel->modifyZone(1.f);
+                    */
                 }
             }
         }
@@ -193,6 +221,10 @@ class MidiUI : public GUI, public midi
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 for (int i = 0; i < fKeyOnTable[note].size(); i++) {
                     fKeyOnTable[note][i]->modifyZone(0.f);
+                    /*
+                    fGainLabel->modifyZone(float(velocity)/127.f);
+                    fGateLabel->modifyZone(0.f);
+                    */
                 }
             } 
         }
@@ -218,6 +250,8 @@ class MidiUI : public GUI, public midi
         void allNotesOff() {}
         void pitchWheel(int channel, int wheel) {}
         void pitchBend(int channel, int refPitch, float pitch) {}
+        
+        void setMidiOut(midiOut* midi_out) { fMidiOut = midi_out; }
     
 };
 

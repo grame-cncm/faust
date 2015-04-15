@@ -127,9 +127,11 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
-    MidiUI midiinterface;
-    DSP->buildUserInterface(&midiinterface);
-    MidiIO midi(&midiinterface);
+    MidiUI midi_ui;
+    MidiIO midi_io;
+    midi_io.setMidiIn(&midi_ui);
+    midi_ui.setMidiOut(&midi_io);
+    DSP->buildUserInterface(&midi_ui);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
@@ -149,7 +151,7 @@ int main(int argc, char *argv[])
 	audio.start();
     
 #if defined(POLY) || defined(MIDICTRL)
-    midi.start();
+    midi_io.start();
 #endif
 
 #ifdef HTTPCTRL
@@ -172,7 +174,7 @@ int main(int argc, char *argv[])
 	finterface.saveState(rcfilename);
     
 #if defined(POLY) || defined(MIDICTRL)
-    midi.stop();
+    midi_io.stop();
 #endif
 
   	return 0;

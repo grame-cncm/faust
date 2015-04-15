@@ -33,5 +33,5 @@ average(x)	= (x+x')/2;
 resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 
 process = noise * hslider("level [midi:ctrl 7]", 0.5, 0, 1, 0.01)
-		: vgroup("excitator", *(button("play [midi:keyon 60]"): trigger(size)))
+		: vgroup("excitator", *(checkbox("play [midi:pgm 60]"): trigger(size)))
 		: vgroup("resonator", resonator(dur, att));

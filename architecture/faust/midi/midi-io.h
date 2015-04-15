@@ -12,13 +12,13 @@
 #include "faust/midi/RtMidi.cpp"
 #include "faust/midi/midi.h"
 
-class MidiIO {
+class MidiIO : public midiOut {
 
     private:
     
         RtMidiIn* fInput;
         RtMidiOut* fOutput;
-        midi* fDSP;
+        midiIn* fDSP;
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
@@ -61,6 +61,7 @@ class MidiIO {
             // opens a virtual port when available on API
             fInput->openVirtualPort();
             
+            /*
             unsigned int i = 0, nPorts = fInput->getPortCount();
             if (nPorts == 0) {
                 std::cout << "No input ports available!" << std::endl;
@@ -72,6 +73,7 @@ class MidiIO {
                 std::cout << "Input port #" << i << ": " << portName << '\n';
                 fInput->openPort(i);
             }
+            */
 
             return true;
         }
@@ -81,6 +83,7 @@ class MidiIO {
             // opens a virtual port when available on API
             fOutput->openVirtualPort();
         
+            /*
             unsigned int i = 0, nPorts = fOutput->getPortCount();
             if (nPorts == 0) {
                 std::cout << "No output ports available!" << std::endl;
@@ -92,17 +95,20 @@ class MidiIO {
                 std::cout << "Output port #" << i << ": " << portName << '\n';
                 fOutput->openPort(i);
             }
+            */
 
             return true;
         }
     
     public:
     
-        MidiIO(midi* dsp):fInput(0), fOutput(0), fDSP(dsp)
+        MidiIO():fInput(0), fOutput(0), fDSP(0)
         {}
         
         virtual ~MidiIO()
         {}
+        
+        void setMidiIn(midiIn* dsp) { fDSP = dsp; }
         
         bool start()
         {
@@ -137,40 +143,42 @@ class MidiIO {
             fOutput = 0;
         }
         
-        void ctrlChange(int chan, int ctrl, int val) 
+        void ctrlChange(int channel, int ctrl, int val) 
         {
             std::vector<unsigned char> message;
-            message[0] = 176;
-            message[1] = ctrl;
-            message[2] = val;
+            message.push_back(176);
+            message.push_back(ctrl);
+            message.push_back(val);
             fOutput->sendMessage(&message);
         }
         
-        void progChange(int chan, int pgm) 
+        void progChange(int channel, int pgm) 
         {
             std::vector<unsigned char> message;
-            message[0] = 192;
-            message[1] = pgm;
+            message.push_back(192);
+            message.push_back(pgm);
             fOutput->sendMessage(&message);
         }
         
-        void keyOn(int chan, int note, int velocity) 
+        void keyOn(int channel, int note, int velocity) 
         {
             std::vector<unsigned char> message;
-            message[0] = 144;
-            message[1] = note;
-            message[2] = velocity;
+            message.push_back(144);
+            message.push_back(note);
+            message.push_back(velocity);
             fOutput->sendMessage(&message);
         }
         
-        void keyOff(int chan, int note, int velocity) 
+        void keyOff(int channel, int note, int velocity) 
         {
             std::vector<unsigned char> message;
-            message[0] = 128;
-            message[1] = note;
-            message[2] = velocity;
+            message.push_back(128);
+            message.push_back(note);
+            message.push_back(velocity);
             fOutput->sendMessage(&message);
         }
+        
+        void pitchWheel(int channel, int wheel) {}
    
 };
 
