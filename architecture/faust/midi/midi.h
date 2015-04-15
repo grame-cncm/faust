@@ -76,5 +76,4 @@ class midiOut {
         virtual void progChange(int channel, int pgm)                   = 0;
 };
 
-
 #endif

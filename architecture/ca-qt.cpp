@@ -52,8 +52,11 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#ifdef MIDICTRL
+#if defined(POLY) || defined(MIDICTRL)
 #include "faust/midi/midi-io.h"
+#endif
+
+#if MIDICTRL
 #include "faust/gui/MidiUI.h"
 #endif
 
@@ -70,12 +73,8 @@
 
 <<includeclass>>
 
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
 #ifdef POLY
-#include "faust/midi/midi-io.h"
+#include "faust/audio/poly-dsp.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
@@ -110,7 +109,8 @@ int main(int argc, char *argv[])
 
 #ifdef POLY
     DSP = new mydsp_poly(poly);
-    MidiIO midi(DSP);
+    MidiIO midi_io;
+    midi_io.setMidiIn(DSP);
 #else
     DSP = new mydsp();
 #endif
