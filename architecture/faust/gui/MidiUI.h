@@ -160,7 +160,7 @@ class MidiUI : public GUI, public midi
             fMetaAux.push_back(std::make_pair(key, val));
         }
         
-        // -- public API 
+        // -- MIDI API 
         
         void keyOn(int channel, int note, int velocity) {}
         
@@ -184,12 +184,8 @@ class MidiUI : public GUI, public midi
             } 
         }
         
-        void allNotesOff() {}
-        
         void pitchWheel(int channel, int wheel) {}
-        
-        void pitchBend(int channel, int refPitch, float pitch) {}
-       
+
 };
 
 #endif
