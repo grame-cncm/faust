@@ -52,8 +52,11 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#ifdef MIDICTRL
+#if defined(POLY) || defined(MIDICTRL)
 #include "faust/midi/midi-io.h"
+#endif
+
+#if MIDICTRL
 #include "faust/gui/MidiUI.h"
 #endif
 
@@ -70,12 +73,8 @@
 
 <<includeclass>>
 
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
 #ifdef POLY
-#include "faust/midi/midi-io.h"
+#include "faust/audio/poly-dsp.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
@@ -107,10 +106,14 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
+    
+#if defined(POLY) || defined(MIDICTRL)
+    MidiIO midi_io;
+#endif
 
 #ifdef POLY
     DSP = new mydsp_poly(poly);
-    MidiIO midi(DSP);
+    midi_io.addMidiIn(DSP);
 #else
     DSP = new mydsp();
 #endif
@@ -127,20 +130,22 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
-    MidiUI midiinterface;
-    DSP->buildUserInterface(&midiinterface);
-    MidiIO midi(&midiinterface);
+    MidiUI midi_ui(&midi_io);
+    midi_io.addMidiIn(&midi_ui);
+    DSP->buildUserInterface(&midi_ui);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
+    std::cout << "HTTPD is on" << std::endl;
  #endif
 
 #ifdef OSCCTRL
 	OSCUI oscinterface(name, argc, argv);
 	DSP->buildUserInterface(&oscinterface);
+    std::cout << "OSC is on" << std::endl;
 #endif
 
 	coreaudio audio(srate, fpb);
@@ -149,7 +154,7 @@ int main(int argc, char *argv[])
 	audio.start();
     
 #if defined(POLY) || defined(MIDICTRL)
-    midi.start();
+    midi_io.start();
 #endif
 
 #ifdef HTTPCTRL
@@ -172,7 +177,7 @@ int main(int argc, char *argv[])
 	finterface.saveState(rcfilename);
     
 #if defined(POLY) || defined(MIDICTRL)
-    midi.stop();
+    midi_io.stop();
 #endif
 
   	return 0;

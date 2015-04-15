@@ -40,18 +40,38 @@
 //  MIDI processor definition
 //----------------------------------------------------------------
 
-class midi {
+// To implement by classes that can receive MIDI messages
+
+class midiIn {
  
     public:
 
-        midi() {}
-        virtual ~midi() {}
+        midiIn() {}
+        virtual ~midiIn() {}
 
-        virtual void keyOn(int channel, int note, int velocity)        = 0;
-        virtual void keyOff(int channel, int note, int velocity)       = 0;
-        virtual void allNotesOff()                                      = 0;
+        virtual void keyOn(int channel, int note, int velocity)         = 0;
+        virtual void keyOff(int channel, int note, int velocity)        = 0;
         virtual void pitchWheel(int channel, int wheel)                 = 0;
+        virtual void ctrlChange(int channel, int ctrl, int value)       = 0;
+        virtual void progChange(int channel, int pgm)                   = 0;
+        
         virtual void pitchBend(int channel, int refPitch, float pitch)  = 0;
+        virtual void allNotesOff()                                      = 0;
+     
+};
+
+// To implement by classes that can send MIDI messages
+
+class midiOut {
+ 
+    public:
+
+        midiOut() {}
+        virtual ~midiOut() {}
+
+        virtual void keyOn(int channel, int note, int velocity)         = 0;
+        virtual void keyOff(int channel, int note, int velocity)        = 0;
+        virtual void pitchWheel(int channel, int wheel)                 = 0;
         virtual void ctrlChange(int channel, int ctrl, int value)       = 0;
         virtual void progChange(int channel, int pgm)                   = 0;
 };
