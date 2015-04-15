@@ -1,17 +1,20 @@
-Web Audio Playground
-==========
+FAUST Audio Playground
+======================
 
-This is the source code for the
-[Web Audio Playground](http://webaudioplayground.appspot.com/)
-application.
+This repository contains the source code for the Faust Audio Playground.
+The goal of this project is to provide a web plateform in which you can easily test/patch 
+and export your Faust DSPs or the ones you find surfing on the web.
 
-## Installation ##
+The pedagogical version includes a library of modules directly available in the page.
 
-To install the application locally,
-[download a copy of the Python App Engine SDK](https://developers.google.com/appengine/downloads)
-for your operating system, install it, point it at a check-out of this
-repo and view the application on a local port using the latest version of
-Google Chrome.
+Launch locally
+==============
 
-Alternately, you can simply host the directory structure on a local web server, and load index.html.  
-(The app cannot be run from file:// as XMLHTTPRequest doesn't work.)
+To easily test locally, you can start a python server
+
+cd webaudioRepository
+python -m SimpleHTTPServer
+
+Then access the page : 
+http://127.0.0.1:8000/faustplayground/
+http://127.0.0.1:8000/faustplayground/pedagogie
