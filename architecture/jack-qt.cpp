@@ -129,9 +129,8 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
     
 #ifdef MIDICTRL
-    MidiUI midi_ui;
+    MidiUI midi_ui(&midi_io);
     midi_io.addMidiIn(&midi_ui);
-    midi_ui.setMidiOut(&midi_io);
     DSP->buildUserInterface(&midi_ui);
     std::cout << "MIDI is on" << std::endl;
 #endif

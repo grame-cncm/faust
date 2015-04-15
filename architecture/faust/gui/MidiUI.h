@@ -83,20 +83,13 @@ class MidiUI : public GUI, public midiIn
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         midiOut* fMidiOut;
-        
-        inline double midiToFreq(double note) 
-        {
-            return 440.0 * pow(2.0, (note-69.0)/12.0);
-        }
-
+  
     public:
 
-        MidiUI():fMidiOut(0) {}
+        MidiUI(midiOut* midi_out):fMidiOut(midi_out) {}
 
         virtual ~MidiUI() {}
-        
-        void setMidiOut(midiOut* midi_out) { fMidiOut = midi_out; }
-    
+      
         // -- widget's layouts
 
         virtual void openTabBox(const char* label)
