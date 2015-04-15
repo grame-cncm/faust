@@ -1,4 +1,10 @@
+"use strict";
 
+/******************************************************************** 
+*********************  HANDLE FAUST WEB TARGETS *********************
+********************************************************************/
+
+//------ Handle Combo Boxes
 function addItem(id, itemText){
 	var e2=document.getElementById(id);
 	var o=document.createElement('option');
@@ -12,6 +18,7 @@ function clearComboBox(id){
 	}
 }
 
+//------ Update Architectures with Plateform change
 function updateArchitectures(){
 
 	console.log("updateArch");
@@ -37,12 +44,47 @@ function updateArchitectures(){
 	}
 }
 
-function exportCallback(sha){
+function UploadTargets(){
 
-	var exportDiv = document.getElementById("export");
-	exportFaustCode(exportDiv, sha);
+	clearComboBox('platforms');
+	clearComboBox('architectures');
+
+	window.exportURL = document.getElementById("faustweburl").value;
+	
+	getTargets(window.exportURL, function(json){
+			window.jsonText = json;
+				    		
+			var data = JSON.parse(window.jsonText);
+
+			for (var event in data) {
+				addItem('platforms', event);
+        	}
+        	
+        	updateArchitectures();
+	}, function(json){
+		alert('Impossible to get FaustWeb targets');
+	});
+}		
+
+/******************************************************************** 
+*********************  HANDLE POST TO FAUST WEB  ********************
+********************************************************************/
+
+function exportPatch(event){
+
+	var sceneName = document.getElementById("PatchName").innerHTML;
+
+	var faustCode = getFaustEquivalent(window.scenes[window.currentScene], sceneName);
+// 	console.log(faustCode);
+
+	getSHAKey(document.getElementById("faustweburl").value, sceneName, faustCode, exportFaustCode);
+
 }
-		
+
+/******************************************************************** 
+**************  CALLBACK ONCE SHA KEY WAS CALCULATED  ***************
+********************************************************************/
+
 function exportFaustCode(shaKey){
 
 	var xhr = new XMLHttpRequest();
@@ -60,69 +102,22 @@ function exportFaustCode(shaKey){
 	if(selArch == "android")
 		appType = "binary.apk";
 	
-// 	var url = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/"+appType;
-	
-	var link = document.createElement('a');
-	
-	var title = document.createElement("h6");
-	title.className = "export-title";
-	title.appendChild(document.createTextNode("Download Me"));
-	
-	link.appendChild(title);
-	link.href = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/"+appType;
-
 	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
 	if(qrcodeSpan)
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
-	
-	var myWhiteDiv = getQrCode(serverUrl, shaKey, selPlatform, selArch, appType, 120);
-	myWhiteDiv.id = "qrcodeDiv";
-	document.getElementById("sceneOutput").appendChild(myWhiteDiv);
-	myWhiteDiv.appendChild(link);
-
-}
-	
-function UploadTargets(){
-
-	clearComboBox('platforms');
-	clearComboBox('architectures');
-	
-	window.exportURL = document.getElementById("faustweburl").value;
 			
-	var getrequest = new XMLHttpRequest();
-				
-	getrequest.onreadystatechange = function() {
-		if(getrequest.readyState == 4 && getrequest.status == 200) {
-			window.jsonText = getrequest.responseText;
-				    		
-			var data = JSON.parse(window.jsonText);
+	var qrDiv = document.createElement('div');
+	qrDiv.id = "qrcodeDiv";
+	document.getElementById("sceneOutput").appendChild(qrDiv);
+	
+	var link = document.createElement('a');
+	link.href = serverUrl + "/" + shaKey +"/"+ selPlatform + "/" + selArch + "/"+appType;
+	qrDiv.appendChild(link);
 
-			for (var event in data) {
-				addItem('platforms', event);
-        	}
-        	
-        	updateArchitectures();
-    	}
-	}
-				
-	var targetsUrl = window.exportURL + "/targets";
-				
-	getrequest.open("GET", targetsUrl, true);
-	getrequest.send(null);
-}		
-
-function exportPatch(event){
-
-	var sceneName = document.getElementById("PatchName").innerHTML;
-
-	var faustCode = getFaustEquivalent(window.scenes[0], sceneName);
-	console.log(faustCode);
-
-	getSHAKey(document.getElementById("faustweburl").value, sceneName, faustCode, exportFaustCode);
-
+	var myWhiteDiv = getQrCode(serverUrl, shaKey, selPlatform, selArch, appType, 120);
+	link.appendChild(myWhiteDiv);
 }
-
 
 
 

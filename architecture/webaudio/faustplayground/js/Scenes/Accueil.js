@@ -1,11 +1,15 @@
 "use strict";
 
+
+// Création de la scène d'accueil
 function welcomePage(scene){
 
 // 	scene.integrateSceneInPage(function(){
 	
+
 		var container = scene.getSceneContainer();
-		
+
+//--------- HEADER		
 		var title = document.createElement("div");
 		title.className = "sceneTitle";
 		title.appendChild(document.createTextNode("Bienvenue Sur L'Aire de Jeu\r\n FAUST"));
@@ -20,7 +24,8 @@ function welcomePage(scene){
 		container.appendChild(document.createElement("br"));
 		container.appendChild(document.createElement("br"));
 		container.appendChild(document.createElement("br"));
-	
+
+//--------- NAME AREA
 		var nametitle = document.createElement("div");
 		nametitle.className = "sceneSubtitle";
 		nametitle.id = "NameTag";
@@ -48,11 +53,12 @@ function welcomePage(scene){
 		startButton.style.visibility = "hidden";
 	
 		container.appendChild(startButton);
-// 		
-//  Prevent the creation of a new line in text area
+
+//--------- REACT TO KEY PRESSED IN NAME AREA
 		nameTag.addEventListener("keydown", function(e) {
 			if (e.keyCode == 13){
-				e.preventDefault(); // sometimes useful
+				//  Prevent the creation of a new line in text area
+				e.preventDefault();
 			}
 		}, false);
 	

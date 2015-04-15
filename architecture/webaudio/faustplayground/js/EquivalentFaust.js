@@ -1,7 +1,8 @@
+"use strict";
+
 /******************************************************************** 
 *************  ALGORITHME DE DÉRECURSIVATION DU PATCH ***************
 ********************************************************************/
-"use strict";
 
 function isNodeExisting(Node){
 
@@ -164,15 +165,6 @@ function connectUnconnectedNodes(faustModuleList, output){
 	}
 }
 
-// To avoid sharing instances of a same factory in the resulting Faust Equivalent
-function wrapSourceCodesInGroups(){
-
-	var modules = getElementsByClassName("div", "moduleFaust");
-
-	for (var i = 0; i < modules.length; i++)
-		modules[i].Source = "process = vgroup(\"component"+ i.toString() + "\",environment{" + modules[i].Source + "}.process);";
-}
-
 //Calculate Faust Equivalent of the Scene
 function getFaustEquivalent(scene, patchName){
 
@@ -182,7 +174,9 @@ function getFaustEquivalent(scene, patchName){
 	
 		var dest = scene.audioOutput();
 		var src = scene.audioInput();
-		src.patchID = "input";
+		
+		if(src)
+			src.patchID = "input";
 				
 		var faustResult = "stereoize(p) = S(inputs(p), outputs(p))\n\
 				with {\n\
@@ -220,7 +214,7 @@ function getFaustEquivalent(scene, patchName){
 		if(dest.getInputConnections())
 			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(destinationDIVVV) + "));";
 		
-		console.log(faustResult);
+// 		console.log(faustResult);
 	
 		return faustResult;
 	}
@@ -228,7 +222,17 @@ function getFaustEquivalent(scene, patchName){
 		return null;
 }
 
-//Create Faust Equivalent Module of the Scene
+//--------Plus Utilisé ---------------Create Faust Equivalent Module of the Scene
+
+// To avoid sharing instances of a same factory in the resulting Faust Equivalent
+function wrapSourceCodesInGroups(){
+
+	var modules = getElementsByClassName("div", "moduleFaust");
+
+	for (var i = 0; i < modules.length; i++)
+		modules[i].Source = "process = vgroup(\"component"+ i.toString() + "\",environment{" + modules[i].Source + "}.process);";
+}
+
 function createFaustEquivalent(scene, patchName, parent){
 
 // Save All Params	
@@ -256,6 +260,7 @@ function createFaustEquivalent(scene, patchName, parent){
 		}
 	}
 
+// THIS SHOULD BE DONE BUT FOR NOW IT CAUSED A PROBLEM, I CAN'T REMEMBER WHICH... 
 // 	wrapSourceCodesInGroups();
 	
 	var faustResult = getFaustEquivalent(scene, patchName);

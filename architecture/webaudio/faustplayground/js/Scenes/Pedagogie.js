@@ -90,7 +90,10 @@ function pedagogiePage(scene){
 		nodeimg.value = "&nbsp;";
 		node.appendChild(nodeimg);
 
-	scene.integrateSceneInPage(function(){
+//Integrate Output
+	scene.integrateSceneInPage();
+	
+	scene.integrateOutputInPage(function(){
 		
 		if(isTooltipEnabled())
 			changeSceneToolTip(1);

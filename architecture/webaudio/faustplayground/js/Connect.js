@@ -8,13 +8,11 @@
 function connectNodes( src, dst ) {
 
 // Searching for src/dst DSP if existing
-	if(dst.getDSP){
-// 		dst = document.getElementById("audioOutput");
-		dst = dst.getDSP();	
-	}
-	if(src.getDSP){
+	if(dst.getDSP)
+		dst = dst.getDSP();
+			
+	if(src.getDSP)
 		src = src.getDSP();
-	}
 		
 	// if the source has an audio node, connect them up.  
 	// AudioBufferSourceNodes may not have an audio node yet.

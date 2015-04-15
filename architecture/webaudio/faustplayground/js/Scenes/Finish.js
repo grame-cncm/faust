@@ -1,48 +1,8 @@
 "use strict";
 
-function drawArrow(svgCanvas, x1, y1, x2, y2){
-	// Create a connector visual line
-	var svgns = "http://www.w3.org/2000/svg";
-	
-	var line1 = document.createElementNS(svgns, "line");
-	line1.setAttributeNS(null, "x1", x1);
-	line1.setAttributeNS(null, "y1", y1);
-    line1.setAttributeNS(null, "x2", x2-25);
-    line1.setAttributeNS(null, "y2", y1);
-    line1.setAttributeNS(null, "stroke", "black");
-	line1.setAttributeNS(null, "stroke-width", "10");
-	dragObj.connectorShape=line1;
-
-// 	var line2 = document.createElementNS(svgns, "line");
-// 	line2.setAttributeNS(null, "x1", x2);
-// 	line2.setAttributeNS(null, "y1", y1);
-//     line2.setAttributeNS(null, "x2", x2);
-//     line2.setAttributeNS(null, "y2", y2);
-//     line2.setAttributeNS(null, "stroke", "black");
-// 	line2.setAttributeNS(null, "stroke-width", "2");
-// 	dragObj.connectorShape=line2;
-
-	var baseY = y2 - 5;
-	var baseX = x2 - 30;
-	
-	var baseXX = x2 -20;
-	
-	var rightY = baseY + 10;
-	var rightX = baseX;
-
-	var dOption = "M" + baseX + "," + baseY + "L" + rightX + "," + rightY + "L" + baseXX + "," + y2 + "Z";
-
-	var triangle = document.createElementNS(svgns, "path");
-	triangle.setAttributeNS(null, "d", dOption);
-    triangle.setAttributeNS(null, "stroke", "black");
-	triangle.setAttributeNS(null, "stroke-width", "15");
-	triangle.setAttributeNS(null, "fill", "black");
-	dragObj.connectorShape=triangle;
-
-    svgCanvas.appendChild(line1);
-//     svgCanvas.appendChild(line2);
-    svgCanvas.appendChild(triangle);
-}
+/******************************************************************** 
+******************* CREER/SUPPRIMER LE MENU FINAL ******************
+********************************************************************/
 
 function setExport(scene){
 	saveScene(window.scenes[1]);
@@ -116,12 +76,90 @@ function resetExportPage(scene){
 		scene.getSceneContainer().removeChild(children[i]);
 }
 
-function exportPage(scene){
+/******************************************************************** 
+***********************  EXPORT DSP ANDROID ***********************
+********************************************************************/
+
+function terminateAndroidMenu(sha){
+
+	if(document.getElementById("androidImg"))
+		document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
+
+	var url = "http://faustservice.grame.fr";
 	
-// 	scene.integrateSceneInPage(function(){});
+// 	document.getElementById("androidButton").textContent = "Télécharger application Android";
+
+	if(document.getElementById("androidButton")){
+	
+		var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk", 170);
+		qrcodeDiv.id = "qrcode";
+	
+		document.getElementById("androidButton").appendChild(qrcodeDiv);
+		qrcodeDiv.onclick = getAndroidApp;
+	}
 }
 
-// --- PLUS UTILISÉ -----------------
+function exportAndroidCallback(sha){
+
+	sendPrecompileRequest("http://faustservice.grame.fr", sha, "android", "android", terminateAndroidMenu);
+}
+
+function getAndroidApp(name, source){
+
+	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
+}
+
+
+/******************************************************************** 
+************************* PLUS UTILISÉ...  *************************
+********************************************************************/
+
+// Plus utilisé (c'était pour faire des flèches en svg)
+function drawArrow(svgCanvas, x1, y1, x2, y2){
+	// Create a connector visual line
+	var svgns = "http://www.w3.org/2000/svg";
+	
+	var line1 = document.createElementNS(svgns, "line");
+	line1.setAttributeNS(null, "x1", x1);
+	line1.setAttributeNS(null, "y1", y1);
+    line1.setAttributeNS(null, "x2", x2-25);
+    line1.setAttributeNS(null, "y2", y1);
+    line1.setAttributeNS(null, "stroke", "black");
+	line1.setAttributeNS(null, "stroke-width", "10");
+	dragObj.connectorShape=line1;
+
+// 	var line2 = document.createElementNS(svgns, "line");
+// 	line2.setAttributeNS(null, "x1", x2);
+// 	line2.setAttributeNS(null, "y1", y1);
+//     line2.setAttributeNS(null, "x2", x2);
+//     line2.setAttributeNS(null, "y2", y2);
+//     line2.setAttributeNS(null, "stroke", "black");
+// 	line2.setAttributeNS(null, "stroke-width", "2");
+// 	dragObj.connectorShape=line2;
+
+	var baseY = y2 - 5;
+	var baseX = x2 - 30;
+	
+	var baseXX = x2 -20;
+	
+	var rightY = baseY + 10;
+	var rightX = baseX;
+
+	var dOption = "M" + baseX + "," + baseY + "L" + rightX + "," + rightY + "L" + baseXX + "," + y2 + "Z";
+
+	var triangle = document.createElementNS(svgns, "path");
+	triangle.setAttributeNS(null, "d", dOption);
+    triangle.setAttributeNS(null, "stroke", "black");
+	triangle.setAttributeNS(null, "stroke-width", "15");
+	triangle.setAttributeNS(null, "fill", "black");
+	dragObj.connectorShape=triangle;
+
+    svgCanvas.appendChild(line1);
+//     svgCanvas.appendChild(line2);
+    svgCanvas.appendChild(triangle);
+}
+
+// Plus utilisé (c'était pour faire l'export en page Web)
 function equFaustModule(factory){
 
 	if (!factory) {
@@ -194,33 +232,4 @@ function getWebApp(faustDiv){
 	var shaKey = getSHAKey("http://faustservice.grame.fr", faustDiv.getName(), faustDiv.getSource(), exportWebCallback);
 }
 
-/******************************************************************** 
-***********************  EXPORT DSP  ***********************
-********************************************************************/
-
-function terminateAndroidMenu(sha){
-
-	if(document.getElementById("androidImg"))
-		document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
-
-	var url = "http://faustservice.grame.fr";
-	
-// 	document.getElementById("androidButton").textContent = "Télécharger application Android";
-	
-	var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk", 170);
-	qrcodeDiv.id = "qrcode";
-	
-	document.getElementById("androidButton").appendChild(qrcodeDiv);
-	qrcodeDiv.onclick = getAndroidApp;
-}
-
-function exportAndroidCallback(sha){
-
-	sendPrecompileRequest("http://faustservice.grame.fr", sha, "android", "android", terminateAndroidMenu);
-}
-
-function getAndroidApp(name, source){
-
-	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
-}
 

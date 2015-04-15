@@ -11,20 +11,28 @@ var createScene = function (identifiant, start, stop){
 	
   return {
 
-  	integrateSceneInPage: function(afterWork){
-	
-		document.body.appendChild(scene);
+	integrateSceneInPage: function(){
+		document.body.appendChild(scene);	
+	},
 
-		audioOutput = createNode(idX++, 0, 0, "output", scene, this.removeModule);
+  	integrateInputInPage: function(afterWork){
+
 		audioInput = createNode(idX++, 0, 0, "input", scene, this.removeModule);
 		audioInput.hideNode();
-		audioOutput.hideNode();
-		compileFaust("output", "process=_,_;", 0, 0, this.integrateOutput);
+
 		compileFaust("input", "process=_,_;", 0, 0, this.integrateInput);
 		afterWork();
 	},
+	integrateOutputInPage: function(afterWork){
+
+		audioOutput = createNode(idX++, 0, 0, "output", scene, this.removeModule);
+		audioOutput.hideNode();
+		compileFaust("output", "process=_,_;", 0, 0, this.integrateOutput);
+
+		afterWork();
+	},
     deleteScene: function() {
-		this.cleanDSPs();
+		this.cleanModules();
     	this.hideScene();
     	this.muteScene();
     },

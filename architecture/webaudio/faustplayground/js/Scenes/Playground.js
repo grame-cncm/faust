@@ -125,21 +125,25 @@ function normalPage(scene){
 		nodeimg.value = "&nbsp;";
 		node.appendChild(nodeimg);
 	
-	scene.integrateSceneInPage(function(){
+	scene.integrateSceneInPage();
 	
-		scene.audioOutput().setInputOutputNodes(node, null);
-		scene.audioInput().setInputOutputNodes(null, input);
+	scene.integrateInputInPage(function(){
+
+		scene.integrateOutputInPage(function(){	
+			scene.audioOutput().setInputOutputNodes(node, null);
+			scene.audioInput().setInputOutputNodes(null, input);
 			
-// 		activateAudioInput();
+// 			activateAudioInput();
 		
-		console.log("inputActivation");
-// 	activateAudioOutput(destDiv);
-// 	scene.hideScene();
+			console.log("inputActivation");
+// 			activateAudioOutput(destDiv);
+// 			scene.hideScene();
 	
-		startPage(scene);
-// 	setGeneralDragAndDrop();
-			UploadTargets();
+			startPage(scene);
+//		 	setGeneralDragAndDrop();
+				UploadTargets();
 		});
+	});
 }
 
 function onEnterKey(e){
@@ -151,6 +155,7 @@ function onEnterKey(e){
 	}
 }
 
+// On Load And UnLoad Playground Scene
 function startPage(scene){
 
 	setGeneralDragAndDrop();

@@ -105,8 +105,10 @@ function whileDraggingNode(event, node) {
 		
 		for (c=0; c<node.getOutputConnections().length; c++) {
 
-			node.getOutputConnections()[c].line.setAttributeNS(null, "x2", x);
-			node.getOutputConnections()[c].line.setAttributeNS(null, "y2", y);
+			if(node.getOutputConnections()[c].line){
+				node.getOutputConnections()[c].line.setAttributeNS(null, "x2", x);
+				node.getOutputConnections()[c].line.setAttributeNS(null, "y2", y);
+			}
 		}
 	}
 

@@ -36,7 +36,7 @@ function createAllScenes(){
 		window.scenes[1] = createScene("Pedagogie", startPeda, stopPeda);
 		pedagogiePage(window.scenes[1]);
 		window.scenes[2] = createScene("Export", setExport, resetExportPage);
-		exportPage(window.scenes[2]);
+// 		Export Page doesn't need initialization
 	}
 	else{
 		window.scenes[0] = createScene("Normal", startPage, stopPage);
@@ -78,6 +78,8 @@ function getDevice(device) {
 }
 
 function activateAudioOutput(sceneOutput){
+	
+	console.log("ACTIVATE OUTPUT");
 	
 	var out = document.createElement("div");
 	out.id = "audioOutput";
