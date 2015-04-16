@@ -77,5 +77,5 @@ inline double min(double a, float b) 	{ return (a<b) ? a : b; }
 
 <<includeclass>>
 
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 

@@ -48,7 +48,7 @@
 // Polyphony
 //**************************************************************
 
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 
 //**************************************************************
 // Android Audio (modified opensl_io)
