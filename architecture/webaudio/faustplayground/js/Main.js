@@ -310,6 +310,8 @@ function uploadOn(node, x, y, e) {
         	    	type = "json";
         	    	reader.readAsText(file);
         	    }
+        	    else
+					terminateUpload();
         	    	
 	    		reader.onloadend = function(e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
