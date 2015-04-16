@@ -73,7 +73,7 @@
 <<includeclass>>
 
 #ifdef POLY
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
