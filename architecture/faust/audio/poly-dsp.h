@@ -303,16 +303,21 @@ class mydsp_poly : public dsp, public midi
         
         void buildUserInterface(UI* ui_interface) 
         {   
-            ui_interface->openTabBox("Polyphonic instrument");
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                std::stringstream voice; voice << "Voice" << i;
-                ui_interface->openHorizontalBox(voice.str().c_str());
-                fVoiceTable[i]->buildUserInterface(ui_interface);
+            if (fMaxPolyphony > 1) {
+                ui_interface->openTabBox("Polyphonic instrument");
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    std::stringstream voice; voice << "Voice" << i;
+                    ui_interface->openHorizontalBox(voice.str().c_str());
+                    fVoiceTable[i]->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                }
                 ui_interface->closeBox();
+            } else {
+                fVoiceTable[0]->buildUserInterface(ui_interface);
             }
-            ui_interface->closeBox();
         }
         
+        // Pure MIDI control
         void keyOn(int channel, int pitch, int velocity)
         {
             int voice = getVoice(kFreeVoice);
@@ -328,7 +333,7 @@ class mydsp_poly : public dsp, public midi
             }
         }
         
-        void keyOff(int channel, int pitch, int velocity)
+        void keyOff(int channel, int pitch, int velocity = 127)
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
@@ -340,17 +345,22 @@ class mydsp_poly : public dsp, public midi
             }
         }
         
+        void pitchWheel(int channel, int wheel)
+        {}
+        
+        void ctrlChange(int channel, int ctrl, int value)
+        {}
+        
+        void progChange(int channel, int pgm)
+        {}
+
+        // Additional API
         void allNotesOff()
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->setValue(fGateLabel, 0.0f);
                 fVoiceTable[i]->fNote = kReleaseVoice;
             }
-        }
-        
-        void pitchWheel(int channel, int wheel)
-        {
-            // TODO
         }
         
         void pitchBend(int channel, int refPitch, float pitch)
@@ -363,12 +373,7 @@ class mydsp_poly : public dsp, public midi
             }
         }
         
-        void ctrlChange(int channel, int ctrl, int value)
-        {}
-        
-        void progChange(int channel, int pgm)
-        {}
-        
+               
         const char* getJSON()
         {
             return fJSON.c_str();
