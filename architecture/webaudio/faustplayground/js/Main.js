@@ -349,8 +349,8 @@ function uploadOn(node, x, y, e) {
 						compileFaust(filename, dsp_code, x, y, createFaustModule);
 					else if(type == "dsp")
 						node.updateFactory(filename, dsp_code);
-// 					else if(type == "json")
-// 						window.scenes[window.currentScene].recallScene(reader.result);
+					else if(type == "json")
+						window.scenes[window.currentScene].recallScene(reader.result);
 						
 					terminateUpload();
 	    		};

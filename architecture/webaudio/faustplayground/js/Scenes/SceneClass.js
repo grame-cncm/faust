@@ -11,6 +11,8 @@
 "use strict";
 
 var createScene = function (identifiant, onload, onunload){
+    
+    var that;
     	
 //-- Graphical Scene container
 	var fSceneContainer = document.createElement("div");
@@ -26,29 +28,30 @@ var createScene = function (identifiant, onload, onunload){
   return {
 
     deleteScene: function() {
-		this.cleanModules();
-    	this.hideScene();
-    	this.muteScene();
+		that.cleanModules();
+    	that.hideScene();
+    	that.muteScene();
     },
     
 	integrateSceneInBody: function(){
+		that = this;
 		document.body.appendChild(fSceneContainer);	
 	},
 
 /*************** ACTIONS ON AUDIO IN/OUTPUT ***************************/
   	integrateInput: function(afterWork){
 
-		fAudioInput = createModule(idX++, 0, 0, "input", fSceneContainer, this.removeModule);
+		fAudioInput = createModule(idX++, 0, 0, "input", fSceneContainer, that.removeModule);
 		fAudioInput.hideModule();
 
-		compileFaust("input", "process=_,_;", 0, 0, this.integrateAudioInput);
+		compileFaust("input", "process=_,_;", 0, 0, that.integrateAudioInput);
 		afterWork();
 	},
 	integrateOutput: function(afterWork){
 
-		fAudioOutput = createModule(idX++, 0, 0, "output", fSceneContainer, this.removeModule);
+		fAudioOutput = createModule(idX++, 0, 0, "output", fSceneContainer, that.removeModule);
 		fAudioOutput.hideModule();
-		compileFaust("output", "process=_,_;", 0, 0, this.integrateAudioOutput);
+		compileFaust("output", "process=_,_;", 0, 0, that.integrateAudioOutput);
 
 		afterWork();
 	},
@@ -95,16 +98,16 @@ var createScene = function (identifiant, onload, onunload){
 		for(var i=fModuleList.length-1; i>=0; i--){
 		
 				fModuleList[i].deleteModule();
-				this.removeModule(fModuleList[i]);
+				that.removeModule(fModuleList[i]);
 		}
 	},
 		
 /*********************** LOAD/UNLOAD SCENE ***************************/
 	loadScene:function(){
-		onload(this);
+		onload(that);
 	},
 	unloadScene: function(){
-		onunload(this);
+		onunload(that);
 	},
 
 /*********************** SAVE/RECALL SCENE ***************************/
@@ -183,7 +186,7 @@ var createScene = function (identifiant, onload, onunload){
 },
 	recallScene: function(json){
 
-		window.currentNumberDSP = window.scenes[window.currentScene].getModules().length;
+		window.currentNumberDSP = fModuleList.length;
 
 		var data = JSON.parse(json);
 	
@@ -212,12 +215,16 @@ var createScene = function (identifiant, onload, onunload){
         		else if(mainData["params"])
         			window.params = mainData["params"];
 			}
-			compileFaust(name, code, x, y, this.createModuleAndConnectIt);
+			compileFaust(name, code, x, y, that.createModuleAndConnectIt);
 		}		
 	},
 	
 	createModuleAndConnectIt: 	function(factory){
 
+
+//---- This is very similar to "createFaustModule" from Main.js
+//---- But as we need to set Params before calling "createFaustInterface", it is copied
+//---- There probably is a better way to do this !!
 		if (!factory) {
     		alert(faust.getErrorMessage());    
         	return null;
@@ -225,7 +232,7 @@ var createScene = function (identifiant, onload, onunload){
     
 		var faustModule;
 
-		faustModule = createModule(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[window.currentScene].removeModule);
+		faustModule = createModule(idX++, window.x, window.y, window.name, document.getElementById("modules"), that.removeModule);
 
  		faustModule.setSource(window.source);
 	 	faustModule.createDSP(factory); 	
@@ -245,14 +252,13 @@ var createScene = function (identifiant, onload, onunload){
 		faustModule.createFaustInterface();
  		faustModule.addInputOutputNodes();
 
-		this.addModule(faustModule);
+		that.addModule(faustModule);
 	
 // WARNING!!!!! Not right in an asynchroneous call of compileFaust
 		if(window.inputs){
 			for(var i=0; i<window.inputs.length; i++){
 		
-// 		NOT WORKING WHEN OTHER DSPs IN THE SCENE !!!!! 
-				var src = this.getModules()[window.inputs[i]["src"]-1 +window.currentNumberDSP];
+				var src = that.getModules()[window.inputs[i]["src"]-1 +window.currentNumberDSP];
 				if(src)
 					createConnection(src, src.getOutputNode(), faustModule, faustModule.getInputNode());	
 			}
@@ -260,15 +266,13 @@ var createScene = function (identifiant, onload, onunload){
 	
 		if(window.outputs){
 			for(var i=0; i<window.outputs.length; i++){
-
-// 		NOT WORKING WHEN OTHER DSPs IN THE SCENE !!!!! 
-				var dst = window.scenes[window.currentScene].getModules()[window.outputs[i]["dst"]+window.currentNumberDSP-1];
 			
-				if(dst)
+				var dst = that.getModules()[window.outputs[i]["dst"]+window.currentNumberDSP-1];
+			
+				if(window.outputs[i]["dst"] == 0){
+					createConnection(faustModule, faustModule.getOutputNode(), fAudioOutput, fAudioOutput.getInputNode());
+				else if(dst)
 					createConnection(faustModule, faustModule.getOutputNode(), dst, dst.getInputNode());
-	
-				else if(window.outputs[i]["dst"] == 0)
-					createConnection(faustModule, faustModule.getOutputNode(), this.fAudioOutput, this.fAudioOutput.getInputNode());
 			}
 		}
 	},

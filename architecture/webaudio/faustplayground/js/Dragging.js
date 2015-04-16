@@ -191,14 +191,16 @@ function stopDraggingConnection(sourceModule, destination){
 
 		// Get the position of the originating connector with respect to the page.
 		
-		var off, toElem;
+		var off;
 		if(!dragObj.originIsInput)
 			off = destination.getInputNode();
 		else
 			off = destination.getOutputNode();
 		
-		toElem = off;
+		var toElem = off;
 	
+		console.log(destination.getName());
+		console.log(toElem);	
 	// Get the position of the originating connector with respect to the page.			
 		x = window.scrollX + 12;
 		y = window.scrollY + 12;
@@ -211,8 +213,6 @@ function stopDraggingConnection(sourceModule, destination){
 		
 		dragObj.connectorShape.setAttributeNS(null, "x2", x);
 	    dragObj.connectorShape.setAttributeNS(null, "y2", y);
-
-		var str=""+toElem.className;
 	
 		var src, dst;
 	
