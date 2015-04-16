@@ -1,12 +1,19 @@
+/*				ACCUEIL.JS
+	Init Welcome Scene with all its graphical elements
+
+	This is the first scene of the Pedagogical Playground
+		
+	DEPENDENCIES :
+		- Scene.js
+		
+*/
+
+
 "use strict";
 
 
-// Création de la scène d'accueil
-function welcomePage(scene){
-
-// 	scene.integrateSceneInPage(function(){
+function initWelcomeScene(scene){
 	
-
 		var container = scene.getSceneContainer();
 
 //--------- HEADER		
@@ -87,3 +94,5 @@ function welcomePage(scene){
 // 	});
 		document.body.appendChild(container);
 }
+
+

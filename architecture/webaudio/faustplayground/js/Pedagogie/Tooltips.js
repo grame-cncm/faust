@@ -1,3 +1,46 @@
+/*				TOOLTIPS.JS
+	Add tooltips for the pedagogical version of the playground
+		
+	DEPENDENCIES : 
+		- SceneClass.js
+		- ModuleClass.js
+*/
+
+
+/*************** ALL TOOLTIP CHOICES ***************************/
+function changeSceneToolTip(toolTipNumber){
+
+	var subtitle;
+
+	if(document.getElementById("sceneToolTip"))
+		subtitle = document.getElementById("sceneToolTip");
+	else{
+		subtitle = document.createElement('span');
+		subtitle.id="sceneToolTip";
+		document.getElementById("header").appendChild(subtitle);
+	}
+
+	if(toolTipNumber == 0){
+		subtitle.textContent = "    Choisis de télécharger ton application, " + document.getElementById("PatchName").innerHTML + ", pour ton smartphone ou sous forme de page web";
+	}
+	else if(toolTipNumber == 1){
+		subtitle.textContent = "    Glisse ta souris sur la bibliothèque Faust pour découvrir son contenu";
+	}
+	else if(toolTipNumber == 3){
+		subtitle.textContent = "    Relie ton instrument à ton effet en connectant le noeud rouge au noeud vert";
+	}
+	else if(toolTipNumber == 4){
+		subtitle.textContent = "    Relie ton effet à la sortie audio";
+	}
+	else if(toolTipNumber == 5){
+		subtitle.textContent = "    Joue avec ton/tes instrument(s)";
+	}
+	else if(toolTipNumber == 6){
+		subtitle.textContent = "    Choisis au moins un instrument";
+	}
+}
+
+/*************** ACTIVATE/DISACTIVATE TOOLTIPS ****************/
 function enableTooltips(){
 	window.tooltips = true;
 }
@@ -10,6 +53,8 @@ function isTooltipEnabled(){
 	return window.tooltips;
 }
 
+
+/******** INTERROGATE THE SCENE TO CREATE RIGHT TOOLTIP ******/
 function sceneHasInstrumentAndEffect(){
 
 	var modules = window.scenes[window.currentScene].getModules();
@@ -75,7 +120,7 @@ function toolTipForConnections(){
 
 	if(window.tooltips){
 		
-		var connectedNode = currentScene.audioOutput();
+		var connectedNode = currentScene.getAudioOutput();
 		
 		while(connectedNode){
 	
@@ -109,36 +154,6 @@ function toolTipForConnections(){
 	}
 }
 
-function changeSceneToolTip(toolTipNumber){
 
-	var subtitle;
-
-	if(document.getElementById("sceneToolTip"))
-		subtitle = document.getElementById("sceneToolTip");
-	else{
-		subtitle = document.createElement('span');
-		subtitle.id="sceneToolTip";
-		document.getElementById("header").appendChild(subtitle);
-	}
-
-	if(toolTipNumber == 0){
-		subtitle.textContent = "    Choisis de télécharger ton application, " + document.getElementById("PatchName").innerHTML + ", pour ton smartphone ou sous forme de page web";
-	}
-	else if(toolTipNumber == 1){
-		subtitle.textContent = "    Glisse ta souris sur la bibliothèque Faust pour découvrir son contenu";
-	}
-	else if(toolTipNumber == 3){
-		subtitle.textContent = "    Relie ton instrument à ton effet en connectant le noeud rouge au noeud vert";
-	}
-	else if(toolTipNumber == 4){
-		subtitle.textContent = "    Relie ton effet à la sortie audio";
-	}
-	else if(toolTipNumber == 5){
-		subtitle.textContent = "    Joue avec ton/tes instrument(s)";
-	}
-	else if(toolTipNumber == 6){
-		subtitle.textContent = "    Choisis au moins un instrument";
-	}
-}
 
 

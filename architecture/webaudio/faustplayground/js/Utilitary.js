@@ -10,27 +10,3 @@ function getElementsByClassName(tag, className){
     }
     return results;
 }
-
-
-// For a certain Div : 
-// function getOutputNodeFromDiv(div){
-// 
-// 	for(var i=0 ; i<div.childNodes.length; i++){
-// 		if(div.childNodes[i].className && div.childNodes[i].className.indexOf("node node-output")>=0){
-// 			return div.childNodes[i];
-// 		}
-// 	}
-// 	
-// 	return null;
-// }
-// 
-// function getInputNodeFromDiv(div){
-// 
-// 	for(var i=0 ; i<div.childNodes.length; i++){
-// 		if(div.childNodes[i].className && div.childNodes[i].className.indexOf("node node-input")>=0){
-// 			return div.childNodes[i];
-// 		}
-// 	}
-// 	
-// 	return null;
-// }

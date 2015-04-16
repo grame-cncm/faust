@@ -1,12 +1,21 @@
+/*				EQUIVALENTFAUST.JS
+
+	HELPER FUNCTIONS TO CREATE FAUST EQUIVALENT EXPRESSION FROM A PATCH
+	
+	FIRST PART --> DERECURSIVIZE THE PATCH
+	SECOND PART --> CREATE THE FAUST EQUIVALENT FROM THE "DERECURSIVIZED" PATCH
+*/
+
+
 "use strict";
 
 /******************************************************************** 
 *************  ALGORITHME DE DÉRECURSIVATION DU PATCH ***************
 ********************************************************************/
 
-function isNodeExisting(Node){
+function isModuleExisting(Module){
 
-	if(window.recursiveMap[Node.patchID])
+	if(window.recursiveMap[Module.patchID])
 		return true;
 		
 	return false;
@@ -22,74 +31,74 @@ function giveIdToModules(scene){
 	}
 }
 
-function treatRecursiveNode(Node){
+function treatRecursiveModule(Module){
 			
 // 	Save recursion in map and flag it
-	var nodeToReplace = getFirstOccurenceOfNodeInCourse(Node);
+	var ModuleToReplace = getFirstOccurenceOfModuleInCourse(Module);
 	
-	window.recursiveMap[Node.patchID] = nodeToReplace;
+	window.recursiveMap[Module.patchID] = ModuleToReplace;
 	
-	nodeToReplace.recursiveFlag = true;
+	ModuleToReplace.recursiveFlag = true;
 }
 
-function getFirstOccurenceOfNodeInCourse(Node){
+function getFirstOccurenceOfModuleInCourse(Module){
 	
-	for(var i=0; i< Node.course.length; i++){
-		if(Node.patchID == Node.course[i].patchID){
-			return Node.course[i];
+	for(var i=0; i< Module.course.length; i++){
+		if(Module.patchID == Module.course[i].patchID){
+			return Module.course[i];
 		}
 	}
 	
 	return null;
 }
 
-function createTree(node, parent){
-	var myNode = document.createElement("div");
-	myNode.patchID = node.patchID;
-	myNode.course = [];
+function createTree(Module, parent){
+	var myModule = document.createElement("div");
+	myModule.patchID = Module.patchID;
+	myModule.course = [];
 	
 	if(parent){
 	
 // 		COPY PARENT COURSE
 		for(var k=0; k<parent.course.length; k++)
-			myNode.course[k] = parent.course[k];
+			myModule.course[k] = parent.course[k];
 	}
 
-	myNode.nodeInputs = [];
-	myNode.recursiveFlag = false;
+	myModule.ModuleInputs = [];
+	myModule.recursiveFlag = false;
 		
-	if(isNodeExisting(myNode)){
+	if(isModuleExisting(myModule)){
 	
-		var nodeToReuse = window.recursiveMap[myNode.patchID];
+		var ModuleToReuse = window.recursiveMap[myModule.patchID];
 		
-		myNode.sourceCode = nodeToReuse.sourceCode;
-		myNode.nodeInputs = nodeToReuse.nodeInputs;
+		myModule.sourceCode = ModuleToReuse.sourceCode;
+		myModule.ModuleInputs = ModuleToReuse.ModuleInputs;
 		
 	}
-	else if(getFirstOccurenceOfNodeInCourse(myNode)){
+	else if(getFirstOccurenceOfModuleInCourse(myModule)){
 
-		treatRecursiveNode(myNode);
+		treatRecursiveModule(myModule);
 		
 // 	Stop Recursion in Tree		
-		myNode = null;
+		myModule = null;
 	}
-	else if(node.patchID == "input"){
-		myNode.sourceCode = node.getSource();
-		myNode.course[myNode.course.length] = myNode; 
+	else if(Module.patchID == "input"){
+		myModule.sourceCode = Module.getSource();
+		myModule.course[myModule.course.length] = myModule; 
 	}
 	else{
-		myNode.sourceCode = node.getSource();
+		myModule.sourceCode = Module.getSource();
 
-		myNode.course[myNode.course.length] = myNode; 
+		myModule.course[myModule.course.length] = myModule; 
 
-		if(node.getInputConnections()){
-			for(var j=0; j<node.getInputConnections().length; j++)
-				myNode.nodeInputs[j] = createTree(node.getInputConnections()[j].source, myNode);
+		if(Module.getInputConnections()){
+			for(var j=0; j<Module.getInputConnections().length; j++)
+				myModule.ModuleInputs[j] = createTree(Module.getInputConnections()[j].source, myModule);
 		}
 	}
 	
 	
-	return myNode;
+	return myModule;
 }
 
 /******************************************************************** 
@@ -97,71 +106,63 @@ function createTree(node, parent){
 ********************************************************************/
 
 //*** The faust equivalent of a scene is calculated following these rules:
-//*** The tree starting from the output node is computed (tree 1)
-//*** Then if there are unconnected output nodes, there nodes are computed (tree 2, ..., n)
+//*** The tree starting from the output Module is computed (tree 1)
+//*** Then if there are unconnected output Modules, there Modules are computed (tree 2, ..., n)
 //*** All trees are composed in parallel
 
 //*** Every Faust Expression is "Stereoized" before composition with other expressions to ensure composability
 
-// Computing a node is computing its entries and merging them in the node's own faust code.
-function computeNode(node){
+// Computing a Module is computing its entries and merging them in the Module's own faust code.
+function computeModule(Module){
 
-	var nodeInputs = node.nodeInputs;	
+	var ModuleInputs = Module.ModuleInputs;	
 	var faustResult = "";
 	
-// Iterate on input Nodes to compute them
-	if(nodeInputs && nodeInputs.length != 0){
+// Iterate on input Modules to compute them
+	if(ModuleInputs && ModuleInputs.length != 0){
 
 			var inputCode = "";
 
-			for(var i=0; i<nodeInputs.length; i++){
-				if(nodeInputs[i]){
+			for(var i=0; i<ModuleInputs.length; i++){
+				if(ModuleInputs[i]){
 
-					if(nodeInputs[i].sourceCode && nodeInputs[i].sourceCode.length>0){		
+					if(ModuleInputs[i].sourceCode && ModuleInputs[i].sourceCode.length>0){		
 						if(i != 0)
 							inputCode += ",";
 
-						inputCode += computeNode(nodeInputs[i]);
+						inputCode += computeModule(ModuleInputs[i]);
 					}
 				}
 			}	
 
 			if(inputCode != ""){
-				if(node.recursiveFlag)
+				if(Module.recursiveFlag)
 					faustResult += "(" + inputCode + ":> ";
 				else
 					faustResult += inputCode + ":> ";
 			}
 	}
 	
-	var nodeCode = node.sourceCode;
+	var ModuleCode = Module.sourceCode;
 	
-	if(node.recursiveFlag)
-		faustResult += "stereoize(environment{" + nodeCode + "}.process))~(_,_)";
+	if(Module.recursiveFlag)
+		faustResult += "stereoize(environment{" + ModuleCode + "}.process))~(_,_)";
 	else
-		faustResult += "stereoize(environment{" + nodeCode + "}.process)";
+		faustResult += "stereoize(environment{" + ModuleCode + "}.process)";
 	
 
 	return faustResult;
 }
 
 // Computing the trees unconnected to the output
-function connectUnconnectedNodes(faustModuleList, output){
+function connectUnconnectedModules(faustModuleList, output){
 
 	for(var i in faustModuleList){
 	
 		var outputNode = faustModuleList[i].getOutputNode();
 		
-		if(outputNode && (!faustModuleList[i].getOutputConnections() || faustModuleList[i].getOutputConnections())){
-		
-			connectNodes(faustModuleList[i], output);
-			var connector = new Object();
-
-			saveConnection(faustModuleList[i], output, connector, null);
-		
-			output.addInputConnection(connector);
-			faustModuleList[i].addOutputConnection(connector);			
-		}
+		if(outputNode && (!faustModuleList[i].getOutputConnections || !faustModuleList[i].getOutputConnections() || faustModuleList[i].getOutputConnections().length == 0))
+			createConnection(faustModuleList[i], faustModuleList[i].getOutputNode(), output, output.getInputNode());		
 	}
 }
 
@@ -172,8 +173,8 @@ function getFaustEquivalent(scene, patchName){
 
 	if(faustModuleList.length > 0){
 	
-		var dest = scene.audioOutput();
-		var src = scene.audioInput();
+		var dest = scene.getAudioOutput();
+		var src = scene.getAudioInput();
 		
 		if(src)
 			src.patchID = "input";
@@ -203,7 +204,7 @@ function getFaustEquivalent(scene, patchName){
 			recursivize(p,q) = (_,_,_,_ :> stereoize(p)) ~ stereoize(q);\n\
 			";
 
-		connectUnconnectedNodes(faustModuleList, dest);
+		connectUnconnectedModules(faustModuleList, dest);
 	
 		window.recursiveMap = [];
 		
@@ -212,7 +213,7 @@ function getFaustEquivalent(scene, patchName){
 		var destinationDIVVV = createTree(dest, null);
 		
 		if(dest.getInputConnections())
-			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeNode(destinationDIVVV) + "));";
+			faustResult += "process = vgroup(\""+ patchName + "\",(" + computeModule(destinationDIVVV) + "));";
 		
 // 		console.log(faustResult);
 	
@@ -221,6 +222,10 @@ function getFaustEquivalent(scene, patchName){
 	else
 		return null;
 }
+
+
+
+
 
 //--------Plus Utilisé ---------------Create Faust Equivalent Module of the Scene
 
@@ -273,8 +278,8 @@ function createFaustEquivalent(scene, patchName, parent){
 					
 		if(DSP){
 
-			var faustModule = createNode(idX++, document.body.scrollWidth/3, document.body.scrollHeight/3, patchName, parent, window.scenes[2].removeModule);
- 			faustModule.setDSP(faustResult);
+			var faustModule = createModule(idX++, document.body.scrollWidth/3, document.body.scrollHeight/3, patchName, parent, window.scenes[2].removeModule);
+ 			faustModule.createDSP(faustResult);
  			faustModule.setParams(fullParams);
 
  			return faustModule;

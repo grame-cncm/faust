@@ -1,3 +1,11 @@
+/*				EXPORT.JS
+	Handles Graphical elements for the Export Feature of the normal Playground
+		
+	DEPENDENCIES :
+		- ExportLib.js
+		- qrcode.js
+*/
+
 "use strict";
 
 /******************************************************************** 
@@ -21,8 +29,6 @@ function clearComboBox(id){
 //------ Update Architectures with Plateform change
 function updateArchitectures(){
 
-	console.log("updateArch");
-
 	clearComboBox('architectures');
 		
 	var data = JSON.parse(window.jsonText);
@@ -44,7 +50,7 @@ function updateArchitectures(){
 	}
 }
 
-function UploadTargets(){
+function uploadTargets(){
 
 	clearComboBox('platforms');
 	clearComboBox('architectures');
@@ -75,7 +81,6 @@ function exportPatch(event){
 	var sceneName = document.getElementById("PatchName").innerHTML;
 
 	var faustCode = getFaustEquivalent(window.scenes[window.currentScene], sceneName);
-// 	console.log(faustCode);
 
 	getSHAKey(document.getElementById("faustweburl").value, sceneName, faustCode, exportFaustCode);
 

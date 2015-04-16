@@ -1,11 +1,22 @@
+/*				FINISH.JS
+	Init Export Scene with all its graphical elements
+		
+	This is the final scene of the Pedagogical Playground
+		
+	DEPENDENCIES :
+		- Scene.js
+		
+*/
+
+
 "use strict";
 
 /******************************************************************** 
-******************* CREER/SUPPRIMER LE MENU FINAL ******************
+******************* INIT/LOAD/UNLOAD EXPORT SCENE ******************
 ********************************************************************/
 
-function setExport(scene){
-// 	saveScene(window.scenes[1]);
+function onloadExportScene(scene){
+// 	window.scenes[1].saveScene();
 
 	document.body.style.background = "url('"+window.baseImg + "output-bkg.gif') 0 0 repeat";
 	var appName = prompt("Choisis le nom de ton application", "");
@@ -13,13 +24,15 @@ function setExport(scene){
 	if(appName == null)
 		appName = "MonApplication";
 			
-	setExportPage(scene, appName);
+	initExportScene(scene, appName);
 }
 
-function setExportPage(scene, name){
+function initExportScene(scene, name){
+
 
 	var container = scene.getSceneContainer();
 
+//--------- HEADER
 	var head = document.createElement("header");
 	head.id = "header";
 	container.appendChild(head);
@@ -35,9 +48,9 @@ function setExportPage(scene, name){
 	mySceneSub.textContent = "Ton Application Android";
 	head.appendChild(mySceneSub);
 
+//--------- QRCORE ZONE
 	var androidApp = document.createElement("div");
 	androidApp.id= "androidButton";
-// 	androidApp.onclick = getAndroidApp;
 	container.appendChild(androidApp);
 
 	var androidImg = document.createElement("img");
@@ -45,10 +58,12 @@ function setExportPage(scene, name){
 	androidImg.src = window.baseImg + "loader.gif";
 	androidApp.appendChild(androidImg);
 
+// -- Once you have been to the finish scene, you probably don't need tooltips anymore.
 	if(isTooltipEnabled()){
 		changeSceneToolTip(0);
 		disableTooltips();
 	}
+//--------- PREVIOUS SCENE BUTTON
 	var backImg = document.createElement("img");
 	backImg.id = "backImg";
 	backImg.src = window.baseImg + "BACK.png";
@@ -56,20 +71,19 @@ function setExportPage(scene, name){
 	container.appendChild(backImg);
 	
 
+//-------- GET FAUST EQUIVALENT & LAUNCH EXPORT
 	var faustSource = getFaustEquivalent(window.scenes[1], name)
 	
 	if(faustSource)
 		getAndroidApp(name, faustSource);
 
-	
+
 	document.body.appendChild(container);
 }
 
-function resetExportPage(scene){
-
-// 	scene.muteScene();
-	scene.cleanModules();
+function onunloadExportScene(scene){
 	
+//--- clean graphical elements
 	var children = scene.getSceneContainer().childNodes;
 	
 	for(var i=children.length-1; i>=0; i--)
@@ -80,14 +94,13 @@ function resetExportPage(scene){
 ***********************  EXPORT DSP ANDROID ***********************
 ********************************************************************/
 
+//--- Create QrCode once precompile request has finished
 function terminateAndroidMenu(sha){
 
 	if(document.getElementById("androidImg"))
 		document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
 
 	var url = "http://faustservice.grame.fr";
-	
-// 	document.getElementById("androidButton").textContent = "Télécharger application Android";
 
 	if(document.getElementById("androidButton")){
 	
@@ -108,6 +121,11 @@ function getAndroidApp(name, source){
 
 	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
 }
+
+
+
+
+
 
 /******************************************************************** 
 ************************* PLUS UTILISÉ...  *************************
@@ -177,14 +195,14 @@ function equFaustModule(factory){
  		
 	faustModule.setParams(window.savedParams);
  		
- 	disconnectNode(faustModule);
+ 	disconnectModule(faustModule);
 	faustModule.deleteInputOutputNodesToModule();
-	connectNodes(faustModule, scene.audioOutput());
+	connectModules(faustModule, scene.getAudioOutput());
 	var connector = new Object();
 
-	saveConnection(faustModule, scene.audioOutput(), connector, null);
+	saveConnection(faustModule, scene.getAudioOutput(), connector, null);
 		
-	scene.audioOutput().addInputConnection(connector);
+	scene.getAudioOutput().addInputConnection(connector);
 	faustModule.addOutputConnection(connector);
 	
 	faustModule.getContainer().style.cssText = "position:relative; margin-left:auto; margin-right:auto; top:10%; width: 170px;";

@@ -1,11 +1,21 @@
-/***************************************************/
-/***** Audio Connection/Deconnection of nodes ******/
-/***************************************************/
+/*				CONNECT.JS
+	Handles Audio/Graphical Connection/Deconnection of modules
+	This is a historical file from Chris Wilson, modified for Faust Module needs.	
 
+	DEPENDENCIES :
+		- ModuleClass.js
+		- webaudio-asm-wrapper.js
+		- Dragging.js
+		
+*/
 "use strict";
 
+/**************************************************/
+/******* WEB AUDIO CONNECTION/DECONNECTION*********/
+/**************************************************/
+
 // Connect Nodes in Web Audio Graph
-function connectNodes( src, dst ) {
+function connectModules( src, dst ) {
 
 // Searching for src/dst DSP if existing
 	if(dst.getDSP)
@@ -39,7 +49,7 @@ function connectNodes( src, dst ) {
 }
 
 // Disconnect Nodes in Web Audio Graph
-function disconnectNodes(src, dst){
+function disconnectModules(src, dst){
 	
 	// We want to be dealing with the audio node elements from here on
 	var srcCpy = src;
@@ -57,13 +67,13 @@ function disconnectNodes(src, dst){
 	if(src.getOutputConnections()){
 		for(var i=0; i<src.getOutputConnections().length; i++){
 			if(src.getOutputConnections()[i].destination != dst)
-				connectNodes(src, src.getOutputConnections()[i].destination);
+				connectModules(src, src.getOutputConnections()[i].destination);
 		}
 	}
 }
 
 /**************************************************/
-/********* Save/Recall Connections of a node*******/
+/***************** Save Connection*****************/
 /**************************************************/
 
 //----- Add connection to src and dst connections structures
@@ -72,35 +82,6 @@ function saveConnection(src, dst, connector, connectorShape){
 	connector.line = connectorShape;
 	connector.destination = dst;
 	connector.source = src;
-}
-
-//************* ACCESSORS TO INPUT CONNECTIONS STRUCTURE
-
-function getNodeInputConnections(node){
-	return node.parentNode.inputConnections;	
-}
-
-function setNodeInputConnections(node, inputConnections){
-
-	if(inputConnections && node){
-		for(var j=0; j<inputConnections.length; j++)
-			createConnection(inputConnections[j].source, inputConnections[j].source.getOutputNode(), node, node.getInputNode());
-	}
-}
-
-//************* ACCESSORS TO OUTPUT CONNECTIONS STRUCTURE
-
-function getNodeOutputConnections(node){
-	
-	return node.parentNode.outputConnections;	
-}
-
-function setNodeOutputConnections(node, outputConnections){
-	
-	if(outputConnections && node){
-		for(var i=0; i<outputConnections.length; i++)
-			createConnection(node, node.getOutputNode(), outputConnections[i].destination, outputConnections[i].destination.getInputNode());
-	}
 }
 
 /***************************************************************/
@@ -112,6 +93,8 @@ function createConnection(src, outtarget, dst, intarget){
 	stopDraggingConnection(dst, intarget);
 }
 
+
+
 function deleteConnection() {
 
 	breakSingleInputConnection( this.source, this.destination, this.inputConnection );
@@ -119,7 +102,7 @@ function deleteConnection() {
 
 function breakSingleInputConnection( src, dst, connector ) {
 
-	disconnectNodes(src, dst);
+	disconnectModules(src, dst);
 		
 	// delete connection from src .outputConnections,
 	if(src.getOutputConnections)
@@ -135,7 +118,7 @@ function breakSingleInputConnection( src, dst, connector ) {
 }
 
 // Disconnect a node from all its connections
-function disconnectNode( nodeElement) {
+function disconnectModule( nodeElement) {
 
 	//for all output nodes
 	if(nodeElement.getOutputConnections && nodeElement.getOutputConnections()){
@@ -151,15 +134,3 @@ function disconnectNode( nodeElement) {
 	}
 }
 
-// Connect/Disconnect output node to physical audio output
-function mute(dest){
-
-	var out = document.getElementById("audioOutput");
-	disconnectNodes(dest, out);
-}
-
-function unmute(dest){
-	
-	var out = document.getElementById("audioOutput");
-	connectNodes(dest, out);
-}

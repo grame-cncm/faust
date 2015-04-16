@@ -1,3 +1,27 @@
+/*				MAIN.JS
+	Entry point of the Program
+	
+	Create the scenes
+	Navigate between scenes
+	Activate Physical input/output
+	Handle Drag and Drop
+	Create Factories and Modules
+
+	DEPENDENCIES :
+		- Accueil.js
+		- Finish.js
+		- Playground.js
+		- Pedagogie.js
+		- SceneClass.js
+		
+		- ModuleClass.js
+		- Connect.js
+		- libfaust.js
+		- webaudio-asm-wrapper.js
+		- Pedagogie/Tooltips.js
+		
+*/
+
 "use strict";
 
 //************* GLOBALS
@@ -29,22 +53,57 @@ function showFirstScene(){
 function createAllScenes(){
 	window.scenes = [];
 	
-	if(isTooltipEnabled()){
+	if(window.isPedagogie){
 	
 		window.scenes[0] = createScene("Accueil", function(){}, function(){});
-		welcomePage(window.scenes[0]);
-		window.scenes[1] = createScene("Pedagogie", startPeda, stopPeda);
-		pedagogiePage(window.scenes[1]);
-		window.scenes[2] = createScene("Export", setExport, resetExportPage);
+		initWelcomeScene(window.scenes[0]);
+		window.scenes[1] = createScene("Pedagogie", onloadPedagogieScene, onunloadPedagogieScene);
+		initPedagogieScene(window.scenes[1]);
+		window.scenes[2] = createScene("Export", onloadExportScene, onunloadExportScene);
 // 		Export Page doesn't need initialization
 	}
 	else{
-		window.scenes[0] = createScene("Normal", startPage, stopPage);
-		normalPage(window.scenes[0]);
+		window.scenes[0] = createScene("Normal", onloadNormalScene, onunloadNormalScene);
+		initNormalScene(window.scenes[0]);
 	}
 	
 	window.currentScene = 0;
 }
+
+/******************************************************************** 
+**********************  NAVIGATION BETWEEN SCENES *******************
+********************************************************************/
+
+function nextScene(){
+
+	var index = window.currentScene;
+	
+	window.scenes[index].hideScene();
+	window.scenes[index].unloadScene();
+	
+
+	window.currentScene = index+1;
+	
+	window.scenes[index+1].showScene();
+	window.scenes[index+1].loadScene();
+}
+
+function previousScene(){
+
+	var index = window.currentScene;
+	
+	window.scenes[index].hideScene();
+	window.scenes[index].unloadScene();
+	
+	window.scenes[index-1].showScene();
+	window.scenes[index-1].loadScene();
+		
+	window.currentScene = index-1;
+}
+
+/******************************************************************** 
+**********************  ACTIVATE PHYSICAL IN/OUTPUT *****************
+********************************************************************/
 
 function activateAudioInput(){
 
@@ -74,70 +133,17 @@ function getDevice(device) {
 	i.innerHTML = "<span class='node-button'>&nbsp;</span>";
 	src.appendChild(i);
 
-	connectNodes(src, window.scenes[window.currentScene].audioInput());
+	connectModules(src, window.scenes[window.currentScene].audioInput());
 }
 
 function activateAudioOutput(sceneOutput){
-	
-	console.log("ACTIVATE OUTPUT");
 	
 	var out = document.createElement("div");
 	out.id = "audioOutput";
 	out.audioNode = window.audioContext.destination;
 	document.body.appendChild(out);
 	
-	connectNodes(sceneOutput, out);
-}
-
-//-- Init drag and drop reactions
-function setGeneralDragAndDrop(){
-
-	window.ondragover = function () { this.className = 'hover'; return false; };
- 	window.ondragend = function () { this.className = ''; return false; };
-
-	window.ondrop = function (e) {
-	
-		uploadFile(e);
-		return true;
-	};
-}
-//-- Init drag and drop reactions
-function resetGeneralDragAndDrop(div){
-
-	window.ondragover = function () { return false; };
- 	window.ondragend = function () { return false; };
-	window.ondrop = function (e) { return false; };
-}
-
-/******************************************************************** 
-**********************  NAVIGATION BETWEEN SCENES *******************
-********************************************************************/
-
-function nextScene(){
-
-	var index = window.currentScene;
-	
-	window.scenes[index].hideScene();
-	window.scenes[index].stopScene();
-	
-
-	window.currentScene = index+1;
-	
-	window.scenes[index+1].showScene();
-	window.scenes[index+1].startScene();
-}
-
-function previousScene(){
-
-	var index = window.currentScene;
-	
-	window.scenes[index].hideScene();
-	window.scenes[index].stopScene();
-	
-	window.scenes[index-1].showScene();
-	window.scenes[index-1].startScene();
-		
-	window.currentScene = index-1;
+	connectModules(sceneOutput, out);
 }
 
 /******************************************************************** 
@@ -146,6 +152,7 @@ function previousScene(){
 
 function compileFaust(name, sourcecode, x, y, callback){
 
+//  Temporarily Saving parameters of compilation
 	window.name = name;
 	window.source = sourcecode;
 	window.x = x;
@@ -175,14 +182,14 @@ function createFaustModule(factory){
 	var faustModule;
 
 	if(isTooltipEnabled())
-		faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[1].removeModule);
+		faustModule = createModule(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[1].removeModule);
  	else
- 		faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[0].removeModule);
+ 		faustModule = createModule(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[0].removeModule);
 
  	faustModule.setSource(window.source);
- 	faustModule.setDSP(factory); 	
-	faustModule.createInterface();
- 	faustModule.addInputOutputNodesToModule();
+ 	faustModule.createDSP(factory); 	
+	faustModule.createFaustInterface();
+ 	faustModule.addInputOutputNodes();
  		
  	window.scenes[window.currentScene].addModule(faustModule);
 }
@@ -190,6 +197,28 @@ function createFaustModule(factory){
 /******************************************************************** 
 ***********************  HANDLE DRAG AND DROP ***********************
 ********************************************************************/
+
+//-- Init drag and drop reactions
+function setGeneralDragAndDrop(){
+
+	window.ondragover = function () { this.className = 'hover'; return false; };
+ 	window.ondragend = function () { this.className = ''; return false; };
+
+	window.ondrop = function (e) {
+	
+		uploadFile(e);
+		return true;
+	};
+}
+
+//-- Init drag and drop reactions
+function resetGeneralDragAndDrop(div){
+
+	window.ondragover = function () { return false; };
+ 	window.ondragend = function () { return false; };
+	window.ondrop = function (e) { return false; };
+}
+
 
 //-- Prevent Defaul Action of the browser from happening
 function preventDefaultAction(e) {
@@ -320,8 +349,8 @@ function uploadOn(node, x, y, e) {
 						compileFaust(filename, dsp_code, x, y, createFaustModule);
 					else if(type == "dsp")
 						node.updateFactory(filename, dsp_code);
-					else(type == "json")
-						recallScene(reader.result);
+// 					else if(type == "json")
+// 						window.scenes[window.currentScene].recallScene(reader.result);
 						
 					terminateUpload();
 	    		};

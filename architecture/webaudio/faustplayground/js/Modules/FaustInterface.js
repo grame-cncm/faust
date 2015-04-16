@@ -1,15 +1,17 @@
-/*
-	Faust Related Functions
-		- creation/deletion of Faust Module Interface
+/*				FAUSTINTERFACE.JS
+
+	HELPER FUNCTIONS TO CREATE FAUST INTERFACES
+	
+	FIRST PART --> DECODE JSON ENCODED INTERFACE
+	SECOND PART --> ADD GRAPHICAL OBJECTS TO INTERFACE
 */
 
 "use strict";
 
 /******************************************************************** 
-************************  CREATE INTERFACES *************************
+*************************** DECODE JSON *****************************
 ********************************************************************/
 
-//------- PARSE JSON INTERFACE to create graphical interface
 function parse_ui(ui, node){
     for (var i = 0; i < ui.length; i++)
     	parse_group(ui[i], node);
@@ -52,7 +54,9 @@ function parse_items(items, node){
         parse_item(items[i], node);
 }
 
-//------ CREATE GRAPHICAL ELEMENTS
+/******************************************************************** 
+********************* ADD GRAPHICAL ELEMENTS ************************
+********************************************************************/
 
 function addFaustModuleSlider( node, groupName, label, ivalue, imin, imax, stepUnits, units, onUpdate ) {
 
@@ -95,7 +99,7 @@ function addFaustModuleSlider( node, groupName, label, ivalue, imin, imax, stepU
 	slider.oninput = onUpdate;
 	group.appendChild(slider);
 
-	node.getNodeContainer().appendChild(group);
+	node.getInterfaceContainer().appendChild(group);
 	return slider;
 }
 
@@ -116,7 +120,7 @@ function addFaustCheckBox( element, ivalue, onUpdate ) {
 	group.appendChild(checkbox);
 	group.appendChild(label);
 
-	element.getNodeContainer().appendChild(group);
+	element.getInterfaceContainer().appendChild(group);
 	return checkbox;
 }
 
@@ -126,7 +130,6 @@ function addFaustButton( element, groupName, label, onUpdate ) {
 	group.label = groupName;
 
 	var button = document.createElement("BUTTON");        // Create a <button> element
-// 	button.onclick = onUpdate;
 	button.onmouseup = onUpdate;	
 	button.onmousedown = onUpdate;	
 		
@@ -134,7 +137,7 @@ function addFaustButton( element, groupName, label, onUpdate ) {
 	button.appendChild(label);
 	                                // Append the text to <button>
 	group.appendChild(button);
-	element.getNodeContainer().appendChild(group);
+	element.getInterfaceContainer().appendChild(group);
 	
 	return button;
 }

@@ -1,3 +1,13 @@
+/*				DRAGGING.JS
+	Handles Graphical Drag of Modules and Connections
+	This is a historical file from Chris Wilson, modified for Faust Module needs.
+	
+	DEPENDENCIES :
+		- Connect.js
+		- ModuleClass.js
+		
+*/
+
 "use strict";
 
 var dragObj = new Object();
@@ -8,7 +18,7 @@ dragObj.lastLit = null;
 /****** Node Dragging - these are used for dragging the audio modules interface*****/
 /***********************************************************************************/
 
-function startDraggingNode(event, node) {
+function startDraggingModule(event, module) {
 
  	var el;
   	var x, y;
@@ -28,11 +38,6 @@ function startDraggingNode(event, node) {
 		return;
 		
     dragObj.elNode = el;
-/*
-    // If this is a text node, use its parent element.
-    if ((dragObj.elNode.nodeType == 3)||(dragObj.elNode.className == "analyserCanvas"))
-    	dragObj.elNode = dragObj.elNode.parentNode;
-*/
 
 	// Get cursor position with respect to the page.
     x = event.clientX + window.scrollX;
@@ -51,13 +56,13 @@ function startDraggingNode(event, node) {
 	dragObj.elNode.style.zIndex = ++dragObj.zIndex;
 
   	// Capture mousemove and mouseup events on the page.
-  	node.addListener("mousemove");
-	node.addListener("mouseup");
+  	module.addListener("mousemove");
+	module.addListener("mouseup");
 
     event.preventDefault();
 }
 
-function whileDraggingNode(event, node) {
+function whileDraggingModule(event, module) {
 	var x, y;
 	var e = dragObj.elNode;
 	
@@ -69,7 +74,7 @@ function whileDraggingNode(event, node) {
   	e.style.left = (dragObj.elStartLeft + x - dragObj.cursorStartX) + "px";
   	e.style.top  = (dragObj.elStartTop  + y - dragObj.cursorStartY) + "px";
 	
-	if (node.getInputConnections() != null) {	// update any lines that point in here.
+	if (module.getInputConnections() != null) {	// update any lines that point in here.
 		var c;
 		
 		var off = e.inputs;
@@ -83,14 +88,14 @@ function whileDraggingNode(event, node) {
 			off=off.offsetParent;
 		}
 		
-		for (c=0; c<node.getInputConnections().length; c++) {
+		for (c=0; c<module.getInputConnections().length; c++) {
 		
-			node.getInputConnections()[c].line.setAttributeNS(null, "x1", x);
-			node.getInputConnections()[c].line.setAttributeNS(null, "y1", y);
+			module.getInputConnections()[c].line.setAttributeNS(null, "x1", x);
+			module.getInputConnections()[c].line.setAttributeNS(null, "y1", y);
 		}
 	}
 
-	if (node.getOutputConnections()!= null) {	// update any lines that point out of here.
+	if (module.getOutputConnections()!= null) {	// update any lines that point out of here.
 		var c;
 		
 		var off = e.outputs;
@@ -103,11 +108,11 @@ function whileDraggingNode(event, node) {
 			off=off.offsetParent;
 		}
 		
-		for (c=0; c<node.getOutputConnections().length; c++) {
+		for (c=0; c<module.getOutputConnections().length; c++) {
 
-			if(node.getOutputConnections()[c].line){
-				node.getOutputConnections()[c].line.setAttributeNS(null, "x2", x);
-				node.getOutputConnections()[c].line.setAttributeNS(null, "y2", y);
+			if(module.getOutputConnections()[c].line){
+				module.getOutputConnections()[c].line.setAttributeNS(null, "x2", x);
+				module.getOutputConnections()[c].line.setAttributeNS(null, "y2", y);
 			}
 		}
 	}
@@ -115,30 +120,23 @@ function whileDraggingNode(event, node) {
     event.preventDefault();
 }
 
-function stopDraggingNode(event, node) {
+function stopDraggingModule(event, module) {
   // Stop capturing mousemove and mouseup events.
-    node.removeListener(document, "mousemove");
-    node.removeListener(document, "mouseup");
+    module.removeListener(document, "mousemove");
+    module.removeListener(document, "mouseup");
 }
 
 /************************************************************************************/
 /*** Connector Dragging - these are used for dragging the connectors between nodes***/
 /************************************************************************************/
 
-function startDraggingConnection(node, target){
+function startDraggingConnection(module, target){
 
-	dragObj.elNode = node;
-
-	// If this is a text node, use its parent element.
-//     if (dragObj.elNode.getNodeContainer().nodeType == 3)
-//     	dragObj.elNode = dragObj.elNode.parentNode;
+	dragObj.elNode = module;
 
     // if this is the green or red button, use its parent.
     if (target.classList.contains("node-button"))
     	target = target.parentNode; 
-
-// 	if(!target)
-// 		return;
 
 	// Get the position of the originating connector with respect to the page.
 	var off = target;
@@ -158,8 +156,8 @@ function startDraggingConnection(node, target){
 	// remember if this is an input or output node, so we can match
 	dragObj.originIsInput = target.classList.contains("node-input");
 
-	node.getNodeContainer().unlitClassname = dragObj.elNode.getNodeContainer().className;
-	node.getNodeContainer().className += " canConnect";
+	module.getInterfaceContainer().unlitClassname = dragObj.elNode.getInterfaceContainer().className;
+	module.getInterfaceContainer().className += " canConnect";
 	
 	// Create a connector visual line
 	var svgns = "http://www.w3.org/2000/svg";
@@ -176,16 +174,16 @@ function startDraggingConnection(node, target){
     document.getElementById("svgCanvas").appendChild(shape);
 }
 
-function stopDraggingConnection(node, target){
-
+function stopDraggingConnection(module, target){
+	
 	var sourceNode = dragObj.elNode;
 
-	if (sourceNode.getNodeContainer().lastLit) {
-		sourceNode.getNodeContainer().lastLit.className = sourceNode.getNodeContainer().lastLit.unlitClassname;
-		sourceNode.getNodeContainer().lastLit = null;
+	if (sourceNode.getInterfaceContainer().lastLit) {
+		sourceNode.getInterfaceContainer().lastLit.className = sourceNode.getInterfaceContainer().lastLit.unlitClassname;
+		sourceNode.getInterfaceContainer().lastLit = null;
 	}
 
-	dragObj.elNode.getNodeContainer().className = dragObj.elNode.getNodeContainer().unlitClassname;
+	dragObj.elNode.getInterfaceContainer().className = dragObj.elNode.getInterfaceContainer().unlitClassname;
 
 	var toElem = target;
 
@@ -215,7 +213,7 @@ function stopDraggingConnection(node, target){
 		if (dragObj.originIsInput) {
 		
 			if (toElem.classList.contains("node-output")) {
-				src = node;
+				src = module;
 				dst = sourceNode;
 			}
 		}		
@@ -237,13 +235,13 @@ function stopDraggingConnection(node, target){
 // 				connectConnectors(dragObj.elNode, toElem);
 // 				return;
 				src = sourceNode;
-				dst = node;
+				dst = module;
 			}
 		}
 		
 		if(src && dst){
 		
-			connectNodes(src, dst);
+			connectModules(src, dst);
 			
 			var connector = new Object();
 
@@ -271,19 +269,19 @@ function stopDraggingConnection(node, target){
 	dragObj.connectorShape = null;
 }
 
-function startDraggingConnector(node, event) {
+function startDraggingConnector(module, event) {
 
-    startDraggingConnection(node, event.target);
+    startDraggingConnection(module, event.target);
 
   	// Capture mousemove and mouseup events on the page.
-    node.addCnxListener(event.target, "mousemove");
-    node.addCnxListener(event.target, "mouseup");
+    module.addCnxListener(event.target, "mousemove");
+    module.addCnxListener(event.target, "mouseup");
 
     event.preventDefault();
 	event.stopPropagation();
 }
 
-function whileDraggingConnector(node, event) {
+function whileDraggingConnector(module, event) {
 
 // 	var toElem = event.toElement;
 	var toElem = event.target;
@@ -336,18 +334,15 @@ function whileDraggingConnector(node, event) {
 	event.stopPropagation();
 }
 
-function stopDraggingConnector(node, event) {
+function stopDraggingConnector(module, event) {
 
   	// Stop capturing mousemove and mouseup events.
-    node.removeCnxListener(event.target, "mousemove");
-    node.removeCnxListener(event.target, "mouseup");
-
-// event.toElement || event.target
+    module.removeCnxListener(event.target, "mousemove");
+    module.removeCnxListener(event.target, "mouseup");
 
 	var arrivingNode;
 
 	var modules = window.scenes[window.currentScene].getModules();
-// 	modules.push(window.scenes[window.currentScene].audioOutput());
 
 	for(var i=0; i<modules.length; i++){
 	
@@ -357,7 +352,7 @@ function stopDraggingConnector(node, event) {
 		}
 	}	
 
-	var module = window.scenes[window.currentScene].audioOutput();
+	var module = window.scenes[window.currentScene].getAudioOutput();
 	if((dragObj.originIsInput && module.isPointInOutput(event.clientX, event.clientY)) || module.isPointInInput(event.clientX, event.clientY))
 		arrivingNode = module;	
 

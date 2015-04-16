@@ -1,7 +1,21 @@
+/*				PEDAGOGIE.JS
+	Init Pedagogical Scene with all its graphical elements
+
+	This is the second scene of the Pedagogical Playground
+		
+	DEPENDENCIES :
+		- Scene.js
+		- Pedagogie/Tooltips.js
+		- Connect.js
+		- Main.js
+*/
+
+
+
 "use strict";
 
 // Add visual elements to Pedagogical Playground Scene
-function pedagogiePage(scene){
+function initPedagogieScene(scene){
 
 		var container = scene.getSceneContainer();
 	
@@ -91,14 +105,14 @@ function pedagogiePage(scene){
 		node.appendChild(nodeimg);
 
 //Integrate Output
-	scene.integrateSceneInPage();
+	scene.integrateSceneInBody();
 	
-	scene.integrateOutputInPage(function(){
+	scene.integrateOutput(function(){
 		
 		if(isTooltipEnabled())
 			changeSceneToolTip(1);
 			
-		scene.audioOutput().setInputOutputNodes(node, null);
+		scene.getAudioOutput().setInputOutputNodes(node, null);
 			
 		initLibrary(container);
 
@@ -108,7 +122,7 @@ function pedagogiePage(scene){
 }
 
 // Load And UnLoad Pedagogical Playground Scene
-function startPeda(scene){
+function onloadPedagogieScene(scene){
 	
 	document.getElementById("PatchName").textContent = "Scène de   " + document.getElementById("nameTag").value;
 	document.getElementById("PatchName").style.cssText = "color:white";
@@ -123,7 +137,7 @@ function startPeda(scene){
 // 	recallScene(json);
 }
 
-function stopPeda(scene){
+function onunloadPedagogieScene(scene){
 
 	scene.muteScene();
 }

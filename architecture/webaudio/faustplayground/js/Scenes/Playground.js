@@ -1,10 +1,22 @@
+/*				PLAYGROUND.JS
+	Init Normal Scene with all its graphical elements
+
+	This is the unique scene of the Normal Playground
+		
+	DEPENDENCIES :
+		- Scene.js
+		- Connect.js
+		- Main.js
+		- Export.js
+*/
+
 "use strict";
 
 /******************************************************************** 
 **************************  INITIALIZATION **************************
 ********************************************************************/
 
-function normalPage(scene){
+function initNormalScene(scene){
 
 		var container = scene.getSceneContainer();
 	
@@ -54,7 +66,7 @@ function normalPage(scene){
 
 		var refButton = document.createElement("div");
 		refButton.id = "refreshButton";
-		refButton.onclick = UploadTargets;
+		refButton.onclick = uploadTargets;
 		refButton.innerHTML = '<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="50.000000pt" height="50.000000pt" viewBox="0 0 50.000000 50.000000" preserveAspectRatio="xMidYMid meet"><g transform="translate(0.000000,50.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none"> <path d="M186 309 c-37 -29 -37 -89 0 -118 28 -22 69 -27 93 -12 23 15 3 30 -33 24 -29 -4 -37 -1 -51 21 -16 24 -16 28 -1 51 18 27 63 34 84 13 17 -17 15 -31 -3 -24 -20 7 -19 1 6 -28 l22 -25 18 24 c20 25 25 40 9 30 -5 -3 -16 7 -24 23 -25 47 -75 56 -120 21z"/></g></svg>';
 		subfooter.appendChild(refButton);
 
@@ -125,16 +137,16 @@ function normalPage(scene){
 		nodeimg.value = "&nbsp;";
 		node.appendChild(nodeimg);
 	
-	scene.integrateSceneInPage();
+	scene.integrateSceneInBody();
 	
-	scene.integrateInputInPage(function(){
+	scene.integrateInput(function(){
 
-		scene.integrateOutputInPage(function(){	
-			scene.audioOutput().setInputOutputNodes(node, null);
-			scene.audioInput().setInputOutputNodes(null, input);
+		scene.integrateOutput(function(){	
+			scene.getAudioOutput().setInputOutputNodes(node, null);
+			scene.getAudioInput().setInputOutputNodes(null, input);
 	
-			startPage(scene);
-			UploadTargets();
+			onloadNormalScene(scene);
+			uploadTargets();
 		});
 	});
 }
@@ -144,18 +156,18 @@ function onEnterKey(e){
 	
 	if (e.keyCode == 13){ 
 		e.preventDefault(); 
-		UploadTargets();
+		uploadTargets();
 	}
 }
 
 // On Load And UnLoad Playground Scene
-function startPage(scene){
+function onloadNormalScene(scene){
 
 	setGeneralDragAndDrop();
 	scene.unmuteScene();
 }
 
-function stopPage(scene){
+function onunloadNormalScene(scene){
 	scene.muteScene();
 }
 
