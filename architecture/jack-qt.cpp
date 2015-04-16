@@ -54,7 +54,7 @@
 #endif
 
 #if MIDICTRL
-#include "faust/midi/midi-io.h"
+#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 #endif
 
@@ -105,16 +105,16 @@ int main(int argc, char *argv[])
     int poly = lopt(argv, "--poly", 4);
     
 #if MIDICTRL
-    MidiIO midi;
+    rtmidi midi;
 #endif
 	
 #ifdef POLY
-    #if MIDICTRL
-        DSP = new mydsp_poly(poly, true);
-        midi.addMidiIn(DSP);
-    #else
-        DSP = new mydsp_poly(poly, false);
-    #endif
+#if MIDICTRL
+    DSP = new mydsp_poly(poly, true);
+    midi.addMidiIn(DSP);
+#else
+    DSP = new mydsp_poly(poly);
+#endif
 #else
     DSP = new mydsp();
 #endif

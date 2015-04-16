@@ -112,7 +112,7 @@ class MidiUI : public GUI, public midi
   
     public:
 
-        MidiUI(MidiIO* midi):fMidiOut(midi) { midi->addMidiIn(this); }
+        MidiUI(rtmidi* midi):fMidiOut(midi) { midi->addMidiIn(this); }
 
         virtual ~MidiUI() {}
       
