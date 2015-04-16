@@ -40,7 +40,7 @@ endif
 
 install:
 	install libfaustremote.a  /usr/local/lib/faust/ 
-	cp remote-dsp.h  /usr/local/include/faust/
+	cp remote-dsp.h  /usr/local/include/faust/dsp/
 
 clean :
 	rm -f $(objects) libfaustremote.a

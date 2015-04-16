@@ -132,8 +132,8 @@ install :
 	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
-	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/
-	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/
+	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
+	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/dsp/
 	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
 
@@ -178,7 +178,7 @@ install :
 	#install faustremote
 	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
 	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
-	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/
+	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/dsp/
 	# install webaudio
 	cp -r architecture/webaudio $(prefix)/lib/faust/
 

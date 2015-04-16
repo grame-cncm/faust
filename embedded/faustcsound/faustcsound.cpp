@@ -52,7 +52,7 @@
 
 */
 #include "csdl.h"
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/UI.h"
 #define MAXARG 40
 

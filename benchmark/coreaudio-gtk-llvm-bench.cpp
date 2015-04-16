@@ -28,7 +28,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 
 using namespace std;
 

@@ -82,7 +82,7 @@ struct voice_factory {
 
 #ifdef LLVM_DSP
 
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 
 struct llvm_dsp_voice : public dsp_voice {
 
@@ -223,6 +223,13 @@ class mydsp_poly : public dsp, public midi
         mydsp_poly(int max_polyphony, bool control, llvm_dsp_factory* factory = NULL)
         {
             fVoiceControl = control;
+            llvm_dsp_voice_factory dsp_factory(factory);
+            init(max_polyphony, &dsp_factory);
+        }
+        
+        mydsp_poly(int max_polyphony, llvm_dsp_factory* factory = NULL)
+        {
+            fVoiceControl = false;
             llvm_dsp_voice_factory dsp_factory(factory);
             init(max_polyphony, &dsp_factory);
         }

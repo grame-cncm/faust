@@ -26,7 +26,7 @@
 #include <libgen.h>
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/jsonfaustui.h"

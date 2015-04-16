@@ -44,7 +44,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/misc.h"
 
 #include <map>
