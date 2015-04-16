@@ -90,7 +90,7 @@ function saveConnection(src, dst, connector, connectorShape){
 
 function createConnection(src, outtarget, dst, intarget){
 	startDraggingConnection(src, outtarget);
-	stopDraggingConnection(dst, intarget);
+	stopDraggingConnection(src, dst);
 }
 
 

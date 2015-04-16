@@ -83,6 +83,8 @@ var createModule = function (ID, x, y, name, parent, callback){
 
 	function dragCallback(event){
 	
+	
+		console.log("drag Callback");
 		if(event.type == "mousedown")
 			startDraggingModule(event, that);
 		else if(event.type == "mouseup")	
@@ -92,6 +94,9 @@ var createModule = function (ID, x, y, name, parent, callback){
 	};
 	
 	function dragCnxCallback(event){
+	
+		console.log("drag Cnx Callback");
+	
 		if(event.type == "mousedown")
 			startDraggingConnector(that, event);
 		else if(event.type == "mouseup")
@@ -359,8 +364,6 @@ var createModule = function (ID, x, y, name, parent, callback){
 			fInputNode.innerHTML = "<span class='node-button'>&nbsp;</span>";
 		
 			fModuleContainer.appendChild(fInputNode);
-// 			WHAT IS THAT ??????
-			fModuleContainer.inputs = fInputNode;
 		}
 			
 		if (fDSP.getNumOutputs() > 0) {
@@ -371,7 +374,6 @@ var createModule = function (ID, x, y, name, parent, callback){
 			fOutputNode.innerHTML = "<span class='node-button'>&nbsp;</span>";
 		
 			fModuleContainer.appendChild(fOutputNode);
-			fModuleContainer.outputs = fOutputNode;
 		}		
 	},
 	deleteInputOutputNodes : function(){
