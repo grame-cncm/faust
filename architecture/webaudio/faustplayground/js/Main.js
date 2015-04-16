@@ -23,7 +23,7 @@ function init() {
 }
 
 function showFirstScene(){
-	window.scenes[0].showScene();	
+	window.scenes[0].showScene();
 }
 
 function createAllScenes(){
@@ -299,17 +299,27 @@ function uploadOn(node, x, y, e) {
 			    var ext = file.name.toString().split('.').pop();
 
 				var filename = file.name.toString().split('.').shift();
+				
+				var type;
 
-    	    	if (ext == "dsp")
+    	    	if (ext == "dsp"){
+    	    		type = "dsp";
         	    	reader.readAsText(file);  
+        	    }
+        	    else if(ext == "json"){
+        	    	type = "json";
+        	    	reader.readAsText(file);
+        	    }
         	    	
 	    		reader.onloadend = function(e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
 
-					if(!node)
+					if(!node && type == "dsp")
 						compileFaust(filename, dsp_code, x, y, createFaustModule);
-					else
+					else if(type == "dsp")
 						node.updateFactory(filename, dsp_code);
+					else(type == "json")
+						recallScene(reader.result);
 						
 					terminateUpload();
 	    		};

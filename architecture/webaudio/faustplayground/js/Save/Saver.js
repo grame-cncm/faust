@@ -84,20 +84,17 @@ function createModuleAndConnectIt(factory){
     	alert(faust.getErrorMessage());    
         return null;
 	}
-        
+    
 	var faustModule;
 
-	if(isTooltipEnabled())
-		faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[1].removeModule);
- 	else
- 		faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[0].removeModule);
+	faustModule = createNode(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[window.currentScene].removeModule);
 
  	faustModule.setSource(window.source);
  	faustModule.setDSP(factory); 	
  	
  	if(window.params){
 		for(var i=0; i<window.params.length; i++){
-			console.log(window.params);
+
 			if(window.params[i] && window.params[i+1]){
 				faustModule.addParam(window.params[i]["path"], window.params[i+1]["value"]);
 				i+1;
@@ -110,15 +107,11 @@ function createModuleAndConnectIt(factory){
 	faustModule.createInterface();
  	faustModule.addInputOutputNodesToModule();
 
-	if(isTooltipEnabled()) 		
-	 	window.scenes[1].addModule(faustModule);
-	else
-	 	window.scenes[0].addModule(faustModule);
+	window.scenes[window.currentScene].addModule(faustModule);
 	
 // WARNING!!!!! Not right in an asynchroneous call of compileFaust
 	if(window.inputs){
 		for(var i=0; i<window.inputs.length; i++){
-			console.log(window.inputs[i]["src"]);
 		
 			var src = window.scenes[window.currentScene].getModules()[window.inputs[i]["src"]-1];
 			if(src)
@@ -128,16 +121,14 @@ function createModuleAndConnectIt(factory){
 	
 	if(window.outputs){
 		for(var i=0; i<window.outputs.length; i++){
-				console.log(window.outputs[i]["dst"]);
+
 			var dst = window.scenes[window.currentScene].getModules()[window.outputs[i]["dst"]-1];
 
 			if(dst)
 				createConnection(faustModule, faustModule.getOutputNode(), dst, dst.getInputNode());
 				
-			else if(window.outputs[i]["dst"] == 0){
-				console.log(window.scenes[1].audioOutput());
+			else if(window.outputs[i]["dst"] == 0)
 				createConnection(faustModule, faustModule.getOutputNode(), window.scenes[window.currentScene].audioOutput(), window.scenes[window.currentScene].audioOutput().getInputNode());
-			}
 		}
 	}
 }
@@ -219,4 +210,6 @@ function createMailServer(){
 
 	server.listen(1337);
 }
+
+
 
