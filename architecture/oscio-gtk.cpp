@@ -42,7 +42,7 @@
 #include "faust/gui/faustgtk.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/misc.h"
-#include "faust/audio/oscdsp.h"
+#include "faust/audio/osc-dsp.h"
 
 
 /**************************BEGIN USER SECTION **************************/
