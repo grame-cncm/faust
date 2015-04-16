@@ -222,6 +222,7 @@ class mydsp_poly : public dsp, public midi
     #ifdef LLVM_DSP
         mydsp_poly(int max_polyphony, bool control, llvm_dsp_factory* factory = NULL)
         {
+            fVoiceControl = control;
             llvm_dsp_voice_factory dsp_factory(factory);
             init(max_polyphony, &dsp_factory);
         }
