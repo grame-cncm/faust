@@ -119,6 +119,7 @@ class mydsp_poly : public dsp, public midi
         std::string fFreqLabel;
         
         int fMaxPolyphony;
+        bool fVoiceControl;
         
         FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
@@ -179,8 +180,16 @@ class mydsp_poly : public dsp, public midi
     
     public: 
     
+        mydsp_poly(int max_polyphony, bool control, int buffer_size = 8192)  // Second argument to remove ASAP
+        {
+            fVoiceControl = control;
+            mydsp_voice_factory factory;
+            init(max_polyphony, &factory);
+        }
+        
         mydsp_poly(int max_polyphony, int buffer_size = 8192)  // Second argument to remove ASAP
         {
+            fVoiceControl = true;
             mydsp_voice_factory factory;
             init(max_polyphony, &factory);
         }
@@ -200,6 +209,7 @@ class mydsp_poly : public dsp, public midi
         
         void init(int sample_rate) 
         {
+            // Init voices
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->init(sample_rate);
             }
@@ -207,7 +217,14 @@ class mydsp_poly : public dsp, public midi
             // Creates JSON
             JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
             fVoiceTable[0]->metadata(&builder);
-            fVoiceTable[0]->buildUserInterface(&builder);
+            builder.openTabBox("Polyphonic instrument");
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                std::stringstream voice; voice << "Voice" << i;
+                builder.openHorizontalBox(voice.str().c_str());
+                fVoiceTable[i]->buildUserInterface(&builder);
+                builder.closeBox();
+            }
+            builder.closeBox();
             fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
@@ -231,15 +248,23 @@ class mydsp_poly : public dsp, public midi
             
             // First clear the outputs
             clearOutput(count, outputs);
-              
-            // Then mix all voices
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                if (fVoiceTable[i]->fNote != kFreeVoice) {
-                    fVoiceTable[i]->compute(count, inputs, fMixBuffer);
-                    FAUSTFLOAT level = mixVoice(count, fMixBuffer, outputs);
-                    if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
-                        fVoiceTable[i]->fNote = kFreeVoice;
+            
+            if (fVoiceControl) {
+                // Mix all playing voices
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    if (fVoiceTable[i]->fNote != kFreeVoice) {
+                        fVoiceTable[i]->compute(count, inputs, fMixBuffer);
+                        FAUSTFLOAT level = mixVoice(count, fMixBuffer, outputs);
+                        if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
+                            fVoiceTable[i]->fNote = kFreeVoice;
+                        }
                     }
+                }
+            } else {
+                // Mix all voices
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    fVoiceTable[i]->compute(count, inputs, fMixBuffer);
+                    mixVoice(count, fMixBuffer, outputs);
                 }
             }
         }
@@ -326,12 +351,6 @@ class mydsp_poly : public dsp, public midi
             }
         }
         
-               
-        const char* getJSON()
-        {
-            return fJSON.c_str();
-        }
-        
         void setValue(const char* path, float value)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
@@ -358,6 +377,11 @@ class mydsp_poly : public dsp, public midi
             if (voice >= 0) {
                 fVoiceTable[voice]->setValue(fGainLabel, value);
             }
+        }
+        
+        const char* getJSON()
+        {
+            return fJSON.c_str();
         }
     
 };
