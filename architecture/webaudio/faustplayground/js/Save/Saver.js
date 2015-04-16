@@ -73,8 +73,7 @@ function saveScene(scene){
 
 	json += '}';
 	
-	console.log(json);
-// 	recallScene(json);
+// 	console.log(json);
 	return json;
 
 }
@@ -110,8 +109,11 @@ function createModuleAndConnectIt(factory){
  	
 	faustModule.createInterface();
  	faustModule.addInputOutputNodesToModule();
- 		
- 	window.scenes[window.currentScene].addModule(faustModule);
+
+	if(isTooltipEnabled()) 		
+	 	window.scenes[1].addModule(faustModule);
+	else
+	 	window.scenes[0].addModule(faustModule);
 	
 // WARNING!!!!! Not right in an asynchroneous call of compileFaust
 	if(window.inputs){
@@ -217,3 +219,4 @@ function createMailServer(){
 
 	server.listen(1337);
 }
+
