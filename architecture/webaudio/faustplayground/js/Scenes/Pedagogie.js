@@ -99,7 +99,6 @@ function pedagogiePage(scene){
 			changeSceneToolTip(1);
 			
 		scene.audioOutput().setInputOutputNodes(node, null);
-// 		scene.audioInput().setInputOutputNodes(null, input);
 			
 		initLibrary(container);
 

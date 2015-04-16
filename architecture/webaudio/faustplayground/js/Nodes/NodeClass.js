@@ -83,7 +83,6 @@ var createNode = function (ID, x, y, name, parent, callback){
 /**********************************************************************/
     deleteNode: function() {
     	disconnectNode(that);
-// 	deleteDSP(faustDiv.DSP);
 	 	that.deleteFaustInterface();	
     
     	if(container)

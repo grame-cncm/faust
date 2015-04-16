@@ -5,7 +5,7 @@
 ********************************************************************/
 
 function setExport(scene){
-	saveScene(window.scenes[1]);
+// 	saveScene(window.scenes[1]);
 
 	document.body.style.background = "url('"+window.baseImg + "output-bkg.gif') 0 0 repeat";
 	var appName = prompt("Choisis le nom de ton application", "");
@@ -108,7 +108,6 @@ function getAndroidApp(name, source){
 
 	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
 }
-
 
 /******************************************************************** 
 ************************* PLUS UTILISÉ...  *************************

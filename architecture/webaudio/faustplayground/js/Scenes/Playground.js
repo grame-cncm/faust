@@ -132,16 +132,9 @@ function normalPage(scene){
 		scene.integrateOutputInPage(function(){	
 			scene.audioOutput().setInputOutputNodes(node, null);
 			scene.audioInput().setInputOutputNodes(null, input);
-			
-// 			activateAudioInput();
-		
-			console.log("inputActivation");
-// 			activateAudioOutput(destDiv);
-// 			scene.hideScene();
 	
 			startPage(scene);
-//		 	setGeneralDragAndDrop();
-				UploadTargets();
+			UploadTargets();
 		});
 	});
 }
@@ -165,4 +158,6 @@ function startPage(scene){
 function stopPage(scene){
 	scene.muteScene();
 }
+
+
 
