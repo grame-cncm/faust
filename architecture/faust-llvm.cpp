@@ -363,7 +363,7 @@ class audio_simulator : public audio {
     
 };
 					
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include <string>
 
 #define BUFFER_TO_RENDER 10

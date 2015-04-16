@@ -29,7 +29,7 @@
 #include "faust/midi/RtMidi.cpp"
 #include "faust/midi/midi.h"
 
-class MidiIO : public midi {
+class rtmidi : public midi {
 
     private:
     
@@ -52,7 +52,7 @@ class MidiIO : public midi {
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
-            MidiIO* midi = static_cast<MidiIO*>(arg);
+            rtmidi* midi = static_cast<rtmidi*>(arg);
             unsigned int nBytes = message->size();
             
             int cmd = (int)message->at(0) >> 4;
@@ -142,10 +142,10 @@ class MidiIO : public midi {
     
     public:
     
-        MidiIO():fInput(0), fOutput(0)
+        rtmidi():fInput(0), fOutput(0)
         {}
         
-        virtual ~MidiIO()
+        virtual ~rtmidi()
         {}
         
         void addMidiIn(midi* dsp) { fMidiInputs.push_back(dsp); }

@@ -58,7 +58,7 @@
 // Polyphony
 //**************************************************************
 
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 
 //**************************************************************
 // IOS Coreaudio
@@ -110,6 +110,7 @@ public:
         inChanNumb = DSP.getNumInputs();
         outChanNumb = DSP.getNumOutputs();
         
+        // configuring the UI
         DSP.buildUserInterface(&mapUI);
         DSP.buildUserInterface(&json);
         
@@ -120,7 +121,7 @@ public:
             polyMax = 4;
             DSPpoly = new mydsp_poly(polyMax);
             DSPpoly->init(samplingRate);
-        } else{
+        } else {
             polyMax = 0;
         }
         

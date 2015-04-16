@@ -43,6 +43,7 @@
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/midi/midi.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -52,11 +53,8 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#if defined(POLY) || defined(MIDICTRL)
-#include "faust/midi/midi-io.h"
-#endif
-
 #if MIDICTRL
+#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 #endif
 
@@ -75,7 +73,7 @@
 <<includeclass>>
 
 #ifdef POLY
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
@@ -106,13 +104,17 @@ int main(int argc, char *argv[])
     
     int poly = lopt(argv, "--poly", 4);
     
-#if defined(POLY) || defined(MIDICTRL)
-    MidiIO midi_io;
+#if MIDICTRL
+    rtmidi midi;
 #endif
 	
 #ifdef POLY
+#if MIDICTRL
+    DSP = new mydsp_poly(poly, true);
+    midi.addMidiIn(DSP);
+#else
     DSP = new mydsp_poly(poly);
-    midi_io.addMidiIn(DSP);
+#endif
 #else
     DSP = new mydsp();
 #endif
@@ -129,8 +131,8 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
     
 #ifdef MIDICTRL
-    MidiUI midi_ui(&midi_io);
-    DSP->buildUserInterface(&midi_ui);
+    MidiUI midiinterface(&midi);
+    DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
@@ -151,8 +153,8 @@ int main(int argc, char *argv[])
 	finterface.recallState(rcfilename);	
 	audio.start();
     
-#if defined(POLY) || defined(MIDICTRL)
-    midi_io.start();
+#if MIDICTRL
+    midi.start();
 #endif
 	
 #ifdef HTTPCTRL
@@ -174,8 +176,8 @@ int main(int argc, char *argv[])
 	audio.stop();
 	finterface.saveState(rcfilename);
     
-#if defined(POLY) || defined(MIDICTRL)
-    midi_io.stop();
+#if MIDICTRL
+    midi.stop();
 #endif
     
   	return 0;
