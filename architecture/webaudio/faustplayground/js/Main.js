@@ -84,6 +84,9 @@ function nextScene(){
 
 	window.currentScene = index+1;
 	
+	console.log("WINDOW CURRENT SCENE");
+	console.log(window.scenes[index+1].getSceneContainer());
+	
 	window.scenes[index+1].showScene();
 	window.scenes[index+1].loadScene();
 }
@@ -261,7 +264,7 @@ function uploadFile(e){
 }
 
 //-- Upload content dropped on the page and create a Faust DSP with it
-function uploadOn(node, x, y, e) {
+function uploadOn(module, x, y, e) {
 	
   	preventDefaultAction(e);
   	
@@ -283,10 +286,10 @@ function uploadOn(node, x, y, e) {
     	    {
 	    	    var dsp_code ="process = vgroup(\"" + filename + "\",environment{" + xmlhttp.responseText + "}.process);";
 
-				if(node==null)
+				if(module==null)
 					compileFaust(filename, dsp_code, x, y, createFaustModule);
 				else
-					node.updateFactory(filename, dsp_code);
+					module.update(filename, dsp_code);
         	}
         	
         	terminateUpload();
@@ -305,10 +308,10 @@ function uploadOn(node, x, y, e) {
 		if(dsp_code){
 	    	dsp_code ="process = vgroup(\"" + "TEXT" + "\",environment{" + dsp_code + "}.process);";
 		
-			if(!node)
+			if(!module)
 				compileFaust("TEXT", dsp_code, x, y, createFaustModule);
 			else
-				node.updateFactory("TEXT", dsp_code);
+				module.update("TEXT", dsp_code);
 				
 			terminateUpload();	
 		}
@@ -345,10 +348,10 @@ function uploadOn(node, x, y, e) {
 	    		reader.onloadend = function(e) {
 	    	    	dsp_code ="process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
 
-					if(!node && type == "dsp")
+					if(!module && type == "dsp")
 						compileFaust(filename, dsp_code, x, y, createFaustModule);
 					else if(type == "dsp")
-						node.updateFactory(filename, dsp_code);
+						module.update(filename, dsp_code);
 					else if(type == "json")
 						window.scenes[window.currentScene].recallScene(reader.result);
 						

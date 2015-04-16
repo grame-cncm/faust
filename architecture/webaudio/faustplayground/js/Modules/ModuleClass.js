@@ -189,6 +189,7 @@ var createModule = function (ID, x, y, name, parent, callback){
     	fDSP = faust.createDSPInstance(factory, window.audioContext, 1024);	
 	},
 
+//--- Update DSP in module 
 	updateDSP: function(factory){
 	
 		var toDelete = fDSP;
@@ -197,13 +198,13 @@ var createModule = function (ID, x, y, name, parent, callback){
 		var saveOutCnx = new Array().concat(fOutputConnections);
 		var saveInCnx = new Array().concat(fInputConnections);
 			
-
+// Delete old Module 
 		disconnectModule(that);
 	
 		that.deleteFaustInterface();
  		that.deleteInputOutputNodes();	
  		
- 	// Creating new interface
+ // Create new one
  	
 		that.createDSP(factory);
 	 	fName = fTempName;
@@ -213,7 +214,7 @@ var createModule = function (ID, x, y, name, parent, callback){
 		
 		that.deleteDSP(toDelete);
 
-	// Recalling connections		
+// Recall Cnx
 		if(saveOutCnx && that.getOutputNode()){
 		
 			for(var i=0; i<saveOutCnx.length; i++){
@@ -228,6 +229,7 @@ var createModule = function (ID, x, y, name, parent, callback){
 			}
 		}
 	},
+	
 	deleteDSP: function(todelete){
 	// 	TO DO SAFELY --> FOR NOW CRASHES SOMETIMES
 // 		if(todelete)
@@ -251,17 +253,22 @@ var createModule = function (ID, x, y, name, parent, callback){
 		fEditImg.area = textArea;
 	},
 
-	updateFactory: function(name, code){
+//---- Update Module with new name/code source
+	update: function(name, code){
+	
+	
 		fTempName = name;
 		fTempSource = code;
 	
 		compileFaust(name, code, x, y, that.updateDSP);
 	},
+	
+//---- React to recompilation triggered by click on icon
 	recompileSource: function(event){
 	
 		var dsp_code = event.target.area.value;
 
-		that.updateFactory(fTitle.textContent, dsp_code);
+		that.update(fTitle.textContent, dsp_code);
 		that.recallParams();
 	
 		fEditImg.src = window.baseImg + "edit.png";

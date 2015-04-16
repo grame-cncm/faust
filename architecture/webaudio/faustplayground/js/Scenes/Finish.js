@@ -18,6 +18,8 @@
 function onloadExportScene(scene){
 // 	window.scenes[1].saveScene();
 
+	scene.integrateSceneInBody();
+	
 	document.body.style.background = "url('"+window.baseImg + "output-bkg.gif') 0 0 repeat";
 	var appName = prompt("Choisis le nom de ton application", "");
 
@@ -28,7 +30,6 @@ function onloadExportScene(scene){
 }
 
 function initExportScene(scene, name){
-
 
 	var container = scene.getSceneContainer();
 
@@ -77,8 +78,6 @@ function initExportScene(scene, name){
 	if(faustSource)
 		getAndroidApp(name, faustSource);
 
-
-	document.body.appendChild(container);
 }
 
 function onunloadExportScene(scene){

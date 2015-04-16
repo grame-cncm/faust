@@ -104,10 +104,10 @@ var createScene = function (identifiant, onload, onunload){
 		
 /*********************** LOAD/UNLOAD SCENE ***************************/
 	loadScene:function(){
-		onload(that);
+		onload(this);
 	},
 	unloadScene: function(){
-		onunload(that);
+		onunload(this);
 	},
 
 /*********************** SAVE/RECALL SCENE ***************************/
@@ -240,17 +240,19 @@ var createScene = function (identifiant, onload, onunload){
  		if(window.params){
 			for(var i=0; i<window.params.length; i++){
 
+				console.log("WINDOW.PARAMS");
+				console.log(window.params.length);
 				if(window.params[i] && window.params[i+1]){
 					faustModule.addParam(window.params[i]["path"], window.params[i+1]["value"]);
 					i+1;
 				}	
 			}
-			faustModule.recallParams();
 		}
  	
- 	
+		faustModule.recallParams(); 	
 		faustModule.createFaustInterface();
  		faustModule.addInputOutputNodes();
+
 
 		that.addModule(faustModule);
 	
@@ -269,7 +271,7 @@ var createScene = function (identifiant, onload, onunload){
 			
 				var dst = that.getModules()[window.outputs[i]["dst"]+window.currentNumberDSP-1];
 			
-				if(window.outputs[i]["dst"] == 0){
+				if(window.outputs[i]["dst"] == 0)
 					createConnection(faustModule, faustModule.getOutputNode(), fAudioOutput, fAudioOutput.getInputNode());
 				else if(dst)
 					createConnection(faustModule, faustModule.getOutputNode(), dst, dst.getInputNode());
