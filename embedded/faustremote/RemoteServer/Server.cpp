@@ -13,13 +13,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-
 #include <openssl/sha.h>
 
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
 
-enum{
+enum {
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED
 };
@@ -120,8 +119,8 @@ Server::Server() :fDaemon(NULL), fPort(-1)
 Server::~Server(){}
     
 //---- START/STOP SERVER
-bool Server::start(int port){
-    
+bool Server::start(int port) 
+{
     fPort = port;
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
@@ -158,7 +157,7 @@ void Server::stop()
 //---- Callback of another thread to wait netjack audio connection without blocking the server
 void* Server::start_audioSlave(void *arg) 
 {
-    slave_dsp* dspToStart = (slave_dsp*) arg;
+    slave_dsp* dspToStart = (slave_dsp*)arg;
     
     if (dspToStart->fServer->fLocker.Lock()) {
         
@@ -376,7 +375,7 @@ int Server::answer_post(MHD_Connection *connection, const char *url, const char 
     }
 }
 
-string nameWithoutSpaces(const string& name)
+static string nameWithoutSpaces(const string& name)
 {
     string newname = name;
     while (newname.find(' ') != string::npos) {
