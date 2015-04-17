@@ -4,11 +4,11 @@
 	Interface structure
 	===================
 	DIV --> fModuleContainer
-		H6 --> fTitle
-		DIV --> fInterfaceContainer
-		DIV --> fCloseButton
-		DIV --> fFooter
-			IMG --> fEditImg
+    H6 --> fTitle
+    DIV --> fInterfaceContainer
+    DIV --> fCloseButton
+    DIV --> fFooter
+    IMG --> fEditImg
 	===================
 		
 	DEPENDENCIES :
