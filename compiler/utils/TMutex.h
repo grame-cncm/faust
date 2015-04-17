@@ -50,6 +50,7 @@ class TMutex
 		TMutex()
 		{		
 			fMutex = CreateMutex(0, FALSE, 0);
+            if (!fMutex) throw std::bad_alloc();
 		}
 		virtual ~TMutex()
 		{
@@ -137,24 +138,24 @@ class TLock
 {
 	private:
 	
-		TLockAble* fObj;
+        TLockAble* fObj;
 				
 	public:
 	
-		TLock(TLockAble* obj):fObj(obj)
-		{	
-     		if (fObj) fObj->Lock();
-		}
+        TLock(TLockAble* obj):fObj(obj)
+        {	
+            if (fObj) fObj->Lock();
+        }
 		
-		TLock(const TLockAble* obj):fObj((TLockAble*)obj)
-		{	
-     		if (fObj) fObj->Lock();
-		}	
+        TLock(const TLockAble* obj):fObj((TLockAble*)obj)
+        {	
+            if (fObj) fObj->Lock();
+        }	
 		
-		virtual ~TLock()
-		{
+        virtual ~TLock()
+        {
             if (fObj) fObj->Unlock();
-		}
+        }
 };
 
 #endif

@@ -1438,7 +1438,7 @@ EXPORT llvm_dsp* llvm_dsp::copy()
     return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->copy());
 }
 
-// Public C interface : lock management is done but called C++ API
+// Public C interface : lock management is done by called C++ API
 
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
 {
