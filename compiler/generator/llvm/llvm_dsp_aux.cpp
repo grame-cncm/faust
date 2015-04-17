@@ -129,6 +129,7 @@
 
 using namespace llvm;
 
+// Factories instances management
 int llvm_dsp_factory::gInstance = 0;
 FactoryTableType llvm_dsp_factory::gFactoryTable;
 

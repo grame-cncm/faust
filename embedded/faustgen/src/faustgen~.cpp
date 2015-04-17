@@ -35,21 +35,21 @@ map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 //===================
 
 #ifdef __APPLE__
+
+#include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/IOKitLib.h>
+
 static string getTarget()
 {
     int tmp;
     return (sizeof(&tmp) == 8) ? "" : "i386-apple-darwin10.6.0";
 }
 
-#include <CoreFoundation/CoreFoundation.h>
-#include <IOKit/IOKitLib.h>
-
 // Returns the serial number as a CFString. 
 // It is the caller's responsibility to release the returned CFString when done with it.
-string GetSerialNumber()
+static string GetSerialNumber()
 {
-    io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault,
-                                                                     IOServiceMatching("IOPlatformExpertDevice"));
+    io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
 
     if (platformExpert) {
         CFTypeRef serialNumberAsCFString = 
@@ -61,16 +61,19 @@ string GetSerialNumber()
             CFStringGetCString((CFStringRef)serialNumberAsCFString, serial_name, 256, NULL);
             return serial_name;
         }
-
         IOObjectRelease(platformExpert);
     }
     return "";
 }
 
 #else
-static string getTarget() { return ""; }
 
-string GetSerialNumber() { return "Windows"; }
+static string getTarget() { return ""; }
+static string GetSerialNumber() 
+{ 
+    //return "Windows"; 
+    #error "To implement";
+}
 
 #endif
 

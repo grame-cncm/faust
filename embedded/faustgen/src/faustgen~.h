@@ -40,8 +40,6 @@
 #include <map> 
 
 #include "faust/dsp/llvm-dsp.h"
-#define LLVM_DSP 1
-#include "faust/dsp/poly-dsp.h"
 #include "faust/gui/JSONUI.h"
 #include "maxcpp5.h"
 
@@ -122,6 +120,7 @@ class faustgen_factory {
         void add_library_path(const string& library_path);
         void add_compile_option(const string& key, const string& value);
         void add_compile_option(const string& value);
+        void display_libraries_aux(const char* lib);
         
     public:
     
@@ -139,7 +138,7 @@ class faustgen_factory {
         
         void default_compile_options();
         void print_compile_options();
-    
+     
         void getfromdictionary(t_dictionary* d);
         void appendtodictionary(t_dictionary* d);
         
@@ -165,7 +164,6 @@ class faustgen_factory {
         void display_svg();
         void display_pdf();
         void display_libraries();
-        void display_libraries_aux(const char* lib);
         
         void add_instance(faustgen* dsp) { fInstances.insert(dsp); }
         void remove_instance(faustgen* dsp)  
@@ -200,15 +198,11 @@ class faustgen : public MspCpp5<faustgen> {
     
         faustgen_factory* fDSPfactory;
         map<string, vector <t_object*> > fOutputTable;
-
+        
         mspUI fDSPUI;               // DSP UI
-        
         llvm_dsp* fDSP;             // pointer to the LLVM Faust dsp
-        
         t_object* fEditor;          // text editor object
-           
         bool fMute;                 // DSP mute state
-        
         t_jrgba fDefaultColor;      // Color of the object to be used when restoring default color
          
         // Display DSP text source
