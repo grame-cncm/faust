@@ -119,7 +119,7 @@ public:
         if (jsonString.find("keyboard") != std::string::npos ||
            jsonString.find("poly") != std::string::npos){
             polyMax = 4;
-            DSPpoly = new mydsp_poly(polyMax);
+            DSPpoly = new mydsp_poly(polyMax, true);
             DSPpoly->init(samplingRate);
         } else {
             polyMax = 0;
