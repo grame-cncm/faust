@@ -152,10 +152,10 @@ void Server::stop()
 void* Server::startAudioSlave(void *arg) 
 {
     slave_dsp* dspToStart = (slave_dsp*)arg;
+    bool success = false;
      
     if (dspToStart->fServer->fLocker.Lock()) {
-        
-        bool success = false;
+    
         dspToStart->fAudio = new netjackaudio_server(atoi(dspToStart->fCV.c_str()), 
                                                     dspToStart->fIP, 
                                                     atoi(dspToStart->fPort.c_str()), 
@@ -173,12 +173,12 @@ void* Server::startAudioSlave(void *arg)
         } else {
             printf("Init slave audio failed\n");
         }
-        
-        if (!success) {
-            deleteSlaveDSPInstance(dspToStart);
-        }
             
         dspToStart->fServer->fLocker.Unlock();
+    }
+    
+    if (!success) {
+        deleteSlaveDSPInstance(dspToStart);
     }
    
     return NULL;
