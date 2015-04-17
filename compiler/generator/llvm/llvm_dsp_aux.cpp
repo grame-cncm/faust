@@ -1013,18 +1013,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
     } 
 }
 
-static bool isGenFileOption(const char* str)
-{
-    return (strcmp(str,"-svg") == 0 || 
-           strcmp(str,"-ps") == 0 || 
-           strcmp(str,"-tg") == 0 || 
-           strcmp(str,"-sg") == 0 || 
-           strcmp(str,"-mdoc") == 0 || 
-           strcmp(str,"-mdlang") == 0 || 
-           strcmp(str,"-stripdoc") == 0 || 
-           strcmp(str,"-xml") == 0);
-}
-
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, 
                                                     int argc, const char* argv[], 
                                                     const string& target, 

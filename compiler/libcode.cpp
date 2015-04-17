@@ -937,6 +937,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 #if LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
     
+    #if CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (generate) {
@@ -969,6 +970,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             comp->prepare(signals);
         }
+    #endif
 
     } else if (gGlobal->gOutputLang == "llvm") {
    

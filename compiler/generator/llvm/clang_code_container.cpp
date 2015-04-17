@@ -21,7 +21,7 @@
 
 #include "compatibility.hh"
 
-#if LLVM_BUILD
+#if CLANG_BUILD
 
 #include "clang_code_container.hh"
 
@@ -195,4 +195,4 @@ CodeContainer* ClangCodeContainer::createContainer(const string& name, int numIn
     return new ClangCodeContainer(name, numInputs, numOutputs);
 }
 
-#endif // LLVM_BUILD
+#endif // CLANG_BUILD

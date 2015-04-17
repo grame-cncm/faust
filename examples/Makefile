@@ -17,12 +17,12 @@ FAUSTINC := $(if $(wildcard $(ck13)),/usr/include/faust,$(FAUSTINC))
 FAUSTINC := $(if $(wildcard $(ck14)),$(FAUST_INC_PATH),$(FAUSTINC))
 
 
-CLANGLIBSLIST= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
-            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
-            -lclangSema -lclangStaticAnalyzerFrontend \
-            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
-            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
-            -lclangEdit -lclangLex 
+#CLANGLIBSLIST= -lclangFrontend -lclangParse -lclangSema  -lclangAST  \
+#            -lclangBasic -lclangDriver -lclangSerialization -lclangDriver -lclangCodeGen \
+#            -lclangSema -lclangStaticAnalyzerFrontend \
+#            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
+#            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
+#            -lclangEdit -lclangLex 
 
 LLVM_VERSION = $(shell llvm-config --version)
 
