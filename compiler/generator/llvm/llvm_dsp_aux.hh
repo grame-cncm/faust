@@ -188,7 +188,7 @@ class llvm_dsp_aux : public dsp {
 
 // Public C++ interface using LLVM
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
+EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
                                                   int argc, const char* argv[], 

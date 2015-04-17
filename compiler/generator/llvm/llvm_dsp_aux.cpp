@@ -1046,7 +1046,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     }*/
 }
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromSHAKey(const string& sha_key)
+EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
     FactoryTableIt it;
     return (getFactory(sha_key, it)) ? (*it).first : NULL;
@@ -1394,9 +1394,9 @@ EXPORT llvm_dsp* llvm_dsp::copy()
 
 // Public C interface
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromSHAKey(const char* sha_key)
+EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
 {
-    return createDSPFactoryFromSHAKey(sha_key);
+    return getDSPFactoryFromSHAKey(sha_key);
 }
 
 EXPORT llvm_dsp_factory* createCDSPFactory(int argc, const char* argv[], 

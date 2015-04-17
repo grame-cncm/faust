@@ -49,7 +49,7 @@ class llvm_dsp_factory {};
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
+llvm_dsp_factory* createDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
