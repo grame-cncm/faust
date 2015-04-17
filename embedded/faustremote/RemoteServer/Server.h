@@ -36,7 +36,7 @@ class Server;
 
 using namespace std;
 
-class server_netjackaudio : public netjackaudio_midicontrol {  
+class netjackaudio_server : public netjackaudio_midicontrol {  
 
     private:
 
@@ -44,7 +44,7 @@ class server_netjackaudio : public netjackaudio_midicontrol {
 
     public:
     
-        server_netjackaudio(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
+        netjackaudio_server(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
             :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
         {
             fNumberRestartAttempts = 0;
@@ -142,7 +142,7 @@ struct slave_dsp {
     string          fMTU;
     string          fLatency;
     
-    server_netjackaudio*   fAudio; //NETJACK SLAVE 
+    netjackaudio_server*   fAudio; //NETJACK SLAVE 
     llvm_dsp*              fDSP;   //Real DSP Instance 
     
 //  llvm_dsp_factory*     fSlaveFactory;   //RelatedFactory
@@ -151,16 +151,22 @@ struct slave_dsp {
     //So that the server himself is kept
     Server*         fServer;
     
-    slave_dsp(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
+    slave_dsp(llvm_dsp_factory* smartFactory, 
+            const string& compression, 
+            const string& ip, const string& port, 
+            const string& mtu, const string& latency, 
+            Server* server);
     ~slave_dsp();
     
-    bool start_audio();
-    void stop_audio();
+    bool startAudio();
+    void stopAudio();
     
-    string  key(){return fInstanceKey;}
-    void    setKey(const string& key){fInstanceKey = key;}
-    string name(){return fName;}
-    void    setName(string name){fName = name;}
+    bool startAudioConnection();
+    
+    string  key() { return fInstanceKey; }
+    void    setKey(const string& key) { fInstanceKey = key; }
+    string  name() { return fName; }
+    void    setName(string name) { fName = name; }
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
@@ -185,32 +191,40 @@ class Server {
         struct MHD_Daemon* fDaemon; //Running http daemon
         
         // Callback of another thread to wait netjack audio connection without blocking the server
-        static void*    start_audioSlave(void *);
+        static void*    startAudioSlave(void*);
                 
     // Creates the html to send back
-        int             send_page(MHD_Connection *connection, const char *page, int length, int status_code, const char * type = 0);
+        int             sendPage(MHD_Connection* connection, const char* page, int length, int status_code, const char* type = 0);
             
-        void            stop_NotActive_DSP();
+        void            stopNotActiveDSP();
             
-        connection_info_struct* allocate_connection_struct(MHD_Connection *connection, const char *method);
+        connection_info_struct* allocateConnectionStruct(MHD_Connection* connection, const char* method);
             
     // Reaction to any kind of connection to the Server
-        static int      answer_to_connection(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
+        static int      answerToConnection(void* cls, MHD_Connection* connection, 
+                                        const char* url, const char* method, 
+                                        const char* version, const char* upload_data, 
+                                        size_t* upload_data_size, void** con_cls);
             
             
     // Reaction to a GET request
-        int             answer_get(MHD_Connection* connection, const char* url);
+        int             answerGet(MHD_Connection* connection, const char* url);
             
     // Reaction to a POST request
-        int             answer_post(MHD_Connection *connection, const char *url, const char *upload_data, size_t *upload_data_size, void **con_cls);
+        int             answerPost(MHD_Connection* connection, const char* url, 
+                                const char* upload_data, size_t *upload_data_size, 
+                                void** con_cls);
             
     // Callback that processes the data send to the server
-        static int iterate_post(void *coninfo_cls, MHD_ValueKind kind, const char *key, const char *filename, const char *content_type, const char *transfer_encoding, const char *data, uint64_t off, size_t size);
+        static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 
+                                const char* filename, const char* content_type, 
+                                const char* transfer_encoding, const char* data, 
+                                uint64_t off, size_t size);
             
-        static void request_completed(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe);
+        static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
             
     // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
-        bool        compile_Data(connection_info_struct* con_info);
+        bool        compileData(connection_info_struct* con_info);
     // Reaction to a /GetJsonFromKey --> GetJson form available factory
         bool        getJsonFromKey(connection_info_struct* con_info);
             
@@ -227,7 +241,7 @@ class Server {
     public:
             
         Server();
-        ~Server();
+        virtual ~Server();
             
     //  Start server on specified port 
         bool start(int port = 7777);

@@ -98,35 +98,6 @@ void slave_dsp::stopAudio()
     fAudio->stop();
 }
 
-bool slave_dsp::startAudioConnection()
-{
-    bool success = false;
-    
-    if (fServer->fLocker.Lock()) {
-        fAudio = new server_netjackaudio(atoi(fCV.c_str()), 
-                                        fIP, 
-                                        atoi(fPort.c_str()), 
-                                        atoi(fMTU.c_str()), 
-                                        atoi(fLatency.c_str()));
-        
-        if (fAudio->init(fName.c_str(), fDSP)) {
-            if (!fAudio->start()) {
-                printf("Start slave audio failed\n");
-            } else {
-                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", fDSP->getNumInputs(), fDSP->getNumOutputs());
-                fServer->fRunningDsp.push_back(this);
-                success = true;
-            }
-        } else {
-            printf("Init slave audio failed\n");
-        }
-             
-        fServer->fLocker.Unlock();
-    }
-
-    return success;
-}
-
 // Desallocation of slave dsp resources
 slave_dsp::~slave_dsp()
 {
@@ -181,11 +152,35 @@ void Server::stop()
 void* Server::startAudioSlave(void *arg) 
 {
     slave_dsp* dspToStart = (slave_dsp*)arg;
-    
-    if (!dspToStart->startAudioConnection()) {
-        deleteSlaveDSPInstance(dspToStart);
+     
+    if (dspToStart->fServer->fLocker.Lock()) {
+        
+        bool success = false;
+        dspToStart->fAudio = new netjackaudio_server(atoi(dspToStart->fCV.c_str()), 
+                                                    dspToStart->fIP, 
+                                                    atoi(dspToStart->fPort.c_str()), 
+                                                    atoi(dspToStart->fMTU.c_str()), 
+                                                    atoi(dspToStart->fLatency.c_str()));
+        
+        if (dspToStart->fAudio->init(dspToStart->name().c_str(), dspToStart->fDSP)) {
+            if (!dspToStart->fAudio->start()) {
+                printf("Start slave audio failed\n");
+            } else {
+                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fDSP->getNumInputs(), dspToStart->fDSP->getNumOutputs());
+                dspToStart->fServer->fRunningDsp.push_back(dspToStart);
+                success = true;
+            }
+        } else {
+            printf("Init slave audio failed\n");
+        }
+        
+        if (!success) {
+            deleteSlaveDSPInstance(dspToStart);
+        }
+            
+        dspToStart->fServer->fLocker.Unlock();
     }
-    
+   
     return NULL;
 }
  
