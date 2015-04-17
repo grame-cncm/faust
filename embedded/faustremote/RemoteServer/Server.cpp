@@ -149,7 +149,7 @@ void Server::stop()
 }
 
 //---- Callback of another thread to wait netjack audio connection without blocking the server
-void* Server::startAudioSlave(void *arg) 
+void* Server::startAudioSlave(void* arg) 
 {
     slave_dsp* dspToStart = (slave_dsp*)arg;
     bool success = false;
@@ -185,7 +185,7 @@ void* Server::startAudioSlave(void *arg)
 }
  
 //---- Creating response page with right header syntaxe
-int Server::sendPage(MHD_Connection *connection, const char *page, int length, int status_code, const char * type)
+int Server::sendPage(MHD_Connection* connection, const char* page, int length, int status_code, const char* type)
 {
     struct MHD_Response *response = MHD_create_response_from_buffer(length, (void*)page, MHD_RESPMEM_PERSISTENT);
     if (response) {
@@ -216,7 +216,7 @@ void Server::stopNotActiveDSP()
 }
 
 // Allocation/Initialization of connection struct
-connection_info_struct* Server::allocateConnectionStruct(MHD_Connection *connection, const char *method)
+connection_info_struct* Server::allocateConnectionStruct(MHD_Connection* connection, const char* method)
 {
     struct connection_info_struct *con_info;
     con_info = new connection_info_struct();
@@ -246,20 +246,20 @@ connection_info_struct* Server::allocateConnectionStruct(MHD_Connection *connect
 }
 
 //---- Callback for any type of connection to the server
-int Server::answerToConnection(void *cls, 
-                                MHD_Connection *connection, 
-                                const char *url, 
-                                const char *method, 
-                                const char *version, 
-                                const char *upload_data, 
-                                size_t *upload_data_size, 
-                                void **con_cls)
+int Server::answerToConnection(void* cls, 
+                                MHD_Connection* connection, 
+                                const char* url, 
+                                const char* method, 
+                                const char* version, 
+                                const char* upload_data, 
+                                size_t* upload_data_size, 
+                                void** con_cls)
 {
-    Server *server = (Server*)cls;
+    Server* server = (Server*)cls;
     server->stopNotActiveDSP();
     
 // If connection is new, a connection structure is allocated
-    if (!*con_cls){
+    if (!*con_cls) {
         connection_info_struct* con_struct = server->allocateConnectionStruct(connection, method);
         if (con_struct) {
             *con_cls = (void*) con_struct;
@@ -282,7 +282,7 @@ int Server::answerToConnection(void *cls,
 }
     
 // For now GET is not a request supported for now
-int Server::answerGet(MHD_Connection* connection, const char *url)
+int Server::answerGet(MHD_Connection* connection, const char* url)
 {
     printf("IS IT A GET REQUEST\n");
     
@@ -308,7 +308,7 @@ int Server::answerGet(MHD_Connection* connection, const char *url)
 // - /GetJson --> Receive faust code / Compile Data / Send back jsonInterface
 // - /CreateInstance --> Receive factoryIndex / Create instance 
 // - /DeleteFactory --> Receive factoryIndex / Delete Factory
-int Server::answerPost(MHD_Connection *connection, const char *url, const char *upload_data, size_t *upload_data_size, void **con_cls)
+int Server::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t *upload_data_size, void* *con_cls)
 {
     struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
     
@@ -380,16 +380,16 @@ static string nameWithoutSpaces(const string& name)
 
 // Callback processing the received data.
 // The datas are stocked in connection_info_struct
-int Server::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/, 
-                        const char *key, 
-                        const char */*filename*/, 
-                        const char */*content_type*/, 
-                        const char */*transfer_encoding*/, 
-                        const char *data, 
+int Server::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/, 
+                        const char* key, 
+                        const char* /*filename*/, 
+                        const char* /*content_type*/, 
+                        const char* /*transfer_encoding*/, 
+                        const char* data, 
                         uint64_t /*off*/, 
                         size_t size) {
     
-    struct connection_info_struct *con_info = (connection_info_struct*)coninfo_cls;
+    struct connection_info_struct* con_info = (connection_info_struct*)coninfo_cls;
      
     if (size > 0) {
         
@@ -437,9 +437,9 @@ int Server::iteratePost(void *coninfo_cls, MHD_ValueKind /*kind*/,
 }
 
 // Callback when connection is ended
-void Server::requestCompleted(void *cls, MHD_Connection *connection, void **con_cls, MHD_RequestTerminationCode toe) 
+void Server::requestCompleted(void* cls, MHD_Connection *connection, void** con_cls, MHD_RequestTerminationCode toe) 
 {
-    struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
+    struct connection_info_struct* con_info = (connection_info_struct*)*con_cls;
     
     if (con_info) {
         if (con_info->fConnectiontype == POST) {
