@@ -1404,6 +1404,9 @@ int main(void)
     post("faustgen~ v%s", FAUSTGEN_VERSION);
     post("LLVM powered Faust embedded compiler");
     post("Copyright (c) 2012-2015 Grame");
+    
+    // Start 'libfaust' in multi-thread safe mode
+    startMTDSPFactories();
   
     // Process all messages coming to the object using a custom method
     REGISTER_METHOD_GIMME(faustgen, anything);

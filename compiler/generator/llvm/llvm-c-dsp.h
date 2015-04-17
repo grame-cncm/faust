@@ -142,6 +142,19 @@ extern "C"
     const char** getAllCDSPFactories();
     
     /**
+     * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
+     * 
+     * @return true is 'multi-thread' safe access is started.
+     */ 
+    bool startMTCDSPFactories();
+
+    /**
+     * Stop multi-thread access mode.
+     * 
+     */ 
+    void stopMTCDSPFactories();
+  
+    /**
      * Create a Faust DSP factory from a LLVM bitcode string. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode string) will return 
      * the same (reference counted) factory pointer.

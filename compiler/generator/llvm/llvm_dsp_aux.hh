@@ -35,6 +35,7 @@
 #include "export.hh"
 #include "libfaust.h"
 #include "smartpointer.h"
+#include "TMutex.h"
 
 using namespace std;
 
@@ -212,6 +213,10 @@ EXPORT std::vector<std::string> getAllDSPFactories();
 
 EXPORT void deleteAllDSPFactories();
 
+EXPORT bool startMTDSPFactories();
+
+EXPORT void stopMTDSPFactories();
+
 // Bitcode <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
 
@@ -296,6 +301,10 @@ EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
 EXPORT void deleteAllCDSPFactories();
     
 EXPORT const char** getAllCDSPFactories();
+
+EXPORT bool startMTCDSPFactories();
+
+EXPORT void stopMTDCSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 

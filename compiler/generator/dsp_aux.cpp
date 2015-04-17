@@ -27,6 +27,9 @@
 
 #include "dsp_aux.hh"
 #include "libfaust.h"
+#include "TMutex.h"
+
+extern TLockAble* gDSPFactoriesLock;
 
 using namespace std;
 
@@ -35,6 +38,8 @@ EXPORT string expandDSPFromFile(const string& filename,
                                 string& sha_key,
                                 string& error_msg)
 {
+    TLock lock(gDSPFactoriesLock);
+    
     int argc1 = argc + 2;
     const char* argv1[32];
     
@@ -60,6 +65,8 @@ EXPORT string expandDSPFromString(const string& name_app,
                                   string& sha_key,
                                   string& error_msg)
 {
+    TLock lock(gDSPFactoriesLock);
+    
     int argc1 = argc + 1;
     const char* argv1[32];
     
@@ -81,6 +88,8 @@ EXPORT string expandDSPFromString(const string& name_app,
 
 EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
 {
+    TLock lock(gDSPFactoriesLock);
+    
     int argc1 = argc + 2;
     const char* argv1[32];
     
@@ -101,6 +110,8 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
 
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
+    TLock lock(gDSPFactoriesLock);
+    
     int argc1 = argc + 1;
     const char* argv1[32];
     
@@ -123,6 +134,8 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
                                     char* sha_key,
                                     char* error_msg)
 {
+    TLock lock(gDSPFactoriesLock);
+    
     int argc1 = argc + 2;
     const char* argv1[32];
     
@@ -144,6 +157,8 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
                                         char* sha_key,
                                         char* error_msg)
 {
+    TLock lock(gDSPFactoriesLock);
+    
     int argc1 = argc + 1;
     const char* argv1[32];
     
