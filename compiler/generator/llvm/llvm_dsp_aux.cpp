@@ -277,8 +277,8 @@ LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const 
 
     argv1[0] = "faust";
     argv1[1] = "-lang";
-    argv1[2] = "cllvm";
-    //argv1[2] = "llvm";
+    //argv1[2] = "cllvm";
+    argv1[2] = "llvm";
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
     }
