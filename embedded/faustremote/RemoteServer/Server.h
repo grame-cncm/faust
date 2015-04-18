@@ -16,7 +16,6 @@
 #include <list>
 #include <map>
 #include <vector>
-
 #include <microhttpd.h>
 
 #ifdef __APPLE__
@@ -25,6 +24,7 @@
 
 #include "faust/audio/netjack-dsp.h"
 #include "llvm-dsp.h"
+#include "utilities.h"
 #include "TMutex.h"
 
 #define POSTBUFFERSIZE 512
@@ -125,10 +125,8 @@ struct connection_info_struct {
 #include <netdb.h>
 #include <arpa/inet.h>
 
-string searchIP();
-
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
-//
+
 struct slave_dsp {
     
     string          fInstanceKey;
@@ -143,8 +141,6 @@ struct slave_dsp {
     
     netjackaudio_server*   fAudio; //NETJACK SLAVE 
     llvm_dsp*              fDSP;   //Real DSP Instance 
-    
-//  llvm_dsp_factory*     fSlaveFactory;   //RelatedFactory
     
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
@@ -169,8 +165,6 @@ struct slave_dsp {
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, const string& compression, const string& ip, const string& port, const string& mtu, const string& latency, Server* server);
-void deleteSlaveDSPInstance(slave_dsp* smartPtr);
     
 class Server {
         

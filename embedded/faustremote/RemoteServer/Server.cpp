@@ -37,8 +37,8 @@ struct myMeta : public Meta
 
 //------------SLAVE DSP FACTORY-------------------------------
 
-string getJson(connection_info_struct* con_info) {
-    
+string getJson(connection_info_struct* con_info) 
+{
     myMeta metadata;
     metadataDSPFactory(con_info->fLLVMFactory, &metadata);
     con_info->fNameApp = metadata.name;
@@ -58,18 +58,18 @@ string getJson(connection_info_struct* con_info) {
 //--------------SLAVE DSP INSTANCE-----------------------------
 
 // Same Allocation/Desallcation Prototype as LLVM/REMOTE-DSP
-slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, 
-                                const string& compression, 
-                                const string& ip, 
-                                const string& port, 
-                                const string& mtu, 
-                                const string& latency, 
-                                Server* server) 
+static slave_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, 
+                                        const string& compression, 
+                                        const string& ip, 
+                                        const string& port, 
+                                        const string& mtu, 
+                                        const string& latency, 
+                                        Server* server) 
 {
     return new slave_dsp(smartFactory, compression, ip, port, mtu, latency, server);
 }
 
-void deleteSlaveDSPInstance(slave_dsp* smartPtr)
+static void deleteSlaveDSPInstance(slave_dsp* smartPtr)
 {
     delete smartPtr;
 }
@@ -106,7 +106,7 @@ slave_dsp::~slave_dsp()
 
 //----------------SERVER----------------------------------------
 
-Server::Server() :fDaemon(NULL), fPort(-1) 
+Server::Server():fDaemon(NULL), fPort(-1) 
 {}
 
 Server::~Server() {}
@@ -115,7 +115,6 @@ Server::~Server() {}
 bool Server::start(int port) 
 {
     fPort = port;
- 
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
                                NULL, 
@@ -593,7 +592,3 @@ void* Server::registration(void* arg) {
     
     pthread_exit(NULL);
 }
-
-
-
-

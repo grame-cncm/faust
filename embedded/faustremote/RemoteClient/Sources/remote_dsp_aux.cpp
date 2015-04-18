@@ -130,7 +130,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         string finalRequest = "name=";
         finalRequest += name_app;
         
-// Adding Compilation Options to request data
+        // Adding Compilation Options to request data
         
         finalRequest += "&number_options=";
         
@@ -144,7 +144,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
             finalRequest += argv[i];
         }
         
-// Adding LLVM optimization Level to request data
+        // Adding LLVM optimization Level to request data
         finalRequest += "&opt_level=";
         stringstream ol;
         ol<<opt_level;
@@ -376,7 +376,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
         char error_msg_aux[256];
         generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
         
-        //  OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
+        // OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
         int argc1 = 0;
         const char* argv1[argc];
         
@@ -519,11 +519,11 @@ const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const 
 // Decode internal structure, to build user interface
 void remote_dsp_aux::buildUserInterface(UI* ui) {
 
-//    printf("REMOTEDSP::BUILDUSERINTERFACE\n");
+    // printf("REMOTEDSP::BUILDUSERINTERFACE\n");
     
     vector<itemInfo*> jsonItems = fFactory->itemList();
     
-//To be sure the floats are correctly encoded
+    // To be sure the floats are correctly encoded
     char* tmp_local = setlocale(LC_ALL, NULL);
     setlocale(LC_ALL, "C");
     
@@ -818,7 +818,7 @@ void remote_dsp_aux::stopAudio()
 
 void remote_dsp_aux::startAudio()
 {
-   string finalRequest = "instanceKey=";
+    string finalRequest = "instanceKey=";
     
     stringstream s;
     s << this;
@@ -933,7 +933,7 @@ remote_DNS::remote_DNS()
     /* make address for multicast ip
      * pick a port number for you by passing NULL as the last argument */
     
-    //    lo_address t = lo_address_new("224.0.0.1", "7770");
+    // lo_address t = lo_address_new("224.0.0.1", "7770");
     // lo_server multi = lo_server_new_multicast("drone", "7771", error);
     /* start a new server on port 7770 */
     fLoThread = lo_server_thread_new_multicast("224.0.0.1", "7770", remote_DNS::errorHandler);
@@ -1025,8 +1025,6 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
-    printf("remoteDSP::getRemoteFactoriesAvailable\n");
-    
     bool isSuccessfull = false;
     CURL *curl = curl_easy_init();
     
@@ -1055,8 +1053,6 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
         CURLcode res = curl_easy_perform(curl);
             
         if (res == CURLE_OK) {
-            
-            printf("remoteDSP::getRemoteFactoriesAvailable 1\n");    
             
             long respcode; //response code of the http transaction
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);

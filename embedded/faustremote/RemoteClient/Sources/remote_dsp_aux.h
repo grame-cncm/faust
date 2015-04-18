@@ -88,10 +88,10 @@ extern "C"
         
         static void cleanupMachineList(std::map<string, member> clients_list);
         
-        static void errorHandler(int num, const char *m, const char *path);
+        static void errorHandler(int num, const char* m, const char* path);
         
-        static int pingHandler(const char *path, const char *types, lo_arg ** argv,
-                               int argc, void *data, void *user_data);
+        static int pingHandler(const char* path, const char* types, lo_arg** argv,
+                               int argc, void* data, void* user_data);
         
         lo_server_thread fLoThread;
         std::map<string, member> fClients;
@@ -107,7 +107,7 @@ extern "C"
     class remote_dsp_aux;
     
     // Standard Callback to store a server response in strinstream
-    static size_t storeResponse(void *buf, size_t size, size_t nmemb, void* userp);
+    static size_t storeResponse(void* buf, size_t size, size_t nmemb, void* userp);
     
     static CURLcode sendRequest(CURL* curl, const string& ipadd, const string& request, string& response);
     
