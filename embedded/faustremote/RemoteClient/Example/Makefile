@@ -17,7 +17,7 @@ INCPATH       = -I/usr/local/Qt4.8/mkspecs/macx-g++ -I. -I/Library/Frameworks/Qt
 LINK          = g++
 LLVM_CONFIG   = llvm-config
 LFLAGS        = -headerpad_max_install_names -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5
-LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lcurl -ljack -ljacknet -L/usr/local/lib/faust -lfaust -lfaustremote -lcrypto -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore 
+LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lcurl -ljack -ljacknet -L/usr/local/lib/faust -lfaust -lfaustremote -lcrypto -llo -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore 
 
 
 ####### Install

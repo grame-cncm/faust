@@ -150,7 +150,7 @@ extern "C"
             
             void        metadataRemoteDSPFactory(Meta* m);  
             
-            //    ACCESSORS
+            // ACCESSORS
             string              serverIP() { return fServerIP; }
             void                setIP(const string& ip) { fServerIP = ip; }
             vector<itemInfo*>   itemList() { return fUiItems; }
@@ -193,7 +193,7 @@ extern "C"
             void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
             void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
             
-            //    Command-line parsing fonction
+            // Command-line parsing fonction
             const char* getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);
             
             void sendSlice(int buffer_size);

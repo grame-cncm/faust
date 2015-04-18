@@ -1,6 +1,5 @@
 //
-//  FLServerHttp.h
-//  
+//  Server.cpp
 //
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 GRAME. All rights reserved.
@@ -83,7 +82,7 @@ slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory,
                     const string& mtu, 
                     const string& latency, 
                     Server* server) 
-                    : fCV(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server), fAudio(NULL) 
+                    : fCompression(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server), fAudio(NULL) 
 {
     fDSP = createDSPInstance(smartFactory);
 }
@@ -116,6 +115,7 @@ Server::~Server() {}
 bool Server::start(int port) 
 {
     fPort = port;
+ 
     fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
                                port, 
                                NULL, 
@@ -125,14 +125,13 @@ bool Server::start(int port)
                                requestCompleted, NULL, MHD_OPTION_END);
 
     if (fDaemon) {
-        
         if (pthread_create(&fThread, NULL, Server::registration, this) != 0) {
-            printf("RemoteServer::pthread_create failed\n");
+            printf("RemoteServer : pthread_create failed\n");
             return false;
         }
-        
         return true;
     } else {
+        printf("RemoteServer : MHD_start_daemon failed\n");
         return false;
     }
 }
@@ -156,7 +155,7 @@ void* Server::startAudioSlave(void* arg)
      
     if (dspToStart->fServer->fLocker.Lock()) {
     
-        dspToStart->fAudio = new netjackaudio_server(atoi(dspToStart->fCV.c_str()), 
+        dspToStart->fAudio = new netjackaudio_server(atoi(dspToStart->fCompression.c_str()), 
                                                     dspToStart->fIP, 
                                                     atoi(dspToStart->fPort.c_str()), 
                                                     atoi(dspToStart->fMTU.c_str()), 
@@ -258,7 +257,7 @@ int Server::answerToConnection(void* cls,
     Server* server = (Server*)cls;
     server->stopNotActiveDSP();
     
-// If connection is new, a connection structure is allocated
+    // If connection is new, a connection structure is allocated
     if (!*con_cls) {
         connection_info_struct* con_struct = server->allocateConnectionStruct(connection, method);
         if (con_struct) {
@@ -269,7 +268,7 @@ int Server::answerToConnection(void* cls,
         }
     }
     
-// Once connection struct is allocated, the request is treated
+    // Once connection struct is allocated, the request is treated
     if (0 == strcmp(method, "GET")) {
         return server->answerGet(connection, url);
     
@@ -411,7 +410,7 @@ int Server::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
             con_info->fLatency = data;
         
         if (strcmp(key,"NJ_compression") == 0)
-            con_info->fCV = data;        
+            con_info->fCompression = data;        
         
         if (strcmp(key,"NJ_mtu") == 0) 
             con_info->fMTU = data;
@@ -533,7 +532,7 @@ bool Server::createInstance(connection_info_struct* con_info)
         
         printf("Instance\n");
         
-        slave_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCV, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
+        slave_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCompression, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
         if (!dsp) return false;
         
         dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
@@ -581,11 +580,11 @@ void* Server::registration(void* arg) {
     lo_address t = lo_address_new("224.0.0.1", "7770");
     
     while (true) {
-#ifdef WIN32
+    #ifdef WIN32
         Sleep(1);
-#else
+    #else
         usleep(1000000);
-#endif
+    #endif
         pthread_testcancel();
         
         int pid = getpid();

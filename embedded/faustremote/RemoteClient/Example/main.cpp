@@ -31,6 +31,10 @@
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
+
+// Example: 
+// ./RemoteClient --file freeverb.dsp --portserver 7778 --ipserver 127.0.0.1
+
 #include <sys/stat.h>
 #include <iostream>
 
@@ -45,11 +49,11 @@ std::list<GUI*> GUI::fGuiList;
 int main(int argc, char* argv[])
 {
     list<QTGUI*>                listInterfaces;
-    list<remote_dsp*>            listDSPs;
+    list<remote_dsp*>           listDSPs;
     list<remote_dsp_factory*>   listFactories;
     list<audio*>                listAudios;
     
-    if(argv[1] && !strcmp(argv[1], "--help")){
+    if (argv[1] && !strcmp(argv[1], "--help")){
         printf("\nOPTIONS OF FAUST DISTRIBUTED : \n\n\
                ########### REMOTE CALCULATION PARAMETERS ############\n\
                --ipserver ==> default is localhost\n\
@@ -73,126 +77,118 @@ int main(int argc, char* argv[])
     
     string ipServer = loptions(argv, "--ipserver", "localhost");
     int portServer = lopt(argv, "--portserver", 7777);
-    
     int srate = lopt(argv, "--frequency", 44100);
-    int	fpb = lopt(argv, "--buffer", 512);
+    int fpb = lopt(argv, "--buffer", 512);
     
-    printf("ip = %i || %i\n", srate, fpb);
+    printf("srate = %i fpb = %i\n", srate, fpb);
     
     QApplication myApp(argc, argv);
     
-    for(int i =0; i<argc; i++){
+    for (int i = 0; i < argc; i++){
         
         char filePath[256];
         
         int numberInstances = lopt_Spe(i, argv, "--file", filePath);
         
-        if(numberInstances != 0){
-            if(numberInstances > 1) i+=2;
+        if (numberInstances != 0) {
+            if (numberInstances > 1) i += 2;
             
             string errorFactory("");
             
             const char* arguments[argc];
             int nbArgument = 0;
             
-            for(int i=1; i<argc; i++){
+            for (int i = 1; i < argc; i++) {
                 
-                if(string(argv[i]).find("--")!=string::npos){
+                if (string(argv[i]).find("--") != string::npos) {
                     i ++;
-                }
-                else{
+                } else {
                     arguments[nbArgument] = argv[i];
                     nbArgument++;
                 }
             }
             
             string content = pathToContent(filePath);
-            
+             
             remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
             
-            if(factory != NULL){
+            if (factory != NULL) {
                 
                 listFactories.push_back(factory);
                 
-                for(int j = 0; j<numberInstances; j++){
+                for (int j = 0; j < numberInstances; j++) {
                     
                     int errorInstance;
                     
                     remote_dsp* DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, NULL, NULL, errorInstance);
                     
-                    if(DSP != NULL){
+                    if (DSP != NULL) {
                         
                         QTGUI* interface = new QTGUI();
                         listInterfaces.push_back(interface);
                         
                         listDSPs.push_back(DSP);
                         
-                        jackaudio* audio = new jackaudio;
-//                        coreaudio* audio = new coreaudio(srate, fpb);
+//                       jackaudio* audio = new jackaudio;
+                        coreaudio* audio = new coreaudio(srate, fpb);
                         listAudios.push_back(audio);
                         
                         DSP->buildUserInterface(interface);   
                         
-                        if(!audio->init("Test", DSP))
+                        if (!audio->init("Test", DSP))
                             break;
                         else
                             printf("INIT\n");
                         
-                        if(!audio->start())
+                        if (!audio->start())
                             break;
                         else
                             printf("START\n");
                         
                         interface->run();
                         
-                    }
-                    else{
+                    }else {
                         printf("CREATE INSTANCE FAILED = %d\n", errorInstance);
                     }
                 }
-            }
-            else{
+            } else {
                 printf("CREATE FACTORY FAILED = %s\n", errorFactory.c_str());
             }
         }
     }
     
-    myApp.setStyleSheet(STYLESHEET);
+    //myApp.setStyleSheet(STYLESHEET);
     myApp.exec();
-    
-    
-    //  STOP && DESALLOCATION OF ALL RESOURCES
+     
+    // STOP && DESALLOCATION OF ALL RESOURCES
     list<QTGUI*>::iterator itI = listInterfaces.begin();
     list<remote_dsp*>::iterator itD = listDSPs.begin();
     list<remote_dsp_factory*>::iterator itF = listFactories.begin();
     list<audio*>::iterator itA = listAudios.begin();
     
-    while(itI != listInterfaces.end()){
+    while (itI != listInterfaces.end()){
         (*itI)->stop();
         itI++;
     }
     listInterfaces.clear();
     
-    while(itA != listAudios.end()){
+    while (itA != listAudios.end()){
         (*itA)->stop();
         itA++;
     }
     listAudios.clear();
     
-    
-    while(itA != listAudios.end()){
+    while (itA != listAudios.end()){
         (*itA)->stop();
         itA++;
     }
     listAudios.clear();
     
-    
-    while(itD != listDSPs.end()){
+    while (itD != listDSPs.end()){
         deleteRemoteDSPInstance(*itD);
         itD++;
     }
     listDSPs.clear();
-    
     
     while(itF != listFactories.end()){
         deleteRemoteDSPFactory(*itF);

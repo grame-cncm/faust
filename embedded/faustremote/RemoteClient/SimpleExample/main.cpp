@@ -18,10 +18,8 @@
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
 //
 //  main.cpp
-//  
 //
 //  Created by Sarah Denoux on 30/05/13.
 //  Copyright (c) 2013 GRAME. All rights reserved.
@@ -45,7 +43,7 @@ std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char* argv[])
 {    
-    if(argv[1] && !strcmp(argv[1], "--help")){
+    if (argv[1] && !strcmp(argv[1], "--help")){
         printf("\nOPTIONS OF FAUST DISTRIBUTED : \n\n\
                ########### REMOTE CALCULATION PARAMETERS ############\n\
                --ipserver ==> default is localhost\n\
@@ -68,7 +66,6 @@ int main(int argc, char* argv[])
     
     string ipServer = loptions(argv, "--ipserver", "localhost");
     int portServer = lopt(argv, "--portserver", 7777);
-    
     int srate = lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
 
@@ -89,12 +86,11 @@ int main(int argc, char* argv[])
     int nbArgument = 0;
           
 //--- Separate compilation options
-    for(int i=1; i<argc; i++){
+    for (int i = 1; i < argc; i++){
           
-        if (string(argv[i]).find("--")!=string::npos){
+        if (string(argv[i]).find("--") != string::npos){
             i++;
-        }
-        else{
+        } else {
             arguments[nbArgument++] = argv[i];
         }
     }
@@ -123,7 +119,7 @@ int main(int argc, char* argv[])
     if (factories_list.size() > 0)
         factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].second.c_str());
     */
-    if(factory != NULL){
+    if (factory != NULL){
                 
         remote_dsp* DSP;
         
@@ -131,7 +127,7 @@ int main(int argc, char* argv[])
                 
         DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, NULL, NULL, errorInstance);
                     
-        if(DSP != NULL){
+        if (DSP != NULL){
                         
             QTGUI* interface = new QTGUI();
                     
@@ -141,9 +137,9 @@ int main(int argc, char* argv[])
                     
             DSP->buildUserInterface(interface);   
                     
-            if(!audio->init("RemoteExample", DSP))
+            if (!audio->init("RemoteExample", DSP))
                 printf("Audio could not be initialized\n");
-            else if(!audio->start())
+            else if (!audio->start())
                 printf("Audio could not be started\n");
             else
                 interface->run();
@@ -151,7 +147,7 @@ int main(int argc, char* argv[])
             myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
              
-            //  STOP && DESALLOCATION OF ALL RESOURCES
+            // STOP && DESALLOCATION OF ALL RESOURCES
             
             interface->stop();
             delete interface;

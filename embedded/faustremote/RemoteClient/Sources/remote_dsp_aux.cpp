@@ -83,7 +83,7 @@ static bool sendRequest(const string& ip, const string& finalRequest, string& re
                 bool isInt = true;
                 const char* intermediateString = oss.str().c_str();
                 
-                for (size_t i=0; i<strlen(intermediateString); i++) {
+                for (size_t i = 0; i < strlen(intermediateString); i++) {
                     if (!isdigit(intermediateString[i])) {
                         isInt = false;
                         break;
@@ -123,7 +123,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     bool isInitSuccessfull = false;
     fSHAKey = sha_key;
     
-    CURL *curl = curl_easy_init();
+    CURL* curl = curl_easy_init();
     
     if (curl) {
 
@@ -139,7 +139,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         
         finalRequest += nb.str();
         
-        for (int i=0; i<argc; i++) {
+        for (int i = 0; i < argc; i++) {
             finalRequest += "&options=";
             finalRequest += argv[i];
         }
@@ -297,9 +297,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         s<<port_server;
         
         serverIP += s.str();
-        
         factory->setIP(serverIP);
-        
         serverIP += "/GetJsonFromKey";
         
         printf("ip = %s\n", serverIP.c_str());
@@ -361,7 +359,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     bool factoryStillExisting = false;
     
-    for (int i=0; i<factories_list.size(); i++) {
+    for (int i = 0; i < factories_list.size(); i++) {
         if (sha_key == factories_list[i].second.c_str()) {
            factoryStillExisting = true;
             break;
@@ -474,7 +472,7 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
     
     fRunningFlag = true;
     
-    printf("remote_dsp_aux::remote_dsp_aux = %p\n", this);
+    printf("remote_dsp_aux::remote_dsp_aux in = %d out = %d\n", getNumInputs(), getNumOutputs());
 }
         
 remote_dsp_aux::~remote_dsp_aux()
@@ -510,7 +508,7 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
 // Fonction for command line parsing
 const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue)
 {
-    for (int i = 0; i<argc; i++){
+    for (int i = 0; i < argc; i++){
         if (strcmp(argv[i], key) == 0) {
             return argv[i+1];   
         }
@@ -546,7 +544,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
         bool isInItem = false;
         bool isOutItem = false;
         
-//        Meta Data declaration for entry items
+        // Meta Data declaration for entry items
         if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close") != 0) {
             
             fInControl[counterIn] = init;
@@ -555,7 +553,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
         }
-//        Meta Data declaration for exit items
+        // Meta Data declaration for exit items
         else if((*it)->type.find("bargraph") != string::npos){
             
             fOutControl[counterOut] = init;
@@ -565,13 +563,13 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
                 ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
             }
         }
-//      Meta Data declaration for group opening or closing
+        // Meta Data declaration for group opening or closing
         else {
             for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
         }
         
-//      Item declaration
+        // Item declaration
         if ((*it)->type.compare("hgroup") == 0)
             ui->openHorizontalBox((*it)->label.c_str());
         
@@ -621,11 +619,11 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
 
 void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
 {
-    for (int j=0; j<getNumInputs(); j++) {
+    for (int j = 0; j < getNumInputs(); j++) {
         fAudioInputs[j] = &input[j][offset];
     }
     
-    for (int j=0; j<getNumOutputs(); j++) {
+    for (int j = 0; j < getNumOutputs(); j++) {
         fAudioOutputs[j] = &output[j][offset];
     }
 }
@@ -707,7 +705,7 @@ void remote_dsp_aux::init(int /*sampling_rate*/){}
 // The URL extension used is /CreateInstance
 // The datas to send are NetJack parameters & the factory index it is create from
 // A NetJack master is created to open a connection with the slave opened on the server's side
-bool remote_dsp_aux::init(int argc, const char *argv[], 
+bool remote_dsp_aux::init(int argc, const char* argv[], 
                         int sampling_rate, 
                         int buffer_size, 
                         RemoteDSPErrorCallback error_callback, 
@@ -720,7 +718,7 @@ bool remote_dsp_aux::init(int argc, const char *argv[],
     fErrorCallback = error_callback;
     fErrorCallbackArg = error_callback_arg;
      
-// Init Control Buffers
+    // Init Control Buffers
 
     fOutControl = new float[buffer_size];
     fInControl = new float[buffer_size];
@@ -739,12 +737,11 @@ bool remote_dsp_aux::init(int argc, const char *argv[],
     buildUserInterface(&dummy_ui);
     
     bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
-    
     const char* port = getValueFromKey(argc, argv, "--NJ_port", "19000");
     
-// PREPARE URL TO SEND TO SERVER
+    // PREPARE URL TO SEND TO SERVER
     
-// Parse NetJack Parameters
+    // Parse NetJack Parameters
     string finalRequest = "NJ_ip=";
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str()));
   
@@ -779,8 +776,8 @@ bool remote_dsp_aux::init(int argc, const char *argv[],
     string response("");
     int errorCode = -1;
 
-// OPEN NET JACK CONNECTION
-    if(sendRequest(ip, finalRequest, response, errorCode)){
+    // OPEN NET JACK CONNECTION
+    if (sendRequest(ip, finalRequest, response, errorCode)){
         printf("BS & SR = %i | %i\n", buffer_size, sampling_rate);
         
         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "test_master", 5, partial_cycle};
@@ -840,8 +837,8 @@ void remote_dsp_aux::startAudio()
 
 //----------------------------------REMOTE DSP API-------------------------------------------
 
-EXPORT int remote_dsp_factory::numInputs(){return fNumInputs;}
-EXPORT int remote_dsp_factory::numOutputs(){return fNumOutputs;}
+EXPORT int remote_dsp_factory::numInputs() { return fNumInputs; }
+EXPORT int remote_dsp_factory::numOutputs() { return fNumOutputs; }
 
 //---------INSTANCES
 
@@ -992,24 +989,23 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 {
     if (gDNS && gDNS->fLocker.Lock()) {
         
-        for(map<string, member>::iterator it=gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
+        for (map<string, member>::iterator it = gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
             
             member iterMem = it->second;
             
             lo_timetag now;
             lo_timetag_now(&now);
             
-//        If the server machine did not send a message for 3 secondes, it is considered disconnected
-            if((now.sec - iterMem.timetag.sec) < 3){
+            // If the server machine did not send a message for 3 secondes, it is considered disconnected
+            if ((now.sec - iterMem.timetag.sec) < 3) {
                 
-//        Decompose HostName to have Name, Ip and Port of service
+                // Decompose HostName to have Name, Ip and Port of service
                 string serviceNameCpy(iterMem.hostname);
                 
                 int pos = serviceNameCpy.find("._");
                 string remainingString = serviceNameCpy.substr(pos+2, string::npos);
                 pos = remainingString.find("._");
                 string serviceIP = remainingString.substr(0, pos);
-                
                 string hostName = remainingString.substr(pos+2, string::npos);
                 
                 int pos2 = serviceIP.find(":");
@@ -1058,15 +1054,14 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             
         CURLcode res = curl_easy_perform(curl);
             
-        if(res == CURLE_OK){
+        if (res == CURLE_OK) {
             
             printf("remoteDSP::getRemoteFactoriesAvailable 1\n");    
             
             long respcode; //response code of the http transaction
-            
             curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
             
-            if(respcode == 200){
+            if (respcode == 200) {
  
                 // PARSE RESPONSE TO EXTRACT KEY/VALUE
                 

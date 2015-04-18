@@ -1,6 +1,5 @@
 //
 //  Server.h
-//  
 //
 //  Created by Sarah Denoux on 13/05/13.
 //  Copyright (c) 2013 GRAME. All rights reserved.
@@ -101,7 +100,7 @@ struct connection_info_struct {
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
     string              fIP;
     string              fPort;
-    string              fCV;
+    string              fCompression;
     string              fMTU;
     string              fLatency;
     string              fSHAKey;
@@ -116,7 +115,7 @@ struct connection_info_struct {
         
         fIP = "";
         fPort = "";
-        fCV = "";
+        fCompression = "";
         fMTU = "";
         fLatency = "";
         fSHAKey = "";
@@ -135,10 +134,10 @@ struct slave_dsp {
     string          fInstanceKey;
     string          fName;
     
-    //    NETJACK PARAMETERS
+    // NETJACK PARAMETERS
     string          fIP;
     string          fPort;
-    string          fCV;
+    string          fCompression;
     string          fMTU;
     string          fLatency;
     
@@ -186,36 +185,36 @@ class Server {
         // SHAKey, pair<NameApp, Factory>
         map<string, pair<string, llvm_dsp_factory*> > fAvailableFactories;
             
-    // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
+        // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
         list<slave_dsp*> fRunningDsp;
         struct MHD_Daemon* fDaemon; //Running http daemon
         
         // Callback of another thread to wait netjack audio connection without blocking the server
         static void*    startAudioSlave(void*);
                 
-    // Creates the html to send back
+        // Creates the html to send back
         int             sendPage(MHD_Connection* connection, const char* page, int length, int status_code, const char* type = 0);
             
         void            stopNotActiveDSP();
             
         connection_info_struct* allocateConnectionStruct(MHD_Connection* connection, const char* method);
             
-    // Reaction to any kind of connection to the Server
+        // Reaction to any kind of connection to the Server
         static int      answerToConnection(void* cls, MHD_Connection* connection, 
                                         const char* url, const char* method, 
                                         const char* version, const char* upload_data, 
                                         size_t* upload_data_size, void** con_cls);
             
             
-    // Reaction to a GET request
+        // Reaction to a GET request
         int             answerGet(MHD_Connection* connection, const char* url);
             
-    // Reaction to a POST request
+        // Reaction to a POST request
         int             answerPost(MHD_Connection* connection, const char* url, 
                                 const char* upload_data, size_t *upload_data_size, 
                                 void** con_cls);
             
-    // Callback that processes the data send to the server
+        // Callback that processes the data send to the server
         static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 
                                 const char* filename, const char* content_type, 
                                 const char* transfer_encoding, const char* data, 
@@ -223,19 +222,19 @@ class Server {
             
         static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
             
-    // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
+        // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
         bool        compileData(connection_info_struct* con_info);
-    // Reaction to a /GetJsonFromKey --> GetJson form available factory
+        // Reaction to a /GetJsonFromKey --> GetJson form available factory
         bool        getJsonFromKey(connection_info_struct* con_info);
             
-    // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
+        // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
         bool        createInstance(connection_info_struct* con_info);
         
         bool        startAudio(const string& shakey);
         
         void        stopAudio(const string& shakey);
         
-    // Register Service as Available
+        // Register Service as Available
         static void* registration(void* arg);
 
     public:
@@ -243,7 +242,7 @@ class Server {
         Server();
         virtual ~Server();
             
-    //  Start server on specified port 
+        // Start server on specified port 
         bool start(int port = 7777);
         void stop();
     
