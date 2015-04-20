@@ -780,9 +780,9 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     if (sendRequest(ip, finalRequest, response, errorCode)){
         printf("BS & SR = %i | %i\n", buffer_size, sampling_rate);
         
-        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "test_master", 5, partial_cycle};
+        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
-        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), "net_master", &request, &result); 
+        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result); 
         
         if (fNetJack) {
             isInitSuccessfull = true;
