@@ -330,7 +330,7 @@
 		4BC4BFA317A7E98100161338 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = NO;
@@ -488,7 +488,7 @@
 		4BC4BFA417A7E98100161338 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
 				COPY_PHASE_STRIP = YES;
