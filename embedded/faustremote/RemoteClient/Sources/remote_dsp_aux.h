@@ -153,8 +153,8 @@ class remote_dsp_factory : public smartable {
         string              serverIP() { return fServerIP; }
         void                setIP(const string& ip) { fServerIP = ip; }
         vector<itemInfo*>   itemList() { return fUiItems; }
-        int                 numInputs();
-        int                 numOutputs();
+        int                 getNumInputs();
+        int                 getNumOutputs();
         
         string              key(){return fSHAKey;}
         void                setKey(const string& sha_key) { fSHAKey = sha_key; }

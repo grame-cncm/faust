@@ -35,12 +35,15 @@ enum {
     ERROR_CURL_CONNECTION
 };
 
+ /**
+ * DSP factory class
+ */
 class remote_dsp_factory {
     
     public: 
         
-        int numInputs();
-        int numOutputs();
+        int getNumInputs();
+        int getNumOutputs();
 };
 
 /**

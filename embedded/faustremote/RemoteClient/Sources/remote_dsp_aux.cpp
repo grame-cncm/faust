@@ -514,12 +514,12 @@ void remote_dsp_aux::metadata(Meta* m)
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs()
 { 
-     return fFactory->numInputs();
+     return fFactory->getNumInputs();
 }
 
 int remote_dsp_aux::getNumOutputs()
 { 
-    return fFactory->numOutputs();
+    return fFactory->getNumOutputs();
 }
 
 // Useless fonction in our case but required for a DSP interface
@@ -618,7 +618,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
         error = errorCode;
     }
     
-    printf("remote_dsp_aux::init = %p inputs = %i outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
+    printf("remote_dsp_aux::init = %p inputs = %i outputs = %i\n", this, fFactory->getNumInputs(), fFactory->getNumOutputs());
     
     return isInitSuccessfull;
 }                        
@@ -916,8 +916,8 @@ EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
     factory->metadataRemoteDSPFactory(m);
 }
 
-EXPORT int remote_dsp_factory::numInputs() { return fNumInputs; }
-EXPORT int remote_dsp_factory::numOutputs() { return fNumOutputs; }
+EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }
+EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
 
 EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList)
 {
