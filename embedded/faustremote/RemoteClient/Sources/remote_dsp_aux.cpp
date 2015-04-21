@@ -239,7 +239,7 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
                                                             int sampling_rate, int buffer_size, 
                                                             RemoteDSPErrorCallback error_callback, 
                                                             void* error_callback_arg, 
-                                                            int& error){
+                                                            int& error) {
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     if (dsp->init(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error)) {
         return dsp; 
@@ -458,7 +458,7 @@ void remote_dsp_aux::sendSlice(int buffer_size)
     if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
-            fRunningFlag = (fErrorCallback(WRITE_ERROR, fErrorCallbackArg) == 0);
+            fRunningFlag = (fErrorCallback(ERROR_NETJACK_WRITE, fErrorCallbackArg) == 0);
         }
     }
 }
@@ -468,7 +468,7 @@ void remote_dsp_aux::recvSlice(int buffer_size)
     if (fRunningFlag && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
-            fRunningFlag = (fErrorCallback(READ_ERROR, fErrorCallbackArg) == 0);
+            fRunningFlag = (fErrorCallback(ERROR_NETJACK_READ, fErrorCallbackArg) == 0);
         }
     }
 }

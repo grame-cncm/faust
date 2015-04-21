@@ -32,10 +32,12 @@ enum {
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED,
     ERROR_NETJACK_NOTSTARTED,
+    ERROR_NETJACK_READ,
+    ERROR_NETJACK_WRITE,
     ERROR_CURL_CONNECTION
 };
 
- /**
+/**
  * DSP factory class
  */
 class remote_dsp_factory {
@@ -225,8 +227,8 @@ class remote_dsp_server {
     
     public: 
         
-        bool start(int port);   /* Start the DSP compilation service on a given port. */
-        void stop();            /* Sop the DSP compilation. */
+        bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
+        void stop();                 /* Sop the DSP compilation. */
 };
 
  /**

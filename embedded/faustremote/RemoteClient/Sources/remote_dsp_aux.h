@@ -52,10 +52,6 @@
 
 using namespace std;
 
-#define NO_ERROR      0
-#define READ_ERROR   -1
-#define WRITE_ERROR  -2
-
 #define FactoryTableItem   pair<string, list<remote_dsp_aux*> >
 #define FactoryTableType   map<Sremote_dsp_factory, FactoryTableItem>
 #define FactoryTableIt     FactoryTableType::iterator
@@ -64,6 +60,8 @@ enum {
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED,
     ERROR_NETJACK_NOTSTARTED,
+    ERROR_NETJACK_READ,
+    ERROR_NETJACK_WRITE,
     ERROR_CURL_CONNECTION
 };
 

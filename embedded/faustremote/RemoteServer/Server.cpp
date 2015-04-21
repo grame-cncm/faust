@@ -435,7 +435,7 @@ int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
 }
 
 // Callback when connection is ended
-void DSPServer::requestCompleted(void* cls, MHD_Connection *connection, void** con_cls, MHD_RequestTerminationCode toe) 
+void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe) 
 {
     struct connection_info_struct* con_info = (connection_info_struct*)*con_cls;
     
