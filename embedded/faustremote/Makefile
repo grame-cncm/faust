@@ -1,7 +1,7 @@
 
-sources = $(wildcard Sources/*.cpp)
-sources += ../utilities.cpp
-sources += ../RemoteServer/Server.cpp
+sources = $(wildcard RemoteClient/Sources/*.cpp)
+sources += utilities.cpp
+sources += RemoteServer/Server.cpp
 
 objects = $(sources:.cpp=.o)
 
@@ -9,7 +9,7 @@ os 	:= $(shell uname)
 system	?= $(shell uname -s)
 
 PREFIX ?= /usr/local
-INCPATH = -I. -I../  -I../../../compiler -I../../../compiler/utils -I../../../compiler/generator/ -I../../../compiler/generator/llvm -I/usr/include -I/opt/local/include -F/Library/
+INCPATH = -I.   -I../../compiler -I../../compiler/utils -I../../compiler/generator/ -I../../compiler/generator/llvm -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
@@ -52,8 +52,8 @@ depend :
 
 # DO NOT DELETE
 
-Sources/JsonParser.o: Sources/JsonParser.h
-Sources/remote_dsp_aux.o: Sources/remote_dsp_aux.h ../../../compiler/utils/TMutex.h Sources/JsonParser.h
-Sources/remote_dsp_aux.o: ../../../compiler/generator/smartpointer.h ../../../compiler/libfaust.h
-Sources/remote_dsp_aux.o: ../../../compiler/export.hh ../utilities.h
-../utilities.o: ../utilities.h
+RemoteClient/Sources/JsonParser.o: RemoteClient/Sources/JsonParser.h
+RemoteClient/Sources/remote_dsp_aux.o: RemoteClient/Sources/remote_dsp_aux.h RemoteClient/Sources/JsonParser.h
+RemoteClient/Sources/remote_dsp_aux.o: utilities.h
+utilities.o: utilities.h
+RemoteServer/Server.o: RemoteServer/Server.h utilities.h

@@ -64,7 +64,7 @@ httpd :
 
 remote :
 	$(MAKE) -C embedded/faustremote/RemoteServer all
-	$(MAKE) -C embedded/faustremote/RemoteClient all
+	$(MAKE) -C embedded/faustremote all
 
 win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
@@ -107,7 +107,7 @@ clean :
 	$(MAKE) -C architecture/osclib clean
 	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
-	$(MAKE) -C embedded/faustremote/RemoteClient clean
+	$(MAKE) -C embedded/faustremote clean
 	$(MAKE) -C tools/sound2faust clean
 
 depend :
@@ -176,9 +176,8 @@ install :
 	# install sound converter
 	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
 	#install faustremote
-	([ -e embedded/faustremote/RemoteClient/libfaustremote.a ] &&  install embedded/faustremote/RemoteClient/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
-	([ -e embedded/faustremote/RemoteServer/RemoteServer ] &&  install embedded/faustremote/RemoteServer/RemoteServer  $(prefix)/bin) || echo remote not compiled
-	cp embedded/faustremote/RemoteClient/remote-dsp.h  $(prefix)/include/faust/dsp/
+	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
+	cp embedded/faustremote/remote-dsp.h  $(prefix)/include/faust/dsp/
 	# install webaudio
 	cp -r architecture/webaudio $(prefix)/lib/faust/
 
