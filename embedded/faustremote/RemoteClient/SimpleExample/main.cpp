@@ -63,7 +63,6 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    
     string ipServer = loptions(argv, "--ipserver", "localhost");
     int portServer = lopt(argv, "--portserver", 7777);
     int srate = lopt(argv, "--frequency", 44100);
@@ -86,9 +85,8 @@ int main(int argc, char* argv[])
     int nbArgument = 0;
           
 //--- Separate compilation options
-    for (int i = 1; i < argc; i++){
-          
-        if (string(argv[i]).find("--") != string::npos){
+    for (int i = 1; i < argc; i++) {
+        if (string(argv[i]).find("--") != string::npos) {
             i++;
         } else {
             arguments[nbArgument++] = argv[i];
@@ -119,7 +117,7 @@ int main(int argc, char* argv[])
     if (factories_list.size() > 0)
         factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].second.c_str());
     */
-    if (factory != NULL){
+    if (factory != NULL) {
                 
         remote_dsp* DSP;
         
@@ -144,7 +142,7 @@ int main(int argc, char* argv[])
             else
                 interface->run();
             
-            myApp.setStyleSheet(STYLESHEET);
+            //myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
              
             // STOP && DESALLOCATION OF ALL RESOURCES

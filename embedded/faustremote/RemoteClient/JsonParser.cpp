@@ -35,7 +35,7 @@ static void skipBlank(const char*& p)
 }
 
 // Parse a quoted string "..." and store the result in s, reports an error if it fails
-static  bool parseString(const char*& p, string& s)
+static bool parseString(const char*& p, string& s)
 {
     string str;
     
@@ -96,9 +96,9 @@ static bool parseChar(const char*& p, char x)
 //
 static bool parseMetaData(const char*& p, string& key, string& value, map<string,string>& metadatas)
 {
-    if(parseString(p,key)){
-        if(key.compare("meta") == 0){
-            if(parseChar(p,':') && parseChar(p,'[') && parseChar(p,'{')){
+    if (parseString(p,key)){
+        if (key.compare("meta") == 0){
+            if (parseChar(p,':') && parseChar(p,'[') && parseChar(p,'{')) {
                 do {
                     string key1;
                     string value1;
@@ -128,21 +128,21 @@ static bool parseMetaData(const char*& p, string& key, string& value, map<string
 //
 static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 {
-    if(parseChar(p,'{')){
+    if (parseChar(p,'{')) {
         
         string label;
         string value;
         
         do {
             
-            if(parseString(p, label)){
+            if (parseString(p, label)) {
                 
-                if(label.compare("type") == 0){
+                if (label.compare("type") == 0) {
                     
-                    if(uiItems.size() != 0)
+                    if (uiItems.size() != 0)
                         numItems++;
                     
-                    if(parseChar(p, ':') && parseString(p, value)){   
+                    if (parseChar(p, ':') && parseString(p, value)) {   
                         
                         itemInfo* item = new itemInfo;
                         item->type = value;
@@ -150,55 +150,53 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                     }
                 }
                 
-                else if(label.compare("label") == 0){
-                    if(parseChar(p, ':') && parseString(p, value)){
+                else if(label.compare("label") == 0) {
+                    if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->label = value;
                     }
                 }
                 
                 else if(label.compare("address") == 0){
-                    if(parseChar(p, ':') && parseString(p, value)){
+                    if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->address = value;
                     }
                 }
                 
-                else if(label.compare("meta") == 0){
+                else if(label.compare("meta") == 0) {
                     
                     string metaKey, metaValue;
-                    
-                    if(parseChar(p, ':') && parseChar(p,'[')){
+                    if (parseChar(p, ':') && parseChar(p,'[')) {
                         
-                        do{ 
-                            if( parseChar(p,'{') && parseString(p, metaKey) && parseChar(p, ':') && parseString(p, metaValue) && parseChar(p,'}')){
+                        do { 
+                            if( parseChar(p,'{') && parseString(p, metaKey) && parseChar(p, ':') && parseString(p, metaValue) && parseChar(p,'}')) {
                                 itemInfo* item = uiItems[numItems];
                                 item->meta[metaKey] = metaValue;
                             }
                             
-                        }while (tryChar(p,','));
-                        if(!parseChar(p,']'))
+                        } while (tryChar(p,','));
+                        if (!parseChar(p,']'))
                             return false;
                     }
-                    
                 }
                 
-                else if(label.compare("init") == 0){
-                    if(parseChar(p, ':') && parseString(p, value)){
+                else if (label.compare("init") == 0) {
+                    if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->init = value;
                     }
                 }
                 
-                else if(label.compare("min") == 0){
-                    if(parseChar(p, ':') && parseString(p, value)){
+                else if (label.compare("min") == 0){
+                    if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->min = value;
                     }
                 }
                 
-                else if(label.compare("max") == 0){
-                    if(parseChar(p, ':') && parseString(p, value)){
+                else if (label.compare("max") == 0){
+                    if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->max = value;
                     }
@@ -211,15 +209,15 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                     }
                 }
                 
-                else if(label.compare("items") == 0){
+                else if (label.compare("items") == 0) {
                     
-                    if(parseChar(p, ':') && parseChar(p,'[')){
+                    if (parseChar(p, ':') && parseChar(p,'[')) {
                         
-                        do{ 
+                        do { 
                             if(!parseUI(p, uiItems, numItems))
                                 return false;
-                        }while (tryChar(p,','));
-                        if(parseChar(p,']')){
+                        } while (tryChar(p,','));
+                        if (parseChar(p,']')) {
                             itemInfo* item = new itemInfo;
                             item->type = "close";
                             uiItems.push_back(item);
@@ -232,10 +230,8 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                 return false;
             
         } while (tryChar(p,','));
-        if(parseChar(p,'}'))
-            return true;
-        else
-            return false;
+        
+        return parseChar(p,'}');
     }
     else
         return false;
@@ -258,7 +254,6 @@ bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>&
         
         if (parseMetaData(p, key, value, metadatas)) {
             metadatas[key] = value;
-//            printf("KEY %s|| Value = %s\n", key.c_str(), value.c_str());
         } else {
             if(key.compare("ui") == 0){
                 int numItems = 0;
@@ -266,6 +261,7 @@ bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>&
             }
         }
     } while (tryChar(p,','));
+    
     return parseChar(p, '}');
 }
 

@@ -1,5 +1,5 @@
 
-sources = $(wildcard RemoteClient/Sources/*.cpp)
+sources = $(wildcard RemoteClient/*.cpp)
 sources += utilities.cpp
 sources += RemoteServer/Server.cpp
 
