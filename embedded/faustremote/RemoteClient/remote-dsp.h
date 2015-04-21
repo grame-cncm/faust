@@ -27,6 +27,10 @@
 #include <vector>
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
+
+/**
+ * Possible error codes
+*/
     
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -145,13 +149,6 @@ class remote_dsp : public dsp {
         virtual void startAudio();
         virtual void stopAudio();
 };
-
-/*
- Possible error codes
- */
-#define NO_ERROR      0
-#define READ_ERROR   -1
-#define WRITE_ERROR  -2
 
 /**
  * Prototype for DSP instance error callback.
