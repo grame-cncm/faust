@@ -583,7 +583,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest += string(getValueFromKey(argc, argv, "--NJ_mtu", "1500"));
     
     finalRequest += "&factoryKey=";
-    finalRequest += fFactory->key();
+    finalRequest += fFactory->getKey();
     
     finalRequest += "&instanceKey=";
     
@@ -595,7 +595,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     
     bool isInitSuccessfull = false;
         
-    string ip = fFactory->serverIP();
+    string ip = fFactory->getIP();
     ip += "/CreateInstance";
         
     string response("");
@@ -626,7 +626,6 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
 bool remote_dsp_aux::startAudio()
 {
     string finalRequest = "instanceKey=";
-    
     stringstream s;
     s << this;
     
@@ -634,7 +633,7 @@ bool remote_dsp_aux::startAudio()
     
     printf("REQUEST = %s\n", finalRequest.c_str());
     
-    string ip = fFactory->serverIP();
+    string ip = fFactory->getIP();
     ip += "/StartAudio";
     
     string response("");
@@ -652,7 +651,7 @@ bool remote_dsp_aux::stopAudio()
     
     printf("REQUEST = %s\n", finalRequest.c_str());
     
-    string ip = fFactory->serverIP();
+    string ip = fFactory->getIP();
     ip += "/StopAudio";
     
     string response("");
@@ -796,7 +795,12 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
       
     if (pos != string::npos) {
         printf("File extension found\n");
-        return createRemoteDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, ip_server, port_server, error_msg, opt_level);
+        return createRemoteDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), 
+                                                argc, argv, 
+                                                ip_server, 
+                                                port_server,
+                                                error_msg, 
+                                                opt_level);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)\n";
         return NULL;
@@ -892,7 +896,7 @@ EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 //    }
     factory->stop();
 //    
-//    string finalRequest = "shaKey="+factory->key();
+//    string finalRequest = "shaKey="+factory->getKey();
 //    
 //    string response;
 //    int errorCode;
@@ -923,9 +927,9 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 {
     if (gDNS && gDNS->fLocker.Lock()) {
         
-        for (map<string, member>::iterator it = gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
+        for (map<string, remote_DNS::member>::iterator it = gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
             
-            member iterMem = it->second;
+            remote_DNS::member iterMem = it->second;
             
             lo_timetag now;
             lo_timetag_now(&now);

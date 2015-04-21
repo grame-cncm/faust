@@ -37,7 +37,7 @@
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
 
-class Server;
+class DSPServer;
 
 using namespace std;
 
@@ -133,7 +133,7 @@ struct connection_info_struct {
 
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
-struct slave_dsp {
+struct netjack_dsp {
     
     string          fInstanceKey;
     string          fName;
@@ -150,35 +150,35 @@ struct slave_dsp {
     
     //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
     //So that the server himself is kept
-    Server*         fServer;
+    DSPServer*      fDSPServer;
     
-    slave_dsp(llvm_dsp_factory* smartFactory, 
+    netjack_dsp(llvm_dsp_factory* smartFactory, 
             const string& compression, 
             const string& ip, const string& port, 
             const string& mtu, const string& latency, 
-            Server* server);
-    ~slave_dsp();
+            DSPServer* server);
+    virtual ~netjack_dsp();
     
     bool startAudio();
     void stopAudio();
     
     bool startAudioConnection();
     
-    string  key() { return fInstanceKey; }
+    string  getKey() { return fInstanceKey; }
     void    setKey(const string& key) { fInstanceKey = key; }
-    string  name() { return fName; }
+    string  getName() { return fName; }
     void    setName(string name) { fName = name; }
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
     
-class Server {
+class DSPServer {
         
     private:
 
-        pthread_t       fThread;
-        TMutex          fLocker;
-        int             fPort;
+        pthread_t fThread;
+        TMutex    fLocker;
+        int       fPort;
         
         // Factories that can be instanciated. 
         // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
@@ -186,7 +186,7 @@ class Server {
         map<string, pair<string, llvm_dsp_factory*> > fAvailableFactories;
             
         // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
-        list<slave_dsp*> fRunningDsp;
+        list<netjack_dsp*> fRunningDsp;
         struct MHD_Daemon* fDaemon; //Running http daemon
         
         // Callback of another thread to wait netjack audio connection without blocking the server
@@ -239,14 +239,16 @@ class Server {
 
     public:
             
-        Server();
-        virtual ~Server();
+        DSPServer();
+        virtual ~DSPServer();
             
         // Start server on specified port 
         bool start(int port = 7777);
         void stop();
     
 };
+
+// Public C++ API
 
 class EXPORT remote_dsp_server {
     

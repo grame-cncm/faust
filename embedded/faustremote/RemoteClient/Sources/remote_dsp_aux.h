@@ -56,8 +56,8 @@ using namespace std;
 #define READ_ERROR   -1
 #define WRITE_ERROR  -2
 
-#define FactoryTableItem   pair< string, list<remote_dsp_aux*> >
-#define FactoryTableType   map< Sremote_dsp_factory, FactoryTableItem >
+#define FactoryTableItem   pair<string, list<remote_dsp_aux*> >
+#define FactoryTableType   map<Sremote_dsp_factory, FactoryTableItem>
 #define FactoryTableIt     FactoryTableType::iterator
 
 enum {
@@ -67,35 +67,35 @@ enum {
     ERROR_CURL_CONNECTION
 };
 
-struct member {
-    int pid;
-    string hostname;
-    lo_timetag timetag;
-    
-    member() 
-    {
-        pid = 0;
-        hostname = "";
-        timetag.sec = 0;
-        timetag.frac = 0;
-    }
-};
-
 // To be used as a Singleton 
 
 struct remote_DNS {
-    
+
+    struct member {
+        int pid;
+        string hostname;
+        lo_timetag timetag;
+        
+        member() 
+        {
+            pid = 0;
+            hostname = "";
+            timetag.sec = 0;
+            timetag.frac = 0;
+        }
+    };
+   
+     lo_server_thread fLoThread;
+    std::map<string, member> fClients;
+    TMutex fLocker;
+      
     static void cleanupMachineList(std::map<string, member> clients_list);
     
     static void errorHandler(int num, const char* m, const char* path);
     
     static int pingHandler(const char* path, const char* types, lo_arg** argv,
                            int argc, void* data, void* user_data);
-    
-    lo_server_thread fLoThread;
-    std::map<string, member> fClients;
-    TMutex fLocker;
-    
+   
     remote_DNS();
     virtual ~remote_DNS();
     
@@ -104,12 +104,6 @@ struct remote_DNS {
 typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 
 class remote_dsp_aux;
-
-// Standard Callback to store a server response in strinstream
-static size_t storeResponse(void* buf, size_t size, size_t nmemb, void* userp);
-
-static CURLcode sendRequest(CURL* curl, const string& ipadd, const string& request, string& response);
-
 class remote_dsp_factory;
 
 typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
@@ -150,13 +144,15 @@ class remote_dsp_factory : public smartable {
         void        metadataRemoteDSPFactory(Meta* m);  
         
         // ACCESSORS
-        string              serverIP() { return fServerIP; }
+        string              getIP() { return fServerIP; }
         void                setIP(const string& ip) { fServerIP = ip; }
+        
         vector<itemInfo*>   itemList() { return fUiItems; }
+        
         int                 getNumInputs();
         int                 getNumOutputs();
         
-        string              key(){return fSHAKey;}
+        string              getKey() { return fSHAKey; }
         void                setKey(const string& sha_key) { fSHAKey = sha_key; }
         
         static FactoryTableType gFactoryTable;
@@ -203,7 +199,8 @@ class remote_dsp_aux : public dsp {
         remote_dsp_aux(remote_dsp_factory* factory);
         ~remote_dsp_aux();
         
-        bool init(int argc, const char *argv[], int sampling_rate, int buffer_size, 
+        bool init(int argc, const char *argv[], 
+                int sampling_rate, int buffer_size, 
                 RemoteDSPErrorCallback errror_callback, 
                 void* errror_callback_arg, int& error);
         
