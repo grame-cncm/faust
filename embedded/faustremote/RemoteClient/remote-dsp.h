@@ -220,6 +220,31 @@ extern "C"
      */    
     bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
     
+     /**
+     * Compiler service class
+     */
+    class remote_dsp_server {
+        
+        public: 
+            
+            bool start(int port);   /* Start the DSP compilation service on a given port. */
+            void stop();            /* Sop the DSP compilation. */
+    };
+    
+     /**
+     * Create a remote DSP server.
+     * 
+     * @@return the DSP server or NULL if allocation error.
+     */ 
+    remote_dsp_server* createRemoteDSPServer();
+    
+    /**
+     * Destroy a remote DSP server.
+     * 
+     * @param dsp - the DSP server to be deleted.
+     */ 
+    void deleteRemoteDSPServer(remote_dsp_server* server);
+     
 #ifdef __cplusplus
 }
 #endif

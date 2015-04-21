@@ -1,6 +1,7 @@
 
 sources = $(wildcard Sources/*.cpp)
 sources += ../utilities.cpp
+sources += ../RemoteServer/Server.cpp
 
 objects = $(sources:.cpp=.o)
 

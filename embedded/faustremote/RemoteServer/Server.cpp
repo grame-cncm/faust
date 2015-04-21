@@ -592,3 +592,25 @@ void* Server::registration(void* arg) {
     
     pthread_exit(NULL);
 }
+
+// DSP server API
+
+EXPORT remote_dsp_server* createRemoteDSPServer()
+{
+    return reinterpret_cast<remote_dsp_server*>(new Server());
+}
+
+EXPORT void deleteRemoteDSPServer(remote_dsp_server* server)
+{
+     delete reinterpret_cast<remote_dsp_server*>(server);
+}
+
+EXPORT bool remote_dsp_server::start(int port)
+{
+    return reinterpret_cast<Server*>(this)->start(port);
+}
+
+EXPORT void remote_dsp_server::stop()
+{
+    return reinterpret_cast<Server*>(this)->stop();
+}

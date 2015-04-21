@@ -31,6 +31,12 @@
 #define GET 0
 #define POST 1
 
+#ifdef WIN32
+    #define	EXPORT __declspec(dllexport)
+#else
+	#define	EXPORT __attribute__ ((visibility("default")))
+#endif
+
 class Server;
 
 using namespace std;
@@ -241,6 +247,18 @@ class Server {
         void stop();
     
 };
+
+class EXPORT remote_dsp_server {
+    
+    public: 
+        
+        bool start(int port);
+        void stop();
+};
+
+EXPORT remote_dsp_server* createRemoteDSPServer();
+
+EXPORT void deleteRemoteDSPServer(remote_dsp_server* compiler);
     
 #endif
     
