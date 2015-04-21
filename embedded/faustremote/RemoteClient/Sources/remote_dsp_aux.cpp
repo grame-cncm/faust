@@ -461,8 +461,18 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
     fAudioInputs = new float*[getNumInputs()];
     fAudioOutputs = new float*[getNumOutputs()];
     
+    for (int i = 0; i < getNumInputs(); i++) {
+        fAudioInputs[i] = 0;
+    }
+    for (int i = 0; i < getNumOutputs(); i++) {
+        fAudioOutputs[i] = 0;
+    }
+    
     fControlInputs = new float*[1];
     fControlOutputs = new float*[1];
+    
+    fControlInputs[0] = 0;
+    fControlOutputs[0] = 0;
     
     fCounterIn = 0;
     fCounterOut = 0;
@@ -619,18 +629,18 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
 
 void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
 {
-    for (int j = 0; j < getNumInputs(); j++) {
-        fAudioInputs[j] = &input[j][offset];
+    for (int i = 0; i < getNumInputs(); i++) {
+        fAudioInputs[i] = &input[i][offset];
     }
     
-    for (int j = 0; j < getNumOutputs(); j++) {
-        fAudioOutputs[j] = &output[j][offset];
+    for (int i = 0; i < getNumOutputs(); i++) {
+        fAudioOutputs[i] = &output[i][offset];
     }
 }
 
 void remote_dsp_aux::sendSlice(int buffer_size) 
 {
-    if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0){
+    if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             printf("Is sent OK ?\n");
@@ -661,6 +671,7 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         
         int i = 0;
         for (i = 0; i < numberOfCycles; i++) {
+            setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
@@ -793,7 +804,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
         error = errorCode;
     }
     
-    printf("remote_dsp_aux::init = %p || inputs = %i || outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
+    printf("remote_dsp_aux::init = %p inputs = %i outputs = %i\n", this, fFactory->numInputs(), fFactory->numOutputs());
     
     return isInitSuccessfull;
 }                        
