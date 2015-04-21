@@ -219,8 +219,8 @@ extern "C"
             
             virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
             
-            virtual void startAudio();
-            virtual void stopAudio();
+            virtual bool startAudio();
+            virtual bool stopAudio();
             
             remote_dsp_factory* getFactory() { return fFactory; }
     };
@@ -242,8 +242,8 @@ extern "C"
             
             virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
             
-            virtual void startAudio();
-            virtual void stopAudio();
+            virtual bool startAudio();
+            virtual bool stopAudio();
     };
         
     EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key);  
