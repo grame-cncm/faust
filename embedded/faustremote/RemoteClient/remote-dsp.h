@@ -239,7 +239,7 @@ remote_dsp_server* createRemoteDSPServer();
 /**
  * Destroy a remote DSP server.
  * 
- * @param dsp - the DSP server to be deleted.
+ * @param server - the DSP server to be deleted.
  */ 
 void deleteRemoteDSPServer(remote_dsp_server* server);
 

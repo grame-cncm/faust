@@ -91,7 +91,7 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* smartFactory,
                     const string& mtu, 
                     const string& latency, 
                     DSPServer* server) 
-                    : fIP(ip), fPort(port), fCompression(compression), 
+                    :fIP(ip), fPort(port), fCompression(compression), 
                     fMTU(mtu), fLatency(latency), 
                     fAudio(NULL), fDSPServer(server)
 {
@@ -133,17 +133,16 @@ bool DSPServer::start(int port)
                                &answerToConnection, 
                                this, MHD_OPTION_NOTIFY_COMPLETED, 
                                requestCompleted, NULL, MHD_OPTION_END);
-
-    if (fDaemon) {
-        if (pthread_create(&fThread, NULL, DSPServer::registration, this) != 0) {
-            printf("RemoteDSPServer : pthread_create failed\n");
-            return false;
-        }
-        return true;
-    } else {
+    if (!fDaemon) {
         printf("RemoteDSPServer : MHD_start_daemon failed\n");
         return false;
+    }                           
+
+    if (pthread_create(&fThread, NULL, DSPServer::registration, this) != 0) {
+        printf("RemoteDSPServer : pthread_create failed\n");
+        return false;
     }
+    return true;
 }
 
 void DSPServer::stop()
@@ -310,7 +309,6 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
         return MHD_NO;
     }
 }
-
 
 // Response to all POST request
 // 3 requests are correct : 
