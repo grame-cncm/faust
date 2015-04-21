@@ -87,18 +87,14 @@ bool isopt(char *argv[], const char *name)
 
 int lopt_Spe(int i, char *argv[], const char *name, char* path)
 {
-//	int	i;
-//	for (i = 0; argv[i]; i++){
-        if (!strcmp(argv[i], name)){
-            strcpy(path, argv[i+1]);
-        
-            if (argv[i+2] && !strcmp(argv[i+2], "--n"))
-                return atoi(argv[i+3]);
-            else
-                return 1;
-        }
-//    }	
+    if (!strcmp(argv[i], name)){
+        strcpy(path, argv[i+1]);
     
+        if (argv[i+2] && !strcmp(argv[i+2], "--n"))
+            return atoi(argv[i+3]);
+        else
+            return 1;
+    }
     return 0;
 }
 
@@ -113,7 +109,6 @@ int lopt_Spe(int i, char *argv[], const char *name, char* path)
 
 string searchIP()
 {
-    
     // Works also on OSX...
     
 //#ifdef __linux__

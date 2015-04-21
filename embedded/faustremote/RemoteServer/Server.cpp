@@ -82,7 +82,7 @@ slave_dsp::slave_dsp(llvm_dsp_factory* smartFactory,
                     const string& mtu, 
                     const string& latency, 
                     Server* server) 
-                    : fCompression(compression), fIP(ip), fPort(port), fMTU(mtu), fLatency(latency), fServer(server), fAudio(NULL) 
+                    : fIP(ip), fPort(port), fCompression(compression), fMTU(mtu), fLatency(latency), fAudio(NULL), fServer(server)
 {
     fDSP = createDSPInstance(smartFactory);
 }
@@ -106,7 +106,7 @@ slave_dsp::~slave_dsp()
 
 //----------------SERVER----------------------------------------
 
-Server::Server():fDaemon(NULL), fPort(-1) 
+Server::Server():fPort(-1), fDaemon(NULL)
 {}
 
 Server::~Server() {}
