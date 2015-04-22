@@ -48,7 +48,7 @@
 // Polyphony
 //**************************************************************
 
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 
 //**************************************************************
 // Android Audio (modified opensl_io)
@@ -109,7 +109,7 @@ void init(int samplingRate, int bufferFrames) {
     if (jsonString.find("keyboard") != std::string::npos ||
         jsonString.find("poly") != std::string::npos){
         polyMax = 6;
-        DSPpoly = new mydsp_poly(polyMax);
+        DSPpoly = new mydsp_poly(polyMax, true);
         DSPpoly->init(SR);
     } else {
         polyMax = 0;
@@ -244,7 +244,7 @@ int keyOff(int pitch) {
  * is used in the Faust code. pitchBend will return 0
  * if the object is not polyphonic and 1 otherwise.
  */
-int pitchBend(int refPitch, float pitch){
+int pitchBend(int refPitch, float pitch) {
 	if (polyMax > 0) {
 		DSPpoly->pitchBend(0, refPitch, pitch);
 		return 1;
@@ -258,7 +258,7 @@ int pitchBend(int refPitch, float pitch){
  * Returns a string containing a JSON description of the
  * UI of the Faust object.
  */
-const char *getJSON() {
+const char* getJSON() {
 	return jsonString.c_str();
 }
 
@@ -329,6 +329,6 @@ int setVoiceGain(int pitch, float gain) {
  * getParamAddress(id)
  * Returns the address of a parameter in function of its "id".
  */
-const char *getParamAddress(int id) {
+const char* getParamAddress(int id) {
 	return mapUI.getParamPath(id).c_str();
 }

@@ -58,7 +58,7 @@
 // Polyphony
 //**************************************************************
 
-#include "faust/audio/poly-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 
 //**************************************************************
 // IOS Coreaudio
@@ -110,6 +110,7 @@ public:
         inChanNumb = DSP.getNumInputs();
         outChanNumb = DSP.getNumOutputs();
         
+        // configuring the UI
         DSP.buildUserInterface(&mapUI);
         DSP.buildUserInterface(&json);
         
@@ -118,9 +119,9 @@ public:
         if (jsonString.find("keyboard") != std::string::npos ||
            jsonString.find("poly") != std::string::npos){
             polyMax = 4;
-            DSPpoly = new mydsp_poly(polyMax);
+            DSPpoly = new mydsp_poly(polyMax, true);
             DSPpoly->init(samplingRate);
-        } else{
+        } else {
             polyMax = 0;
         }
         
@@ -202,7 +203,7 @@ public:
      */
     int pitchBend(int refPitch, float pitch) {
         if (polyMax > 0) {
-            DSPpoly->pitchBend(0,refPitch, pitch);
+            DSPpoly->pitchBend(0, refPitch, pitch);
             return 1;
         } else {
             return 0;
@@ -214,7 +215,7 @@ public:
      * Returns a string containing a JSON description of the
      * UI of the Faust object.
      */
-    const char *getJSON() {
+    const char* getJSON() {
         return jsonString.c_str();
     }
     
@@ -273,7 +274,7 @@ public:
      */
     int setVoiceGain(int pitch, float gain) {
         if (polyMax > 0) {
-            setVoiceParam(DSPpoly->fGainLabel.c_str(),pitch,gain);
+            setVoiceParam(DSPpoly->fGainLabel.c_str(), pitch, gain);
             return 1;
         } else {
             return 0;
@@ -284,7 +285,7 @@ public:
      * getParamAddress(id)
      * Returns the address of a parameter in function of its "id".
      */
-    const char *getParamAddress(int id) {
+    const char* getParamAddress(int id) {
         return mapUI.getParamPath(id).c_str();
     }  
 };

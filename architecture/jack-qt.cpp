@@ -43,6 +43,7 @@
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/midi/midi.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -52,8 +53,8 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#ifdef MIDICTRL
-#include "faust/midi/midi-io.h"
+#if MIDICTRL
+#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 #endif
 
@@ -72,11 +73,11 @@
 <<includeclass>>
 
 #ifdef POLY
-#include "faust/midi/midi-io.h"
+#include "faust/dsp/poly-dsp.h"
 mydsp_poly*	DSP;
 #else
 mydsp* DSP;
-#endif
+#endif 
 
 /***************************END USER SECTION ***************************/
 
@@ -84,9 +85,14 @@ mydsp* DSP;
 					
 std::list<GUI*> GUI::fGuiList;
 
-//-------------------------------------------------------------------------
-// 									MAIN
-//-------------------------------------------------------------------------
+/******************************************************************************
+*******************************************************************************
+
+                                MAIN PLAY THREAD
+
+*******************************************************************************
+*******************************************************************************/
+
 int main(int argc, char *argv[])
 {
  	char appname[256];
@@ -97,10 +103,18 @@ int main(int argc, char *argv[])
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
     
     int poly = lopt(argv, "--poly", 4);
+    
+#if MIDICTRL
+    rtmidi midi;
+#endif
 	
 #ifdef POLY
+#if MIDICTRL
+    DSP = new mydsp_poly(poly, true);
+    midi.addMidiIn(DSP);
+#else
     DSP = new mydsp_poly(poly);
-    MidiIO midi(DSP);
+#endif
 #else
     DSP = new mydsp();
 #endif
@@ -117,9 +131,8 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
     
 #ifdef MIDICTRL
-    MidiUI midiinterface;
+    MidiUI midiinterface(&midi);
     DSP->buildUserInterface(&midiinterface);
-    MidiIO midi(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
@@ -130,8 +143,8 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef OSCCTRL
-	OSCUI oscinterface(appname, argc, argv);
-	DSP->buildUserInterface(&oscinterface);
+    OSCUI oscinterface(appname, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
     std::cout << "OSC is on" << std::endl;
 #endif
 	
@@ -140,7 +153,7 @@ int main(int argc, char *argv[])
 	finterface.recallState(rcfilename);	
 	audio.start();
     
-#if defined(POLY) || defined(MIDICTRL)
+#if MIDICTRL
     midi.start();
 #endif
 	
@@ -163,7 +176,7 @@ int main(int argc, char *argv[])
 	audio.stop();
 	finterface.saveState(rcfilename);
     
-#if defined(POLY) || defined(MIDICTRL)
+#if MIDICTRL
     midi.stop();
 #endif
     
