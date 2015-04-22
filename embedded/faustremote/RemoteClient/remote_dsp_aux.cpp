@@ -22,11 +22,19 @@
 #include <sstream>
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
-#include "llvm-c-dsp.h"
+#include "llvm-dsp.h"
 #include "libfaust.h"
 #include "utilities.h"
 #include <errno.h>
 #include <libgen.h>
+
+static bool isParam(int argc, const char* argv[], const string& param)
+{
+    for (int i = 0; i < argc; i++) {
+        if (string(argv[i]) == param) return true;
+    }
+    return false;
+}
 
 FactoryTableType remote_dsp_factory::gFactoryTable;
 
@@ -148,17 +156,31 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         finalRequest += "&opt_level=";
         stringstream ol;
         ol<<opt_level;
-        finalRequest +=ol.str(); 
+        finalRequest += ol.str(); 
         
         finalRequest += "&shaKey=";
         finalRequest += fSHAKey;
         
         printf("finalRequest = %s\n", finalRequest.c_str());
-        
-        finalRequest += "&data=";
-        
-        // Transforming faustCode to URL format
-        finalRequest += curl_easy_escape(curl , dsp_content.c_str() , dsp_content.size());
+               
+        // Compile locally and send machine code on server side...
+        if (isParam(argc, argv, "-machine")) {
+            string error;
+            llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", error, 3);
+            if (factory) {
+                string machine_code = writeDSPFactoryToMachine(factory);
+                // Transforming machine code to URL format
+                finalRequest += "&machine_data=";
+                cout << machine_code << endl;
+                finalRequest += curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
+            } else {
+                return false;
+            }
+        } else {
+            // Transforming Faust code to URL format
+            finalRequest += "&dsp_data=";
+            finalRequest += curl_easy_escape(curl, dsp_content.c_str(), dsp_content.size());
+        }
         
         fServerIP = "http://";
         fServerIP += ip_server;
@@ -830,7 +852,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     for (int i = 0; i < factories_list.size(); i++) {
         if (sha_key == factories_list[i].second.c_str()) {
-           factoryStillExisting = true;
+            factoryStillExisting = true;
             break;
         }
     }
@@ -842,10 +864,10 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     } else {
     
         // Use for it's possible 'side effects', that is generating SVG, XML... files
-        char error_msg_aux[256];
-        generateCAuxFilesFromString(name_app.c_str(), dsp_content.c_str(),  argc, argv, error_msg_aux);
+        string error_msg_aux;
+        generateAuxFilesFromString(name_app, dsp_content,  argc, argv, error_msg_aux);
         
-        // OPTIONS have to be filtered for documentation not to be created on the server's side -tg, -sg, -ps, -svg, -mdoc, -xml
+        // OPTIONS have to be filtered for documentation not to be created on the server side (-tg, -sg, -ps, -svg, -mdoc, -xml)
         int argc1 = 0;
         const char* argv1[argc];
         
@@ -861,8 +883,8 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
             }
         }
 
-        char sha_key_aux[256];
-        std::string expanded_dsp = expandCDSPFromString(name_app.c_str(), dsp_content.c_str(), argc1, argv1, sha_key_aux, error_msg_aux);
+        string sha_key_aux;
+        std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key_aux, error_msg_aux);
         
         if (expanded_dsp == "") {
             return 0; 

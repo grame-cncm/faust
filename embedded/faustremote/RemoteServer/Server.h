@@ -96,6 +96,7 @@ struct connection_info_struct {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string              fNameApp;
     string              fFaustCode;
+    string              fMachineCode;
     string              fFactoryKey;
     vector<string>      fCompilationOptions;
     string              fOptLevel;
@@ -116,6 +117,7 @@ struct connection_info_struct {
     void init() 
     {
         fFaustCode = "";
+        fMachineCode = "";
         fFactoryKey = "";
         fOptLevel = "";
         

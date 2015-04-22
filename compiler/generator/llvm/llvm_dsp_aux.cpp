@@ -208,7 +208,7 @@ static llvm::Module* ParseBitcodeFile(llvm::MemoryBuffer* Buffer,
     ErrorOr<Module*> ModuleOrErr = parseBitcodeFile(Buffer, Context);
     if (std::error_code EC = ModuleOrErr.getError()) {
         if (ErrMsg) *ErrMsg = EC.message();
-        return 0;
+        return NULL;
     } else {
         return ModuleOrErr.get();
     }
@@ -252,7 +252,7 @@ EXPORT Module* load_single_module(const string filename, LLVMContext* context)
     #else
         err.Print("ParseIRFile failed :", errs());
     #endif
-        return 0;
+        return NULL;
     }
 }
 
@@ -947,7 +947,7 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, string& erro
         return factory;
     } else {
         delete factory;
-        return 0;
+        return NULL;
     }
 }
 
@@ -1042,7 +1042,7 @@ TLock lock(gDSPFactoriesLock);
     string sha_key;
     
     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
-        return 0; 
+        return NULL; 
     } else {
 
         FactoryTableIt it;
@@ -1055,7 +1055,7 @@ TLock lock(gDSPFactoriesLock);
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
-            return 0;
+            return NULL;
         }
     }
     
@@ -1072,7 +1072,7 @@ TLock lock(gDSPFactoriesLock);
         llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
         return factory;
     } else {
-        return 0;
+        return NULL;
     }*/
 }
 
@@ -1169,7 +1169,7 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MemoryBuffer* buffer, cons
             return factory;
         } else {
             printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
-            return 0;
+            return NULL;
         }
     }
 }
@@ -1197,7 +1197,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     if (std::error_code ec = buffer.getError()) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
-        return 0;
+        return NULL;
     } else {
         return readDSPFactoryFromBitcodeAux(buffer->get(), target, opt_level);
     }
@@ -1206,7 +1206,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
-        return 0;
+        return NULL;
     } else {
         return readDSPFactoryFromBitcodeAux(buffer.get(), target, opt_level);
     }
@@ -1252,7 +1252,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MemoryBuffer* buffer, const str
         #else
             err.Print("readDSPFactoryFromIRAux failed :", errs());
         #endif
-            return 0;
+            return NULL;
         }
     }
 }
@@ -1280,7 +1280,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
     if (std::error_code ec = buffer.getError()) {
         printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
-        return 0;
+        return NULL;
     } else {
         return readDSPFactoryFromIRAux(buffer->get(), target, opt_level);
     }
@@ -1288,7 +1288,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
-        return 0;
+        return NULL;
     } else {
         return readDSPFactoryFromIRAux(buffer.get(), target, opt_level);
     }
@@ -1317,9 +1317,14 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MemoryBuffer* buffer)
         return sfactory;
     } else {
         string error_msg;
-        llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, buffer->getBuffer().str()), error_msg);
-        llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
-        return factory;
+        try {
+            llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, buffer->getBuffer().str()), error_msg);
+            llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
+            return factory;
+        } catch (faustexception& e) {
+            e.PrintMessage();
+            return NULL;
+        }
     }
 }
 
@@ -1347,7 +1352,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (std::error_code ec = buffer.getError()) {
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
-        return 0;
+        return NULL;
     } else {
         return readDSPFactoryFromMachineAux(buffer->get());
     }
@@ -1355,7 +1360,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
-        return 0;
+        return NULL;
     } else {
         return readDSPFactoryFromMachineAux(buffer.get());
     }
@@ -1394,7 +1399,7 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
         (*it).second.push_back(instance);
         return reinterpret_cast<llvm_dsp*>(instance);
     } else {
-        return 0;
+        return NULL;
     }
 }
 

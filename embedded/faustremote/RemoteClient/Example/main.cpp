@@ -108,6 +108,8 @@ int main(int argc, char* argv[])
                 }
             }
             
+            arguments[nbArgument++] = "-machine";
+            
             string content = pathToContent(filePath);
              
             remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);

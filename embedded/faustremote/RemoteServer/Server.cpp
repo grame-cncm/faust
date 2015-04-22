@@ -396,8 +396,11 @@ int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
             if (con_info->fNameApp.compare("") == 0)
                 con_info->fNameApp = "RemoteDSPServer_DefaultName";
         }
-        if (strcmp(key,"data") == 0)
-            con_info->fFaustCode += data;        
+        if (strcmp(key,"dsp_data") == 0)
+            con_info->fFaustCode += data;   
+            
+        if (strcmp(key,"machine_data") == 0)
+            con_info->fMachineCode += data;   
             
         if (strcmp(key,"NJ_ip") == 0) 
             con_info->fIP = data;
@@ -506,13 +509,23 @@ bool DSPServer::compileData(connection_info_struct* con_info) {
             argv[i] = (con_info->fCompilationOptions[i]).c_str();
         }
         
-        string error;
-        con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
+        printf("compileData \n");
         
+        if (con_info->fFaustCode == "") {
+            cout << "fMachineCode " << con_info->fMachineCode.size() << endl;
+
+            cout << "fMachineCode " << con_info->fMachineCode << endl;
+            con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fMachineCode);
+        } else {
+            string error;
+            printf("fFaustCode\n");
+            con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
+        }
+       
         if (con_info->fLLVMFactory) {
             fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
             
-            // Once the factory is compiled, the json is stored as answerstring
+            // Once the factory is compiled, the JSON is stored as answerstring
             con_info->fAnswerstring = getJson(con_info);
             return true;
         }
