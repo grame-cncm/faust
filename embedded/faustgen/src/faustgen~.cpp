@@ -25,7 +25,6 @@
  ************************************************************************/
 
 #include "faustgen~.h"
-#include "base64.h"
 
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
@@ -212,8 +211,7 @@ void faustgen_factory::free_dsp_factory()
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
-    string decoded_bitcode = base64_decode(*fBitCode, fBitCodeSize);
-    return readDSPFactoryFromBitcode(decoded_bitcode, getTarget(), LLVM_OPTIMIZATION);
+    return readDSPFactoryFromBitcode(*fBitCode, getTarget(), LLVM_OPTIMIZATION);
     
     /*
     // Alternate model using machine code
@@ -493,9 +491,8 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
         // Alternate model using machine code
         //string machinecode = writeDSPFactoryToMachine(fDSPfactory);
         
-        string encoded_bitcode = base64_encode((const unsigned char*)bitcode.c_str(), bitcode.size());
-        dictionary_appendlong(d, gensym("bitcode_size"), encoded_bitcode.size());
-        dictionary_appendstring(d, gensym("bitcode"), encoded_bitcode.c_str());  
+        dictionary_appendlong(d, gensym("bitcode_size"), bitcode.size());
+        dictionary_appendstring(d, gensym("bitcode"), bitcode.c_str()); 
     }
 }
 

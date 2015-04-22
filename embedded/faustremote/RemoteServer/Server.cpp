@@ -509,22 +509,17 @@ bool DSPServer::compileData(connection_info_struct* con_info) {
             argv[i] = (con_info->fCompilationOptions[i]).c_str();
         }
         
-        printf("compileData \n");
-        
         if (con_info->fFaustCode == "") {
-            cout << "fMachineCode " << con_info->fMachineCode.size() << endl;
-
-            cout << "fMachineCode " << con_info->fMachineCode << endl;
+            // Machine code
             con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fMachineCode);
         } else {
+            // DSP code
             string error;
-            printf("fFaustCode\n");
             con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
         }
        
         if (con_info->fLLVMFactory) {
             fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
-            
             // Once the factory is compiled, the JSON is stored as answerstring
             con_info->fAnswerstring = getJson(con_info);
             return true;

@@ -38,6 +38,7 @@
 #include "dsp_aux.hh"
 #include "timing.hh"
 #include "exception.hh"
+#include "base64.h"
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/IR/Module.h>
@@ -293,7 +294,7 @@ string llvm_dsp_factory::writeDSPFactoryToBitcode()
     raw_string_ostream out(res);
     WriteBitcodeToFile(fResult->fModule, out);
     out.flush();
-    return res;
+    return base64_encode((const unsigned char*)res.c_str(), res.size());
 }
 
 void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
@@ -328,7 +329,7 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 std::string llvm_dsp_factory::writeDSPFactoryToMachine()
 { 
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
-    return fObjectCache->getMachineCode(); 
+    return base64_encode((const unsigned char*)fObjectCache->getMachineCode().c_str(), fObjectCache->getMachineCode().size());
 #else
     return "";
 #endif
@@ -1178,7 +1179,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const
 {
     TLock lock(gDSPFactoriesLock);
     
-    return readDSPFactoryFromBitcodeAux(MemoryBuffer::getMemBuffer(StringRef(bit_code)), target, opt_level);
+    return readDSPFactoryFromBitcodeAux(MemoryBuffer::getMemBuffer(StringRef(base64_decode(bit_code))), target, opt_level);
 }
 
 EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
@@ -1333,7 +1334,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_co
 {
     TLock lock(gDSPFactoriesLock);
     
-    return readDSPFactoryFromMachineAux(MemoryBuffer::getMemBuffer(StringRef(machine_code)));
+    return readDSPFactoryFromMachineAux(MemoryBuffer::getMemBuffer(StringRef(base64_decode(machine_code))));
 }
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)

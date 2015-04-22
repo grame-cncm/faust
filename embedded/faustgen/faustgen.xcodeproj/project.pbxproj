@@ -42,9 +42,7 @@
 		4BC4BF9817A7E98100161338 /* oscillator.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914A16569775006952CC /* oscillator.lib */; };
 		4BC4BF9917A7E98100161338 /* reduce.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914B16569775006952CC /* reduce.lib */; };
 		4BC4BF9B17A7E98100161338 /* faustgen~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BCA75A0156D13B200C3299A /* faustgen~.cpp */; };
-		4BC4BF9C17A7E98100161338 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BE5E41415F1569F00AFD014 /* base64.cpp */; };
 		4BC4BF9E17A7E98100161338 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B5A392915F3B05B007317F4 /* CoreFoundation.framework */; };
-		4BE5E41715F1569F00AFD014 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BE5E41415F1569F00AFD014 /* base64.cpp */; };
 		4BF47AC41ADBFAE200ED318F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BF47AC31ADBFAE200ED318F /* IOKit.framework */; };
 		4BF47AC51ADBFAE200ED318F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BF47AC31ADBFAE200ED318F /* IOKit.framework */; };
 		5B3AA39D158B65190050941C /* faustgen~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BCA75A0156D13B200C3299A /* faustgen~.cpp */; };
@@ -65,8 +63,6 @@
 		4B6188BB190FA6DD005A0E4E /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "/Applications/Max6.1/MaxSDK-6.1.4/c74support/max-includes/MaxAPI.framework"; sourceTree = "<absolute>"; };
 		4B6188C3190FA6EA005A0E4E /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "/Applications/Max6.1/MaxSDK-6.1.4/c74support/msp-includes/x64/MaxAudioAPI.framework"; sourceTree = "<absolute>"; };
 		4BC4BFA517A7E98100161338 /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4BE5E41415F1569F00AFD014 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = src/base64.cpp; sourceTree = "<group>"; };
-		4BE5E41515F1569F00AFD014 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = src/base64.h; sourceTree = "<group>"; };
 		4BF47AC31ADBFAE200ED318F /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /Developer1/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		5B3AA3A5158B65190050941C /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BCA75A0156D13B200C3299A /* faustgen~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "faustgen~.cpp"; path = "src/faustgen~.cpp"; sourceTree = "<group>"; };
@@ -133,8 +129,6 @@
 			children = (
 				4B5A3C4A15F4042D007317F4 /* maxcpp5.h */,
 				4B5A3C4B15F4042D007317F4 /* mspUI.h */,
-				4BE5E41415F1569F00AFD014 /* base64.cpp */,
-				4BE5E41515F1569F00AFD014 /* base64.h */,
 				5BCA75A0156D13B200C3299A /* faustgen~.cpp */,
 				5BCA75A3156D13BC00C3299A /* faustgen~.h */,
 			);
@@ -271,7 +265,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				4BC4BF9B17A7E98100161338 /* faustgen~.cpp in Sources */,
-				4BC4BF9C17A7E98100161338 /* base64.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,7 +273,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B3AA39D158B65190050941C /* faustgen~.cpp in Sources */,
-				4BE5E41715F1569F00AFD014 /* base64.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
