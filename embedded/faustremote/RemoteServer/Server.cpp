@@ -68,12 +68,12 @@ string getJson(connection_info_struct* con_info)
 
 // Same Allocation/Deallocation Prototype as LLVM/REMOTE-DSP
 static netjack_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, 
-                                        const string& compression, 
-                                        const string& ip, 
-                                        const string& port, 
-                                        const string& mtu, 
-                                        const string& latency, 
-                                        DSPServer* server) 
+                                            const string& compression, 
+                                            const string& ip, 
+                                            const string& port, 
+                                            const string& mtu, 
+                                            const string& latency, 
+                                            DSPServer* server) 
 {
     return new netjack_dsp(smartFactory, compression, ip, port, mtu, latency, server);
 }
@@ -85,15 +85,15 @@ static void deleteSlaveDSPInstance(netjack_dsp* dsp)
 
 // Allocation of real LLVM DSP INSTANCE
 netjack_dsp::netjack_dsp(llvm_dsp_factory* smartFactory, 
-                    const string& compression, 
-                    const string& ip, 
-                    const string& port, 
-                    const string& mtu, 
-                    const string& latency, 
-                    DSPServer* server) 
-                    :fIP(ip), fPort(port), fCompression(compression), 
-                    fMTU(mtu), fLatency(latency), 
-                    fAudio(NULL), fDSPServer(server)
+                        const string& compression, 
+                        const string& ip, 
+                        const string& port, 
+                        const string& mtu, 
+                        const string& latency, 
+                        DSPServer* server) 
+                        :fIP(ip), fPort(port), fCompression(compression), 
+                        fMTU(mtu), fLatency(latency), 
+                        fAudio(NULL), fDSPServer(server)
 {
     fDSP = createDSPInstance(smartFactory);
 }
@@ -142,6 +142,7 @@ bool DSPServer::start(int port)
         printf("RemoteDSPServer : pthread_create failed\n");
         return false;
     }
+    
     return true;
 }
 
@@ -236,14 +237,11 @@ connection_info_struct* DSPServer::allocateConnectionStruct(MHD_Connection* conn
     con_info->init();
     
     if (strcmp(method, "POST") == 0) {
-        
         con_info->fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, &iteratePost, (void*)con_info);
-        
         if (!con_info->fPostprocessor) {
             delete con_info;
             return NULL;
         }
-        
         con_info->fConnectiontype = POST;
         con_info->fAnswercode = MHD_HTTP_OK;
     } else {
@@ -393,9 +391,10 @@ int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
         
         if (strcmp(key,"name") == 0){
             con_info->fNameApp += nameWithoutSpaces(data);
-            if (con_info->fNameApp.compare("") == 0)
+            if (con_info->fNameApp == "")
                 con_info->fNameApp = "RemoteDSPServer_DefaultName";
         }
+        
         if (strcmp(key,"dsp_data") == 0)
             con_info->fFaustCode += data;   
             
@@ -459,7 +458,7 @@ bool DSPServer::startAudio(const string& shakey)
     list<netjack_dsp*>::iterator it;
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey.compare((*it)->getKey()) == 0) {
+        if (shakey == (*it)->getKey()) {
             if ((*it)->startAudio()) {
                 return true;
             }
@@ -474,7 +473,7 @@ void DSPServer::stopAudio(const string& shakey)
     list<netjack_dsp*>::iterator it;
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey.compare((*it)->getKey()) == 0) {
+        if (shakey == (*it)->getKey()) {
             (*it)->stopAudio();
             return;
         }
@@ -501,18 +500,18 @@ bool DSPServer::compileData(connection_info_struct* con_info) {
     
     if (con_info->fSHAKey != "") {
         
-        // Sort out compilation options
-        int argc = con_info->fCompilationOptions.size();
-        const char* argv[argc];
-        
-        for (int i = 0; i < argc; i++) {
-            argv[i] = (con_info->fCompilationOptions[i]).c_str();
-        }
-        
         if (con_info->fFaustCode == "") {
             // Machine code
             con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fMachineCode);
         } else {
+        
+            // Sort out compilation options
+            int argc = con_info->fCompilationOptions.size();
+            const char* argv[argc];
+            for (int i = 0; i < argc; i++) {
+                argv[i] = (con_info->fCompilationOptions[i]).c_str();
+            }
+    
             // DSP code
             string error;
             con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
@@ -554,6 +553,7 @@ bool DSPServer::createInstance(connection_info_struct* con_info)
             con_info->fAnswerstring = s.str();
             return false;
         }
+        
     } else {
         stringstream s;
         s << ERROR_FACTORY_NOTFOUND;
@@ -565,8 +565,8 @@ bool DSPServer::createInstance(connection_info_struct* con_info)
 #include "lo/lo.h"
 
 // Register server as available
-void* DSPServer::registration(void* arg) {
-    
+void* DSPServer::registration(void* arg) 
+{
     printf("SERVICE REGISTRATION\n");
     
     char host_name[256];

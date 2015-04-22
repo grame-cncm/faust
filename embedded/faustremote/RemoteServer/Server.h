@@ -203,9 +203,9 @@ class DSPServer {
             
         // Reaction to any kind of connection to the Server
         static int      answerToConnection(void* cls, MHD_Connection* connection, 
-                                        const char* url, const char* method, 
-                                        const char* version, const char* upload_data, 
-                                        size_t* upload_data_size, void** con_cls);
+                                            const char* url, const char* method, 
+                                            const char* version, const char* upload_data, 
+                                            size_t* upload_data_size, void** con_cls);
             
             
         // Reaction to a GET request
@@ -213,8 +213,8 @@ class DSPServer {
             
         // Reaction to a POST request
         int             answerPost(MHD_Connection* connection, const char* url, 
-                                const char* upload_data, size_t *upload_data_size, 
-                                void** con_cls);
+                                    const char* upload_data, size_t *upload_data_size, 
+                                    void** con_cls);
             
         // Callback that processes the data send to the server
         static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 
