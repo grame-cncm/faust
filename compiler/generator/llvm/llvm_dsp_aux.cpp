@@ -1502,10 +1502,7 @@ EXPORT const char** getAllCDSPFactories()
     
     size_t i;
     for (i = 0; i < sha_key_list1.size(); i++) {
-        string sha_key1 = sha_key_list1[i];
-        char* sha_key2 = (char*)malloc(sizeof(char) * (sha_key1.length() + 1));
-        strcpy(sha_key2, sha_key1.c_str());
-        sha_key_list2[i] = sha_key2;
+        sha_key_list2[i] = strdup(sha_key_list1[i].c_str());
     }
     
     // Last element is NULL
@@ -1527,10 +1524,7 @@ EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
 EXPORT char* getCName(llvm_dsp_factory* factory)
 {
     if (factory) {
-        string res = factory->getName();
-        char* name = (char*)malloc(sizeof(char) * (res.length() + 1));
-        strcpy(name, res.c_str());
-        return name;
+        return strdup(factory->getName().c_str());
     } else {
         return NULL;
     }
@@ -1539,10 +1533,7 @@ EXPORT char* getCName(llvm_dsp_factory* factory)
 EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
 {
     if (factory) {
-        string res = factory->getSHAKey();
-        char* key = (char*)malloc(sizeof(char) * (res.length() + 1));
-        strcpy(key, res.c_str());
-        return key;
+        return strdup(factory->getSHAKey().c_str()); 
     } else {
         return NULL;
     }
@@ -1556,10 +1547,7 @@ EXPORT const char** getCLibraryList(llvm_dsp_factory* factory)
         
         size_t i;
         for (i = 0; i < library_list1.size(); i++) {
-            string library1 = library_list1[i];
-            char* library2 = (char*)malloc(sizeof(char) * (library1.length() + 1));
-            strcpy(library2, library1.c_str());
-            library_list2[i] = library2;
+            library_list2[i] = strdup(library_list1[i].c_str());
         }
         
         // Last element is NULL
@@ -1583,10 +1571,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
 EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     if (factory) {
-        string str = writeDSPFactoryToBitcode(factory);
-        char* cstr = (char*)malloc(str.length() + 1);
-        strcpy(cstr, str.c_str());
-        return cstr;
+        return strdup(writeDSPFactoryToBitcode(factory).c_str());
     } else {
         return NULL;
     }
@@ -1612,10 +1597,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
 EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     if (factory) {
-        string str = writeDSPFactoryToIR(factory);
-        char* cstr = (char*)malloc(str.length() + 1);
-        strcpy(cstr, str.c_str());
-        return cstr;
+        return strdup(writeDSPFactoryToIR(factory).c_str());
     } else {
         return NULL;
     }
@@ -1643,10 +1625,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
 EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
 {
     if (factory) {
-        string str = writeDSPFactoryToMachine(factory);
-        char* cstr = (char*)malloc(str.length() + 1);
-        strcpy(cstr, str.c_str());
-        return cstr;
+        return strdup(writeDSPFactoryToMachine(factory).c_str());
     } else {
         return NULL;
     }
