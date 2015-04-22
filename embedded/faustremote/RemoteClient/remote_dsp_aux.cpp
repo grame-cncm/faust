@@ -68,7 +68,7 @@ static bool sendRequest(const string& ip, const string& finalRequest, string& re
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &storeResponse);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         
         CURLcode res = curl_easy_perform(curl);
         
@@ -78,7 +78,7 @@ static bool sendRequest(const string& ip, const string& finalRequest, string& re
         } else {
             
             long respcode; //response code of the http transaction
-            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);
             
             if (respcode == 200) {
                 response = oss.str();
@@ -126,10 +126,13 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             const string& dsp_content, 
                             const string& sha_key, 
                             string& error, 
-                            int opt_level){
-
+                            int opt_level)
+{
     bool isInitSuccessfull = false;
     fSHAKey = sha_key;
+    int errorCode;
+    string response, ip;
+    stringstream s;
     
     CURL* curl = curl_easy_init();
     
@@ -143,7 +146,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         finalRequest += "&number_options=";
         
         stringstream nb;
-        nb<<argc;
+        nb << argc;
         
         finalRequest += nb.str();
         
@@ -174,7 +177,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                 cout << machine_code << endl;
                 finalRequest += curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
             } else {
-                return false;
+                goto cleanup;
             }
         } else {
             // Transforming Faust code to URL format
@@ -185,19 +188,15 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         fServerIP = "http://";
         fServerIP += ip_server;
         fServerIP += ":";
-        
-        stringstream s;
-        s<<port_server;
-        
+        s << port_server;
         fServerIP += s.str();
         
-        string ip = fServerIP;
+        ip = fServerIP;
         ip += "/GetJson";
         
         printf("ip = %s\n", ip.c_str());
         
-        string response("");
-        int errorCode = -1;
+        errorCode = -1;
         if (sendRequest(ip, finalRequest, response, errorCode)) {
             decodeJson(response);
             isInitSuccessfull = true;
@@ -206,7 +205,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         } else {
             error = response;
         }
-        
+ 
+ cleanup:
         curl_easy_cleanup(curl); //Standard CleanUp
     }
     
@@ -214,8 +214,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 }
 
 // Delete remote dsp factory sends an explicit delete request to server
-void remote_dsp_factory::stop() {
-    
+void remote_dsp_factory::stop() 
+{
     CURL *curl = curl_easy_init();
     printf("fIndex = %s\n", fSHAKey.c_str());
         
@@ -261,7 +261,8 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
                                                             int sampling_rate, int buffer_size, 
                                                             RemoteDSPErrorCallback error_callback, 
                                                             void* error_callback_arg, 
-                                                            int& error) {
+                                                            int& error) 
+{
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
     if (dsp->init(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error)) {
         return dsp; 
@@ -620,7 +621,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     string ip = fFactory->getIP();
     ip += "/CreateInstance";
         
-    string response("");
+    string response;
     int errorCode = -1;
 
     // OPEN NET JACK CONNECTION
@@ -658,7 +659,7 @@ bool remote_dsp_aux::startAudio()
     string ip = fFactory->getIP();
     ip += "/StartAudio";
     
-    string response("");
+    string response;
     int errorCode;
     return sendRequest(ip, finalRequest, response, errorCode);
 }
@@ -676,7 +677,7 @@ bool remote_dsp_aux::stopAudio()
     string ip = fFactory->getIP();
     ip += "/StopAudio";
     
-    string response("");
+    string response;
     int errorCode;
     return sendRequest(ip, finalRequest, response, errorCode);
 }
@@ -727,8 +728,10 @@ void remote_DNS::errorHandler(int num, const char *msg, const char *path)
 
 /* catch any incoming messages and display them. returning 1 means that the
  * message has not been fully handled and the server should try other methods */
-int remote_DNS::pingHandler(const char *path, const char *types, lo_arg ** argv,
-                            int argc, void *data, void *user_data)
+int remote_DNS::pingHandler(const char *path, const char *types, 
+                            lo_arg ** argv,
+                            int argc, void *data, 
+                            void *user_data)
 {
     member messageSender;
     messageSender.pid = argv[0]->i;
@@ -788,7 +791,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         
         printf("ip = %s\n", serverIP.c_str());
         
-        string response("");
+        string response;
         int errorCode = -1;
         
         if (sendRequest(serverIP, finalRequest, response, errorCode)) {
