@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2013-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -42,7 +42,10 @@ enum {
 };
 
 /**
- * DSP factory class
+ * DSP factory class.
+ * Each received DSP source will be compiled as as 'DSP factory', then one or 
+ * several 'DSP instances' will be created and connected to the client side
+ * using NetJack master/slave connection.
  */
 class remote_dsp_factory {
     
@@ -218,14 +221,18 @@ bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int
 bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
 
  /**
- * Compiler service class
+ * DSP compilation service class : after being started, the server waits for compilation 
+ * request from clients (delivered using the client API part). 
+ * Each received DSP source will be compiled as as 'DSP factory' then one or 
+ * several 'DSP instances' will be created and connected to the client side
+ * using NetJack master/slave connection.
  */
 class remote_dsp_server {
     
     public: 
         
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
-        void stop();                 /* Sop the DSP compilation. */
+        void stop();                 /* Stop the DSP compilation service. */
 };
 
  /**

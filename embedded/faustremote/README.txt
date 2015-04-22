@@ -3,9 +3,9 @@
 
 With Faust Remote you will be able to compile and process your Faust DSP on a remote machine.
 
-------------------------------REMOTE SERVER------------------
+------------------------------ REMOTE SERVER ------------------
 
-The server launches a server, waiting for DSPs to compile.
+The server launches a compilation service, waiting for DSPs to compile.
 
 Dependencies :		
 	- LLVM			through macport
@@ -14,9 +14,26 @@ Dependencies :
 	- microhttpd		through macport
 	- jacknet		download JackOSX package at : http://www.jackosx.com/
 
-----------------REMOTE CLIENT---------------
+1 -------- THE API --------
 
-1 -------- THE API
+a. remote_dsp_server* createRemoteDSPServer();
+
+b. void deleteRemoteDSPServer(remote_dsp_server* server);
+
+C. Use the server class to start/stop the compilation service
+
+class remote_dsp_server {
+    
+    public: 
+        
+        bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
+        void stop();                 /* Sop the DSP compilation. */
+};
+
+
+---------------- REMOTE CLIENT ---------------
+
+1 -------- THE API --------
 
 To easily include remote processing in your projects, this API has been created. 
 It has the same prototype as dynamic dsp, llvm-dsp.
@@ -38,6 +55,9 @@ d. Use instances as any "static" DSP
   
         virtual void    buildUserInterface(UI* ui);
         virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+
+	virtual void 	startAudio();
+  	virtual void 	stopAudio();
 
 e. deleteRemoteDSPInstance(remote_dsp* dsp)
 
