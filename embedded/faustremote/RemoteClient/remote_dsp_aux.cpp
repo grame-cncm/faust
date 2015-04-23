@@ -163,15 +163,16 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
             string error;
             llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", error, 3);
             if (factory) {
-                string machine_code = writeDSPFactoryToMachine(factory);
                 // Transforming machine code to URL format
+                string machine_code = writeDSPFactoryToMachine(factory);
                 finalRequest += "&dsp_data=";
                 finalRequest += curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
             } else {
+                printf("Compilation error : %s\n", error.c_str());
                 goto cleanup;
             }
         } else {
-            // Transforming Faust code to URL format
+            // Transforming DSP code to URL format
             finalRequest += "&dsp_data=";
             finalRequest += curl_easy_escape(curl, dsp_content.c_str(), dsp_content.size());
         }
@@ -389,11 +390,11 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
             fInControl[counterIn] = init;
             isInItem = true;
             
-            for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
+            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
         }
         // Meta Data declaration for exit items
-        else if((*it)->type.find("bargraph") != string::npos){
+        else if ((*it)->type.find("bargraph") != string::npos){
             
             fOutControl[counterOut] = init;
             isOutItem = true;
@@ -404,7 +405,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
         }
         // Meta Data declaration for group opening or closing
         else {
-            for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
+            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
         }
         
@@ -412,35 +413,35 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
         if ((*it)->type.compare("hgroup") == 0)
             ui->openHorizontalBox((*it)->label.c_str());
         
-        else if((*it)->type.compare("vgroup") == 0){
+        else if ((*it)->type.compare("vgroup") == 0){
             printf("GROUP NAME = %s\n", (*it)->label.c_str());
             ui->openVerticalBox((*it)->label.c_str());
         }
-        else if((*it)->type.compare("tgroup") == 0)
+        else if ((*it)->type.compare("tgroup") == 0)
             ui->openTabBox((*it)->label.c_str());
         
-        else if((*it)->type.compare("vslider") == 0)
+        else if ((*it)->type.compare("vslider") == 0)
             ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
-        else if((*it)->type.compare("hslider") == 0)
+        else if ((*it)->type.compare("hslider") == 0)
             ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
         
-        else if((*it)->type.compare("checkbox") == 0)
+        else if ((*it)->type.compare("checkbox") == 0)
             ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
         
-        else if((*it)->type.compare("hbargraph") == 0)
+        else if ((*it)->type.compare("hbargraph") == 0)
             ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
-        else if((*it)->type.compare("vbargraph") == 0)
+        else if ((*it)->type.compare("vbargraph") == 0)
             ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
-        else if((*it)->type.compare("nentry") == 0)
+        else if ((*it)->type.compare("nentry") == 0)
             ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
-        else if((*it)->type.compare("button") == 0)
+        else if ((*it)->type.compare("button") == 0)
             ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
         
-        else if((*it)->type.compare("close") == 0)
+        else if ((*it)->type.compare("close") == 0)
             ui->closeBox();
             
         if (isInItem)
@@ -758,15 +759,11 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         sfactory->addReference();
         return sfactory;
     } else {
+    
         // Call server side to get remote factory, create local proxy factory, put it in the cache
-        
-        remote_dsp_factory* factory = new remote_dsp_factory();
-        
         string finalRequest = "shaKey=";
         finalRequest += sha_key;
-            
-        factory->setKey(sha_key);
-        
+         
         printf("finalRequest = %s\n", finalRequest.c_str());
             
         string serverIP = "http://";
@@ -774,10 +771,9 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         serverIP += ":";
         
         stringstream s;
-        s<<port_server;
+        s << port_server;
         
         serverIP += s.str();
-        factory->setIP(serverIP);
         serverIP += "/GetJsonFromKey";
         
         printf("ip = %s\n", serverIP.c_str());
@@ -786,13 +782,13 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         int errorCode = -1;
         
         if (sendRequest(serverIP, finalRequest, response, errorCode)) {
+            remote_dsp_factory* factory = new remote_dsp_factory();
+            factory->setKey(sha_key);
+            factory->setIP(serverIP);
             factory->decodeJson(response);
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
-        }
-        //else if(errorCode != -1){ ??
-        else {
-            delete factory;
+        } else {
             return NULL;
         }
     }

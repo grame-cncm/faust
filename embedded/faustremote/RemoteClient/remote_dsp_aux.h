@@ -83,7 +83,7 @@ struct remote_DNS {
         }
     };
    
-     lo_server_thread fLoThread;
+    lo_server_thread fLoThread;
     std::map<string, member> fClients;
     TMutex fLocker;
       
@@ -187,7 +187,7 @@ class remote_dsp_aux : public dsp {
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
         
         // Command-line parsing fonction
-        const char* getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue);
+        const char* getValueFromKey(int argc, const char* argv[], const char* key, const char* defaultValue);
         
         void sendSlice(int buffer_size);
         void recvSlice(int buffer_size);
@@ -197,7 +197,7 @@ class remote_dsp_aux : public dsp {
         remote_dsp_aux(remote_dsp_factory* factory);
         ~remote_dsp_aux();
         
-        bool init(int argc, const char *argv[], 
+        bool init(int argc, const char* argv[], 
                 int sampling_rate, int buffer_size, 
                 RemoteDSPErrorCallback errror_callback, 
                 void* errror_callback_arg, int& error);
@@ -215,11 +215,11 @@ class remote_dsp_aux : public dsp {
         
         virtual bool startAudio();
         virtual bool stopAudio();
-        
+
         remote_dsp_factory* getFactory() { return fFactory; }
 };
 
-//---------------------- Public C++ interface
+//---------------------- Public C++ interface --------
 
 class EXPORT remote_dsp : public dsp {
     
@@ -238,16 +238,17 @@ class EXPORT remote_dsp : public dsp {
         
         virtual bool startAudio();
         virtual bool stopAudio();
+        
 };
     
 EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key);  
 
-EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char *argv[], 
+EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 
                                                         string& error_msg, int opt_level);
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, 
-                                                        int argc, const char *argv[], 
+                                                        int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 
                                                         string& error, int opt_level);
 
