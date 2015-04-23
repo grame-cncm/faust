@@ -74,9 +74,15 @@ const char* loptions(char *argv[], const char *name, const char* def)
 	return def;
 }
 
-bool isopt(char *argv[], const char *name)
+bool isopt(const char *argv[], const char *name)
 {
 	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+	return false;
+}
+
+bool isopt1(int argc, const char *argv[], const char *name)
+{
+	for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return true;
 	return false;
 }
 
@@ -91,6 +97,15 @@ int lopt_Spe(int i, char *argv[], const char *name, char* path)
         }
     }
     return 0;
+}
+
+string nameWithoutSpaces(const string& name)
+{
+    string newname = name;
+    while (newname.find(' ') != string::npos) {
+        newname.replace(newname.find(' '), 1, "_");
+    }
+    return newname;
 }
 
 //------------------------REGISTRATION TO DISCOVERY SYSTEM

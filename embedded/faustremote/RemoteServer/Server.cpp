@@ -7,6 +7,7 @@
 //
 
 #include "Server.h"
+#include "utilities.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -21,15 +22,6 @@ enum {
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED
 };
-
-static string nameWithoutSpaces(const string& name)
-{
-    string newname = name;
-    while (newname.find(' ') != string::npos) {
-        newname.replace(newname.find(' '), 1, "_");
-    }
-    return newname;
-}
 
 // Declare is called for every metadata coded in the faust DSP
 // That way, we get the faust name declared in the faust DSP
@@ -397,9 +389,12 @@ int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
         
         if (strcmp(key,"dsp_data") == 0)
             con_info->fFaustCode += data;   
-            
+        
+        /*
         if (strcmp(key,"machine_data") == 0)
-            con_info->fMachineCode += data;   
+            con_info->fMachineCode += data;
+        */
+        
             
         if (strcmp(key,"NJ_ip") == 0) 
             con_info->fIP = data;
@@ -499,19 +494,18 @@ bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
 bool DSPServer::compileData(connection_info_struct* con_info) {
     
     if (con_info->fSHAKey != "") {
-        
-        if (con_info->fFaustCode == "") {
-            // Machine code
-            con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fMachineCode);
-        } else {
-        
-            // Sort out compilation options
-            int argc = con_info->fCompilationOptions.size();
-            const char* argv[argc];
-            for (int i = 0; i < argc; i++) {
-                argv[i] = (con_info->fCompilationOptions[i]).c_str();
-            }
     
+        // Sort out compilation options
+        int argc = con_info->fCompilationOptions.size();
+        const char* argv[argc];
+        for (int i = 0; i < argc; i++) {
+            argv[i] = (con_info->fCompilationOptions[i]).c_str();
+        }
+        
+        if (isopt1(argc, argv, "-machine")) {
+            // Machine code
+            con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fFaustCode);
+        } else {
             // DSP code
             string error;
             con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));

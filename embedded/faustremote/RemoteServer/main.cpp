@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 {
     int	port = lopt(argv, "--port", 7777);
     
-    if (isopt(argv, "--help")) {
+    if (isopt((const char**)argv, "--help")) {
         printf("RemoteServer --port XXX (default port is 7777) \n");
         return -1;
     }

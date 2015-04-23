@@ -28,14 +28,6 @@
 #include <errno.h>
 #include <libgen.h>
 
-static bool isParam(int argc, const char* argv[], const string& param)
-{
-    for (int i = 0; i < argc; i++) {
-        if (string(argv[i]) == param) return true;
-    }
-    return false;
-}
-
 FactoryTableType remote_dsp_factory::gFactoryTable;
 
 // Standard Callback to store a server response in stringstream
@@ -167,14 +159,13 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         printf("finalRequest = %s\n", finalRequest.c_str());
                
         // Compile locally and send machine code on server side...
-        if (isParam(argc, argv, "-machine")) {
+        if (isopt1(argc, argv, "-machine")) {
             string error;
             llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", error, 3);
             if (factory) {
                 string machine_code = writeDSPFactoryToMachine(factory);
                 // Transforming machine code to URL format
-                finalRequest += "&machine_data=";
-                cout << machine_code << endl;
+                finalRequest += "&dsp_data=";
                 finalRequest += curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
             } else {
                 goto cleanup;
