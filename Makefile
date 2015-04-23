@@ -126,6 +126,7 @@ install :
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/
+	mkdir -p $(prefix)/include/faust/dsp/
 	mkdir -p $(prefix)/lib/faust
 	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
 	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
