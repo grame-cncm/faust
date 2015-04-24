@@ -52,7 +52,7 @@ LLVM_VERSION  = LLVM_34
 CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
 endif
 
-ifeq ($(LLVM_VERSION), 3.5)
+ifeq ($(LLVM_VERSION), 3.5.0)
 LLVM_VERSION  = LLVM_35
 CLANG = /opt/local/libexec/llvm-3.5/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)

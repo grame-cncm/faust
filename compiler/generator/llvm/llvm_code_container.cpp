@@ -31,6 +31,12 @@
 
 using namespace std;
 
+#if defined(LLVM_36)
+    #define STREAM_ERROR std::error_code
+#else
+    #define STREAM_ERROR std::string
+#endif
+
 list <string> LLVMInstVisitor::gMathLibTable;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -175,7 +181,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fResult->fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #elif defined(LLVM_32) 
@@ -612,7 +618,7 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
     generateInitFun();
     
     if (filename != "") {
-        std::string err;
+        STREAM_ERROR err;
         raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
         WriteBitcodeToFile(fResult->fModule, out);
     }

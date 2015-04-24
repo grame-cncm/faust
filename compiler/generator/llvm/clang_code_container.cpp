@@ -35,7 +35,7 @@
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 
 #include <llvm/Bitcode/ReaderWriter.h>
-#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>
@@ -45,7 +45,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 
-#if defined(LLVM_35)
+#if defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/Support/FileSystem.h>
 #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)
@@ -102,7 +102,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
     
-#if defined(LLVM_34) || defined(LLVM_35)
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
     // Compile it with 'clang'
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);

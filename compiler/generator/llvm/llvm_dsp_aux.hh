@@ -103,7 +103,7 @@ class llvm_dsp_factory : public smartable {
         
         static int gInstance;
     
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35)
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
                    
@@ -116,7 +116,7 @@ class llvm_dsp_factory : public smartable {
               
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
         
-    #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
+    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         llvm_dsp_factory(const string& sha_key, const std::string& machine_code);
     #endif
       
@@ -237,7 +237,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
-#if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
 
@@ -322,7 +322,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
-#if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code_path, const char* target, int opt_level);
 
 EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
