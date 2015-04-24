@@ -118,9 +118,7 @@
 #define OwningPtr std::unique_ptr
 #endif
 
-#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/Support/TargetSelect.h>
-#endif
 
 #if defined(LLVM_35) || defined(LLVM_36)
 #include <llvm/Support/FileSystem.h>
@@ -302,11 +300,7 @@ EXPORT Module* load_single_module(const string filename, LLVMContext* context)
     if (module) {
         return module;
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
         err.print("ParseIRFile failed :", errs());
-    #else
-        err.Print("ParseIRFile failed :", errs());
-    #endif
         return NULL;
     }
 }
@@ -792,11 +786,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     if (fTarget != "") {
          fResult->fModule->setTargetTriple(fTarget);
     } else {
-    #if defined(LLVM_31) || defined(LLVM_32) 
         fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-    #else
-        fResult->fModule->setTargetTriple(llvm::sys::getHostTriple());
-    #endif
     }
 
     EngineBuilder builder(fResult->fModule);
@@ -1328,11 +1318,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
-        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
             err.print("readDSPFactoryFromIRAux failed :", errs());
-        #else
-            err.Print("readDSPFactoryFromIRAux failed :", errs());
-        #endif
             return NULL;
         }
     }

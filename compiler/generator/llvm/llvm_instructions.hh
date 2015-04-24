@@ -80,18 +80,16 @@ using namespace std;
 #include <llvm/Support/IRBuilder.h>
 #endif
 
-#if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
-    #include <llvm/Support/TargetSelect.h>
-    #define VECTOR_OF_TYPES vector<llvm::Type*>
-    #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
-    #define LLVM_TYPE llvm::Type*
-    #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
-    #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
-    #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
-    #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
-    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
-    #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
-#endif
+#include <llvm/Support/TargetSelect.h>
+#define VECTOR_OF_TYPES vector<llvm::Type*>
+#define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
+#define LLVM_TYPE llvm::Type*
+#define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
+#define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
+#define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
+#define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
+#define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
+#define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
 
 #define VECTOR_ALIGN 0
 
@@ -286,10 +284,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
         {
-        #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
             StructType* struct_type = StructType::create(fModule->getContext(), name);
             struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
-        #endif
             return struct_type;
         }
 
@@ -906,11 +902,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
                 GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::InternalLinkage, 0, str);
-            #if defined(LLVM_31) || defined(LLVM_32) || defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
                 gvar_array_string0->setInitializer(ConstantDataArray::getString(fModule->getContext(), str, true));
-            #else
-                gvar_array_string0->setInitializer(ConstantArray::get(fModule->getContext(), str, true));
-            #endif
                 fGlobalStringTable[str] = gvar_array_string0;
                 return gvar_array_string0;
             } else {
