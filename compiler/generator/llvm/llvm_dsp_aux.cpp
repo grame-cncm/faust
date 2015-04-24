@@ -135,11 +135,13 @@
 #define STREAM_ERROR std::error_code
 #define MEMORY_BUFFER MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
+#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 #else
-#define STREAM_ERROR std::string
+#define STREAM_ERROR string
 #define MEMORY_BUFFER MemoryBuffer*
 #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
+#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
 #endif
 
@@ -1275,12 +1277,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
         printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
         return NULL;
     } else {
-    #if defined(LLVM_36)
-        return readDSPFactoryFromBitcodeAux(buffer->get()->getMemBufferRef(), target, opt_level);
-    #else
-        return readDSPFactoryFromBitcodeAux(buffer->get(), target, opt_level);
-    #endif
-    }
+        return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, opt_level);
+     }
 #else
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
@@ -1365,11 +1363,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
         printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
         return NULL;
     } else {
-    #if defined(LLVM_36)
-        return readDSPFactoryFromIRAux(buffer->get()->getMemBufferRef(), target, opt_level);
-    #else
-        return readDSPFactoryFromIRAux(buffer->get(), target, opt_level);
-    #endif
+        return readDSPFactoryFromIRAux(MEMORY_BUFFER_GET_REF(buffer), target, opt_level);
     }
 #else
     OwningPtr<MemoryBuffer> buffer;
@@ -1442,12 +1436,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return NULL;
     } else {
-    #if defined(LLVM_36)
-        return readDSPFactoryFromMachineAux(buffer->get()->getMemBufferRef());
-    #else
-        return readDSPFactoryFromMachineAux(buffer->get());
-    #endif
-    }
+        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer));
+     }
 #else
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
