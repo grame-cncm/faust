@@ -137,6 +137,7 @@
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 #else
+#define STREAM_ERROR std::string
 #define MEMORY_BUFFER MemoryBuffer*
 #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
@@ -630,6 +631,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
+        
+        TargetRegistry::printRegisteredTargetsForVersion();
 
     #ifdef _WIN32
         // Windows needs this special suffix to the target triple,
