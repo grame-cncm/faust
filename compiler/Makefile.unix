@@ -194,7 +194,7 @@ endif
 
 ifeq ($(system), Darwin)
 
-     libfaust.a : $(objects) libmain.o global.o scheduler.ll
+    libfaust.a : $(objects) libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
 
 
