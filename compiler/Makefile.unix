@@ -195,8 +195,7 @@ endif
 ifeq ($(system), Darwin)
 
     libfaust.a : $(objects) libmain.o global.o
-	libtool $(LIBFLAGS) $(objects) libmain.o global.o -static -o $@
-
+	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
     libfaust.dylib : $(objects) libcode.o libmain.o global.o 
 	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
