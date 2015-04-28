@@ -137,7 +137,7 @@ function updateQrCode(sha){
 	var architecture = document.getElementById("Architecture").options[document.getElementById("Architecture").selectedIndex].value;
 	var output = "binary.zip";
 	
-	if(plateform == "android")
+	if (plateform == "android")
 		output = "binary.apk";
 	
 	var link = document.createElement('a');
@@ -145,7 +145,7 @@ function updateQrCode(sha){
 
 	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
-	if(qrcodeSpan)
+	if (qrcodeSpan)
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
 	
 	var myWhiteDiv = getQrCode(document.getElementById("exportUrl").value, sha, plateform, architecture, output, 130);
@@ -162,25 +162,29 @@ function cancelLoader(){
 function getFaustSource(){
 
 	document.getElementById("loader").style.visibility = "visible";
+    
+    if (dsp_code == null) {
 
-	var url = window.location.href.split('.html').shift() + ".dsp";
-	
-	var filename = url.toString().split( '/' ).pop();
-	filename = filename.toString().split('.').shift();
-		
-    var xmlhttp = new XMLHttpRequest();
+        var url = window.location.href.split('.html').shift() + ".dsp";
+        
+        var filename = url.toString().split( '/' ).pop();
+        filename = filename.toString().split('.').shift();
+            
+        var xmlhttp = new XMLHttpRequest();
 
-	xmlhttp.onreadystatechange=function(){
-		if (xmlhttp.readyState==4 && xmlhttp.status==200){
-			var dsp_code =xmlhttp.responseText;
-			
-			getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
-    	}
+        xmlhttp.onreadystatechange=function(){
+            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                var dsp_code = xmlhttp.responseText;
+                getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
+            }
+        }
+        xmlhttp.open("GET", url, false );
+        xmlhttp.send(); 
+    } else {
+        // Global 'dsp_code', so use it
+        getSHAKey(document.getElementById("exportUrl").value, "FaustDSP", dsp_code, updateQrCode, cancelLoader);
     }
-	xmlhttp.open("GET", url, false );
-    xmlhttp.send(); 
 }
-
 
 function cleanComboBox(id){
 	
