@@ -313,6 +313,7 @@ var DSP = null;
 var dsp_code = null;
 var faustsvg = null;
 var isPoly = false;
+var exportfilename = null;
 
 // MIDI input handling
 function keyOn(channel, pitch, velocity)
@@ -457,6 +458,7 @@ function UploadFile(e) {
 
         var reader = new FileReader();
         var ext = file.name.split('.').pop();
+        exportfilename = file.name.split('.').shift();
 
         if (ext == "dsp"){
             reader.readAsText(file);  
@@ -738,31 +740,9 @@ function cancelLoader(){
 function getFaustSource(){
 
 	document.getElementById("loader").style.visibility = "visible";
-    
-    console.log("getFaustSource");
-    console.log(dsp_code);
-    
-    if (dsp_code === null) {
-
-        var url = window.location.href.split('.html').shift() + ".dsp";
-        
-        var filename = url.toString().split( '/' ).pop();
-        filename = filename.toString().split('.').shift();
-            
-        var xmlhttp = new XMLHttpRequest();
-
-        xmlhttp.onreadystatechange=function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                var dsp_code = xmlhttp.responseText;
-                getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
-            }
-        }
-        xmlhttp.open("GET", url, false );
-        xmlhttp.send(); 
-    } else {
-        // Global 'dsp_code', so use it
-        getSHAKey(document.getElementById("exportUrl").value, "FaustDSP", dsp_code, updateQrCode, cancelLoader);
-    }
+   
+    // Global 'dsp_code', so use it
+    getSHAKey(document.getElementById("exportUrl").value, exportfilename, dsp_code, updateQrCode, cancelLoader);
 }
 
 function cleanComboBox(id){
