@@ -1445,6 +1445,26 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
     }
 }
 
+#else
+
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
+{
+    return 0;
+}
+
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
+{
+    return "";
+}
+
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
+{
+    return 0;
+}
+
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path)
+{}
+
 #endif
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)

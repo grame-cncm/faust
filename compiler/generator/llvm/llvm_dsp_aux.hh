@@ -237,7 +237,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
 
@@ -247,7 +246,6 @@ EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path);
-#endif
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
