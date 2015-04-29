@@ -223,9 +223,9 @@ bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, 
  /**
  * DSP compilation service class : after being started, the server waits for compilation 
  * request from clients (delivered using the client API part). 
- * Each received DSP source will be compiled as as 'DSP factory' then one or 
+ * Each received DSP source will be compiled as a 'DSP factory', then one or 
  * several 'DSP instances' will be created and connected to the client side
- * using NetJack master/slave connection.
+ * using a NetJack master/slave connection.
  */
 class remote_dsp_server {
     
