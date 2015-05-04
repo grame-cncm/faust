@@ -193,7 +193,7 @@ class DSPServer {
         static void*    startAudioSlave(void*);
                 
         // Creates the html to send back
-        int             sendPage(MHD_Connection* connection, const char* page, int length, int status_code, const char* type = 0);
+        int             sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
             
         void            stopNotActiveDSP();
             
@@ -239,7 +239,7 @@ class DSPServer {
 
     public:
             
-        DSPServer();
+        DSPServer(int argc, const char* argv[]);
         virtual ~DSPServer();
             
         // Start server on specified port 
@@ -258,7 +258,7 @@ class EXPORT remote_dsp_server {
         void stop();
 };
 
-EXPORT remote_dsp_server* createRemoteDSPServer();
+EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);
 
 EXPORT void deleteRemoteDSPServer(remote_dsp_server* compiler);
     

@@ -109,7 +109,7 @@ netjack_dsp::~netjack_dsp()
 
 //----------------SERVER----------------------------------------
 
-DSPServer::DSPServer():fPort(-1), fDaemon(NULL)
+DSPServer::DSPServer(int argc, const char* argv[]):fPort(-1), fDaemon(NULL)
 {}
 
 DSPServer::~DSPServer() {}
@@ -186,11 +186,11 @@ void* DSPServer::startAudioSlave(void* arg)
 }
  
 //---- Creating response page with right header syntaxe
-int DSPServer::sendPage(MHD_Connection* connection, const char* page, int length, int status_code, const char* type)
+int DSPServer::sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type)
 {
-    struct MHD_Response *response = MHD_create_response_from_buffer(length, (void*)page, MHD_RESPMEM_PERSISTENT);
+    struct MHD_Response *response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
     if (response) {
-        MHD_add_response_header(response, "Content-Type", type ? type : "text/plain");
+        MHD_add_response_header(response, "Content-Type", type.c_str());
         return MHD_queue_response(connection, status_code, response);
     } else {
         return MHD_NO;
@@ -275,7 +275,7 @@ int DSPServer::answerToConnection(void* cls,
         return server->answerPost(connection, url, upload_data, upload_data_size, con_cls);
     
     } else {
-        return server->sendPage(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html");
+        return server->sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html");
     }
 }
     
@@ -294,7 +294,7 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
             answerstring += " " + it->second.first;
         }
         
-        return sendPage(connection, answerstring.c_str(), answerstring.size(), MHD_HTTP_OK, "text/plain");
+        return sendPage(connection, answerstring, MHD_HTTP_OK, "text/plain");
     } else {
         return MHD_NO;
     }
@@ -302,7 +302,7 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 
 // Response to all POST request
 // 3 requests are correct : 
-// - /GetJson --> Receive faust code / Compile Data / Send back jsonInterface
+// - /GetJson --> Receive Faust code / Compile Data / Send back jsonInterface
 // - /CreateInstance --> Receive factoryIndex / Create instance 
 // - /DeleteFactory --> Receive factoryIndex / Delete Factory
 int DSPServer::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls)
@@ -320,23 +320,23 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
         if (strcmp(url, "/GetJson") == 0) {
             
             if (compileData(con_info)) {
-                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
+                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
             } else {
-                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/GetJsonFromKey") == 0) {
             
             if (getJsonFromKey(con_info)) {
-                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_OK, "application/json"); 
+                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
             } else {
-                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/CreateInstance") == 0) {
             
             if (createInstance(con_info)) {
-                return sendPage(connection, "", 0, MHD_HTTP_OK, "text/html");
+                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
             } else {
-                return sendPage(connection, con_info->fAnswerstring.c_str(), con_info->fAnswerstring.size(), MHD_HTTP_BAD_REQUEST, "text/html");
+                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
             
         }
@@ -356,12 +356,12 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
 //        }
         else if (strcmp(url, "/StartAudio") == 0) {
             startAudio(con_info->fSHAKey);
-            return sendPage(connection, "", 0, MHD_HTTP_OK, "text/html");
+            return sendPage(connection, "", MHD_HTTP_OK, "text/html");
         } else if(strcmp(url, "/StopAudio") == 0){
             stopAudio(con_info->fSHAKey);
-            return sendPage(connection, "", 0, MHD_HTTP_OK, "text/html");
+            return sendPage(connection, "", MHD_HTTP_OK, "text/html");
         } else {
-            return sendPage(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
+            return sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html"); 
         }
     }
 }
@@ -389,13 +389,7 @@ int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
         
         if (strcmp(key,"dsp_data") == 0)
             con_info->fFaustCode += data;   
-        
-        /*
-        if (strcmp(key,"machine_data") == 0)
-            con_info->fMachineCode += data;
-        */
-        
-            
+              
         if (strcmp(key,"NJ_ip") == 0) 
             con_info->fIP = data;
         
@@ -597,9 +591,9 @@ void* DSPServer::registration(void* arg)
 
 // DSP server API
 
-EXPORT remote_dsp_server* createRemoteDSPServer()
+EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[])
 {
-    return reinterpret_cast<remote_dsp_server*>(new DSPServer());
+     return reinterpret_cast<remote_dsp_server*>(new DSPServer(argc, argv));
 }
 
 EXPORT void deleteRemoteDSPServer(remote_dsp_server* server)

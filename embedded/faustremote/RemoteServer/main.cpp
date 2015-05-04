@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
         return -1;
     }
     
-    DSPServer server;
+    DSPServer server(0, NULL);
     
     if (!server.start(port)) {
         std::cerr << "Unable to start Faust Remote Processing Server" << std::endl;

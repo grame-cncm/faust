@@ -237,10 +237,13 @@ class remote_dsp_server {
 
  /**
  * Create a remote DSP server.
- * 
+ *
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters 
+ *
  * @@return the DSP server or NULL if allocation error.
  */ 
-remote_dsp_server* createRemoteDSPServer();
+remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);
 
 /**
  * Destroy a remote DSP server.

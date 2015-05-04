@@ -524,7 +524,7 @@ class FaustLLVMOptimizer {
                 cout << "Cannot create factory : " << fError.c_str() << endl;
                 return false;
             } else {
-                cout << "Factory correctly generated" << endl;
+                //cout << "Factory correctly generated" << endl;
             }
             
             /*
