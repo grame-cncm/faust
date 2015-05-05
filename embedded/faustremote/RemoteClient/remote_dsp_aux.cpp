@@ -929,21 +929,12 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
     
     if (curl) {
         
-        string ip = "http://";
-        ip += ip_server;
-        ip += ":";
-        
-        stringstream s;
-        s<<port_server;
-        
-        ip += s.str();
-        
-        string finalIP = ip;
-        finalIP += "/GetAvailableFactories";
-            
+        stringstream finalIP;
+        finalIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
+    
         ostringstream oss;
             
-        curl_easy_setopt(curl, CURLOPT_URL, finalIP.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, finalIP.str().c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &storeResponse);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
