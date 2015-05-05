@@ -123,39 +123,22 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     fSHAKey = sha_key;
     int errorCode;
     string response, ip;
-    stringstream s;
+    stringstream finalRequest, serverIP;
     
     CURL* curl = curl_easy_init();
     
     if (curl) {
-
-        string finalRequest = "name=";
-        finalRequest += name_app;
-        
+    
         // Adding Compilation Options to request data
-        
-        finalRequest += "&number_options=";
-        
-        stringstream nb;
-        nb << argc;
-        
-        finalRequest += nb.str();
-        
+        finalRequest << "name=" << name_app << "&number_options=" << argc;
         for (int i = 0; i < argc; i++) {
-            finalRequest += "&options=";
-            finalRequest += argv[i];
+            finalRequest << "&options=" << argv[i];
         }
         
         // Adding LLVM optimization Level to request data
-        finalRequest += "&opt_level=";
-        stringstream ol;
-        ol<<opt_level;
-        finalRequest += ol.str(); 
+        finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
         
-        finalRequest += "&shaKey=";
-        finalRequest += fSHAKey;
-        
-        printf("finalRequest = %s\n", finalRequest.c_str());
+        printf("finalRequest = %s\n", finalRequest.str().c_str());
                
         // Compile locally and send machine code on server side...
         if (isopt1(argc, argv, "-machine")) {
@@ -164,31 +147,27 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
             if (factory) {
                 // Transforming machine code to URL format
                 string machine_code = writeDSPFactoryToMachine(factory);
-                finalRequest += "&dsp_data=";
-                finalRequest += curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
+                finalRequest << "&dsp_data=";
+                finalRequest << curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
             } else {
                 printf("Compilation error : %s\n", error.c_str());
                 goto cleanup;
             }
         } else {
             // Transforming DSP code to URL format
-            finalRequest += "&dsp_data=";
-            finalRequest += curl_easy_escape(curl, dsp_content.c_str(), dsp_content.size());
+            finalRequest << "&dsp_data=";
+            finalRequest << curl_easy_escape(curl, dsp_content.c_str(), dsp_content.size());
         }
         
-        fServerIP = "http://";
-        fServerIP += ip_server;
-        fServerIP += ":";
-        s << port_server;
-        fServerIP += s.str();
+        serverIP << "http://" << ip_server << ":" << port_server;
+        fServerIP = serverIP.str();
         
-        ip = fServerIP;
-        ip += "/GetJson";
+        ip = fServerIP + "/GetJson";
         
         printf("ip = %s\n", ip.c_str());
         
         errorCode = -1;
-        if (sendRequest(ip, finalRequest, response, errorCode)) {
+        if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
             decodeJson(response);
             isInitSuccessfull = true;
         } else if (errorCode != -1) {
@@ -211,8 +190,8 @@ void remote_dsp_factory::stop()
     printf("fIndex = %s\n", fSHAKey.c_str());
         
     // The index of the factory to delete has to be sent
-    string finalRequest = string("shaKey=") + fSHAKey;
-    string ip = fServerIP + string("/DeleteFactory");
+    string finalRequest = "shaKey=" + fSHAKey;
+    string ip = fServerIP + "/DeleteFactory";
     printf("ip = %s\n", ip.c_str());
     
     string response;
@@ -581,31 +560,17 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     // PREPARE URL TO SEND TO SERVER
     
     // Parse NetJack Parameters
-    string finalRequest = "NJ_ip=";
-    finalRequest += string(getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str()));
-  
-    finalRequest += "&NJ_port=";
-    finalRequest += string(port);
+    stringstream finalRequest;
     
-    finalRequest += "&NJ_compression=";
-    finalRequest += string(getValueFromKey(argc, argv, "--NJ_compression", "-1"));
-    
-    finalRequest += "&NJ_latency=";
-    finalRequest += string(getValueFromKey(argc, argv, "--NJ_latency", "2"));
-    
-    finalRequest += "&NJ_mtu=";
-    finalRequest += string(getValueFromKey(argc, argv, "--NJ_mtu", "1500"));
-    
-    finalRequest += "&factoryKey=";
-    finalRequest += fFactory->getKey();
-    
-    finalRequest += "&instanceKey=";
-    
-    stringstream s;
-    s << this;
-    
-    finalRequest += s.str();
-    printf("finalRequest = %s\n", finalRequest.c_str());
+    finalRequest << "NJ_ip=" << getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str());
+    finalRequest << "&NJ_port=" << port;
+    finalRequest << "&NJ_compression=" << getValueFromKey(argc, argv, "--NJ_compression", "-1");
+    finalRequest << "&NJ_latency=" << getValueFromKey(argc, argv, "--NJ_latency", "2");
+    finalRequest << "&NJ_mtu=" << getValueFromKey(argc, argv, "--NJ_mtu", "1500");
+    finalRequest << "&factoryKey=" << fFactory->getKey();
+    finalRequest << "&instanceKey=" << this;
+ 
+    printf("finalRequest = %s\n", finalRequest.str().c_str());
     
     bool isInitSuccessfull = false;
         
@@ -616,7 +581,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     int errorCode = -1;
 
     // OPEN NET JACK CONNECTION
-    if (sendRequest(ip, finalRequest, response, errorCode)) {
+    if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
         printf("BS & SR = %i | %i\n", buffer_size, sampling_rate);
         
         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
@@ -633,44 +598,35 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     }
     
     printf("remote_dsp_aux::init = %p inputs = %i outputs = %i\n", this, fFactory->getNumInputs(), fFactory->getNumOutputs());
-    
     return isInitSuccessfull;
 }                        
 
 bool remote_dsp_aux::startAudio()
 {
-    string finalRequest = "instanceKey=";
-    stringstream s;
-    s << this;
+    stringstream finalRequest;
+    finalRequest << "instanceKey=" << this;
     
-    finalRequest += s.str();
+    printf("REQUEST = %s\n", finalRequest.str().c_str());
     
-    printf("REQUEST = %s\n", finalRequest.c_str());
-    
-    string ip = fFactory->getIP();
-    ip += "/StartAudio";
-    
+    string ip = fFactory->getIP() + "/StartAudio";
+     
     string response;
     int errorCode;
-    return sendRequest(ip, finalRequest, response, errorCode);
+    return sendRequest(ip, finalRequest.str(), response, errorCode);
 }
 
 bool remote_dsp_aux::stopAudio()
 {
-    string finalRequest = "instanceKey=";
-    stringstream s;
-    s << this;
+    stringstream finalRequest;
+    finalRequest << "instanceKey=" << this;
     
-    finalRequest += s.str();
+    printf("REQUEST = %s\n", finalRequest.str().c_str());
     
-    printf("REQUEST = %s\n", finalRequest.c_str());
-    
-    string ip = fFactory->getIP();
-    ip += "/StopAudio";
+    string ip = fFactory->getIP() + "/StopAudio";
     
     string response;
     int errorCode;
-    return sendRequest(ip, finalRequest, response, errorCode);
+    return sendRequest(ip, finalRequest.str(), response, errorCode);
 }
 
 //------ DISCOVERY OF AVAILABLE MACHINES
@@ -760,30 +716,24 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
     } else {
     
         // Call server side to get remote factory, create local proxy factory, put it in the cache
-        string finalRequest = "shaKey=";
-        finalRequest += sha_key;
+        stringstream finalRequest;
+        finalRequest << "shaKey=" << sha_key;
          
-        printf("finalRequest = %s\n", finalRequest.c_str());
-            
-        string serverIP = "http://";
-        serverIP += ip_server;
-        serverIP += ":";
+        printf("finalRequest = %s\n", finalRequest.str().c_str());
         
-        stringstream s;
-        s << port_server;
+        stringstream serverIP;
+        serverIP << "http://" << ip_server << ":" << port_server;
         
-        serverIP += s.str();
-        serverIP += "/GetJsonFromKey";
-        
-        printf("ip = %s\n", serverIP.c_str());
-        
+        string ip = serverIP.str() + "/GetJsonFromKey";
+        printf("ip = %s\n", ip.c_str());
+         
         string response;
         int errorCode = -1;
         
-        if (sendRequest(serverIP, finalRequest, response, errorCode)) {
+        if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
             remote_dsp_factory* factory = new remote_dsp_factory();
             factory->setKey(sha_key);
-            factory->setIP(serverIP);
+            factory->setIP(serverIP.str());
             factory->decodeJson(response);
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
@@ -828,10 +778,10 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
                                                             int opt_level)
 {
     // Compute SHA1 key using the non-expanded version, IP and port
-    stringstream ss;
-    ss << port_server;
+    stringstream sha_content;
+    sha_content << dsp_content << " " << port_server << " " << ip_server;
     
-    string sha_key = generateSHA1(dsp_content + " " + ss.str() + " " + ip_server); 
+    string sha_key = generateSHA1(sha_content.str()); 
     FactoryTableIt it;
     
     vector<pair<string, string> > factories_list;
