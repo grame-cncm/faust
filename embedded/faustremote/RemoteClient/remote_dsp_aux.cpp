@@ -32,8 +32,8 @@ FactoryTableType remote_dsp_factory::gFactoryTable;
 // Standard Callback to store a server response in stringstream
 static size_t storeResponse(void *buf, size_t size, size_t nmemb, void* userp)
 {
-    std::ostream* os = static_cast<std::ostream*>(userp);
-    std::streamsize len = size * nmemb;
+    ostream* os = static_cast<ostream*>(userp);
+    streamsize len = size * nmemb;
     return (os->write(static_cast<char*>(buf), len)) ? len : 0;
 }
 
@@ -43,14 +43,14 @@ static size_t storeResponse(void *buf, size_t size, size_t nmemb, void* userp)
 //The errorCode stores the error encoded as INT
 static bool sendRequest(const string& ip, const string& finalRequest, string& response, int& errorCode)
 {
-    CURL *curl = curl_easy_init();
+    CURL* curl = curl_easy_init();
     bool isInitSuccessfull = false;
     
     if (curl) {
         
         printf("cURL with request = %s and ip = %s\n", finalRequest.c_str(), ip.c_str());
         
-        std::ostringstream oss;
+        ostringstream oss;
         
         curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -186,7 +186,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 // Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop() 
 {
-    CURL *curl = curl_easy_init();
+    CURL* curl = curl_easy_init();
     printf("fIndex = %s\n", fSHAKey.c_str());
         
     // The index of the factory to delete has to be sent
@@ -572,7 +572,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
  
     printf("finalRequest = %s\n", finalRequest.str().c_str());
     
-    bool isInitSuccessfull = false;
+    bool res = false;
         
     string ip = fFactory->getIP();
     ip += "/CreateInstance";
@@ -589,7 +589,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result); 
         
         if (fNetJack) {
-            isInitSuccessfull = true;
+            res = true;
         } else {
             error = ERROR_NETJACK_NOTSTARTED;
         }
@@ -598,7 +598,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     }
     
     printf("remote_dsp_aux::init = %p inputs = %i outputs = %i\n", this, fFactory->getNumInputs(), fFactory->getNumOutputs());
-    return isInitSuccessfull;
+    return res;
 }                        
 
 bool remote_dsp_aux::startAudio()
@@ -704,7 +704,7 @@ int remote_DNS::pingHandler(const char *path, const char *types,
 
 // FACTORIES
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key)
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key)
 {
     FactoryTableIt it;
     
@@ -823,7 +823,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
         }
 
         string sha_key_aux;
-        std::string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key_aux, error_msg_aux);
+        string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key_aux, error_msg_aux);
         
         if (expanded_dsp == "") {
             return 0; 
@@ -925,16 +925,16 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
     bool isSuccessfull = false;
-    CURL *curl = curl_easy_init();
+    CURL* curl = curl_easy_init();
     
     if (curl) {
         
-        stringstream finalIP;
-        finalIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
+        stringstream serverIP;
+        serverIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
     
         ostringstream oss;
             
-        curl_easy_setopt(curl, CURLOPT_URL, finalIP.str().c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, serverIP.str().c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &storeResponse);
         curl_easy_setopt(curl, CURLOPT_FILE, &oss);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 

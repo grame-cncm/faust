@@ -84,10 +84,10 @@ struct remote_DNS {
     };
    
     lo_server_thread fLoThread;
-    std::map<string, member> fClients;
+    map<string, member> fClients;
     TMutex fLocker;
       
-    static void cleanupMachineList(std::map<string, member> clients_list);
+    static void cleanupMachineList(map<string, member> clients_list);
     
     static void errorHandler(int num, const char* m, const char* path);
     
@@ -241,7 +241,7 @@ class EXPORT remote_dsp : public dsp {
         
 };
     
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const std::string& sha_key);  
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key);  
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 
