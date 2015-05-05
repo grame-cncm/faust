@@ -22,8 +22,7 @@
 #include <sstream>
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
-#include "llvm-dsp.h"
-#include "libfaust.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "utilities.h"
 #include <errno.h>
 #include <libgen.h>
