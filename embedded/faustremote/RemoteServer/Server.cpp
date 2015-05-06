@@ -235,6 +235,18 @@ connection_info_struct* DSPServer::allocateConnectionStruct(MHD_Connection* conn
     return con_info;
 }
 
+int DSPServer::createConnection(MHD_Connection* connection, const char* method, void** con_cls)
+{
+    // If connection is new, a connection structure is allocated
+    connection_info_struct* con_struct = allocateConnectionStruct(connection, method);
+    if (con_struct) {
+        *con_cls = (void*)con_struct;
+        return MHD_YES;
+    } else {
+        return MHD_NO;
+    }
+}
+
 //---- Callback for any type of connection to the server
 int DSPServer::answerToConnection(void* cls, 
                                 MHD_Connection* connection, 
@@ -250,22 +262,14 @@ int DSPServer::answerToConnection(void* cls,
     
     // If connection is new, a connection structure is allocated
     if (!*con_cls) {
-        connection_info_struct* con_struct = server->allocateConnectionStruct(connection, method);
-        if (con_struct) {
-            *con_cls = (void*)con_struct;
-            return MHD_YES;
-        } else {
-            return MHD_NO;
-        }
+        return server->createConnection(connection, method, con_cls);
     }
     
     // Once connection struct is allocated, the request is treated
-    if (0 == strcmp(method, "GET")) {
+    if (strcmp(method, "GET") == 0) {
         return server->answerGet(connection, url);
-    
-    } else if (0 == strcmp(method, "POST")) {
+    } else if (strcmp(method, "POST") == 0) {
         return server->answerPost(connection, url, upload_data, upload_data_size, con_cls);
-    
     } else {
         return server->sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html");
     }
@@ -277,12 +281,11 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
     if (strcmp(url, "/") == 0) {
         return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
     } else if (strcmp(url, "/GetAvailableFactories") == 0) {
-        string answerstring = "";
+        stringstream answer;
         for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++) {
-            answerstring += " " + it->first;
-            answerstring += " " + it->second.first;
+            answer << it->first << " " << it->second.first << " ";
         }
-        return sendPage(connection, answerstring, MHD_HTTP_OK, "text/plain");
+        return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
     } else {
         return MHD_NO;
     }

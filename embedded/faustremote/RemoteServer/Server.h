@@ -239,6 +239,8 @@ class DSPServer {
         
         void        stopAudio(const string& shakey);
         
+        int         createConnection(MHD_Connection* connection, const char* method, void** con_cls);
+        
         // Register Service as Available
         static void* registration(void* arg);
 
