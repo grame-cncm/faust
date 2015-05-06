@@ -119,7 +119,7 @@ class remote_dsp_factory : public smartable {
         
         map<string,string>  fMetadatas; //Metadatas extracted from json
         vector<itemInfo*>   fUiItems;   //Items extracted from json
-         
+          
     public: 
         
         void        decodeJson(const string& json);

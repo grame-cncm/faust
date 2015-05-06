@@ -4,7 +4,7 @@
 ***************** Interface to FaustWeb *********************
 ************************************************************/
 
-//--- Send asynchronous GET request to faustweb to get the list of available targets
+//--- Send asynchronous GET request to FaustWeb to get the list of available targets
 // @exportUrl : url of FaustWeb service to target
 // @callback : function called once request succeeded 
 // 				- @param : the available targets as a JSON application
@@ -27,10 +27,10 @@ function getTargets(exportUrl, callback, errCallback){
 	getrequest.send(null);
 }	
 
-//--- Send asynchronous POST request to faustweb to compile a faust DSP
+//--- Send asynchronous POST request to FaustWeb to compile a faust DSP
 // @exportUrl : url of FaustWeb service to target
 // @name : name of DSP to compile
-// @source_code : faust code to compile
+// @source_code : Faust code to compile
 // @callback : function called once request succeeded 
 // 				- @param : the sha key corresponding to source_code
 function getSHAKey(exportUrl, name, source_code, callback, errCallback){

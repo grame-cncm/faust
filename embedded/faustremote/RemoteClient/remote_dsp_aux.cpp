@@ -28,6 +28,7 @@
 #include <libgen.h>
 
 FactoryTableType remote_dsp_factory::gFactoryTable;
+static CURL* gCurl = NULL;
 
 // Standard Callback to store a server response in stringstream
 static size_t storeResponse(void *buf, size_t size, size_t nmemb, void* userp)
@@ -37,72 +38,58 @@ static size_t storeResponse(void *buf, size_t size, size_t nmemb, void* userp)
     return (os->write(static_cast<char*>(buf), len)) ? len : 0;
 }
 
+static bool isInteger(const string& str)
+{
+    for (size_t i = 0; i < str.size(); i++) {
+        if (!isdigit(str[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 //Returns true if no problem encountered
 //The response string stores the data received 
 //(can be error or real data... depending on return value)
 //The errorCode stores the error encoded as INT
 static bool sendRequest(const string& ip, const string& finalRequest, string& response, int& errorCode)
 {
-    CURL* curl = curl_easy_init();
-    bool isInitSuccessfull = false;
+    bool res = false;
+        
+    printf("Request = %s and ip = %s\n", finalRequest.c_str(), ip.c_str());
     
-    if (curl) {
+    ostringstream oss;
+    curl_easy_setopt(gCurl, CURLOPT_URL, ip.c_str());
+    curl_easy_setopt(gCurl, CURLOPT_POST, 1L);
+    curl_easy_setopt(gCurl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+    curl_easy_setopt(gCurl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+    curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
+    curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
+    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT ,15); 
+    curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
+    
+    if (curl_easy_perform(gCurl) != CURLE_OK) {
+        printf("Easy perform error\n");
+        errorCode = ERROR_CURL_CONNECTION;
+    } else {
         
-        printf("cURL with request = %s and ip = %s\n", finalRequest.c_str(), ip.c_str());
+        long respcode; //response code of the http transaction
+        curl_easy_getinfo(gCurl, CURLINFO_RESPONSE_CODE, &respcode);
         
-        ostringstream oss;
-        
-        curl_easy_setopt(curl, CURLOPT_URL, ip.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &storeResponse);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
-        
-        CURLcode res = curl_easy_perform(curl);
-        
-        if (res != CURLE_OK) {
-            printf("Easy perform error\n");
-            errorCode = ERROR_CURL_CONNECTION;
-        } else {
-            
-            long respcode; //response code of the http transaction
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);
-            
-            if (respcode == 200) {
+        if (respcode == 200) {
+            response = oss.str();
+            res = true;
+        } else if (respcode == 400) {
+            printf("Info Failed\n");
+            if (isInteger(oss.str())) {
+                errorCode = atoi(oss.str().c_str());
+            } else {
                 response = oss.str();
-                isInitSuccessfull = true;
-            } else if (respcode == 400) {
-                
-                printf("INFO Failed\n");
-                
-                // Is String Int ?
-                bool isInt = true;
-                const char* intermediateString = oss.str().c_str();
-                
-                for (size_t i = 0; i < strlen(intermediateString); i++) {
-                    if (!isdigit(intermediateString[i])) {
-                        isInt = false;
-                        break;
-                    }
-                }
-                
-                if (isInt) {
-                    errorCode = atoi(intermediateString);
-                } else {
-                    response = oss.str();
-                }
             }
         }
-        
-        curl_easy_cleanup(curl);
-    } else {
-        errorCode = ERROR_CURL_CONNECTION;
     }
-    
-    return isInitSuccessfull;
+     
+    return res;
 }
 
 //------------------FACTORY
@@ -119,83 +106,68 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             string& error, 
                             int opt_level)
 {
-    bool isInitSuccessfull = false;
-    fSHAKey = sha_key;
+    bool res = false;
     int errorCode;
     string response, ip;
     stringstream finalRequest, serverIP;
     
-    CURL* curl = curl_easy_init();
-    
-    if (curl) {
-    
-        // Adding Compilation Options to request data
-        finalRequest << "name=" << name_app << "&number_options=" << argc;
-        for (int i = 0; i < argc; i++) {
-            finalRequest << "&options=" << argv[i];
-        }
-        
-        // Adding LLVM optimization Level to request data
-        finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
-        
-        printf("finalRequest = %s\n", finalRequest.str().c_str());
-               
-        // Compile locally and send machine code on server side...
-        if (isopt1(argc, argv, "-machine")) {
-            string error;
-            llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", error, 3);
-            if (factory) {
-                // Transforming machine code to URL format
-                string machine_code = writeDSPFactoryToMachine(factory);
-                finalRequest << "&dsp_data=";
-                finalRequest << curl_easy_escape(curl, machine_code.c_str(), machine_code.size());
-            } else {
-                printf("Compilation error : %s\n", error.c_str());
-                goto cleanup;
-            }
-        } else {
-            // Transforming DSP code to URL format
-            finalRequest << "&dsp_data=";
-            finalRequest << curl_easy_escape(curl, dsp_content.c_str(), dsp_content.size());
-        }
-        
-        serverIP << "http://" << ip_server << ":" << port_server;
-        fServerIP = serverIP.str();
-        
-        ip = fServerIP + "/GetJson";
-        
-        printf("ip = %s\n", ip.c_str());
-        
-        errorCode = -1;
-        if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
-            decodeJson(response);
-            isInitSuccessfull = true;
-        } else if (errorCode != -1) {
-            error = "Curl Connection Failed";
-        } else {
-            error = response;
-        }
- 
- cleanup:
-        curl_easy_cleanup(curl); //Standard CleanUp
+    fSHAKey = sha_key;
+     
+    // Adding Compilation Options to request data
+    finalRequest << "name=" << name_app << "&number_options=" << argc;
+    for (int i = 0; i < argc; i++) {
+        finalRequest << "&options=" << argv[i];
     }
     
-    return isInitSuccessfull;
+    // Adding LLVM optimization Level to request data
+    finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
+           
+    // Compile locally and send machine code on server side...
+    if (isopt1(argc, argv, "-machine")) {
+        string error;
+        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", error, 3);
+        if (factory) {
+            // Transforming machine code to URL format
+            string machine_code = writeDSPFactoryToMachine(factory);
+            finalRequest << "&dsp_data=";
+            finalRequest << curl_easy_escape(gCurl, machine_code.c_str(), machine_code.size());
+        } else {
+            printf("Compilation error : %s\n", error.c_str());
+            return res;
+        }
+    } else {
+        // Transforming DSP code to URL format
+        finalRequest << "&dsp_data=";
+        finalRequest << curl_easy_escape(gCurl, dsp_content.c_str(), dsp_content.size());
+    }
+    
+    serverIP << "http://" << ip_server << ":" << port_server;
+    fServerIP = serverIP.str();
+    ip = fServerIP + "/GetJson";
+   
+    errorCode = -1;
+    if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
+        decodeJson(response);
+        res = true;
+    } else if (errorCode != -1) {
+        error = "Curl Connection Failed";
+    } else {
+        error = response;
+    }
+    
+    return res;
 }
 
 // Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop() 
 {
-    CURL* curl = curl_easy_init();
-    printf("fIndex = %s\n", fSHAKey.c_str());
-        
+    string response;
+    int errorCode;
+    
     // The index of the factory to delete has to be sent
     string finalRequest = "shaKey=" + fSHAKey;
     string ip = fServerIP + "/DeleteFactory";
-    printf("ip = %s\n", ip.c_str());
-    
-    string response;
-    int errorCode;
+   
     if (!sendRequest(ip, finalRequest, response, errorCode)) {
         printf("curl_easy_perform() failed: %s || code %i\n", response.c_str(), errorCode);
     }
@@ -289,8 +261,6 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
     fErrorCallbackArg = 0;
     
     fRunningFlag = true;
-    
-    printf("remote_dsp_aux::remote_dsp_aux in = %d out = %d\n", getNumInputs(), getNumOutputs());
 }
         
 remote_dsp_aux::~remote_dsp_aux()
@@ -335,10 +305,8 @@ const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const 
 }
 
 // Decode internal structure, to build user interface
-void remote_dsp_aux::buildUserInterface(UI* ui) {
-
-    // printf("REMOTEDSP::BUILDUSERINTERFACE\n");
-    
+void remote_dsp_aux::buildUserInterface(UI* ui) 
+{
     vector<itemInfo*> jsonItems = fFactory->itemList();
     
     // To be sure the floats are correctly encoded
@@ -363,7 +331,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
         bool isOutItem = false;
         
         // Meta Data declaration for entry items
-        if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type.compare("close") != 0) {
+        if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
             
             fInControl[counterIn] = init;
             isInItem = true;
@@ -388,42 +356,43 @@ void remote_dsp_aux::buildUserInterface(UI* ui) {
         }
         
         // Item declaration
-        if ((*it)->type.compare("hgroup") == 0)
+        string type = (*it)->type;
+        if (type == "hgroup") 
             ui->openHorizontalBox((*it)->label.c_str());
         
-        else if ((*it)->type.compare("vgroup") == 0){
-            printf("GROUP NAME = %s\n", (*it)->label.c_str());
-            ui->openVerticalBox((*it)->label.c_str());
-        }
-        else if ((*it)->type.compare("tgroup") == 0)
+        else if (type == "vgroup") 
+             ui->openVerticalBox((*it)->label.c_str());
+     
+        else if (type == "tgroup")
             ui->openTabBox((*it)->label.c_str());
         
-        else if ((*it)->type.compare("vslider") == 0)
+        else if (type == "vslider")
             ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
-        else if ((*it)->type.compare("hslider") == 0)
+        else if (type == "hslider")
             ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
         
-        else if ((*it)->type.compare("checkbox") == 0)
+        else if (type == "checkbox")
             ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
         
-        else if ((*it)->type.compare("hbargraph") == 0)
+        else if (type == "hbargraph")
             ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
-        else if ((*it)->type.compare("vbargraph") == 0)
+        else if (type == "vbargraph")
             ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
-        else if ((*it)->type.compare("nentry") == 0)
+        else if (type == "nentry")
             ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
-        else if ((*it)->type.compare("button") == 0)
+        else if (type == "button")
             ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
         
-        else if ((*it)->type.compare("close") == 0)
+        else if (type == "close")
             ui->closeBox();
             
         if (isInItem)
             counterIn++;
+            
         if (isOutItem)
             counterOut++;
     }
@@ -472,7 +441,6 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     if (fRunningFlag) {
         
         // If count > fBufferSize : the cycle is divided in numberOfCycles NetJack cycles, and a lastCycle one
-        
         int numberOfCycles = count/fBufferSize;
         int lastCycle = count%fBufferSize;
         
@@ -521,7 +489,7 @@ void remote_dsp_aux::init(int /*sampling_rate*/){}
 
 // Init remote dsp instance sends a POST request to a remote server
 // The URL extension used is /CreateInstance
-// The datas to send are NetJack parameters & the factory index it is create from
+// The datas to send are NetJack parameters & the factory index it is created from
 // A NetJack master is created to open a connection with the slave opened on the server's side
 bool remote_dsp_aux::init(int argc, const char* argv[], 
                         int sampling_rate, 
@@ -537,7 +505,6 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     fErrorCallbackArg = error_callback_arg;
      
     // Init Control Buffers
-
     fOutControl = new float[buffer_size];
     fInControl = new float[buffer_size];
 
@@ -569,11 +536,8 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&NJ_mtu=" << getValueFromKey(argc, argv, "--NJ_mtu", "1500");
     finalRequest << "&factoryKey=" << fFactory->getKey();
     finalRequest << "&instanceKey=" << this;
- 
-    printf("finalRequest = %s\n", finalRequest.str().c_str());
     
     bool res = false;
-        
     string ip = fFactory->getIP();
     ip += "/CreateInstance";
         
@@ -582,9 +546,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
 
     // OPEN NET JACK CONNECTION
     if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
-        printf("BS & SR = %i | %i\n", buffer_size, sampling_rate);
-        
-        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
+         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result); 
         
@@ -597,35 +559,30 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
         error = errorCode;
     }
     
-    printf("remote_dsp_aux::init = %p inputs = %i outputs = %i\n", this, fFactory->getNumInputs(), fFactory->getNumOutputs());
     return res;
 }                        
 
 bool remote_dsp_aux::startAudio()
 {
     stringstream finalRequest;
-    finalRequest << "instanceKey=" << this;
-    
-    printf("REQUEST = %s\n", finalRequest.str().c_str());
-    
-    string ip = fFactory->getIP() + "/StartAudio";
-     
     string response;
     int errorCode;
+    
+    finalRequest << "instanceKey=" << this;
+    string ip = fFactory->getIP() + "/StartAudio";
+   
     return sendRequest(ip, finalRequest.str(), response, errorCode);
 }
 
 bool remote_dsp_aux::stopAudio()
 {
     stringstream finalRequest;
-    finalRequest << "instanceKey=" << this;
-    
-    printf("REQUEST = %s\n", finalRequest.str().c_str());
-    
-    string ip = fFactory->getIP() + "/StopAudio";
-    
     string response;
     int errorCode;
+    
+    finalRequest << "instanceKey=" << this;
+    string ip = fFactory->getIP() + "/StopAudio";
+      
     return sendRequest(ip, finalRequest.str(), response, errorCode);
 }
 
@@ -635,31 +592,26 @@ static remote_DNS* gDNS = NULL;
 __attribute__((constructor)) static void initialize_libfaustremote() 
 {
     gDNS = new remote_DNS();
+    gCurl = curl_easy_init();
+    if (!gCurl) {
+        cout << "curl_easy_init error..." << endl;
+    }
 }
 
 __attribute__((destructor)) static void destroy_libfaustremote()
 {
     delete gDNS;
+    curl_easy_cleanup(gCurl);
 }
 
 remote_DNS::remote_DNS()
 {
-  
-    /* make address for multicast ip
-     * pick a port number for you by passing NULL as the last argument */
-    
-    // lo_address t = lo_address_new("224.0.0.1", "7770");
-    // lo_server multi = lo_server_new_multicast("drone", "7771", error);
     /* start a new server on port 7770 */
     fLoThread = lo_server_thread_new_multicast("224.0.0.1", "7770", remote_DNS::errorHandler);
     
-    /* add method that will match the path /foo/bar, with two numbers, coerced
-     * to float and int */
+    /* add method that will match the path /foo/bar, with two numbers, coerced to float and int */
     lo_server_thread_add_method(fLoThread, "/faustcompiler", "is", remote_DNS::pingHandler, this);
-    
-//    /* add method that will match the path /quit with no args */
-//    lo_server_thread_add_method(fLoThread, "/quit", "", remote_DNS::quitHandler, this);
-    
+     
     lo_server_thread_start(fLoThread);
 }
                                 
@@ -675,25 +627,20 @@ void remote_DNS::errorHandler(int num, const char *msg, const char *path)
 
 /* catch any incoming messages and display them. returning 1 means that the
  * message has not been fully handled and the server should try other methods */
-int remote_DNS::pingHandler(const char *path, const char *types, 
-                            lo_arg ** argv,
-                            int argc, void *data, 
-                            void *user_data)
+int remote_DNS::pingHandler(const char* path, const char* types, 
+                            lo_arg** argv,
+                            int argc, void* data, 
+                            void* user_data)
 {
     member messageSender;
     messageSender.pid = argv[0]->i;
-    messageSender.hostname = (char *)argv[1];
+    messageSender.hostname = (char*)argv[1];
     lo_timetag_now(&messageSender.timetag);
-    ostringstream convert;
-    convert << messageSender.pid;
-    string key = messageSender.hostname + ":" + convert.str();
+    stringstream convert;
+    convert << messageSender.hostname  << ":" << messageSender.pid;
     
     if (gDNS->fLocker.Lock()) {
-//        if (dns->fClients[key].timetag.sec == 0)
-//            printf("remote_DNS::Connected HostName = %s\n", messageSender.hostname.c_str());
-            
-//        printf("Client %s updated timetag %i\n", key.c_str(), messageSender.timetag.sec);
-        gDNS->fClients[key] = messageSender;
+        gDNS->fClients[convert.str()] = messageSender;
         gDNS->fLocker.Unlock();
     }
         
@@ -718,14 +665,10 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         // Call server side to get remote factory, create local proxy factory, put it in the cache
         stringstream finalRequest;
         finalRequest << "shaKey=" << sha_key;
-         
-        printf("finalRequest = %s\n", finalRequest.str().c_str());
         
         stringstream serverIP;
         serverIP << "http://" << ip_server << ":" << port_server;
-        
         string ip = serverIP.str() + "/GetJsonFromKey";
-        printf("ip = %s\n", ip.c_str());
          
         string response;
         int errorCode = -1;
@@ -755,7 +698,6 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
     int pos = base.find(".dsp");
       
     if (pos != string::npos) {
-        printf("File extension found\n");
         return createRemoteDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), 
                                                 argc, argv, 
                                                 ip_server, 
@@ -804,7 +746,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
         // Use for it's possible 'side effects', that is generating SVG, XML... files
         string error_msg_aux;
-        generateAuxFilesFromString(name_app, dsp_content,  argc, argv, error_msg_aux);
+        generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg_aux);
         
         // OPTIONS have to be filtered for documentation not to be created on the server side (-tg, -sg, -ps, -svg, -mdoc, -xml)
         int argc1 = 0;
@@ -831,7 +773,6 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
         remote_dsp_factory* factory = new remote_dsp_factory();
         if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
-            printf("Factory pushed in fFactory Table\n");
             remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         } else {
@@ -843,8 +784,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 {
-    printf("Delete remote DSP Factory\n");
-//    
+ //    
 //    FactoryTableIt it;
 //    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
 //        Sremote_dsp_factory sfactory = (*it).first;
@@ -924,50 +864,40 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
 
 EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
-    bool isSuccessfull = false;
-    CURL* curl = curl_easy_init();
-    
-    if (curl) {
+    bool res = false;
         
-        stringstream serverIP;
-        serverIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
-    
-        ostringstream oss;
-            
-        curl_easy_setopt(curl, CURLOPT_URL, serverIP.str().c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &storeResponse);
-        curl_easy_setopt(curl, CURLOPT_FILE, &oss);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT ,15); 
-        curl_easy_setopt(curl,CURLOPT_TIMEOUT, 15);
-            
-        CURLcode res = curl_easy_perform(curl);
-            
-        if (res == CURLE_OK) {
-            
-            long respcode; //response code of the http transaction
-            curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &respcode);
-            
-            if (respcode == 200) {
- 
-                // PARSE RESPONSE TO EXTRACT KEY/VALUE
-                
-                string response = oss.str();
-                stringstream os(response);   
-                string name, key;   
-                
-                while (os >> key) {                
-                    os >> name;
-                    factories_list->push_back(make_pair(name, key));
-                }
-                    
-                isSuccessfull = true;
-            }
-        }
+    stringstream serverIP;
+    serverIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
 
-        curl_easy_cleanup(curl);
+    ostringstream oss;
+    curl_easy_setopt(gCurl, CURLOPT_URL, serverIP.str().c_str());
+    curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
+    curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
+    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT ,15); 
+    curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
+        
+    if (curl_easy_perform(gCurl) == CURLE_OK) {
+        
+        long respcode; //response code of the http transaction
+        curl_easy_getinfo(gCurl, CURLINFO_RESPONSE_CODE, &respcode);
+        
+        if (respcode == 200) {
+
+            // PARSE RESPONSE TO EXTRACT KEY/VALUE
+            string response = oss.str();
+            stringstream os(response);   
+            string name, key;   
+            
+            while (os >> key) {                
+                os >> name;
+                factories_list->push_back(make_pair(name, key));
+            }
+                
+            res = true;
+        }
     }
-    
-    return isSuccessfull;
+   
+    return res;
 }
 
 //---------INSTANCES
@@ -983,7 +913,8 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 {
     FactoryTableIt it;
     if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
-        remote_dsp_aux* instance = factory->createRemoteDSPInstance(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error);
+        remote_dsp_aux* instance 
+            = factory->createRemoteDSPInstance(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error);
         (*it).second.second.push_back(instance);
         return reinterpret_cast<remote_dsp*>(instance);
     } else {
