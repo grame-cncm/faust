@@ -217,15 +217,11 @@ void DSPServer::stopNotActiveDSP()
 // Allocation/Initialization of connection struct
 connection_info_struct* DSPServer::allocateConnectionStruct(MHD_Connection* connection, const char* method)
 {
-    struct connection_info_struct *con_info;
-    con_info = new connection_info_struct();
-    
+    connection_info_struct* con_info = new connection_info_struct();
     if (!con_info) {
         return NULL;
     }
-    
-    con_info->init();
-    
+     
     if (strcmp(method, "POST") == 0) {
         con_info->fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, &iteratePost, (void*)con_info);
         if (!con_info->fPostprocessor) {
@@ -258,7 +254,7 @@ int DSPServer::answerToConnection(void* cls,
     if (!*con_cls) {
         connection_info_struct* con_struct = server->allocateConnectionStruct(connection, method);
         if (con_struct) {
-            *con_cls = (void*) con_struct;
+            *con_cls = (void*)con_struct;
             return MHD_YES;
         } else {
             return MHD_NO;
@@ -301,7 +297,7 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 // - /DeleteFactory --> Receive factoryIndex / Delete Factory
 int DSPServer::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls)
 {
-    struct connection_info_struct *con_info = (connection_info_struct*)*con_cls;
+    connection_info_struct* con_info = (connection_info_struct*)*con_cls;
     
     if (0 != *upload_data_size) {
         
@@ -548,19 +544,9 @@ void* DSPServer::registration(void* arg)
 {
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
-    
     DSPServer* serv = (DSPServer*)arg;
-    
-    stringstream p;
-    p<<serv->fPort;
-    string nameRegisterService = "._";
-    
-    nameRegisterService += searchIP();
-    nameRegisterService += ":";
-    nameRegisterService += p.str();
-    nameRegisterService += "._";
-    nameRegisterService += host_name;
-
+    stringstream nameRegisterService;
+    nameRegisterService << "._" << searchIP() << ":" << serv->fPort << "._" << host_name;
     lo_address t = lo_address_new("224.0.0.1", "7770");
     
     while (true) {
@@ -570,9 +556,7 @@ void* DSPServer::registration(void* arg)
         usleep(1000000);
     #endif
         pthread_testcancel();
-        
-        int pid = getpid();
-        lo_send(t, "/faustcompiler", "is", pid, nameRegisterService.c_str());
+        lo_send(t, "/faustcompiler", "is", getpid(), nameRegisterService.str().c_str());
     }
     
     pthread_exit(NULL);
