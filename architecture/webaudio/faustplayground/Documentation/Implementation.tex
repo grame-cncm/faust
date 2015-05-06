@@ -76,7 +76,9 @@ For each scene, we have three main functions :
  
  Main.js handles the different scenes of the application and the navigation between them. \\
  
- The second main element of the FaustPlayground is the notion of Module, representing a Faust application and it's interface.
+ The second main element of the FaustPlayground is the notion of Module, representing a Faust application and its interface.
+ 
+ A global view of the interactions between files and data structures is presented in the appendix (c.f. SECTION ). 
 
 \section{SceneClass.js}
 
@@ -110,7 +112,7 @@ The public methods are:
 
 \subsection{Scenes Instances}
 \subsubsection{Pedagogical Version}
-In the pedagogical, 3 scenes are created: Accueil, Pedagogie and Finish.
+In the pedagogical version, 3 scenes are created: Accueil, Pedagogie and Finish.
 They correspond to the graphical menus in which we navigate in the pedagogical FaustPlayground.
 
 \subsubsection{Normal Version}
@@ -118,21 +120,132 @@ In the normal version, a unique scene is created: Playground.
 
 \section{Main.js}
 
- Main.js handles the different scenes of the application and the navigation between them.
+ Main.js handles the different scenes of the application and the navigation between them, through the following functions:
+ \begin{itemize}
+ \item createAllScenes: initialize all the scenes that will be needed by the application
+ \item showFirstScene: load default Scene
+ \item nextScene/previousScene: navigate in the scenes
+\end{itemize}
+
+Main.js also handles the creation of the modules:
+ \begin{itemize}
+ \item createFaustModule: create Module and add it to current scene
+ \item compileFaust: uses libfaust.js to compile the Faust expression. Once the factory is returned, a callback is executed whether it's {\it createFaustModule} in the case of a new module or {\it module.update} in the case of an existing module. \\
+ 
+ The step of compilation is executed first and outside the Module Class. In case it fails, then we don't have to delete an already created module.
+\end{itemize}
+
+The reaction to a drop on the page, is handled by:
+ \begin{itemize}
+ \item setGeneralDragAndDrop
+ \item resetGeneralDragAndDrop
+ \item uploadFile
+ \item uploadOn
+ \item terminateUpload
+\end{itemize}
+
+And finally the activation of the physical audio input/output:
+ \begin{itemize}
+ \item activateAudioInput
+ \item getDevice
+ \item activateAudioOutput
+ \end{itemize}
 
 \section{ModuleClass.js}
 
-\section{Connect.js and Dragging.js}
+The Module represents a Faust application and its interface. 
+This hand-made class might not be very well dividing the graphical from the structural aspects. 
 
+Its Fields:
+\begin{itemize}
+\item Graphical elements
+\item Graphical In/Output Nodes 
+\item Name
+\item Code Source
+\item DSP
+\item Params
+\item In/Output Connections: The connections are structures containing a source, a destination and a shape.
+\end{itemize}
+
+Private Methods:
+\begin{itemize}
+\item onDrop 
+\item dragCallback
+\item dragCnxCallback
+\end{itemize}
+
+Public Methods:
+\begin{itemize}
+\item Delete node
+\item Add/remove/get In/output Connections
+\item Get In/Output Node
+\item Show/hide
+\item Get/set Source
+\item Get/set Name
+\item Get/set/update/delete DSP
+\item Edit
+\item Update Factory
+\item Recompile
+\item Create/delete Faust interface: uses the FaustInterface.js file to parse the JSON and create graphical elements
+\item Interface callback: called whenever a parameter of the interface is modified by the user
+\item Save/recall/get/set/add Params
+\item Add/delete/set InputOutput nodes
+\item Add/remove listener: listen to a drag event of the module
+\item Add/remove connexion listener: listen to drag event starting a connection
+\item IsPointIn In/Output
+\item IsPointInNode
+\end{itemize}
+
+
+
+\section{Drag and Connect}
+\subsection{Dragging.js}
+
+Dragging.js handles the reaction to the graphical dragging of Modules/Connections with the functions:
+\begin{itemize}
+\item startDragging
+\item whileDragging
+\item stopDragging
+\end{itemize}
+
+\subsection{Connect.js}
+
+Connect.js handles the Web Audio connections/disconnections between modules. It also handles the creation/deletion of the connectors:
+\begin{itemize}
+\item connectModules/disconnectModules/disconnectModule
+\item saveConnection
+\item createConnection/deleteConnection
+\item breakSingleInputConnection
+\end{itemize}
 
 \section{Pedagogie}
-Specifically for the use of the Pedagogical Playground,
+\subsection{Library.js}
+
+This file contains the function creating the graphical library of the pedagogical version. \\
+
+The Faust resources of the library are for now on the Faust server at faust.grame.fr/www/pedagogie.
+To easily scan the content of the library, the file : {\it faust.grame.fr/www/pedagogie/index.json} encodes the resources. \\
+Library.js decodes this file to create the graphical interface.
+
+\subsection{Tooltips.js}
+
+To guide the user to take charge of the application, some tooltips appear depending of the situation.
+The decision to make them appear and all the tooltip choices are described in this file.
+
+\section{Scenario - Example - Pedagogica FaustPlayground}
+
+A user loads {\it http://faust.grame.fr/www/faustplayground/pedagogie}. \\
+$ \rightarrow$ Pedagogie/index.html : Pedagogie is enabled \\
+
+The event "load" is triggered.\\
+$ \rightarrow$ js/Main.js : init()
 
 
 
-\section{Scenario - Example}
 
-\section{Annexes}
+
+
+\section{Appendix}
 \subsection{File interactions}
 \begin{landscape}
 \begin{figure}[!h]
