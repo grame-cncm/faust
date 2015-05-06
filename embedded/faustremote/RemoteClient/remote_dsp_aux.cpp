@@ -65,7 +65,7 @@ static bool sendRequest(const string& ip, const string& finalRequest, string& re
     curl_easy_setopt(gCurl, CURLOPT_POSTFIELDS, finalRequest.c_str());
     curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
-    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT ,15); 
+    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
     curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
     
     if (curl_easy_perform(gCurl) != CURLE_OK) {
@@ -169,7 +169,7 @@ void remote_dsp_factory::stop()
     string ip = fServerIP + "/DeleteFactory";
    
     if (!sendRequest(ip, finalRequest, response, errorCode)) {
-        printf("curl_easy_perform() failed: %s || code %i\n", response.c_str(), errorCode);
+        printf("sendRequest failed: %s || code %i\n", response.c_str(), errorCode);
     }
 }
 
@@ -528,7 +528,6 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     
     // Parse NetJack Parameters
     stringstream finalRequest;
-    
     finalRequest << "NJ_ip=" << getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str());
     finalRequest << "&NJ_port=" << port;
     finalRequest << "&NJ_compression=" << getValueFromKey(argc, argv, "--NJ_compression", "-1");
@@ -546,7 +545,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
 
     // OPEN NET JACK CONNECTION
     if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
-         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
+        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result); 
         
@@ -728,17 +727,16 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     vector<pair<string, string> > factories_list;
     getRemoteFactoriesAvailable(ip_server, port_server, &factories_list);
-    
-    bool factoryStillExisting = false;
-    
+     
+    bool stillExisting = false;
     for (int i = 0; i < factories_list.size(); i++) {
         if (sha_key == factories_list[i].second.c_str()) {
-            factoryStillExisting = true;
+            stillExisting = true;
             break;
         }
     }
     
-    if (getFactory(sha_key, it) && factoryStillExisting) {
+    if (getFactory(sha_key, it) && stillExisting) {
         Sremote_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;
@@ -795,7 +793,10 @@ EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 //            sfactory->removeReference();
 //        }
 //    }
+
+    // TO CHECK
     factory->stop();
+    
 //    
 //    string finalRequest = "shaKey="+factory->getKey();
 //    
@@ -868,12 +869,13 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
         
     stringstream serverIP;
     serverIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
-
+   
     ostringstream oss;
     curl_easy_setopt(gCurl, CURLOPT_URL, serverIP.str().c_str());
+    curl_easy_setopt(gCurl, CURLOPT_POST, 0L);
     curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
-    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT ,15); 
+    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
     curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
         
     if (curl_easy_perform(gCurl) == CURLE_OK) {
@@ -882,7 +884,6 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
         curl_easy_getinfo(gCurl, CURLINFO_RESPONSE_CODE, &respcode);
         
         if (respcode == 200) {
-
             // PARSE RESPONSE TO EXTRACT KEY/VALUE
             string response = oss.str();
             stringstream os(response);   
@@ -894,7 +895,11 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             }
                 
             res = true;
+        } else if (respcode == 400) {
+            printf("Info Failed\n");
         }
+    } else {
+        printf("Easy perform error\n");
     }
    
     return res;

@@ -228,7 +228,7 @@ class DSPServer {
         static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
             
         // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
-        bool        compileData(connection_info_struct* con_info);
+        bool        createFactory(connection_info_struct* con_info);
         // Reaction to a /GetJsonFromKey --> GetJson form available factory
         bool        getJsonFromKey(connection_info_struct* con_info);
             

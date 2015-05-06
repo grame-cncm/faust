@@ -44,15 +44,13 @@ string getJson(connection_info_struct* con_info)
     metadataDSPFactory(con_info->fLLVMFactory, &metadata);
     con_info->fNameApp = metadata.name;
         
-    //This instance is used only to build JSON interface, then it's deleted
+    // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(con_info->fLLVMFactory);
-    
     JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
-    dsp->buildUserInterface(&json);    
-    string answer = json.JSON();
-        
-    deleteDSPInstance(dsp);
-    return answer;
+    dsp->buildUserInterface(&json);
+    deleteDSPInstance(dsp);  
+      
+    return json.JSON();
 }
 
 //--------------SLAVE DSP INSTANCE-----------------------------
@@ -276,14 +274,14 @@ int DSPServer::answerToConnection(void* cls,
 // For now GET is not a request supported for now
 int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 {
-    if (strcmp(url, "/GetAvailableFactories") == 0) {
-        
+    if (strcmp(url, "/") == 0) {
+        return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
+    } else if (strcmp(url, "/GetAvailableFactories") == 0) {
         string answerstring = "";
         for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++) {
             answerstring += " " + it->first;
             answerstring += " " + it->second.first;
         }
-        
         return sendPage(connection, answerstring, MHD_HTTP_OK, "text/plain");
     } else {
         return MHD_NO;
@@ -308,7 +306,7 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
     } else {
         
         if (strcmp(url, "/GetJson") == 0) {
-            if (compileData(con_info)) {
+            if (createFactory(con_info)) {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
             } else {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
@@ -458,9 +456,8 @@ void DSPServer::stopAudio(const string& shakey)
 
 bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
 {
-    string SHA_Key = con_info->fSHAKey;
-    con_info->fNameApp = fAvailableFactories[SHA_Key].first;
-    con_info->fLLVMFactory = fAvailableFactories[SHA_Key].second;
+    con_info->fNameApp = fAvailableFactories[con_info->fSHAKey].first;
+    con_info->fLLVMFactory = fAvailableFactories[con_info->fSHAKey].second;
     
     if (con_info->fLLVMFactory) {
         con_info->fAnswerstring = getJson(con_info);
@@ -472,7 +469,14 @@ bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
 }
 
 // Create DSP Factory 
-bool DSPServer::compileData(connection_info_struct* con_info) {
+bool DSPServer::createFactory(connection_info_struct* con_info) {
+    
+    // Factory already compiled ?
+    if (fAvailableFactories.find(con_info->fSHAKey) != fAvailableFactories.end()) {
+        con_info->fLLVMFactory = fAvailableFactories[con_info->fSHAKey].second;
+        con_info->fAnswerstring = getJson(con_info);
+        return true;
+    }
     
     string error = "Incorrect machine code";
     
@@ -503,7 +507,6 @@ bool DSPServer::compileData(connection_info_struct* con_info) {
         con_info->fAnswerstring = error;
         return false;
     }
-    
 }
 
 // Create DSP Instance
