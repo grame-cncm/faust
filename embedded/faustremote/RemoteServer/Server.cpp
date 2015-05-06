@@ -50,7 +50,6 @@ string getJson(connection_info_struct* con_info)
     JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
     dsp->buildUserInterface(&json);    
     string answer = json.JSON();
-    printf("JSON = %s\n", answer.c_str());
         
     deleteDSPInstance(dsp);
     return answer;
@@ -165,14 +164,13 @@ void* DSPServer::startAudioSlave(void* arg)
         
         if (dspToStart->fAudio->init(dspToStart->getName().c_str(), dspToStart->fDSP)) {
             if (!dspToStart->fAudio->start()) {
-                printf("Start slave audio failed\n");
+                printf("RemoteDSPServer : Start slave audio failed\n");
             } else {
-                printf("SLAVE WITH %i INPUTS || %i OUTPUTS\n", dspToStart->fDSP->getNumInputs(), dspToStart->fDSP->getNumOutputs());
                 dspToStart->fDSPServer->fRunningDsp.push_back(dspToStart);
                 success = true;
             }
         } else {
-            printf("Init slave audio failed\n");
+            printf("RemoteDSPServer : Init slave audio failed\n");
         }
             
         dspToStart->fDSPServer->fLocker.Unlock();
@@ -282,13 +280,9 @@ int DSPServer::answerToConnection(void* cls,
 // For now GET is not a request supported for now
 int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 {
-    printf("IS IT A GET REQUEST\n");
-    
     if (strcmp(url, "/GetAvailableFactories") == 0) {
         
-        printf("GetAvailableFactories %ld\n", fAvailableFactories.size());
         string answerstring = "";
-        
         for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++) {
             answerstring += " " + it->first;
             answerstring += " " + it->second.first;
@@ -318,21 +312,18 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
     } else {
         
         if (strcmp(url, "/GetJson") == 0) {
-            
             if (compileData(con_info)) {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
             } else {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/GetJsonFromKey") == 0) {
-            
             if (getJsonFromKey(con_info)) {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
             } else {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/CreateInstance") == 0) {
-            
             if (createInstance(con_info)) {
                 return sendPage(connection, "", MHD_HTTP_OK, "text/html");
             } else {
@@ -479,7 +470,7 @@ bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
         con_info->fAnswerstring = getJson(con_info);
         return true;
     } else {
-        con_info->fAnswerstring = "Factory Not Found!";
+        con_info->fAnswerstring = "Factory not found";
         return false;
     }
 }
@@ -487,44 +478,44 @@ bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
 // Create DSP Factory 
 bool DSPServer::compileData(connection_info_struct* con_info) {
     
-    if (con_info->fSHAKey != "") {
+    string error = "Incorrect machine code";
     
-        // Sort out compilation options
-        int argc = con_info->fCompilationOptions.size();
-        const char* argv[argc];
-        for (int i = 0; i < argc; i++) {
-            argv[i] = (con_info->fCompilationOptions[i]).c_str();
-        }
-        
-        if (isopt1(argc, argv, "-machine")) {
-            // Machine code
-            con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fFaustCode);
-        } else {
-            // DSP code
-            string error;
-            con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, con_info->fFaustCode, argc, argv, "", error, atoi(con_info->fOptLevel.c_str()));
-        }
-       
-        if (con_info->fLLVMFactory) {
-            fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
-            // Once the factory is compiled, the JSON is stored as answerstring
-            con_info->fAnswerstring = getJson(con_info);
-            return true;
-        }
+    // Sort out compilation options
+    int argc = con_info->fCompilationOptions.size();
+    const char* argv[argc];
+    for (int i = 0; i < argc; i++) {
+        argv[i] = (con_info->fCompilationOptions[i]).c_str();
     }
-    con_info->fAnswerstring = "Impossible to generate SHA1 key";
-    return false;
+    
+    if (isopt1(argc, argv, "-machine")) {
+        // Machine code
+        con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fFaustCode);
+    } else {
+        // DSP code
+        con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, 
+                                                            con_info->fFaustCode, 
+                                                            argc, argv, "", 
+                                                            error, atoi(con_info->fOptLevel.c_str()));
+    }
+   
+    if (con_info->fLLVMFactory) {
+        fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+        // Once the factory is compiled, the JSON is stored as answerstring
+        con_info->fAnswerstring = getJson(con_info);
+        return true;
+    } else {
+        con_info->fAnswerstring = error;
+        return false;
+    }
+    
 }
 
 // Create DSP Instance
 bool DSPServer::createInstance(connection_info_struct* con_info)
 {
-    printf("CREATEINSTANCE WITH INDEX = %s\n", con_info->fFactoryKey.c_str());
     llvm_dsp_factory* realFactory = fAvailableFactories[con_info->fFactoryKey].second;
     
     if (realFactory) {
-        
-        printf("Instance\n");
         
         netjack_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCompression, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
         if (!dsp) return false;
@@ -555,8 +546,6 @@ bool DSPServer::createInstance(connection_info_struct* con_info)
 // Register server as available
 void* DSPServer::registration(void* arg) 
 {
-    printf("SERVICE REGISTRATION\n");
-    
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
     
