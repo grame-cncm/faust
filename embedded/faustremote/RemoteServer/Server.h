@@ -83,7 +83,8 @@ class netjackaudio_server : public netjackaudio_midicontrol {
 
 };
 
-// Structured handled by libmicrohttp related to a connection
+// Structure handled by libmicrohttp related to a connection
+
 struct connection_info_struct {
     
     int                 fConnectiontype;    // GET or POST
@@ -113,12 +114,16 @@ struct connection_info_struct {
     string              fInstanceKey;
     //--------------------------------------------- 
     
-    void init() 
-    {
+    connection_info_struct() 
+    {   
+        fPostprocessor = 0;
+        fAnswercode = -1;
+        fAnswerstring = "";
+        fNameApp = "";
         fFaustCode = "";
         fFactoryKey = "";
         fOptLevel = "";
-        
+        fLLVMFactory = 0;
         fIP = "";
         fPort = "";
         fCompression = "";
@@ -171,7 +176,7 @@ struct netjack_dsp {
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
-    
+
 class DSPServer {
         
     private:
