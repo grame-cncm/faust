@@ -25,6 +25,7 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "utilities.h"
 #include <errno.h>
+#include <string.h>
 #include <libgen.h>
 
 FactoryTableType remote_dsp_factory::gFactoryTable;
