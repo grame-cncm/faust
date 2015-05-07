@@ -232,30 +232,61 @@ Library.js decodes this file to create the graphical interface.
 To guide the user to take charge of the application, some tooltips appear depending of the situation.
 The decision to make them appear and all the tooltip choices are described in this file.
 
-\section{Scenario - Example - Pedagogica FaustPlayground}
+\newpage
+\section{Scenario - Example - Pedagogical FaustPlayground}
 
-A user loads {\it http://faust.grame.fr/www/faustplayground/pedagogie}. \\
-$ \rightarrow$ Pedagogie/index.html : Pedagogie is enabled \\
+\subsection{Initialize Pedagogical Playground}
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=\columnwidth]{images/ScenarioInit.pdf}
+\caption{Init web application}
+\label{fig:classes}
+\end{center}
+\end{figure}
 
-The event "load" is triggered.\\
-$ \rightarrow$ js/Main.js : init()
+\newpage
+\subsection{Reaction to a drop in the scene}
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=\columnwidth]{images/ScenarioDrop.pdf}
+\caption{Drop URL on the scene}
+\label{fig:classes}
+\end{center}
+\end{figure}
 
+\newpage
+\subsection{Reaction to a connection drag from the module to the scene output}
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=\columnwidth]{images/ScenarioConnect.pdf}
+\caption{Connection of a module to the scene output}
+\label{fig:classes}
+\end{center}
+\end{figure}
 
+\newpage
+\subsection{Reaction to a source edition}
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=\columnwidth]{images/ScenarioEdit.pdf}
+\caption{Edition of a Module Faust Source}
+\label{fig:classes}
+\end{center}
+\end{figure}
 
-
-
-
+\newpage
 \section{Appendix}
 \subsection{File interactions}
-\begin{landscape}
+%\begin{landscape}
 \begin{figure}[!h]
 \begin{center}
 \includegraphics[width=\columnwidth]{images/ClassDiagram.pdf}
 \label{fig:classes}
 \end{center}
 \end{figure}
-\end{landscape}
+%\end{landscape}
 
+\newpage
 \subsection{JSON Description for the scene}
 
 \begin{figure}[!h]
