@@ -141,7 +141,7 @@ function updateQrCode(sha){
 		output = "binary.apk";
 	
 	var link = document.createElement('a');
-	link.href = document.getElementById("exportUrl").value + "/" + sha +"/"+ plateform + "/" + architecture + "/"+output;
+	link.href = document.getElementById("exportUrl").value + "/" + sha + "/" + plateform + "/" + architecture + "/" + output;
 
 	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
