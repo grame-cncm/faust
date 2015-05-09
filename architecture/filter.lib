@@ -1218,14 +1218,14 @@ with {
 
 //========================= Lagrange Interpolation ========================
 
-//-------------------------- fdelayl, fdelayltv ---------------------------
+//-------------------------- fdelaylti, fdelayltv -------------------------
 // Fractional delay line using Lagrange interpolation
-// USAGE: _ : fdelayl[tv](order, maxdelay, delay, inputsignal) : _
+// USAGE: _ : fdelaylt[i|v](order, maxdelay, delay, inputsignal) : _
 // where order=1,2,3,... is the order of the Lagrange interpolation polynomial.
-// fdelayl   is appropriate when the delay is constant or slowly varying.
-// fdelayltv is needed when the delay varies rapidly with time.
+// fdelaylti is most efficient, but designed for constant/slowly-varying delay.
+// fdelayltv is more expensive and more robust when the delay varies rapidly.
 //
-// NOTE: requested delay should not be less than (N-1)/2.
+// NOTE: The requested delay should not be less than (N-1)/2.
 //
 // The first-order case (linear interpolation) is equivalent to 
 // fdelay in music.lib (delay d in [0,1])
@@ -1241,7 +1241,7 @@ with {
 // Philippe Depalle and Stephan Tassart, "Fractional Delay Lines using
 //         Lagrange Interpolators", ICMC Proceedings, pp. 341-343, 1996.
 
-fdelayl(N,n,d,x)  = delay(n,id,x) <: seq(i,N,section(i)) : !,_
+fdelaylti(N,n,d,x)  = delay(n,id,x) <: seq(i,N,section(i)) : !,_
 with {
   o = (N-1.00001)/2; // offset to ~center FIR interpolator
   dmo = d - o; // assumed nonnegative [d > (N-1)/2]
@@ -1257,10 +1257,12 @@ with {
   dmo = d - o; // assumed >=0 [d > (N-1)/2]
   id = int(dmo);
   fd = o + frac(dmo);
-  h(N,d,n) = 1 : facs1(N,d,n) : facs2(N,d,n);
-  facs1(N,d,n) = select2(n,1,seq(k,max(1,n),select2(k<n,1,fac(d,n,k))));
-  facs2(N,d,n) = _<: select2(n<N,*(1),seq(l,max(1,N-n),fac(d,n,l+n+1)));
-  fac(d,n,k) = *(d-k)/(n-k);
+  h(N,d,n) = facs1(N,d,n) * facs2(N,d,n);
+  facs1(N,d,n) = select2(n,1,prod(k,max(1,n),select2(k<n,1,fac(d,n,k))));
+  facs2(N,d,n) = select2(n<N,1,prod(l,max(1,N-n),fac(d,n,l+n+1)));
+  fac(d,n,k) = (d-k)/((n-k)+(n==k));
+  // Explicit formula for Lagrange interpolation coefficients:
+  // h_d(n) = \prod_{\stackrel{k=0}{k\neq n}}^N \frac{d-k}{n-k}, n=0:N
 };
 
 // Backward compatibility:
