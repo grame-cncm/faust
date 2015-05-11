@@ -1217,52 +1217,60 @@ with {
 };
 
 //========================= Lagrange Interpolation ========================
-// References:
-// https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html
-// https://ccrma.stanford.edu/~jos/Interpolation/Candan_2007_Lagrange_Interpolation.html
-// Candan, C., "An Efficient Filtering Structure for Lagrange Interpolation," 
-//         Signal Processing Letters, IEEE, vol.14, no.1, pp.17,19, Jan. 2007
-// 
-//-------------------------------- fdelayl --------------------------------
-// Fractional delay line using Lagrange interpolation
-// USAGE: _ : fdelayl(order, maxdelay, delay, inputsignal) : _
-// where order=1,2,3,... is the order of the Lagrange interpolation polynomial.
-//
-// NOTE: requested delay should not be less than (N-1)/2.
-//
 
+//-------------------------- fdelaylti, fdelayltv -------------------------
+// Fractional delay line using Lagrange interpolation
+// USAGE: _ : fdelaylt[i|v](order, maxdelay, delay, inputsignal) : _
+// where order=1,2,3,... is the order of the Lagrange interpolation polynomial.
+// fdelaylti is most efficient, but designed for constant/slowly-varying delay.
+// fdelayltv is more expensive and more robust when the delay varies rapidly.
+//
+// NOTE: The requested delay should not be less than (N-1)/2.
+//
 // The first-order case (linear interpolation) is equivalent to 
 // fdelay in music.lib (delay d in [0,1])
+//
+// REFERENCES:
+//
+// https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html
+//
+// Timo I. Laakso et al., "Splitting the Unit Delay - Tools for Fractional
+//         Delay Filter Design", IEEE Signal Processing Magazine,
+//         vol. 13, no. 1, pp. 30-60, Jan 1996.
+//
+// Philippe Depalle and Stephan Tassart, "Fractional Delay Lines using
+//         Lagrange Interpolators", ICMC Proceedings, pp. 341-343, 1996.
 
-fdelayl(N,n,d,x)  = delay(n,id,x) <: seq(i,N,section(i)) : !,_
+fdelaylti(N,n,d,x)  = delay(n,id,x) <: seq(i,N,section(i)) : !,_
 with {
-  o = (N-1.00001)/2; // offset to make life easy for interpolator
-  dmo = d - o; // assumed nonnegative
+  o = (N-1.00001)/2; // offset to ~center FIR interpolator
+  dmo = d - o; // assumed nonnegative [d > (N-1)/2]
   id = int(dmo);
   fd = o + frac(dmo);
   section(i,x,y) = (x-x') * c(i) <: _,+(y);
   c(i) = (i - fd)/(i+1);
 };
 
-// Backward compatibility:
-fdelay1 = fdelayl(1);
-fdelay2 = fdelayl(2);
-fdelay3 = fdelayl(3);
-fdelay4 = fdelayl(4);
-fdelay5 = fdelayl(5);
+fdelayltv(N,n,d,x) = sum(i, N+1, delay(n,id+i,x) * h(N,fd,i))
+with {
+  o = (N-1.00001)/2;  // ~center FIR interpolator
+  dmo = d - o; // assumed >=0 [d > (N-1)/2]
+  id = int(dmo);
+  fd = o + frac(dmo);
+  h(N,d,n) = facs1(N,d,n) * facs2(N,d,n);
+  facs1(N,d,n) = select2(n,1,prod(k,max(1,n),select2(k<n,1,fac(d,n,k))));
+  facs2(N,d,n) = select2(n<N,1,prod(l,max(1,N-n),fac(d,n,l+n+1)));
+  fac(d,n,k) = (d-k)/((n-k)+(n==k));
+  // Explicit formula for Lagrange interpolation coefficients:
+  // h_d(n) = \prod_{\stackrel{k=0}{k\neq n}}^N \frac{d-k}{n-k}, n=0:N
+};
 
-// Since the "direct implementation" used before 5/2/2012 behaves
-// differently when the fractional delay is time-varying, the previous
-// second-order (quadratic interp) case is given here for reference:
-// fdelay2(n,d,x) = delay(n,id,x)*(1-fd)*(2-fd)/2 
-//                + delay(n,id+1,x)*(2-fd)*fd
-//                + delay(n,id+2,x)*(fd-1)*fd/2
-// with {
-//   o = 0.49999; // offset to make life easy for interpolator
-//   dmo = d - o; // assumed nonnegative
-//   id = int(dmo);
-//   fd = o + frac(dmo);
-// };
+// Backward compatibility:
+fdelay1 = fdelayltv(1);
+fdelay2 = fdelayltv(2);
+fdelay3 = fdelayltv(3);
+fdelay4 = fdelayltv(4);
+fdelay5 = fdelayltv(5);
 
 //====================== Thiran Allpass Interpolation =====================
 // Reference:
