@@ -535,6 +535,9 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
 
 ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
+    // If value is already a variable, no need to create a new one, just reuse it...
+    if (dynamic_cast<LoadVarInst*>(exp)) return exp;
+
     string vname;
     Typed::VarType ctype;
     ::Type t = getCertifiedSigType(sig);
