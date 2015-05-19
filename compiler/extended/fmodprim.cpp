@@ -23,11 +23,9 @@ class FmodPrim : public xtended
 
         if (j.haszero()) {
             // potential division by zero
-            std::cerr << "potential division by zero in fmod" << std::endl;
-            exit(1);
-        } else {
-            return castInterval(floatCast(args[0]|args[1]), fmod(i,j));
+            std::cerr << "potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
         }
+        return castInterval(floatCast(args[0]|args[1]), fmod(i,j));
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

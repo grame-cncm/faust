@@ -417,6 +417,15 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         Type        t1 = getCertifiedSigType(arg1);
         Type        t2 = getCertifiedSigType(arg2);
 
+        interval    i = t1->getInterval();
+        interval    j = t2->getInterval();
+
+        if (j.haszero()) {
+            // potential division by zero
+            std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << std::endl;
+        }
+
+
         if (t1->nature()==kInt && t2->nature()==kInt ) {
             return generateCacheCode(sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
         } else if (t1->nature()==kInt && t2->nature()==kReal ) {
