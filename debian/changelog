@@ -1,3 +1,39 @@
+faust (0.9.71+git20150508+3448-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Wed, 20 May 2015 16:41:49 +0200
+
+faust (0.9.70+git20141122+3239-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Mon, 24 Nov 2014 16:14:28 +0100
+
+faust (0.9.70+git20141105+3225-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Thu, 06 Nov 2014 04:33:16 +0100
+
+faust (0.9.70+git20141031+3217-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Fri, 31 Oct 2014 23:22:22 +0100
+
+faust (0.9.70+git20141030+3216-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Fri, 31 Oct 2014 12:39:47 +0100
+
+faust (0.9.70+git20141018+3191-1) trusty; urgency=low
+
+  * Build from latest upstream source.
+
+ -- Albert Graef <aggraef@gmail.com>  Sat, 18 Oct 2014 23:24:06 +0200
+
 faust (0.9.70+git20141011+3182-1) trusty; urgency=low
 
   * Build from latest upstream source.
