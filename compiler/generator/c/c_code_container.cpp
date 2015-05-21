@@ -211,23 +211,7 @@ void CCodeContainer::produceClass()
 
     // Print metadata declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void metadata" << fKlassName << "(MetaGlue* m) { ";
-
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
-            tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-        } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
-                    tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **j << ");" ;
-                } else {
-                    tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << "contributor" << "\", " << **j << ");";
-                }
-            }
-        }
-    }
-
-    tab(n, *fOut); *fOut << "}" << endl;
+    produceMetadata(n);
 
     // Get sample rate method
     tab(n, *fOut); *fOut << "int getSampleRate" << fKlassName << "(" << fKlassName << "* dsp) { "
@@ -294,6 +278,29 @@ void CCodeContainer::produceClass()
     *fOut << "}" << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
+}
+
+void CCodeContainer::produceMetadata(int tabs)
+{
+    tab(tabs, *fOut); *fOut << "void metadata" << fKlassName << "(MetaGlue* m) { ";
+
+    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
+    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            tab(tabs+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
+            // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become "contributor"
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    tab(tabs+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **j << ");" ;
+                } else {
+                    tab(tabs+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << "contributor" << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+ 
+    tab(tabs, *fOut); *fOut << "}" << endl;
 }
 
 // Scalar
