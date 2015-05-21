@@ -90,11 +90,13 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, b
 void CPPCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut); *fOut << "void static metadata(Meta* m) { ";
-
+    
+    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
+            // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become "contributor"
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
                     tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";

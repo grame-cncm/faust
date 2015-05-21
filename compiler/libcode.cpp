@@ -752,15 +752,25 @@ static void printhelp()
 static void printDeclareHeader(ostream& dst)
 {
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        dst << "declare ";
-        stringstream name; name << *(i->first);
-        dst << replaceChar(replaceChar(name.str(), '.', '_'), '/', '_');
-        for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-            dst << " " << **j;
+        if (i->first != tree("author")) {
+            dst << "declare ";
+            stringstream key; key << *(i->first);
+            dst << replaceChar(replaceChar(key.str(), '.', '_'), '/', '_');
+            dst << " " << **(i->second.begin());
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+                if (j == i->second.begin()) {
+                    dst << "declare " << *(i->first) << " " << **j;
+                } else {
+                    dst << "declare contributor " << **j;
+                }
+            }
         }
         dst << ";" << endl;
     }
 }
+
+
 
 void printHeader(ostream& dst)
 {
