@@ -130,7 +130,11 @@ struct connection_info_struct {
         fMTU = "";
         fLatency = "";
         fSHAKey = "";
+        fInstanceKey = "";
     }
+    
+    ~connection_info_struct()
+    {}
 };
     
 #include <netdb.h>

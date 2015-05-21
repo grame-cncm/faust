@@ -257,6 +257,7 @@ int DSPServer::answerToConnection(void* cls,
                                 size_t* upload_data_size, 
                                 void** con_cls)
 {
+
     DSPServer* server = (DSPServer*)cls;
     server->stopNotActiveDSP();
     
@@ -420,7 +421,7 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
     
     if (con_info) {
         if (con_info->fConnectiontype == POST) {
-            if (NULL != con_info->fPostprocessor) {
+            if (con_info->fPostprocessor) {
                 MHD_destroy_post_processor(con_info->fPostprocessor);
             }
         }
