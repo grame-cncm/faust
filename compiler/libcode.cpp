@@ -1265,7 +1265,14 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
         throw faustexception(gGlobal->gErrorMessage);
     }
     stringstream out;
+    
+    vector<string> pathnames = gGlobal->gReader.listSrcFiles();
+    for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
+        out << "declare " << "library_path " << '"' << *it << "\";" << endl;
+    }
+    
     out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
+    
     printDeclareHeader(out);
     out << "process = " << boxpp(gGlobal->gProcessTree) << ';' << endl;
     return out.str();
@@ -1334,7 +1341,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     
     if (gGlobal->gExportDSP) {
         ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
+        
+        vector<string> pathnames = gGlobal->gReader.listSrcFiles();
+        for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
+            out << "declare " << "library_path " << '"' << *it << "\";" << endl;
+        }
+        
         out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
+        
         printDeclareHeader(out);
         out << "process = " << boxpp(process) << ';' << endl;
         return;

@@ -125,11 +125,21 @@ void deleteAllRemoteDSPFactories();
 /**
  * Call global declarations with the given meta object.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
+ *
  * @param meta - the meta object to be used.
  *
  */
 void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
+
+/**
+ * Get the list of library dependancies of the Faust DSP factory.
+ *
+ * @param factory - the DSP factory.
+ * 
+ * @return the list as a vector of strings.
+ */
+std::vector<std::string> getLibraryList(remote_dsp_factory* factory);
 
 /**
  * Instance class

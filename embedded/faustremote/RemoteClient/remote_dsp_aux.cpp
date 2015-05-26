@@ -132,6 +132,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
             string machine_code = writeDSPFactoryToMachine(factory);
             finalRequest << "&dsp_data=";
             finalRequest << curl_easy_escape(gCurl, machine_code.c_str(), machine_code.size());
+            deleteDSPFactory(factory);
         } else {
             printf("Compilation error : %s\n", error.c_str());
             return res;
@@ -140,6 +141,18 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         // Transforming DSP code to URL format
         finalRequest << "&dsp_data=";
         finalRequest << curl_easy_escape(gCurl, dsp_content.c_str(), dsp_content.size());
+        
+        // Keep library path
+        stringstream os(dsp_content);
+        string key, name;                 
+        while (os >> key) {               
+            os >> name;
+            if (key == "compilation_options") {
+                break;
+            } else if (key == "library_path") {
+                fPathnameList.push_back(name);
+            }  
+        }
     }
     
     serverIP << "http://" << ip_server << ":" << port_server;
@@ -823,6 +836,11 @@ EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
     factory->metadataRemoteDSPFactory(m);
 }
 
+EXPORT vector<string> getLibraryList(remote_dsp_factory* factory) 
+{ 
+    return factory->getLibraryList(); 
+}
+
 EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }
 EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
 
@@ -889,12 +907,10 @@ EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server
             string response = oss.str();
             stringstream os(response);   
             string name, key;   
-            
             while (os >> key) {                
                 os >> name;
                 factories_list->push_back(make_pair(name, key));
             }
-                
             res = true;
         } else if (respcode == 400) {
             printf("Info Failed\n");

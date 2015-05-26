@@ -117,7 +117,7 @@ std::string getName(llvm_dsp_factory* factory);
 std::string getSHAKey(llvm_dsp_factory* factory);
 
 /**
- * Get the list of library dependancies of the DSP factory.
+ * Get the list of library dependancies of the Faust DSP factory.
  *
  * @param factory - the DSP factory.
  * 

@@ -119,6 +119,8 @@ class remote_dsp_factory : public smartable {
         
         map<string,string>  fMetadatas; //Metadatas extracted from json
         vector<itemInfo*>   fUiItems;   //Items extracted from json
+        
+        vector<string> fPathnameList;
           
     public: 
         
@@ -152,6 +154,8 @@ class remote_dsp_factory : public smartable {
         
         string              getKey() { return fSHAKey; }
         void                setKey(const string& sha_key) { fSHAKey = sha_key; }
+        
+        vector<string>      getLibraryList() { return fPathnameList; }
         
         static FactoryTableType gFactoryTable;
 };
@@ -217,6 +221,7 @@ class remote_dsp_aux : public dsp {
         virtual bool stopAudio();
 
         remote_dsp_factory* getFactory() { return fFactory; }
+
 };
 
 //---------------------- Public C++ interface --------
@@ -257,6 +262,8 @@ EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
 EXPORT void deleteAllRemoteDSPFactories();    
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
+
+EXPORT vector<string> getLibraryList(remote_dsp_factory* factory);
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                            int argc, const char *argv[], 
