@@ -5,7 +5,12 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 research@grame.fr
 ====================================================
-Copyright GRAME (c) 2011 - 2014
+Copyright GRAME (c) 2011 - 2015
+
+----------------------------------------------------
+Version 0.95                           [May 26 2015]
+- a new 'get attribute' message is supported by the root node :
+'xmitfilter'
 
 ----------------------------------------------------
 Version 0.94                           [Jul. 16 2014]
