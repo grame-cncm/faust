@@ -8,7 +8,7 @@ set (CMAKE_CONFIGURATION_TYPES Debug Release)
 set (TARGET	OSCFaust)
 #######################################
 # versions management
-set (version 0.93)
+set (version 0.95)
 set (SOVERS 0)
 
 #######################################
