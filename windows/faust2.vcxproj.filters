@@ -375,6 +375,9 @@
     </ClCompile>
     <ClCompile Include="..\compiler\main.cpp" />
     <ClCompile Include="..\compiler\libcode.cpp" />
+    <ClCompile Include="..\compiler\generator\llvm\base64.cpp">
+      <Filter>generator\llvm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
@@ -528,6 +531,12 @@
     </ClInclude>
     <ClInclude Include="..\compiler\generator\smartpointer.h">
       <Filter>generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\utils\TMutex.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\llvm\base64.h">
+      <Filter>generator\llvm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -57,7 +57,7 @@ class TMutex
 			CloseHandle(fMutex);
 		}
 		
-		void Lock()
+		bool Lock()
 		{	
 			 return (WaitForSingleObject(fMutex, INFINITE) == WAIT_OBJECT_0);
 		}
