@@ -13,11 +13,11 @@ INCPATH = -I.   -I../../compiler -I../../compiler/utils -I../../compiler/generat
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= $(INCPATH) -O3 -arch x86_64
+	CXXFLAGS	= -O3 $(INCPATH) -arch x86_64
 	LIB_EXT     = dylib
 else 
 	ARCHFLAGS	:= 
-	CXXFLAGS	= $(INCPATH) -O3
+	CXXFLAGS	= -O3 $(INCPATH)
 	LIBFLAGS	:= --mode=link --tag=CXX
 	LIB_EXT     = so
 endif

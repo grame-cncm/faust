@@ -114,27 +114,9 @@ struct connection_info_struct {
     string              fInstanceKey;
     //--------------------------------------------- 
     
-    connection_info_struct() 
-    {   
-        fPostprocessor = 0;
-        fAnswercode = -1;
-        fAnswerstring = "";
-        fNameApp = "";
-        fFaustCode = "";
-        fFactoryKey = "";
-        fOptLevel = "";
-        fLLVMFactory = 0;
-        fIP = "";
-        fPort = "";
-        fCompression = "";
-        fMTU = "";
-        fLatency = "";
-        fSHAKey = "";
-        fInstanceKey = "";
-    }
+    connection_info_struct();
+    ~connection_info_struct();
     
-    ~connection_info_struct()
-    {}
 };
     
 #include <netdb.h>

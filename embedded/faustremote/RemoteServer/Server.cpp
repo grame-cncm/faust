@@ -36,6 +36,28 @@ struct myMeta : public Meta
     }
 };
 
+connection_info_struct::connection_info_struct() 
+{   
+    fPostprocessor = 0;
+    fAnswercode = -1;
+    fAnswerstring = "";
+    fNameApp = "";
+    fFaustCode = "";
+    fFactoryKey = "";
+    fOptLevel = "";
+    fLLVMFactory = 0;
+    fIP = "";
+    fPort = "";
+    fCompression = "";
+    fMTU = "";
+    fLatency = "";
+    fSHAKey = "";
+    fInstanceKey = "";
+}
+    
+connection_info_struct::~connection_info_struct()
+{}
+
 //------------SLAVE DSP FACTORY-------------------------------
 
 string getJson(connection_info_struct* con_info) 
