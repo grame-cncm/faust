@@ -33,6 +33,11 @@
 #include "Message.h"
 #include "MessageProcessor.h"
 
+#ifdef _WIN32
+#include <io.h>
+#define lseek _lseek
+#endif
+
 using namespace std;
 
 namespace httpdfaust
