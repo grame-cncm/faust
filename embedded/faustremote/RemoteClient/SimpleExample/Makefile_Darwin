@@ -8,6 +8,22 @@
 
 ####### Compiler, tools and options
 
+# These paths are searched for llvm-config* in reverse order (/opt/local/bin
+# is included for compatibility with MacPorts).
+llvm_paths = /usr/bin /opt/local/bin /usr/local/bin
+
+# Search heuristic for finding a suitable llvm-config. This will select a
+# default 'llvm-config', if it's on the PATH. Otherwise it will look for
+# llvm-config* on the paths above and select the lexicographically greatest
+# among these. Usually this will give the llvm-config for the latest LLVM
+# version on your system, preferring later paths in the list (so /usr/local
+# will be considered before /usr). If none of these work then you can either
+# link a suitable llvm-config to a location somewhere on your PATH, or just
+# set LLVM_CONFIG manually.
+
+LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-config* /usr/local/bin/llvm-config*) $(shell which llvm-config 2> /dev/null))
+
+
 CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
@@ -15,7 +31,6 @@ CFLAGS        = -g
 CXXFLAGS      = -g 
 INCPATH       = -I/usr/local/Qt4.8/mkspecs/macx-g++ -I. -I/Library/Frameworks/QtCore.framework/Versions/4/Headers -I/usr/include/QtCore -I/Library/Frameworks/QtGui.framework/Versions/4/Headers -I/usr/include/QtGui -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I/opt/local/include/faust
 LINK          = g++
-LLVM_CONFIG   = llvm-config
 LFLAGS        = -headerpad_max_install_names -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5
 LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs`  -L/usr/local/lib/faust -lfaust $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lcurl -ljack -ljacknet -L/usr/local/lib/faust -lcrypto -lfaustremote -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore -ldl -llo
 

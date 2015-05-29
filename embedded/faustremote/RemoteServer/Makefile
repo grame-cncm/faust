@@ -1,9 +1,23 @@
+# These paths are searched for llvm-config* in reverse order (/opt/local/bin
+# is included for compatibility with MacPorts).
+llvm_paths = /usr/bin /opt/local/bin /usr/local/bin
+
+# Search heuristic for finding a suitable llvm-config. This will select a
+# default 'llvm-config', if it's on the PATH. Otherwise it will look for
+# llvm-config* on the paths above and select the lexicographically greatest
+# among these. Usually this will give the llvm-config for the latest LLVM
+# version on your system, preferring later paths in the list (so /usr/local
+# will be considered before /usr). If none of these work then you can either
+# link a suitable llvm-config to a location somewhere on your PATH, or just
+# set LLVM_CONFIG manually.
+
+LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-config* /usr/local/bin/llvm-config*) $(shell which llvm-config 2> /dev/null))
+
 CC            = gcc -O3
 CXX           = g++ -O3
 DEFINE	      = D_REENTRANT	 
 INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator/llvm  -I../../../compiler/utils -I/usr/include -I/opt/local/include 
 LINK          = g++
-LLVM_CONFIG   = llvm-config
 LIBS          = ../../../compiler/libfaust.a -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 
 sources =  $(wildcard *.cpp)
