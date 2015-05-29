@@ -50,8 +50,14 @@
 \subsection{En Interne}
 \begin{itemize}
 \item Save/Recall des scènes (trouver le bon moyen d'enregistrer la session en ligne). 
-Les pistes :\begin{itemize}				
-\item Google Docs\item Compte Facebook\item Téléchargement d'un fichier\item DropBox\item Email\item Compte sur le serveur
+Les pistes :
+\begin{itemize}				
+\item Google Docs
+\item Compte Facebook
+\item Téléchargement d'un fichier
+\item DropBox
+\item Email
+\item Compte sur le serveur
 \end{itemize}
 \item Pouvoir faire resize sur les modules et avoir une scrollbar
 \item Pouvoir réduire la taille des modules (style itunes passage en mode mini-player)
@@ -87,6 +93,17 @@ Les pistes :\begin{itemize}
 \item Mettre une bibliothèque jolie des effets publiés dans www/library sur le site de Faust
 \end{itemize}
 
+\section{Les choses sombres et dures}
+
+En dur dans le serveur, on trouve le chemin d'accès aux ressources de la bibliothèque ==> http://faust.grame.fr/www/libfaust.js par exemple. Ce serait peut-être bien de choisir une structure de serveur définitive pour mettre les chemins en relatifs. Par exemple avoir un dossier js avec à la fois les fichies liés à fausptlayground et ceux liés à libfaust. \\
+
+Les endroits avec des chemins d'accès à modifier sont :
+\begin{itemize}
+\item index.html
+\item pedagogie/index.html
+\item js/Pedagogie/Library.js
+\item js/Scenes/Finish.js
+\end{itemize}
 \end{document}
 
 

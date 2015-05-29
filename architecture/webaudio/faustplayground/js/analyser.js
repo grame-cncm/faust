@@ -1,3 +1,11 @@
+/*				ANALYSER.JS
+
+	Historical file from the web audio playground of Chris Wilson
+
+	Not sure what's its use...
+*/
+
+
 var animationRunning = false;
 var analysers = new Array;
 var CANVAS_WIDTH = 150;

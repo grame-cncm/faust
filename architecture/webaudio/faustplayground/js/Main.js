@@ -163,6 +163,7 @@ function compileFaust(name, sourcecode, x, y, callback){
 
 	var currentScene = 	window.scenes[window.currentScene];
 
+// To Avoid click during compilation
 	if(currentScene)
 		currentScene.muteScene();
 
@@ -184,6 +185,7 @@ function createFaustModule(factory){
         
 	var faustModule;
 
+// can't it be just window.scenes[window.currentScene] ???
 	if(isTooltipEnabled())
 		faustModule = createModule(idX++, window.x, window.y, window.name, document.getElementById("modules"), window.scenes[1].removeModule);
  	else
@@ -235,11 +237,9 @@ function terminateUpload(){
 			
 	if(isTooltipEnabled() && sceneHasInstrumentAndEffect())
 		toolTipForConnections();
-			
-	if(sceneHasInstrumentAndEffect())
-		changeSceneToolTip();
 }
 
+//-- Finds out if the drop was on an existing module or creating a new one
 function uploadFile(e){
 
 	if (!e)
