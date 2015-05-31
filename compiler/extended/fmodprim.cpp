@@ -23,7 +23,7 @@ class FmodPrim : public xtended
 
         if (j.haszero()) {
             // potential division by zero
-            std::cerr << "potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
+            //std::cerr << "potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
         }
         return castInterval(floatCast(args[0]|args[1]), fmod(i,j));
 	}

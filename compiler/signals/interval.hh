@@ -221,7 +221,7 @@ inline interval pow(const interval& x, const interval& y)
         double d = pow(x.hi,y.hi);
         return interval(min4(a,b,c,d), max4(a,b,c,d));
     } else {
-        std::cerr << "interval not computed for : pow(" << x <<"," << y << ")" << std::endl;
+        //std::cerr << "interval not computed for : pow(" << x <<"," << y << ")" << std::endl;
         return interval();
     }
 }
