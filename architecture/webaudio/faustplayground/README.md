@@ -12,7 +12,7 @@ Launch locally
 
 To easily test locally, you can start a python server
 
-cd webaudioRepository
+cd faustplaygroundrepository
 python -m SimpleHTTPServer
 
 Then access the page : 

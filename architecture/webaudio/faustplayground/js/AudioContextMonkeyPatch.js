@@ -1,3 +1,7 @@
+/*				AUDIOCONTEXTMONKEYPATCH.JS
+
+	Historical file from the web audio playground of Chris Wilson
+*/
 /* Copyright 2013 Chris Wilson
 
    Licensed under the Apache License, Version 2.0 (the "License");
