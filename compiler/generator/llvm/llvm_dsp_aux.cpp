@@ -166,6 +166,14 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     return def;
 }
 
+static bool isParam(int argc, const char* argv[], const string& param)
+{
+    for (int i = 0; i < argc; i++) {
+        if (string(argv[i]) == param) return true;
+    }
+    return false;
+}
+
 EXPORT bool startMTDSPFactories()
 {
     try {
@@ -473,6 +481,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         
         char error_msg_aux[512];
         fClassName = getParam(argc, argv, "-cn", "mydsp");
+        fIsDouble = isParam(argc, argv, "-double");
         fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
         error_msg = error_msg_aux;
     } else {
@@ -995,7 +1004,7 @@ void llvm_dsp_aux::init(int samplingFreq)
 void llvm_dsp_aux::buildUserInterface(UI* ui_interface)
 {
     UIGlue glue;
-    buildUIGlue(&glue, ui_interface);
+    buildUIGlue(&glue, ui_interface, fDSPFactory->fIsDouble);
     fDSPFactory->fBuildUserInterface(fDSP, &glue);
 }
 

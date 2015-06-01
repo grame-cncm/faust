@@ -33,94 +33,250 @@ extern "C" {
 /*******************************************************************************
  * UI glue code
  ******************************************************************************/
-
-static void openTabBoxGlue(void* cpp_interface, const char* label)
+ 
+class UIFloat
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+
+    public:
+
+        UIFloat() {}
+
+        virtual ~UIFloat() {}
+
+        // -- widget's layouts
+
+        virtual void openTabBox(const char* label) = 0;
+        virtual void openHorizontalBox(const char* label) = 0;
+        virtual void openVerticalBox(const char* label) = 0;
+        virtual void closeBox() = 0;
+
+        // -- active widgets
+
+        virtual void addButton(const char* label, float* zone) = 0;
+        virtual void addCheckButton(const char* label, float* zone) = 0;
+        virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+
+        // -- passive widgets
+
+        virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+        virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+
+        // -- metadata declarations
+
+        virtual void declare(float* zone, const char* key, const char* val) {}
+};
+
+static void openTabBoxGlueFloat(void* cpp_interface, const char* label)
+{
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->openTabBox(label);
 }
 
-static void openHorizontalBoxGlue(void* cpp_interface, const char* label)
+static void openHorizontalBoxGlueFloat(void* cpp_interface, const char* label)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->openHorizontalBox(label);
 }
 
-static void openVerticalBoxGlue(void* cpp_interface, const char* label)
+static void openVerticalBoxGlueFloat(void* cpp_interface, const char* label)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->openVerticalBox(label);
 }
 
-static void closeBoxGlue(void* cpp_interface)
+static void closeBoxGlueFloat(void* cpp_interface)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->closeBox();
 }
 
-static void addButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
+static void addButtonGlueFloat(void* cpp_interface, const char* label, float* zone)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addButton(label, zone);
 }
 
-static void addCheckButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
+static void addCheckButtonGlueFloat(void* cpp_interface, const char* label, float* zone)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addCheckButton(label, zone);
 }
 
-static void addVerticalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+static void addVerticalSliderGlueFloat(void* cpp_interface, const char* label, float* zone, float init, float min, float max, float step)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addVerticalSlider(label, zone, init, min, max, step);
 }
 
-static void addHorizontalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+static void addHorizontalSliderGlueFloat(void* cpp_interface, const char* label, float* zone, float init, float min, float max, float step)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addHorizontalSlider(label, zone, init, min, max, step);
 }
 
-static void addNumEntryGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+static void addNumEntryGlueFloat(void* cpp_interface, const char* label, float* zone, float init, float min, float max, float step)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addNumEntry(label, zone, init, min, max, step);
 }
 
-static void addHorizontalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+static void addHorizontalBargraphGlueFloat(void* cpp_interface, const char* label, float* zone, float min, float max)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addHorizontalBargraph(label, zone, min, max);
 }
 
-static void addVerticalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+static void addVerticalBargraphGlueFloat(void* cpp_interface, const char* label, float* zone, float min, float max)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
 
-static void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const char* value)
+static void declareGlueFloat(void* cpp_interface, float* zone, const char* key, const char* value)
 {
-    UI* ui_interface = static_cast<UI*>(cpp_interface);
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->declare(zone, key, value);
 }
 
-inline void buildUIGlue(UIGlue* glue, UI* ui_interface)
+class UIDouble
 {
-    glue->uiInterface = ui_interface;
-    glue->openTabBox = openTabBoxGlue;
-    glue->openHorizontalBox = openHorizontalBoxGlue;
-    glue->openVerticalBox = openVerticalBoxGlue;
-    glue->closeBox = closeBoxGlue;
-    glue->addButton = addButtonGlue;
-    glue->addCheckButton = addCheckButtonGlue;
-    glue->addVerticalSlider = addVerticalSliderGlue;
-    glue->addHorizontalSlider = addHorizontalSliderGlue;
-    glue->addNumEntry = addNumEntryGlue;
-    glue->addHorizontalBargraph = addHorizontalBargraphGlue;
-    glue->addVerticalBargraph = addVerticalBargraphGlue;
-    glue->declare = declareGlue;
+
+    public:
+
+        UIDouble() {}
+
+        virtual ~UIDouble() {}
+
+        // -- widget's layouts
+
+        virtual void openTabBox(const char* label) = 0;
+        virtual void openHorizontalBox(const char* label) = 0;
+        virtual void openVerticalBox(const char* label) = 0;
+        virtual void closeBox() = 0;
+
+        // -- active widgets
+
+        virtual void addButton(const char* label, double* zone) = 0;
+        virtual void addCheckButton(const char* label, double* zone) = 0;
+        virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step) = 0;
+        virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step) = 0;
+        virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step) = 0;
+
+        // -- passive widgets
+
+        virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max) = 0;
+        virtual void addVerticalBargraph(const char* label, double* zone, double min, double max) = 0;
+
+        // -- metadata declarations
+
+        virtual void declare(double* zone, const char* key, const char* val) {}
+};
+
+static void openTabBoxGlueDouble(void* cpp_interface, const char* label)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->openTabBox(label);
+}
+
+static void openHorizontalBoxGlueDouble(void* cpp_interface, const char* label)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->openHorizontalBox(label);
+}
+
+static void openVerticalBoxGlueDouble(void* cpp_interface, const char* label)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->openVerticalBox(label);
+}
+
+static void closeBoxGlueDouble(void* cpp_interface)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->closeBox();
+}
+
+static void addButtonGlueDouble(void* cpp_interface, const char* label, double* zone)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addButton(label, zone);
+}
+
+static void addCheckButtonGlueDouble(void* cpp_interface, const char* label, double* zone)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addCheckButton(label, zone);
+}
+
+static void addVerticalSliderGlueDouble(void* cpp_interface, const char* label, double* zone, double init, double min, double max, double step)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addVerticalSlider(label, zone, init, min, max, step);
+}
+
+static void addHorizontalSliderGlueDouble(void* cpp_interface, const char* label, double* zone, double init, double min, double max, double step)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addHorizontalSlider(label, zone, init, min, max, step);
+}
+
+static void addNumEntryGlueDouble(void* cpp_interface, const char* label, double* zone, double init, double min, double max, double step)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addNumEntry(label, zone, init, min, max, step);
+}
+
+static void addHorizontalBargraphGlueDouble(void* cpp_interface, const char* label, double* zone, double min, double max)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addHorizontalBargraph(label, zone, min, max);
+}
+
+static void addVerticalBargraphGlueDouble(void* cpp_interface, const char* label, double* zone, double min, double max)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addVerticalBargraph(label, zone, min, max);
+}
+
+static void declareGlueDouble(void* cpp_interface, double* zone, const char* key, const char* value)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->declare(zone, key, value);
+}
+
+inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
+{
+    if (is_double) {
+        glue->uiInterface = ui_interface;
+        glue->openTabBox = (openTabBoxFun)openTabBoxGlueDouble;
+        glue->openHorizontalBox = (openHorizontalBoxFun)openHorizontalBoxGlueDouble;
+        glue->openVerticalBox = (openVerticalBoxFun)openVerticalBoxGlueDouble;
+        glue->closeBox = (closeBoxFun)closeBoxGlueDouble;
+        glue->addButton = (addButtonFun)addButtonGlueDouble;
+        glue->addCheckButton = (addCheckButtonFun)addCheckButtonGlueDouble;
+        glue->addVerticalSlider = (addVerticalSliderFun)addVerticalSliderGlueDouble;
+        glue->addHorizontalSlider = (addHorizontalSliderFun)addHorizontalSliderGlueDouble;
+        glue->addNumEntry = (addNumEntryFun)addNumEntryGlueDouble;
+        glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueDouble;
+        glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueDouble;
+        glue->declare = (declareFun)declareGlueDouble;
+    } else {
+        glue->uiInterface = ui_interface;
+        glue->openTabBox = (openTabBoxFun)openTabBoxGlueFloat;
+        glue->openHorizontalBox = (openHorizontalBoxFun)openHorizontalBoxGlueFloat;
+        glue->openVerticalBox = (openVerticalBoxFun)openVerticalBoxGlueFloat;
+        glue->closeBox = (closeBoxFun)closeBoxGlueFloat;
+        glue->addButton = (addButtonFun)addButtonGlueFloat;
+        glue->addCheckButton = (addCheckButtonFun)addCheckButtonGlueFloat;
+        glue->addVerticalSlider = (addVerticalSliderFun)addVerticalSliderGlueFloat;
+        glue->addHorizontalSlider = (addHorizontalSliderFun)addHorizontalSliderGlueFloat;
+        glue->addNumEntry = (addNumEntryFun)addNumEntryGlueFloat;
+        glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueFloat;
+        glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueFloat;
+        glue->declare = (declareFun)declareGlueFloat;
+    }
 }
 
 /*******************************************************************************

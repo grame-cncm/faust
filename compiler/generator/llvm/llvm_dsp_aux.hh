@@ -79,6 +79,7 @@ class llvm_dsp_factory : public smartable {
         string fClassName;
         string fSHAKey;
         string fExtName;
+        bool fIsDouble;
     
         newDspFun fNew;
         deleteDspFun fDelete;
