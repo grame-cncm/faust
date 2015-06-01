@@ -70,8 +70,8 @@ static string GetSerialNumber()
 static string getTarget() { return ""; }
 static string GetSerialNumber() 
 { 
-    //return "Windows"; 
-    #error "To implement";
+    return "Windows"; 
+    //#error "To implement";
 }
 
 #endif
@@ -250,9 +250,15 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error)) {
         post("Generate SVG error : %s", error.c_str());
     }
-    
+
+#ifdef WIN32
+	argv[fCompileOptions.size()] = "-l";
+	argv[fCompileOptions.size()+1] = "llvm_math.ll";
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, LLVM_OPTIMIZATION);
+#else
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
-    
+#endif
+
     if (factory) {
         return factory;
     } else {
@@ -300,8 +306,16 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
     }
 
     // Otherwise creates default DSP keeping the same input/output number
-    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
-    dsp = createDSPInstance(fDSPfactory);
+#ifdef WIN32
+	int argc = 2;
+	const char* argv[2];
+	argv[0] = "-l";
+	argv[1] = "llvm_math.ll";
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, LLVM_OPTIMIZATION);
+#else
+	fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
+#endif
+	dsp = createDSPInstance(fDSPfactory);
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:
@@ -660,7 +674,7 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     char filename[MAX_FILENAME_CHARS];
     short path = 0;
     long type = 'TEXT';
-    short err;
+    t_max_err err;
     t_filehandle fh;
     
     // No filename, so open load dialog
@@ -718,7 +732,7 @@ void faustgen_factory::write(long inlet, t_symbol* s)
     char filename[MAX_FILENAME_CHARS];
     short path = 0;
     long type = 'TEXT';
-    short err;
+    t_max_err err;
     t_filehandle fh;
     
     // No filename, so open save dialog
@@ -1394,7 +1408,8 @@ void faustgen::mute(long inlet, long mute)
 }
 
 #ifdef WIN32
-extern "C" int main(void)
+//extern "C" int main(void)
+extern "C" void ext_main(void* r)
 #else
 int main(void)
 #endif

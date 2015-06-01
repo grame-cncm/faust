@@ -1600,7 +1600,7 @@ EXPORT const char** getAllCDSPFactories()
 
 EXPORT bool startMTCDSPFactories() { return startMTDSPFactories(); }
 
-EXPORT void stopMTDCSPFactories() { stopMTDCSPFactories(); }
+EXPORT void stopMTDCSPFactories() { stopMTDSPFactories(); }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
 {
