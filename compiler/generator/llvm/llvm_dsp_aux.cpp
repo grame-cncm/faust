@@ -151,11 +151,6 @@
 
 using namespace llvm;
 
-#ifdef WIN32 
-#include "llvm_32_module.cpp"
-#include "llvm_64_module.cpp"
-#endif
-
 // Factories instances management
 int llvm_dsp_factory::gInstance = 0;
 FactoryTableType llvm_dsp_factory::gFactoryTable;
@@ -581,6 +576,11 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateFunctionPassManager(FPM);
     Builder.populateModulePassManager(MPM);
 }
+
+#ifdef WIN32 
+llvm::Module* llvm_32_module();
+llvm::Module* llvm_64_module();
+#endif
 
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
