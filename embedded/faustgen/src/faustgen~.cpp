@@ -69,10 +69,33 @@ static string GetSerialNumber()
 #else
 
 static string getTarget() { return ""; }
+
+static int get_computer_name(char *computer_name, DWORD *computer_name_lg)
+{
+   HKEY hKey;
+   if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+               "SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ComputerName",
+               0, KEY_QUERY_VALUE, &hKey ) != ERROR_SUCCESS)
+      return FALSE;
+   if (RegQueryValueEx(hKey, "ComputerName", NULL, NULL,
+                       (LPBYTE) computer_name,
+                       (LPDWORD) computer_name_lg) != ERROR_SUCCESS) {
+      RegCloseKey(hKey);
+      return FALSE;
+   }
+   RegCloseKey(hKey);
+   return TRUE;
+}
+
 static string GetSerialNumber() 
-{ 
-    return "Windows"; 
-    //#error "To implement";
+{  
+	char name[256] = "Default Windows name";
+	DWORD name_lg = 256;
+	if (get_computer_name(name, &name_lg) == TRUE) {
+		return name;
+	} else {
+	   return "Windows"; 
+	}
 }
 
 #endif
