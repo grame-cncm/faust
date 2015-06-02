@@ -621,7 +621,7 @@ oneVocoderBand(band,bandsNumb,bwRatio,bandGain,x) = x : resonbp(bandFreq,bandQ,b
 	bandQ = bandFreq/BW;
 };
 
-vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : amp_follower_ud(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
+vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : amp_follower_ar(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
 
 //---------------------------- vocoder_demo -------------------------
 // Use example of the vocoder function where an impulse train is used 
@@ -695,11 +695,11 @@ amp_follower(rel) = abs : env with {
 //
 // NOTE: We assume rel >> att.  Otherwise, consider rel ~ max(rel,att).
 // For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01).
-// See
+// Use
 //
-//   _ : lag_ud(att,rel) : _
+//   _ : amp_follower_ar(att,rel) : _
 //
-// below for an illustration of how to remove this restriction.
+// below to remove this restriction.
 //
 // REFERENCE:
 //   "Digital Dynamic Range Compressor Design—A Tutorial and Analysis", by
@@ -791,10 +791,10 @@ gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
   ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
 };
 
-gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : lag_ud(att,rel) with {
+gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ar(att,rel) with {
   extendedrawgate(x) = max(float(rawgatesig(x)),holdsig(x));
   rawgatesig(x) = inlevel(x) > db2linear(thresh);
-  inlevel = amp_follower_ud(att/10,rel/10.0); // Check attack/release times for your application
+  inlevel = amp_follower_ar(att/10,rel/10.0); // Check attack/release times for your application
   holdcounter(x) = (max(holdreset(x) * holdsamps,_) ~-(1));
   holdsig(x) = holdcounter(x) > 0;
   holdreset(x) = rawgatesig(x) < rawgatesig(x)'; // reset hold when raw gate falls
@@ -828,7 +828,7 @@ compressor_stereo(ratio,thresh,att,rel,x,y) = cgm*x, cgm*y with {
 };
 
 compression_gain_mono(ratio,thresh,att,rel) =
-  amp_follower_ud(att,rel) : linear2db : outminusindb(ratio,thresh) :
+  amp_follower_ar(att,rel) : linear2db : outminusindb(ratio,thresh) :
   kneesmooth(att) : db2linear
 with {
   // kneesmooth(att) installs a "knee" in the dynamic-range compression,
