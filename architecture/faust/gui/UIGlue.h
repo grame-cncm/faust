@@ -248,8 +248,9 @@ static void declareGlueDouble(void* cpp_interface, double* zone, const char* key
 
 inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
 {
+    glue->uiInterface = ui_interface;
+    
     if (is_double) {
-        glue->uiInterface = ui_interface;
         glue->openTabBox = (openTabBoxFun)openTabBoxGlueDouble;
         glue->openHorizontalBox = (openHorizontalBoxFun)openHorizontalBoxGlueDouble;
         glue->openVerticalBox = (openVerticalBoxFun)openVerticalBoxGlueDouble;
@@ -263,7 +264,6 @@ inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
         glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueDouble;
         glue->declare = (declareFun)declareGlueDouble;
     } else {
-        glue->uiInterface = ui_interface;
         glue->openTabBox = (openTabBoxFun)openTabBoxGlueFloat;
         glue->openHorizontalBox = (openHorizontalBoxFun)openHorizontalBoxGlueFloat;
         glue->openVerticalBox = (openVerticalBoxFun)openVerticalBoxGlueFloat;

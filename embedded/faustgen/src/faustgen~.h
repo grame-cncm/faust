@@ -53,7 +53,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.01b"
+#define FAUSTGEN_VERSION "1.02b"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -102,8 +102,6 @@ class faustgen_factory {
                  
         int fFaustNumber;               // faustgen object's number inside the patcher
         
-        faustgen* fUpdateInstance;      // the instance that inited an update
-        
         string fName;                   // name of the DSP group
         string fJSON;                   // JSON
            
@@ -129,8 +127,8 @@ class faustgen_factory {
         ~faustgen_factory();
             
         llvm_dsp_factory* create_factory_from_bitcode();
-        llvm_dsp_factory* create_factory_from_sourcecode(faustgen* instance);
-        llvm_dsp* create_dsp_aux(faustgen* instance);
+        llvm_dsp_factory* create_factory_from_sourcecode();
+        llvm_dsp* create_dsp_aux();
      
         void free_dsp_factory();
         void free_sourcecode();
@@ -153,7 +151,7 @@ class faustgen_factory {
         
         const char* get_json() { return fJSON.c_str(); }
         
-        void update_sourcecode(int size, char* source_code, faustgen* instance);
+        void update_sourcecode(int size, char* source_code);
         
         void compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv);
            
@@ -203,7 +201,7 @@ class faustgen : public MspCpp5<faustgen> {
         llvm_dsp* fDSP;             // pointer to the LLVM Faust dsp
         t_object* fEditor;          // text editor object
         bool fMute;                 // DSP mute state
-        t_jrgba fDefaultColor;      // Color of the object to be used when restoring default color
+        static t_jrgba fDefaultColor;  // Color of the object to be used when restoring default color
          
         // Display DSP text source
         void display_dsp_source();
@@ -243,8 +241,9 @@ class faustgen : public MspCpp5<faustgen> {
         
         void update_sourcecode();
             
-        void hilight_on(const std::string& error);
+        void hilight_on();
         void hilight_off();
+        void hilight_error(const std::string& error);
            
         // Called upon deleting the object inside the patcher
         ~faustgen();

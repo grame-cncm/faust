@@ -28,6 +28,7 @@
 
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
+t_jrgba faustgen::fDefaultColor = {-1., -1., -1., -1.};
 
 //===================
 // Faust DSP Factory
@@ -104,7 +105,6 @@ faustgen_factory::faustgen_factory(const string& name)
     m_siginlets = 0;
     m_sigoutlets = 0;
     
-    fUpdateInstance = 0;
     fName = name;
     fDSPfactory = 0;
     fBitCodeSize = 0;
@@ -224,7 +224,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
     */
 }
 
-llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* instance)
+llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 {
     char name_app[64];
     sprintf(name_app, "faustgen-%d", fFaustNumber);
@@ -262,15 +262,21 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode(faustgen* ins
     if (factory) {
         return factory;
     } else {
-        if (fUpdateInstance == instance) {
-            instance->hilight_on(error);
+        // Update all instances
+        set<faustgen*>::const_iterator it;
+        for (it = fInstances.begin(); it != fInstances.end(); it++) {
+            (*it)->hilight_on();
         }
+        if (fInstances.begin() != fInstances.end()) {
+            (*fInstances.begin())->hilight_error(error);
+        }
+        
 		post("Invalid Faust code or compile options : %s", error.c_str());
         return 0;
     }
 }
 
-llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
+llvm_dsp* faustgen_factory::create_dsp_aux()
 {
     llvm_dsp* dsp = 0;
     Max_Meta meta;
@@ -296,7 +302,7 @@ llvm_dsp* faustgen_factory::create_dsp_aux(faustgen* instance)
 
     // Otherwise tries to create from source code
     if (fSourceCodeSize > 0) {
-        fDSPfactory = create_factory_from_sourcecode(instance);
+        fDSPfactory = create_factory_from_sourcecode();
         if (fDSPfactory) {
             metadataDSPFactory(fDSPfactory, &meta);
             dsp = createDSPInstance(fDSPfactory);
@@ -555,7 +561,7 @@ void faustgen_factory::display_svg()
         post("SVG diagram not available, recompile to produce it");
         
         // Force recompilation to produce it
-        llvm_dsp_factory* factory = create_factory_from_sourcecode(0);
+        llvm_dsp_factory* factory = create_factory_from_sourcecode();
         //deleteDSPFactory(factory);
      
         // Open the SVG diagram file inside a web browser
@@ -626,7 +632,7 @@ void faustgen_factory::display_libraries()
 #endif
 }
 
-void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* instance)
+void faustgen_factory::update_sourcecode(int size, char* source_code)
 {
     // Recompile only if text has been changed
     if (strcmp(source_code, *fSourceCode) != 0) {
@@ -652,7 +658,6 @@ void faustgen_factory::update_sourcecode(int size, char* source_code, faustgen* 
         fSourceCodeSize = size;
          
         // Update all instances
-        fUpdateInstance = instance;
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
             (*it)->update_sourcecode();
         }
@@ -890,10 +895,12 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
         effect_name = "faustgen_factory-" + num.str();
         res = allocate_factory(effect_name);
     }
-     
-    t_object* box;
+    
+    t_object* box; 
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
-    jbox_get_color(box, &fDefaultColor);
+    if (fDefaultColor.red == -1.) {
+        jbox_get_color(box, &fDefaultColor);
+    }
     
     // Needed to script objects
     char name[64];
@@ -1168,7 +1175,7 @@ void faustgen::edclose(long inlet, char** source_code, long size)
 {
     // Edclose "may" be called with an already deallocated object (like closing the patcher with a still opened editor)
     if (fDSP && fEditor) {
-        fDSPfactory->update_sourcecode(size, *source_code, this);
+        fDSPfactory->update_sourcecode(size, *source_code);
         fEditor = 0;
     } 
 }
@@ -1260,16 +1267,15 @@ void faustgen::display_libraries()
     fDSPfactory->display_libraries();
 }
 
-void faustgen::hilight_on(const string& error)
+void faustgen::hilight_on()
 {
     t_jrgba color;
     jrgba_set(&color, 1.0, 0.0, 0.0, 1.0);
     t_object* box;
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
     jbox_set_color(box, &color);
-    object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
 }
-  
+
 void faustgen::hilight_off()
 {
     t_object* box;
@@ -1277,10 +1283,15 @@ void faustgen::hilight_off()
     jbox_set_color(box, &fDefaultColor);
 }
 
+void faustgen::hilight_error(const string& error)
+{
+    object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
+}
+  
 void faustgen::create_dsp(bool init)
 {
     if (fDSPfactory->lock()) {
-        fDSP = fDSPfactory->create_dsp_aux(this);
+        fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
         
         // Initialize User Interface (here connnection with controls)
