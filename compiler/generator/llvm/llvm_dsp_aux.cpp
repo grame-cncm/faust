@@ -577,28 +577,9 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateModulePassManager(MPM);
 }
 
-#ifdef WIN32 
-llvm::Module* llvm_32_module();
-llvm::Module* llvm_64_module();
-#endif
-
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
-    
-#ifdef WIN32    
-    char error_msg[256];
-    int tmp;
-    bool res;
-    if (sizeof(&tmp) == 8) {
-        res = link_modules(fResult->fModule, llvm_64_module(), error_msg);
-    } else {
-        res = link_modules(fResult->fModule, llvm_32_module(), error_msg);
-    }
-    if (!res) {
-        printf("Cannot link LLVM math module : %s\n", error_msg); 
-    }
-#endif
     
     // For multiple target support
     InitializeAllTargets();
@@ -801,20 +782,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
-    
-#ifdef WIN32    
-    char error_msg[256];
-    int tmp;
-    bool res;
-    if (sizeof(&tmp) == 8) {
-        res = link_modules(fResult->fModule, llvm_64_module(), error_msg);
-    } else {
-        res = link_modules(fResult->fModule, llvm_32_module(), error_msg);
-    }
-    if (!res) {
-        printf("Cannot link LLVM math module : %s\n", error_msg); 
-    }
-#endif
     
     // First check is Faust compilation succeeded... (valid LLVM module)
     if (!fResult || !fResult->fModule) {
