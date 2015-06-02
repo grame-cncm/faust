@@ -791,7 +791,7 @@ gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
   ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
 };
 
-gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ud(att,rel) with {
+gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : lag_ud(att,rel) with {
   extendedrawgate(x) = max(float(rawgatesig(x)),holdsig(x));
   rawgatesig(x) = inlevel(x) > db2linear(thresh);
   inlevel = amp_follower_ud(att/10,rel/10.0); // Check attack/release times for your application
