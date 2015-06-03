@@ -44,7 +44,7 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+	 OSCDEFS="-DOSCCTRL -lOSCFaust -lpthread"
     elif [ $p = "-httpd" ]; then
 	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then

@@ -61,6 +61,13 @@
 #include <unistd.h>
 #endif
 
+#ifdef WIN32
+#ifndef NAN
+    static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+    #define NAN (*(const float *) __nan)
+#endif
+#endif
+
 #include "faust/gui/UI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/audio/dsp.h"
