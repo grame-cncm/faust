@@ -524,7 +524,7 @@ FILE* fopensearch(const char* filename, string& fullpath)
 #define DIR_SEPARATOR '/'
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #define HAVE_DOS_BASED_FILE_SYSTEM
 #ifndef DIR_SEPARATOR_2 
 #define DIR_SEPARATOR_2 '\\'

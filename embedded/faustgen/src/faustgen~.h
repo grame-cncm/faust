@@ -201,7 +201,7 @@ class faustgen : public MspCpp5<faustgen> {
         llvm_dsp* fDSP;             // pointer to the LLVM Faust dsp
         t_object* fEditor;          // text editor object
         bool fMute;                 // DSP mute state
-        static t_jrgba fDefaultColor;  // Color of the object to be used when restoring default color
+        static t_jrgba gDefaultColor;  // Color of the object to be used when restoring default color
          
         // Display DSP text source
         void display_dsp_source();

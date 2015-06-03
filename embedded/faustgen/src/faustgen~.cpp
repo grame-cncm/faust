@@ -28,7 +28,7 @@
 
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
-t_jrgba faustgen::fDefaultColor = {-1., -1., -1., -1.};
+t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
 
 //===================
 // Faust DSP Factory
@@ -921,8 +921,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     
     t_object* box; 
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
-    if (fDefaultColor.red == -1.) {
-        jbox_get_color(box, &fDefaultColor);
+    if (gDefaultColor.red == -1.) {
+        jbox_get_color(box, &gDefaultColor);
     }
     
     // Needed to script objects
@@ -1303,7 +1303,7 @@ void faustgen::hilight_off()
 {
     t_object* box;
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
-    jbox_set_color(box, &fDefaultColor);
+    jbox_set_color(box, &gDefaultColor);
 }
 
 void faustgen::hilight_error(const string& error)

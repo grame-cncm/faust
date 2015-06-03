@@ -26,7 +26,7 @@
 
 unsigned faust_alarm(unsigned seconds);
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #include <time.h>
 #include <assert.h>

@@ -443,7 +443,7 @@ void Garbageable::cleanup()
     
     global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
-	#ifdef WIN32
+	#ifdef _WIN32
 		// Hack : "this" and actual pointer are not the same: destructor cannot be called...
 		Garbageable::operator delete(*it);
 	#else

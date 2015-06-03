@@ -795,7 +795,7 @@ char *yytext;
 #line 6 "parser/faustlexer.l"
 #include "tree.hh"
 #include "faustparser.hpp"
-#if defined(WIN32)
+#if defined(_WIN32)
 #if !defined(__MINGW32__)
 // We don't want to include compatibility.hh here, since it pulls in whole lot
 // of unneeded stuff which breaks other things, so here's some stuff to make
