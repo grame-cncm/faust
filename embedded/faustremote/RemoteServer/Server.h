@@ -150,20 +150,22 @@ struct netjack_dsp {
             DSPServer* server);
     virtual ~netjack_dsp();
     
-    bool startAudio();
-    void stopAudio();
-    
-    bool startAudioConnection();
+    bool start();
+    void stop();
     
     string  getKey() { return fInstanceKey; }
     void    setKey(const string& key) { fInstanceKey = key; }
     string  getName() { return fName; }
     void    setName(string name) { fName = name; }
+    
+    bool openAudioConnection();
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
 
 class DSPServer {
+
+    friend struct netjack_dsp;
         
     private:
 
@@ -176,12 +178,12 @@ class DSPServer {
         // SHAKey, pair<NameApp, Factory>
         map<string, pair<string, llvm_dsp_factory*> > fAvailableFactories;
             
-        // List of Dsp Currently Running. Use to keep track of Audio that would have lost their connection
+        // List of currently running DSP. Use to keep track of Audio that would have lost their connection
         list<netjack_dsp*> fRunningDsp;
         struct MHD_Daemon* fDaemon; //Running http daemon
         
         // Callback of another thread to wait netjack audio connection without blocking the server
-        static void*    startAudioSlave(void*);
+        static void*    openAudioConnection(void*);
                 
         // Creates the html to send back
         int             sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);

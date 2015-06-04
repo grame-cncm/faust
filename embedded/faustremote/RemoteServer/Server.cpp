@@ -109,12 +109,12 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* smartFactory,
     fDSP = createDSPInstance(smartFactory);
 }
 
-bool netjack_dsp::startAudio() 
+bool netjack_dsp::start() 
 {
     return fAudio->start();
 }
 
-void netjack_dsp::stopAudio()
+void netjack_dsp::stop()
 {
     fAudio->stop();
 }
@@ -168,35 +168,41 @@ void DSPServer::stop()
     fDaemon = 0;
 }
 
-//---- Callback of another thread to wait netjack audio connection without blocking the server
-void* DSPServer::startAudioSlave(void* arg) 
+bool netjack_dsp::openAudioConnection()
 {
-    netjack_dsp* dspToStart = (netjack_dsp*)arg;
-    bool success = false;
+    bool res = false;
      
-    if (dspToStart->fDSPServer->fLocker.Lock()) {
+    if (fDSPServer->fLocker.Lock()) {
     
-        dspToStart->fAudio = new netjackaudio_server(atoi(dspToStart->fCompression.c_str()), 
-                                                    dspToStart->fIP, 
-                                                    atoi(dspToStart->fPort.c_str()), 
-                                                    atoi(dspToStart->fMTU.c_str()), 
-                                                    atoi(dspToStart->fLatency.c_str()));
+        fAudio = new netjackaudio_server(atoi(fCompression.c_str()), 
+                                                    fIP, 
+                                                    atoi(fPort.c_str()), 
+                                                    atoi(fMTU.c_str()), 
+                                                    atoi(fLatency.c_str()));
         
-        if (dspToStart->fAudio->init(dspToStart->getName().c_str(), dspToStart->fDSP)) {
-            if (!dspToStart->fAudio->start()) {
+        if (fAudio->init(getName().c_str(), fDSP)) {
+            if (!fAudio->start()) {
                 printf("RemoteDSPServer : Start slave audio failed\n");
             } else {
-                dspToStart->fDSPServer->fRunningDsp.push_back(dspToStart);
-                success = true;
+                fDSPServer->fRunningDsp.push_back(this);
+                res = true;
             }
         } else {
             printf("RemoteDSPServer : Init slave audio failed\n");
         }
             
-        dspToStart->fDSPServer->fLocker.Unlock();
+        fDSPServer->fLocker.Unlock();
     }
     
-    if (!success) {
+    return res;
+}
+
+//---- Callback of another thread to wait netjack audio connection without blocking the server
+void* DSPServer::openAudioConnection(void* arg) 
+{
+    netjack_dsp* dspToStart = (netjack_dsp*)arg;
+    
+    if (!dspToStart->openAudioConnection()) {
         deleteSlaveDSPInstance(dspToStart);
     }
    
@@ -301,6 +307,8 @@ int DSPServer::answerToConnection(void* cls,
 // For now GET is not a request supported for now
 int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 {
+    printf("answerGet %s\n", url);
+    
     if (strcmp(url, "/") == 0) {
         return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
     } else if (strcmp(url, "/GetAvailableFactories") == 0) {
@@ -459,7 +467,7 @@ bool DSPServer::startAudio(const string& shakey)
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey == (*it)->getKey()) {
-            if ((*it)->startAudio()) {
+            if ((*it)->start()) {
                 return true;
             }
         }
@@ -474,7 +482,7 @@ void DSPServer::stopAudio(const string& shakey)
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey == (*it)->getKey()) {
-            (*it)->stopAudio();
+            (*it)->stop();
             return;
         }
     }
@@ -548,7 +556,7 @@ bool DSPServer::createInstance(connection_info_struct* con_info)
         dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
         pthread_t myNewThread;
         
-        if (pthread_create(&myNewThread, NULL, DSPServer::startAudioSlave, dsp) == 0){
+        if (pthread_create(&myNewThread, NULL, DSPServer::openAudioConnection, dsp) == 0){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {
