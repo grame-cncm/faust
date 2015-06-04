@@ -114,18 +114,18 @@ class Cdsp : public dsp {
     {
         UIGlue glue;
         glue.uiInterface = interface;
-        glue.openTabBox = openTabBoxGlue;
-        glue.openHorizontalBox = openHorizontalBoxGlue;
-        glue.openVerticalBox = openVerticalBoxGlue;
-        glue.closeBox = closeBoxGlue;
-        glue.addButton = addButtonGlue;
-        glue.addCheckButton = addCheckButtonGlue;
-        glue.addVerticalSlider = addVerticalSliderGlue;
-        glue.addHorizontalSlider = addHorizontalSliderGlue;
-        glue.addNumEntry = addNumEntryGlue;
-        glue.addHorizontalBargraph = addHorizontalBargraphGlue;
-        glue.addVerticalBargraph = addVerticalBargraphGlue;
-        glue.declare = declareGlue;
+        glue.openTabBox = openTabBoxGlueFloat;
+        glue.openHorizontalBox = openHorizontalBoxGlueFloat;
+        glue.openVerticalBox = openVerticalBoxGlueFloat;
+        glue.closeBox = closeBoxGlueFloat;
+        glue.addButton = addButtonGlueFloat;
+        glue.addCheckButton = addCheckButtonGlueFloat;
+        glue.addVerticalSlider = addVerticalSliderGlueFloat;
+        glue.addHorizontalSlider = addHorizontalSliderGlueFloat;
+        glue.addNumEntry = addNumEntryGlueFloat;
+        glue.addHorizontalBargraph = addHorizontalBargraphGlueFloat;
+        glue.addVerticalBargraph = addVerticalBargraphGlueFloat;
+        glue.declare = declareGlueFloat;
 
         buildUserInterfacemydsp(fDsp, &glue);
   	}
