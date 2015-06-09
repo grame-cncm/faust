@@ -97,7 +97,7 @@ ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.5.0 3.5.1 3.5.2))
     CXXFLAGS += -std=gnu++11
 endif
 
-ifeq ($(LLVM_VERSION), 3.6.0)
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.6.0 3.6.1 3.6.2))
     LLVM_VERSION = LLVM_36
     CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
