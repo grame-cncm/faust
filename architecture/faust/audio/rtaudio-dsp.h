@@ -41,7 +41,6 @@
 #include <assert.h>
 #include <RtAudio.h>
 #include <stdlib.h>
-#include <map>
 
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp-adapter.h"
