@@ -276,8 +276,8 @@ extern "C" {
 #endif
 
 // Public C interface using LLVM
-    
-EXPORT llvm_dsp_factory* createCDSPFactoryFromSHAKey(const char* sha_key);
+
+EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
                                                     int argc, const char* argv[], 
@@ -303,7 +303,7 @@ EXPORT const char** getAllCDSPFactories();
 
 EXPORT bool startMTCDSPFactories();
 
-EXPORT void stopMTDCSPFactories();
+EXPORT void stopMTCDSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 
@@ -321,15 +321,13 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code_path, const char* target, int opt_level);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
 EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, int opt_level);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
-#endif
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     

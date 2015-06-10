@@ -1609,7 +1609,7 @@ EXPORT const char** getAllCDSPFactories()
 
 EXPORT bool startMTCDSPFactories() { return startMTDSPFactories(); }
 
-EXPORT void stopMTDCSPFactories() { stopMTDSPFactories(); }
+EXPORT void stopMTCDSPFactories() { stopMTDSPFactories(); }
 
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
 {
@@ -1713,7 +1713,6 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 }
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
 {
     return readDSPFactoryFromMachine(machine_code);
@@ -1739,6 +1738,24 @@ EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char*
         writeDSPFactoryToMachineFile(factory, machine_code_path);
     }
 }
+#else
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
+{
+    return NULL;
+}
+
+EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
+{
+    return NULL;
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
+{
+    return NULL;
+}
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path)
+{}
 #endif
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
