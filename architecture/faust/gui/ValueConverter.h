@@ -33,6 +33,10 @@ AccDownConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 1
 AccUpDownConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 2
 AccDownUpConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 3
 
+-- lists of ZoneControl are used to implement accelerometers metadata for each axes
+
+ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter 
+
 ****************************************************************************************/
 
 
@@ -60,7 +64,9 @@ class Range
 // Maps a value x between lo and hi to a value y between v1 and v2
 // y = v1 + (x-lo)/(hi-lo)*(v2-v1)
 // y = v1 + (x-lo) * coef   		with coef = (v2-v1)/(hi-lo)
-// y = (x + offset) * coef  		with offset = v1/coef - lo
+// y = v1 + x*coef - lo*coef
+// y = v1 - lo*coef + x*coef
+// y = offset + x*coef				with offset = v1 - lo*coef
 //--------------------------------------------------------------------------------------
 class Interpolator
 {
@@ -71,14 +77,20 @@ class Interpolator
   public:
 	Interpolator(double lo, double hi, double v1, double v2) : fRange(lo,hi)
 	{ 
-		if (hi == lo) { hi = lo + DBL_MIN; } // make sure hi and lo are different
-		fCoef = (v2-v1)/(hi-lo); 
-		fOffset = v1/fCoef - lo; 
+		if (hi != lo) { 
+			// regular case
+			fCoef = (v2-v1)/(hi-lo); 
+			fOffset = v1 - lo*fCoef; 
+		} else {
+			// degenerate case, avoids division by zero
+			fCoef = 0;
+			fOffset = (v1+v2)/2;
+		}
 	}
 	double operator()(double v) 
 	{
 		double x = fRange(v);
-		return  (x + fOffset) * fCoef;
+		return  fOffset + x*fCoef;
 	}
 };
 
@@ -249,4 +261,17 @@ class AccDownUpConverter : public ValueConverter
 	virtual double faust2ui(double x)	{ return fF2A(x); }
 };
 
+
+//--------------------------------------------------------------------------------------
+// Association of a zone and a value converter. Useful to implement accelerometers 
+// metadata as a list of ZoneControl for each axes
+//--------------------------------------------------------------------------------------
+class ZoneControl
+{
+	FAUSTFLOAT*			fZone;
+	ValueConverter*		fValueConverter;
+  public:
+	ZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : fZone(zone), fValueConverter(valueConverter) {}
+	void update(double v) { *fZone = fValueConverter->ui2faust(v); }
+};
 #endif
