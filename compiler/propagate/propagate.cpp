@@ -31,6 +31,8 @@
 #include "ppsig.hh"
 #include "names.hh"
 
+extern bool gMuteFlag;
+
 //extern bool gPrintDocSwitch;
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
 
@@ -39,8 +41,8 @@
 /**
  * propagate : box listOfSignal-> listOfSignal'
  *
- * Propage une liste de signaux de l'entrée vers la sortie d'une boite
- * La boite a été annotée aec son type 
+ * Propage a list of signals into a box expression representing a
+ * signal processor
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -347,6 +349,16 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	else if (isBoxPrim2(box, &p2)) 				{ 
 //		printf("prim2 recoit : "); print(lsig); printf("\n");
 		assert(lsig.size()==2); 
+        if (p2 == &sigMute) {
+            if (gMuteFlag) {
+                // special case for sigMute that requires a transformation
+                // mute(X,Y) -> sigMute(X*Y, Y>0)
+                return makeList( sigMute( sigMul(lsig[0],lsig[1]), sigGT(lsig[1],sigReal(0.0)) ) );
+            } else {
+                // We gMuteFlag is disabled we replace mute by a simple multiplication
+                return makeList( sigMul(lsig[0],lsig[1]) );
+            }
+        }
 		return makeList( p2(lsig[0],lsig[1]) );  
 	}
 	

@@ -171,9 +171,9 @@ protected:
     void addZone2c (const string& str)  { fZone2cCode.push_back(str); }
     void addZone3 (const string& str)  { fZone3Code.push_back(str); }
  
-    void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
-    void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
-	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
+    void addPreCode ( const Statement& stmt)    { fTopLoop->addPreCode(stmt); }
+    void addExecCode ( const Statement& stmt)   { fTopLoop->addExecCode(stmt); }
+    void addPostCode (const Statement& stmt)	{ fTopLoop->addPostCode(stmt); }
 
 	virtual void println(int n, ostream& fout);
     

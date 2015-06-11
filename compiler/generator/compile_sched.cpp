@@ -46,7 +46,7 @@ void SchedulerCompiler::compileMultiSignal (Tree L)
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
         fClass->openLoop("count");
-        fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        fClass->addExecCode(Statement("", subst("output$0[i] = $2$1;", T(i), CS(sig), xcast())));
         fClass->closeLoop(sig);
     }
     
@@ -70,7 +70,7 @@ void SchedulerCompiler::compileMultiSignal (Tree L)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression 
  */
-void  SchedulerCompiler::vectorLoop (const string& tname, const string& vecname, const string& cexp) 
+void  SchedulerCompiler::vectorLoop (const string& tname, const string& vecname, const string& cexp, const string& ccs)
 {  
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -79,7 +79,7 @@ void  SchedulerCompiler::vectorLoop (const string& tname, const string& vecname,
     fClass->addDeclCode(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
     
     // -- compute the new samples
-    fClass->addExecCode(subst("$0[i] = $1;", vecname, cexp));
+    fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", vecname, cexp)));
 }
 
 
@@ -92,7 +92,7 @@ void  SchedulerCompiler::vectorLoop (const string& tname, const string& vecname,
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression 
  */
-void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, int delay, const string& cexp) 
+void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs)
 {
     if (delay < gMaxCopyDelay) {
         
@@ -124,13 +124,13 @@ void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, i
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
         
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
+        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
         
         // -- compute the new samples
-        fClass->addExecCode(subst("$0[i] = $1;", dlname, cexp));
+        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp)));
         
         // -- copy back to stored samples
-        fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
         
     } else {
         
@@ -156,12 +156,12 @@ void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, i
         fClass->addInitCode(subst("$0 = 0;", idx_save));
         
         // -- update index
-        fClass->addPreCode(subst("$0 = ($0+$1)&$2;", idx, idx_save, mask));
+        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask)));
         
         // -- compute the new samples
-        fClass->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
+        fClass->addExecCode(Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask)));
         
         // -- save index
-        fClass->addPostCode(subst("$0 = count;", idx_save));
+        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save)));
     }
 }

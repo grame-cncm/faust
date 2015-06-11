@@ -68,8 +68,10 @@ void sigvisitor::visit(Tree sig)
 		
 	else if (isSigVBargraph(sig, l, min, max, s1)) 			visitVBargraph(sig, l, min, max, s1);
 		
-	else if (isSigAttach(sig, s1, s2)) 						visitAttach(sig, s1, s2);
-	
+    else if (isSigAttach(sig, s1, s2)) 						visitAttach(sig, s1, s2);
+
+    else if (isSigMute(sig, s1, s2)) 						visitMute(sig, s1, s2);
+
 				
 	//------------------------
 	

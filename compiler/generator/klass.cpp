@@ -839,10 +839,15 @@ void Klass::printComputeMethod(int n, ostream& fout)
 void Klass::printComputeMethodScalar(int n, ostream& fout)
 {
     tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+        tab(n+2,fout); fout << "//zone1";
         printlines (n+2, fZone1Code, fout);
+        tab(n+2,fout); fout << "//zone2";
         printlines (n+2, fZone2Code, fout);
+        tab(n+2,fout); fout << "//zone2b";
         printlines (n+2, fZone2bCode, fout);
+        tab(n+2,fout); fout << "//zone3";
         printlines (n+2, fZone3Code, fout);
+        tab(n+2,fout); fout << "//LoopGraphScalar";
         printLoopGraphScalar (n+2,fout);
     tab(n+1,fout); fout << "}";
 }

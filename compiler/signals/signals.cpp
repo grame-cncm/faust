@@ -290,6 +290,10 @@ Sym SIGATTACH = symbol ("sigAttach");
 Tree  sigAttach(Tree t0, Tree t1)					{ return tree(SIGATTACH, t0, t1); 		}
 bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGATTACH, t0, t1); 	}
 
+Sym SIGMUTE = symbol ("sigMute");
+Tree  sigMute(Tree t0, Tree t1)					{ return tree(SIGMUTE, t0, t1); 		}
+bool  isSigMute(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGMUTE, t0, t1); 	}
+
 
 
 Tree addNums(Tree a, Tree b)

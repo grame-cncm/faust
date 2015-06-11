@@ -142,8 +142,10 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigVBargraph(sig, l, x, y, s1)) 	return O(s1);
 		
-	else if (isSigAttach(sig, s1, s2)) 			return O(s1);
-				
+    else if (isSigAttach(sig, s1, s2)) 			return O(s1);
+
+    else if (isSigMute(sig, s1, s2)) 			return O(s1);
+
 	else if (isRec(sig, var, body))				exit(1); //return 3;  // not supposed to happen.
 				
 	else if (isRef(sig, var))					exit(1); //return 3;  // not supposed to happen. 

@@ -3,7 +3,8 @@
 ######################################################################
 
 TEMPLATE = app
-CONFIG += console debug
+CONFIG += c++11
+CONFIG += console debug 
 CONFIG -= app_bundle
 TARGET = faust
 OBJECTS_DIR = binaries
@@ -118,7 +119,9 @@ HEADERS += boxes/boxcomplexity.h \
            draw/schema/schema.h \
            draw/schema/seqSchema.h \
            draw/schema/splitSchema.h \
-           draw/schema/topSchema.h
+           draw/schema/topSchema.h \
+    generator/statement.hh \
+    tlib/dcond.hh
 SOURCES += main.cpp \
            boxes/boxcomplexity.cpp \
            boxes/boxes.cpp \
@@ -224,4 +227,6 @@ SOURCES += main.cpp \
            draw/schema/recSchema.cpp \
            draw/schema/seqSchema.cpp \
            draw/schema/splitSchema.cpp \
-           draw/schema/topSchema.cpp
+           draw/schema/topSchema.cpp \
+    generator/statement.cpp \
+    tlib/dcond.cpp

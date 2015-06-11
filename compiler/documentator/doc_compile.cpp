@@ -87,7 +87,7 @@ Tree DocCompiler::annotate(Tree LS)
 	recursivnessAnnotation(LS);		// Annotate LS with recursivness information
 	typeAnnotation(LS);				// Annotate LS with type information
 	sharingAnalysis(LS);			// annotate LS with sharing count
-  	fOccMarkup.mark(LS);			// annotate LS with occurences analysis
+    fOccMarkup.mark(LS);			// annotate LS with occurences analysis
 
   	return LS;
 }
@@ -231,8 +231,9 @@ string	DocCompiler::generateCode (Tree sig, int priority)
 	
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ printGCCall(sig,"generateVBargraph");	return CS(z, priority);}//generateVBargraph 	(sig, label, x, y, CS(z, priority)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printGCCall(sig,"generateHBargraph");	return CS(z, priority);}//generateHBargraph 	(sig, label, x, y, CS(z, priority)); }
-	else if ( isSigAttach(sig, x, y) )				{ printGCCall(sig,"generateAttach");	return generateAttach	(sig, x, y, priority); }
-	
+    else if ( isSigAttach(sig, x, y) )				{ printGCCall(sig,"generateAttach");	return generateAttach	(sig, x, y, priority); }
+    else if ( isSigMute(sig, x, y) )				{ printGCCall(sig,"generateMute");      return generateMute	(sig, x, y, priority); }
+
 	else {
         cerr << "Error in d signal, unrecognized signal : " << *sig << endl;
         exit(1);
@@ -272,7 +273,7 @@ void DocCompiler::printGCCall(Tree sig, const string& calledFunction)
 string DocCompiler::generateNumber (Tree sig, const string& exp)
 {
 	string		ctype, vname;
-	Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieve(sig);
 
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
@@ -397,6 +398,11 @@ string DocCompiler::generateOutput (Tree sig, const string& idx, const string& a
 /// associative operations are + * | & xor
 static bool associative (int opcode) {
     return (opcode == kAdd) || (opcode == kMul) || (opcode == kAND) || (opcode == kOR) || (opcode == kXOR);
+}
+
+string DocCompiler::generateMute(Tree sig, Tree arg1, Tree arg2, int priority)
+{
+    return generateBinOp(sig, kMul, arg1, arg2, priority);
 }
 
 string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority)
@@ -531,7 +537,7 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
 	string 		vname, ctype, code, vectorname;
 	
 	int 		sharing = getSharingCount(sig);
-	Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieve(sig);
 	
 	// check reentrance
     if (getCompiledExpression(sig, code)) {
@@ -726,19 +732,35 @@ string DocCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, c
 
 string DocCompiler::generateAttach (Tree sig, Tree x, Tree y, int priority)
 {
-	string vname;
-	string exp;
-	
-	CS(y, priority);
-	exp = CS(x, priority);
-	
-	if(getVectorNameProperty(x, vname)) {
-		setVectorNameProperty(sig, vname);
-	}
+    string vname;
+    string exp;
 
-	return generateCacheCode(sig, exp);
+    CS(y, priority);
+    exp = CS(x, priority);
+
+    if(getVectorNameProperty(x, vname)) {
+        setVectorNameProperty(sig, vname);
+    }
+
+    return generateCacheCode(sig, exp);
 }
 
+/*
+string DocCompiler::generateMute (Tree sig, Tree x, Tree y, int priority)
+{
+    string vname;
+    string exp;
+
+    CS(y, priority);
+    exp = CS(x, priority);
+
+    if(getVectorNameProperty(x, vname)) {
+        setVectorNameProperty(sig, vname);
+    }
+
+    return generateCacheCode(sig, exp);
+}
+*/
 
 
 
