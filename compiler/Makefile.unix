@@ -10,7 +10,7 @@ system	?= $(shell uname -s)
 
 ## On darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
-#ARCHFLAGS 	:=  -arch i386 -arch x86_64
+ARCHFLAGS 	:=  -arch i386 -arch x86_64
 else 
 ARCHFLAGS 	:= 
 endif
@@ -21,8 +21,7 @@ LIBS = -lwsock32
 EXE = .exe
 endif
 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized 
-##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
+CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 CXXFLAGS += -I../architecture
 
