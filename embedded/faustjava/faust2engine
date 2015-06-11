@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Compile a Faust program has a java audio engine
+
+mkdir -p ./com
+mkdir -p ./com/grame
+mkdir -p ./com/grame/faust
+
+swig -c++ -java -I/usr/local/include -package com.grame.faust -outdir com/grame/faust Faust.i
+swig -c++ -java -I/usr/local/include -package com.grame.faust -outdir com/grame/faust FaustEngine.i
+
+for j in com/grame/faust/*.java; do 
+	javac $j
+done
+
+# Compilation and link of the libraries
+
+g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -o libFaust.jnilib Faust_wrap.cxx -L /usr/local/lib -lfaust /opt/local/lib/libcrypto.a `llvm-config --ldflags --libs all`
+
+g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -o libFaustEngine.jnilib FaustEngine.cpp FaustEngine_wrap.cxx -framework CoreAudio -framework AudioUnit -framework CoreServices -L /usr/local/lib -lfaust -ljack /opt/local/lib/libcrypto.a `llvm-config --ldflags --libs all`
+
