@@ -187,6 +187,7 @@ Tree unquote(char* str)
 %token LIBRARY
 %token ENVIRONMENT
 %token WAVEFORM
+%token MUTE
 
 %token IPAR
 %token ISEQ
@@ -475,6 +476,8 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| NE							{ $$ = boxPrim2(sigNE); }
 
 				| ATTACH						{ $$ = boxPrim2(sigAttach); }
+                | MUTE                          { $$ = boxPrim2(sigMute); }
+
 
 				| ACOS							{ $$ = gAcosPrim->box(); }
 				| ASIN							{ $$ = gAsinPrim->box(); }

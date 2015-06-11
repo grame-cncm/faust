@@ -101,7 +101,8 @@ void printSignal(Tree sig, FILE* out, int prec)
 	else if ( isSigDelay1(sig, x) ) 		{ fputs("mem(", out); printSignal(x,out,0); fputs(")", out);		}
 	else if ( isSigPrefix(sig, x, y) ) 		{ fputs("prefix(", out); printSignal(x,out,0); fputs(",", out);	 printSignal(y,out,0); fputs(")", out);		}
 	else if ( isSigAttach(sig, x, y) ) 		{ fputs("attach(", out); printSignal(x,out,0); fputs(",", out);	 printSignal(y,out,0); fputs(")", out);		}
-	else if ( isSigFixDelay(sig, x, y) ) 	{ 
+    else if ( isSigMute(sig, x, y) ) 		{ fputs("mute(", out); printSignal(x,out,0); fputs(",", out);	 printSignal(y,out,0); fputs(")", out);		}
+    else if ( isSigFixDelay(sig, x, y) ) 	{
 		if (prec > 4) fputs("(", out); 
 		printSignal(x,out,4); fputs("@", out); printSignal(y, out, 4); 
 		if (prec > 4) fputs(")", out); 	

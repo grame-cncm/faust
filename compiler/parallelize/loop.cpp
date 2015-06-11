@@ -23,11 +23,35 @@ static void tab (int n, ostream& fout)
  * @param lines list of lines to be printed
  * @param fout output stream
  */
-static void printlines (int n, list<string>& lines, ostream& fout)
+static void printlines (int n, list<Statement>& lines, ostream& fout)
 {
-    list<string>::iterator s;
+    list<Statement>::iterator s;
+    string ccond = "";
     for (s = lines.begin(); s != lines.end(); s++) {
-        tab(n, fout); fout << *s;
+        if (s->hasCondition(ccond)) {
+            tab(n, fout); fout << s->code();
+        } else if (ccond == "")  {
+            // debut d'une condition
+            ccond = s->condition();
+            tab(n, fout); fout << "if (" << ccond << ") {";
+            n++;
+            tab(n, fout); fout << s->code();
+        } else {
+            // fin précédente condition
+            n--;
+            tab(n, fout); fout << "}";
+            // nouvelle condition courante
+            ccond = s->condition();
+            if (ccond != "") {
+                tab(n, fout); fout << "if (" << ccond << ") {";
+                n++;
+            }
+            tab(n, fout); fout << s->code();
+        }
+    }
+    if (ccond != "") {
+        n--;
+        tab(n, fout); fout << "}";
     }
 }
 
@@ -79,29 +103,29 @@ bool Loop::isEmpty()
 /**
  * Add a line of pre code  (begin of the loop)
  */
-void Loop::addPreCode (const string& str)    
+void Loop::addPreCode (const Statement& stmt)
 { 
    // cerr << this << "->addExecCode " << str << endl;
-    fPreCode.push_back(str); 
+    fPreCode.push_back(stmt);
 }
 
 /**
  * Add a line of exec code 
  */
-void Loop::addExecCode (const string& str)    
+void Loop::addExecCode (const Statement& stmt)
 { 
    // cerr << this << "->addExecCode " << str << endl;
-    fExecCode.push_back(str); 
+    fExecCode.push_back(stmt);
 }
 
 
 /**
  * Add a line of post exec code (end of the loop) 
  */
-void Loop::addPostCode (const string& str)    
+void Loop::addPostCode (const Statement& stmt)
 { 
    // cerr << this << "->addPostCode " << str << endl;
-    fPostCode.push_front(str); 
+    fPostCode.push_front(stmt);
 }
 
 

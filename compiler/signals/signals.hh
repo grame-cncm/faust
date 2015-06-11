@@ -243,6 +243,10 @@ Tree sigAttach   (Tree x, Tree y);
 bool isSigAttach (Tree s);
 bool isSigAttach (Tree s, Tree& x, Tree& y);
 
+Tree sigMute   (Tree x, Tree y);
+bool isSigMute (Tree s);
+bool isSigMute (Tree s, Tree& x, Tree& y);
+
 
 /*****************************************************************************
 							 matrix extension

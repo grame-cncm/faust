@@ -43,8 +43,9 @@ struct sigvisitor
 	virtual void visitNumEntry	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) = 0;
 	virtual void visitVBargraph	(Tree sig, Tree label, Tree min, Tree max, Tree s1) = 0;
 	virtual void visitHBargraph	(Tree sig, Tree label, Tree min, Tree max, Tree s1) = 0;
-	virtual void visitAttach	(Tree sig, Tree s1, Tree s2) = 0;
-	
+    virtual void visitAttach	(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitMute      (Tree sig, Tree s1, Tree s2) = 0;
+
 	// recursive
 	virtual void visitRec 		(Tree sig, Tree var, Tree body) = 0;
  	virtual void visitRef 		(Tree sig, Tree var) = 0; 

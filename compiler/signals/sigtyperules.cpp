@@ -350,6 +350,8 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigAttach(sig, s1, s2))          { T(s2,env); return T(s1,env); }
 
+    else if (isSigMute(sig, s1, s2))          { T(s2,env); return T(s1,env); }
+
     else if (isRec(sig, var, body))             return infereRecType(sig, body, env);
 
 	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i,kScal);
