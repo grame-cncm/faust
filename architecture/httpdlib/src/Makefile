@@ -126,8 +126,9 @@ html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
 html/htmlpage.o: lib/deelx.h html/htmlpage.h html/jsscripts.h html/stylesheet.h
 html/htmlui.o: html/htmlui.h html/htmlfactory.h html/htmlpage.h
 httpd/Address.o: httpd/Address.h
-httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h msg/MessageProcessor.h
-httpd/HTTPDSetup.o: httpd/HTTPDSetup.h httpd/HTTPDServer.h msg/MessageProcessor.h
+httpd/HTTPDServer.o: httpd/HTTPDServer.h /opt/local/include/microhttpd.h msg/Message.h lib/smartpointer.h
+httpd/HTTPDServer.o: msg/MessageProcessor.h
+httpd/HTTPDSetup.o: httpd/HTTPDSetup.h httpd/HTTPDServer.h /opt/local/include/microhttpd.h msg/MessageProcessor.h
 json/jsoncontrol.o: json/jsoncontrol.h json/jsonnode.h lib/smartpointer.h
 json/jsonfactory.o: json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
 json/jsonfactory.o: json/jsongroup.h
@@ -141,7 +142,7 @@ msg/Message.o: msg/Message.h lib/smartpointer.h
 nodes/FaustFactory.o: nodes/FaustFactory.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h
 nodes/FaustFactory.o: nodes/FaustNode.h msg/Message.h nodes/RootNode.h
 nodes/FaustNode.o: nodes/FaustNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h
-nodes/FaustNode.o: httpd/HTTPDServer.h
+nodes/FaustNode.o: httpd/HTTPDServer.h /opt/local/include/microhttpd.h
 nodes/MessageDriven.o: httpd/Address.h msg/Message.h lib/smartpointer.h nodes/MessageDriven.h msg/MessageProcessor.h
-nodes/MessageDriven.o: httpd/HTTPDServer.h
+nodes/MessageDriven.o: httpd/HTTPDServer.h /opt/local/include/microhttpd.h
 nodes/RootNode.o: nodes/RootNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h

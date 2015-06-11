@@ -653,7 +653,15 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     ValueInst* res;
     ValueInst* v1 = CS(a1);
     ValueInst* v2 = CS(a2);
-   
+    
+    interval i = getCertifiedSigType(a1)->getInterval();
+    interval j = getCertifiedSigType(a2)->getInterval();
+
+    if (j.haszero()) {
+        // potential division by zero
+        //std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << std::endl;
+    }
+  
     // Logical operations work on kInt, so cast both operands here
     if (isLogicalOpcode(opcode)) {
         res = cast2real(t3, InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2)));
