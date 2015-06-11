@@ -103,7 +103,7 @@ src/OSCControler.o: faust/osc/MessageProcessor.h faust/osc/smartpointer.h faust/
 src/OSCControler.o: ../../faust/gui/UI.h faust/OSCIO.h src/osc/OSCSetup.h src/osc/OSCStream.h
 src/OSCControler.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h
 src/OSCControler.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
-src/OSCControler.o: src/lib/OSCFError.h src/nodes/RootNode.h
+src/OSCControler.o: src/lib/OSCFError.h src/nodes/RootNode.h src/lib/OSCRegexp.h src/lib/deelx.h
 src/lib/OSCFError.o: src/lib/OSCFError.h src/osc/OSCStream.h ../oscpack/osc/OscOutboundPacketStream.h
 src/lib/OSCFError.o: ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h ../oscpack/ip/UdpSocket.h
 src/lib/OSCFError.o: ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h faust/osc/Message.h
