@@ -6,7 +6,7 @@
 #           applications.
 #			
 ###############################################################
-VERSION=0.93
+VERSION=0.95
 SOVERSION=0
 
 .PHONY: all clean depend

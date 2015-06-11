@@ -13,7 +13,7 @@ override_dh_compress:
 	dh_compress -X.h -X.lib -X.dsp -X.pd -X.maxpat -X.mid -X.txt -XMakefile -XREADME
 
 override_dh_strip:
-	dh_strip -Xlibfaust_dsp.so
+	dh_strip -Xlibfaust_dsp.so -XiOS/libOSCFaust.a -XiOS/liboscpack.a
 
 override_dh_shlibdeps:
 	dh_shlibdeps -Xlibfaust_dsp.so

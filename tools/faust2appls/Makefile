@@ -66,6 +66,7 @@ install:
 	install faust2webaudioasm $(dest)
 	install faust2asmjs $(dest)
 	install faust2api $(dest)
+	install faust2raqt $(dest)
 	
 
 uninstall:
@@ -122,6 +123,8 @@ uninstall:
 	rm -f $(dest)/faust2owl
 	rm -f $(dest)/faust2webaudioasm
 	rm -f $(dest)/faust2asmjs
+	rm -f $(dest)/faust2api
+	rm -f $(dest)/faust2raqt
 	
 
 

@@ -37,7 +37,7 @@ integrator = + ~ _ ;
 // corresponding to the given real, positive pole in (0,1).
 
 tau2pole(tau) = exp(-1.0/(tau*SR));
-pole2tau(pole) = -1.0/(log(pole)*ml.SR);
+pole2tau(pole) = -1.0/(log(pole)*SR);
 
 //---------------------- smooth(s) --------------------------
 // Exponential smoothing by a unity-dc-gain one-pole lowpass
@@ -1217,94 +1217,60 @@ with {
 };
 
 //========================= Lagrange Interpolation ========================
-// Reference:
+
+//-------------------------- fdelaylti, fdelayltv -------------------------
+// Fractional delay line using Lagrange interpolation
+// USAGE: _ : fdelaylt[i|v](order, maxdelay, delay, inputsignal) : _
+// where order=1,2,3,... is the order of the Lagrange interpolation polynomial.
+// fdelaylti is most efficient, but designed for constant/slowly-varying delay.
+// fdelayltv is more expensive and more robust when the delay varies rapidly.
+//
+// NOTE: The requested delay should not be less than (N-1)/2.
+//
+// The first-order case (linear interpolation) is equivalent to 
+// fdelay in music.lib (delay d in [0,1])
+//
+// REFERENCES:
+//
 // https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html
-// 
-//------------------ fdelay1, fdelay2, fdelay3, fdelay4 ---------------
-// Delay lines interpolated using Lagrange interpolation
-// USAGE: _ : fdelayN(maxdelay, delay, inputsignal) : _
-//        (exactly like fdelay in music.lib)
-// where N=1,2,3, or 4 is the order of the Lagrange interpolation polynomial.
 //
-// NOTE: requested delay should not be less than (N-1)/2.
+// Timo I. Laakso et al., "Splitting the Unit Delay - Tools for Fractional
+//         Delay Filter Design", IEEE Signal Processing Magazine,
+//         vol. 13, no. 1, pp. 30-60, Jan 1996.
 //
-// NOTE: While the implementations below appear to use multiple delay lines,
-//  they in fact use only one thanks to optimization by the Faust compiler.
+// Philippe Depalle and Stephan Tassart, "Fractional Delay Lines using
+//         Lagrange Interpolators", ICMC Proceedings, pp. 341-343, 1996.
 
-// first-order case (linear interpolation) - equivalent to fdelay in music.lib
-// delay d in [0,1] 
-fdelay1(n,d,x)  = delay(n,id,x)*(1 - fd) + delay(n,id+1,x)*fd
+fdelaylti(N,n,d,x)  = delay(n,id,x) <: seq(i,N,section(i)) : !,_
 with {
-  id = int(d);
-  fd = frac(d);
-};
-
-// second-order (quadratic) case, delay in [0.5,1.5]
-// delay d should be at least 0.5
-fdelay2(n,d,x) = delay(n,id,x)*(1-fd)*(2-fd)/2 
-               + delay(n,id+1,x)*(2-fd)*fd
-               + delay(n,id+2,x)*(fd-1)*fd/2
-with {
-  o = 0.49999; // offset to make life easy for interpolator
-  dmo = d - o; // assumed nonnegative
+  o = (N-1.00001)/2; // offset to ~center FIR interpolator
+  dmo = d - o; // assumed nonnegative [d > (N-1)/2]
   id = int(dmo);
   fd = o + frac(dmo);
+  section(i,x,y) = (x-x') * c(i) <: _,+(y);
+  c(i) = (i - fd)/(i+1);
 };
 
-// third-order (cubic) case, delay in [1,2]
-// delay d should be at least 1
-fdelay3(n,d,x) = delay(n,id,x) * (0-fdm1*fdm2*fdm3)/6
-               + delay(n,id+1,x) * fd*fdm2*fdm3/2
-               + delay(n,id+2,x) * (0-fd*fdm1*fdm3)/2
-               + delay(n,id+3,x) * fd*fdm1*fdm2/6
+fdelayltv(N,n,d,x) = sum(i, N+1, delay(n,id+i,x) * h(N,fd,i))
 with {
-  id = int(d-1); 
-  fd = 1+frac(d);
-  fdm1 = fd-1;
-  fdm2 = fd-2;
-  fdm3 = fd-3;
-};
-
-// fourth-order (quartic) case, delay in [1.5,2.5]
-// delay d should be at least 1.5
-fdelay4(n,d,x) = delay(n,id,x)   * fdm1*fdm2*fdm3*fdm4/24 
-               + delay(n,id+1,x) * (0-fd*fdm2*fdm3*fdm4)/6
-               + delay(n,id+2,x) * fd*fdm1*fdm3*fdm4/4
-               + delay(n,id+3,x) * (0-fd*fdm1*fdm2*fdm4)/6
-               + delay(n,id+4,x) * fd*fdm1*fdm2*fdm3/24
-with {
-//v1:  o = 1;
-  o = 1.49999;
-  dmo = d - o; // assumed nonnegative
+  o = (N-1.00001)/2;  // ~center FIR interpolator
+  dmo = d - o; // assumed >=0 [d > (N-1)/2]
   id = int(dmo);
   fd = o + frac(dmo);
-  fdm1 = fd-1;
-  fdm2 = fd-2;
-  fdm3 = fd-3;
-  fdm4 = fd-4;
+  h(N,d,n) = facs1(N,d,n) * facs2(N,d,n);
+  facs1(N,d,n) = select2(n,1,prod(k,max(1,n),select2(k<n,1,fac(d,n,k))));
+  facs2(N,d,n) = select2(n<N,1,prod(l,max(1,N-n),fac(d,n,l+n+1)));
+  fac(d,n,k) = (d-k)/((n-k)+(n==k));
+  // Explicit formula for Lagrange interpolation coefficients:
+  // h_d(n) = \prod_{\stackrel{k=0}{k\neq n}}^N \frac{d-k}{n-k}, n=0:N
 };
 
-// fifth-order case, delay in [2,3]
-// delay d should be at least 2
-fdelay5(n,d,x) = 
-   delay(n,id,x)   *    -fdm1*fdm2*fdm3*fdm4*fdm5/120
- + delay(n,id+1,x) *  fd*     fdm2*fdm3*fdm4*fdm5/24
- + delay(n,id+2,x) * -fd*fdm1*     fdm3*fdm4*fdm5/12
- + delay(n,id+3,x) *  fd*fdm1*fdm2*     fdm4*fdm5/12
- + delay(n,id+4,x) * -fd*fdm1*fdm2*fdm3*     fdm5/24
- + delay(n,id+5,x) *  fd*fdm1*fdm2*fdm3*fdm4     /120
-with {
-//v1:  o = 1;
-  o = 1.99999;
-  dmo = d - o; // assumed nonnegative
-  id = int(dmo);
-  fd = o + frac(dmo);
-  fdm1 = fd-1;
-  fdm2 = fd-2;
-  fdm3 = fd-3;
-  fdm4 = fd-4;
-  fdm5 = fd-5;
-};
+// Backward compatibility:
+fdelay1 = fdelayltv(1);
+fdelay2 = fdelayltv(2);
+fdelay3 = fdelayltv(3);
+fdelay4 = fdelayltv(4);
+fdelay5 = fdelayltv(5);
 
 //====================== Thiran Allpass Interpolation =====================
 // Reference:

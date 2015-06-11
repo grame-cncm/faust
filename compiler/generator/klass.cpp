@@ -238,11 +238,13 @@ void Klass::printAdditionalCode(ostream& fout)
 void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 {
     tab(n,fout); fout   << "static void metadata(Meta* m) \t{ ";
-
+    
+    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             tab(n+1,fout); fout << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
+            // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become "contributor"
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
                      tab(n+1,fout); fout << "m->declare(\"" << *(i->first) << "\", " << **j << ");" ;

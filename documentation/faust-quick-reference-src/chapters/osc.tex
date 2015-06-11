@@ -243,6 +243,40 @@ This feature can be typically used for automation to record and replay actions o
 	T1$ oscsend localhost 5510 /noise si xmit 0
 \end{lstlisting}
 
+\section{Filtering OSC messages}
+
+When the transmission of OSC messages is ON, all the user interface elements are sent through the OSC connection.  
+
+\begin{lstlisting}
+	T2: /harpe/level f 0.024000
+	T2: /harpe/hand f 0.1
+	T2: /harpe/level f 0.024000
+	T2: /harpe/hand f 0.25
+	T2: /harpe/level f 0.024000
+	T2: /harpe/hand f 0.44
+	T2: /noise/level f 0.145000
+	T2: /harpe/hand f 0.78
+	T2: /noise/level f 0.145000
+	T2: /harpe/hand f 0.99
+\end{lstlisting}
+
+We can choose to filter the unwanted parameters (or group of parameters).  For example:
+\begin{lstlisting}
+	T1$ oscsend localhost 5510 /harpe si xmit 1 xmitfilter /harpe/level
+\end{lstlisting}
+
+As a result, we will receive:
+\begin{lstlisting}
+	T2: /harpe/hand f 0.1
+	T2: /harpe/hand f 0.25
+	T2: /harpe/hand f 0.44
+	T2: /harpe/hand f 0.78
+\end{lstlisting}
+
+To reset the filter, send:
+\begin{lstlisting}
+	T1$ oscsend localhost 5510 /harpe si xmit 1 xmitfilter
+\end{lstlisting}
 
 \section{Using OSC aliases}
 
@@ -354,7 +388,8 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \lstinline'-outport' $n$ & set the port number used by the application to transmit messages\\
 \lstinline'-errport' $n$ & set the port number used by the application to transmit error messages\\
 \lstinline'-desthost' $h$ & set the destination host for the messages sent by the application\\
-\lstinline'-xmit 1|0' & turn transmission ON or OFF (default OFF)
+\lstinline'-xmit 1|0' & turn transmission ON or OFF (default OFF) \\
+\lstinline'-xmitfilter' $s$ & filter the faust paths at emission time
 \end{tabular}
 
 \subsection*{Discovery messages}

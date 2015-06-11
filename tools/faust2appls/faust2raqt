@@ -2,19 +2,21 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to core audio-qt            #
-#               (c) Grame, 2012                                     #
+#               Compiles Faust programs to jack-qt                  #
+#               (c) Grame, 2009                                     #
 #                                                                   #
 #####################################################################
 
 . faustpath
-. faustoptflags
-CXXFLAGS=$MYGCCFLAGS
 
-ARCHFILE="ca-qt.cpp"
-ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+ARCHFILE="ra-qt.cpp"
+ARCHLIB="-L/usr/local/lib -lrtaudio"
 PATH=$PATH:/usr/local/bin
 
+#-------------------------------------------------------------------------------
+# Search for qmake or qmake-qt4
+
+QMAKE=$(which qmake-qt4 || echo qmake) 
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -22,6 +24,8 @@ PATH=$PATH:/usr/local/bin
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
+
+CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
@@ -42,7 +46,7 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jaqt [-osc] [-http] [-poly] <file.dsp>"
+        echo "faust2raqt [-osc] [-http] [-poly] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
@@ -65,8 +69,8 @@ for p in $@; do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
+        OSCDEFS="DEFINES += OSCCTRL"
+        OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
@@ -76,19 +80,18 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
-	else
+    else
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
 
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
     CXXFLAGS+=" -D__MACOSX_CORE__"
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -gt 12 ]
 	then
 	    SPEC="-spec macx-clang"
@@ -115,13 +118,13 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
-
+ 	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+  
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
-	    qmake $SPEC
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
+	    $QMAKE $SPEC
         make
     ) > /dev/null
 

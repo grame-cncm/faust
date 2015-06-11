@@ -34,48 +34,41 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __portaudio_dsp__
-#define __portaudio_dsp__
+#ifndef __rtaudio_dsp__
+#define __rtaudio_dsp__
 
 #include <stdio.h>
 #include <assert.h>
-#include <portaudio.h>
+#include <RtAudio.h>
 #include <stdlib.h>
 
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp-adapter.h"
 
-static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv);
+#define FORMAT RTAUDIO_FLOAT32
 
-static bool pa_error(int err)
-{
-	if (err != paNoError) {
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
-        return true;
-    } else {
-        return false;
-    }
-}
+static int audioCallback(void* outputBuffer, void* inputBuffer, 
+                        unsigned int nBufferFrames,
+                        double streamTime, RtAudioStreamStatus status, 
+                        void* data);
 
 /******************************************************************************
  *******************************************************************************
  
- PORT AUDIO INTERFACE
+ RTAUDIO INTERFACE
  
  *******************************************************************************
  *******************************************************************************/
 
-class portaudio : public audio {
+class rtaudio : public audio {
     
     protected:
         
         dsp* fDsp;
-        PaStream* fAudioStream;
-        long fSampleRate;
-        long fBufferSize;
-        PaStreamParameters fInputParameters;
-        PaStreamParameters fOutputParameters;
-        
+        RtAudio fAudioDAC;
+        unsigned int fSampleRate;
+        unsigned int fBufferSize;
+         
         //----------------------------------------------------------------------------
         // 	number of physical input and output channels of the PA device
         //----------------------------------------------------------------------------
@@ -84,12 +77,11 @@ class portaudio : public audio {
         
     public:
         
-        portaudio(long srate, long bsize) : fDsp(0), fAudioStream(0),
-        fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
-        virtual ~portaudio() 
+        rtaudio(long srate, long bsize) : fDsp(0),
+            fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
+        virtual ~rtaudio() 
         {   
             stop(); 
-            Pa_Terminate();
         }
         
         virtual bool init(const char* name, dsp* DSP)
@@ -103,64 +95,43 @@ class portaudio : public audio {
         }
         
         bool init(const char* /*name*/, int numInputs, int numOutputs)
-        {            
-            if (pa_error(Pa_Initialize())) {
+        {           
+            if (fAudioDAC.getDeviceCount() < 1) {
+                std::cout << "No audio devices found!\n";
                 return false;
             }
             
-            const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
-            const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
+            RtAudio::DeviceInfo info_in = fAudioDAC.getDeviceInfo(fAudioDAC.getDefaultInputDevice());
+            RtAudio::DeviceInfo info_out = fAudioDAC.getDeviceInfo(fAudioDAC.getDefaultOutputDevice());
+            RtAudio::StreamParameters iParams, oParams;
             
-            printf("DEVICE = %p || %p\n", idev, odev);
+            iParams.deviceId = fAudioDAC.getDefaultInputDevice();
+            fDevNumInChans = info_in.inputChannels;
+            iParams.nChannels = fDevNumInChans;
+            iParams.firstChannel = 0;
             
-            //In case there is no audio device, the function fails
+            oParams.deviceId = fAudioDAC.getDefaultOutputDevice();
+            fDevNumOutChans = info_out.outputChannels;
+            oParams.nChannels = fDevNumOutChans;
+            oParams.firstChannel = 0;
             
-            if(idev == NULL) {
-                fDevNumInChans = 0;
-            } else {
-                fDevNumInChans = idev->maxInputChannels;
-                
-                fInputParameters.device = Pa_GetDefaultInputDevice();
-                fInputParameters.sampleFormat = paFloat32 | paNonInterleaved;
-                fInputParameters.channelCount = fDevNumInChans;
-                fInputParameters.hostApiSpecificStreamInfo = 0;
-            }
-            
-            if (odev == NULL) {
-                fDevNumOutChans = 0;
-            } else{
-                fDevNumOutChans = odev->maxOutputChannels;
-                
-                fOutputParameters.device = Pa_GetDefaultOutputDevice();
-                fOutputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
-                fOutputParameters.channelCount = fDevNumOutChans;
-                fOutputParameters.hostApiSpecificStreamInfo = 0;
-            }
-            
-            // A DSP that has only outputs or only inputs forces the presence of an output or input device
-            if (numInputs == 0 && numOutputs != 0 && fDevNumOutChans == 0) {
-                printf("Devices not adaptated to DSP\n");
+            RtAudio::StreamOptions options;
+            options.flags |= RTAUDIO_NONINTERLEAVED;
+         
+            try {
+                fAudioDAC.openStream(((numOutputs > 0) ? &oParams : NULL), 
+                    ((numInputs > 0) ? &iParams : NULL), FORMAT, 
+                    fSampleRate, &fBufferSize, audioCallback, this, &options);
+            } catch (RtAudioError& e) {
+                std::cout << '\n' << e.getMessage() << '\n' << std::endl;
                 return false;
             }
-            
-            if (numInputs != 0 && numOutputs == 0 && fDevNumInChans == 0) {
-                printf("Devices not adaptated to DSP\n");
-                return false;
-            }
-            
-            // If no device exists : the function fails
-            PaError err;
-            if ((err = Pa_IsFormatSupported(((fDevNumInChans > 0) ? &fInputParameters : 0),
-                                            ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate)) != 0) {
-                printf("stream format is not supported err = %d\n", err);
-                return false;
-            }
-            
+               
             return true;
         }
         
-        void set_dsp_aux(dsp* DSP) 
-        {
+        void set_dsp_aux(dsp* DSP){
+            
             fDsp = DSP;
             if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {
                 printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
@@ -175,12 +146,10 @@ class portaudio : public audio {
         
         virtual bool start() 
         {
-            if (pa_error(Pa_OpenStream(&fAudioStream, ((fDevNumInChans > 0) ? &fInputParameters : 0),
-                                       ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
-                return false;
-            }    
-            
-            if (pa_error(Pa_StartStream(fAudioStream))) {
+           try {
+                fAudioDAC.startStream();
+            } catch (RtAudioError& e) {
+                std::cout << '\n' << e.getMessage() << '\n' << std::endl;
                 return false;
             }
             return true;
@@ -188,18 +157,29 @@ class portaudio : public audio {
         
         virtual void stop() 
         {
-            if (fAudioStream) {
-                Pa_StopStream(fAudioStream);
-                Pa_CloseStream(fAudioStream);
-                fAudioStream = 0;
+            try {
+                fAudioDAC.stopStream();
+                fAudioDAC.closeStream();
+            } catch (RtAudioError& e) {
+                std::cout << '\n' << e.getMessage() << '\n' << std::endl;
             }
         }
         
-        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
+        virtual int processAudio(void* ibuf, void* buf, unsigned long frames) 
         {
+            float* inputs[fDsp->getNumInputs()];
+            float* outputs[fDsp->getNumOutputs()];
+            
+            for (int i = 0; i < fDsp->getNumInputs(); i++) {
+                inputs[i] = &((float*)ibuf)[i * frames];
+            }
+            for (int i = 0; i < fDsp->getNumOutputs(); i++) {
+                outputs[i] = &((float*)buf)[i * frames];
+            }
+
             // process samples
-            fDsp->compute(frames, ibuf, obuf);
-            return paContinue;
+            fDsp->compute(frames, inputs, outputs);
+            return 0;
         }
         
         virtual int get_buffer_size() 
@@ -214,12 +194,13 @@ class portaudio : public audio {
 };
 
 //----------------------------------------------------------------------------
-// Port Audio Callback
+// RtAudio Callback
 //----------------------------------------------------------------------------
-static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void* drv)
+static int audioCallback(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
+                        double /*streamTime*/, RtAudioStreamStatus status, void *data)
 {
-	portaudio* pa = (portaudio*)drv;
-	return pa->processAudio((float**)ibuf, (float**)obuf, frames);
+    rtaudio* ra = (rtaudio*)data;
+ 	return ra->processAudio(inputBuffer, outputBuffer, nBufferFrames);
 }
 
 #endif
