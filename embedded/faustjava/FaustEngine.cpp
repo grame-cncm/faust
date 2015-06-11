@@ -1,21 +1,21 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,16 +23,15 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work
-	that contains this FAUST architecture section and distribute
-	that work under terms of your choice, so long as this FAUST
-	architecture section is not modified.
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
 
-
- ************************************************************************
- ************************************************************************/
+************************************************************************
+************************************************************************/
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -60,6 +59,7 @@ enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
 class APIUI : public PathUI, public Meta
 {
     protected:
+    
 		int	fNumParameters;
     	std::vector<std::string>			fName;
     	std::map<std::string, int>			fMap;
@@ -301,7 +301,8 @@ error:
 
 dsp* create(const char* name_app, const char* dsp_content, int argc, const char* argv[], const char* target, char* error_msg, int opt_level)
 {
-     return 0;
+    // TODO
+    return 0;
 }
 
 bool init(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
@@ -338,20 +339,17 @@ bool init(dsp* dsp, const char* name)
 
 void destroy(dsp* dsp_ext)
 {
-    dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-    delete dsp;
+    delete reinterpret_cast<dsp_aux*>(dsp_ext);
 }
 
 bool start(dsp* dsp_ext) 
 {
-    dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-	return dsp->fDriver->start();
+ 	return reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver->start();
 }
 
 void stop(dsp* dsp_ext) 
 {
-    dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-	return dsp->fDriver->stop();
+	return reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver->stop();
 }
 
 /*
@@ -366,29 +364,28 @@ void stop(dsp* dsp_ext)
  */
 const char* getJSON(dsp* dsp_ext)
 {
-    dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-    return dsp->fJSON.c_str();
+    return reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str();
 }
 
-int getParamsCount(dsp* dsp_ext)					{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamsCount(); }
+int getParamsCount(dsp* dsp_ext)					{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount(); }
 
-int   getParamIndex(dsp* dsp_ext, const char* name)	{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamIndex(name); }
-const char* getParamName(dsp* dsp_ext, int p)		{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamName(p); }
-const char* getParamUnit(dsp* dsp_ext, int p)		{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
-float getParamMin(dsp* dsp_ext, int p)				{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamMin(p); }
-float getParamMax(dsp* dsp_ext, int p)				{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamMax(p); }
-float getParamStep(dsp* dsp_ext, int p)				{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamStep(p); }
+int   getParamIndex(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
+const char* getParamName(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamName(p); }
+const char* getParamUnit(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
+float getParamMin(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p); }
+float getParamMax(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p); }
+float getParamStep(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p); }
 	
-float getParamValue(dsp* dsp_ext, int p)			{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamValue(p); }
-void  setParamValue(dsp* dsp_ext, int p, float v)	{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.setParamValue(p,v); }
+float getParamValue(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p); }
+void  setParamValue(dsp* dsp_ext, int p, float v)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p,v); }
 	
-float getParamRatio(dsp* dsp_ext, int p)            { dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.getParamRatio(p); }
-void  setParamRatio(dsp* dsp_ext, int p, float v)   { dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.setParamRatio(p,v); }
+float getParamRatio(dsp* dsp_ext, int p)            { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
+void  setParamRatio(dsp* dsp_ext, int p, float v)   { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
 	
-float value2ratio(dsp* dsp_ext, int p, float r)		{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.value2ratio(p, r); }
-float ratio2value(dsp* dsp_ext, int p, float r)		{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.ratio2value(p, r); }
+float value2ratio(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r); }
+float ratio2value(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r); }
 
-void propagateAccX(dsp* dsp_ext, float a)			{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.propagateAccX(a); }
-void propagateAccY(dsp* dsp_ext, float a)			{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.propagateAccY(a); }
-void propagateAccZ(dsp* dsp_ext, float a)			{ dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext); return dsp->fParams.propagateAccZ(a); }
+void propagateAccX(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccX(a); }
+void propagateAccY(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
+void propagateAccZ(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
 
