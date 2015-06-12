@@ -348,10 +348,13 @@ bool init(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
     
     };
     
-    dsp->fDriver->init(name, dsp->fDSP);
-    dsp->fDSP->buildUserInterface(&dsp->fParams);
-	 
-  	return (dsp->fDriver != 0);
+    if (dsp->fDriver) {
+        dsp->fDriver->init(name, dsp->fDSP);
+        dsp->fDSP->buildUserInterface(&dsp->fParams);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool init(dsp* dsp, const char* name)
@@ -410,5 +413,3 @@ float ratio2value(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_a
 void propagateAccX(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccX(a); }
 void propagateAccY(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
 void propagateAccZ(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
-
-int toto (int a, int b) { return a + b; }
