@@ -1,9 +1,9 @@
 all : libFaustEngine.jnilib libFaust.jnilib TestFaust.class TestFaustEngine.class 
 
-libFaustEngine.jnilib : FaustEngine.cpp faust-api.h 
+libFaustEngine.jnilib : FaustEngine.cpp FaustEngine.h FaustEngine.i
 	./faust2engine 
 
-libFaust.jnilib : faust-api.h 
+libFaust.jnilib : libfaust_ext.cpp libfaust_ext.h Faust.i
 	./faust2engine 
 
 TestFaustEngine.class : TestFaustEngine.java

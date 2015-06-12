@@ -20,7 +20,9 @@ typedef struct {} dsp;
 enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
 
 dsp* create(const char* name_app, const char* dsp_content);
-dsp* create(const char* name_app, const char* dsp_content, int argc, const char* argv[], const char* target, char* error_msg, int opt_level);
+dsp* create(const char* name_app, const char* dsp_content,  const char* argv, const char* target, int opt_level);
+
+const char* getLastError();
 
 void destroy(dsp* dsp);
 

@@ -770,8 +770,6 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-
-
 void printHeader(ostream& dst)
 {
     // defines the metadata we want to print as comments at the begin of in the file

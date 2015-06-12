@@ -21,8 +21,15 @@ class TestFaust
         
         // noise generator
         String prog = "random = +(12345)~*(1103515245); noise = random/2147483647.0; process = noise * vslider(\"Volume\", 0.5, 0, 1, 0.01)<:_,_;";
-   
-        llvm_dsp_factory factory = Faust.createCDSPFactoryFromString("noise", prog, 0, null, "", "", 3);
+        String argv = "-vec " + "-lv " + "1";
+        System.out.println(argv);
+        
+        llvm_dsp_factory factory = Faust.createCDSPFactoryFromStringAux("noise", prog, argv, "", 3);
+        if (factory == null) {
+            System.out.print(Faust.getCDSPLastError());
+            return;
+        }
+         
         llvm_dsp dsp = Faust.createCDSPInstance(factory);
         
         System.out.println(Faust.getCName(factory));

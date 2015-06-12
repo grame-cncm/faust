@@ -51,7 +51,9 @@
 // APIUI : Faust User Interface
 // This class a simple parameter based interface
 //**************************************************************
-		
+
+using namespace std;
+
 enum { kLin = 0, kLog = 1, kExp = 2 };
 
 enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
@@ -60,73 +62,73 @@ class APIUI : public PathUI, public Meta
 {
     protected:
     
-		int	fNumParameters;
-    	std::vector<std::string>			fName;
-    	std::map<std::string, int>			fMap;
-		std::vector<ValueConverter*>		fConversion;
-    	std::vector<FAUSTFLOAT*>			fZone;
-    	std::vector<FAUSTFLOAT>				fInit;
-    	std::vector<FAUSTFLOAT>				fMin;
-    	std::vector<FAUSTFLOAT>				fMax;
-    	std::vector<FAUSTFLOAT>				fStep;        
-    	std::vector<std::string>			fUnit; 
+        int	fNumParameters;
+        vector<string>			fName;
+        map<string, int>		fMap;
+        vector<ValueConverter*>	fConversion;
+        vector<FAUSTFLOAT*>		fZone;
+        vector<FAUSTFLOAT>		fInit;
+        vector<FAUSTFLOAT>		fMin;
+        vector<FAUSTFLOAT>		fMax;
+        vector<FAUSTFLOAT>		fStep;        
+        vector<string>			fUnit; 
 
-    	std::vector<ZoneControl*>			fAcc[3];
-  
-		// Current values controlled by metadata
-		std::string							fCurrentUnit;     
-		int									fCurrentScale;
-		std::string							fCurrentAcc;     
-  
-		// Add a generic parameter
+        vector<ZoneControl*>	fAcc[3];
+
+        // Current values controlled by metadata
+        string	fCurrentUnit;     
+        int     fCurrentScale;
+        string	fCurrentAcc;     
+
+        // Add a generic parameter
         virtual void addParameter(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-			std::string name = buildPath(label);
+            string name = buildPath(label);
 
-			fMap[name] = fNumParameters++;
-           	fName.push_back(name);
-           	fZone.push_back(zone);
-           	fInit.push_back(init);
-           	fMin.push_back(min);
-           	fMax.push_back(max);
-           	fStep.push_back(step);
+            fMap[name] = fNumParameters++;
+            fName.push_back(name);
+            fZone.push_back(zone);
+            fInit.push_back(init);
+            fMin.push_back(min);
+            fMax.push_back(max);
+            fStep.push_back(step);
 
-			//handle unit metadata
-			fUnit.push_back(fCurrentUnit); 
-			fCurrentUnit="";
+            //handle unit metadata
+            fUnit.push_back(fCurrentUnit); 
+            fCurrentUnit="";
 
-			//handle scale metadata
-			switch (fCurrentScale) {
-				case kLin : fConversion.push_back(new LinearValueConverter(0,1,min,max)); break;
-				case kLog : fConversion.push_back(new LogValueConverter(0,1,min,max)); break;							
-				case kExp : fConversion.push_back(new ExpValueConverter(0,1,min,max)); break;
-			}
-			fCurrentScale  = kLin;
+            //handle scale metadata
+            switch (fCurrentScale) {
+                case kLin : fConversion.push_back(new LinearValueConverter(0,1,min,max)); break;
+                case kLog : fConversion.push_back(new LogValueConverter(0,1,min,max)); break;							
+                case kExp : fConversion.push_back(new ExpValueConverter(0,1,min,max)); break;
+            }
+            fCurrentScale  = kLin;
 
-			// handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
-			if (fCurrentAcc.size() > 0) {
-				std::istringstream iss(fCurrentAcc); 
-				int axe, curve;
-				double amin, amid, amax;
-				iss >> axe >> curve >> amin >> amid >> amax;
-				
-				if ( (0 <= axe) && (axe < 3) && 
-					 (0 <= curve) && (curve < 4) &&
-					 (amin < amax) && (amin <= amid) && (amid <= amax) ) 
-				{
-					ValueConverter* vc = 0;
-					switch (curve) {
-						case 0 : vc = new AccUpConverter(amin, amid, amax, min, init, max); break;
-						case 1 : vc = new AccDownConverter(amin, amid, amax, min, init, max); break;
-						case 2 : vc = new AccUpDownConverter(amin, amid, amax, min, init, max); break;
-						case 3 : vc = new AccDownUpConverter(amin, amid, amax, min, init, max); break;
-					}
-					if (vc) { fAcc[axe].push_back(new ZoneControl(zone, vc)); }
-				} else {
-					std::cerr << "incorrect acc metadata : " << fCurrentAcc << std::endl;
-				}
-			}
-			fCurrentAcc = "";
+            // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
+            if (fCurrentAcc.size() > 0) {
+                istringstream iss(fCurrentAcc); 
+                int axe, curve;
+                double amin, amid, amax;
+                iss >> axe >> curve >> amin >> amid >> amax;
+                
+                if ((0 <= axe) && (axe < 3) && 
+                    (0 <= curve) && (curve < 4) &&
+                    (amin < amax) && (amin <= amid) && (amid <= amax)) 
+                {
+                    ValueConverter* vc = 0;
+                    switch (curve) {
+                        case 0 : vc = new AccUpConverter(amin, amid, amax, min, init, max); break;
+                        case 1 : vc = new AccDownConverter(amin, amid, amax, min, init, max); break;
+                        case 2 : vc = new AccUpDownConverter(amin, amid, amax, min, init, max); break;
+                        case 3 : vc = new AccDownUpConverter(amin, amid, amax, min, init, max); break;
+                    }
+                    if (vc) { fAcc[axe].push_back(new ZoneControl(zone, vc)); }
+                } else {
+                    cerr << "incorrect acc metadata : " << fCurrentAcc << endl;
+                }
+            }
+            fCurrentAcc = "";
         }
      
      public:
@@ -246,6 +248,8 @@ class APIUI : public PathUI, public Meta
 // Globals
 //**************************************************************
 
+static string gLastError;
+
 // DSP wrapper 
 
 struct dsp_aux {
@@ -254,16 +258,18 @@ struct dsp_aux {
     llvm_dsp* fDSP;
     audio* fDriver;
     APIUI fParams;
-    std::string fName;
-    std::string fJSON;
+    string fName;
+    string fJSON;
     
-    dsp_aux():fDSP(0), fDriver(0)
+    dsp_aux():fFactory(0), fDSP(0), fDriver(0)
     {}
     
     virtual ~dsp_aux()
     {
-        fDriver->stop();
-        delete fDriver;
+        if (fDriver) {
+            fDriver->stop();
+            delete fDriver;
+        }
         deleteDSPInstance(fDSP);
         deleteDSPFactory(fFactory);
     }
@@ -272,14 +278,29 @@ struct dsp_aux {
 
 // Exported external API
 
-dsp* create(const char* name_app, const char* dsp_content)
+dsp* create(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
 {
     dsp_aux* dsp_ext = 0;
     {
         dsp_ext = new dsp_aux();
         
-        std::string error;
-        dsp_ext->fFactory = createDSPFactoryFromString(name_app, dsp_content, 0, NULL, "", error, 3);
+        int argc1 = 0;
+        const char* argv1[64];
+        stringstream os(argv);
+        string token;
+        
+        // Allocate parameters
+        while (os >> token) {               
+            argv1[argc1++] = strdup(token.c_str());
+        }
+ 
+        dsp_ext->fFactory = createDSPFactoryFromString(name_app, dsp_content, argc1, argv1, "", gLastError, opt_level);
+        
+        // Free parameters
+        for (int i = 0; i < argc1; i++) {
+            free((void*)argv1[i]);
+        }
+    
         if (!dsp_ext->fFactory) goto error;
         dsp_ext->fDSP = createDSPInstance(dsp_ext->fFactory);
         
@@ -299,11 +320,12 @@ error:
     return 0;
 }
 
-dsp* create(const char* name_app, const char* dsp_content, int argc, const char* argv[], const char* target, char* error_msg, int opt_level)
+dsp* create(const char* name_app, const char* dsp_content)
 {
-    // TODO
-    return 0;
+    return create(name_app, dsp_content, "", "", 3);
 }
+
+const char* getLastError() { return gLastError.c_str(); }
 
 bool init(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
 {
@@ -389,3 +411,4 @@ void propagateAccX(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(
 void propagateAccY(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
 void propagateAccZ(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
 
+int toto (int a, int b) { return a + b; }

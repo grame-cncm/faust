@@ -21,7 +21,16 @@ class TestFaustEngine
         // noise generator
         String prog1 = "random = +(12345)~*(1103515245); noise = random/2147483647.0; process = noise * vslider(\"Volume\", 0.5, 0, 1, 0.01)<:_,_;";
    
-        dsp DSP1 = FaustEngine.create("noise", prog1);
+        //dsp DSP1 = FaustEngine.create("noise", prog1);
+       
+        String argv = "-vec " + "-lv " + "1";
+        System.out.println(argv);
+        dsp DSP1 = FaustEngine.create("noise", prog1, argv, "", 3);
+        
+        if (DSP1 == null) {
+            System.out.print(FaustEngine.getLastError());
+            return;
+        }
         
         System.out.println(FaustEngine.getJSON(DSP1));
           
@@ -31,8 +40,9 @@ class TestFaustEngine
         System.out.println("getParamsCount : " + FaustEngine.getParamsCount(DSP1));
      
         String prog2  = "import(\"music.lib\"); db2linear1(x) = pow(10.0, x/20.0); smooth(c) = *(1-c) : +~*(c); vol = hslider(\"volume [unit:dB]\", 0, -96, 0, 0.1) : db2linear : smooth(0.999); freq = hslider(\"freq [unit:Hz]\", 1000, 20, 24000, 1); process = vgroup(\"Oscillator\", osc(freq) * vol);";
+        
+        //prog2 = prog1;
 
- 
         // oscillator
         dsp DSP2 = FaustEngine.create("osc", prog2);
         
@@ -43,9 +53,12 @@ class TestFaustEngine
         
         System.out.println("getParamsCount : " + FaustEngine.getParamsCount(DSP2));
     
-        Thread.sleep(100*200);
+        Thread.sleep(100*100);
         
         FaustEngine.stop(DSP1);
         FaustEngine.stop(DSP2);
+        
+        FaustEngine.destroy(DSP1);
+        FaustEngine.destroy(DSP2);
     }
 }
