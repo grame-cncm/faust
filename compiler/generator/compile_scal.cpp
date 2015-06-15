@@ -115,7 +115,7 @@ startTiming("ScalarCompiler::prepare");
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
     conditionAnnotation(L3);
-    //conditionStatistics(L3);        // count condition occurences
+    conditionStatistics(L3);        // count condition occurences
 
 	// dump normal form
 	if (gDumpNorm) {

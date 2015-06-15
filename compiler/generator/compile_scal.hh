@@ -50,7 +50,6 @@ class ScalarCompiler : public Compiler
     property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
     unordered_map<Tree, Tree>    fConditionProperty;             // used with the new X,Y:mute --> sigMute(X*Y,Y>0) primitive
-    unordered_map<Tree, int>     fConditionStatistics;           // used with the new X,Y:mute --> sigMute(X*Y,Y>0) primitive
 
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
