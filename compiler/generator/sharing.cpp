@@ -153,10 +153,27 @@ void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
 //------------------------------------------------------------------------------
 // Condition annotation due to muted expressions
 //------------------------------------------------------------------------------
+#if 0
 void ScalarCompiler::conditionStatistics(Tree l)
 {
     for (const auto& p : fConditionProperty) {
         fConditionStatistics[p.second]++;
+    }
+    std::cout << "\nConditions statistics" << std::endl;
+    for (const auto& p : fConditionStatistics) {
+        std::cout << ppsig(p.first) << ":" << p.second << std::endl;
+
+    }
+}
+#endif
+
+void ScalarCompiler::conditionStatistics(Tree l)
+{
+    unordered_map<Tree, int>     fConditionStatistics;           // used with the new X,Y:mute --> sigMute(X*Y,Y>0) primitive
+    for (const auto& p : fConditionProperty) {
+        for (Tree lc= p.second; !isNil(lc); lc=tl(lc)) {
+            fConditionStatistics[hd(lc)]++;
+        }
     }
     std::cout << "\nConditions statistics" << std::endl;
     for (const auto& p : fConditionStatistics) {
