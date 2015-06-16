@@ -1,0 +1,55 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs fausgen~ patch			    #
+#               (c) Grame, 2015                                     #
+#                                                                   #
+#####################################################################
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust
+  JSFILE_PATH="\/usr\/local\/lib\/faust\/max-msp\/ui.js"
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust
+  JSFILE_PATH="\/usr\/lib\/faust\/max-msp\/ui.js"
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+
+for p in $FILES; do
+
+    f=$(basename "$p")
+
+    # create Max patch
+    cat $FAUSTLIB/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    sed -e "s/DSP_NAME/"$f"/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
+    sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+      
+    rm ${f%.dsp}-temp1.maxpat
+    rm ${f%.dsp}-temp2.maxpat
+    
+done
+
+

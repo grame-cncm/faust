@@ -176,11 +176,13 @@ install :
 	make -C tools/faust2appls install
 	# install sound converter
 	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
-	#install faustremote
+	# install faustremote
 	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
 	cp embedded/faustremote/remote-dsp.h  $(prefix)/include/faust/dsp/
 	# install webaudio
 	cp -r architecture/webaudio $(prefix)/lib/faust/
+	# install Max/MSP
+	cp -r architecture/max-msp $(prefix)/lib/faust/
 
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
