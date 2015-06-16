@@ -36,7 +36,7 @@ using namespace std;
 
 #include "instructions.hh"
 
-class InstComplexityVisitor : public InstVisitor {
+class InstComplexityVisitor : public DispatchVisitor {
 
     private:
 
@@ -48,33 +48,38 @@ class InstComplexityVisitor : public InstVisitor {
         int fCast;
         int fSelect;
         int fLoop;
+        int fFunCall;
 
     public:
 
         InstComplexityVisitor()
-            :fLoad(0), fStore(0), fBinop(0), fNumbers(0);
-            fDeclare(0), fCast(0), fSelect(0), fLoop(0)
+            :fLoad(0), fStore(0), fBinop(0), fNumbers(0),
+            fDeclare(0), fCast(0), fSelect(0), fLoop(0), fFunCall(0)
         {}
         virtual ~InstComplexityVisitor()
         {}
 
         virtual void visit(Printable* inst) {}
 
-        virtual void visit(DeclareVarInst* inst) { fDeclare++; inst->fValue->accept(this); }
-        virtual void visit(DeclareFunInst* inst) {}
-
+        virtual void visit(DeclareVarInst* inst) { fDeclare++;  DispatchVisitor::visit(inst); }
+    
         virtual void visit(LoadVarInst* inst) { fLoad++; }
-        virtual void visit(StoreVarInst* inst) { fStore++; inst->fValue->accept(this);}
+        virtual void visit(StoreVarInst* inst) { fStore++; DispatchVisitor::visit(inst); }
 
         virtual void visit(FloatNumInst* inst) { fNumbers++; }
         virtual void visit(IntNumInst* inst) { fNumbers++; }
         virtual void visit(BoolNumInst* inst) { fNumbers++; }
         virtual void visit(DoubleNumInst* inst) { fNumbers++; }
 
-        virtual void visit(BinopInst* inst) { fBinop++; inst->fInst1->accept(this); inst->fInst2->accept(this);}
-        virtual void visit(CastNumInst* inst) { fCast++; inst->fInst->accept(this); }
+        virtual void visit(BinopInst* inst) { fBinop++; DispatchVisitor::visit(inst); }
+        virtual void visit(CastNumInst* inst) { fCast++; DispatchVisitor::visit(inst); }
 
-        virtual void visit(FunCallInst* inst) {}    // Needs a cost table for a set of standard functions?
+         // Needs a cost table for a set of standard functions?
+        virtual void visit(FunCallInst* inst) 
+        {
+            fFunCall++;
+            DispatchVisitor::visit(inst);
+        }   
 
         virtual void visit(IfInst* inst)
         {
@@ -82,12 +87,13 @@ class InstComplexityVisitor : public InstVisitor {
             inst->fCond->accept(this);
 
             // Max of the 2 branch cast
-            InstComplexityVisitor then_branch
+            InstComplexityVisitor then_branch;
             inst->fThen->accept(&then_branch);
 
-            InstComplexityVisitor else_branch
+            InstComplexityVisitor else_branch;
             inst->fThen->accept(&else_branch);
 
+            // Takes the max of bth then/els branches
             if (then_branch.cost() > else_branch.cost()) {
                 fLoad += then_branch.fLoad;
                 fStore += then_branch.fStore;
@@ -108,20 +114,30 @@ class InstComplexityVisitor : public InstVisitor {
                 fLoop += else_branch.fLoop;
             }
         }
-
-        virtual void visit(LoopInst* inst)
+       
+        virtual void visit(ForLoopInst* inst)
         {
             fLoop++;
-
-            std::list<Inst*>::const_iterator it;
-            for (it = inst->fInstructions.begin(); it != inst->fInstructions.end(); it++) {
-                (*it)->accept(this);
-            }
+            DispatchVisitor::visit(inst);
+        }
+        
+        void dump(ostream* dst)
+        {
+            *dst << "Instructions complexity" << endl;
+            *dst << "Load = " << fLoad << endl;
+            *dst << "Store = " << fStore << endl;
+            *dst << "Binop = " << fBinop << endl;
+            *dst << "Numbers = " << fNumbers << endl;
+            *dst << "Declare = " << fDeclare << endl;
+            *dst << "Cast = " << fCast << endl;
+            *dst << "Select = " << fSelect << endl;
+            *dst << "Loop = " << fLoop << endl;
+            *dst << "Funcall = " << fFunCall << endl;
         }
 
         int cost()
         {
-            // Un polynome basé sur toutes les valeurs mesurées
+            // A polynom based on measured values
             return 0;
         }
 

@@ -357,7 +357,6 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
             } else {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
-            
         }
 //        else if(strcmp(url, "/DeleteFactory") == 0){
 //                    

@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "fir_code_container.hh"
+#include "instructions_complexity.hh"
 #include "global.hh"
 
 using namespace std;
@@ -128,10 +129,19 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
     }
 }
 
+static void dumpCost(StatementInst* inst, ostream* dst)
+{
+    InstComplexityVisitor complexity;
+    inst->accept(&complexity);
+    complexity.dump(dst);
+}
+
 void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
+        // Complexity estimation
+        dumpCost(fComputeBlockInstructions, dst);
         *dst << std::endl;
         fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
@@ -192,13 +202,15 @@ void FirCodeContainer::dump(ostream* dst)
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     *dst << "======= Compute DSP ==========" << std::endl;
-    *dst << std::endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+    // Complexity estimation
+    dumpCost(loop, dst);
+    *dst << std::endl;
     loop->accept(&firvisitor);
     *dst << std::endl;
 }
 
-void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+void FirVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Generate it
     fDAGBlock->accept(&firvisitor);
@@ -208,6 +220,8 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
         *dst << std::endl;
         *dst << "======= Separated functions ==========" << std::endl;
         *dst << std::endl;
+        // Complexity estimation
+        dumpCost(fComputeFunctions, dst);
         fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
     } else {
@@ -225,6 +239,8 @@ void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
         *dst << std::endl;
         *dst << "======= Separated functions ==========" << std::endl;
         *dst << std::endl;
+        // Complexity estimation
+        dumpCost(fComputeFunctions, dst);
         fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
     }
@@ -237,6 +253,8 @@ void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostre
         *dst << std::endl;
         *dst << "======= Separated functions ==========" << std::endl;
         *dst << std::endl;
+        // Complexity estimation
+        dumpCost(fComputeFunctions, dst);
         fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
     }
