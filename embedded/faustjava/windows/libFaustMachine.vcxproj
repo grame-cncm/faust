@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libFaustMachine</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>FaustEngine</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBFAUSTMACHINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBFAUSTMACHINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>.;../../../architecture;C:\Program Files %28x86%29\Java\jdk1.8.0_45\include;C:\Program Files %28x86%29\Java\jdk1.8.0_45\include\win32;C:\Program Files %28x86%29\Jack\includes;C:\Users\Sarah\DevTools\portaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>C:\Users\Sarah\DevTools\libopenssl\lib\libeay32.lib;C:\Users\Sarah\DevTools\libopenssl\lib\ssleay32.lib;C:\Users\Sarah\faudiostream-code\windows\_output\Win32\Release\libfaust\faust.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMMCDisassembler.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\gtest_main.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\gtest.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMIRReader.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMAsmParser.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMDebugInfo.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMInterpreter.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86Disassembler.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86AsmParser.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMTableGen.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMOption.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMInstrumentation.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMMCJIT.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMJIT.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMRuntimeDyld.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMExecutionEngine.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMLTO.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMLinker.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMipo.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMVectorize.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMBitWriter.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMBitReader.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86CodeGen.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86Desc.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86Info.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86AsmPrinter.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMX86Utils.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMSelectionDAG.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMAsmPrinter.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMMCParser.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMCodeGen.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMObjCARCOpts.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMScalarOpts.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMInstCombine.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMTransformUtils.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMipa.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMAnalysis.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMTarget.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMMC.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMObject.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMCore.lib;C:\Users\Sarah\DevTools\llvm-3.4\lib\Release\LLVMSupport.lib;C:\Users\Sarah\faudiostream-code\windows\_output\Win32\Release\libOSCFaust\libOSCFaust.lib;C:\Users\Sarah\faudiostream-code\windows\_output\Win32\Release\liboscpack\liboscpack.lib;C:\Users\Sarah\faudiostream-code\windows\_output\Win32\Release\libHTTPD\libHTTPDFaust.lib;C:\Users\Sarah\DevTools\qrencode-win32-681f2ea7a41f\qrencode-win32\vc8\.build\Release-Lib\qrcodelib.lib;C:\Users\Sarah\DevTools\curl-7.35.0-win32\lib\libcurl.lib;C:\Users\Sarah\DevTools\libmicrohttpd\lib\libmicrohttpd.lib;Ws2_32.lib;winmm.lib;"C:\Program Files (x86)\Jack\lib\libjack.lib";C:\Users\Sarah\DevTools\libjacknet\lib\libjacknet.lib;C:\Users\Sarah\DevTools\portaudio\build\msvc\Win32\Release\portaudio_x86.lib;gdi32.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\FaustEngine.cpp" />
+    <ClCompile Include="..\FaustEngine_wrap.cxx" />
+    <ClCompile Include="..\Faust_wrap.cxx" />
+    <ClCompile Include="..\libfaust_ext.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFaust", "libFaust.vcxproj", "{AEB29C1E-F2CD-4BE4-9794-242AC62A71C7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFaustMachine", "libFaustMachine.vcxproj", "{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AEB29C1E-F2CD-4BE4-9794-242AC62A71C7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AEB29C1E-F2CD-4BE4-9794-242AC62A71C7}.Debug|Win32.Build.0 = Debug|Win32
+		{AEB29C1E-F2CD-4BE4-9794-242AC62A71C7}.Release|Win32.ActiveCfg = Release|Win32
+		{AEB29C1E-F2CD-4BE4-9794-242AC62A71C7}.Release|Win32.Build.0 = Release|Win32
+		{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}.Debug|Win32.Build.0 = Debug|Win32
+		{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}.Release|Win32.ActiveCfg = Release|Win32
+		{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
