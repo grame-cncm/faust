@@ -44,7 +44,7 @@
 #include "faust/gui/MapUI.h"
 #include "faust/gui/ValueConverter.h"
 #ifdef _WIN32
-
+#include "faust/audio/portaudio-dsp.h"	
 #else
 #include "faust/audio/coreaudio-dsp.h"	
 #endif
@@ -350,9 +350,11 @@ bool init2(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
     
     switch (renderer) {
     
+	#ifdef _WIN32
         case kPortAudioRenderer:
-            //dsp->fDriver = new portaudio(sr, bsize);
+            dsp->fDriver = new portaudio(sr, bsize);
             break;
+	#endif
             
         case kJackRenderer:
             dsp->fDriver = new jackaudio(0, 0);
@@ -377,6 +379,7 @@ bool init2(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
 bool init1(dsp* dsp, const char* name)
 {
 	return init2(dsp, name, -1, 512, kJackRenderer);
+	//return init2(dsp, name, 44100, 2048, kPortAudioRenderer);
 }
 
 void destroy(dsp* dsp_ext)

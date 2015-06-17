@@ -14,12 +14,12 @@ public class FaustEngineJNI {
   public final static native int kPortAudioRenderer_get();
   public final static native int kJackRenderer_get();
   public final static native int kCoreAudioRenderer_get();
-  public final static native long create__SWIG_0(String jarg1, String jarg2);
-  public final static native long create__SWIG_1(String jarg1, String jarg2, String jarg3, String jarg4, int jarg5);
+  public final static native long create1(String jarg1, String jarg2);
+  public final static native long create2(String jarg1, String jarg2, String jarg3, String jarg4, int jarg5);
   public final static native String getLastError();
   public final static native void destroy(long jarg1, dsp jarg1_);
-  public final static native boolean init__SWIG_0(long jarg1, dsp jarg1_, String jarg2);
-  public final static native boolean init__SWIG_1(long jarg1, dsp jarg1_, String jarg2, int jarg3, int jarg4, int jarg5);
+  public final static native boolean init1(long jarg1, dsp jarg1_, String jarg2);
+  public final static native boolean init2(long jarg1, dsp jarg1_, String jarg2, int jarg3, int jarg4, int jarg5);
   public final static native boolean start(long jarg1, dsp jarg1_);
   public final static native void stop(long jarg1, dsp jarg1_);
   public final static native String getJSON(long jarg1, dsp jarg1_);

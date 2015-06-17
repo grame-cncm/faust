@@ -20,10 +20,11 @@ class TestFaustEngine
         
         // noise generator
         String prog1 = "random = +(12345)~*(1103515245); noise = random/2147483647.0; process = noise * vslider(\"Volume\", 0.5, 0, 1, 0.01)<:_,_;";
+
    
         //dsp DSP1 = FaustEngine.create1("noise", prog1);
        
-        String argv = "-vec " + "-lv " + "1";
+        String argv = "-vec " + "-lv " + "1 " + "-l " + "llvm_math.ll " + "-I " + "C:\\Users\\Sarah\\faudiostream-code\\architecture";
         System.out.println(argv);
         dsp DSP1 = FaustEngine.create2("noise", prog1, argv, "", 3);
         
@@ -44,14 +45,19 @@ class TestFaustEngine
         //prog2 = prog1;
 
         // oscillator
-        dsp DSP2 = FaustEngine.create("osc", prog2);
+        //dsp DSP2 = FaustEngine.create1("osc", prog2);
+
+        System.out.println(argv);
+        dsp DSP2 = FaustEngine.create2("osc", prog2, argv, "", 3);
+
+System.out.println(DSP2);
         
-        System.out.println(FaustEngine.getJSON(DSP2));
+        //System.out.println(FaustEngine.getJSON(DSP2));
           
-        FaustEngine.init1(DSP2, "Test");
+         FaustEngine.init1(DSP2, "Test2");
         FaustEngine.start(DSP2);
         
-        System.out.println("getParamsCount : " + FaustEngine.getParamsCount(DSP2));
+       // System.out.println("getParamsCount : " + FaustEngine.getParamsCount(DSP2));
     
         Thread.sleep(100*100);
         

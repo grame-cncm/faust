@@ -276,7 +276,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_kCoreAudioRenderer_1
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create1(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -294,7 +294,7 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create_1_1SWIG_10(J
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (dsp *)create((char const *)arg1,(char const *)arg2);
+  result = (dsp *)create1((char const *)arg1,(char const *)arg2);
   *(dsp **)&jresult = result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
@@ -302,7 +302,7 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create_1_1SWIG_10(J
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2, jstring jarg3, jstring jarg4, jint jarg5) {
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create2(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2, jstring jarg3, jstring jarg4, jint jarg5) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -334,7 +334,7 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create_1_1SWIG_11(J
     if (!arg4) return 0;
   }
   arg5 = (int)jarg5; 
-  result = (dsp *)create((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5);
+  result = (dsp *)create2((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5);
   *(dsp **)&jresult = result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
@@ -367,7 +367,7 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_destroy(JNIEnv *jenv
 }
 
 
-SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_init_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_init1(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   jboolean jresult = 0 ;
   dsp *arg1 = (dsp *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -382,14 +382,14 @@ SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_init_1_1SWIG_10(
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (bool)init(arg1,(char const *)arg2);
+  result = (bool)init1(arg1,(char const *)arg2);
   jresult = (jboolean)result; 
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_init_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2, jint jarg3, jint jarg4, jint jarg5) {
+SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_init2(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2, jint jarg3, jint jarg4, jint jarg5) {
   jboolean jresult = 0 ;
   dsp *arg1 = (dsp *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -410,7 +410,7 @@ SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_init_1_1SWIG_11(
   arg3 = (int)jarg3; 
   arg4 = (int)jarg4; 
   arg5 = (int)jarg5; 
-  result = (bool)init(arg1,(char const *)arg2,arg3,arg4,arg5);
+  result = (bool)init2(arg1,(char const *)arg2,arg3,arg4,arg5);
   jresult = (jboolean)result; 
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   return jresult;
