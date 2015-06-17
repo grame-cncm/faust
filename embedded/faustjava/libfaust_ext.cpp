@@ -37,6 +37,12 @@
 #include <stdlib.h>
 #include <sstream>
 
+#ifdef _WIN32
+#define STRDUP _strdup
+#else
+#define STRDUP strdup
+#endif
+
 using namespace std;
 
 static char gLastError[256];
@@ -51,7 +57,7 @@ llvm_dsp_factory* createCDSPFactoryFromFileAux(const char* filename, const char*
                
     // Allocate parameters
     while (os >> token) {               
-        argv1[argc1++] = strdup(token.c_str());
+        argv1[argc1++] = STRDUP(token.c_str());
     }
         
     llvm_dsp_factory* factory = createCDSPFactoryFromFile(filename, argc1, argv1, target, gLastError, opt_level);
@@ -73,7 +79,7 @@ llvm_dsp_factory* createCDSPFactoryFromStringAux(const char* name_app, const cha
     
     // Allocate parameters             
     while (os >> token) {               
-        argv1[argc1++] = strdup(token.c_str());
+        argv1[argc1++] = STRDUP(token.c_str());
     }
     
     llvm_dsp_factory* factory = createCDSPFactoryFromString(name_app, dsp_content, argc1, argv1, target, gLastError, opt_level);
@@ -89,4 +95,3 @@ const char* getCDSPLastError()
 {
     return gLastError;
 }
-

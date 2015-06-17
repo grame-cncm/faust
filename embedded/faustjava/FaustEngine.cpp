@@ -43,9 +43,20 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/gui/ValueConverter.h"
+#ifdef _WIN32
+
+#else
 #include "faust/audio/coreaudio-dsp.h"	
+#endif
+
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
+
+#ifdef _WIN32
+#define STRDUP _strdup
+#else
+#define STRDUP strdup
+#endif
 
 //**************************************************************
 // APIUI : Faust User Interface
@@ -278,7 +289,12 @@ struct dsp_aux {
 
 // Exported external API
 
-dsp* create(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+dsp* create2(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
 {
     dsp_aux* dsp_ext = 0;
     {
@@ -291,7 +307,7 @@ dsp* create(const char* name_app, const char* dsp_content, const char* argv, con
         
         // Allocate parameters
         while (os >> token) {               
-            argv1[argc1++] = strdup(token.c_str());
+            argv1[argc1++] = STRDUP(token.c_str());
         }
  
         dsp_ext->fFactory = createDSPFactoryFromString(name_app, dsp_content, argc1, argv1, "", gLastError, opt_level);
@@ -320,14 +336,14 @@ error:
     return 0;
 }
 
-dsp* create(const char* name_app, const char* dsp_content)
+dsp* create1(const char* name_app, const char* dsp_content)
 {
-    return create(name_app, dsp_content, "", "", 3);
+    return create2(name_app, dsp_content, "", "", 3);
 }
 
 const char* getLastError() { return gLastError.c_str(); }
 
-bool init(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
+bool init2(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
 {
     dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
     dsp->fName = name;
@@ -341,10 +357,11 @@ bool init(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
         case kJackRenderer:
             dsp->fDriver = new jackaudio(0, 0);
             break;
-            
+	#ifdef __APPLE__
         case kCoreAudioRenderer:
             dsp->fDriver = new coreaudio(sr, bsize);
             break;
+	#endif
     
     };
     
@@ -357,9 +374,9 @@ bool init(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
     }
 }
 
-bool init(dsp* dsp, const char* name)
+bool init1(dsp* dsp, const char* name)
 {
-	return init(dsp, name, -1, 512, kJackRenderer);
+	return init2(dsp, name, -1, 512, kJackRenderer);
 }
 
 void destroy(dsp* dsp_ext)
@@ -413,3 +430,7 @@ float ratio2value(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_a
 void propagateAccX(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccX(a); }
 void propagateAccY(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
 void propagateAccZ(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
+
+#ifdef __cplusplus
+}
+#endif

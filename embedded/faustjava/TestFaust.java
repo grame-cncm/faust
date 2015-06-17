@@ -9,7 +9,7 @@ class TestFaust
 		try {
 			String property = System.getProperty("java.library.path");
 			System.out.println("java.library.path = " + property);
-			System.loadLibrary("Faust"); 
+			System.loadLibrary("libFaust"); 
         } catch (UnsatisfiedLinkError e) {
             System.err.println("Native code library failed to load.\n" + e);
             System.exit(1);
@@ -22,7 +22,7 @@ class TestFaust
         // noise generator
         String prog = "random = +(12345)~*(1103515245); noise1 = random/2147483647.0; process = noise1 * vslider(\"Volume\", 0.5, 0, 1, 0.01)<:_,_;";
         
-        String argv = "-vec " + "-lv " + "1 ";
+        String argv = "-vec " + "-lv " + "1 " + "-l " + "llvm_math.ll";
         //String argv = "-vec " + "-lv " + "1 " + "-I " + "/Documents/faust-sf/embedded/faustjava/test_lib/";
         
         System.out.println(argv);

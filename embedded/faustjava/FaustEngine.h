@@ -14,20 +14,25 @@ drivers.
  * sampling rate and buffer size. Then start() is called to open the drivers and 
  * start processing audio until stop() is called.
  */
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
  
 typedef struct {} dsp;
 
 enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
 
-dsp* create(const char* name_app, const char* dsp_content);
-dsp* create(const char* name_app, const char* dsp_content,  const char* argv, const char* target, int opt_level);
+dsp* create1(const char* name_app, const char* dsp_content);
+dsp* create2(const char* name_app, const char* dsp_content,  const char* argv, const char* target, int opt_level);
 
 const char* getLastError();
 
 void destroy(dsp* dsp);
 
-bool init(dsp* dsp, const char* name);                                  ///< init Faust object with default system values
-bool init(dsp* dsp, const char* name, int renderer, int sr, int bsize);	///< init the Faust object
+bool init1(dsp* dsp, const char* name);                                  ///< init Faust object with default system values
+bool init2(dsp* dsp, const char* name, int renderer, int sr, int bsize);	///< init the Faust object
 
 bool start(dsp* dsp);			///< open the audio drivers and starts processing audio
 void stop(dsp* dsp);			///< stops processing audio and closes the audio drivers
@@ -65,3 +70,7 @@ void propagateAccZ(dsp* dsp, float a);			///< propagate z accelerometer influenc
 
 /************************************************************************
 ************************************************************************/
+
+#ifdef __cplusplus
+}
+#endif
