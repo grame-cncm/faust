@@ -44,7 +44,7 @@ class TestFaustEngine
         //prog2 = prog1;
 
         // oscillator
-        dsp DSP2 = FaustEngine.create("osc", prog2);
+        dsp DSP2 = FaustEngine.create1("osc", prog2);
         
         System.out.println(FaustEngine.getJSON(DSP2));
           

@@ -9,13 +9,13 @@
 package com.grame.faust;
 
 public class FaustEngine implements FaustEngineConstants {
-  public static dsp create(String name_app, String dsp_content) {
-    long cPtr = FaustEngineJNI.create__SWIG_0(name_app, dsp_content);
+  public static dsp create1(String name_app, String dsp_content) {
+    long cPtr = FaustEngineJNI.create1(name_app, dsp_content);
     return (cPtr == 0) ? null : new dsp(cPtr, false);
   }
 
-  public static dsp create(String name_app, String dsp_content, String argv, String target, int opt_level) {
-    long cPtr = FaustEngineJNI.create__SWIG_1(name_app, dsp_content, argv, target, opt_level);
+  public static dsp create2(String name_app, String dsp_content, String argv, String target, int opt_level) {
+    long cPtr = FaustEngineJNI.create2(name_app, dsp_content, argv, target, opt_level);
     return (cPtr == 0) ? null : new dsp(cPtr, false);
   }
 
@@ -27,12 +27,12 @@ public class FaustEngine implements FaustEngineConstants {
     FaustEngineJNI.destroy(dsp.getCPtr(dsp), dsp);
   }
 
-  public static boolean init(dsp dsp, String name) {
-    return FaustEngineJNI.init__SWIG_0(dsp.getCPtr(dsp), dsp, name);
+  public static boolean init1(dsp dsp, String name) {
+    return FaustEngineJNI.init1(dsp.getCPtr(dsp), dsp, name);
   }
 
-  public static boolean init(dsp dsp, String name, int renderer, int sr, int bsize) {
-    return FaustEngineJNI.init__SWIG_1(dsp.getCPtr(dsp), dsp, name, renderer, sr, bsize);
+  public static boolean init2(dsp dsp, String name, int renderer, int sr, int bsize) {
+    return FaustEngineJNI.init2(dsp.getCPtr(dsp), dsp, name, renderer, sr, bsize);
   }
 
   public static boolean start(dsp dsp) {
