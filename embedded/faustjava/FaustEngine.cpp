@@ -311,8 +311,8 @@ dsp* create2(const char* name_app, const char* dsp_content, const char* argv, co
         }
 
     #ifdef _WIN32
-        argv1[argc1++] = "-l";
-        argv1[argc1++] = "llvm_math.ll"; 
+        argv1[argc1++] = STRDUP("-l");
+        argv1[argc1++] = STRDUP("llvm_math.ll"); 
     #endif
  
         dsp_ext->fFactory = createDSPFactoryFromString(name_app, dsp_content, argc1, argv1, "", gLastError, opt_level);
