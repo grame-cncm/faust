@@ -24,7 +24,7 @@ class TestFaustEngine
    
         //dsp DSP1 = FaustEngine.create1("noise", prog1);
        
-        String argv = "-vec " + "-lv " + "1 " + "-l " + "llvm_math.ll " + "-I " + "C:\\Users\\Sarah\\faudiostream-code\\architecture";
+        String argv = "-vec " + "-lv " + "1 " + "-I " + "C:\\Users\\Sarah\\faudiostream-code\\architecture";
         System.out.println(argv);
         dsp DSP1 = FaustEngine.create2("noise", prog1, argv, "", 3);
         

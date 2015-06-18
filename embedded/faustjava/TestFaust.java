@@ -24,7 +24,7 @@ class TestFaust
         
         //String argv = "-vec " + "-lv " + "1 ";
         
-        String argv = "-vec " + "-lv " + "1 " + "-l " + "llvm_math.ll";
+        String argv = "-vec " + "-lv " + "1 ";
         //String argv = "-vec " + "-lv " + "1 " + "-I " + "/Documents/faust-sf/embedded/faustjava/test_lib/";
         
         System.out.println(argv);
