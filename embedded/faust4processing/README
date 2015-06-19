@@ -1,0 +1,6 @@
+faust4processing : a Faust library for processing
+-------------------------------------------------
+
+You need to have faust2 compiled and installed.
+Check and change if needed the location of Processing in the Makefile
+Then 'make' and 'make install'

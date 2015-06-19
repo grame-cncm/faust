@@ -1,0 +1,73 @@
+#!/bin/bash
+
+#
+# Converts a faust .dsp file into .pde source file for processing. The Faust program
+# is transformed in a set of Java strings. The resulting program uses the 
+# faustProcessing library to compile and run the dsp code.
+#
+# Use : faust2pde foo.dsp ---> foo.pde
+#
+
+N=${1%.*}
+F=$N.pde
+
+cat > $F <<EOT1  
+// 
+// $N : an example of signal processor embedded in Processing
+//
+
+import faustProcessing.*;		// package needed to compile Faust programs
+import controlP5.*;				// package used to build a default user interface
+
+ControlP5       cp5;
+FaustProcessing $N;
+
+void setup() 
+{
+	// prepare the user interface
+  	size(480, 120);
+  	cp5 = new ControlP5(this);
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+  
+	// Define and compile $N signal processor"
+  	$N = new FaustProcessing(this, "$N", 
+EOT1
+
+TAB=$'\t\t\t'
+sed 's/"/\\"/g;s/^/'"${TAB}"'"/;s/$/\\n"+/;$s/+//' $1 >> $F
+
+cat  >> $F  <<EOT2
+	);
+  
+	// build $N's user interface by querying the available parameters
+	int nbr=$N.getParamsCount();
+    size(600, 50 + nbr*25 + 45);
+    
+    cp5 = new ControlP5(this);
+  
+	for (int i=0; i<nbr; i++) {
+		cp5.addSlider($N.getParamName(i))
+			.setPosition(50, i*25+50)
+			.setSize(300, 20)
+			.setRange($N.getParamMin(i), $N.getParamMax(i))
+			.setValue($N.getParamValue(i))
+			.setId(i)
+		;
+	}
+}
+
+void draw() 
+{
+  	background(0);
+}
+
+void controlEvent(ControlEvent e) 
+{
+  	if (frameCount>1) {
+    	int id=e.getController().getId();
+    	float val=e.getController().getValue();
+    	if ($N != null) { $N.setParamValue(id,val); }
+  	}
+}
+
+EOT2
