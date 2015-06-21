@@ -49,7 +49,7 @@ class ScalarCompiler : public Compiler
     property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
     property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
-    unordered_map<Tree, Tree>    fConditionProperty;             // used with the new X,Y:mute --> sigMute(X*Y,Y>0) primitive
+    unordered_map<Tree, Tree>    fConditionProperty;             // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
@@ -165,7 +165,7 @@ class ScalarCompiler : public Compiler
 
     void            declareWaveform(Tree sig, string& vname, int& size);
 
-    virtual string  generateMute (Tree sig, Tree x, Tree y);
+    virtual string  generateEnable (Tree sig, Tree x, Tree y);
 
     string          cnf2code(Tree cc);
     string          or2code(Tree oc);

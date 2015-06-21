@@ -133,7 +133,7 @@ extern int yydebug;
     LIBRARY = 343,
     ENVIRONMENT = 344,
     WAVEFORM = 345,
-    MUTE = 346,
+    ENABLE = 346,
     IPAR = 347,
     ISEQ = 348,
     ISUM = 349,

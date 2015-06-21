@@ -193,7 +193,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "environment"   return ENVIRONMENT;
 
 "waveform"  return WAVEFORM;
-"mute"   	return MUTE;
+"enable"   	return ENABLE;
 
 "declare"	return DECLARE;
 

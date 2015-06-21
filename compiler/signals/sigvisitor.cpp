@@ -70,7 +70,7 @@ void sigvisitor::visit(Tree sig)
 		
     else if (isSigAttach(sig, s1, s2)) 						visitAttach(sig, s1, s2);
 
-    else if (isSigMute(sig, s1, s2)) 						visitMute(sig, s1, s2);
+    else if (isSigEnable(sig, s1, s2)) 						visitEnable(sig, s1, s2);
 
 				
 	//------------------------

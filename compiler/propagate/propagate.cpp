@@ -31,7 +31,7 @@
 #include "ppsig.hh"
 #include "names.hh"
 
-extern bool gMuteFlag;
+extern bool gEnableFlag;
 
 //extern bool gPrintDocSwitch;
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
@@ -349,13 +349,13 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	else if (isBoxPrim2(box, &p2)) 				{ 
 //		printf("prim2 recoit : "); print(lsig); printf("\n");
 		assert(lsig.size()==2); 
-        if (p2 == &sigMute) {
-            if (gMuteFlag) {
-                // special case for sigMute that requires a transformation
-                // mute(X,Y) -> sigMute(X*Y, Y>0)
-                return makeList( sigMute( sigMul(lsig[0],lsig[1]), sigGT(lsig[1],sigReal(0.0)) ) );
+        if (p2 == &sigEnable) {
+            if (gEnableFlag) {
+                // special case for sigEnable that requires a transformation
+                // enable(X,Y) -> sigEnable(X*Y, Y>0)
+                return makeList( sigEnable( sigMul(lsig[0],lsig[1]), sigGT(lsig[1],sigReal(0.0)) ) );
             } else {
-                // We gMuteFlag is disabled we replace mute by a simple multiplication
+                // We gEnableFlag is false we replace enable by a simple multiplication
                 return makeList( sigMul(lsig[0],lsig[1]) );
             }
         }

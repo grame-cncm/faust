@@ -232,7 +232,7 @@ string	DocCompiler::generateCode (Tree sig, int priority)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ printGCCall(sig,"generateVBargraph");	return CS(z, priority);}//generateVBargraph 	(sig, label, x, y, CS(z, priority)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printGCCall(sig,"generateHBargraph");	return CS(z, priority);}//generateHBargraph 	(sig, label, x, y, CS(z, priority)); }
     else if ( isSigAttach(sig, x, y) )				{ printGCCall(sig,"generateAttach");	return generateAttach	(sig, x, y, priority); }
-    else if ( isSigMute(sig, x, y) )				{ printGCCall(sig,"generateMute");      return generateMute	(sig, x, y, priority); }
+    else if ( isSigEnable(sig, x, y) )				{ printGCCall(sig,"generateEnable");      return generateEnable	(sig, x, y, priority); }
 
 	else {
         cerr << "Error in d signal, unrecognized signal : " << *sig << endl;
@@ -400,7 +400,7 @@ static bool associative (int opcode) {
     return (opcode == kAdd) || (opcode == kMul) || (opcode == kAND) || (opcode == kOR) || (opcode == kXOR);
 }
 
-string DocCompiler::generateMute(Tree sig, Tree arg1, Tree arg2, int priority)
+string DocCompiler::generateEnable(Tree sig, Tree arg1, Tree arg2, int priority)
 {
     return generateBinOp(sig, kMul, arg1, arg2, priority);
 }
@@ -744,23 +744,6 @@ string DocCompiler::generateAttach (Tree sig, Tree x, Tree y, int priority)
 
     return generateCacheCode(sig, exp);
 }
-
-/*
-string DocCompiler::generateMute (Tree sig, Tree x, Tree y, int priority)
-{
-    string vname;
-    string exp;
-
-    CS(y, priority);
-    exp = CS(x, priority);
-
-    if(getVectorNameProperty(x, vname)) {
-        setVectorNameProperty(sig, vname);
-    }
-
-    return generateCacheCode(sig, exp);
-}
-*/
 
 
 

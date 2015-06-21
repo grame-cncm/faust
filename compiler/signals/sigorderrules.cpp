@@ -144,7 +144,7 @@ static int infereSigOrder(Tree sig)
 		
     else if (isSigAttach(sig, s1, s2)) 			return O(s1);
 
-    else if (isSigMute(sig, s1, s2)) 			return O(s1);
+    else if (isSigEnable(sig, s1, s2)) 			return O(s1);
 
 	else if (isRec(sig, var, body))				exit(1); //return 3;  // not supposed to happen.
 				
