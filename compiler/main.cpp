@@ -170,8 +170,8 @@ bool            gInPlace        = false;        // add cache to input for correc
 bool            gInjectFlag     = false;        // inject an external source file into the architecture file
 string          gInjectFile     = "";           // instead of a compiled dsp file
 
-// mute
-bool            gMuteFlag       = true;         // when true uses real mute semantics otherwise multiplication semantics
+// Enable
+bool            gEnableFlag       = true;         // when true uses real enable/disable semantics otherwise multiplication semantics
 
 //-- command line tools
 
@@ -423,8 +423,8 @@ bool process_cmdline(int argc, char* argv[])
             gInPlace = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-m", "--mute-semantics")) {
-            gMuteFlag = atoi(argv[i+1]) == 1;
+        } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
+            gEnableFlag = atoi(argv[i+1]) == 1;
             i += 2;
 
         } else if (argv[i][0] != '-') {
@@ -516,7 +516,7 @@ void printhelp()
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
-    cout << "-m 1|0 \tuse --mute-semantics 1|Ø when 1 and simple multiplication otherwise";
+    cout << "-es 1|0 \tuse --enable-semantics 1|Ø when 1 and simple multiplication otherwise";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";

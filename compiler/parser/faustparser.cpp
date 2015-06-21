@@ -257,7 +257,7 @@ extern int yydebug;
     LIBRARY = 343,
     ENVIRONMENT = 344,
     WAVEFORM = 345,
-    MUTE = 346,
+    ENABLE = 346,
     IPAR = 347,
     ISEQ = 348,
     ISUM = 349,
@@ -672,7 +672,7 @@ static const char *const yytname[] =
   "REMAINDER", "FLOOR", "CEIL", "RINT", "RDTBL", "RWTBL", "SELECT2",
   "SELECT3", "INT", "FLOAT", "LAMBDA", "WIRE", "CUT", "ENDDEF", "VIRG",
   "LPAR", "RPAR", "LBRAQ", "RBRAQ", "LCROC", "RCROC", "DEF", "IMPORT",
-  "COMPONENT", "LIBRARY", "ENVIRONMENT", "WAVEFORM", "MUTE", "IPAR",
+  "COMPONENT", "LIBRARY", "ENVIRONMENT", "WAVEFORM", "ENABLE", "IPAR",
   "ISEQ", "ISUM", "IPROD", "INPUTS", "OUTPUTS", "STRING", "FSTRING",
   "IDENT", "EXTRA", "DECLARE", "CASE", "ARROW", "BDOC", "EDOC", "BEQN",
   "EEQN", "BDGM", "EDGM", "BLST", "ELST", "BMETADATA", "EMETADATA",
@@ -2399,7 +2399,7 @@ yyreduce:
 
   case 107:
 #line 479 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = boxPrim2(sigMute); }
+    { (yyval.exp) = boxPrim2(sigEnable); }
 #line 2404 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 

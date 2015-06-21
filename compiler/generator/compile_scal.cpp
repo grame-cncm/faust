@@ -392,7 +392,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
-    else if ( isSigMute(sig, x, y) )				{ return generateMute(sig, x, y); }
+    else if ( isSigEnable(sig, x, y) )				{ return generateEnable(sig, x, y); }
 
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
@@ -1021,7 +1021,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
                                PREFIX, DELAY A PREFIX VALUE
 *****************************************************************************/
 
-string ScalarCompiler::generateMute (Tree sig, Tree x, Tree y)
+string ScalarCompiler::generateEnable (Tree sig, Tree x, Tree y)
 {
     CS(y);
     return generateCacheCode(x, CS(x));
