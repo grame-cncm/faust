@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFaust", "libFaust.vcxproj", "{AEB29C1E-F2CD-4BE4-9794-242AC62A71C7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFaustMachine", "libFaustMachine.vcxproj", "{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFaustEngine", "libFaustEngine.vcxproj", "{3C855F9A-8C57-429E-BC69-1DC0A0FCEA26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
