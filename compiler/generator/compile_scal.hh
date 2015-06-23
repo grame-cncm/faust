@@ -27,7 +27,7 @@
 #define _DNF_ 1
 
 #include <utility>
-#include <unordered_map>
+#include <map>
 #include "compile.hh"
 #include "sigtyperules.hh"
 #include "sigtyperules.hh"
@@ -49,7 +49,7 @@ class ScalarCompiler : public Compiler
     property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
     property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
-    unordered_map<Tree, Tree>    fConditionProperty;             // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    map<Tree, Tree>    fConditionProperty;             // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;

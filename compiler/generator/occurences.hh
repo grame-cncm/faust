@@ -1,7 +1,7 @@
 #ifndef __OCCURENCES__
 #define __OCCURENCES__
 
-#include <unordered_map>
+#include <map>
 #include "tlib.hh"
 
 using namespace std;
@@ -37,7 +37,7 @@ class OccMarkup
 {
     Tree                        fRootTree;				///< occurences computed within this tree
     Tree                        fPropKey;				///< key used to store occurences property
-    unordered_map<Tree, Tree>   fConditions;            ///< condition associated to each tree
+    map<Tree, Tree>   fConditions;            ///< condition associated to each tree
 
     void 		incOcc (Tree env, int v, int r, int d, Tree xc, Tree t);	///< inc the occurence of t in context v,r
 	Occurences* getOcc (Tree t);						///< get Occurences property of t or null
@@ -46,7 +46,7 @@ class OccMarkup
  public:
 
     OccMarkup() {}
-    OccMarkup(unordered_map<Tree, Tree> conditions) : fConditions(conditions) {}
+    OccMarkup(map<Tree, Tree> conditions) : fConditions(conditions) {}
 
  	void 		mark(Tree root);						///< start markup of root tree with new unique key
 	Occurences* retrieve(Tree t);						///< occurences of subtree t within root tree
