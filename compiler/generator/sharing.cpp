@@ -169,7 +169,7 @@ void ScalarCompiler::conditionStatistics(Tree l)
 
 void ScalarCompiler::conditionStatistics(Tree l)
 {
-    unordered_map<Tree, int>     fConditionStatistics;           // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    map<Tree, int>     fConditionStatistics;           // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
     for (const auto& p : fConditionProperty) {
         for (Tree lc= p.second; !isNil(lc); lc=tl(lc)) {
             fConditionStatistics[hd(lc)]++;
