@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#
+# Create a set of .pde file from a set of .dsp files. 
+# The .dsp source files should be placed into two directories ./effects and ./generators.
+# ./effects/foo.dsp ---> ./examples/effects/foo/foo.pde
+# ./generators/foo.dsp --->  ./examples/generators/foo/foo.pde
+#
+
+# make sure we can find local scripts in the same directory
+# as this one
+X=`pwd`
+X="$X/src/scripts"
+export PATH="$X:$PATH"
+
+mkdir -p examples
+
+cd src/faust-examples;
+for C in *; do 
+	echo "Categorie $C"
+	cd $C;
+	for f in *.dsp; do 
+		faust2pde $f
+		D=`basename $f .dsp`; 
+		mkdir -p ../../../examples/$C/$D
+		mv $D.pde ../../../examples/$C/$D/
+	done
+	cd ..
+done
+cd ../..
