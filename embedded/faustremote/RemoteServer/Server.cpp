@@ -520,7 +520,7 @@ bool DSPServer::createFactory(connection_info_struct* con_info) {
         argv[i] = (con_info->fCompilationOptions[i]).c_str();
     }
     
-    if (isopt1(argc, argv, "-machine")) {
+    if (isopt(argv, "-machine")) {
         // Machine code
         con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fFaustCode);
     } else {
