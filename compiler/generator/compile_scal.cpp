@@ -482,13 +482,31 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 							   CACHE CODE
 *****************************************************************************/
 
+
 void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
-    if (t->nature() == kInt) {
-        ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+    vector<int> D;
+    t->dimensions(D);
+
+    int dim = D.size();     // O is scalar
+    if (dim > 0) {
+        // t is a vector
+        for (int i = D.size()-1; i>=0; i--) {
+            ctype += "v" + T(D[i]);
+        }
+        if (t->nature() == kInt) {
+            ctype += "int"; vname = subst("vi$0", getFreshID(prefix));
+        } else {
+            ctype += ifloat(); vname = subst("vf$0", getFreshID(prefix));
+        }
     } else {
-        ctype = ifloat(); vname = subst("f$0", getFreshID(prefix));
+        if (t->nature() == kInt) {
+            ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+        } else {
+            ctype = ifloat(); vname = subst("f$0", getFreshID(prefix));
+        }
     }
+    std::cerr << "CTYPE : " << ctype << std::endl;
 }
 
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
