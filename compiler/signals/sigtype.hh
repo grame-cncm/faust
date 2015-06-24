@@ -30,6 +30,7 @@
 #include "tree.hh"
 #include "smartpointer.hh"
 #include "interval.hh"
+#include "Text.hh"
 
 
 /*********************************************************************
@@ -127,7 +128,7 @@ class AudioType
     virtual bool    isMaximal() const               = 0;        ///< true when type is maximal (and therefore can't change depending of hypothesis)
 	
     virtual AudioType* dimensions(vector<int>& D)   = 0;        /// Fill D with the dimensions of the type and returns its base type
-
+    virtual string typeName()                       = 0;        /// return a string representing a valid C++ typename
   protected:	
 	void		setInterval(const interval& r)	{ fInterval = r;}
 
@@ -223,6 +224,7 @@ inline interval mergeinterval(const vector<Type>& v)
 
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i);
+AudioType* makeSimpleType(const vector<int>& dim, int n, int v, int c, int vec, int b, const interval& i);
 
 AudioType* makeTableType(const Type& ct);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec);
@@ -264,24 +266,30 @@ class SimpleType : public AudioType
 // 	}
     virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // scalar have no dimensions
 
-    virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    virtual bool    isMaximal() const;                  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 
+    virtual string  typeName()  {
+        if (fNature == kInt) { return "int"; }
+        else { return "float"; }
+    }
+        ///< return a string representing a valid C++ typename
 
 
 };
 
-inline Type intCast (Type t)	{ return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type floatCast (Type t)	{ return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type sampCast (Type t)	{ return makeSimpleType(t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type boolCast (Type t)   { return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
-inline Type numCast (Type t)    { return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), kNum, t->getInterval()); }
-inline Type vecCast (Type t)    { return makeSimpleType(t->nature(), t->variability(), t->computability(), kVect, t->boolean(), t->getInterval()); }
-inline Type scalCast (Type t)   { return makeSimpleType(t->nature(), t->variability(), t->computability(), kScal, t->boolean(), t->getInterval()); }
-inline Type truescalCast (Type t){ return makeSimpleType(t->nature(), t->variability(), t->computability(), kTrueScal, t->boolean(), t->getInterval()); }
+inline Type intCast (Type t)	{ vector<int> D; t->dimensions(D); return makeSimpleType(D, kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type floatCast (Type t)	{ vector<int> D; t->dimensions(D); return makeSimpleType(D, kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type sampCast (Type t)	{ vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type boolCast (Type t)   { vector<int> D; t->dimensions(D); return makeSimpleType(D, kInt, t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
+inline Type numCast (Type t)    { vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), t->vectorability(), kNum, t->getInterval()); }
+inline Type vecCast (Type t)    { vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), kVect, t->boolean(), t->getInterval()); }
+inline Type scalCast (Type t)   { vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), kScal, t->boolean(), t->getInterval()); }
+inline Type truescalCast (Type t){ vector<int> D; t->dimensions(D); return makeSimpleType(D, t->nature(), t->variability(), t->computability(), kTrueScal, t->boolean(), t->getInterval()); }
 
 inline Type castInterval (Type t, const interval& i)	
 { 
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean(), i);
+    vector<int> D; t->dimensions(D);
+    return makeSimpleType(D, t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean(), i);
 }
 
 /**
@@ -335,6 +343,8 @@ class TableType : public AudioType
 
     virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // tables have no dimensions
 
+    virtual string  typeName()  { return "tabletype!!!"; }
+
 };
 
 
@@ -375,6 +385,7 @@ class TupletType : public AudioType
   
     virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // tuples have no dimensions
+    virtual string  typeName()  { return "tupletype!!!"; }
 
 };
 
@@ -417,6 +428,8 @@ class VectorType : public AudioType
     virtual bool    isMaximal() const                   { return false; }           ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual AudioType* dimensions(vector<int>& D)       { AudioType* t = fContent->dimensions(D); D.push_back(fSize); return t;}    ///< vectors have a dimension
 
+    string generateDeclaration();
+    virtual string typeName()                           { return subst("v$0$1", T(fSize),  fContent->typeName()); }
 
 };
 

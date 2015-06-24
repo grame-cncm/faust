@@ -21,7 +21,6 @@ class AbsPrim : public xtended
 		assert (types.size() == arity());
 		Type t = types[0];
 		return castInterval(t, abs(t->getInterval()));
-		return t;
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}

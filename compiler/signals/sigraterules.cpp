@@ -37,6 +37,7 @@
 
 #include "sigtyperules.hh"
 #include "sigraterules.hh"
+#include "Text.hh"
 
 
 
@@ -830,7 +831,13 @@ int RateInferrer::computeRate(Tree sig)
 
         VectorType* vt = isVectorType(getCertifiedSigType(sig));
         assert(vt);
-        return rate(x) / vt->size();
+        int rx = rate(x);
+        int ry = vt->size();
+        if ((rx % ry) != 0) {
+            std::cerr << "ERROR : non integer rate " << rx << '/' << ry << " for signal " << ppsig(sig) << std::endl;
+            exit(1);
+        }
+        return rx / ry;
 
     } else if ( isSigSerialize(sig, x)) {
 
@@ -882,3 +889,22 @@ int RateInferrer::commonRate()
     return fCommonRate;
 }
 
+string RateInferrer::clock(Tree sig)         ///< returns sig's C clock expression : C_{r_i}(t) = (t*r_i)/r_c
+{
+    int p = periodicity(sig);
+    if (p>1) {
+        return subst("(i/$0)", T(p));
+    } else {
+        return "i";
+    }
+}
+
+string RateInferrer::tick(Tree sig)          ///< returns sig's C tick expression  : T_{r_i}(t) = ((t % (r_c/r_i)) == 0)
+{
+    int p = periodicity(sig);
+    if (p>1) {
+        return subst("((i%$0)==0)", T(p));
+    } else {
+        return "true";
+    }
+}
