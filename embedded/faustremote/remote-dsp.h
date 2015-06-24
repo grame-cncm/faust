@@ -72,7 +72,10 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& ip_server, 
  *
  * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
- * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param argv - the array of compilation parameters :
+ *  - Faust compile parameters (like -vec/-sch/...)
+ *  - 'machine <target>' (like '-machine x86_64-apple-macosx10.6.0') to cross-compile on client side 
+ * and send compiled machine code on server side 
  * @param ip_server - IP of remote machine
  * @param port_server - Port on which the Remote Server started
  * @param error - the error string to be filled
@@ -93,7 +96,10 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
  * @param name_app - the name of the Faust Application to be compiled
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
- * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param argv - the array of compilation parameters :
+ *  - Faust compile parameters (like -vec/-sch/...)
+ *  - 'machine <target>' (like '-machine x86_64-apple-macosx10.6.0') to cross-compile on client side 
+ * and send compiled machine code on server side 
  * @param ip_server - IP of remote machine
  * @param port_server - Port on which the Remote Server started
  * @param error - the error string to be filled

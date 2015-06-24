@@ -124,9 +124,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
            
     // Compile locally and send machine code on server side...
-    if (isopt1(argc, argv, "-machine")) {
+    if (isopt(argv, "-machine")) {
         string error;
-        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, "", error, 3);
+        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-machine", ""), error, 3);
         if (factory) {
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory);
