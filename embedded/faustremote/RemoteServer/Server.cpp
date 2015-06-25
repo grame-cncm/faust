@@ -77,25 +77,7 @@ string getJson(connection_info_struct* con_info)
 
 //--------------SLAVE DSP INSTANCE-----------------------------
 
-// Same Allocation/Deallocation Prototype as LLVM/REMOTE-DSP
-static netjack_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, 
-                                            const string& compression, 
-                                            const string& ip, 
-                                            const string& port, 
-                                            const string& mtu, 
-                                            const string& latency, 
-                                            DSPServer* server) 
-{
-    return new netjack_dsp(smartFactory, compression, ip, port, mtu, latency, server);
-}
-
-static void deleteSlaveDSPInstance(netjack_dsp* dsp)
-{
-    delete dsp;
-}
-
-// Allocation of real LLVM DSP INSTANCE
-netjack_dsp::netjack_dsp(llvm_dsp_factory* smartFactory, 
+netjack_dsp::netjack_dsp(llvm_dsp_factory* factory, 
                         const string& compression, 
                         const string& ip, 
                         const string& port, 
@@ -106,7 +88,7 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* smartFactory,
                         fMTU(mtu), fLatency(latency), 
                         fAudio(NULL), fDSPServer(server)
 {
-    fDSP = createDSPInstance(smartFactory);
+    fDSP = createDSPInstance(factory);
 }
 
 bool netjack_dsp::start() 
@@ -168,45 +150,46 @@ void DSPServer::stop()
     fDaemon = 0;
 }
 
-bool netjack_dsp::openAudioConnection()
+bool netjack_dsp::openAudio()
 {
-    bool res = false;
-     
-    if (fDSPServer->fLocker.Lock()) {
-    
-        fAudio = new netjackaudio_server(atoi(fCompression.c_str()), 
-                                                    fIP, 
-                                                    atoi(fPort.c_str()), 
-                                                    atoi(fMTU.c_str()), 
-                                                    atoi(fLatency.c_str()));
-        
-        if (fAudio->init(getName().c_str(), fDSP)) {
-            if (!fAudio->start()) {
-                printf("RemoteDSPServer : Start slave audio failed\n");
-            } else {
-                fDSPServer->fRunningDsp.push_back(this);
-                res = true;
-            }
-        } else {
-            printf("RemoteDSPServer : Init slave audio failed\n");
-        }
-            
-        fDSPServer->fLocker.Unlock();
+    fAudio = new netjackaudio_server(atoi(fCompression.c_str()), 
+                                        fIP, 
+                                        atoi(fPort.c_str()), 
+                                        atoi(fMTU.c_str()), 
+                                        atoi(fLatency.c_str()));
+                                        
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("RemoteDSPServer : Init slave audio failed\n");
+        return false;
     }
     
-    return res;
+     if (!fAudio->start()) {
+        printf("RemoteDSPServer : Start slave audio failed\n");
+        return false;
+    }
+      
+    return true;
 }
 
 //---- Callback of another thread to wait netjack audio connection without blocking the server
-void* DSPServer::openAudioConnection(void* arg) 
+void* DSPServer::openAudio(void* arg) 
 {
-    netjack_dsp* dspToStart = (netjack_dsp*)arg;
-    
-    if (!dspToStart->openAudioConnection()) {
-        deleteSlaveDSPInstance(dspToStart);
-    }
-   
+    AudioStarter* starter = (AudioStarter*)arg;
+    starter->fServer->openAudio(starter->fDSP);
+    delete starter;
     return NULL;
+}
+
+void DSPServer::openAudio(netjack_dsp* dsp)
+{
+    if (fLocker.Lock()) {
+        if (dsp->openAudio()) {
+            fRunningDsp.push_back(dsp);
+        } else {
+            delete dsp;
+        }
+        fLocker.Unlock();
+    }
 }
  
 //---- Creating response page with right header syntaxe
@@ -230,10 +213,10 @@ void DSPServer::stopNotActiveDSP()
     
     while (it != fRunningDsp.end()) {
         if (!(*it)->isActive()) {
-            netjack_dsp* toDelete = *it;
+            netjack_dsp* dsp = *it;
             it = fRunningDsp.erase(it); 
-            toDelete->stop();
-            deleteSlaveDSPInstance(toDelete);
+            dsp->stop();
+            delete dsp;
         } else {
             it++;
         }
@@ -482,7 +465,6 @@ void DSPServer::stopAudio(const string& shakey)
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey == (*it)->getKey()) {
             (*it)->stop();
-            return;
         }
     }
 }
@@ -520,7 +502,7 @@ bool DSPServer::createFactory(connection_info_struct* con_info) {
         argv[i] = (con_info->fCompilationOptions[i]).c_str();
     }
     
-    if (isopt(argv, "-machine")) {
+    if (isopt(argc, argv, "-machine")) {
         // Machine code
         con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fFaustCode);
     } else {
@@ -545,17 +527,18 @@ bool DSPServer::createFactory(connection_info_struct* con_info) {
 // Create DSP Instance
 bool DSPServer::createInstance(connection_info_struct* con_info)
 {
-    llvm_dsp_factory* realFactory = fAvailableFactories[con_info->fFactoryKey].second;
+    llvm_dsp_factory* factory = fAvailableFactories[con_info->fFactoryKey].second;
     
-    if (realFactory) {
+    if (factory) {
         
-        netjack_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCompression, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
+        netjack_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
         if (!dsp) return false;
         
         dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
-        pthread_t myNewThread;
+        pthread_t myThread;
+        AudioStarter* starter = new AudioStarter(this, dsp);
         
-        if (pthread_create(&myNewThread, NULL, DSPServer::openAudioConnection, dsp) == 0){
+        if (pthread_create(&myThread, NULL, DSPServer::openAudio, starter) == 0){
             dsp->setKey(con_info->fInstanceKey);
             return true;
         } else {

@@ -131,15 +131,15 @@ class netjack_dsp {
         string          fInstanceKey;
         string          fName;
         
-        // NETJACK PARAMETERS
+        // NetJack PARAMETERS
         string          fIP;
         string          fPort;
         string          fCompression;
         string          fMTU;
         string          fLatency;
         
-        netjackaudio_server*   fAudio; //NETJACK SLAVE 
-        llvm_dsp*              fDSP;   //Real DSP Instance 
+        netjackaudio_server*   fAudio; // NetJack SLAVE 
+        llvm_dsp*              fDSP;   // Real DSP Instance 
         
         //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
         //So that the server himself is kept
@@ -148,10 +148,11 @@ class netjack_dsp {
     public:
     
         netjack_dsp(llvm_dsp_factory* smartFactory, 
-                const string& compression, 
-                const string& ip, const string& port, 
-                const string& mtu, const string& latency, 
-                DSPServer* server);
+                    const string& compression, 
+                    const string& ip, const string& port, 
+                    const string& mtu, const string& latency, 
+                    DSPServer* server);
+                    
         virtual ~netjack_dsp();
         
         bool start();
@@ -164,7 +165,7 @@ class netjack_dsp {
         string  getName() { return fName; }
         void    setName(string name) { fName = name; }
         
-        bool openAudioConnection();
+        bool openAudio();
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
@@ -175,8 +176,8 @@ class DSPServer {
         
     private:
 
+        TMutex fLocker;
         pthread_t fThread;
-        TMutex    fLocker;
         int       fPort;
         
         // Factories that can be instanciated. 
@@ -188,8 +189,7 @@ class DSPServer {
         list<netjack_dsp*> fRunningDsp;
         struct MHD_Daemon* fDaemon; //Running http daemon
         
-        // Callback of another thread to wait netjack audio connection without blocking the server
-        static void*    openAudioConnection(void*);
+        void openAudio(netjack_dsp* dsp);
                 
         // Creates the html to send back
         int             sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
@@ -235,9 +235,12 @@ class DSPServer {
         
         int         createConnection(MHD_Connection* connection, const char* method, void** con_cls);
         
-        // Register Service as Available
+        // Register Service as available
         static void* registration(void* arg);
-
+       
+        // Callback of another thread to wait netjack audio connection without blocking the server
+        static void* openAudio(void* arg);
+   
     public:
             
         DSPServer(int argc, const char* argv[]);
@@ -246,8 +249,19 @@ class DSPServer {
         // Start server on specified port 
         bool start(int port = 7777);
         void stop();
-    
+     
 };
+
+struct AudioStarter {
+    
+    DSPServer* fServer;
+    netjack_dsp* fDSP;
+    
+    AudioStarter(DSPServer* server, netjack_dsp* dsp):fServer(server), fDSP(dsp)
+    {}
+
+};
+
 
 // Public C++ API
 
