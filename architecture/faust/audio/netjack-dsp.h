@@ -217,6 +217,11 @@ class netjackaudio : public audio
             }
         }
         
+        virtual bool is_connexion_active()
+        {
+            return jack_net_slave_is_active(fNet);
+        }
+        
         virtual int get_buffer_size() { return fResult.buffer_size; }
         virtual int get_sample_rate() { return fResult.sample_rate; }
 
@@ -263,11 +268,6 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         
         virtual ~netjackaudio_control() 
         {}
-        
-        bool is_connexion_active()
-        {
-            return jack_net_slave_is_active(fNet);
-        }
     
         virtual bool init(const char* name, dsp* DSP) 
         {
@@ -319,11 +319,6 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI {
         
         virtual ~netjackaudio_midicontrol() 
         {}
-        
-        bool is_connexion_active()
-        {
-            return jack_net_slave_is_active(fNet);
-        }
     
         virtual bool init(const char* name, dsp* DSP) 
         {
