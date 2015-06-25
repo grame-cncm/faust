@@ -87,22 +87,22 @@ APPNAME="${APPNAME%.dsp}"
 PLATFORM=$(uname)
 
 if [ $PLATFORM = "Darwin" ]; then
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $TMPFILES/app/build.gradle
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/grame/faust/*
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/res/layout/*
+	sed -i '' 's,com.faust,com.'$APPNAME',g' $TMPFILES/app/build.gradle
+	sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
+	sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
+	sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+	sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
 	sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 else
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $TMPFILES/app/build.gradle
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/grame/faust/*
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/res/layout/*
+	sed -i 's,com.faust,com.'$APPNAME',g' $TMPFILES/app/build.gradle
+	sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
+	sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
+	sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+	sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
 	sed -i 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 fi
 
-mv $APPFOLDER/java/com/grame/faust $APPFOLDER/java/com/grame/$APPNAME
+mv $APPFOLDER/java/com/faust $APPFOLDER/java/com/$APPNAME
 
 # *************
 # COMPILATION
@@ -110,9 +110,9 @@ mv $APPFOLDER/java/com/grame/faust $APPFOLDER/java/com/grame/$APPNAME
 
 # TODO wrong: should be checked
 if [ $SWIG -eq 1 ]; then
-	rm -rf $APPFOLDER/java/com/grame/dsp_faust || true
-	mkdir -p $APPFOLDER/java/com/grame/dsp_faust
-	swig -java -package com.grame.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/grame/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $TMPFILES/dsp_faust_interface.i
+	rm -rf $APPFOLDER/java/com/dsp_faust || true
+	mkdir -p $APPFOLDER/java/com/dsp_faust
+	swig -java -package com.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $TMPFILES/dsp_faust_interface.i
 fi
 
 cd $TMPFILES
