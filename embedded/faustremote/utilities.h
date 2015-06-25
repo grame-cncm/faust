@@ -39,7 +39,7 @@ bool isopt1(int argc, const char *argv[], const char *name);
 
 const char* loptions(const char* argv[], const char* name, const char* def);
 
-int lopt_Spe(int i, char* argv[], const char* name, char* path);
+int lopt_Spe(int i, const char* argv[], const char* name, char* path);
 
 string nameWithoutSpaces(const string& name);
 

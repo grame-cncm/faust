@@ -229,10 +229,10 @@ void DSPServer::stopNotActiveDSP()
     list<netjack_dsp*>::iterator it = fRunningDsp.begin();
     
     while (it != fRunningDsp.end()) {
-        if (!(*it)->fAudio->is_connexion_active()) {
+        if (!(*it)->isActive()) {
             netjack_dsp* toDelete = *it;
             it = fRunningDsp.erase(it); 
-            toDelete->fAudio->stop();
+            toDelete->stop();
             deleteSlaveDSPInstance(toDelete);
         } else {
             it++;

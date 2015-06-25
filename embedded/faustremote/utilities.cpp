@@ -62,7 +62,7 @@ bool isInt(const char* word)
     return returning;
 }
 
-long lopt(char *argv[], const char *name, long def)
+long lopt(const char *argv[], const char *name, long def)
 {
 	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
 	return def;

@@ -124,41 +124,47 @@ struct connection_info_struct {
 
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
-struct netjack_dsp {
+class netjack_dsp {
+
+    private: 
     
-    string          fInstanceKey;
-    string          fName;
+        string          fInstanceKey;
+        string          fName;
+        
+        // NETJACK PARAMETERS
+        string          fIP;
+        string          fPort;
+        string          fCompression;
+        string          fMTU;
+        string          fLatency;
+        
+        netjackaudio_server*   fAudio; //NETJACK SLAVE 
+        llvm_dsp*              fDSP;   //Real DSP Instance 
+        
+        //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
+        //So that the server himself is kept
+        DSPServer*      fDSPServer;
     
-    // NETJACK PARAMETERS
-    string          fIP;
-    string          fPort;
-    string          fCompression;
-    string          fMTU;
-    string          fLatency;
+    public:
     
-    netjackaudio_server*   fAudio; //NETJACK SLAVE 
-    llvm_dsp*              fDSP;   //Real DSP Instance 
-    
-    //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
-    //So that the server himself is kept
-    DSPServer*      fDSPServer;
-    
-    netjack_dsp(llvm_dsp_factory* smartFactory, 
-            const string& compression, 
-            const string& ip, const string& port, 
-            const string& mtu, const string& latency, 
-            DSPServer* server);
-    virtual ~netjack_dsp();
-    
-    bool start();
-    void stop();
-    
-    string  getKey() { return fInstanceKey; }
-    void    setKey(const string& key) { fInstanceKey = key; }
-    string  getName() { return fName; }
-    void    setName(string name) { fName = name; }
-    
-    bool openAudioConnection();
+        netjack_dsp(llvm_dsp_factory* smartFactory, 
+                const string& compression, 
+                const string& ip, const string& port, 
+                const string& mtu, const string& latency, 
+                DSPServer* server);
+        virtual ~netjack_dsp();
+        
+        bool start();
+        void stop();
+        
+        bool isActive() { return fAudio->is_connexion_active(); }
+        
+        string  getKey() { return fInstanceKey; }
+        void    setKey(const string& key) { fInstanceKey = key; }
+        string  getName() { return fName; }
+        void    setName(string name) { fName = name; }
+        
+        bool openAudioConnection();
 };
     
 // Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
