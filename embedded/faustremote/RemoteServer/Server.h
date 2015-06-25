@@ -140,45 +140,38 @@ class netjack_dsp {
         
         netjackaudio_server*   fAudio; // NetJack SLAVE 
         llvm_dsp*              fDSP;   // Real DSP Instance 
-        
-        //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
-        //So that the server himself is kept
-        DSPServer*      fDSPServer;
-    
+     
     public:
     
         netjack_dsp(llvm_dsp_factory* smartFactory, 
                     const string& compression, 
                     const string& ip, const string& port, 
-                    const string& mtu, const string& latency, 
-                    DSPServer* server);
+                    const string& mtu, const string& latency);
                     
         virtual ~netjack_dsp();
         
         bool start();
         void stop();
         
+        bool open();
         bool isActive() { return fAudio->is_connexion_active(); }
         
         string  getKey() { return fInstanceKey; }
         void    setKey(const string& key) { fInstanceKey = key; }
         string  getName() { return fName; }
         void    setName(string name) { fName = name; }
-        
-        bool openAudio();
+
 };
     
-// Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
+// Same prototype LLVM/REMOTE dsp are using for allocation/desallocation
 
 class DSPServer {
-
-    friend struct netjack_dsp;
-        
+      
     private:
 
         TMutex fLocker;
         pthread_t fThread;
-        int       fPort;
+        int fPort;
         
         // Factories that can be instanciated. 
         // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
@@ -252,6 +245,8 @@ class DSPServer {
      
 };
 
+// Helper class
+
 struct AudioStarter {
     
     DSPServer* fServer;
@@ -261,7 +256,6 @@ struct AudioStarter {
     {}
 
 };
-
 
 // Public C++ API
 
