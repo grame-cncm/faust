@@ -197,6 +197,26 @@ class jackaudio : public audio {
             }
         }
     #endif
+    
+        // jack callbacks
+        virtual int	process(jack_nframes_t nframes) 
+        {
+            AVOIDDENORMALS;
+            
+            // Retrieve JACK inputs/output audio buffers
+			float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
+            for (int i = 0; i < fNumInChans; i++) {
+                fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
+            }
+            
+			float** fOutChannel = (float**)alloca(fNumOutChans*sizeof(float*));
+            for (int i = 0; i < fNumOutChans; i++) {
+                fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
+            }
+            
+            fDsp->compute(nframes, fInChannel, fOutChannel);
+            return 0;
+        }
 
     public:
     
@@ -218,7 +238,7 @@ class jackaudio : public audio {
         
         virtual ~jackaudio() 
         { 
-            if(fClient){
+            if (fClient) {
                 stop();
                 
                 for (int i = 0; i < fNumInChans; i++) {
@@ -350,26 +370,6 @@ class jackaudio : public audio {
                 jack_free(physicalOutPorts);
             }
             return outputs; 
-        }
-
-        // jack callbacks
-        virtual int	process(jack_nframes_t nframes) 
-        {
-            AVOIDDENORMALS;
-            
-            // Retrieve JACK inputs/output audio buffers
-			float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
-            for (int i = 0; i < fNumInChans; i++) {
-                fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
-            }
-            
-			float** fOutChannel = (float**)alloca(fNumOutChans*sizeof(float*));
-            for (int i = 0; i < fNumOutChans; i++) {
-                fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
-            }
-            
-            fDsp->compute(nframes, fInChannel, fOutChannel);
-            return 0;
         }
      
 };
