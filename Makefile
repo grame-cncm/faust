@@ -153,6 +153,8 @@ install :
 	rm -rf $(prefix)/lib/faust/AU/
 	cp -r architecture/AU $(prefix)/lib/faust/
 	cp -r architecture/android $(prefix)/lib/faust/
+	cp -r architecture/max-msp $(prefix)/lib/faust/
+
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/

@@ -191,6 +191,16 @@ class rtaudio : public audio {
         { 
             return fSampleRate; 
         }
+        
+        virtual int get_num_inputs() 
+        {
+            return fDevNumInChans;
+        }
+        
+        virtual int get_num_outputs() 
+        {
+            return fDevNumOutChans;
+        }
 };
 
 //----------------------------------------------------------------------------

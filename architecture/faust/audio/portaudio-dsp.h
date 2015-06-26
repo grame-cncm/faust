@@ -77,7 +77,7 @@ class portaudio : public audio {
         PaStreamParameters fOutputParameters;
         
         //----------------------------------------------------------------------------
-        // 	number of physical input and output channels of the PA device
+        // 	Number of physical input and output channels of the PA device
         //----------------------------------------------------------------------------
         int	fDevNumInChans;
         int	fDevNumOutChans;
@@ -210,6 +210,16 @@ class portaudio : public audio {
         virtual int get_sample_rate() 
         { 
             return fSampleRate; 
+        }
+        
+        virtual int get_num_inputs() 
+        {
+            return fDevNumInChans;
+        }
+        
+        virtual int get_num_outputs() 
+        {
+            return fDevNumOutChans;
         }
 };
 

@@ -154,6 +154,9 @@ int main(int argc, char *argv[])
 	finterface.recallState(rcfilename);
 	audio.start();
     
+    printf("ins %d\n", audio.get_num_inputs());
+    printf("outs %d\n", audio.get_num_outputs());
+    
 #if MIDICTRL
     midi.start();
 #endif

@@ -35,7 +35,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.grame.faust.R;
+import com.faust.R;
 
 /**
  * 
