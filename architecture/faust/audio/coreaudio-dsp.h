@@ -231,6 +231,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         int fDevNumInChans;
         int fDevNumOutChans;
         
+        int fPhysicalInputs;
+        int fPhysicalOutputs;
+        
         float** fInChannel;
         float** fOutChannel;
 
@@ -1005,6 +1008,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
         TCoreAudioRenderer()
             :fDevNumInChans(0),fDevNumOutChans(0),
+            fPhysicalInputs(0), fPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
             fBufferSize(0),fSampleRate(0), 
             fDSP(0),fInputData(0),
@@ -1087,8 +1091,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             UInt32 enableIO;
             Boolean isWritable;
             AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
-            int in_nChannels = 0;
-            int out_nChannels = 0;
             
             fDevNumInChans = inChan;
             fDevNumOutChans = outChan;
@@ -1230,8 +1232,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
                 //printError(err);
             } else {
-                in_nChannels = (err == noErr) ? outSize / sizeof(SInt32) : 0;
-                //printf("in_nChannels = %ld\n", in_nChannels);
+                fPhysicalInputs = (err == noErr) ? outSize / sizeof(SInt32) : 0;
+                printf("fPhysicalInputs = %ld\n", fPhysicalInputs);
             }
                     
             err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
@@ -1239,47 +1241,47 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
                 //printError(err);
             } else {
-                out_nChannels = (err == noErr) ? outSize / sizeof(SInt32) : 0;
-                //printf("out_nChannels = %ld\n", out_nChannels);
+                fPhysicalOutputs = (err == noErr) ? outSize / sizeof(SInt32) : 0;
+                printf("fPhysicalOutputs = %ld\n", fPhysicalOutputs);
             }
             
             /*
              Just ignore this case : seems to work without any further change...
              
-             if (outChan > out_nChannels) {
+             if (outChan > fPhysicalOutputs) {
                 printf("This device hasn't required output channels\n");
                 goto error;
              }
-             if (inChan > in_nChannels) {
+             if (inChan > fPhysicalInputs) {
                 printf("This device hasn't required input channels\n");
                 goto error;
              }
              */
             
-            if (inChan < in_nChannels) {
-                SInt32 chanArr[in_nChannels];
-                for (int i = 0; i < in_nChannels; i++) {
+            if (inChan < fPhysicalInputs) {
+                SInt32 chanArr[fPhysicalInputs];
+                for (int i = 0; i < fPhysicalInputs; i++) {
                     chanArr[i] = -1;
                 }
                 for (int i = 0; i < inChan; i++) {
                     chanArr[i] = i;
                 }
-                AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * in_nChannels);
+                AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * fPhysicalInputs);
                 if (err != noErr) {
                     printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 1\n");
                     printError(err);
                 }
             }
             
-            if (outChan < out_nChannels) {
-                SInt32 chanArr[out_nChannels];
-                for (int i = 0;	i < out_nChannels; i++) {
+            if (outChan < fPhysicalOutputs) {
+                SInt32 chanArr[fPhysicalOutputs];
+                for (int i = 0;	i < fPhysicalOutputs; i++) {
                     chanArr[i] = -1;
                 }
                 for (int i = 0; i < outChan; i++) {
                     chanArr[i] = i;
                 }
-                err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * out_nChannels);
+                err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * fPhysicalOutputs);
                 if (err != noErr) {
                     printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 0\n");
                     printError(err);
@@ -1395,7 +1397,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             } else {
                 printf("AudioObjectAddPropertyListener() OK\n");
             }
-            
+             
             return NO_ERR;
             
         error:
@@ -1478,6 +1480,9 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         {
             fDSP = DSP;
         }
+        
+        int GetNumInputs() { return fPhysicalInputs; }
+        int GetNumOutputs() { return fPhysicalOutputs; }
 
 };
 
@@ -1527,6 +1532,9 @@ class coreaudio : public audio {
     
     virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
     virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
+    
+    virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
+    virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
 
 };
 
