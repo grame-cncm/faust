@@ -417,11 +417,11 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         Type        t1 = getCertifiedSigType(arg1);
         Type        t2 = getCertifiedSigType(arg2);
 
-        interval    i = t1->getInterval();
         interval    j = t2->getInterval();
 
         if (j.haszero()) {
             // potential division by zero
+            // interval    i = t1->getInterval();
             //std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << std::endl;
         }
 
