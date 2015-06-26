@@ -105,6 +105,9 @@ int main(int argc, char *argv[])
 	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);
 	audio.start();
+    
+    printf("ins %d\n", audio.get_num_inputs());
+    printf("outs %d\n", audio.get_num_outputs());
 
 #ifdef OSCCTRL
 	oscinterface->run();

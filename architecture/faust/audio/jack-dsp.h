@@ -333,7 +333,7 @@ class jackaudio : public audio {
         virtual int get_num_inputs() 
         { 
             int inputs = 0;
-            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
+            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput );
             if (physicalInPorts != NULL) {
                 while (physicalInPorts[inputs]) { inputs++; }
                 jack_free(physicalInPorts);
@@ -344,7 +344,7 @@ class jackaudio : public audio {
         virtual int get_num_outputs() 
         { 
             int outputs = 0;
-            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
+            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
             if (physicalOutPorts != NULL) {
                 while (physicalOutPorts[outputs]) { outputs++; }
                 jack_free(physicalOutPorts);
