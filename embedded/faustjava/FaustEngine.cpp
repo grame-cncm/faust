@@ -368,15 +368,7 @@ struct dsp_aux {
 
 static audio* createDriver()
 {
-    audio* driver;
- #ifdef _WIN32
-    driver = new portaudio(44100, 512);
- #endif
- #ifdef __APPLE__
-    //driver = new coreaudio(44100, 512);
-    driver = new jackaudio(0, 0);
- #endif
-    return driver;
+  return new jackaudio(0, 0);
 }
 
 jackaudio* getJackDriver(dsp* dsp1_ext)

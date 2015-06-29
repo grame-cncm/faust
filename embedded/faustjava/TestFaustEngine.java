@@ -82,6 +82,7 @@ System.out.println(DSP2);
         FaustEngine.connectDsp(null, DSP2, 0, 0);
         FaustEngine.connectDsp(null, DSP2, 1, 1);
         
+	Thread.sleep(1000);
         /////
         
         System.out.println(FaustEngine.isConnectedDsp(DSP1, null, 0, 0));
