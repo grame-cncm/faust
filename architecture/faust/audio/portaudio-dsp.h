@@ -84,8 +84,10 @@ class portaudio : public audio {
         
     public:
         
-        portaudio(long srate, long bsize) : fDsp(0), fAudioStream(0),
-        fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
+        portaudio(long srate, long bsize) : 
+            fDsp(0), fAudioStream(0),
+            fSampleRate(srate), fBufferSize(bsize), 
+            fDevNumInChans(0), fDevNumOutChans(0) {}
         virtual ~portaudio() 
         {   
             stop(); 
