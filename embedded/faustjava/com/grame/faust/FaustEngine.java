@@ -9,6 +9,10 @@
 package com.grame.faust;
 
 public class FaustEngine implements FaustEngineConstants {
+  public static String getLastError() {
+    return FaustEngineJNI.getLastError();
+  }
+
   public static dsp create1(String name_app, String dsp_content) {
     long cPtr = FaustEngineJNI.create1(name_app, dsp_content);
     return (cPtr == 0) ? null : new dsp(cPtr, false);
@@ -17,10 +21,6 @@ public class FaustEngine implements FaustEngineConstants {
   public static dsp create2(String name_app, String dsp_content, String argv, String target, int opt_level) {
     long cPtr = FaustEngineJNI.create2(name_app, dsp_content, argv, target, opt_level);
     return (cPtr == 0) ? null : new dsp(cPtr, false);
-  }
-
-  public static String getLastError() {
-    return FaustEngineJNI.getLastError();
   }
 
   public static void destroy(dsp dsp) {
@@ -41,6 +41,34 @@ public class FaustEngine implements FaustEngineConstants {
 
   public static void stop(dsp dsp) {
     FaustEngineJNI.stop(dsp.getCPtr(dsp), dsp);
+  }
+
+  public static int getNumInputs(dsp dsp) {
+    return FaustEngineJNI.getNumInputs(dsp.getCPtr(dsp), dsp);
+  }
+
+  public static int getNumOutputs(dsp dsp) {
+    return FaustEngineJNI.getNumOutputs(dsp.getCPtr(dsp), dsp);
+  }
+
+  public static int getNumPhysicalInputs() {
+    return FaustEngineJNI.getNumPhysicalInputs();
+  }
+
+  public static int getNumPhysicalOutputs() {
+    return FaustEngineJNI.getNumPhysicalOutputs();
+  }
+
+  public static void connect(dsp dsp1, dsp dsp2, int src, int dst) {
+    FaustEngineJNI.connect(dsp.getCPtr(dsp1), dsp1, dsp.getCPtr(dsp2), dsp2, src, dst);
+  }
+
+  public static void disconnect(dsp dsp1, dsp dsp2, int src, int dst) {
+    FaustEngineJNI.disconnect(dsp.getCPtr(dsp1), dsp1, dsp.getCPtr(dsp2), dsp2, src, dst);
+  }
+
+  public static boolean isConnected(dsp dsp1, dsp dsp2, int src, int dst) {
+    return FaustEngineJNI.isConnected(dsp.getCPtr(dsp1), dsp1, dsp.getCPtr(dsp2), dsp2, src, dst);
   }
 
   public static String getJSON(dsp dsp) {

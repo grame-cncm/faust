@@ -168,8 +168,8 @@ void DSPServer::stop()
         pthread_cancel(fThread);
         pthread_join(fThread, NULL);
         MHD_stop_daemon(fDaemon);
+        fDaemon = 0;
     }
-    fDaemon = 0;
 }
 
 

@@ -24,18 +24,30 @@ typedef struct {} dsp;
 
 enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
 
-dsp* create1(const char* name_app, const char* dsp_content);
-dsp* create2(const char* name_app, const char* dsp_content,  const char* argv, const char* target, int opt_level);
-
 const char* getLastError();
+
+// Creation API
+dsp* create1(const char* name_app, const char* dsp_content);
+dsp* create2(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level);
 
 void destroy(dsp* dsp);
 
-bool init1(dsp* dsp, const char* name);                                  ///< init Faust object with default system values
+bool init1(dsp* dsp, const char* name);                                     ///< init Faust object with default system values
 bool init2(dsp* dsp, const char* name, int renderer, int sr, int bsize);	///< init the Faust object
 
 bool start(dsp* dsp);			///< open the audio drivers and starts processing audio
-void stop(dsp* dsp);			///< stops processing audio and closes the audio drivers
+void stop(dsp* dsp);			///< stop processing audio and closes the audio drivers
+
+// Connection API 
+int getNumInputs(dsp* dsp);
+int getNumOutputs(dsp* dsp);
+
+int getNumPhysicalInputs();
+int getNumPhysicalOutputs();
+
+void connect(dsp* dsp1, dsp* dsp2, int src, int dst);
+void disconnect(dsp* dsp1, dsp* dsp2, int src, int dst);
+bool isConnected(dsp* dsp1, dsp* dsp2, int src, int dst);
 
 /*
  * Faust objects have control parameters that can be read and changed.

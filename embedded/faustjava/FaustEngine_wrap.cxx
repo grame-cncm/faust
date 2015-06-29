@@ -276,6 +276,18 @@ SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_kCoreAudioRenderer_1
 }
 
 
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustEngineJNI_getLastError(JNIEnv *jenv, jclass jcls) {
+  jstring jresult = 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (char *)getLastError();
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
 SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create1(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
@@ -340,18 +352,6 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create2(JNIEnv *jen
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   if (arg3) jenv->ReleaseStringUTFChars(jarg3, (const char *)arg3);
   if (arg4) jenv->ReleaseStringUTFChars(jarg4, (const char *)arg4);
-  return jresult;
-}
-
-
-SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustEngineJNI_getLastError(JNIEnv *jenv, jclass jcls) {
-  jstring jresult = 0 ;
-  char *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  result = (char *)getLastError();
-  if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }
 
@@ -440,6 +440,118 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_stop(JNIEnv *jenv, j
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
   stop(arg1);
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_getNumInputs(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jint jresult = 0 ;
+  dsp *arg1 = (dsp *) 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(dsp **)&jarg1; 
+  result = (int)getNumInputs(arg1);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_getNumOutputs(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jint jresult = 0 ;
+  dsp *arg1 = (dsp *) 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(dsp **)&jarg1; 
+  result = (int)getNumOutputs(arg1);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_getNumPhysicalInputs(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)getNumPhysicalInputs();
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_getNumPhysicalOutputs(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)getNumPhysicalOutputs();
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_connect(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_, jint jarg3, jint jarg4) {
+  dsp *arg1 = (dsp *) 0 ;
+  dsp *arg2 = (dsp *) 0 ;
+  int arg3 ;
+  int arg4 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  (void)jarg2_;
+  arg1 = *(dsp **)&jarg1; 
+  arg2 = *(dsp **)&jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  connect(arg1,arg2,arg3,arg4);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_disconnect(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_, jint jarg3, jint jarg4) {
+  dsp *arg1 = (dsp *) 0 ;
+  dsp *arg2 = (dsp *) 0 ;
+  int arg3 ;
+  int arg4 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  (void)jarg2_;
+  arg1 = *(dsp **)&jarg1; 
+  arg2 = *(dsp **)&jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  disconnect(arg1,arg2,arg3,arg4);
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustEngineJNI_isConnected(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_, jint jarg3, jint jarg4) {
+  jboolean jresult = 0 ;
+  dsp *arg1 = (dsp *) 0 ;
+  dsp *arg2 = (dsp *) 0 ;
+  int arg3 ;
+  int arg4 ;
+  bool result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  (void)jarg2_;
+  arg1 = *(dsp **)&jarg1; 
+  arg2 = *(dsp **)&jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  result = (bool)isConnected(arg1,arg2,arg3,arg4);
+  jresult = (jboolean)result; 
+  return jresult;
 }
 
 

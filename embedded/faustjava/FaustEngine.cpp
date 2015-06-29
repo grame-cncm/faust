@@ -69,6 +69,8 @@ enum { kLin = 0, kLog = 1, kExp = 2 };
 
 enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
 
+static string gLastError;
+
 class APIUI : public PathUI, public Meta
 {
     protected:
@@ -92,7 +94,12 @@ class APIUI : public PathUI, public Meta
         string	fCurrentAcc;     
 
         // Add a generic parameter
-        virtual void addParameter(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        virtual void addParameter(const char* label, 
+                                FAUSTFLOAT* zone, 
+                                FAUSTFLOAT init, 
+                                FAUSTFLOAT min, 
+                                FAUSTFLOAT max, 
+                                FAUSTFLOAT step)
         {
             string name = buildPath(label);
 
@@ -106,13 +113,13 @@ class APIUI : public PathUI, public Meta
 
             //handle unit metadata
             fUnit.push_back(fCurrentUnit); 
-            fCurrentUnit="";
+            fCurrentUnit = "";
 
             //handle scale metadata
             switch (fCurrentScale) {
-                case kLin : fConversion.push_back(new LinearValueConverter(0,1,min,max)); break;
-                case kLog : fConversion.push_back(new LogValueConverter(0,1,min,max)); break;							
-                case kExp : fConversion.push_back(new ExpValueConverter(0,1,min,max)); break;
+                case kLin : fConversion.push_back(new LinearValueConverter(0,1, min, max)); break;
+                case kLog : fConversion.push_back(new LogValueConverter(0,1, min, max)); break;							
+                case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
             fCurrentScale  = kLin;
 
@@ -197,7 +204,7 @@ class APIUI : public PathUI, public Meta
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-			if (strcmp(key, "scale")==0) {
+			if (strcmp(key, "scale") == 0) {
                 if (strcmp(val, "log") == 0) {
                     fCurrentScale = kLog;
                 } else if (strcmp(val, "exp") == 0) {
@@ -205,9 +212,9 @@ class APIUI : public PathUI, public Meta
                 } else {
                     fCurrentScale = kLin;
                 }
-			} else if (strcmp(key, "unit")==0) {
+			} else if (strcmp(key, "unit") == 0) {
 				fCurrentUnit = val;
-			} else if (strcmp(key, "acc")==0) {
+			} else if (strcmp(key, "acc") == 0) {
 				fCurrentAcc = val;
 			}
         }
@@ -229,11 +236,11 @@ class APIUI : public PathUI, public Meta
 		float getParamValue(int p)			{ return *fZone[p]; }
 		void  setParamValue(int p, float v)	{ *fZone[p] = v; }
 	
-		float getParamRatio(int p)			{ return fConversion[p]->faust2ui(*fZone[p]);  }
+		float getParamRatio(int p)			{ return fConversion[p]->faust2ui(*fZone[p]); }
 		void  setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
 	
-		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r);  }
-		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r);  }
+		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
+		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
 
 		void  propagateAccX(double a)				{ 
 			for (int i = 0; i < fAcc[0].size(); i++) {
@@ -259,8 +266,6 @@ class APIUI : public PathUI, public Meta
 // Globals
 //**************************************************************
 
-static string gLastError;
-
 // DSP wrapper 
 
 struct dsp_aux {
@@ -272,34 +277,13 @@ struct dsp_aux {
     string fName;
     string fJSON;
     
-    dsp_aux():fFactory(0), fDSP(0), fDriver(0)
-    {}
-    
-    virtual ~dsp_aux()
+    dsp_aux(const char* name_app, 
+                const char* dsp_content, 
+                const char* argv, 
+                const char* target, 
+                int opt_level)
+        :fDSP(0),fDriver(0)
     {
-        if (fDriver) {
-            fDriver->stop();
-            delete fDriver;
-        }
-        deleteDSPInstance(fDSP);
-        deleteDSPFactory(fFactory);
-    }
-    
-};
-
-// Exported external API
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-dsp* create2(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
-{
-    dsp_aux* dsp_ext = 0;
-    {
-        dsp_ext = new dsp_aux();
-        
         int argc1 = 0;
         const char* argv1[64];
         stringstream os(argv);
@@ -315,29 +299,191 @@ dsp* create2(const char* name_app, const char* dsp_content, const char* argv, co
         argv1[argc1++] = STRDUP("llvm_math.ll"); 
     #endif
  
-        dsp_ext->fFactory = createDSPFactoryFromString(name_app, dsp_content, argc1, argv1, "", gLastError, opt_level);
+        fFactory = createDSPFactoryFromString(name_app, dsp_content, argc1, argv1, "", gLastError, opt_level);
         
         // Free parameters
         for (int i = 0; i < argc1; i++) {
             free((void*)argv1[i]);
         }
     
-        if (!dsp_ext->fFactory) goto error;
-        dsp_ext->fDSP = createDSPInstance(dsp_ext->fFactory);
-        
-        // JSON creation
-        JSONUI json(name_app, dsp_ext->fDSP->getNumInputs(), dsp_ext->fDSP->getNumOutputs());
-        metadataDSPFactory(dsp_ext->fFactory, &json);
-        dsp_ext->fDSP->buildUserInterface(&json);
-        dsp_ext->fJSON = json.JSON();
-         
-        return reinterpret_cast<dsp*>(dsp_ext);
+        if (fFactory) {
+            fDSP = createDSPInstance(fFactory);
+            // JSON creation
+            JSONUI json(name_app, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            metadataDSPFactory(fFactory, &json);
+            fDSP->buildUserInterface(&json);
+            fJSON = json.JSON();
+        } else {
+            throw -1;
+        }
     }
     
-error:
+    virtual ~dsp_aux()
+    {
+        if (fDriver) {
+            fDriver->stop();
+            delete fDriver;
+        }
+        deleteDSPInstance(fDSP);
+        deleteDSPFactory(fFactory);
+    }
     
-    if (dsp_ext->fFactory) deleteDSPFactory(dsp_ext->fFactory);
-    delete dsp_ext;
+    bool init2(const char* name, int sr, int bsize, int renderer)
+    {
+        fName = name;
+        
+        switch (renderer) {
+        
+        #ifdef _WIN32
+            case kPortAudioRenderer:
+                fDriver = new portaudio(sr, bsize);
+                break;
+        #endif
+                
+            case kJackRenderer:
+                fDriver = new jackaudio();
+                break;
+                
+        #ifdef __APPLE__
+            case kCoreAudioRenderer:
+                fDriver = new coreaudio(sr, bsize);
+                break;
+        #endif
+        
+        };
+        
+        if (fDriver) {
+            fDriver->init(name, fDSP);
+            fDSP->buildUserInterface(&fParams);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    virtual int getNumInputs() { return fDSP->getNumInputs(); }
+    virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
+    
+};
+
+static audio* createDriver()
+{
+    audio* driver;
+ #ifdef _WIN32
+    driver = new portaudio(44100, 512);
+ #endif
+ #ifdef __APPLE__
+    //driver = new coreaudio(44100, 512);
+    driver = new jackaudio(0, 0);
+ #endif
+    return driver;
+}
+
+jackaudio* getJackDriver(dsp* dsp1_ext)
+{
+    return (dsp1_ext) ? dynamic_cast<jackaudio*>(reinterpret_cast<dsp_aux*>(dsp1_ext)->fDriver) : 0;
+}
+
+// Exported external API
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+int getNumInputs(dsp* dsp_ext)
+{
+    return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumInputs();
+}
+
+int getNumOutputs(dsp* dsp_ext)
+{
+    return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumOutputs();
+}
+
+int getNumPhysicalInputs()
+{
+    int res = 0;
+    audio* driver = createDriver();
+    if (driver && driver->init("dummy", 0)) {
+        res = driver->get_num_inputs();
+        delete driver;
+    }
+    return res;
+}
+
+int getNumPhysicalOutputs()
+{
+    int res = 0;
+    audio* driver = createDriver();
+    if (driver && driver->init("dummy", 0)) {
+        res = driver->get_num_outputs();
+        delete driver;
+    }
+    return res;
+}
+
+void connect(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
+{
+    jackaudio* driver1 = getJackDriver(dsp1_ext);
+    jackaudio* driver2 = getJackDriver(dsp2_ext);
+    if (driver1 == NULL && driver2 == NULL) return;
+   
+    if (driver1 == NULL) {
+        // Connnection with physical input
+        driver2->connect(driver1, src, dst, true);
+    } else if (driver2 == NULL) {
+        // Connnection with physical output
+        driver1->connect(driver2, src, dst, false);
+    } else {
+        // Connnection between drivers
+        driver1->connect(driver2, src, dst, false);
+    }
+}
+
+void disconnect(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
+{   
+    jackaudio* driver1 = getJackDriver(dsp1_ext);
+    jackaudio* driver2 = getJackDriver(dsp2_ext);
+    if (driver1 == NULL && driver2 == NULL) return;
+ 
+    if (driver1 == NULL) {
+        // Disconnnection with physical input
+        driver2->disconnect(driver1, src, dst, true);
+    } else if (driver2 == NULL) {
+        // Disconnnection with physical output
+        driver1->disconnect(driver2, src, dst, false);
+    } else {
+        // Disconnnection between drivers
+        driver1->disconnect(driver2, src, dst, false);
+    }
+}
+
+bool isConnected(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
+{ 
+    jackaudio* driver1 = getJackDriver(dsp1_ext);
+    jackaudio* driver2 = getJackDriver(dsp2_ext);
+    if (driver1 == NULL && driver2 == NULL) false;
+  
+    if (driver1 == NULL) {
+        // Connection test with physical input
+        return driver2->is_connected(driver1, src, dst, true);
+    } else if (driver2 == NULL) {
+        // Connection test with physical output
+        return driver1->is_connected(driver2, src, dst, false);
+    } else {
+        // Connection test between DSP
+        return driver1->is_connected(driver2, src, dst, false);
+    }
+}
+
+dsp* create2(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
+{
+    try {
+        return reinterpret_cast<dsp*>(new dsp_aux(name_app, dsp_content, argv, target, opt_level));
+    } catch (...) {
+        printf("Cannot create DSP\n");
+    }
     return 0;
 }
 
@@ -350,41 +496,14 @@ const char* getLastError() { return gLastError.c_str(); }
 
 bool init2(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
 {
-    dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-    dsp->fName = name;
-    
-    switch (renderer) {
-    
-	#ifdef _WIN32
-        case kPortAudioRenderer:
-            dsp->fDriver = new portaudio(sr, bsize);
-            break;
-	#endif
-            
-        case kJackRenderer:
-            dsp->fDriver = new jackaudio(0, 0);
-            break;
-	#ifdef __APPLE__
-        case kCoreAudioRenderer:
-            dsp->fDriver = new coreaudio(sr, bsize);
-            break;
-	#endif
-    
-    };
-    
-    if (dsp->fDriver) {
-        dsp->fDriver->init(name, dsp->fDSP);
-        dsp->fDSP->buildUserInterface(&dsp->fParams);
-        return true;
-    } else {
-        return false;
-    }
+    return reinterpret_cast<dsp_aux*>(dsp_ext)->init2(name, sr, bsize, renderer);
 }
 
 bool init1(dsp* dsp, const char* name)
 {
 	return init2(dsp, name, -1, 512, kJackRenderer);
 	//return init2(dsp, name, 44100, 2048, kPortAudioRenderer);
+    //return init2(dsp, name, 44100, 512, kCoreAudioRenderer);
 }
 
 void destroy(dsp* dsp_ext)
@@ -412,14 +531,11 @@ void stop(dsp* dsp_ext)
  * getNamedParam(const char* name) retrieves the value of a parameter by its name
  * getIndexParam(int i) retrieves the value of a parameter by its index
  */
-const char* getJSON(dsp* dsp_ext)
-{
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str();
-}
+const char* getJSON(dsp* dsp_ext) { return reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str();}
 
 int getParamsCount(dsp* dsp_ext)					{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount(); }
 
-int   getParamIndex(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
+int getParamIndex(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
 const char* getParamName(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamName(p); }
 const char* getParamUnit(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
 float getParamMin(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p); }
