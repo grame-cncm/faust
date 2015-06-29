@@ -391,39 +391,37 @@ extern "C"
 {
 #endif
 
-int getNumInputs(dsp* dsp_ext)
+int getNumInputsDsp(dsp* dsp_ext)
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumInputs();
-}
-
-int getNumOutputs(dsp* dsp_ext)
-{
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumOutputs();
-}
-
-int getNumPhysicalInputs()
-{
-    int res = 0;
-    audio* driver = createDriver();
-    if (driver && driver->init("dummy", 0)) {
-        res = driver->get_num_inputs();
-        delete driver;
+    if (dsp_ext) {
+        return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumInputs();
+    } else {
+        int res = 0;
+        audio* driver = createDriver();
+        if (driver && driver->init("dummy", 0)) {
+            res = driver->get_num_inputs();
+            delete driver;
+        }
+        return res;
     }
-    return res;
 }
 
-int getNumPhysicalOutputs()
+int getNumOutputsDsp(dsp* dsp_ext)
 {
-    int res = 0;
-    audio* driver = createDriver();
-    if (driver && driver->init("dummy", 0)) {
-        res = driver->get_num_outputs();
-        delete driver;
+    if (dsp_ext) {
+        return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumOutputs();
+    } else {
+        int res = 0;
+        audio* driver = createDriver();
+        if (driver && driver->init("dummy", 0)) {
+            res = driver->get_num_inputs();
+            delete driver;
+        }
+        return res;
     }
-    return res;
 }
 
-void connect(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
+void connectDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 {
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
@@ -441,7 +439,7 @@ void connect(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
     }
 }
 
-void disconnect(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
+void disconnectDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 {   
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
@@ -459,7 +457,7 @@ void disconnect(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
     }
 }
 
-bool isConnected(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
+bool isConnectedDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 { 
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
@@ -472,12 +470,12 @@ bool isConnected(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
         // Connection test with physical output
         return driver1->is_connected(driver2, src, dst, false);
     } else {
-        // Connection test between DSP
+        // Connection test between Dsp
         return driver1->is_connected(driver2, src, dst, false);
     }
 }
 
-dsp* create2(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
+dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
 {
     try {
         return reinterpret_cast<dsp*>(new dsp_aux(name_app, dsp_content, argv, target, opt_level));
@@ -487,73 +485,73 @@ dsp* create2(const char* name_app, const char* dsp_content, const char* argv, co
     return 0;
 }
 
-dsp* create1(const char* name_app, const char* dsp_content)
+dsp* create1Dsp(const char* name_app, const char* dsp_content)
 {
-    return create2(name_app, dsp_content, "", "", 3);
+    return create2Dsp(name_app, dsp_content, "", "", 3);
 }
 
 const char* getLastError() { return gLastError.c_str(); }
 
-bool init2(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
+bool init2Dsp(dsp* dsp_ext, const char* name, int sr, int bsize, int renderer)
 {
     return reinterpret_cast<dsp_aux*>(dsp_ext)->init2(name, sr, bsize, renderer);
 }
 
-bool init1(dsp* dsp, const char* name)
+bool init1Dsp(dsp* dsp, const char* name)
 {
-	return init2(dsp, name, -1, 512, kJackRenderer);
+	return init2Dsp(dsp, name, -1, 512, kJackRenderer);
 	//return init2(dsp, name, 44100, 2048, kPortAudioRenderer);
     //return init2(dsp, name, 44100, 512, kCoreAudioRenderer);
 }
 
-void destroy(dsp* dsp_ext)
+void destroyDsp(dsp* dsp_ext)
 {
     delete reinterpret_cast<dsp_aux*>(dsp_ext);
 }
 
-bool start(dsp* dsp_ext) 
+bool startDsp(dsp* dsp_ext) 
 {
  	return reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver->start();
 }
 
-void stop(dsp* dsp_ext) 
+void stopDsp(dsp* dsp_ext) 
 {
 	return reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver->stop();
 }
 
 /*
  * Faust objects have control parameters that can be read and changed.
- * getParamsCount() returns the number n of such parameters
+ * getParamsCountDsp() returns the number n of such parameters
  *
- * getParamName(int index) retrieves the name of a parameter by its index
- * getParamIndex(const char* name) retrieves the index of a parameter by its name
+ * getParamNameDsp(int index) retrieves the name of a parameter by its index
+ * getParamIndexDsp(const char* name) retrieves the index of a parameter by its name
  *
- * getNamedParam(const char* name) retrieves the value of a parameter by its name
- * getIndexParam(int i) retrieves the value of a parameter by its index
+ * getNamedParamDsp(const char* name) retrieves the value of a parameter by its name
+ * getIndexParamDsp(int i) retrieves the value of a parameter by its index
  */
-const char* getJSON(dsp* dsp_ext) { return reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str();}
+const char* getJSONDsp(dsp* dsp_ext) { return reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str();}
 
-int getParamsCount(dsp* dsp_ext)					{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount(); }
+int getParamsCountDsp(dsp* dsp_ext)                     { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount(); }
 
-int getParamIndex(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
-const char* getParamName(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamName(p); }
-const char* getParamUnit(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
-float getParamMin(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p); }
-float getParamMax(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p); }
-float getParamStep(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p); }
+int getParamIndexDsp(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
+const char* getParamNameDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamName(p); }
+const char* getParamUnitDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
+float getParamMinDsp(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p); }
+float getParamMaxDsp(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p); }
+float getParamStepDsp(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p); }
 	
-float getParamValue(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p); }
-void  setParamValue(dsp* dsp_ext, int p, float v)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p,v); }
+float getParamValueDsp(dsp* dsp_ext, int p)             { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p); }
+void  setParamValueDsp(dsp* dsp_ext, int p, float v)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p,v); }
 	
-float getParamRatio(dsp* dsp_ext, int p)            { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
-void  setParamRatio(dsp* dsp_ext, int p, float v)   { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
+float getParamRatioDsp(dsp* dsp_ext, int p)            { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
+void  setParamRatioDsp(dsp* dsp_ext, int p, float v)   { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
 	
-float value2ratio(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r); }
-float ratio2value(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r); }
+float value2ratioDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r); }
+float ratio2valueDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r); }
 
-void propagateAccX(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccX(a); }
-void propagateAccY(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
-void propagateAccZ(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
+void propagateAccXDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccX(a); }
+void propagateAccYDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
+void propagateAccZDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
 
 #ifdef __cplusplus
 }

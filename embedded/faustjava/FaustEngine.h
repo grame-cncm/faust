@@ -27,27 +27,25 @@ enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
 const char* getLastError();
 
 // Creation API
-dsp* create1(const char* name_app, const char* dsp_content);
-dsp* create2(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level);
+dsp* create1Dsp(const char* name_app, const char* dsp_content);
+dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level);
 
-void destroy(dsp* dsp);
+void destroyDsp(dsp* dsp);
 
-bool init1(dsp* dsp, const char* name);                                     ///< init Faust object with default system values
-bool init2(dsp* dsp, const char* name, int renderer, int sr, int bsize);	///< init the Faust object
+bool init1Dsp(dsp* dsp, const char* name);                                     ///< init Faust object with default system values
+bool init2Dsp(dsp* dsp, const char* name, int renderer, int sr, int bsize);	///< init the Faust object
 
-bool start(dsp* dsp);			///< open the audio drivers and starts processing audio
-void stop(dsp* dsp);			///< stop processing audio and closes the audio drivers
+bool startDsp(dsp* dsp);			///< open the audio drivers and starts processing audio
+void stopDsp(dsp* dsp);			///< stop processing audio and closes the audio drivers
 
-// Connection API 
-int getNumInputs(dsp* dsp);
-int getNumOutputs(dsp* dsp);
+// Connection API '
+int getNumInputsDsp(dsp* dsp);  // Using 'null' means physical input
+int getNumOutputsDsp(dsp* dsp); // Using 'null' means physical output
 
-int getNumPhysicalInputs();
-int getNumPhysicalOutputs();
-
-void connect(dsp* dsp1, dsp* dsp2, int src, int dst);
-void disconnect(dsp* dsp1, dsp* dsp2, int src, int dst);
-bool isConnected(dsp* dsp1, dsp* dsp2, int src, int dst);
+// Using 'null' for dsp1 means physical input, 'null' for dsp2 means physical output
+void connectDsp(dsp* dsp1, dsp* dsp2, int src, int dst);        
+void disconnectDsp(dsp* dsp1, dsp* dsp2, int src, int dst);
+bool isConnectedDsp(dsp* dsp1, dsp* dsp2, int src, int dst);
 
 /*
  * Faust objects have control parameters that can be read and changed.
@@ -59,26 +57,26 @@ bool isConnected(dsp* dsp1, dsp* dsp2, int src, int dst);
  * getNamedParam(const char* name) retrieves the value of a parameter by its name
  * getIndexParam(int i) retrieves the value of a parameter by its index
  */
-const char* getJSON(dsp* dsp);					///< JSON description of the UI
+const char* getJSONDsp(dsp* dsp);					///< JSON description of the UI
 
-int getParamsCount(dsp* dsp);					///< number of control parameters
+int getParamsCountDsp(dsp* dsp);					///< number of control parameters
 
-int getParamIndex(dsp* dsp, const char* name); 	///< returns the index of parameter name or -1
-const char* getParamName(dsp* dsp, int p); 		///< returns the name of parameter p
-const char* getParamUnit(dsp* dsp, int p); 		///< returns the name of parameter p
-float getParamMin(dsp* dsp, int p); 			///< returns the min value of parameter p
-float getParamMax(dsp* dsp, int p); 			///< returns the max value of parameter p
-float getParamStep(dsp* dsp, int p); 			///< returns the min value of parameter p
+int getParamIndexDsp(dsp* dsp, const char* name); 	///< returns the index of parameter name or -1
+const char* getParamNameDsp(dsp* dsp, int p); 		///< returns the name of parameter p
+const char* getParamUnitDsp(dsp* dsp, int p); 		///< returns the name of parameter p
+float getParamMinDsp(dsp* dsp, int p);              ///< returns the min value of parameter p
+float getParamMaxDsp(dsp* dsp, int p);              ///< returns the max value of parameter p
+float getParamStepDsp(dsp* dsp, int p); 			///< returns the min value of parameter p
 	
-float getParamValue(dsp* dsp, int p); 			///< returns the value of parameter p
-void  setParamValue(dsp* dsp, int p, float v); 	///< set the value of parameter p
+float getParamValueDsp(dsp* dsp, int p); 			///< returns the value of parameter p
+void  setParamValueDsp(dsp* dsp, int p, float v); 	///< set the value of parameter p
 	
-float getParamRatio(dsp* dsp, int p); 			///< returns the ratio (normalized value in 0..1) of parameter p
-void  setParamRatio(dsp* dsp, int p, float v); 	///< set the ratio (normalized value in 0..1) of parameter p
+float getParamRatioDsp(dsp* dsp, int p); 			///< returns the ratio (normalized value in 0..1) of parameter p
+void  setParamRatioDsp(dsp* dsp, int p, float v); 	///< set the ratio (normalized value in 0..1) of parameter p
 
-void propagateAccX(dsp* dsp, float a);			///< propagate x accelerometer influence to related parameters
-void propagateAccY(dsp* dsp, float a);			///< propagate y accelerometer influence to related parameters
-void propagateAccZ(dsp* dsp, float a);			///< propagate z accelerometer influence to related parameters
+void propagateAccXDsp(dsp* dsp, float a);			///< propagate x accelerometer influence to related parameters
+void propagateAccYDsp(dsp* dsp, float a);			///< propagate y accelerometer influence to related parameters
+void propagateAccZDsp(dsp* dsp, float a);			///< propagate z accelerometer influence to related parameters
 
 /************************************************************************
 ************************************************************************/
