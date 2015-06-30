@@ -17,6 +17,8 @@
 #include <map>
 #include <vector>
 #include <microhttpd.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #ifdef __APPLE__
 #include <dns_sd.h>
@@ -36,8 +38,6 @@
 #else
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
-
-class DSPServer;
 
 using namespace std;
 
@@ -83,45 +83,6 @@ class netjackaudio_server : public netjackaudio_midicontrol {
 
 };
 
-// Structure handled by libmicrohttp related to a connection
-
-struct connection_info_struct {
-    
-    int                 fConnectiontype;    // GET or POST
-    
-    MHD_PostProcessor*  fPostprocessor;     // the POST processor used internally by microhttpd
-    int                 fAnswercode;        // used internally by microhttpd to see where things went wrong or right
-    
-    std::string         fAnswerstring;      // the answer sent to the user after upload
-    
-    //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
-    string              fNameApp;
-    string              fFaustCode;
-    string              fFactoryKey;
-    vector<string>      fCompilationOptions;
-    string              fOptLevel;
-    
-    llvm_dsp_factory*   fLLVMFactory;
-    //---------------------------------------------
-    
-    //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
-    string              fIP;
-    string              fPort;
-    string              fCompression;
-    string              fMTU;
-    string              fLatency;
-    string              fSHAKey;
-    string              fInstanceKey;
-    //--------------------------------------------- 
-    
-    connection_info_struct();
-    ~connection_info_struct();
-    
-};
-    
-#include <netdb.h>
-#include <arpa/inet.h>
-
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
 class netjack_dsp {
@@ -162,7 +123,53 @@ class netjack_dsp {
         void    setName(string name) { fName = name; }
 
 };
+
+// Structure handled by libmicrohttp related to a connection
+
+enum {
+    ERROR_FACTORY_NOTFOUND,
+    ERROR_INSTANCE_NOTCREATED
+};
+
+typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
+
+struct connection_info_struct {
     
+    int                 fConnectiontype;    // GET or POST
+    
+    MHD_PostProcessor*  fPostprocessor;     // the POST processor used internally by microhttpd
+    int                 fAnswercode;        // used internally by microhttpd to see where things went wrong or right
+    
+    std::string         fAnswerstring;      // the answer sent to the user after upload
+    
+    //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
+    string              fNameApp;
+    string              fFaustCode;
+    string              fFactoryKey;
+    vector<string>      fCompilationOptions;
+    string              fOptLevel;
+    
+    llvm_dsp_factory*   fLLVMFactory;
+    //---------------------------------------------
+    
+    //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
+    string              fIP;
+    string              fPort;
+    string              fCompression;
+    string              fMTU;
+    string              fLatency;
+    string              fSHAKey;
+    string              fInstanceKey;
+    //--------------------------------------------- 
+    
+    connection_info_struct();
+    ~connection_info_struct();
+    
+    string getJson();
+    bool getJsonFromKey(FactoryTable& factories);
+    
+};
+
 // Same prototype LLVM/REMOTE dsp are using for allocation/desallocation
 
 class DSPServer {
@@ -176,7 +183,7 @@ class DSPServer {
         // Factories that can be instanciated. 
         // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
         // SHAKey, pair<NameApp, Factory>
-        map<string, pair<string, llvm_dsp_factory*> > fAvailableFactories;
+        map<string, pair<string, llvm_dsp_factory*> > fFactories;
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
         list<netjack_dsp*> fRunningDsp;

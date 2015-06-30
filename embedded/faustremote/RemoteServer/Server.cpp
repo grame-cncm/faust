@@ -18,63 +18,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
 
-enum {
-    ERROR_FACTORY_NOTFOUND,
-    ERROR_INSTANCE_NOTCREATED
-};
-
-// Declare is called for every metadata coded in the faust DSP
-// That way, we get the faust name declared in the faust DSP
-struct myMeta : public Meta
-{
-    string name;
-    
-    virtual void declare(const char* key, const char* value) {
-        if (strcmp(key, "name") == 0) {
-            name = value;
-        }
-    }
-};
-
-connection_info_struct::connection_info_struct() 
-{   
-    fPostprocessor = 0;
-    fAnswercode = -1;
-    fAnswerstring = "";
-    fNameApp = "";
-    fFaustCode = "";
-    fFactoryKey = "";
-    fOptLevel = "";
-    fLLVMFactory = 0;
-    fIP = "";
-    fPort = "";
-    fCompression = "";
-    fMTU = "";
-    fLatency = "";
-    fSHAKey = "";
-    fInstanceKey = "";
-}
-    
-connection_info_struct::~connection_info_struct()
-{}
-
-//------------SLAVE DSP FACTORY-------------------------------
-
-string getJson(connection_info_struct* con_info) 
-{
-    myMeta metadata;
-    metadataDSPFactory(con_info->fLLVMFactory, &metadata);
-    con_info->fNameApp = metadata.name;
-        
-    // This instance is used only to build JSON interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(con_info->fLLVMFactory);
-    JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
-    dsp->buildUserInterface(&json);
-    deleteDSPInstance(dsp);  
-      
-    return json.JSON();
-}
-
 //--------------SLAVE DSP INSTANCE-----------------------------
 
 netjack_dsp::netjack_dsp(llvm_dsp_factory* factory, 
@@ -112,10 +55,10 @@ void netjack_dsp::stop()
 bool netjack_dsp::open()
 {
     fAudio = new netjackaudio_server(atoi(fCompression.c_str()), 
-                                        fIP, 
-                                        atoi(fPort.c_str()), 
-                                        atoi(fMTU.c_str()), 
-                                        atoi(fLatency.c_str()));
+                                    fIP, 
+                                    atoi(fPort.c_str()), 
+                                    atoi(fMTU.c_str()), 
+                                    atoi(fLatency.c_str()));
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("RemoteDSPServer : Init slave audio failed\n");
@@ -128,6 +71,72 @@ bool netjack_dsp::open()
     }
       
     return true;
+}
+
+// Declare is called for every metadata coded in the faust DSP
+// That way, we get the faust name declared in the faust DSP
+struct myMeta : public Meta
+{
+    string name;
+    
+    virtual void declare(const char* key, const char* value) {
+        if (strcmp(key, "name") == 0) {
+            name = value;
+        }
+    }
+};
+
+//------------SLAVE DSP FACTORY-------------------------------
+
+connection_info_struct::connection_info_struct() 
+{   
+    fPostprocessor = 0;
+    fAnswercode = -1;
+    fAnswerstring = "";
+    fNameApp = "";
+    fFaustCode = "";
+    fFactoryKey = "";
+    fOptLevel = "";
+    fLLVMFactory = 0;
+    fIP = "";
+    fPort = "";
+    fCompression = "";
+    fMTU = "";
+    fLatency = "";
+    fSHAKey = "";
+    fInstanceKey = "";
+}
+    
+connection_info_struct::~connection_info_struct()
+{}
+
+string connection_info_struct::getJson() 
+{
+    myMeta metadata;
+    metadataDSPFactory(fLLVMFactory, &metadata);
+    fNameApp = metadata.name;
+        
+    // This instance is used only to build JSON interface, then it's deleted
+    llvm_dsp* dsp = createDSPInstance(fLLVMFactory);
+    JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
+    dsp->buildUserInterface(&json);
+    deleteDSPInstance(dsp);  
+      
+    return json.JSON();
+}
+
+bool connection_info_struct::getJsonFromKey(map<string, pair<string, llvm_dsp_factory*> >& factories)
+{
+    fNameApp = factories[fSHAKey].first;
+    fLLVMFactory = factories[fSHAKey].second;
+    
+    if (fLLVMFactory) {
+        fAnswerstring = getJson();
+        return true;
+    } else {
+        fAnswerstring = "Factory not found";
+        return false;
+    }
 }
 
 //----------------SERVER----------------------------------------
@@ -298,7 +307,7 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
         return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
     } else if (strcmp(url, "/GetAvailableFactories") == 0) {
         stringstream answer;
-        for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++) {
+        for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fFactories.begin(); it != fFactories.end(); it++) {
             answer << it->first << " " << it->second.first << " ";
         }
         return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
@@ -331,7 +340,7 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
             }
         } else if (strcmp(url, "/GetJsonFromKey") == 0) {
-            if (getJsonFromKey(con_info)) {
+            if (con_info->getJsonFromKey(fFactories)) {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
             } else {
                 return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
@@ -345,11 +354,11 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
         }
 //        else if(strcmp(url, "/DeleteFactory") == 0){
 //                    
-//            llvm_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey];
+//            llvm_dsp_factory* toDelete = fFactories[con_info->fSHAKey];
 //            
 //            if (toDelete) {
 //                
-//                fAvailableFactories.erase(con_info->fSHAKey);
+//                fFactories.erase(con_info->fSHAKey);
 //                deleteSlaveDSPFactory(toDelete);
 //                
 //                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
@@ -384,7 +393,7 @@ int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/,
      
     if (size > 0) {
         
-        if (strcmp(key,"name") == 0){
+        if (strcmp(key,"name") == 0) {
             con_info->fNameApp += nameWithoutSpaces(data);
             if (con_info->fNameApp == "")
                 con_info->fNameApp = "RemoteDSPServer_DefaultName";
@@ -470,28 +479,13 @@ void DSPServer::stopAudio(const string& shakey)
         }
     }
 }
-
-bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
-{
-    con_info->fNameApp = fAvailableFactories[con_info->fSHAKey].first;
-    con_info->fLLVMFactory = fAvailableFactories[con_info->fSHAKey].second;
-    
-    if (con_info->fLLVMFactory) {
-        con_info->fAnswerstring = getJson(con_info);
-        return true;
-    } else {
-        con_info->fAnswerstring = "Factory not found";
-        return false;
-    }
-}
-
 // Create DSP Factory 
 bool DSPServer::createFactory(connection_info_struct* con_info) {
     
     // Factory already compiled ?
-    if (fAvailableFactories.find(con_info->fSHAKey) != fAvailableFactories.end()) {
-        con_info->fLLVMFactory = fAvailableFactories[con_info->fSHAKey].second;
-        con_info->fAnswerstring = getJson(con_info);
+    if (fFactories.find(con_info->fSHAKey) != fFactories.end()) {
+        con_info->fLLVMFactory = fFactories[con_info->fSHAKey].second;
+        con_info->fAnswerstring = con_info->getJson();
         return true;
     }
     
@@ -516,9 +510,9 @@ bool DSPServer::createFactory(connection_info_struct* con_info) {
     }
    
     if (con_info->fLLVMFactory) {
-        fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+        fFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
         // Once the factory is compiled, the JSON is stored as answerstring
-        con_info->fAnswerstring = getJson(con_info);
+        con_info->fAnswerstring = con_info->getJson();
         return true;
     } else {
         con_info->fAnswerstring = error;
@@ -529,13 +523,13 @@ bool DSPServer::createFactory(connection_info_struct* con_info) {
 // Create DSP Instance
 bool DSPServer::createInstance(connection_info_struct* con_info)
 {
-    llvm_dsp_factory* factory = fAvailableFactories[con_info->fFactoryKey].second;
+    llvm_dsp_factory* factory = fFactories[con_info->fFactoryKey].second;
     
     if (factory) {
     
         try {
             netjack_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency);
-            dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
+            dsp->setName(fFactories[con_info->fFactoryKey].first);
             pthread_t myThread;
             AudioStarter* starter = new AudioStarter(this, dsp);
             
