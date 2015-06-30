@@ -41,8 +41,6 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 #include "faust/gui/ControlUI.h"
-
-#include <stdio.h>
 #include <jack/net.h>
 #include <string>
 #include <assert.h>
@@ -108,7 +106,7 @@ class netjackaudio : public audio
         bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
         {
             if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
-                set_dsp_aux(DSP);
+                set_dsp(DSP);
                 return true;
             } else {
                 return false;
@@ -149,12 +147,6 @@ class netjackaudio : public audio
             return true;
         }
     
-        void set_dsp_aux(dsp* DSP) 
-        {
-            fDsp = DSP;
-            fDsp->init(fResult.sample_rate);
-        }
-        
         // Possibly to be redefined by subclasses
         
         virtual int restart_cb()
@@ -217,6 +209,12 @@ class netjackaudio : public audio
             if (fNet) {
                 jack_net_slave_deactivate(fNet);
             }
+        }
+        
+        void set_dsp(dsp* DSP) 
+        {
+            fDsp = DSP;
+            fDsp->init(fResult.sample_rate);
         }
         
         virtual int get_buffer_size() { return fResult.buffer_size; }
