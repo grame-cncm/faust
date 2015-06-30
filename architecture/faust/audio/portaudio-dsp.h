@@ -45,8 +45,6 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp-adapter.h"
 
-static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv);
-
 static bool pa_error(int err)
 {
 	if (err != paNoError) {
@@ -81,6 +79,19 @@ class portaudio : public audio {
         //----------------------------------------------------------------------------
         int	fDevNumInChans;
         int	fDevNumOutChans;
+        
+        static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv)
+        {
+            portaudio* pa = (portaudio*)drv;
+            return pa->processAudio((float**)ibuf, (float**)obuf, frames);
+        }
+        
+        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
+        {
+            // process samples
+            fDsp->compute(frames, ibuf, obuf);
+            return paContinue;
+        }
         
     public:
         
@@ -197,13 +208,6 @@ class portaudio : public audio {
             }
         }
         
-        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
-        {
-            // process samples
-            fDsp->compute(frames, ibuf, obuf);
-            return paContinue;
-        }
-        
         virtual int get_buffer_size() 
         { 
             return fBufferSize; 
@@ -224,14 +228,5 @@ class portaudio : public audio {
             return fDevNumOutChans;
         }
 };
-
-//----------------------------------------------------------------------------
-// Port Audio Callback
-//----------------------------------------------------------------------------
-static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void* drv)
-{
-	portaudio* pa = (portaudio*)drv;
-	return pa->processAudio((float**)ibuf, (float**)obuf, frames);
-}
 
 #endif
