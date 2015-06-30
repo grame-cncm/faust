@@ -58,6 +58,10 @@
 #define STRDUP strdup
 #endif
 
+#if defined(_WIN32) || defined(__APPLE__) 
+#define HAS_JACK 1
+#endif 
+
 //**************************************************************
 // APIUI : Faust User Interface
 // This class a simple parameter based interface
@@ -340,10 +344,12 @@ struct dsp_aux {
                 break;
         #endif
                 
+        #ifdef HAS_JACK
             case kJackRenderer:
                 fDriver = new jackaudio();
                 break;
-                
+        #endif
+         
         #ifdef __APPLE__
             case kCoreAudioRenderer:
                 fDriver = new coreaudio(sr, bsize);
@@ -366,15 +372,17 @@ struct dsp_aux {
     
 };
 
+#if HAS_JACK
 static audio* createDriver()
 {
   return new jackaudio(0, 0);
 }
 
-jackaudio* getJackDriver(dsp* dsp1_ext)
+static jackaudio* getJackDriver(dsp* dsp1_ext)
 {
     return (dsp1_ext) ? dynamic_cast<jackaudio*>(reinterpret_cast<dsp_aux*>(dsp1_ext)->fDriver) : 0;
 }
+#endif
 
 // Exported external API
 
@@ -385,6 +393,7 @@ extern "C"
 
 int getNumInputsDsp(dsp* dsp_ext)
 {
+#if HAS_JACK
     if (dsp_ext) {
         return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumInputs();
     } else {
@@ -396,10 +405,14 @@ int getNumInputsDsp(dsp* dsp_ext)
         }
         return res;
     }
+#else
+    return -1;
+#endif
 }
 
 int getNumOutputsDsp(dsp* dsp_ext)
 {
+#if HAS_JACK
     if (dsp_ext) {
         return reinterpret_cast<dsp_aux*>(dsp_ext)->getNumOutputs();
     } else {
@@ -411,10 +424,14 @@ int getNumOutputsDsp(dsp* dsp_ext)
         }
         return res;
     }
+#else
+    return -1;
+#endif
 }
 
 void connectDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 {
+#if HAS_JACK
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
     if (driver1 == NULL && driver2 == NULL) return;
@@ -429,10 +446,12 @@ void connectDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
         // Connnection between drivers
         driver1->connect(driver2, src, dst, false);
     }
+#endif
 }
 
 void disconnectDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 {   
+#if HAS_JACK
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
     if (driver1 == NULL && driver2 == NULL) return;
@@ -447,10 +466,12 @@ void disconnectDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
         // Disconnnection between drivers
         driver1->disconnect(driver2, src, dst, false);
     }
+#endif
 }
 
 bool isConnectedDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
 { 
+#if HAS_JACK
     jackaudio* driver1 = getJackDriver(dsp1_ext);
     jackaudio* driver2 = getJackDriver(dsp2_ext);
     if (driver1 == NULL && driver2 == NULL) false;
@@ -465,6 +486,7 @@ bool isConnectedDsp(dsp* dsp1_ext, dsp* dsp2_ext, int src, int dst)
         // Connection test between Dsp
         return driver1->is_connected(driver2, src, dst, false);
     }
+#endif
 }
 
 dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
