@@ -108,7 +108,7 @@ class portaudio : public audio {
         virtual bool init(const char* name, dsp* DSP)
         {
             if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())) {
-                set_dsp_aux(DSP);
+                set_dsp(DSP);
                 return true;
             } else {
                 return false;
@@ -172,7 +172,7 @@ class portaudio : public audio {
             return true;
         }
         
-        void set_dsp_aux(dsp* DSP) 
+        void set_dsp(dsp* DSP) 
         {
             fDsp = DSP;
             if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {

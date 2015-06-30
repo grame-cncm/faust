@@ -644,6 +644,8 @@ int TiPhoneCoreAudioRenderer::Stop()
  *******************************************************************************
  *******************************************************************************/
 class iosaudio : public audio {
+
+protected:
     
     TiPhoneCoreAudioRenderer fAudioDevice;
 	int fSampleRate, fBufferSize;
