@@ -340,7 +340,6 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI {
     
 };
 
-
 #endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

@@ -47,10 +47,6 @@
 
 #define FORMAT RTAUDIO_FLOAT32
 
-static int audioCallback(void* outputBuffer, void* inputBuffer, 
-                        unsigned int nBufferFrames,
-                        double streamTime, RtAudioStreamStatus status, 
-                        void* data);
 
 /******************************************************************************
  *******************************************************************************
@@ -75,6 +71,32 @@ class rtaudio : public audio {
         int	fDevNumInChans;
         int	fDevNumOutChans;
         
+        virtual int processAudio(void* ibuf, void* buf, unsigned long frames) 
+        {
+            float* inputs[fDsp->getNumInputs()];
+            float* outputs[fDsp->getNumOutputs()];
+            
+            for (int i = 0; i < fDsp->getNumInputs(); i++) {
+                inputs[i] = &((float*)ibuf)[i * frames];
+            }
+            for (int i = 0; i < fDsp->getNumOutputs(); i++) {
+                outputs[i] = &((float*)buf)[i * frames];
+            }
+
+            // process samples
+            fDsp->compute(frames, inputs, outputs);
+            return 0;
+        }
+        
+        static int audioCallback(void* outputBuffer, void* inputBuffer, 
+                        unsigned int nBufferFrames,
+                        double streamTime, RtAudioStreamStatus status, 
+                        void* data)
+        {
+            rtaudio* ra = (rtaudio*)data;
+            return ra->processAudio(inputBuffer, outputBuffer, nBufferFrames);
+        }
+      
     public:
         
         rtaudio(long srate, long bsize) : fDsp(0),
@@ -87,7 +109,7 @@ class rtaudio : public audio {
         virtual bool init(const char* name, dsp* DSP)
         {
             if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())) {
-                set_dsp_aux(DSP);
+                set_dsp(DSP);
                 return true;
             } else {
                 return false;
@@ -130,8 +152,8 @@ class rtaudio : public audio {
             return true;
         }
         
-        void set_dsp_aux(dsp* DSP){
-            
+        void set_dsp(dsp* DSP)
+        {
             fDsp = DSP;
             if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {
                 printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
@@ -165,23 +187,6 @@ class rtaudio : public audio {
             }
         }
         
-        virtual int processAudio(void* ibuf, void* buf, unsigned long frames) 
-        {
-            float* inputs[fDsp->getNumInputs()];
-            float* outputs[fDsp->getNumOutputs()];
-            
-            for (int i = 0; i < fDsp->getNumInputs(); i++) {
-                inputs[i] = &((float*)ibuf)[i * frames];
-            }
-            for (int i = 0; i < fDsp->getNumOutputs(); i++) {
-                outputs[i] = &((float*)buf)[i * frames];
-            }
-
-            // process samples
-            fDsp->compute(frames, inputs, outputs);
-            return 0;
-        }
-        
         virtual int get_buffer_size() 
         { 
             return fBufferSize; 
@@ -202,15 +207,5 @@ class rtaudio : public audio {
             return fDevNumOutChans;
         }
 };
-
-//----------------------------------------------------------------------------
-// RtAudio Callback
-//----------------------------------------------------------------------------
-static int audioCallback(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
-                        double /*streamTime*/, RtAudioStreamStatus status, void *data)
-{
-    rtaudio* ra = (rtaudio*)data;
- 	return ra->processAudio(inputBuffer, outputBuffer, nBufferFrames);
-}
 
 #endif
