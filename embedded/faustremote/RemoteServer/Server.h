@@ -107,7 +107,8 @@ class netjack_dsp {
         netjack_dsp(llvm_dsp_factory* smartFactory, 
                     const string& compression, 
                     const string& ip, const string& port, 
-                    const string& mtu, const string& latency);
+                    const string& mtu, const string& latency,
+                    const string& name, const string& key);
                     
         virtual ~netjack_dsp();
         
@@ -133,14 +134,11 @@ enum {
 
 typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
 
-struct connection_info_struct {
+struct connection_info {
     
-    int                 fConnectiontype;    // GET or POST
-    
-    MHD_PostProcessor*  fPostprocessor;     // the POST processor used internally by microhttpd
     int                 fAnswercode;        // used internally by microhttpd to see where things went wrong or right
     
-    std::string         fAnswerstring;      // the answer sent to the user after upload
+    std::string         fAnswer;            // the answer sent to the user after upload
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string              fNameApp;
@@ -149,7 +147,7 @@ struct connection_info_struct {
     vector<string>      fCompilationOptions;
     string              fOptLevel;
     
-    llvm_dsp_factory*   fLLVMFactory;
+    llvm_dsp_factory*   fFactory;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
@@ -162,18 +160,54 @@ struct connection_info_struct {
     string              fInstanceKey;
     //--------------------------------------------- 
     
-    connection_info_struct();
-    ~connection_info_struct();
+    connection_info();
+    virtual ~connection_info() {}
     
     string getJson();
     bool getJsonFromKey(FactoryTable& factories);
     
+    int iteratePost(const char* key, const char* data, size_t size); 
+    
+    bool createFactory(FactoryTable factories);
+    
+    virtual int postProcess(const char* upload_data, size_t* upload_data_size)
+    {
+        return MHD_NO;
+    }
+    
 };
+
+struct connection_info_post : public connection_info {
+
+    MHD_PostProcessor* fPostprocessor;     // the POST processor used internally by microhttpd
+ 
+    connection_info_post(MHD_Connection* connection);
+     
+    virtual ~connection_info_post()
+    {
+        MHD_destroy_post_processor(fPostprocessor);
+    }
+
+    int postProcess(const char* upload_data, size_t* upload_data_size)
+    {
+        MHD_post_process(fPostprocessor, upload_data, *upload_data_size);
+        *upload_data_size = 0;
+        return MHD_YES;
+    }
+}; 
+
+struct connection_info_get : public connection_info  {
+
+    connection_info_get():connection_info()
+    {}
+}; 
 
 // Same prototype LLVM/REMOTE dsp are using for allocation/desallocation
 
 class DSPServer {
-      
+    
+    friend struct connection_info_post;
+    
     private:
 
         TMutex fLocker;
@@ -195,8 +229,6 @@ class DSPServer {
         int             sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
             
         void            stopNotActiveDSP();
-            
-        connection_info_struct* allocateConnectionStruct(MHD_Connection* connection, const char* method);
             
         // Reaction to any kind of connection to the Server
         static int      answerToConnection(void* cls, MHD_Connection* connection, 
@@ -221,13 +253,11 @@ class DSPServer {
             
         static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
             
-        // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
-        bool        createFactory(connection_info_struct* con_info);
         // Reaction to a /GetJsonFromKey --> GetJson form available factory
-        bool        getJsonFromKey(connection_info_struct* con_info);
+        bool        getJsonFromKey(connection_info* con_info);
             
         // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
-        bool        createInstance(connection_info_struct* con_info);
+        bool        createInstance(connection_info* con_info);
         
         bool        startAudio(const string& shakey);
         
@@ -252,6 +282,8 @@ class DSPServer {
      
 };
 
+
+
 // Helper class
 
 struct AudioStarter {
@@ -261,7 +293,7 @@ struct AudioStarter {
     
     AudioStarter(DSPServer* server, netjack_dsp* dsp):fServer(server), fDSP(dsp)
     {}
-
+  
 };
 
 // Public C++ API
