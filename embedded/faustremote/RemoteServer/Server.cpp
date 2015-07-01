@@ -8,6 +8,8 @@
 
 #include "Server.h"
 #include "utilities.h"
+#include "faust/gui/meta.h"
+#include "faust/gui/JSONUI.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -15,8 +17,24 @@
 #include <pthread.h>
 #include <openssl/sha.h>
 
-#include "faust/gui/meta.h"
-#include "faust/gui/JSONUI.h"
+// Declare is called for every metadata coded in the faust DSP
+// That way, we get the faust name declared in the faust DSP
+struct myMeta : public Meta
+{
+    string name;
+    
+    virtual void declare(const char* key, const char* value) {
+        if (strcmp(key, "name") == 0) {
+            name = value;
+        }
+    }
+};
+
+static string builtError(int error)
+{
+    stringstream s; s << error;
+    return s.str();
+}
 
 //--------------SLAVE DSP INSTANCE-----------------------------
 
@@ -74,19 +92,6 @@ bool netjack_dsp::open()
       
     return true;
 }
-
-// Declare is called for every metadata coded in the faust DSP
-// That way, we get the faust name declared in the faust DSP
-struct myMeta : public Meta
-{
-    string name;
-    
-    virtual void declare(const char* key, const char* value) {
-        if (strcmp(key, "name") == 0) {
-            name = value;
-        }
-    }
-};
 
 //------------ CONNECTION INFO -------------------------------
 
@@ -219,7 +224,7 @@ connection_info_post::connection_info_post(MHD_Connection* connection):connectio
 {
     fPostprocessor = 0;
     fAnswercode = MHD_HTTP_OK;
-    if (!(fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, &DSPServer::iteratePost, this))) {
+    if (!(fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, DSPServer::iteratePost, this))) {
         throw -1;
     }
 }
@@ -322,7 +327,7 @@ void DSPServer::stopNotActiveDSP()
 // If connection is new, a connection structure is allocated
 int DSPServer::createConnection(MHD_Connection* connection, const char* method, void** con_cls)
 {
-    connection_info* info;
+    connection_info* info = NULL;
     try {
         if (strcmp(method, "POST") == 0) {
             info = new connection_info_post(connection);
@@ -491,12 +496,6 @@ void DSPServer::stopAudio(const string& shakey)
             return;
         }
     }
-}
-
-static string builtError(int error)
-{
-    stringstream s; s << error;
-    return s.str();
 }
 
 // Create DSP Instance

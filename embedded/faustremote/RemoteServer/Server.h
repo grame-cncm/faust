@@ -89,18 +89,18 @@ class netjack_dsp {
 
     private: 
     
-        string          fInstanceKey;
-        string          fName;
+        string fInstanceKey;
+        string fName;
         
         // NetJack PARAMETERS
-        string          fIP;
-        string          fPort;
-        string          fCompression;
-        string          fMTU;
-        string          fLatency;
+        string fIP;
+        string fPort;
+        string fCompression;
+        string fMTU;
+        string fLatency;
         
-        netjackaudio_server*   fAudio; // NetJack SLAVE 
-        llvm_dsp*              fDSP;   // Real DSP Instance 
+        netjackaudio_server* fAudio;    // NetJack SLAVE 
+        llvm_dsp* fDSP;                 // DSP Instance 
      
     public:
     
@@ -136,28 +136,27 @@ typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
 
 struct connection_info {
     
-    int                 fAnswercode;        // used internally by microhttpd to see where things went wrong or right
+    int fAnswercode;        // used internally by microhttpd to see where things went wrong or right
     
-    std::string         fAnswer;            // the answer sent to the user after upload
+    std::string fAnswer;    // the answer sent to the user after upload
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
-    string              fNameApp;
-    string              fFaustCode;
-    string              fFactoryKey;
-    vector<string>      fCompilationOptions;
-    string              fOptLevel;
-    
-    llvm_dsp_factory*   fFactory;
+    string fNameApp;
+    string fFaustCode;
+    string fFactoryKey;
+    vector<string> fCompilationOptions;
+    string fOptLevel;
+    llvm_dsp_factory* fFactory;
     //---------------------------------------------
     
     //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
-    string              fIP;
-    string              fPort;
-    string              fCompression;
-    string              fMTU;
-    string              fLatency;
-    string              fSHAKey;
-    string              fInstanceKey;
+    string fIP;
+    string fPort;
+    string fCompression;
+    string fMTU;
+    string fLatency;
+    string fSHAKey;
+    string  fInstanceKey;
     //--------------------------------------------- 
     
     connection_info();
@@ -221,49 +220,30 @@ class DSPServer {
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
         list<netjack_dsp*> fRunningDsp;
-        struct MHD_Daemon* fDaemon; //Running http daemon
+        MHD_Daemon* fDaemon; //Running http daemon
         
         void openAudio(netjack_dsp* dsp);
                 
         // Creates the html to send back
-        int             sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
+        int sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
             
-        void            stopNotActiveDSP();
-            
-        // Reaction to any kind of connection to the Server
-        static int      answerToConnection(void* cls, MHD_Connection* connection, 
-                                            const char* url, const char* method, 
-                                            const char* version, const char* upload_data, 
-                                            size_t* upload_data_size, void** con_cls);
-            
+        void stopNotActiveDSP();
             
         // Reaction to a GET request
-        int             answerGet(MHD_Connection* connection, const char* url);
+        int answerGet(MHD_Connection* connection, const char* url);
             
         // Reaction to a POST request
-        int             answerPost(MHD_Connection* connection, const char* url, 
+        int answerPost(MHD_Connection* connection, const char* url, 
                                     const char* upload_data, size_t *upload_data_size, 
                                     void** con_cls);
             
-        // Callback that processes the data send to the server
-        static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 
-                                const char* filename, const char* content_type, 
-                                const char* transfer_encoding, const char* data, 
-                                uint64_t off, size_t size);
-            
-        static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
-            
-        // Reaction to a /GetJsonFromKey --> GetJson form available factory
-        bool        getJsonFromKey(connection_info* con_info);
-            
         // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
-        bool        createInstance(connection_info* con_info);
+        bool createInstance(connection_info* con_info);
         
-        bool        startAudio(const string& shakey);
+        bool startAudio(const string& shakey);
+        void stopAudio(const string& shakey);
         
-        void        stopAudio(const string& shakey);
-        
-        int         createConnection(MHD_Connection* connection, const char* method, void** con_cls);
+        int createConnection(MHD_Connection* connection, const char* method, void** con_cls);
         
         // Register Service as available
         static void* registration(void* arg);
@@ -271,6 +251,22 @@ class DSPServer {
         // Callback of another thread to wait netjack audio connection without blocking the server
         static void* openAudio(void* arg);
    
+        // Callback that processes the data send to the server
+        static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 
+                                const char* filename, const char* content_type, 
+                                const char* transfer_encoding, const char* data, 
+                                uint64_t off, size_t size);
+            
+        static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
+        
+        // Reaction to any kind of connection to the Server
+        static int answerToConnection(void* cls, MHD_Connection* connection, 
+                                        const char* url, const char* method, 
+                                        const char* version, const char* upload_data, 
+                                        size_t* upload_data_size, void** con_cls);
+            
+   
+    
     public:
             
         DSPServer(int argc, const char* argv[]);
@@ -281,8 +277,6 @@ class DSPServer {
         void stop();
      
 };
-
-
 
 // Helper class
 
