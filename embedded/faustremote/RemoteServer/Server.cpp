@@ -17,8 +17,8 @@
 #include <pthread.h>
 #include <openssl/sha.h>
 
-// Declare is called for every metadata coded in the faust DSP
-// That way, we get the faust name declared in the faust DSP
+// Declare is called for every metadata coded in the Faust DSP
+// That way, we get the faust name declared in the Faust DSP
 struct myMeta : public Meta
 {
     string name;
@@ -81,12 +81,12 @@ bool netjack_dsp::open()
                                     atoi(fLatency.c_str()));
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("RemoteDSPServer : Init slave audio failed\n");
+        printf("RemoteDSPServer : init slave audio failed\n");
         return false;
     }
     
      if (!fAudio->start()) {
-        printf("RemoteDSPServer : Start slave audio failed\n");
+        printf("RemoteDSPServer : start slave audio failed\n");
         return false;
     }
       
@@ -376,8 +376,6 @@ int DSPServer::answerToConnection(void* cls,
 // For now GET is not a request supported for now
 int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 {
-    printf("answerGet %s\n", url);
-    
     if (strcmp(url, "/") == 0) {
         return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
     } else if (strcmp(url, "/GetAvailableFactories") == 0) {

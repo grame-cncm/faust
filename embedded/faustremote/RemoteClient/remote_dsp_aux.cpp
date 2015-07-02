@@ -502,7 +502,7 @@ int remote_dsp_aux::getNumOutputs()
 
 // Useless fonction in our case but required for a DSP interface
 //Interesting to implement one day ! 
-void remote_dsp_aux::init(int /*sampling_rate*/){}
+void remote_dsp_aux::init(int /*sampling_rate*/) {}
 
 // Init remote dsp instance sends a POST request to a remote server
 // The URL extension used is /CreateInstance
@@ -737,7 +737,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 {
     // Compute SHA1 key using the non-expanded version, IP and port
     stringstream sha_content;
-    sha_content << dsp_content << " " << port_server << " " << ip_server;
+    sha_content << dsp_content << ":" <<ip_server << ":" << port_server;
     
     string sha_key = generateSHA1(sha_content.str()); 
     FactoryTableIt it;

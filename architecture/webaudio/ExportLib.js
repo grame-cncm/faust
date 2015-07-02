@@ -10,8 +10,8 @@
 // 				- @param : the available targets as a JSON application
 // json = {"platform1":["arch1", "arch2", ..., "archn"], ... , "platformn":["arch1", "arch2", ..., "archn"]}
 
-function getTargets(exportUrl, callback, errCallback){
-
+function getTargets(exportUrl, callback, errCallback)
+{
 	var getrequest = new XMLHttpRequest();
 				
 	getrequest.onreadystatechange = function() {
@@ -33,12 +33,10 @@ function getTargets(exportUrl, callback, errCallback){
 // @source_code : Faust code to compile
 // @callback : function called once request succeeded 
 // 				- @param : the sha key corresponding to source_code
-function getSHAKey(exportUrl, name, source_code, callback, errCallback){
-
+function getSHAKey(exportUrl, name, source_code, callback, errCallback)
+{
 	var filename = name+".dsp";
-
 	var file = new File([source_code], filename);
-
 	var newRequest = new XMLHttpRequest();
 
 	var params = new FormData();
@@ -64,20 +62,20 @@ function getSHAKey(exportUrl, name, source_code, callback, errCallback){
 // @platform/architecture : platform/architecture to precompile
 // @callback : function called once request succeeded 
 // 				- @param : the sha key 
-function sendPrecompileRequest(exportUrl, sha, platform, architecture, callback){
-			
+function sendPrecompileRequest(exportUrl, sha, platform, architecture, callback)
+{
 	var getrequest = new XMLHttpRequest();
 				
 	getrequest.onreadystatechange = function() {
-		if(getrequest.readyState == 4)
+		if (getrequest.readyState == 4) {
 			callback(sha);
+        }
 	}
 			
-	var compileUrl = exportUrl + "/" + sha + "/" + platform + "/" + architecture + "/precompile" ;
+	var compileUrl = exportUrl + "/" + sha + "/" + platform + "/" + architecture + "/precompile";
 				
 	getrequest.open("GET", compileUrl, true);
 	getrequest.send(null);
-
 }
 
 //--- Transform target 
@@ -86,10 +84,9 @@ function sendPrecompileRequest(exportUrl, sha, platform, architecture, callback)
 // @sha : sha key of DSP
 // @platform/architecture/target : platform/architecture/target compiled
 // @cote : width and height of the returned QrCode
-function getQrCode(url, sha, plateform, architecture, target, size){
-
+function getQrCode(url, sha, plateform, architecture, target, size)
+{
 	var downloadString = url + "/" + sha + "/" + plateform + "/" + architecture + "/" + target;
-	
 	var whiteContainer = document.createElement('div');
 	whiteContainer.style.cssText = "width:" + size.toString() + "px; height:" + size.toString() + "px; background-color:white; position:relative; margin-left:auto; margin-right:auto; padding:3px;";
 	
@@ -110,10 +107,9 @@ function getQrCode(url, sha, plateform, architecture, target, size){
 }
 
 // Return the array of available platforms from the json description
-function getPlatforms(json){
-	
+function getPlatforms(json)
+{
 	var platforms = [];
-	
 	var data = JSON.parse(json);
 	var index = 0;
 
@@ -125,15 +121,13 @@ function getPlatforms(json){
 	return platforms;
 }
 
-// Return the list of available architectures for a specific platform
-// from the json description
-function getArchitectures(json, platform){
-	
+// Return the list of available architectures for a specific platform from the json description
+function getArchitectures(json, platform)
+{
 	var architectures = [];
-		
 	var data = JSON.parse(json);
 		
-	return data[platform]						
+	return data[platform];						
 //     var archs = data[platform];
 			
 // 	for (var i =0; i<archs.length; i++)
