@@ -272,7 +272,7 @@ class DSPServer {
         list<audio_dsp*> fRunningDsp;
         MHD_Daemon* fDaemon; //Running http daemon
         
-        void openAudio(audio_dsp* dsp);
+        void open(audio_dsp* dsp);
                 
         // Creates the html to send back
         int sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
@@ -289,17 +289,14 @@ class DSPServer {
             
         // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
         bool createInstance(connection_info* con_info);
-        
-        bool startAudio(const string& shakey);
-        void stopAudio(const string& shakey);
-        
+         
         int createConnection(MHD_Connection* connection, const char* method, void** con_cls);
         
         // Register Service as available
         static void* registration(void* arg);
        
         // Callback of another thread to wait netjack audio connection without blocking the server
-        static void* openAudio(void* arg);
+        static void* open(void* arg);
    
         // Callback that processes the data send to the server
         static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 

@@ -270,15 +270,15 @@ void DSPServer::stop()
 
 
 //---- Callback of another thread to wait netjack audio connection without blocking the server
-void* DSPServer::openAudio(void* arg) 
+void* DSPServer::open(void* arg) 
 {
     AudioStarter* starter = (AudioStarter*)arg;
-    starter->fServer->openAudio(starter->fDSP);
+    starter->fServer->open(starter->fDSP);
     delete starter;
     return NULL;
 }
 
-void DSPServer::openAudio(audio_dsp* dsp)
+void DSPServer::open(audio_dsp* dsp)
 {
     if (fLocker.Lock()) {
         if (dsp->init() && dsp->start()) {
@@ -432,13 +432,7 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
 //                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
 //            }
 //        }
-        else if (strcmp(url, "/StartAudio") == 0) {
-            startAudio(info->fSHAKey);
-            return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-        } else if(strcmp(url, "/StopAudio") == 0){
-            stopAudio(info->fSHAKey);
-            return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-        } else {
+        else {
             return sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html"); 
         }
     }
@@ -465,34 +459,6 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
     delete con_info;
 }
 
-// Start/Stop DSP instance from its SHAKEY
-bool DSPServer::startAudio(const string& shakey)
-{
-    list<audio_dsp*>::iterator it;
-    
-    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey == (*it)->getKey()) {
-            if ((*it)->start()) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-void DSPServer::stopAudio(const string& shakey)
-{
-    list<audio_dsp*>::iterator it;
-    
-    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey == (*it)->getKey()) {
-            (*it)->stop();
-            return;
-        }
-    }
-}
-
 // Create DSP Instance
 bool DSPServer::createInstance(connection_info* con_info)
 {
@@ -508,7 +474,7 @@ bool DSPServer::createInstance(connection_info* con_info)
                                             con_info->fInstanceKey);
             pthread_t thread;
             AudioStarter* starter = new AudioStarter(this, dsp);
-            if (pthread_create(&thread, NULL, DSPServer::openAudio, starter) != 0) {
+            if (pthread_create(&thread, NULL, DSPServer::open, starter) != 0) {
                 goto error;
             }
             

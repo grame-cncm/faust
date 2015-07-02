@@ -578,30 +578,6 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     return res;
 }                        
 
-bool remote_dsp_aux::startAudio()
-{
-    stringstream finalRequest;
-    string response;
-    int errorCode;
-    
-    finalRequest << "instanceKey=" << this;
-    string ip = fFactory->getIP() + "/StartAudio";
-   
-    return sendRequest(ip, finalRequest.str(), response, errorCode);
-}
-
-bool remote_dsp_aux::stopAudio()
-{
-    stringstream finalRequest;
-    string response;
-    int errorCode;
-    
-    finalRequest << "instanceKey=" << this;
-    string ip = fFactory->getIP() + "/StopAudio";
-      
-    return sendRequest(ip, finalRequest.str(), response, errorCode);
-}
-
 //------ DISCOVERY OF AVAILABLE MACHINES
 static remote_DNS* gDNS = NULL;
 
@@ -988,15 +964,5 @@ EXPORT void remote_dsp::buildUserInterface(UI* interface)
 EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
-}
-
-EXPORT bool remote_dsp::startAudio()
-{
-    return reinterpret_cast<remote_dsp_aux*>(this)->startAudio();
-}
-
-EXPORT bool remote_dsp::stopAudio()
-{
-    return reinterpret_cast<remote_dsp_aux*>(this)->stopAudio();
 }
 

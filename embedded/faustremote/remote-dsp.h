@@ -164,9 +164,7 @@ class remote_dsp : public dsp {
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        virtual void startAudio();
-        virtual void stopAudio();
+
 };
 
 /**

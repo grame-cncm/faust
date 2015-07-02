@@ -216,10 +216,7 @@ class remote_dsp_aux : public dsp {
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        virtual bool startAudio();
-        virtual bool stopAudio();
-
+  
         remote_dsp_factory* getFactory() { return fFactory; }
 
 };
@@ -240,10 +237,7 @@ class EXPORT remote_dsp : public dsp {
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        virtual bool startAudio();
-        virtual bool stopAudio();
-        
+         
 };
     
 EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key);  
