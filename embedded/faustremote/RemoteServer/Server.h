@@ -20,10 +20,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#ifdef __APPLE__
-#include <dns_sd.h>
-#endif
-
 #include "faust/audio/netjack-dsp.h"
 #include "llvm-dsp.h"
 #include "utilities.h"
@@ -41,7 +37,7 @@
 
 using namespace std;
 
-class netjackaudio_server : public netjackaudio_midicontrol {  
+class netjackaudio_slave : public netjackaudio_midicontrol {  
 
     private:
 
@@ -49,7 +45,7 @@ class netjackaudio_server : public netjackaudio_midicontrol {
 
     public:
     
-        netjackaudio_server(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
+        netjackaudio_slave(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
             :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
         {
             fNumberRestartAttempts = 0;
@@ -85,45 +81,99 @@ class netjackaudio_server : public netjackaudio_midicontrol {
 
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
-class netjack_dsp {
+class audio_dsp {
 
-    private: 
-    
+     protected:
+     
         string fInstanceKey;
         string fName;
         
-        // NetJack PARAMETERS
-        string fIP;
-        string fPort;
-        string fCompression;
-        string fMTU;
-        string fLatency;
-        
-        netjackaudio_server* fAudio;    // NetJack SLAVE 
-        llvm_dsp* fDSP;                 // DSP Instance 
-     
+        llvm_dsp* fDSP; // DSP Instance 
+        audio* fAudio;
+  
     public:
     
-        netjack_dsp(llvm_dsp_factory* smartFactory, 
-                    const string& compression, 
-                    const string& ip, const string& port, 
-                    const string& mtu, const string& latency,
-                    const string& name, const string& key);
-                    
-        virtual ~netjack_dsp();
+        audio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
+            :fName(name), fInstanceKey(key), fAudio(NULL)
+        {
+            if (!(fDSP = createDSPInstance(factory))) {
+                throw -1;
+            }
+        }
+         
+        virtual ~audio_dsp()
+        {   
+            delete fAudio;
+            deleteDSPInstance(fDSP);
+        }
         
-        bool start();
-        void stop();
-        
-        bool open();
-        bool isActive() { return fAudio->is_connexion_active(); }
+        virtual bool start()
+        {
+            return fAudio->start();
+        }
+        void stop()
+        {
+            fAudio->stop();
+        }
+       
+        virtual bool init() = 0;
+        virtual bool isActive() = 0;
         
         string  getKey() { return fInstanceKey; }
         void    setKey(const string& key) { fInstanceKey = key; }
         string  getName() { return fName; }
         void    setName(string name) { fName = name; }
+        
+};
+
+// NetJack slave client
+
+class netjack_dsp : public audio_dsp {
+
+    private: 
+        
+        // NetJack parameters
+        string fIP;
+        string fPort;
+        string fCompression;
+        string fMTU;
+        string fLatency;
+     
+    public:
+    
+        netjack_dsp(llvm_dsp_factory* factory, 
+                    const string& compression, 
+                    const string& ip, const string& port, 
+                    const string& mtu, const string& latency,
+                    const string& name, const string& key);
+        
+        bool init();
+       
+        bool isActive() { return dynamic_cast<netjackaudio_slave*>(fAudio)->is_connexion_active(); }
 
 };
+
+// Local CoreAudio client
+
+#ifdef COREAUDIO
+
+class coreaudio_dsp : public audio_dsp {
+
+    public:
+     
+        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
+            :audio_dsp(factory, name, key)
+        {}
+        
+        virtual ~coreaudio_dsp() {}
+        
+        bool init();
+        
+        bool isActive() { return true; }
+        
+};
+
+#endif
 
 // Structure handled by libmicrohttp related to a connection
 
@@ -219,10 +269,10 @@ class DSPServer {
         map<string, pair<string, llvm_dsp_factory*> > fFactories;
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
-        list<netjack_dsp*> fRunningDsp;
+        list<audio_dsp*> fRunningDsp;
         MHD_Daemon* fDaemon; //Running http daemon
         
-        void openAudio(netjack_dsp* dsp);
+        void openAudio(audio_dsp* dsp);
                 
         // Creates the html to send back
         int sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
@@ -264,8 +314,6 @@ class DSPServer {
                                         const char* url, const char* method, 
                                         const char* version, const char* upload_data, 
                                         size_t* upload_data_size, void** con_cls);
-            
-   
     
     public:
             
@@ -283,9 +331,9 @@ class DSPServer {
 struct AudioStarter {
     
     DSPServer* fServer;
-    netjack_dsp* fDSP;
+    audio_dsp* fDSP;
     
-    AudioStarter(DSPServer* server, netjack_dsp* dsp):fServer(server), fDSP(dsp)
+    AudioStarter(DSPServer* server, audio_dsp* dsp):fServer(server),fDSP(dsp)
     {}
   
 };

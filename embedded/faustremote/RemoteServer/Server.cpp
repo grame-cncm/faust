@@ -10,12 +10,19 @@
 #include "utilities.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
+#ifdef COREAUDIO
+#include "faust/audio/coreaudio-dsp.h"
+#endif
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <openssl/sha.h>
+
+#ifdef __APPLE__
+#include <dns_sd.h>
+#endif
 
 // Declare is called for every metadata coded in the Faust DSP
 // That way, we get the faust name declared in the Faust DSP
@@ -46,52 +53,42 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& latency,
                         const string& name,
                         const string& key)
-                        :fIP(ip), fPort(port), fCompression(compression), 
-                        fMTU(mtu), fLatency(latency), 
-                        fAudio(NULL), fName(name), fInstanceKey(key)
-{
-    if (!(fDSP = createDSPInstance(factory))) {
-        throw -1;
-    }
-}
+                        : audio_dsp(factory, name, key), fIP(ip), 
+                        fPort(port), fCompression(compression), 
+                        fMTU(mtu), fLatency(latency)
+{}
 
-// Desallocation of slave dsp resources
-netjack_dsp::~netjack_dsp()
+bool netjack_dsp::init()
 {
-    delete fAudio;
-    deleteDSPInstance(fDSP);
-}
-
-bool netjack_dsp::start() 
-{
-    return fAudio->start();
-}
-
-void netjack_dsp::stop()
-{
-    fAudio->stop();
-}
-
-bool netjack_dsp::open()
-{
-    fAudio = new netjackaudio_server(atoi(fCompression.c_str()), 
+    fAudio = new netjackaudio_slave(atoi(fCompression.c_str()), 
                                     fIP, 
                                     atoi(fPort.c_str()), 
                                     atoi(fMTU.c_str()), 
                                     atoi(fLatency.c_str()));
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("RemoteDSPServer : init slave audio failed\n");
+        printf("netjack_dsp : init slave audio failed\n");
         return false;
+    } else {
+        return true;
     }
-    
-     if (!fAudio->start()) {
-        printf("RemoteDSPServer : start slave audio failed\n");
-        return false;
-    }
-      
-    return true;
 }
+
+#ifdef COREAUDIO
+
+bool coreaudio_dsp::init()
+{
+    fAudio = new coreaudio(44100, 512);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("coreaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+
+#endif
 
 //------------ CONNECTION INFO -------------------------------
 
@@ -281,10 +278,10 @@ void* DSPServer::openAudio(void* arg)
     return NULL;
 }
 
-void DSPServer::openAudio(netjack_dsp* dsp)
+void DSPServer::openAudio(audio_dsp* dsp)
 {
     if (fLocker.Lock()) {
-        if (dsp->open()) {
+        if (dsp->init() && dsp->start()) {
             fRunningDsp.push_back(dsp);
         } else {
             delete dsp;
@@ -310,11 +307,11 @@ int DSPServer::sendPage(MHD_Connection* connection, const string& page, int stat
 // Checking if every running DSP is really running or if any has stopped
 void DSPServer::stopNotActiveDSP()
 {
-    list<netjack_dsp*>::iterator it = fRunningDsp.begin();
+    list<audio_dsp*>::iterator it = fRunningDsp.begin();
     
     while (it != fRunningDsp.end()) {
         if (!(*it)->isActive()) {
-            netjack_dsp* dsp = *it;
+            audio_dsp* dsp = *it;
             it = fRunningDsp.erase(it); 
             dsp->stop();
             delete dsp;
@@ -471,7 +468,7 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 // Start/Stop DSP instance from its SHAKEY
 bool DSPServer::startAudio(const string& shakey)
 {
-    list<netjack_dsp*>::iterator it;
+    list<audio_dsp*>::iterator it;
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey == (*it)->getKey()) {
@@ -486,7 +483,7 @@ bool DSPServer::startAudio(const string& shakey)
 
 void DSPServer::stopAudio(const string& shakey)
 {
-    list<netjack_dsp*>::iterator it;
+    list<audio_dsp*>::iterator it;
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
         if (shakey == (*it)->getKey()) {
@@ -504,16 +501,27 @@ bool DSPServer::createInstance(connection_info* con_info)
     if (factory) {
     
         try {
-            netjack_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, 
-                                                con_info->fIP, con_info->fPort, 
-                                                con_info->fMTU, con_info->fLatency, 
-                                                fFactories[con_info->fFactoryKey].first, 
-                                                con_info->fInstanceKey);
+            audio_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, 
+                                            con_info->fIP, con_info->fPort, 
+                                            con_info->fMTU, con_info->fLatency, 
+                                            fFactories[con_info->fFactoryKey].first, 
+                                            con_info->fInstanceKey);
             pthread_t thread;
             AudioStarter* starter = new AudioStarter(this, dsp);
             if (pthread_create(&thread, NULL, DSPServer::openAudio, starter) != 0) {
                 goto error;
             }
+            
+            /*
+            // Test local audio
+            audio_dsp* dsp = new coreaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
+            if (dsp->init() && dsp->start()) {
+                fRunningDsp.push_back(dsp);
+            } else {
+                delete dsp;
+            }
+            */
+            
         } catch (...) {
              goto error;
         }

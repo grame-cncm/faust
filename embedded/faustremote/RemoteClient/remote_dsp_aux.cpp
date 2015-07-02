@@ -53,14 +53,14 @@ static bool isInteger(const string& str)
 //The response string stores the data received 
 //(can be error or real data... depending on return value)
 //The errorCode stores the error encoded as INT
-static bool sendRequest(const string& ip, const string& finalRequest, string& response, int& errorCode)
+static bool sendRequest(const string& url, const string& finalRequest, string& response, int& errorCode)
 {
     bool res = false;
         
-    printf("Request = %s and ip = %s\n", finalRequest.c_str(), ip.c_str());
+    printf("Request = %s and url = %s\n", finalRequest.c_str(), url.c_str());
     
     ostringstream oss;
-    curl_easy_setopt(gCurl, CURLOPT_URL, ip.c_str());
+    curl_easy_setopt(gCurl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(gCurl, CURLOPT_POST, 1L);
     curl_easy_setopt(gCurl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
     curl_easy_setopt(gCurl, CURLOPT_POSTFIELDS, finalRequest.c_str());
@@ -178,14 +178,14 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 // Delete remote dsp factory sends an explicit delete request to server
 void remote_dsp_factory::stop() 
 {
-    string response;
-    int errorCode;
-    
     // The index of the factory to delete has to be sent
     string finalRequest = "shaKey=" + fSHAKey;
-    string ip = fServerIP + "/DeleteFactory";
+    string url = fServerIP + "/DeleteFactory";
    
-    if (!sendRequest(ip, finalRequest, response, errorCode)) {
+    string response;
+    int errorCode;
+   
+    if (!sendRequest(url, finalRequest, response, errorCode)) {
         printf("sendRequest failed: %s || code %i\n", response.c_str(), errorCode);
     }
 }
@@ -554,14 +554,14 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&instanceKey=" << this;
     
     bool res = false;
-    string ip = fFactory->getIP();
-    ip += "/CreateInstance";
+    string url = fFactory->getIP();
+    url += "/CreateInstance";
         
     string response;
     int errorCode = -1;
 
     // OPEN NET JACK CONNECTION
-    if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
+    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
         fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result); 
@@ -684,12 +684,12 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
         
         stringstream serverIP;
         serverIP << "http://" << ip_server << ":" << port_server;
-        string ip = serverIP.str() + "/GetJsonFromKey";
+        string url = serverIP.str() + "/GetJsonFromKey";
          
         string response;
         int errorCode = -1;
         
-        if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
+        if (sendRequest(url, finalRequest.str(), response, errorCode)) {
             remote_dsp_factory* factory = new remote_dsp_factory();
             factory->setKey(sha_key);
             factory->setIP(serverIP.str());
