@@ -393,12 +393,36 @@ connection_info_post::connection_info_post(MHD_Connection* connection):connectio
 
 //----------------SERVER----------------------------------------
 
+#include "lo/lo.h"
+
 DSPServer::DSPServer(int argc, const char* argv[]):fPort(-1),fDaemon(NULL)
 {}
 
 DSPServer::~DSPServer() {}
+
+// Register server as available
+void* DSPServer::registration(void* arg) 
+{
+    char host_name[256];
+    gethostname(host_name, sizeof(host_name));
+    DSPServer* serv = (DSPServer*)arg;
+    stringstream nameRegisterService;
+    nameRegisterService << "._" << searchIP() << ":" << serv->fPort << "._" << host_name;
+    lo_address t = lo_address_new("224.0.0.1", "7770");
     
-//---- START/STOP SERVER
+    while (true) {
+    #ifdef WIN32
+        Sleep(1);
+    #else
+        usleep(1000000);
+    #endif
+        pthread_testcancel();
+        lo_send(t, "/faustcompiler", "is", getpid(), nameRegisterService.str().c_str());
+    }
+    
+    pthread_exit(NULL);
+}
+    
 bool DSPServer::start(int port) 
 {
     fPort = port;
@@ -425,14 +449,13 @@ bool DSPServer::start(int port)
 void DSPServer::stop()
 {
     if (fDaemon) {
-//      Faire un truc pour arrêter la boucle
+        // Faire un truc pour arrêter la boucle ?
         pthread_cancel(fThread);
         pthread_join(fThread, NULL);
         MHD_stop_daemon(fDaemon);
         fDaemon = 0;
     }
 }
-
 
 //---- Callback of another thread to wait netjack audio connection without blocking the server
 void* DSPServer::open(void* arg) 
@@ -726,31 +749,6 @@ bool DSPServer::stop(const string& shakey)
     }
 
     return false;
-}
-
-#include "lo/lo.h"
-
-// Register server as available
-void* DSPServer::registration(void* arg) 
-{
-    char host_name[256];
-    gethostname(host_name, sizeof(host_name));
-    DSPServer* serv = (DSPServer*)arg;
-    stringstream nameRegisterService;
-    nameRegisterService << "._" << searchIP() << ":" << serv->fPort << "._" << host_name;
-    lo_address t = lo_address_new("224.0.0.1", "7770");
-    
-    while (true) {
-    #ifdef WIN32
-        Sleep(1);
-    #else
-        usleep(1000000);
-    #endif
-        pthread_testcancel();
-        lo_send(t, "/faustcompiler", "is", getpid(), nameRegisterService.str().c_str());
-    }
-    
-    pthread_exit(NULL);
 }
 
 // DSP server API

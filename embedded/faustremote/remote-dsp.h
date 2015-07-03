@@ -232,6 +232,8 @@ class remote_audio {
  * Create a remote Audio instance.
  * 
  * @param factory - the Remote DSP factory
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters 
  * @param sampling_rate - NetJack slave sampling rate
  * @param buffer_size - NetJack slave buffer size
  * @param error - the error value to be filled
