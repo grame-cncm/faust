@@ -28,7 +28,9 @@
 #include <string.h>
 #include <libgen.h>
 
-FactoryTableType remote_dsp_factory::gFactoryTable;
+FactoryTableDSPType remote_dsp_factory::gFactoryDSPTable;
+FactoryTableAudioType remote_dsp_factory::gFactoryAudioTable;
+
 static CURL* gCurl = NULL;
 
 // Standard Callback to store a server response in stringstream
@@ -231,14 +233,25 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
     }
 }
 
+remote_audio_aux* remote_dsp_factory::createRemoteAudioInstance(int argc, const char* argv[], int sampling_rate, int buffer_size, int& error) 
+{
+    remote_audio_aux* audio = new remote_audio_aux(this);
+    if (audio->init(argc, argv, sampling_rate, buffer_size, error)) {
+        return audio; 
+    } else {
+        delete audio;
+        return NULL;
+    }
+}
+
 //---------FACTORY
 
-static bool getFactory(const string& sha_key, FactoryTableIt& res)
+static bool getFactory(const string& sha_key, FactoryTableDSPIt& res)
 {
-    FactoryTableIt it;
+    FactoryTableDSPIt it;
     
-    for (it = remote_dsp_factory::gFactoryTable.begin(); it != remote_dsp_factory::gFactoryTable.end(); it++) {
-        FactoryTableItem val = (*it).second;
+    for (it = remote_dsp_factory::gFactoryDSPTable.begin(); it != remote_dsp_factory::gFactoryDSPTable.end(); it++) {
+        FactoryTableDSP val = (*it).second;
         if (val.first == sha_key) {
             res = it;
             return true;
@@ -248,7 +261,7 @@ static bool getFactory(const string& sha_key, FactoryTableIt& res)
     return false;
 }
 
-//--------------------INSTANCES
+//--------------------DSP INSTANCE
 
 remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
 {
@@ -567,9 +580,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
-        fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result); 
-        
-        if (fNetJack) {
+        if ((fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result))) {
             res = true;
         } else {
             error = ERROR_NETJACK_NOTSTARTED;
@@ -579,7 +590,67 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     }
     
     return res;
-}                        
+}     
+
+remote_audio_aux::remote_audio_aux(remote_dsp_factory* factory)
+{
+    fFactory = factory;
+}
+remote_audio_aux::~remote_audio_aux()
+{}  
+
+bool remote_audio_aux::init(int argc, const char* argv[], int sampling_rate, int buffer_size, int& error)
+{
+    // PREPARE URL TO SEND TO SERVER
+    stringstream finalRequest;
+    
+    // Audio driver type
+    finalRequest << "audio_type=" << "kLocalAudio";
+    
+    // Parse NetJack Parameters
+    finalRequest << "&LA_sr=" << sampling_rate;
+    finalRequest << "&LA_bs=" << buffer_size;
+    finalRequest << "&factoryKey=" << fFactory->getKey();
+    finalRequest << "&instanceKey=" << this;
+    
+    bool res = false;
+    string url = fFactory->getIP();
+    url += "/CreateInstance";
+        
+    string response;
+    int errorCode = -1;
+    
+    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
+        return true;
+    } else {
+        error = errorCode;
+        return false;
+    }
+}  
+
+bool remote_audio_aux::start()
+{
+    stringstream finalRequest;
+    string response;
+    int errorCode;
+    
+    finalRequest << "instanceKey=" << this;
+    string ip = fFactory->getIP() + "/Start";
+   
+    return sendRequest(ip, finalRequest.str(), response, errorCode);
+}
+
+bool remote_audio_aux::stop()
+{
+    stringstream finalRequest;
+    string response;
+    int errorCode;
+    
+    finalRequest << "instanceKey=" << this;
+    string ip = fFactory->getIP() + "/Stop";
+      
+    return sendRequest(ip, finalRequest.str(), response, errorCode);
+}            
 
 //------ DISCOVERY OF AVAILABLE MACHINES
 static remote_DNS* gDNS = NULL;
@@ -648,7 +719,7 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 
 EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key)
 {
-    FactoryTableIt it;
+    FactoryTableDSPIt it;
     
     /// If available in the local cache, get it
     if (getFactory(sha_key, it)) {
@@ -673,7 +744,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server
             factory->setKey(sha_key);
             factory->setIP(serverIP.str());
             factory->decodeJson(response);
-            remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
+            remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         } else {
             return NULL;
@@ -719,7 +790,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     sha_content << dsp_content << ":" <<ip_server << ":" << port_server;
     
     string sha_key = generateSHA1(sha_content.str()); 
-    FactoryTableIt it;
+    FactoryTableDSPIt it;
     
     vector<pair<string, string> > factories_list;
     getRemoteDSPFactories(ip_server, port_server, &factories_list);
@@ -767,7 +838,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
         remote_dsp_factory* factory = new remote_dsp_factory();
         if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
-            remote_dsp_factory::gFactoryTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
+            remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(sha_key, list<remote_dsp_aux*>());
             return factory;
         } else {
             delete factory;
@@ -779,12 +850,12 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 {
  //    
-//    FactoryTableIt it;
-//    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
+//    FactoryTableDSPIt it;
+//    if ((it = remote_dsp_factory::gFactoryDSPTable.find(factory)) != remote_dsp_factory::gFactoryDSPTable.end()) {
 //        Sremote_dsp_factory sfactory = (*it).first;
-//        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
+//        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryDSPTable...
 //            // Last use, remove from the global table, pointer will be deleted
-//            remote_dsp_factory::gFactoryTable.erase(factory);
+//            remote_dsp_factory::gFactoryDSPTable.erase(factory);
 //        } else {
 //            sfactory->removeReference();
 //        }
@@ -804,13 +875,13 @@ EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
 
 EXPORT void deleteAllRemoteDSPFactories()
 {
-    FactoryTableIt it;
-    for (it = remote_dsp_factory::gFactoryTable.begin(); it != remote_dsp_factory::gFactoryTable.end(); it++) {
+    FactoryTableDSPIt it;
+    for (it = remote_dsp_factory::gFactoryDSPTable.begin(); it != remote_dsp_factory::gFactoryDSPTable.end(); it++) {
         // Decrement counter up to one...
         while (((*it).first)->refs() > 1) { ((*it).first)->removeReference(); }
     }
     // Then clear the table thus finally deleting all ref = 1 smart pointers
-    remote_dsp_factory::gFactoryTable.clear();
+    remote_dsp_factory::gFactoryDSPTable.clear();
 }
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
@@ -903,19 +974,19 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
     return res;
 }
 
-//---------INSTANCES
+//---------DSP INSTANCE
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
-                                        int argc, 
-                                        const char *argv[], 
-                                        int sampling_rate, 
-                                        int buffer_size, 
-                                        RemoteDSPErrorCallback error_callback, 
-                                        void* error_callback_arg, 
-                                        int& error)
+                                            int argc, 
+                                            const char *argv[], 
+                                            int sampling_rate, 
+                                            int buffer_size, 
+                                            RemoteDSPErrorCallback error_callback, 
+                                            void* error_callback_arg, 
+                                            int& error)
 {
-    FactoryTableIt it;
-    if ((it = remote_dsp_factory::gFactoryTable.find(factory)) != remote_dsp_factory::gFactoryTable.end()) {
+    FactoryTableDSPIt it;
+    if ((it = remote_dsp_factory::gFactoryDSPTable.find(factory)) != remote_dsp_factory::gFactoryDSPTable.end()) {
         remote_dsp_aux* instance 
             = factory->createRemoteDSPInstance(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error);
         (*it).second.second.push_back(instance);
@@ -927,15 +998,43 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp)
 {
-    FactoryTableIt it;
+    FactoryTableDSPIt it;
     remote_dsp_aux* dsp_aux = reinterpret_cast<remote_dsp_aux*>(dsp);
     remote_dsp_factory* factory = dsp_aux->getFactory();
     
-    it = remote_dsp_factory::gFactoryTable.find(factory);
-    assert(it != remote_dsp_factory::gFactoryTable.end());
+    it = remote_dsp_factory::gFactoryDSPTable.find(factory);
+    assert(it != remote_dsp_factory::gFactoryDSPTable.end());
     (*it).second.second.remove(dsp_aux);
     
     delete dsp_aux; 
+}
+
+//---------AUDIO INSTANCE
+
+EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int sampling_rate, int buffer_size, int& error)
+{
+    FactoryTableAudioIt it;
+    if ((it = remote_dsp_factory::gFactoryAudioTable.find(factory)) != remote_dsp_factory::gFactoryAudioTable.end()) {
+        remote_audio_aux* instance = factory->createRemoteAudioInstance(argc, argv, sampling_rate, buffer_size, error);
+        (*it).second.second.push_back(instance);
+        return reinterpret_cast<remote_audio*>(instance);
+    } else {
+        return 0;
+    }
+    return 0;
+}
+
+EXPORT void deleteRemoteAudioInstance(remote_audio* audio)
+{
+    FactoryTableAudioIt it;
+    remote_audio_aux* audio_aux = reinterpret_cast<remote_audio_aux*>(audio);
+    remote_dsp_factory* factory = audio_aux->getFactory();
+    
+    it = remote_dsp_factory::gFactoryAudioTable.find(factory);
+    assert(it != remote_dsp_factory::gFactoryAudioTable.end());
+    (*it).second.second.remove(audio_aux);
+    
+    delete audio_aux; 
 }
 
 EXPORT void remote_dsp::metadata(Meta* m)
@@ -968,3 +1067,12 @@ EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** outp
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
 }
 
+EXPORT bool remote_audio::start()
+{
+    return reinterpret_cast<remote_audio*>(this)->start();
+}
+
+EXPORT bool remote_audio::stop()
+{
+    return reinterpret_cast<remote_audio*>(this)->stop();
+}

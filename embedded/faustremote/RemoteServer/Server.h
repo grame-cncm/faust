@@ -89,7 +89,8 @@ class audio_dsp {
 
 enum {
     ERROR_FACTORY_NOTFOUND,
-    ERROR_INSTANCE_NOTCREATED
+    ERROR_INSTANCE_NOTCREATED,
+    ERROR_INSTANCE_NOTFOUND
 };
 
 typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
@@ -118,6 +119,10 @@ struct connection_info {
     string fLatency;
     string fSHAKey;
     string fInstanceKey;
+    
+    //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
+    string fSampleRate;
+    string fBufferSize;
     
     connection_info();
     virtual ~connection_info() {}
@@ -201,6 +206,9 @@ class DSPServer {
         bool createInstance(connection_info* con_info);
          
         int createConnection(MHD_Connection* connection, const char* method, void** con_cls);
+        
+        bool start(const string& shakey);
+        bool stop(const string& shakey);
         
         // Register Service as available
         static void* registration(void* arg);

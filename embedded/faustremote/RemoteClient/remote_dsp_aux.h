@@ -52,9 +52,14 @@
 
 using namespace std;
 
-#define FactoryTableItem   pair<string, list<remote_dsp_aux*> >
-#define FactoryTableType   map<Sremote_dsp_factory, FactoryTableItem>
-#define FactoryTableIt     FactoryTableType::iterator
+#define FactoryTableDSP     pair<string, list<remote_dsp_aux*> >
+#define FactoryTableAudio   pair<string, list<remote_audio_aux*> >
+
+#define FactoryTableDSPType map<Sremote_dsp_factory, FactoryTableDSP>
+#define FactoryTableDSPIt   FactoryTableDSPType::iterator
+
+#define FactoryTableAudioType   map<Sremote_dsp_factory, FactoryTableAudio>
+#define FactoryTableAudioIt     FactoryTableAudioType::iterator
 
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -102,6 +107,7 @@ struct remote_DNS {
 typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
 
 class remote_dsp_aux;
+class remote_audio_aux;
 class remote_dsp_factory;
 
 typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
@@ -113,7 +119,7 @@ class remote_dsp_factory : public smartable {
         string      fSHAKey;            //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
         
         int         fNumInputs;
-        int         fNumOutputs;        //Num of In/Output of compiled DSP factory
+        int         fNumOutputs;        //Num of Input/Output of compiled DSP factory
         
         string      fServerIP;          //IP of remote server 
         
@@ -130,6 +136,10 @@ class remote_dsp_factory : public smartable {
                                                 int sampling_rate, int buffer_size, 
                                                 RemoteDSPErrorCallback error_callback, 
                                                 void* error_callback_arg, int& error);
+                                                
+        remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], 
+                                                    int sampling_rate, int buffer_size, 
+                                                    int& error);
         
         bool        init(int argc, const char *argv[], 
                         const string& ip_server, 
@@ -139,6 +149,7 @@ class remote_dsp_factory : public smartable {
                         const string& sha_key, 
                         string& error_msg, 
                         int opt_level);
+                        
         void        stop();
         
         void        metadataRemoteDSPFactory(Meta* m);  
@@ -157,7 +168,8 @@ class remote_dsp_factory : public smartable {
         
         vector<string>      getLibraryList() { return fPathnameList; }
         
-        static FactoryTableType gFactoryTable;
+        static FactoryTableDSPType gFactoryDSPTable;
+        static FactoryTableAudioType gFactoryAudioTable;
 };
 
 class remote_dsp_aux : public dsp {
@@ -225,15 +237,19 @@ class remote_audio_aux {
     
     private:
     
-         remote_dsp_factory*     fFactory;           //Factory is it created from
-         
+         remote_dsp_factory*     fFactory;           
          
     public:
     
         remote_audio_aux(remote_dsp_factory* factory);
         virtual ~remote_audio_aux();
+        
+        bool init(int argc, const char* argv[], int sampling_rate, int buffer_size, int& error);
+        
+        remote_dsp_factory* getFactory() { return fFactory; }
 
-
+        bool start();
+        bool stop();
 };
 
 //---------------------- Public C++ interface --------
@@ -260,7 +276,7 @@ class EXPORT remote_audio {
     public: 
         
         virtual bool start();
-        virtual void stop();
+        virtual bool stop();
          
 };
 
@@ -298,7 +314,10 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 // Audio instance
 
-EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int sampling_rate, int buffer_size);
+EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, 
+                                            int argc, const char* argv[],  
+                                            int sampling_rate, int buffer_size, 
+                                            int& error);
 
 EXPORT void deleteRemoteAudioInstance(remote_audio* audio);
 

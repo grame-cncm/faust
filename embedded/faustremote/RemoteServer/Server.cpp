@@ -330,6 +330,10 @@ int connection_info::iteratePost(const char* key, const char* data, size_t size)
             fCompilationOptions.push_back(data);
         } else if (strcmp(key,"opt_level") == 0) {
             fOptLevel = data;
+        } else if (strcmp(key,"LA_sr") == 0) {
+            fSampleRate = data;
+        } else if (strcmp(key,"LA_bs") == 0) {
+            fBufferSize = data;
         }
     }
     
@@ -578,7 +582,19 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
             } else {
                 return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
             }
-        }
+        } else if (strcmp(url, "/Start") == 0) {
+            if (start(info->fSHAKey)) {
+                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+            } else {
+                return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } else if(strcmp(url, "/Stop") == 0) {
+            if (stop(info->fSHAKey)) {
+                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+            } else {
+                return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } 
 //        else if(strcmp(url, "/DeleteFactory") == 0) {
 //            llvm_dsp_factory* toDelete = fFactories[con_info->fSHAKey];
 //            
@@ -640,7 +656,7 @@ bool DSPServer::createInstance(connection_info* con_info)
             } else if (con_info->fAudioType == "kLocalAudio") {
             #ifdef COREAUDIO
                 audio_dsp* dsp = new coreaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init(44100, 512) && dsp->start()) {
+                if (dsp->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && dsp->start()) {
                     fRunningDsp.push_back(dsp);
                 } else {
                     delete dsp;
@@ -648,7 +664,7 @@ bool DSPServer::createInstance(connection_info* con_info)
             #endif
             #ifdef PORTAUDIO
                 audio_dsp* dsp = new portaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init(44100, 512) && dsp->start()) {
+                if (dsp->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && dsp->start()) {
                     fRunningDsp.push_back(dsp);
                 } else {
                     delete dsp;
@@ -680,6 +696,36 @@ error:
     con_info->fAnswer = builtError(ERROR_INSTANCE_NOTCREATED);
     return false;
    
+}
+
+// Start/Stop Audio instance from its SHAKEY
+bool DSPServer::start(const string& shakey)
+{
+    list<audio_dsp*>::iterator it;
+    
+    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
+        if (shakey == (*it)->getKey()) {
+            if ((*it)->start()) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool DSPServer::stop(const string& shakey)
+{
+    list<audio_dsp*>::iterator it;
+    
+    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
+        if (shakey == (*it)->getKey()) {
+            (*it)->stop();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 #include "lo/lo.h"

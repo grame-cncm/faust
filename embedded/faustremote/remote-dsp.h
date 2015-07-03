@@ -224,7 +224,7 @@ class remote_audio {
     public: 
         
         virtual bool start();
-        virtual void stop();
+        virtual bool stop();
   
 };
 
@@ -234,10 +234,11 @@ class remote_audio {
  * @param factory - the Remote DSP factory
  * @param sampling_rate - NetJack slave sampling rate
  * @param buffer_size - NetJack slave buffer size
+ * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
-remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int sampling_rate, int buffer_size);
+remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int sampling_rate, int buffer_size, int& error);
 
 /**
  * Destroy a remote Audio instance.
