@@ -10,9 +10,6 @@
 #include "utilities.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-#ifdef COREAUDIO
-#include "faust/audio/coreaudio-dsp.h"
-#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -22,6 +19,22 @@
 
 #ifdef __APPLE__
 #include <dns_sd.h>
+#endif
+
+//#define JACK 1
+
+#include "faust/audio/netjack-dsp.h"
+
+#ifdef COREAUDIO
+#include "faust/audio/coreaudio-dsp.h"
+#endif
+
+#ifdef PORTAUDIO
+#include "faust/audio/portaudio-dsp.h"
+#endif
+
+#ifdef JACK
+#include "faust/audio/jack-dsp.h"
 #endif
 
 // Declare is called for every metadata coded in the Faust DSP
@@ -45,6 +58,75 @@ static string builtError(int error)
 
 //--------------SLAVE DSP INSTANCE-----------------------------
 
+// NetJack slave client
+
+class netjackaudio_slave : public netjackaudio_midicontrol {  
+
+    private:
+
+        int fNumberRestartAttempts;
+
+    public:
+    
+        netjackaudio_slave(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
+        {
+            fNumberRestartAttempts = 0;
+        }
+        
+        void error_cb(int error_code)
+        {
+            switch (error_code) {
+            
+                case SOCKET_ERROR:
+                    printf("NetJack : SOCKET_ERROR\n");
+                    break;
+                    
+                case SYNC_PACKET_ERROR:
+                    printf("NetJack : SYNC_PACKET_ERROR\n");
+                    break;
+
+                 case DATA_PACKET_ERROR:
+                    printf("NetJack : DATA_PACKET_ERROR\n");
+                    break;
+            }
+        }
+    
+        /*
+        virtual int restart_cb()
+        {
+            printf("NetJack : restart_cb\n");
+            return 0;
+        }
+        */
+
+};
+
+class netjack_dsp : public audio_dsp {
+
+    private: 
+        
+        // NetJack parameters
+        string fIP;
+        string fPort;
+        string fCompression;
+        string fMTU;
+        string fLatency;
+     
+    public:
+    
+        netjack_dsp(llvm_dsp_factory* factory, 
+                    const string& compression, 
+                    const string& ip, const string& port, 
+                    const string& mtu, const string& latency,
+                    const string& name, const string& key);
+        
+        bool init();
+       
+        bool isActive() { return dynamic_cast<netjackaudio_slave*>(fAudio)->is_connexion_active(); }
+
+};
+
 netjack_dsp::netjack_dsp(llvm_dsp_factory* factory, 
                         const string& compression, 
                         const string& ip, 
@@ -67,14 +149,31 @@ bool netjack_dsp::init()
                                     atoi(fLatency.c_str()));
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("netjack_dsp : init slave audio failed\n");
+        printf("netjack_dsp : init audio failed\n");
         return false;
     } else {
         return true;
     }
 }
 
+// Local CoreAudio client
+
 #ifdef COREAUDIO
+class coreaudio_dsp : public audio_dsp {
+
+    public:
+     
+        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
+            :audio_dsp(factory, name, key)
+        {}
+        
+        virtual ~coreaudio_dsp() {}
+        
+        bool init();
+        
+        bool isActive() { return true; }
+        
+};
 
 bool coreaudio_dsp::init()
 {
@@ -87,7 +186,66 @@ bool coreaudio_dsp::init()
         return true;
     }
 }
+#endif
 
+#ifdef PORTAUDIO
+class portaudio_dsp : public audio_dsp {
+
+    public:
+     
+        portaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
+            :audio_dsp(factory, name, key)
+        {}
+        
+        virtual ~portaudio_dsp() {}
+        
+        bool init();
+        
+        bool isActive() { return true; }
+        
+};
+
+bool portaudio_dsp::init()
+{
+    fAudio = new portaudio(44100, 512);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("portaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
+#ifdef JACK
+class jack_dsp : public audio_dsp {
+
+    public:
+     
+        jack_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
+            :audio_dsp(factory, name, key)
+        {}
+        
+        virtual ~jack_dsp() {}
+        
+        bool init();
+        
+        bool isActive() { return true; }
+        
+};
+
+bool jack_dsp::init()
+{
+    fAudio = new jackaudio(0, 0);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("portaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
 #endif
 
 //------------ CONNECTION INFO -------------------------------
@@ -147,6 +305,8 @@ int connection_info::iteratePost(const char* key, const char* data, size_t size)
             if (fNameApp == "") {
                 fNameApp = "RemoteDSPServer_DefaultName";
             }
+        } else if (strcmp(key,"audio_type") == 0) {
+            fAudioType = data;
         } else if (strcmp(key,"dsp_data") == 0) {
             fFaustCode += data;   
         } else if (strcmp(key,"NJ_ip") == 0) {
@@ -467,26 +627,45 @@ bool DSPServer::createInstance(connection_info* con_info)
     if (factory) {
     
         try {
-            audio_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, 
-                                            con_info->fIP, con_info->fPort, 
-                                            con_info->fMTU, con_info->fLatency, 
-                                            fFactories[con_info->fFactoryKey].first, 
-                                            con_info->fInstanceKey);
-            pthread_t thread;
-            AudioStarter* starter = new AudioStarter(this, dsp);
-            if (pthread_create(&thread, NULL, DSPServer::open, starter) != 0) {
-                goto error;
+        
+            if (con_info->fAudioType == "kNetJack") {
+                audio_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, 
+                                                con_info->fIP, con_info->fPort, 
+                                                con_info->fMTU, con_info->fLatency, 
+                                                fFactories[con_info->fFactoryKey].first, 
+                                                con_info->fInstanceKey);
+                pthread_t thread;
+                AudioStarter* starter = new AudioStarter(this, dsp);
+                if (pthread_create(&thread, NULL, DSPServer::open, starter) != 0) {
+                    goto error;
+                }
+            } else if (con_info->fAudioType == "kLocalAudio") {
+            #ifdef COREAUDIO
+                audio_dsp* dsp = new coreaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
+                if (dsp->init() && dsp->start()) {
+                    fRunningDsp.push_back(dsp);
+                } else {
+                    delete dsp;
+                }
+            #endif
+            #ifdef PORTAUDIO
+                audio_dsp* dsp = new portaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
+                if (dsp->init() && dsp->start()) {
+                    fRunningDsp.push_back(dsp);
+                } else {
+                    delete dsp;
+                }
+            #endif
+            } else if (con_info->fAudioType == "kJack") {
+            #ifdef JACK
+                audio_dsp* dsp = new jack_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
+                if (dsp->init() && dsp->start()) {
+                    fRunningDsp.push_back(dsp);
+                } else {
+                    delete dsp;
+                }
+            #endif
             }
-            
-            /*
-            // Test local audio
-            audio_dsp* dsp = new coreaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-            if (dsp->init() && dsp->start()) {
-                fRunningDsp.push_back(dsp);
-            } else {
-                delete dsp;
-            }
-            */
             
         } catch (...) {
              goto error;

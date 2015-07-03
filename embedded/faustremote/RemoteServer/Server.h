@@ -20,10 +20,11 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "faust/audio/netjack-dsp.h"
 #include "llvm-dsp.h"
 #include "utilities.h"
 #include "TMutex.h"
+
+#include "faust/audio/audio.h"
 
 #define POSTBUFFERSIZE 512
 #define GET 0
@@ -36,48 +37,6 @@
 #endif
 
 using namespace std;
-
-class netjackaudio_slave : public netjackaudio_midicontrol {  
-
-    private:
-
-        int fNumberRestartAttempts;
-
-    public:
-    
-        netjackaudio_slave(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
-        {
-            fNumberRestartAttempts = 0;
-        }
-        
-        void error_cb(int error_code)
-        {
-            switch (error_code) {
-            
-                case SOCKET_ERROR:
-                    printf("NetJack : SOCKET_ERROR\n");
-                    break;
-                    
-                case SYNC_PACKET_ERROR:
-                    printf("NetJack : SYNC_PACKET_ERROR\n");
-                    break;
-
-                 case DATA_PACKET_ERROR:
-                    printf("NetJack : DATA_PACKET_ERROR\n");
-                    break;
-            }
-        }
-    
-        /*
-        virtual int restart_cb()
-        {
-            printf("NetJack : restart_cb\n");
-            return 0;
-        }
-        */
-
-};
 
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
@@ -126,55 +85,6 @@ class audio_dsp {
         
 };
 
-// NetJack slave client
-
-class netjack_dsp : public audio_dsp {
-
-    private: 
-        
-        // NetJack parameters
-        string fIP;
-        string fPort;
-        string fCompression;
-        string fMTU;
-        string fLatency;
-     
-    public:
-    
-        netjack_dsp(llvm_dsp_factory* factory, 
-                    const string& compression, 
-                    const string& ip, const string& port, 
-                    const string& mtu, const string& latency,
-                    const string& name, const string& key);
-        
-        bool init();
-       
-        bool isActive() { return dynamic_cast<netjackaudio_slave*>(fAudio)->is_connexion_active(); }
-
-};
-
-// Local CoreAudio client
-
-#ifdef COREAUDIO
-
-class coreaudio_dsp : public audio_dsp {
-
-    public:
-     
-        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
-            :audio_dsp(factory, name, key)
-        {}
-        
-        virtual ~coreaudio_dsp() {}
-        
-        bool init();
-        
-        bool isActive() { return true; }
-        
-};
-
-#endif
-
 // Structure handled by libmicrohttp related to a connection
 
 enum {
@@ -186,9 +96,11 @@ typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
 
 struct connection_info {
     
-    int fAnswercode;        // used internally by microhttpd to see where things went wrong or right
+    int fAnswercode;    // internally used by libmicrohttpd to see where things went wrong or right
     
-    std::string fAnswer;    // the answer sent to the user after upload
+    string fAnswer;     // the answer sent to the user after upload
+    
+    string fAudioType;   // type of audio driver
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string fNameApp;
@@ -197,17 +109,15 @@ struct connection_info {
     vector<string> fCompilationOptions;
     string fOptLevel;
     llvm_dsp_factory* fFactory;
-    //---------------------------------------------
     
-    //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
+    //------DATAS RECEIVED TO CREATE NEW NetJack DSP INSTANCE-------
     string fIP;
     string fPort;
     string fCompression;
     string fMTU;
     string fLatency;
     string fSHAKey;
-    string  fInstanceKey;
-    //--------------------------------------------- 
+    string fInstanceKey;
     
     connection_info();
     virtual ~connection_info() {}
@@ -228,7 +138,7 @@ struct connection_info {
 
 struct connection_info_post : public connection_info {
 
-    MHD_PostProcessor* fPostprocessor;     // the POST processor used internally by microhttpd
+    MHD_PostProcessor* fPostprocessor;     // the POST processor used internally by libmicrohttpd
  
     connection_info_post(MHD_Connection* connection);
      
@@ -251,7 +161,7 @@ struct connection_info_get : public connection_info  {
     {}
 }; 
 
-// Same prototype LLVM/REMOTE dsp are using for allocation/desallocation
+// Same prototype LLVM/REMOTE DSP are using for allocation/desallocation
 
 class DSPServer {
     
@@ -270,7 +180,7 @@ class DSPServer {
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
         list<audio_dsp*> fRunningDsp;
-        MHD_Daemon* fDaemon; //Running http daemon
+        MHD_Daemon* fDaemon;    // Running http daemon
         
         void open(audio_dsp* dsp);
                 

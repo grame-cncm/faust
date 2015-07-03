@@ -114,15 +114,15 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     
     fSHAKey = sha_key;
      
-    // Adding Compilation Options to request data
+    // Adding Compilation options 
     finalRequest << "name=" << name_app << "&number_options=" << argc;
     for (int i = 0; i < argc; i++) {
         finalRequest << "&options=" << argv[i];
     }
     
-    // Adding LLVM optimization Level to request data
+    // LLVM optimization level and SHA key
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
-           
+    
     // Compile locally and send machine code on server side...
     if (isopt(argc, argv, "-machine")) {
         string error;
@@ -161,7 +161,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     serverIP << "http://" << ip_server << ":" << port_server;
     fServerIP = serverIP.str();
     ip = fServerIP + "/GetJson";
-   
+
     errorCode = -1;
     if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
         decodeJson(response);
@@ -542,9 +542,12 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     const char* port = getValueFromKey(argc, argv, "--NJ_port", "19000");
     
     // PREPARE URL TO SEND TO SERVER
+    stringstream finalRequest;
+    
+    // Audio driver type
+    finalRequest << "&audio_type=" << "kNetJack";
     
     // Parse NetJack Parameters
-    stringstream finalRequest;
     finalRequest << "NJ_ip=" << getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str());
     finalRequest << "&NJ_port=" << port;
     finalRequest << "&NJ_compression=" << getValueFromKey(argc, argv, "--NJ_compression", "-1");

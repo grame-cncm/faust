@@ -26,7 +26,7 @@ objects = $(sources:.cpp=.o)
 
 
 ifeq ($(system), Darwin)
-	LIBS = ../../../compiler/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
+	LIBS = ../../../compiler/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -lportaudio -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 else 
 	LIBS = ../../../compiler/libfaust.a -ljacknet -ljack -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 endif
