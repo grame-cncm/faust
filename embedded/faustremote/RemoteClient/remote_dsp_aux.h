@@ -199,7 +199,7 @@ class remote_dsp_aux : public dsp {
     public:   
         
         remote_dsp_aux(remote_dsp_factory* factory);
-        ~remote_dsp_aux();
+        virtual ~remote_dsp_aux();
         
         bool init(int argc, const char* argv[], 
                 int sampling_rate, int buffer_size, 
@@ -221,6 +221,21 @@ class remote_dsp_aux : public dsp {
 
 };
 
+class remote_audio_aux {
+    
+    private:
+    
+         remote_dsp_factory*     fFactory;           //Factory is it created from
+         
+         
+    public:
+    
+        remote_audio_aux(remote_dsp_factory* factory);
+        virtual ~remote_audio_aux();
+
+
+};
+
 //---------------------- Public C++ interface --------
 
 class EXPORT remote_dsp : public dsp {
@@ -239,6 +254,17 @@ class EXPORT remote_dsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
          
 };
+
+class EXPORT remote_audio {
+    
+    public: 
+        
+        virtual bool start();
+        virtual void stop();
+         
+};
+
+// Factories
     
 EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key);  
 
@@ -259,6 +285,8 @@ EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 
 EXPORT vector<string> getLibraryList(remote_dsp_factory* factory);
 
+// DSP instance
+
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                            int argc, const char *argv[], 
                                            int sampling_rate, int buffer_size, 
@@ -268,8 +296,16 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
 
-EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
+// Audio instance
 
-EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
+EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int sampling_rate, int buffer_size);
+
+EXPORT void deleteRemoteAudioInstance(remote_audio* audio);
+
+// Remote machine access
+ 
+EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList);
+
+EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
 
 #endif

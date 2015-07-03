@@ -43,7 +43,8 @@ struct myMeta : public Meta
 {
     string name;
     
-    virtual void declare(const char* key, const char* value) {
+    virtual void declare(const char* key, const char* value) 
+    {
         if (strcmp(key, "name") == 0) {
             name = value;
         }
@@ -121,7 +122,7 @@ class netjack_dsp : public audio_dsp {
                     const string& mtu, const string& latency,
                     const string& name, const string& key);
         
-        bool init();
+        bool init(int u1, int u2);
        
         bool isActive() { return dynamic_cast<netjackaudio_slave*>(fAudio)->is_connexion_active(); }
 
@@ -135,12 +136,12 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& latency,
                         const string& name,
                         const string& key)
-                        : audio_dsp(factory, name, key), fIP(ip), 
+                        :audio_dsp(factory, name, key), fIP(ip), 
                         fPort(port), fCompression(compression), 
                         fMTU(mtu), fLatency(latency)
 {}
 
-bool netjack_dsp::init()
+bool netjack_dsp::init(int u1, int u2)
 {
     fAudio = new netjackaudio_slave(atoi(fCompression.c_str()), 
                                     fIP, 
@@ -169,15 +170,15 @@ class coreaudio_dsp : public audio_dsp {
         
         virtual ~coreaudio_dsp() {}
         
-        bool init();
+        bool init(int sr, int bs);
         
         bool isActive() { return true; }
         
 };
 
-bool coreaudio_dsp::init()
+bool coreaudio_dsp::init(int sr, int bs)
 {
-    fAudio = new coreaudio(44100, 512);
+    fAudio = new coreaudio(sr, bs);
     
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("coreaudio_dsp : init audio failed\n");
@@ -199,15 +200,15 @@ class portaudio_dsp : public audio_dsp {
         
         virtual ~portaudio_dsp() {}
         
-        bool init();
+        bool init(int sr, int bs);
         
         bool isActive() { return true; }
         
 };
 
-bool portaudio_dsp::init()
+bool portaudio_dsp::init(int sr, int bs)
 {
-    fAudio = new portaudio(44100, 512);
+    fAudio = new portaudio(sr, bs);
     
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("portaudio_dsp : init audio failed\n");
@@ -229,13 +230,13 @@ class jack_dsp : public audio_dsp {
         
         virtual ~jack_dsp() {}
         
-        bool init();
+        bool init(int sr, int bs);
         
         bool isActive() { return true; }
         
 };
 
-bool jack_dsp::init()
+bool jack_dsp::init(int u1, int u2);
 {
     fAudio = new jackaudio(0, 0);
     
@@ -308,7 +309,7 @@ int connection_info::iteratePost(const char* key, const char* data, size_t size)
         } else if (strcmp(key,"audio_type") == 0) {
             fAudioType = data;
         } else if (strcmp(key,"dsp_data") == 0) {
-            fFaustCode += data;   
+            fFaustCode += data;  // Possibly several post ?
         } else if (strcmp(key,"NJ_ip") == 0) {
             fIP = data;
         } else if (strcmp(key,"NJ_port") == 0) {
@@ -441,7 +442,7 @@ void* DSPServer::open(void* arg)
 void DSPServer::open(audio_dsp* dsp)
 {
     if (fLocker.Lock()) {
-        if (dsp->init() && dsp->start()) {
+        if (dsp->init(-1, -1) && dsp->start()) {
             fRunningDsp.push_back(dsp);
         } else {
             delete dsp;
@@ -578,15 +579,12 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
                 return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
             }
         }
-//        else if(strcmp(url, "/DeleteFactory") == 0){
-//                    
+//        else if(strcmp(url, "/DeleteFactory") == 0) {
 //            llvm_dsp_factory* toDelete = fFactories[con_info->fSHAKey];
 //            
 //            if (toDelete) {
-//                
 //                fFactories.erase(con_info->fSHAKey);
 //                deleteSlaveDSPFactory(toDelete);
-//                
 //                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
 //            } else {
 //                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
@@ -642,7 +640,7 @@ bool DSPServer::createInstance(connection_info* con_info)
             } else if (con_info->fAudioType == "kLocalAudio") {
             #ifdef COREAUDIO
                 audio_dsp* dsp = new coreaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init() && dsp->start()) {
+                if (dsp->init(44100, 512) && dsp->start()) {
                     fRunningDsp.push_back(dsp);
                 } else {
                     delete dsp;
@@ -650,7 +648,7 @@ bool DSPServer::createInstance(connection_info* con_info)
             #endif
             #ifdef PORTAUDIO
                 audio_dsp* dsp = new portaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init() && dsp->start()) {
+                if (dsp->init(44100, 512) && dsp->start()) {
                     fRunningDsp.push_back(dsp);
                 } else {
                     delete dsp;
@@ -659,7 +657,7 @@ bool DSPServer::createInstance(connection_info* con_info)
             } else if (con_info->fAudioType == "kJack") {
             #ifdef JACK
                 audio_dsp* dsp = new jack_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init() && dsp->start()) {
+                if (dsp->init(-1, -1) && dsp->start()) {
                     fRunningDsp.push_back(dsp);
                 } else {
                     delete dsp;

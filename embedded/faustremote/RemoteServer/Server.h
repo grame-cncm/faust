@@ -75,7 +75,7 @@ class audio_dsp {
             fAudio->stop();
         }
        
-        virtual bool init() = 0;
+        virtual bool init(int sr, int bs) = 0;
         virtual bool isActive() = 0;
         
         string  getKey() { return fInstanceKey; }

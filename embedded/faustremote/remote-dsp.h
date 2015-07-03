@@ -148,7 +148,7 @@ void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 std::vector<std::string> getLibraryList(remote_dsp_factory* factory);
 
 /**
- * Instance class
+ * DSP instance class
  */
 class remote_dsp : public dsp {
     
@@ -217,12 +217,42 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 /**
+ * Audio instance class
+ */
+class remote_audio {
+    
+    public: 
+        
+        virtual bool start();
+        virtual void stop();
+  
+};
+
+/**
+ * Create a remote Audio instance.
+ * 
+ * @param factory - the Remote DSP factory
+ * @param sampling_rate - NetJack slave sampling rate
+ * @param buffer_size - NetJack slave buffer size
+ * 
+ * @return the remote DSP instance on success, otherwise a null pointer.
+ */
+remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int sampling_rate, int buffer_size);
+
+/**
+ * Destroy a remote Audio instance.
+ * 
+ * @param audio - the Audio instance to be deleted.
+ */ 
+void deleteRemoteAudioInstance(remote_audio* audio);
+
+/**
  * Scan the network to find the available machines for Remote Processing
  * @param machine_list - map to be filled with <name_machine, <ip_machine, port_machine>>
  *
  * @return true if no error was encountered.
  */
-bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machine_list);
+bool getRemoteDSPMachines(std::map<std::string, std::pair<std::string, int> >* machine_list);
 
 /**
  * For a machine on the network that does Remote Processing, get the list of all currently available DSP factories.
@@ -232,7 +262,7 @@ bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int
  *
  * @return true if no error was encountered.
  */    
-bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
+bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
 
  /**
  * DSP compilation service class : after being started, the server waits for compilation 

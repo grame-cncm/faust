@@ -545,10 +545,10 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     stringstream finalRequest;
     
     // Audio driver type
-    finalRequest << "&audio_type=" << "kNetJack";
+    finalRequest << "audio_type=" << "kNetJack";
     
     // Parse NetJack Parameters
-    finalRequest << "NJ_ip=" << getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str());
+    finalRequest << "&NJ_ip=" << getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str());
     finalRequest << "&NJ_port=" << port;
     finalRequest << "&NJ_compression=" << getValueFromKey(argc, argv, "--NJ_compression", "-1");
     finalRequest << "&NJ_latency=" << getValueFromKey(argc, argv, "--NJ_latency", "2");
@@ -722,7 +722,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     FactoryTableIt it;
     
     vector<pair<string, string> > factories_list;
-    getRemoteFactoriesAvailable(ip_server, port_server, &factories_list);
+    getRemoteDSPFactories(ip_server, port_server, &factories_list);
      
     bool stillExisting = false;
     for (int i = 0; i < factories_list.size(); i++) {
@@ -826,14 +826,13 @@ EXPORT vector<string> getLibraryList(remote_dsp_factory* factory)
 EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }
 EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
 
-EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList)
+EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList)
 {
     if (gDNS && gDNS->fLocker.Lock()) {
         
         for (map<string, remote_DNS::member>::iterator it = gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
             
             remote_DNS::member iterMem = it->second;
-            
             lo_timetag now;
             lo_timetag_now(&now);
             
@@ -864,7 +863,7 @@ EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineL
     }
 }
 
-EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
+EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list)
 {
     bool res = false;
         
