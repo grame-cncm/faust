@@ -255,12 +255,20 @@ struct AudioStarter {
 
 // Public C++ API
 
+/*
+typedef bool (*createFactoryDSPCallback) (llvm_factory* factory, void* arg);
+typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, int argc, const char* argv[], void* arg);
+*/
+
 class EXPORT remote_dsp_server {
     
     public: 
         
-        bool start(int port);
+        bool start(int port = 7777);
         void stop();
+        
+        //void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
+        //void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg)
 };
 
 EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);

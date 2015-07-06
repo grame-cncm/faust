@@ -174,7 +174,7 @@ class remote_dsp : public dsp {
  *
  * @return -1 to stop calling DSP 'compute', otherwise 0 to continue.
  */
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 /**
  * Create a remote DSP instance. A NetJack connexion is initialized with a specified sampling rate and buffer size. 
@@ -194,8 +194,8 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  *                  --NJ_latency ==> default is 2 cycles
  *                  --NJ_mtu ==> default is 1500
  *                  --NJ_partial ==> default is 'false'
- * @param sampling_rate - NetJack slave sampling rate
- * @param buffer_size - NetJack slave buffer size
+ *                  --NJ_buffer_size 
+ *                  --NJ_sample_rate 
  * @param error_callback - error callback
  * @param error_callback_arg - error callback argument
  * @param error - the error value to be filled
@@ -204,8 +204,7 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  */
 remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                     int argc, const char* argv[], 
-                                    int sampling_rate, int buffer_size, 
-                                    RemoteDSPErrorCallback error_callback,
+                                    remoteDSPErrorCallback error_callback,
                                     void* error_callback_arg,
                                     int& error);
 
@@ -234,13 +233,13 @@ class remote_audio {
  * @param factory - the Remote DSP factory
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
- * @param sampling_rate - NetJack slave sampling rate
- * @param buffer_size - NetJack slave buffer size
+ *                  -buffer_size 
+ *                  -sample_rate 
  * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
  */
-remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int sampling_rate, int buffer_size, int& error);
+remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error);
 
 /**
  * Destroy a remote Audio instance.

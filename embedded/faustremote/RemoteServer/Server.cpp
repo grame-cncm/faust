@@ -718,7 +718,6 @@ bool DSPServer::createInstance(connection_info* con_info)
 error:
     con_info->fAnswer = builtError(ERROR_INSTANCE_NOTCREATED);
     return false;
-   
 }
 
 // Start/Stop Audio instance from its SHAKEY

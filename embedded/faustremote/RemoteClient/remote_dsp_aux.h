@@ -99,7 +99,7 @@ struct remote_DNS {
     
 };
 
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 class remote_dsp_aux;
 class remote_audio_aux;
@@ -128,13 +128,10 @@ class remote_dsp_factory : public smartable {
         void        decodeJson(const string& json);
         
         remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], 
-                                                int sampling_rate, int buffer_size, 
-                                                RemoteDSPErrorCallback error_callback, 
+                                                remoteDSPErrorCallback error_callback, 
                                                 void* error_callback_arg, int& error);
                                                 
-        remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], 
-                                                    int sampling_rate, int buffer_size, 
-                                                    int& error);
+        remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], int& error);
         
         bool        init(int argc, const char *argv[], 
                         const string& ip_server, 
@@ -189,7 +186,7 @@ class remote_dsp_aux : public dsp {
         int                     fCounterIn;
         int                     fCounterOut;
         
-        RemoteDSPErrorCallback  fErrorCallback;
+        remoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
         
         bool                    fRunningFlag;
@@ -198,7 +195,7 @@ class remote_dsp_aux : public dsp {
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
         
         // Command-line parsing fonction
-        const char* getValueFromKey(int argc, const char* argv[], const char* key, const char* defaultValue);
+        //const char* getValueFromKey(int argc, const char* argv[], const char* key, const char* defaultValue);
         
         void sendSlice(int buffer_size);
         void recvSlice(int buffer_size);
@@ -209,8 +206,7 @@ class remote_dsp_aux : public dsp {
         virtual ~remote_dsp_aux();
         
         bool init(int argc, const char* argv[], 
-                int sampling_rate, int buffer_size, 
-                RemoteDSPErrorCallback errror_callback, 
+                remoteDSPErrorCallback errror_callback, 
                 void* errror_callback_arg, int& error);
         
         void metadata(Meta* m);
@@ -239,7 +235,7 @@ class remote_audio_aux {
         remote_audio_aux(remote_dsp_factory* factory);
         virtual ~remote_audio_aux();
         
-        bool init(int argc, const char* argv[], int sampling_rate, int buffer_size, int& error);
+        bool init(int argc, const char* argv[], int& error);
         
         remote_dsp_factory* getFactory() { return fFactory; }
 
@@ -300,8 +296,7 @@ EXPORT vector<string> getLibraryList(remote_dsp_factory* factory);
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                            int argc, const char *argv[], 
-                                           int sampling_rate, int buffer_size, 
-                                           RemoteDSPErrorCallback error_callback,
+                                           remoteDSPErrorCallback error_callback,
                                            void* errror_callback_arg,
                                            int& error);
 
@@ -311,7 +306,6 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, 
                                             int argc, const char* argv[],  
-                                            int sampling_rate, int buffer_size, 
                                             int& error);
 
 EXPORT void deleteRemoteAudioInstance(remote_audio* audio);

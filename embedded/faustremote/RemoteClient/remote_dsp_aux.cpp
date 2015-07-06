@@ -218,13 +218,12 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m)
 
 // Create Remote DSP Instance from factory
 remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
-                                                            int sampling_rate, int buffer_size, 
-                                                            RemoteDSPErrorCallback error_callback, 
+                                                            remoteDSPErrorCallback error_callback, 
                                                             void* error_callback_arg, 
                                                             int& error) 
 {
     remote_dsp_aux* dsp = new remote_dsp_aux(this);
-    if (dsp->init(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error)) {
+    if (dsp->init(argc, argv, error_callback, error_callback_arg, error)) {
         return dsp; 
     } else {
         delete dsp;
@@ -232,10 +231,10 @@ remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char
     }
 }
 
-remote_audio_aux* remote_dsp_factory::createRemoteAudioInstance(int argc, const char* argv[], int sampling_rate, int buffer_size, int& error) 
+remote_audio_aux* remote_dsp_factory::createRemoteAudioInstance(int argc, const char* argv[], int& error) 
 {
     remote_audio_aux* audio = new remote_audio_aux(this);
-    if (audio->init(argc, argv, sampling_rate, buffer_size, error)) {
+    if (audio->init(argc, argv, error)) {
         return audio; 
     } else {
         delete audio;
@@ -320,17 +319,6 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
     for (int i = 0; i < channels; i++) {
         memset(&buffer[i][offset], 0, sizeof(float)*size);
     }
-}
-
-// Fonction for command line parsing
-const char* remote_dsp_aux::getValueFromKey(int argc, const char *argv[], const char *key, const char* defaultValue)
-{
-    for (int i = 0; i < argc; i++){
-        if (strcmp(argv[i], key) == 0) {
-            return argv[i+1];   
-        }
-    }
-	return defaultValue;
 }
 
 // Decode internal structure, to build user interface
@@ -521,13 +509,14 @@ void remote_dsp_aux::init(int /*sampling_rate*/) {}
 // The datas to send are NetJack parameters & the factory index it is created from
 // A NetJack master is created to open a connection with the slave opened on the server's side
 bool remote_dsp_aux::init(int argc, const char* argv[], 
-                        int sampling_rate, 
-                        int buffer_size, 
-                        RemoteDSPErrorCallback error_callback, 
+                        remoteDSPErrorCallback error_callback, 
                         void* error_callback_arg, 
                         int& error)
 {
     
+    int buffer_size = atoi(loptions(argc, argv, "--NJ_buffer_size ", "512"));
+    int sample_rate = atoi(loptions(argc, argv, "--NJ_sample_rate ", "44100"));
+   
     fBufferSize = buffer_size;
     
     fErrorCallback = error_callback;
@@ -550,9 +539,9 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     ControlUI dummy_ui;
     buildUserInterface(&dummy_ui);
     
-    bool partial_cycle = atoi(getValueFromKey(argc, argv, "--NJ_partial", "0"));
-    const char* port = getValueFromKey(argc, argv, "--NJ_port", "19000");
-    
+    bool partial_cycle = atoi(loptions(argc, argv, "--NJ_partial", "0"));
+    const char* port = loptions(argc, argv, "--NJ_port", "19000");
+     
     // PREPARE URL TO SEND TO SERVER
     stringstream finalRequest;
     
@@ -560,11 +549,11 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "audio_type=" << "kNetJack";
     
     // Parse NetJack Parameters
-    finalRequest << "&NJ_ip=" << getValueFromKey(argc, argv, "--NJ_ip", searchIP().c_str());
+    finalRequest << "&NJ_ip=" << loptions(argc, argv, "--NJ_ip", searchIP().c_str());
     finalRequest << "&NJ_port=" << port;
-    finalRequest << "&NJ_compression=" << getValueFromKey(argc, argv, "--NJ_compression", "-1");
-    finalRequest << "&NJ_latency=" << getValueFromKey(argc, argv, "--NJ_latency", "2");
-    finalRequest << "&NJ_mtu=" << getValueFromKey(argc, argv, "--NJ_mtu", "1500");
+    finalRequest << "&NJ_compression=" << loptions(argc, argv, "--NJ_compression", "-1");
+    finalRequest << "&NJ_latency=" << loptions(argc, argv, "--NJ_latency", "2");
+    finalRequest << "&NJ_mtu=" << loptions(argc, argv, "--NJ_mtu", "1500");
     finalRequest << "&factoryKey=" << fFactory->getKey();
     finalRequest << "&instanceKey=" << this;
     
@@ -577,7 +566,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
 
     // OPEN NET JACK CONNECTION
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sampling_rate), "net_master", 5, partial_cycle};
+        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sample_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
         if ((fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result))) {
             res = true;
@@ -598,8 +587,11 @@ remote_audio_aux::remote_audio_aux(remote_dsp_factory* factory)
 remote_audio_aux::~remote_audio_aux()
 {}  
 
-bool remote_audio_aux::init(int argc, const char* argv[], int sampling_rate, int buffer_size, int& error)
+bool remote_audio_aux::init(int argc, const char* argv[], int& error)
 {
+    int buffer_size = atoi(loptions(argc, argv, "--NJ_buffer_size ", "512"));
+    int sample_rate = atoi(loptions(argc, argv, "--NJ_sample_rate ", "44100"));
+   
     // PREPARE URL TO SEND TO SERVER
     stringstream finalRequest;
     
@@ -608,7 +600,7 @@ bool remote_audio_aux::init(int argc, const char* argv[], int sampling_rate, int
     //finalRequest << "audio_type=" << "kJack";
     
     // Parse NetJack Parameters
-    finalRequest << "&LA_sr=" << sampling_rate;
+    finalRequest << "&LA_sr=" << sample_rate;
     finalRequest << "&LA_bs=" << buffer_size;
     finalRequest << "&factoryKey=" << fFactory->getKey();
     finalRequest << "&instanceKey=" << this;
@@ -979,16 +971,14 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                             int argc, 
                                             const char *argv[], 
-                                            int sampling_rate, 
-                                            int buffer_size, 
-                                            RemoteDSPErrorCallback error_callback, 
+                                            remoteDSPErrorCallback error_callback, 
                                             void* error_callback_arg, 
                                             int& error)
 {
     FactoryTableDSPIt it;
     if ((it = remote_dsp_factory::gFactoryDSPTable.find(factory)) != remote_dsp_factory::gFactoryDSPTable.end()) {
         remote_dsp_aux* instance 
-            = factory->createRemoteDSPInstance(argc, argv, sampling_rate, buffer_size, error_callback, error_callback_arg, error);
+            = factory->createRemoteDSPInstance(argc, argv, error_callback, error_callback_arg, error);
         (*it).second.second.first.push_back(instance);
         return reinterpret_cast<remote_dsp*>(instance);
     } else {
@@ -1041,11 +1031,11 @@ EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** outp
 
 //---------AUDIO INSTANCE
 
-EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int sampling_rate, int buffer_size, int& error)
+EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error)
 {
     FactoryTableDSPIt it;
     if ((it = remote_dsp_factory::gFactoryDSPTable.find(factory)) != remote_dsp_factory::gFactoryDSPTable.end()) {
-        remote_audio_aux* instance = factory->createRemoteAudioInstance(argc, argv, sampling_rate, buffer_size, error);
+        remote_audio_aux* instance = factory->createRemoteAudioInstance(argc, argv, error);
         (*it).second.second.second.push_back(instance);
         return reinterpret_cast<remote_audio*>(instance);
     } else {
