@@ -47,7 +47,7 @@ typedef struct threadLock_ {
 	pthread_mutex_t m;
 	pthread_cond_t c;
 	unsigned char s;
-}threadLock;
+} threadLock;
 
 typedef struct opensl_stream {
 
