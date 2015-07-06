@@ -702,7 +702,7 @@ amp_follower(rel) = abs : env with {
 // below to remove this restriction.
 //
 // REFERENCE:
-//   "Digital Dynamic Range Compressor Design—A Tutorial and Analysis", by
+//   "Digital Dynamic Range Compressor Design --- A Tutorial and Analysis", by
 //   Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss
 //   http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf
 

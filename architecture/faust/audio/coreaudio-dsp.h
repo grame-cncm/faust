@@ -72,18 +72,7 @@ typedef	UInt8	CAAudioHardwareDeviceSectionID;
 #define	kAudioDeviceSectionGlobal	((CAAudioHardwareDeviceSectionID)0x00)
 #define	kAudioDeviceSectionWildcard	((CAAudioHardwareDeviceSectionID)0xFF)
 
-struct TCoreAudioSharedRenderer {
-    static AudioDeviceID fAggregateDeviceID;
-    static AudioObjectID fAggregatePluginID;    // Used for aggregate device
-    static int fClients;
-};
-
-AudioDeviceID TCoreAudioSharedRenderer::fAggregateDeviceID = -1;
-AudioObjectID TCoreAudioSharedRenderer::fAggregatePluginID = -1;
-int TCoreAudioSharedRenderer::fClients = 0;
-
 class TCoreAudioRenderer;
-
 typedef TCoreAudioRenderer* TCoreAudioRendererPtr;
 
 static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
@@ -185,7 +174,7 @@ static CFStringRef GetDeviceName(AudioDeviceID id)
     return (err == noErr) ? UIname : NULL;
 }
 
-static bool CheckAvailableDeviceName(const char* device_name, AudioDeviceID* device_id)
+static bool CheckAvailableDeviceName(const char* device_name, AudioDeviceID* device_id, int len = -1)
 {
     UInt32 size;
     Boolean isWritable;
@@ -199,7 +188,7 @@ static bool CheckAvailableDeviceName(const char* device_name, AudioDeviceID* dev
 
     deviceNum = size / sizeof(AudioDeviceID);
     AudioDeviceID devices[deviceNum];
-
+ 
     err = AudioHardwareGetProperty(kAudioHardwarePropertyDevices, &size, devices);
     if (err != noErr) {
         return false;
@@ -207,14 +196,14 @@ static bool CheckAvailableDeviceName(const char* device_name, AudioDeviceID* dev
 
     for (i = 0; i < deviceNum; i++) {
         char device_name_aux[256];
-
+    
         size = 256;
         err = AudioDeviceGetProperty(devices[i], 0, false, kAudioDevicePropertyDeviceName, &size, device_name_aux);
         if (err != noErr) {
             return false;
         }
-
-        if (strncmp(device_name_aux, device_name, strlen(device_name)) == 0) {
+ 
+        if (strncmp(device_name_aux, device_name, (len == -1) ? strlen(device_name) : len) == 0) {
             *device_id = devices[i];
             return true;
         }
@@ -223,11 +212,14 @@ static bool CheckAvailableDeviceName(const char* device_name, AudioDeviceID* dev
     return false;
 }
 
-class TCoreAudioRenderer : public TCoreAudioSharedRenderer
+class TCoreAudioRenderer
 {
     
     protected:
-
+    
+        AudioDeviceID fAggregateDeviceID;
+        AudioObjectID fAggregatePluginID;    // Used for aggregate device
+     
         int fDevNumInChans;
         int fDevNumOutChans;
         
@@ -301,11 +293,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                     *device = inDefault;
                     goto end;
                 } else {
-                    if (fAggregateDeviceID == -1) {
-                        //printf("GetDefaultDeviceAndSampleRate : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
-                        if (CreateAggregateDevice(inDefault, outDefault, sample_rate) != noErr) {
-                            return kAudioHardwareBadDeviceError;
-                        } 
+                    if (CreateAggregateDevice(inDefault, outDefault, sample_rate) != noErr) {
+                        return kAudioHardwareBadDeviceError;
                     }
                     printf("fAggregateDeviceID %d\n", fAggregateDeviceID);
                     *device = fAggregateDeviceID;
@@ -497,8 +486,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             struct timezone tz;
             gettimeofday(&fTv1, &tz);
             
-            sprintf(buffer1, "%d", fTv1.tv_sec + fTv1.tv_usec);
-            sprintf(buffer2, "com.grame.%d", fTv1.tv_sec + fTv1.tv_usec);
+            sprintf(buffer1, "com.grame.%d", fTv1.tv_sec + fTv1.tv_usec);
+            sprintf(buffer2, "%d", fTv1.tv_sec + fTv1.tv_usec);
             
             CFStringRef AggregateDeviceNameRef = CFStringCreateWithCString(kCFAllocatorDefault, buffer1, CFStringGetSystemEncoding());
             CFStringRef AggregateDeviceUIDRef = CFStringCreateWithCString(kCFAllocatorDefault, buffer2, CFStringGetSystemEncoding());
@@ -736,34 +725,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
 
         OSStatus DestroyAggregateDevice()
         {   
-            // If an aggregate device has really been created...
-            if (fAggregateDeviceID != -1 && fClients == 0)   {
-                
-                OSStatus osErr = noErr;
-                AudioObjectPropertyAddress pluginAOPA;
-                pluginAOPA.mSelector = kAudioPlugInDestroyAggregateDevice;
-                pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
-                pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
-                UInt32 outDataSize;
-                
-                osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
-                if (osErr != noErr) {
-                    printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
-                    printError(osErr);
-                    return osErr;
-                }
-                
-                osErr = AudioObjectGetPropertyData(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize, &fAggregateDeviceID);
-                if (osErr != noErr) {
-                    printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
-                    printError(osErr);
-                    return osErr;
-                }
-                
-                fAggregatePluginID = -1;
-                fAggregateDeviceID = -1;
-            }
-            
+            // No more needed : will be done when process quits...
             return noErr;
         }
 
@@ -1007,7 +969,8 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
     public:
 
         TCoreAudioRenderer()
-            :fDevNumInChans(0),fDevNumOutChans(0),
+            :fAggregateDeviceID(-1),fAggregatePluginID(-1),
+            fDevNumInChans(0),fDevNumOutChans(0),
             fPhysicalInputs(0), fPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
             fBufferSize(0),fSampleRate(0), 
@@ -1097,8 +1060,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
             
             fInChannel = new float*[fDevNumInChans];
             fOutChannel = new float*[fDevNumOutChans];
-            
-            fClients++;
             
             //printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld sample_rate = %ld\n", inChan, outChan, bufferSize, sample_rate);
             
@@ -1409,8 +1370,6 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
         
         int Close()
         {
-            fClients--;
-            
             if (!fAUHAL) {
                 return CLOSE_ERR;
             }
@@ -1422,10 +1381,7 @@ class TCoreAudioRenderer : public TCoreAudioSharedRenderer
                 free(fInputData);
             }
             AudioUnitUninitialize(fAUHAL);
-            // It seems that CloseComponent can not be called when an aggregated device has been created....
-            if (fAggregateDeviceID == -1) {
-                CloseComponent(fAUHAL);
-            }
+            CloseComponent(fAUHAL);
             DestroyAggregateDevice();
             
             delete[] fInChannel;
