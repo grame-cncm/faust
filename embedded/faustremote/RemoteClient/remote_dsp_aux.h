@@ -52,14 +52,9 @@
 
 using namespace std;
 
-#define FactoryTableDSP     pair<string, list<remote_dsp_aux*> >
-#define FactoryTableAudio   pair<string, list<remote_audio_aux*> >
-
+#define FactoryTableDSP     pair<string, pair<list<remote_dsp_aux*>, list<remote_audio_aux*> > >
 #define FactoryTableDSPType map<Sremote_dsp_factory, FactoryTableDSP>
 #define FactoryTableDSPIt   FactoryTableDSPType::iterator
-
-#define FactoryTableAudioType   map<Sremote_dsp_factory, FactoryTableAudio>
-#define FactoryTableAudioIt     FactoryTableAudioType::iterator
 
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -169,7 +164,7 @@ class remote_dsp_factory : public smartable {
         vector<string>      getLibraryList() { return fPathnameList; }
         
         static FactoryTableDSPType gFactoryDSPTable;
-        static FactoryTableAudioType gFactoryAudioTable;
+
 };
 
 class remote_dsp_aux : public dsp {

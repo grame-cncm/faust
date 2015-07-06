@@ -21,7 +21,8 @@
 #include <dns_sd.h>
 #endif
 
-//#define JACK 1
+#define JACK 1
+#define COREAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 
@@ -236,7 +237,7 @@ class jack_dsp : public audio_dsp {
         
 };
 
-bool jack_dsp::init(int u1, int u2);
+bool jack_dsp::init(int u1, int u2)
 {
     fAudio = new jackaudio(0, 0);
     
@@ -664,7 +665,6 @@ bool DSPServer::createInstance(connection_info* con_info)
     if (factory) {
     
         try {
-        
             if (con_info->fAudioType == "kNetJack") {
                 audio_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, 
                                                 con_info->fIP, con_info->fPort, 
