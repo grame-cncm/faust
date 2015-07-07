@@ -194,6 +194,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 "waveform"  return WAVEFORM;
 "enable"   	return ENABLE;
+"control"   return CONTROL;
 
 "declare"	return DECLARE;
 
