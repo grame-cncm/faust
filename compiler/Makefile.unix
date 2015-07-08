@@ -311,7 +311,7 @@ generator/sharing.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh ge
 generator/sharing.o: parallelize/graphSorting.hh generator/Text.hh generator/description.hh
 generator/sharing.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/PathUI.h
 generator/sharing.o: ../architecture/faust/gui/UI.h ../architecture/faust/gui/meta.h signals/sigtyperules.hh
-generator/sharing.o: generator/occurences.hh tlib/dcond.hh signals/sigprint.hh
+generator/sharing.o: generator/occurences.hh tlib/dcond.hh signals/sigprint.hh signals/ppsig.hh
 generator/statement.o: generator/statement.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
