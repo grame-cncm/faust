@@ -23,7 +23,7 @@
 
 #define JACK 1
 #define COREAUDIO 1
-#define PORTAUDIO 1
+//#define PORTAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 
@@ -789,7 +789,6 @@ bool DSPServer::stop(const string& shakey)
 
     return false;
 }
-
 // DSP server API
 
 EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[])
@@ -810,4 +809,24 @@ EXPORT bool remote_dsp_server::start(int port)
 EXPORT void remote_dsp_server::stop()
 {
     return reinterpret_cast<DSPServer*>(this)->stop();
+}
+
+EXPORT void remote_dsp_server::setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setCreateDSPFactoryCallback(callback, callback_arg);
+}
+
+EXPORT void remote_dsp_server::setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setDeleteDSPFactoryCallback(callback, callback_arg);
+}
+
+EXPORT void remote_dsp_server::setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setCreateDSPInstanceCallback(callback, callback_arg);
+}
+
+EXPORT void remote_dsp_server::setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setDeleteDSPInstanceCallback(callback, callback_arg);
 }

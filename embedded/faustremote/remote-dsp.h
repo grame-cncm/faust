@@ -25,7 +25,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "faust/audio/dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/meta.h"
 
 /**

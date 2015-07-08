@@ -46,7 +46,7 @@
 
 std::list<GUI*> GUI::fGuiList;
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
     list<QTGUI*>                listInterfaces;
     list<remote_dsp*>           listDSPs;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     
     printf("srate = %i fpb = %i\n", srate, fpb);
     
-    QApplication myApp(argc, argv);
+    QApplication myApp(argc, (char**)argv);
     
     for (int i = 0; i < argc; i++){
         
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
                     
                     int errorInstance;
                     
-                    remote_dsp* DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, NULL, NULL, errorInstance);
+                    remote_dsp* DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), NULL, NULL, errorInstance);
                     
                     if (DSP != NULL) {
                         
