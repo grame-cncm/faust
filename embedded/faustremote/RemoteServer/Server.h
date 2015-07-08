@@ -153,7 +153,7 @@ struct connection_info {
     virtual ~connection_info() {}
     
     string getJson();
-    bool getJsonFromKey(FactoryTable& factories);
+    bool getJsonFromKey(FactoryTable factories);
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
