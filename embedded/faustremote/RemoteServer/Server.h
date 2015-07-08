@@ -38,6 +38,11 @@
 
 using namespace std;
 
+typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
 class audio_dsp {
@@ -49,19 +54,37 @@ class audio_dsp {
         
         llvm_dsp* fDSP; // DSP Instance 
         audio* fAudio;
+        
+        createInstanceDSPCallback fCreateDSPInstanceCb;
+        void* fCreateDSPInstanceCb_arg;
+   
+        deleteInstanceDSPCallback fDeleteDSPInstanceCb;
+        void* fDeleteDSPInstanceCb_arg;
   
     public:
     
-        audio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
-            :fName(name), fInstanceKey(key), fAudio(NULL)
+        audio_dsp(llvm_dsp_factory* factory, const string& name, const string& key, 
+            createInstanceDSPCallback cb1, void* cb1_arg,
+            deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :fName(name), fInstanceKey(key), fAudio(NULL), 
+            fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
+            fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
         {
             if (!(fDSP = createDSPInstance(factory))) {
                 throw -1;
+            }
+            
+            if (fCreateDSPInstanceCb) {
+                fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
             }
         }
          
         virtual ~audio_dsp()
         {   
+            if (fDeleteDSPInstanceCb) {
+                fDeleteDSPInstanceCb(fDSP, fDeleteDSPInstanceCb_arg);
+            }
+            
             delete fAudio;
             deleteDSPInstance(fDSP);
         }
@@ -82,7 +105,7 @@ class audio_dsp {
         void    setKey(const string& key) { fInstanceKey = key; }
         string  getName() { return fName; }
         void    setName(string name) { fName = name; }
-        
+         
 };
 
 // Structure handled by libmicrohttp related to a connection
@@ -94,6 +117,8 @@ enum {
 };
 
 typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
+
+class DSPServer;
 
 struct connection_info {
     
@@ -132,7 +157,7 @@ struct connection_info {
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
-    bool createFactory(FactoryTable factories);
+    bool createFactory(FactoryTable factories, DSPServer* server);
     
     virtual int postProcess(const char* upload_data, size_t* upload_data_size)
     {
@@ -171,6 +196,19 @@ struct connection_info_get : public connection_info  {
 class DSPServer {
     
     friend struct connection_info_post;
+    friend struct connection_info;
+    
+    createFactoryDSPCallback fCreateDSPFactoryCb;
+    void* fCreateDSPFactoryCb_arg;
+   
+    deleteFactoryDSPCallback fDeleteDSPFactoryCb;
+    void* fDeleteDSPFactoryCb_arg;
+    
+    createInstanceDSPCallback fCreateDSPInstanceCb;
+    void* fCreateDSPInstanceCb_arg;
+   
+    deleteInstanceDSPCallback fDeleteDSPInstanceCb;
+    void* fDeleteDSPInstanceCb_arg;
     
     private:
 
@@ -238,6 +276,28 @@ class DSPServer {
         // Start server on specified port 
         bool start(int port = 7777);
         void stop();
+        
+        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg)
+        {
+            fCreateDSPFactoryCb = callback;
+            fCreateDSPFactoryCb_arg = callback_arg;
+        }
+        void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg)
+        {
+            fDeleteDSPFactoryCb = callback;
+            fDeleteDSPFactoryCb_arg = callback_arg;
+        }
+        
+        void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg)
+        {
+            fCreateDSPInstanceCb = callback;
+            fCreateDSPInstanceCb_arg = callback_arg;
+        }
+        void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg)
+        {
+            fDeleteDSPInstanceCb = callback;
+            fDeleteDSPInstanceCb_arg = callback_arg;
+        }
      
 };
 
@@ -255,11 +315,6 @@ struct AudioStarter {
 
 // Public C++ API
 
-/*
-typedef bool (*createFactoryDSPCallback) (llvm_factory* factory, void* arg);
-typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, int argc, const char* argv[], void* arg);
-*/
-
 class EXPORT remote_dsp_server {
     
     public: 
@@ -267,8 +322,12 @@ class EXPORT remote_dsp_server {
         bool start(int port = 7777);
         void stop();
         
-        //void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
-        //void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg)
+        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
+        void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
+        
+        void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg);
+        void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg);
+      
 };
 
 EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);

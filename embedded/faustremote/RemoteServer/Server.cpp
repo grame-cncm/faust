@@ -23,6 +23,7 @@
 
 #define JACK 1
 #define COREAUDIO 1
+#define PORTAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 
@@ -121,7 +122,9 @@ class netjack_dsp : public audio_dsp {
                     const string& compression, 
                     const string& ip, const string& port, 
                     const string& mtu, const string& latency,
-                    const string& name, const string& key);
+                    const string& name, const string& key,
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg);
         
         bool init(int u1, int u2);
        
@@ -136,8 +139,10 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& mtu, 
                         const string& latency,
                         const string& name,
-                        const string& key)
-                        :audio_dsp(factory, name, key), fIP(ip), 
+                        const string& key,
+                        createInstanceDSPCallback cb1, void* cb1_arg,
+                        deleteInstanceDSPCallback cb2, void* cb2_arg)
+                        :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
                         fMTU(mtu), fLatency(latency)
 {}
@@ -165,8 +170,10 @@ class coreaudio_dsp : public audio_dsp {
 
     public:
      
-        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
-            :audio_dsp(factory, name, key)
+        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
         {}
         
         virtual ~coreaudio_dsp() {}
@@ -195,8 +202,10 @@ class portaudio_dsp : public audio_dsp {
 
     public:
      
-        portaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
-            :audio_dsp(factory, name, key)
+        portaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key, 
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
         {}
         
         virtual ~portaudio_dsp() {}
@@ -225,8 +234,10 @@ class jack_dsp : public audio_dsp {
 
     public:
      
-        jack_dsp(llvm_dsp_factory* factory, const string& name, const string& key)
-            :audio_dsp(factory, name, key)
+        jack_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
+                createInstanceDSPCallback cb1, void* cb1_arg,
+                deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
         {}
         
         virtual ~jack_dsp() {}
@@ -343,7 +354,7 @@ int connection_info::iteratePost(const char* key, const char* data, size_t size)
 }
 
 // Create DSP Factory 
-bool connection_info::createFactory(FactoryTable factories) 
+bool connection_info::createFactory(FactoryTable factories, DSPServer* server) 
 {
     // Factory already compiled ?
     if (factories.find(fSHAKey) != factories.end()) {
@@ -373,6 +384,10 @@ bool connection_info::createFactory(FactoryTable factories)
     }
    
     if (fFactory) {
+        // Possibly call callback
+        if (server->fCreateDSPFactoryCb) {
+            return server->fCreateDSPFactoryCb(fFactory, server->fCreateDSPFactoryCb_arg);
+        }   
         factories[fSHAKey] = make_pair(fNameApp, fFactory);
         // Once the factory is compiled, the JSON is stored as answerstring
         fAnswer = getJson();
@@ -396,7 +411,11 @@ connection_info_post::connection_info_post(MHD_Connection* connection):connectio
 
 #include "lo/lo.h"
 
-DSPServer::DSPServer(int argc, const char* argv[]):fPort(-1),fDaemon(NULL)
+DSPServer::DSPServer(int argc, const char* argv[]):fPort(-1),fDaemon(NULL),
+fCreateDSPFactoryCb(NULL),fCreateDSPFactoryCb_arg(NULL),
+fCreateDSPInstanceCb(NULL),fCreateDSPInstanceCb_arg(NULL),
+fDeleteDSPFactoryCb(NULL),fDeleteDSPFactoryCb_arg(NULL),
+fDeleteDSPInstanceCb(NULL),fDeleteDSPInstanceCb_arg(NULL)
 {}
 
 DSPServer::~DSPServer() {}
@@ -589,7 +608,7 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
     } else {
         
         if (strcmp(url, "/GetJson") == 0) {
-            if (info->createFactory(fFactories)) {
+            if (info->createFactory(fFactories, this)) {
                 return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
             } else {
                 return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
@@ -661,45 +680,66 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 bool DSPServer::createInstance(connection_info* con_info)
 {
     llvm_dsp_factory* factory = fFactories[con_info->fFactoryKey].second;
+    audio_dsp* audio = NULL;
     
     if (factory) {
     
         try {
             if (con_info->fAudioType == "kNetJack") {
-                audio_dsp* dsp = new netjack_dsp(factory, con_info->fCompression, 
-                                                con_info->fIP, con_info->fPort, 
-                                                con_info->fMTU, con_info->fLatency, 
-                                                fFactories[con_info->fFactoryKey].first, 
-                                                con_info->fInstanceKey);
+                audio = new netjack_dsp(factory, con_info->fCompression, 
+                                        con_info->fIP, con_info->fPort, 
+                                        con_info->fMTU, con_info->fLatency, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey,
+                                        fCreateDSPInstanceCb, fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, fDeleteDSPInstanceCb_arg);
                 pthread_t thread;
-                AudioStarter* starter = new AudioStarter(this, dsp);
+                AudioStarter* starter = new AudioStarter(this, audio);
                 if (pthread_create(&thread, NULL, DSPServer::open, starter) != 0) {
                     goto error;
                 }
             } else if (con_info->fAudioType == "kLocalAudio") {
             #ifdef COREAUDIO
-                audio_dsp* dsp = new coreaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && dsp->start()) {
-                    fRunningDsp.push_back(dsp);
+                audio = new coreaudio_dsp(factory, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey,
+                                        fCreateDSPInstanceCb, 
+                                        fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, 
+                                        fDeleteDSPInstanceCb_arg);
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                    fRunningDsp.push_back(audio);
                 } else {
-                    delete dsp;
+                    delete audio;
                 }
             #endif
             #ifdef PORTAUDIO
-                audio_dsp* dsp = new portaudio_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && dsp->start()) {
-                    fRunningDsp.push_back(dsp);
+                audio = new portaudio_dsp(factory, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey, 
+                                        fCreateDSPInstanceCb, 
+                                        fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, 
+                                        fDeleteDSPInstanceCb_arg);
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                    fRunningDsp.push_back(audio);
                 } else {
-                    delete dsp;
+                    delete audio;
                 }
             #endif
             } else if (con_info->fAudioType == "kJack") {
             #ifdef JACK
-                audio_dsp* dsp = new jack_dsp(factory, fFactories[con_info->fFactoryKey].first, con_info->fInstanceKey);
-                if (dsp->init(-1, -1) && dsp->start()) {
-                    fRunningDsp.push_back(dsp);
+                audio = new jack_dsp(factory, 
+                                    fFactories[con_info->fFactoryKey].first, 
+                                    con_info->fInstanceKey,
+                                    fCreateDSPInstanceCb, 
+                                    fCreateDSPInstanceCb_arg,
+                                    fDeleteDSPInstanceCb, 
+                                    fDeleteDSPInstanceCb_arg);
+                if (audio->init(-1, -1) && audio->start()) {
+                    fRunningDsp.push_back(audio);
                 } else {
-                    delete dsp;
+                    delete audio;
                 }
             #endif
             }
@@ -707,7 +747,7 @@ bool DSPServer::createInstance(connection_info* con_info)
         } catch (...) {
              goto error;
         }
-        
+    
         return true;
         
     } else {
