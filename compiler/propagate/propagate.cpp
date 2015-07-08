@@ -358,8 +358,17 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
                 // We gEnableFlag is false we replace enable by a simple multiplication
                 return makeList( sigMul(lsig[0],lsig[1]) );
             }
+        } else if (p2 == &sigControl) {
+            if (gEnableFlag) {
+                // special case for sigEnable that requires a transformation
+                // enable(X,Y) -> sigEnable(X*Y, Y>0)
+                return makeList( sigEnable( lsig[0], lsig[1] ) );
+            } else {
+                // We gEnableFlag is false we replace control by identity function
+                return makeList( lsig[0] );
+            }
         }
-		return makeList( p2(lsig[0],lsig[1]) );  
+        return makeList( p2(lsig[0],lsig[1]) );
 	}
 	
 	else if (isBoxPrim3(box, &p3)) 				{ 

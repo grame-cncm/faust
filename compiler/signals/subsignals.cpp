@@ -69,6 +69,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigAttach(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
     else if ( isSigEnable(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
+    else if ( isSigControl(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
     else if ( isList(sig) )                         { vsigs.push_back(hd(sig)); vsigs.push_back(tl(sig));  return 2; }
     else if ( isNil(sig) )                          { return 0; }
 

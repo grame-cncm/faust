@@ -393,7 +393,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
     else if ( isSigEnable(sig, x, y) )				{ return generateEnable(sig, x, y); }
-
+    /* we should not have any control at this stage*/
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);

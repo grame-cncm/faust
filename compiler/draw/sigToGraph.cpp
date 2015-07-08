@@ -255,7 +255,8 @@ static string sigLabel(Tree sig)
     else if ( isSigHBargraph(sig, label,x,y,z) )	{ fout << "hbargraph"; 	}
 #endif
     else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}
-    else if ( isSigEnable(sig, x, y) )                { fout << "enable";		}
+    else if ( isSigEnable(sig, x, y) )              { fout << "enable";		}
+    else if ( isSigControl(sig, x, y) )             { fout << "control";	}
 
     else {
         cerr << "ERROR, unrecognized signal : " << *sig << endl;

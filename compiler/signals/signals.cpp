@@ -294,6 +294,10 @@ Sym SIGENABLE = symbol ("sigEnable");
 Tree  sigEnable(Tree t0, Tree t1)					{ return tree(SIGENABLE, t0, t1); 		}
 bool  isSigEnable(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGENABLE, t0, t1); 	}
 
+Sym SIGCONTROL = symbol ("sigControl");
+Tree  sigControl(Tree t0, Tree t1)					{ return tree(SIGCONTROL, t0, t1); 		}
+bool  isSigControl(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGCONTROL, t0, t1); 	}
+
 
 
 Tree addNums(Tree a, Tree b)

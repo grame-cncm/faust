@@ -72,6 +72,8 @@ void sigvisitor::visit(Tree sig)
 
     else if (isSigEnable(sig, s1, s2)) 						visitEnable(sig, s1, s2);
 
+    else if (isSigControl(sig, s1, s2)) 					visitControl(sig, s1, s2);
+
 				
 	//------------------------
 	

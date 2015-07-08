@@ -44,7 +44,8 @@ struct sigvisitor
 	virtual void visitVBargraph	(Tree sig, Tree label, Tree min, Tree max, Tree s1) = 0;
 	virtual void visitHBargraph	(Tree sig, Tree label, Tree min, Tree max, Tree s1) = 0;
     virtual void visitAttach	(Tree sig, Tree s1, Tree s2) = 0;
-    virtual void visitEnable      (Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitEnable    (Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitControl   (Tree sig, Tree s1, Tree s2) = 0;
 
 	// recursive
 	virtual void visitRec 		(Tree sig, Tree var, Tree body) = 0;

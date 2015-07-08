@@ -231,6 +231,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printui(fout, "hbargraph", label, x, y, z); }
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
     else if ( isSigEnable(sig, x, y) )				{ printfun(fout, "enable", x, y); }
+    else if ( isSigControl(sig, x, y) )				{ printfun(fout, "control", x, y); }
 
 	else {
         cerr << "NOT A SIGNAL : " << *sig << endl;
