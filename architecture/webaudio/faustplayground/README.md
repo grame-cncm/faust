@@ -7,6 +7,14 @@ and export your Faust DSPs or the ones you find surfing on the web.
 
 The pedagogical version includes a library of modules directly available in the page.
 
+Additional ressources
+=====================
+
+The following files needs to be added in the deployed version of 'webaudio' folder :
+
+- libfaust.js located in '/usr/local/lib' folder after installation
+- jsscripts.js located in '/usr/local/lib/faust/js' folder after installation
+
 Launch locally
 ==============
 
