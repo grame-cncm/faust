@@ -633,8 +633,11 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 
         case kSamp :
 
-            getTypedNames(t, "Temp", ctype, vname);
-            fClass->addZone2(subst("$0 $1 = 0;", ctype, vname));
+            getTypedNames(t, "TempPerm", ctype, vname);
+            // need to be preserved because of new enable and control primitives
+            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
+            fClass->addInitCode(subst("$0 = 0;", vname));
+
             fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
             break;
     }
