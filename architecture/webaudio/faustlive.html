@@ -487,14 +487,14 @@ function UploadFile(e) {
                 console.log("Poly DSP");
                 
                 // Create a poly DSP factory from the dsp code    
-                factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16);
+                factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
                 
                 if (!factory) {
                     alert(faust.getErrorMessage());
                     return;
                 }
                 
-                DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size);
+                DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
                 if (DSP.getNumInputs() > 0) {
                     activateAudioInput();
                 }
