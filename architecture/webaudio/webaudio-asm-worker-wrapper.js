@@ -395,7 +395,6 @@ faust.createPolyDSPFactory = function (code, argv, max_polyphony, callback) {
 
 faust.deletePolyDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
 
-
 // 'mono' DSP
 faust.createDSPInstance = function (factory, context, buffer_size) {
 

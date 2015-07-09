@@ -487,7 +487,7 @@ function UploadFile(e) {
                 console.log("Poly DSP");
                 
                 // Create a poly DSP factory from the dsp code    
-                factory = faust.createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16);
+                factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16);
                 
                 if (!factory) {
                     alert(faust.getErrorMessage());
