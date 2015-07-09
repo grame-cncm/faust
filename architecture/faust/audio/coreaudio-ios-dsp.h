@@ -370,6 +370,13 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         return OPEN_ERR;
     }
     
+    // 09/07/2015 : https://developer.apple.com/library/ios/qa/qa1754/_index.html
+    UInt32 overrideAudioRoute = kAudioSessionOverrideAudioRoute_Speaker;
+    err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(UInt32), &overrideAudioRoute);
+    if (err != noErr) {
+        printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
+    }
+    
     if (SetupMixing() < 0) {
         return OPEN_ERR;
     }
