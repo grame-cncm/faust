@@ -330,6 +330,13 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     
     printf("SetParameters fDevNumInChans = %d fDevNumOutChans = %d bufferSize = %d samplerate = %d\n", fDevNumInChans, fDevNumOutChans, bufferSize, samplerate);
     
+    // 09/07/2015 : https://developer.apple.com/library/ios/qa/qa1754/_index.html
+    UInt32 overrideAudioRoute = 1;
+    err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(UInt32), &overrideAudioRoute);
+    if (err != noErr) {
+        printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
+    }
+    
     err = AudioSessionSetActive(true);
     if (err != noErr) {
         printf("Couldn't set audio session active\n");
@@ -368,13 +375,6 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     
     if (SetAudioCategory(fHWNumInChans, fHWNumOutChans) != NO_ERR) {
         return OPEN_ERR;
-    }
-    
-    // 09/07/2015 : https://developer.apple.com/library/ios/qa/qa1754/_index.html
-    UInt32 overrideAudioRoute = kAudioSessionOverrideAudioRoute_Speaker;
-    err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(UInt32), &overrideAudioRoute);
-    if (err != noErr) {
-        printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
     }
     
     if (SetupMixing() < 0) {
