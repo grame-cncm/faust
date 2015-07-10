@@ -372,7 +372,8 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     } else {
         printf("Get hw output channels %d\n", fHWNumOutChans);
     }
-    
+
+    // Possibly reset the audioCategory the way hardware allows
     if (SetAudioCategory(fHWNumInChans, fHWNumOutChans) != NO_ERR) {
         return OPEN_ERR;
     }
