@@ -92,7 +92,7 @@ class rtmidi : public midi {
                 }
                 
             } else {
-                 cout << "long message : " << nBytes << endl;
+                 std::cout << "long message : " << nBytes << endl;
             }
         }
         

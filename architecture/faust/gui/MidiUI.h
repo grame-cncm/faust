@@ -103,8 +103,8 @@ class MidiUI : public GUI, public midi
 
     private:
     
-        std::map <int, vector<uiMidiCtrl*> > fCtrlChangeTable;
-        std::map <int, vector<uiMidiPgm*> > fProgChangeTable;
+        std::map <int, std::vector<uiMidiCtrl*> > fCtrlChangeTable;
+        std::map <int, std::vector<uiMidiPgm*> > fProgChangeTable;
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
