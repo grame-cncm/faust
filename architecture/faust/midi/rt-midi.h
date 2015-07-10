@@ -48,7 +48,7 @@ class rtmidi : public midi {
   
         RtMidiIn* fInput;
         RtMidiOut* fOutput;
-        vector<midi*> fMidiInputs;
+        std::vector<midi*> fMidiInputs;
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
