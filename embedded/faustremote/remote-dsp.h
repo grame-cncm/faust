@@ -286,10 +286,16 @@ class remote_dsp_server {
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
         void stop();                 /* Stop the DSP compilation service. */
         
+        /* Called each time a new DSP factory is created */
         void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
+        
+        /* Called each time a DSP factory is deleted */
         void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
         
+        /* Called each time a new DSP instance is created */
         void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg);
+        
+        /* Called each time a DSP instance is deleted */
         void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg);
 };
 
