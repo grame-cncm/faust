@@ -274,9 +274,16 @@ bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::v
  * using a NetJack master/slave connection.
  */
  
+/* Called each time a new DSP factory is created */
 typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+
+/* Called each time a DSP factory is deleted */
 typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+
+/* Called each time a new DSP instance is created */
 typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+
+/* Called each time a DSP instance is deleted */
 typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
 
 class remote_dsp_server {
@@ -286,16 +293,11 @@ class remote_dsp_server {
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
         void stop();                 /* Stop the DSP compilation service. */
         
-        /* Called each time a new DSP factory is created */
-        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
         
-        /* Called each time a DSP factory is deleted */
+        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
         void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
         
-        /* Called each time a new DSP instance is created */
         void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg);
-        
-        /* Called each time a DSP instance is deleted */
         void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg);
 };
 

@@ -127,22 +127,21 @@ int testClient(int argc, const char* argv[])
                 
         DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), NULL, NULL, errorInstance);
                     
-        if (DSP != NULL){
+        if (DSP != NULL) { 
                         
             QTGUI* interface = new QTGUI();
-                    
             jackaudio* audio = new jackaudio;
-            
             //coreaudio* audio = new coreaudio(srate, fpb);
                     
             DSP->buildUserInterface(interface);   
                     
-            if (!audio->init("RemoteExample", DSP))
+            if (!audio->init("RemoteExample", DSP)) {
                 printf("Audio could not be initialized\n");
-            else if (!audio->start())
+            } else if (!audio->start()) {
                 printf("Audio could not be started\n");
-            else
+            } else {
                 interface->run();
+            }
             
             //myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
@@ -157,13 +156,12 @@ int testClient(int argc, const char* argv[])
             
             deleteRemoteDSPInstance(DSP);
             deleteRemoteDSPFactory(factory);
-                
-        }
-        else
+        } else {
             printf("CREATE INSTANCE FAILED = %d\n", errorInstance);
-    }
-    else
+        }
+    } else {
         printf("CREATE FACTORY FAILED = %s\n", errorFactory.c_str());
+    }
 
     return 0;
 }
