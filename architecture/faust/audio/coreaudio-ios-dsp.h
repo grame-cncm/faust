@@ -328,6 +328,35 @@ static int SetAudioCategory(int input, int output)
         }
     }
     
+    // If input is used, disable AGC
+    if (audioCategory == kAudioSessionCategory_RecordAudio || audioCategory == kAudioSessionCategory_PlayAndRecord) {
+        
+        UInt32 sessionMode = kAudioSessionMode_Measurement;
+        err = AudioSessionSetProperty(kAudioSessionProperty_Mode, sizeof(sessionMode), &sessionMode);
+        if (err != noErr) {
+            printf("Error setting kAudioSessionMode_Measurement\n");
+            printError(err);
+        }
+        
+        UInt32 availableGain;
+        UInt32 outSize = sizeof(availableGain);
+        err = AudioSessionGetProperty(kAudioSessionProperty_InputGainAvailable, &outSize, &availableGain);
+        if (err != noErr) {
+            printf("Error getting kAudioSessionProperty_InputGainAvailable\n");
+            printError(err);
+        } else {
+            printf("Getting kAudioSessionProperty_InputGainAvailable OK\n");
+            Float32 gain = 1.0f;
+            err = AudioSessionSetProperty(kAudioSessionProperty_InputGainScalar, sizeof(Float32), &gain);
+            if (err != noErr) {
+                printf("Error setting kAudioSessionProperty_InputGainScalar\n");
+                printError(err);
+            } else {
+                printf("Setting kAudioSessionProperty_InputGainAvailable to 1.0 OK\n");
+            }
+        }
+    }
+  
     return NO_ERR;
 }
 
@@ -418,6 +447,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     }
     
     Float32 actualPeriodDuration;
+    outSize = sizeof(actualPeriodDuration);
     err = AudioSessionGetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, &outSize, &actualPeriodDuration);
     if (err != noErr) {
         printf("Couldn't get hw buffer duration\n");
@@ -440,6 +470,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     }
     
     Float32 inputLatency;
+    outSize = sizeof(inputLatency);
     err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputLatency, &outSize, &inputLatency);
     if (err != noErr) {
         printf("Couldn't get inputLatency\n");
@@ -449,6 +480,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     }
     
     Float32 outputLatency;
+    outSize = sizeof(outputLatency);
     err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputLatency, &outSize, &outputLatency);
     if (err != noErr) {
         printf("Couldn't get outputLatency\n");
