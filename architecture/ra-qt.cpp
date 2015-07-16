@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
-    MidiUI midiinterface(&midi);
+    MidiUI midiinterface(name);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
@@ -170,6 +170,9 @@ int main(int argc, char *argv[])
 
 #ifdef OSCCTRL
 	oscinterface.run();
+#endif
+#ifdef MIDICTRL
+	midiinterface.run();
 #endif
 	interface.run();
 
