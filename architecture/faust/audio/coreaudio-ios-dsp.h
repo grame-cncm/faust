@@ -228,10 +228,10 @@ OSStatus TiPhoneCoreAudioRenderer::Render(AudioUnitRenderActionFlags *ioActionFl
 void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 inInterruption)
 {
 	TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer*)inClientData;
-	printf("Session interrupted! --- %s ---", inInterruption == kAudioSessionBeginInterruption ? "Begin Interruption" : "End Interruption");
+	printf("Session interrupted! --- %s ---", (inInterruption == kAudioSessionBeginInterruption) ? "Begin Interruption" : "End Interruption");
 
 	if (inInterruption == kAudioSessionEndInterruption) {
-		// make sure we are again the active session
+		// Make sure we are again the active session
 		AudioSessionSetActive(true);
         obj->SetupMixing();
         AudioOutputUnitStart(obj->fAUHAL);
@@ -273,9 +273,9 @@ int TiPhoneCoreAudioRenderer::SetupMixing()
 }
    
 void TiPhoneCoreAudioRenderer::AudioSessionPropertyListener(void* inClientData,
-                                                 AudioSessionPropertyID inID,
-                                                 UInt32 inDataSize,
-                                                 const void* inData)
+                                                             AudioSessionPropertyID inID,
+                                                             UInt32 inDataSize,
+                                                             const void* inData)
 {
     TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer*)inData;
     switch (inID) {
@@ -302,13 +302,13 @@ static int SetAudioCategory(int input, int output)
     UInt32 audioCategory;
     if ((input > 0) && (output > 0)) {
         audioCategory = kAudioSessionCategory_PlayAndRecord;
-        printf("kAudioSessionCategory_PlayAndRecord\n");
+        printf("AudioCategory kAudioSessionCategory_PlayAndRecord\n");
     } else if (input > 0) {
         audioCategory = kAudioSessionCategory_RecordAudio;
-        printf("kAudioSessionCategory_RecordAudio\n");
+        printf("AudioCategory kAudioSessionCategory_RecordAudio\n");
     } else  if (output > 0) {
         audioCategory = kAudioSessionCategory_MediaPlayback;
-        printf("kAudioSessionCategory_MediaPlayback\n");
+        printf("AudioCategory kAudioSessionCategory_MediaPlayback\n");
     }
     
     OSStatus err = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
@@ -317,7 +317,50 @@ static int SetAudioCategory(int input, int output)
         printError(err);
         return OPEN_ERR;
     }
+     
+    // 09/07/2015 : https://developer.apple.com/library/ios/qa/qa1754/_index.html
+    if (audioCategory == kAudioSessionCategory_PlayAndRecord) {
+        UInt32 overrideAudioRoute = 1;
+        err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(UInt32), &overrideAudioRoute);
+        if (err != noErr) {
+            printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
+            printError(err);
+        }
+    }
     
+    // If input is used, disable AGC
+    if (audioCategory == kAudioSessionCategory_RecordAudio || audioCategory == kAudioSessionCategory_PlayAndRecord) {
+        
+        UInt32 sessionMode = kAudioSessionMode_Measurement;
+        err = AudioSessionSetProperty(kAudioSessionProperty_Mode, sizeof(sessionMode), &sessionMode);
+        if (err != noErr) {
+            printf("Error setting kAudioSessionMode_Measurement\n");
+            printError(err);
+        }
+        
+        UInt32 availableGain;
+        UInt32 outSize = sizeof(availableGain);
+        err = AudioSessionGetProperty(kAudioSessionProperty_InputGainAvailable, &outSize, &availableGain);
+        if (err != noErr) {
+            printf("Error getting kAudioSessionProperty_InputGainAvailable\n");
+            printError(err);
+        } else {
+            Float32 gain;
+            printf("Getting kAudioSessionProperty_InputGainAvailable OK\n");
+            outSize = sizeof(Float32);
+            AudioSessionGetProperty(kAudioSessionProperty_InputGainScalar, &outSize, &gain);
+            printf("Getting kAudioSessionProperty_InputGainScalar :  %f\n", gain);
+            gain = 1.0f;
+            err = AudioSessionSetProperty(kAudioSessionProperty_InputGainScalar, sizeof(Float32), &gain);
+            if (err != noErr) {
+                printf("Error setting kAudioSessionProperty_InputGainScalar\n");
+                printError(err);
+            } else {
+                printf("Setting kAudioSessionProperty_InputGainAvailable to 1.0 OK\n");
+            }
+        }
+    }
+  
     return NO_ERR;
 }
 
@@ -329,13 +372,6 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
 	AudioStreamBasicDescription srcFormat, dstFormat;
     
     printf("SetParameters fDevNumInChans = %d fDevNumOutChans = %d bufferSize = %d samplerate = %d\n", fDevNumInChans, fDevNumOutChans, bufferSize, samplerate);
-    
-    // 09/07/2015 : https://developer.apple.com/library/ios/qa/qa1754/_index.html
-    UInt32 overrideAudioRoute = 1;
-    err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(UInt32), &overrideAudioRoute);
-    if (err != noErr) {
-        printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
-    }
     
     err = AudioSessionSetActive(true);
     if (err != noErr) {
@@ -356,8 +392,8 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     outSize = sizeof(fHWNumInChans);
     err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &outSize, &fHWNumInChans);
     if (err != noErr) {
-        printf("Couldn't get hw input channels\n");
         fHWNumInChans = 0;
+        printf("Couldn't get hw input channels\n");
         printError(err);
     } else {
         printf("Get hw input channels %d\n", fHWNumInChans);
@@ -366,9 +402,9 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     outSize = sizeof(fHWNumOutChans);
     err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputNumberChannels, &outSize, &fHWNumOutChans);
     if (err != noErr) {
+        fHWNumOutChans = 0;
         printf("Couldn't get hw output channels\n");
         printError(err);
-        fHWNumOutChans = 0;
     } else {
         printf("Get hw output channels %d\n", fHWNumOutChans);
     }
@@ -415,7 +451,7 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
     }
     
     Float32 actualPeriodDuration;
-    
+    outSize = sizeof(actualPeriodDuration);
     err = AudioSessionGetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, &outSize, &actualPeriodDuration);
     if (err != noErr) {
         printf("Couldn't get hw buffer duration\n");
@@ -435,6 +471,26 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         printf("Couldn't set i/o sample rate\n");
         printError(err);
         return OPEN_ERR;
+    }
+    
+    Float32 inputLatency;
+    outSize = sizeof(inputLatency);
+    err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputLatency, &outSize, &inputLatency);
+    if (err != noErr) {
+        printf("Couldn't get inputLatency\n");
+        printError(err);
+    } else {
+        printf("inputLatency in sec : %f\n", inputLatency);
+    }
+    
+    Float32 outputLatency;
+    outSize = sizeof(outputLatency);
+    err = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputLatency, &outSize, &outputLatency);
+    if (err != noErr) {
+        printf("Couldn't get outputLatency\n");
+        printError(err);
+    } else {
+        printf("outputLatency in sec : %f\n", outputLatency);
     }
     
     // AUHAL
@@ -497,7 +553,6 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
 	}
     
     // Setting format
-    
     if (fDevNumInChans > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
         err = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
@@ -572,8 +627,8 @@ int TiPhoneCoreAudioRenderer::SetParameters(int bufferSize, int samplerate)
         }
     }
     
+    // Possibly prepare input buffers
     if (fDevNumInChans > 0) {
-        // Prepare buffers
         fCAInputData = (AudioBufferList*)malloc(sizeof(float) + fDevNumInChans * sizeof(AudioBuffer));
         fCAInputData->mNumberBuffers = fDevNumInChans;
         for (int i = 0; i < fDevNumInChans; i++) {

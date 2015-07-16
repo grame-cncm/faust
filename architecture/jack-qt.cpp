@@ -170,6 +170,9 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
 	oscinterface.run();
 #endif
+#ifdef MIDICTRL
+	midiinterface.run();
+#endif
 	interface.run();
 	
     myApp.setStyleSheet(interface.styleSheet());
