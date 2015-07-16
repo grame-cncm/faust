@@ -345,8 +345,12 @@ static int SetAudioCategory(int input, int output)
             printf("Error getting kAudioSessionProperty_InputGainAvailable\n");
             printError(err);
         } else {
+            Float32 gain;
             printf("Getting kAudioSessionProperty_InputGainAvailable OK\n");
-            Float32 gain = 1.0f;
+            outSize = sizeof(Float32);
+            AudioSessionGetProperty(kAudioSessionProperty_InputGainScalar, &outSize, &gain);
+            printf("Getting kAudioSessionProperty_InputGainScalar :  %f\n", gain);
+            gain = 1.0f;
             err = AudioSessionSetProperty(kAudioSessionProperty_InputGainScalar, sizeof(Float32), &gain);
             if (err != noErr) {
                 printf("Error setting kAudioSessionProperty_InputGainScalar\n");
