@@ -147,7 +147,9 @@ class rtmidi : public midi {
         {}
         
         virtual ~rtmidi()
-        {}
+        {
+            stop();
+        }
         
         void addMidiIn(midi* dsp) { fMidiInputs.push_back(dsp); }
         
