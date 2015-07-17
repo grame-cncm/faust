@@ -30,6 +30,8 @@ for p in $@; do
         JACK="1"
     elif [ "$p" = "-xcode" ]; then
         XCODE="1"
+    elif [ "$p" = "-noagc" ]; then
+        NOAGC="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -57,6 +59,13 @@ for p in $FILES; do
 	   (
 		xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
         cd "$T" && xcodebuild -scheme Template_Jack archive PRODUCT_NAME=$P
+	   ) > /dev/null
+    elif [ "$NOAGC" = "1" ]; then
+	   echo "Compile with CoreAudio support and no AGC"
+	   faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
+	   (
+		xcodebuild GCC_PREPROCESSOR_DEFINITIONS='${inherited} DISABLE_AGC=1' -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
+        cd "$T" && xcodebuild -scheme Template_CoreAudio archive PRODUCT_NAME=$P
 	   ) > /dev/null
     else
 	   echo "Compile with CoreAudio support"
