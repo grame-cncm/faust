@@ -37,6 +37,7 @@ using namespace std;
     #define STREAM_ERROR std::string
 #endif
 
+
 list <string> LLVMInstVisitor::gMathLibTable;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)

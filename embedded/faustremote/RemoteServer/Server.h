@@ -16,11 +16,11 @@
 #include <list>
 #include <map>
 #include <vector>
-#include <microhttpd.h>
+#include "microhttpd.h"
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "utilities.h"
 #include "TMutex.h"
 

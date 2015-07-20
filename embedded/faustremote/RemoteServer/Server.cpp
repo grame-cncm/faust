@@ -15,20 +15,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <openssl/sha.h>
 
 #ifdef __APPLE__
 #include <dns_sd.h>
 #endif
 
-#define JACK 1
+//#define JACK 1
 #define COREAUDIO 1
 //#define PORTAUDIO 1
+//#define IOSAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 
 #ifdef COREAUDIO
 #include "faust/audio/coreaudio-dsp.h"
+#endif
+
+#ifdef IOSAUDIO
+#include "faust/audio/coreaudio-ios-dsp.h"
 #endif
 
 #ifdef PORTAUDIO
@@ -190,6 +194,38 @@ bool coreaudio_dsp::init(int sr, int bs)
     
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("coreaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
+#ifdef IOSAUDIO
+class iosaudio_dsp : public audio_dsp {
+
+    public:
+     
+        iosaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
+        {}
+        
+        virtual ~iosaudio_dsp() {}
+        
+        bool init(int sr, int bs);
+        
+        bool isActive() { return true; }
+        
+};
+
+bool iosaudio_dsp::init(int sr, int bs)
+{
+    fAudio = new iosaudio(sr, bs);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("iosaudio_dsp : init audio failed\n");
         return false;
     } else {
         return true;
@@ -701,6 +737,20 @@ bool DSPServer::createInstance(connection_info* con_info)
             } else if (con_info->fAudioType == "kLocalAudio") {
             #ifdef COREAUDIO
                 audio = new coreaudio_dsp(factory, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey,
+                                        fCreateDSPInstanceCb, 
+                                        fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, 
+                                        fDeleteDSPInstanceCb_arg);
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                    fRunningDsp.push_back(audio);
+                } else {
+                    delete audio;
+                }
+            #endif
+            #ifdef IOSAUDIO
+                audio = new iosaudio_dsp(factory, 
                                         fFactories[con_info->fFactoryKey].first, 
                                         con_info->fInstanceKey,
                                         fCreateDSPInstanceCb, 
