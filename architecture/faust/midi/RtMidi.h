@@ -50,6 +50,18 @@
 #include <string>
 #include <vector>
 
+#if __APPLE__
+#define __MACOSX_CORE__ 1
+#endif
+
+#if __linux__
+#define __LINUX_ALSA__ 1
+#endif
+
+#if _WIN32
+#define __WINDOWS_MM__ 1
+#endif
+
 /************************************************************************/
 /*! \class RtMidiError
     \brief Exception handling class for RtMidi.

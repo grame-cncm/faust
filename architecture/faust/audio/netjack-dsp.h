@@ -147,12 +147,6 @@ class netjackaudio : public audio
             return true;
         }
     
-        void set_dsp(dsp* DSP) 
-        {
-            fDsp = DSP;
-            fDsp->init(fResult.sample_rate);
-        }
-        
         // Possibly to be redefined by subclasses
         
         virtual int restart_cb()
@@ -220,6 +214,12 @@ class netjackaudio : public audio
         virtual bool is_connexion_active()
         {
             return jack_net_slave_is_active(fNet);
+        }
+
+        void set_dsp(dsp* DSP) 
+        {
+            fDsp = DSP;
+            fDsp->init(fResult.sample_rate);
         }
         
         virtual int get_buffer_size() { return fResult.buffer_size; }
@@ -332,7 +332,6 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI {
         }
     
 };
-
 
 #endif
 

@@ -37,6 +37,8 @@ for p in $@; do
 		KEYBOARD=1
 	elif [ $p = "-debug" ]; then
 		LOG="/dev/stdout"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
 	elif [ $p = "-h" ]; then
 		echo "Usage: faust2android faustFile.dsp"
 		echo "OPTIONS:"
@@ -55,7 +57,7 @@ done
 # only carry out the faust compilation 
 if [ $FAUST -eq 1 ]; then
 	for f in $FILES; do
-		faust -i -a android.cpp "$f" -o "app/src/main/jni/dsp_faust.cpp"
+		faust -i -a android.cpp $OPTIONS "$f" -o "app/src/main/jni/dsp_faust.cpp"
 	done
 	exit 1
 fi
@@ -69,7 +71,7 @@ JNIFOLDER="$APPFOLDER/jni"
 
 # Faust compilation (for now only one file should be specified)
 for f in $FILES; do
-	faust -i -a android.cpp "$f" -o "$JNIFOLDER/dsp_faust.cpp"
+	faust -i -a android.cpp $OPTIONS "$f" -o "$JNIFOLDER/dsp_faust.cpp"
 done
 
 APPNAME=$(basename "$f")

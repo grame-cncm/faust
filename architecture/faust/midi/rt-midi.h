@@ -48,7 +48,8 @@ class rtmidi : public midi {
   
         RtMidiIn* fInput;
         RtMidiOut* fOutput;
-        vector<midi*> fMidiInputs;
+        std::vector<midi*> fMidiInputs;
+        std::string fName;
         
         static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
         {
@@ -62,7 +63,7 @@ class rtmidi : public midi {
              
                 int data1 = (int)message->at(1);
                 if (cmd == 12) {
-                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->progChange(channel, data1);
                     }
                 }
@@ -74,32 +75,32 @@ class rtmidi : public midi {
                 if (channel == 9) {
                     return;
                 } else if (cmd == 8 || ((cmd == 9) && (data2 == 0))) { 
-                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
-                         midi->fMidiInputs[i]->keyOff(channel, data1, data2);
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->keyOff(channel, data1, data2);
                     }
                 } else if (cmd == 9) {
-                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyOn(channel, data1, data2);
                     }
                 } else if (cmd == 11) {
-                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->ctrlChange(channel, data1, data2);
                     }
                 } else if (cmd == 14) {
-                    for (int  i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
                     }
                 }
                 
             } else {
-                 cout << "long message : " << nBytes << endl;
+                 std::cout << "long message : " << nBytes << endl;
             }
         }
         
-        bool chooseMidiInputPort()
+        bool chooseMidiInputPort(const std::string& name)
         {
             // opens a virtual port when available on API
-            fInput->openVirtualPort();
+            fInput->openVirtualPort(name);
             
             /*
             unsigned int i = 0, nPorts = fInput->getPortCount();
@@ -118,10 +119,10 @@ class rtmidi : public midi {
             return true;
         }
         
-        bool chooseMidiOutPort()
+        bool chooseMidiOutPort(const std::string& name)
         {
             // opens a virtual port when available on API
-            fOutput->openVirtualPort();
+            fOutput->openVirtualPort(name);
         
             /*
             unsigned int i = 0, nPorts = fOutput->getPortCount();
@@ -142,11 +143,13 @@ class rtmidi : public midi {
     
     public:
     
-        rtmidi():fInput(0), fOutput(0)
+        rtmidi(const std::string& name = "RtMidi"):fInput(0), fOutput(0), fName(name)
         {}
         
         virtual ~rtmidi()
-        {}
+        {
+            stop();
+        }
         
         void addMidiIn(midi* dsp) { fMidiInputs.push_back(dsp); }
         
@@ -155,11 +158,11 @@ class rtmidi : public midi {
             try {
             
                 fInput = new RtMidiIn();
-                if (!chooseMidiInputPort()) goto cleanup;
+                if (!chooseMidiInputPort(fName)) goto cleanup;
                 fInput->setCallback(&midiCallback, this);
                 
                 fOutput = new RtMidiOut();
-                if (!chooseMidiOutPort()) goto cleanup; 
+                if (!chooseMidiOutPort(fName)) goto cleanup; 
                 
                 return true;
                 
