@@ -59,13 +59,17 @@ class remote_dsp_factory {
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
  * if already allocated in the factories cache.
  *
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of compilation parameters :
+ *  - '-m <target>' (like '-m x86_64-apple-macosx10.6.0') to cross-compile on server side 
+ * and get compiled machine code from server side 
  * @param ip_server - IP of remote machine
- * @param port_server - Port on which the Remote Server started
+ * @param port_server - port on which the Remote Server started
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& ip_server, int port_server, const std::string& sha_key);    
+remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* argv[], const std::string& ip_server, int port_server, const std::string& sha_key);    
 
 /**
  * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
@@ -74,7 +78,7 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& ip_server, 
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters :
  *  - Faust compile parameters (like -vec/-sch/...)
- *  - 'machine <target>' (like '-machine x86_64-apple-macosx10.6.0') to cross-compile on client side 
+ *  - '-m <target>' (like '-m x86_64-apple-macosx10.6.0') to cross-compile on client side 
  * and send compiled machine code on server side 
  * @param ip_server - IP of remote machine
  * @param port_server - Port on which the Remote Server started

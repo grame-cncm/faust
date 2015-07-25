@@ -125,11 +125,11 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
     
     // Compile locally and send machine code on server side...
-    if (isopt(argc, argv, "-machine")) {
+    if (isopt(argc, argv, "-m")) {
         string error;
         llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, 
                                                             argc, argv, 
-                                                            loptions(argv,"-machine", ""), 
+                                                            loptions(argv,"-m", ""), 
                                                             error, 3);
         if (factory) {
             // Transforming machine code to URL format
@@ -362,7 +362,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui)
             fOutControl[counterOut] = init;
             isOutItem = true;
             
-            for(it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++){
+            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++){
                 ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
             }
         }
@@ -709,7 +709,7 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 
 // FACTORIES
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key)
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* argv[], const string& ip_server, int port_server, const string& sha_key)
 {
     FactoryTableDSPIt it;
     

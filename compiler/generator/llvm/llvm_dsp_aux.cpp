@@ -584,6 +584,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     // For multiple target support
     InitializeAllTargets();
     InitializeAllTargetMCs();
+    InitializeAllAsmPrinters()
+    InitializeAllAsmParsers();
       
     // For host target support
     InitializeNativeTarget();

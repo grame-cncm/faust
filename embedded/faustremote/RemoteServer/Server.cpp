@@ -408,7 +408,7 @@ bool connection_info::createFactory(FactoryTable factories, DSPServer* server)
         argv[i] = (fCompilationOptions[i]).c_str();
     }
     
-    if (isopt(argc, argv, "-machine")) {
+    if (isopt(argc, argv, "-m")) {
         // Machine code
         fFactory = readDSPFactoryFromMachine(fFaustCode);
     } else {

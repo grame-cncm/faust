@@ -616,6 +616,10 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-inpl", "--in-place")) {
              gGlobal->gInPlace = true;
              i += 1;
+             
+        } else if (isCmd(argv[i], "-m", "--machine")) {
+             // Ignore arg
+             i += 2;
 
         } else if (argv[i][0] != '-') {
             const char* url = argv[i];

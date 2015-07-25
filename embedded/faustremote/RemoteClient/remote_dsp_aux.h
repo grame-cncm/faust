@@ -273,7 +273,7 @@ class EXPORT remote_audio {
 
 // Factories
     
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key);  
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* argv[], const string& ip_server, int port_server, const string& sha_key);  
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 
