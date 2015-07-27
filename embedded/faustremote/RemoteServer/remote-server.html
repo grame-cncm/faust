@@ -1,0 +1,539 @@
+<!DOCTYPE html PUBLIC>
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <style type="text/css">
+    body {
+        background-color: #000000;
+    }
+
+    /* WEBKIT */
+    text {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .faust-group-label {
+        font-family: Arial, Verdana, Helvetica, sans;
+        font-size: 13px;
+        fill: rgba(199,190,162,0.6);
+    }
+
+    .faust-tooltip-text {
+        font-family: Arial, Verdana, Helvetica, sans;
+        font-size: 13px;
+    }
+
+    .faust-button-label {
+        font-family: Arial, Verdana, Helvetica, sans;
+        font-size: 13px;
+        fill: rgba(0,182,253,0.6);
+    }
+
+    .faust-tgroup-label {
+        font-family: Arial, Verdana, Helvetica, sans;
+        font-size: 13px;
+        fill: rgba(0,182,253,0.6);
+    }
+
+    .faust-label {
+        font-family: Arial, Verdana, Helvetica, sans;
+        font-size: 13px;
+        fill: rgba(0,182,253,0.6);
+    }
+
+    .faust-value-text {
+        font-family: Arial, Verdana, Helvetica, sans;
+        font-size: 11px;
+        font-weight: bold;
+        fill: rgb(82,79,79);
+    }
+
+    path {
+      -webkit-user-select: none;
+    }
+
+    rect {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    }
+
+    circle {
+      -webkit-user-select: none;
+    }
+
+    text:hover {
+      cursor: default;
+    }
+
+    path.faust-vbox {
+      fill : white;
+      stroke : black;
+    }
+
+    path.faust-rbutton-groove {
+      fill : rgb(152,251,152);
+      stroke : black;
+    }
+
+    path.faust-rbutton-handle {
+      fill : grey;
+      stroke : black;
+    }
+
+    rect.faust-hslider-meter {
+      fill : url(#horizontalSliderMeterGradient);
+     }
+
+    rect.faust-hslider-groove {
+      fill : rgba(28,126,192,0.65);
+      stroke : rgba(0,182,253,0.9);
+    }
+
+    rect.faust-hslider-handle {
+      fill : url(#horizontalSliderHandleGradient);
+      stroke : black;
+    }
+
+    rect.faust-vslider-meter {
+      fill : url(#verticalSliderMeterGradient);
+    }
+
+    rect.faust-vslider-groove {
+      fill : rgba(28,126,192, 0.65);
+      stroke : rgba(0,182,253,0.9);
+    }
+
+    rect.faust-vslider-handle {
+      fill : url(#verticalSliderHandleGradient);
+      stroke : black;
+    }
+
+    rect.faust-hbargraph-curtain {
+      fill : rgb(20,20,20);
+      stroke : black;
+    }
+
+    // hbargraph meters cannot be defined via CSS because their widths and
+    // heights are dynamic
+
+    rect.faust-hbargraph-meter {
+      fill : url(#horizontalBarGraphMeterGradient);
+      stroke : black;
+    }
+
+    rect.faust-vbargraph-curtain {
+      fill : rgb(20,20,20);
+      stroke : black;
+    }
+
+    rect.faust-vbargraph-meter {
+      fill : url(#verticalBarGraphMeterGradient);
+      stroke : black;
+    }
+
+    rect.faust-checkbox-box {
+      fill : white;
+      stroke : black;
+    }
+
+    path.faust-checkbox-check {
+      fill : black;
+      stroke : black;
+    }
+
+    rect.faust-nentry-box {
+      fill : url(#numericalEntryUpGradient);
+      stroke : black;
+    }
+
+    path.faust-nentry-operation {
+      stroke : black;
+    }
+
+    rect.faust-button-box {
+      fill : url(#buttonUpGradient);
+      stroke : black;
+    }
+
+    rect.faust-tgroup-box {
+      fill : url(#tabGroupUpGradient);
+      stroke : black;
+    }
+
+    circle.faust-rbutton-groove {
+      fill : url(#rotatingButtonHandleGradient);
+    }
+
+    circle.faust-rbutton-dot {
+      fill : pink;
+      stroke : black;
+    }
+
+    path.faust-rbutton-meter {
+      fill : rgb(50,50,50);
+    }
+
+    path.faust-rbutton-mgroove {
+      fill : url(#rotatingButtonMeterGradient);
+    }
+
+    // as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
+
+    path.faust-hslider-groove {
+      fill : red;
+      stroke : black;
+    }
+
+    path.faust-hslider-handle {
+      fill : url(#horizontalSliderHandleGradient);
+      stroke : black;
+    }
+
+    path.faust-vslider-groove {
+      fill : red;
+      stroke : black;
+    }
+
+    path.faust-vslider-handle {
+      fill : url(#verticalSliderHandleGradient);
+      stroke : black;
+    }
+
+    path.faust-hbargraph-curtain {
+      fill : rgb(0,255,255);
+      stroke : black;
+    }
+
+    path.faust-hbargraph-meter {
+      fill : grey;
+      stroke : black;
+    }
+
+    path.faust-vbargraph-curtain {
+      fill : rgb(0,255,255);
+      stroke : black;
+    }
+
+    path.faust-vbargraph-meter {
+      fill : grey;
+      stroke : black;
+    }
+
+    path.faust-checkbox-box {
+      fill : white;
+      stroke : black;
+    }
+
+    path.faust-nentry-box {
+      fill : url(#numericalEntryUpGradient);
+      stroke : black;
+    }
+
+    path.faust-button-box {
+      fill : #B0B0B0;
+      stroke : black;
+    }
+    
+    #filedrag{
+        font-weight: bold;
+        text-align: center;
+        padding: 1em 0;
+        margin: 1em 0;
+        color: #CECECE;
+        border: 8px dashed #CECECE;
+        border-radius: 7px;
+        cursor: default;
+        font-size : 20px;
+    }
+
+    #filedrag.hover{
+        color: #FF7F00;
+        border-color: #FF7F00;
+        border-style: solid;
+    }
+    </style>
+
+</head>
+<body bgcolor= "#000000">
+<div id="filedrag">
+    Remote DSP processing : drop your .dsp file here
+</div>
+
+<form id="upload" action="CompilerResponse" method="POST" enctype="multipart/form-data">
+<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="50000000" />
+</form>
+
+<script type="text/javascript">
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+/*  SHA-1 implementation in JavaScript | (c) Chris Veness 2002-2013 | www.movable-type.co.uk      */
+/*   - see http://csrc.nist.gov/groups/ST/toolkit/secure_hashing.html                             */
+/*         http://csrc.nist.gov/groups/ST/toolkit/examples.html                                   */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+var Sha1 = {};  // Sha1 namespace
+
+/**
+ * Generates SHA-1 hash of string
+ *
+ * @param {String} msg                String to be hashed
+ * @param {Boolean} [utf8encode=true] Encode msg as UTF-8 before generating hash
+ * @returns {String}                  Hash of msg as hex character string
+ */
+Sha1.hash = function(msg, utf8encode) {
+    utf8encode =  (typeof utf8encode == 'undefined') ? true : utf8encode;
+    
+    // convert string to UTF-8, as SHA only deals with byte-streams
+    if (utf8encode) msg = Utf8.encode(msg);
+    
+    // constants [§4.2.1]
+    var K = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6];
+    
+    // PREPROCESSING 
+    
+    msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
+    
+    // convert string msg into 512-bit/16-integer blocks arrays of ints [§5.2.1]
+    var l = msg.length/4 + 2;  // length (in 32-bit integers) of msg + ‘1’ + appended length
+    var N = Math.ceil(l/16);   // number of 16-integer-blocks required to hold 'l' ints
+    var M = new Array(N);
+    
+    for (var i=0; i<N; i++) {
+        M[i] = new Array(16);
+        for (var j=0; j<16; j++) {  // encode 4 chars per integer, big-endian encoding
+            M[i][j] = (msg.charCodeAt(i*64+j*4)<<24) | (msg.charCodeAt(i*64+j*4+1)<<16) | 
+            (msg.charCodeAt(i*64+j*4+2)<<8) | (msg.charCodeAt(i*64+j*4+3));
+        } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
+    }
+    // add length (in bits) into final pair of 32-bit integers (big-endian) [§5.1.1]
+    // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
+    // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
+    M[N-1][14] = ((msg.length-1)*8) / Math.pow(2, 32); M[N-1][14] = Math.floor(M[N-1][14])
+    M[N-1][15] = ((msg.length-1)*8) & 0xffffffff;
+    
+    // set initial hash value [§5.3.1]
+    var H0 = 0x67452301;
+    var H1 = 0xefcdab89;
+    var H2 = 0x98badcfe;
+    var H3 = 0x10325476;
+    var H4 = 0xc3d2e1f0;
+    
+    // HASH COMPUTATION [§6.1.2]
+    
+    var W = new Array(80); var a, b, c, d, e;
+    for (var i=0; i<N; i++) {
+        
+        // 1 - prepare message schedule 'W'
+        for (var t=0;  t<16; t++) W[t] = M[i][t];
+        for (var t=16; t<80; t++) W[t] = Sha1.ROTL(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16], 1);
+        
+        // 2 - initialise five working variables a, b, c, d, e with previous hash value
+        a = H0; b = H1; c = H2; d = H3; e = H4;
+        
+        // 3 - main loop
+        for (var t=0; t<80; t++) {
+            var s = Math.floor(t/20); // seq for blocks of 'f' functions and 'K' constants
+            var T = (Sha1.ROTL(a,5) + Sha1.f(s,b,c,d) + e + K[s] + W[t]) & 0xffffffff;
+            e = d;
+            d = c;
+            c = Sha1.ROTL(b, 30);
+            b = a;
+            a = T;
+        }
+        
+        // 4 - compute the new intermediate hash value
+        H0 = (H0+a) & 0xffffffff;  // note 'addition modulo 2^32'
+        H1 = (H1+b) & 0xffffffff; 
+        H2 = (H2+c) & 0xffffffff; 
+        H3 = (H3+d) & 0xffffffff; 
+        H4 = (H4+e) & 0xffffffff;
+    }
+    
+    return Sha1.toHexStr(H0) + Sha1.toHexStr(H1) + 
+    Sha1.toHexStr(H2) + Sha1.toHexStr(H3) + Sha1.toHexStr(H4);
+}
+
+//
+// function 'f' [§4.1.1]
+//
+Sha1.f = function(s, x, y, z)  {
+    switch (s) {
+        case 0: return (x & y) ^ (~x & z);           // Ch()
+        case 1: return x ^ y ^ z;                    // Parity()
+        case 2: return (x & y) ^ (x & z) ^ (y & z);  // Maj()
+        case 3: return x ^ y ^ z;                    // Parity()
+    }
+}
+
+//
+// rotate left (circular left shift) value x by n positions [§3.2.5]
+//
+Sha1.ROTL = function(x, n) {
+    return (x<<n) | (x>>>(32-n));
+}
+
+//
+// hexadecimal representation of a number 
+//   (note toString(16) is implementation-dependant, and  
+//   in IE returns signed numbers when used on full words)
+//
+Sha1.toHexStr = function(n) {
+    var s="", v;
+    for (var i=7; i>=0; i--) { v = (n>>>(i*4)) & 0xf; s += v.toString(16); }
+    return s;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+/*  Utf8 class: encode / decode between multi-byte Unicode characters and UTF-8 multiple          */
+/*              single-byte character encoding (c) Chris Veness 2002-2013                         */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+var Utf8 = {};  // Utf8 namespace
+
+/**
+ * Encode multi-byte Unicode string into utf-8 multiple single-byte characters 
+ * (BMP / basic multilingual plane only)
+ *
+ * Chars in range U+0080 - U+07FF are encoded in 2 chars, U+0800 - U+FFFF in 3 chars
+ *
+ * @param {String} strUni Unicode string to be encoded as UTF-8
+ * @returns {String} encoded string
+ */
+Utf8.encode = function(strUni) {
+    // use regular expressions & String.replace callback function for better efficiency 
+    // than procedural approaches
+    var strUtf = strUni.replace(
+                                /[\u0080-\u07ff]/g,  // U+0080 - U+07FF => 2 bytes 110yyyyy, 10zzzzzz
+                                function(c) { 
+                                var cc = c.charCodeAt(0);
+                                return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f); }
+                                );
+    strUtf = strUtf.replace(
+                            /[\u0800-\uffff]/g,  // U+0800 - U+FFFF => 3 bytes 1110xxxx, 10yyyyyy, 10zzzzzz
+                            function(c) { 
+                            var cc = c.charCodeAt(0); 
+                            return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f); }
+                            );
+    return strUtf;
+}
+
+/**
+ * Decode utf-8 encoded string back into multi-byte Unicode characters
+ *
+ * @param {String} strUtf UTF-8 string to be decoded back to Unicode
+ * @returns {String} decoded string
+ */
+Utf8.decode = function(strUtf) {
+    // note: decode 3-byte chars first as decoded 2-byte strings could appear to be 3-byte char!
+    var strUni = strUtf.replace(
+                                /[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g,  // 3-byte chars
+                                function(c) {  // (note parentheses for precence)
+                                var cc = ((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | ( c.charCodeAt(2)&0x3f); 
+                                return String.fromCharCode(cc); }
+                                );
+    strUni = strUni.replace(
+                            /[\u00c0-\u00df][\u0080-\u00bf]/g,                 // 2-byte chars
+                            function(c) {  // (note parentheses for precence)
+                            var cc = (c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f;
+                            return String.fromCharCode(cc); }
+                            );
+    return strUni;
+}
+
+// Faust part
+var dsp_code = null;
+var exportfilename = null;
+
+function FileDragHover(e) 
+{
+    e.stopPropagation();
+    e.preventDefault();
+    e.target.className = (e.type == "dragover" ? "hover" : "");
+}
+
+function FileSelectHandler(e) 
+{
+    FileDragHover(e);
+    var files = e.target.files || e.dataTransfer.files;
+    f = files[0];
+    UploadFile(f);
+}
+
+function UploadFile(e) 
+{
+    FileDragHover(e);
+    var files = e.target.files || e.dataTransfer.files;
+    var file = files[0];
+
+    if (location.host.indexOf("sitepointstatic") >= 0) return;
+
+    var request = new XMLHttpRequest();
+    if (request.upload && file.size <= document.getElementById("MAX_FILE_SIZE").value) {
+
+        var reader = new FileReader();
+        var ext = file.name.split('.').pop();
+        exportfilename = file.name.split('.').shift();
+ 
+        if (ext == "dsp") {
+            reader.readAsText(file);  
+        }
+
+        reader.onloadend = function(e) {
+            dsp_code = reader.result;
+            //console.log(dsp_code);         
+            
+            var postRequest = new XMLHttpRequest();
+            var url_target = window.location.href + "GetJson";	
+            var sha_key = Sha1.hash(dsp_code + ":" + window.location.host, true).toUpperCase();
+            var params = "name=FaustDSP" + "&shaKey=" + sha_key + "&dsp_data=" + encodeURIComponent(dsp_code);
+            
+            postRequest.open("POST", url_target, true);
+            postRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            //postRequest.setRequestHeader("Content-length", params.length);
+            //postRequest.setRequestHeader("Connection", "close");
+            
+            postRequest.onreadystatechange = function() {
+                console.log("postRequest.onreadystatechange");
+                if (postRequest.readyState == 4 && postRequest.status == 200) {
+                    //callback(postRequest.responseText);
+                    console.log(postRequest.responseText);    
+                } else if (postRequest.readyState == 4 && postRequest.status == 400) {
+                    //errCallback(postRequest.responseText);
+                    console.log(postRequest.responseText); 
+                }
+            }
+            //console.log(params);  
+            postRequest.send(params);
+        }
+	        
+    }  else {
+        alert("DSP file is too big!");
+    }
+}
+
+function Init() 
+{
+    var filedrag1 = document.getElementById("filedrag");
+    filedrag1.addEventListener("dragover", FileDragHover, false);
+    filedrag1.addEventListener("dragleave", FileDragHover, false);
+    filedrag1.addEventListener("drop", UploadFile, false);
+}
+
+if (window.File && window.FileList && window.FileReader) {
+    Init();
+}
+
+</script>
+
+</body>
+</html>

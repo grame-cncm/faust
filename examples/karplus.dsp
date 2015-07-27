@@ -26,7 +26,7 @@ size 		= hslider("excitation [unit:f]", 128, 2, 512, 1);
 // resonator
 //-----------------
 
-dur 		= hslider("duration [unit:f]", 128, 2, 512, 1);
+dur 		= hslider("duration [unit:f] [midi: ctrl 7]", 128, 2, 512, 1);
 att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
 average(x)	= (x+x')/2;
 

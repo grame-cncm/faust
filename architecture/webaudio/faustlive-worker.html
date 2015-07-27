@@ -5,7 +5,7 @@
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-  <style type="text/css">
+ <style type="text/css">
     body {
         background-color: #000000;
     }
@@ -93,49 +93,35 @@
 
     rect.faust-hslider-meter {
       fill : url(#horizontalSliderMeterGradient);
-      width : 175;
-      height : 40;
-    }
+     }
 
     rect.faust-hslider-groove {
       fill : rgba(28,126,192,0.65);
       stroke : rgba(0,182,253,0.9);
-      width : 175;
-      height : 40;
     }
 
     rect.faust-hslider-handle {
       fill : url(#horizontalSliderHandleGradient);
       stroke : black;
-      width : 30;
-      height : 40;
     }
 
     rect.faust-vslider-meter {
       fill : url(#verticalSliderMeterGradient);
-      height : 175;
-      width : 40;
     }
 
     rect.faust-vslider-groove {
       fill : rgba(28,126,192, 0.65);
       stroke : rgba(0,182,253,0.9);
-      width : 40;
-      height : 175;
     }
 
     rect.faust-vslider-handle {
       fill : url(#verticalSliderHandleGradient);
       stroke : black;
-      width : 40;
-      height : 30;
     }
 
     rect.faust-hbargraph-curtain {
       fill : rgb(20,20,20);
       stroke : black;
-      width : 200;
-      height : 30;
     }
 
     // hbargraph meters cannot be defined via CSS because their widths and
@@ -149,8 +135,6 @@
     rect.faust-vbargraph-curtain {
       fill : rgb(20,20,20);
       stroke : black;
-      width : 30;
-      height : 200;
     }
 
     rect.faust-vbargraph-meter {
@@ -161,8 +145,6 @@
     rect.faust-checkbox-box {
       fill : white;
       stroke : black;
-      width : 19;
-      height : 19;
     }
 
     path.faust-checkbox-check {
@@ -173,8 +155,6 @@
     rect.faust-nentry-box {
       fill : url(#numericalEntryUpGradient);
       stroke : black;
-      width : 60;
-      height : 20;
     }
 
     path.faust-nentry-operation {
@@ -184,8 +164,6 @@
     rect.faust-button-box {
       fill : url(#buttonUpGradient);
       stroke : black;
-      width : 80;
-      height : 40;
     }
 
     rect.faust-tgroup-box {
@@ -487,14 +465,14 @@
                     console.log("Poly DSP");
                     
                     // Create a poly DSP factory from the dsp code    
-                    faust.createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], 16, function(factory) {
+                    faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
                     
                         if (!factory) {
                             alert(faust.getErrorMessage());
                             return;
                         }
                         
-                        DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size);
+                        DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
                         if (DSP.getNumInputs() > 0) {
                             activateAudioInput();
                         }

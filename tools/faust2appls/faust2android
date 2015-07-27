@@ -4,6 +4,7 @@
 #                                                                   #
 #               Compile a Faust program to an android app           #
 #               (c) Romain Michon CCRMA and Grame, 2014             #
+#               (c) Yann Orlarey Grame, 2015             			#
 #                                                                   #
 #####################################################################
 
@@ -13,12 +14,14 @@ LOG="/dev/null"
 # exit if a command fails
 set -e
 
-# Global variables for options
+# Global variables for file and options
+FILE=
 INSTALL=0
 SOURCE=0
 SWIG=0
 FAUST=0
 KEYBOARD=0
+REUSE=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -26,13 +29,15 @@ for p in $@; do
 		SWIG=1
 	fi
 	if [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
+	    FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
 		FAUST=1
+	elif [ $p = "-reuse" ]; then
+		REUSE=1
 	elif [ $p = "-keyboard" ]; then
 		KEYBOARD=1
 	elif [ $p = "-debug" ]; then
@@ -45,6 +50,7 @@ for p in $@; do
 		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
 		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
 		echo "-faust: only carries out the faust compilation and install the generated C++ file in the JNI folder."
+		echo "-reuse: keep build directory and reuse it to speedup compilation."
 		echo "-debug: verbose output."
 		exit 1
 	else
@@ -54,72 +60,75 @@ done
 
 # only carry out the faust compilation 
 if [ $FAUST -eq 1 ]; then
-	for f in $FILES; do
-		faust -i -a android.cpp "$f" -o "app/src/main/jni/dsp_faust.cpp"
-	done
+	faust -i -a android.cpp "$FILE" -o "app/src/main/jni/dsp_faust.cpp"
 	exit 1
 fi
  
-# create the temporary directory where compilation will take place
-TMPFILES=$(mktemp -d faust.XXX)
-cp -r /usr/local/lib/faust/android/*  $TMPFILES
+# Create the temporary directory where compilation will take place
 
-APPFOLDER="$TMPFILES/app/src/main"
+APPNAME=$(basename "$FILE")
+APPNAME="${APPNAME%.dsp}"
+BUILDDIR="faustandro.$APPNAME"
+APPFOLDER="$BUILDDIR/app/src/main"
 JNIFOLDER="$APPFOLDER/jni"
 
-# Faust compilation (for now only one file should be specified)
-for f in $FILES; do
-	faust -i -a android.cpp "$f" -o "$JNIFOLDER/dsp_faust.cpp"
-done
+if [ $REUSE -eq 0 ]; then
+	if [ -d "$BUILDDIR" ]; then
+		echo "Delete existing Android project $BUILDDIR" > $LOG
+		rm -rf "$BUILDDIR"
+	fi
+fi
+		
+if [ ! -d "$BUILDDIR" ]; then
+  	echo "Creating new Android project $BUILDDIR"  > $LOG
+  	
+  	mkdir -p "$BUILDDIR"
+	cp -r /usr/local/lib/faust/android/*  "$BUILDDIR"
+	# Copy include files *.h if any (ignore any error here)
+	(cp *.h $JNIFOLDER 2> $LOG) || true
+	
+	# change 'faust' with real *APPNAME
+	PLATFORM=$(uname)
 
-APPNAME=$(basename "$f")
-APPNAME="${APPNAME%.dsp}"
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
+		sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+	else
+		sed -i 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
+		sed -i 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+	fi
+	
+	mv $APPFOLDER/java/com/faust $APPFOLDER/java/com/$APPNAME
 
-# Copy include files *.h if any (ignore any error here)
-(cp *.h $JNIFOLDER 2> $LOG) || true
-
-#cd $TMPFILES 
-
-#************************************************************************
-# CUSTOMIZING THE APP'S MAIN PACKAGE IN FUNCTION OF THE DSP FILE NAME
-#************************************************************************
-
-PLATFORM=$(uname)
-
-if [ $PLATFORM = "Darwin" ]; then
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $TMPFILES/app/build.gradle
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/grame/faust/*
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
-	sed -i '' 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/res/layout/*
-	sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+	# TODO wrong: should be checked
+	if [ $SWIG -eq 1 ]; then
+		rm -rf $APPFOLDER/java/com/dsp_faust || true
+		mkdir -p $APPFOLDER/java/com/dsp_faust
+		swig -java -package com.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $BUILDDIR/dsp_faust_interface.i
+	fi
 else
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $TMPFILES/app/build.gradle
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/grame/faust/*
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
-	sed -i 's,com.grame.faust,com.grame.'$APPNAME',g' $APPFOLDER/res/layout/*
-	sed -i 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+	echo "Reusing existing Android project $BUILDDIR" > $LOG
 fi
 
-mv $APPFOLDER/java/com/grame/faust $APPFOLDER/java/com/grame/$APPNAME
 
-# *************
-# COMPILATION
-# *************
+# Compile the Faust code for the NDK
+faust -i -a android.cpp "$FILE" -o "$JNIFOLDER/dsp_faust.cpp"
 
-# TODO wrong: should be checked
-if [ $SWIG -eq 1 ]; then
-	rm -rf $APPFOLDER/java/com/grame/dsp_faust || true
-	mkdir -p $APPFOLDER/java/com/grame/dsp_faust
-	swig -java -package com.grame.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/grame/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $TMPFILES/dsp_faust_interface.i
-fi
 
-cd $TMPFILES
+# Run Gradle
+cd $BUILDDIR
 ./gradlew assembleRelease > $LOG
 cd ..
 
-cp -r $TMPFILES/app/build/outputs/apk/app-release.apk $APPNAME.apk
+cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk
 
 # ****************
 # TREAT OPTIONS
@@ -131,10 +140,13 @@ fi
 
 if [ $SOURCE -eq 1 ]; then
 	rm -rf faustApp
-	mv $TMPFILES faustApp
-	echo "An Android studio project named faustApp was created."
+	mv $BUILDDIR faustApp
+	echo "An Android studio project named faustApp was created." > $LOG
 else
-	rm -rf $TMPFILES
+	if [ $REUSE -eq 0 ]; then
+		echo "Delete Android project $BUILDDIR" > $LOG
+		rm -rf $BUILDDIR
+	fi
 fi
 
 echo "$APPNAME.apk;"

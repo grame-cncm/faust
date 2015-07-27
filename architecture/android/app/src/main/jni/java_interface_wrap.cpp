@@ -218,7 +218,7 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern "C" {
 #endif
 
-SWIGEXPORT void JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_init(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_init(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
   int arg1 ;
   int arg2 ;
   
@@ -230,7 +230,7 @@ SWIGEXPORT void JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_init(JNIEnv *jen
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_start(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_start(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
   
@@ -242,14 +242,14 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_start(JNIEnv *je
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_stop(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_stop(JNIEnv *jenv, jclass jcls) {
   (void)jenv;
   (void)jcls;
   stop();
 }
 
 
-SWIGEXPORT jboolean JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_isRunning(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_isRunning(JNIEnv *jenv, jclass jcls) {
   jboolean jresult = 0 ;
   bool result;
   
@@ -261,7 +261,7 @@ SWIGEXPORT jboolean JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_isRunning(JN
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_keyOn(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_keyOn(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
   jint jresult = 0 ;
   int arg1 ;
   int arg2 ;
@@ -277,7 +277,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_keyOn(JNIEnv *je
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_keyOff(JNIEnv *jenv, jclass jcls, jint jarg1) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_keyOff(JNIEnv *jenv, jclass jcls, jint jarg1) {
   jint jresult = 0 ;
   int arg1 ;
   int result;
@@ -291,7 +291,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_keyOff(JNIEnv *j
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_pitchBend(JNIEnv *jenv, jclass jcls, jint jarg1, jfloat jarg2) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_pitchBend(JNIEnv *jenv, jclass jcls, jint jarg1, jfloat jarg2) {
   jint jresult = 0 ;
   int arg1 ;
   float arg2 ;
@@ -307,7 +307,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_pitchBend(JNIEnv
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getJSON(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getJSON(JNIEnv *jenv, jclass jcls) {
   jstring jresult = 0 ;
   char *result = 0 ;
   
@@ -319,7 +319,7 @@ SWIGEXPORT jstring JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getJSON(JNIEn
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getParamsCount(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamsCount(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
   
@@ -331,7 +331,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getParamsCount(J
 }
 
 
-SWIGEXPORT jfloat JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getParam(JNIEnv *jenv, jclass jcls, jstring jarg1) {
+SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParam(JNIEnv *jenv, jclass jcls, jstring jarg1) {
   jfloat jresult = 0 ;
   char *arg1 = (char *) 0 ;
   float result;
@@ -350,7 +350,7 @@ SWIGEXPORT jfloat JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getParam(JNIEn
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_setParam(JNIEnv *jenv, jclass jcls, jstring jarg1, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setParam(JNIEnv *jenv, jclass jcls, jstring jarg1, jfloat jarg2) {
   char *arg1 = (char *) 0 ;
   float arg2 ;
   
@@ -367,7 +367,7 @@ SWIGEXPORT void JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_setParam(JNIEnv 
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_setVoiceParam(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jfloat jarg3) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceParam(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jfloat jarg3) {
   jint jresult = 0 ;
   char *arg1 = (char *) 0 ;
   int arg2 ;
@@ -390,7 +390,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_setVoiceParam(JN
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_setVoiceGain(JNIEnv *jenv, jclass jcls, jint jarg1, jfloat jarg2) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceGain(JNIEnv *jenv, jclass jcls, jint jarg1, jfloat jarg2) {
   jint jresult = 0 ;
   int arg1 ;
   float arg2 ;
@@ -406,7 +406,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_setVoiceGain(JNI
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_grame_dsp_1faust_dsp_1faustJNI_getParamAddress(JNIEnv *jenv, jclass jcls, jint jarg1) {
+SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamAddress(JNIEnv *jenv, jclass jcls, jint jarg1) {
   jstring jresult = 0 ;
   int arg1 ;
   char *result = 0 ;

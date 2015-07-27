@@ -16,16 +16,15 @@
 #include <list>
 #include <map>
 #include <vector>
-#include <microhttpd.h>
+#include "microhttpd.h"
+#include <netdb.h>
+#include <arpa/inet.h>
 
-#ifdef __APPLE__
-#include <dns_sd.h>
-#endif
-
-#include "faust/audio/netjack-dsp.h"
-#include "llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "utilities.h"
 #include "TMutex.h"
+
+#include "faust/audio/audio.h"
 
 #define POSTBUFFERSIZE 512
 #define GET 0
@@ -37,176 +36,224 @@
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
 
-class DSPServer;
-
 using namespace std;
 
-class netjackaudio_server : public netjackaudio_midicontrol {  
+typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
 
-    private:
+// Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
-        int fNumberRestartAttempts;
+class audio_dsp {
 
+     protected:
+     
+        string fInstanceKey;
+        string fName;
+        
+        llvm_dsp* fDSP; // DSP Instance 
+        audio* fAudio;
+        
+        createInstanceDSPCallback fCreateDSPInstanceCb;
+        void* fCreateDSPInstanceCb_arg;
+   
+        deleteInstanceDSPCallback fDeleteDSPInstanceCb;
+        void* fDeleteDSPInstanceCb_arg;
+  
     public:
     
-        netjackaudio_server(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
+        audio_dsp(llvm_dsp_factory* factory, const string& name, const string& key, 
+            createInstanceDSPCallback cb1, void* cb1_arg,
+            deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :fName(name), fInstanceKey(key), fAudio(NULL), 
+            fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
+            fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
         {
-            fNumberRestartAttempts = 0;
-        }
-        
-        void error_cb(int error_code)
-        {
-            switch (error_code) {
+            if (!(fDSP = createDSPInstance(factory))) {
+                throw -1;
+            }
             
-                case SOCKET_ERROR:
-                    printf("NetJack : SOCKET_ERROR\n");
-                    break;
-                    
-                case SYNC_PACKET_ERROR:
-                    printf("NetJack : SYNC_PACKET_ERROR\n");
-                    break;
-
-                 case DATA_PACKET_ERROR:
-                    printf("NetJack : DATA_PACKET_ERROR\n");
-                    break;
+            if (fCreateDSPInstanceCb) {
+                fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
             }
         }
-    
-        /*
-        virtual int restart_cb()
-        {
-            printf("NetJack : restart_cb\n");
-            return 0;
+         
+        virtual ~audio_dsp()
+        {   
+            if (fDeleteDSPInstanceCb) {
+                fDeleteDSPInstanceCb(fDSP, fDeleteDSPInstanceCb_arg);
+            }
+            
+            delete fAudio;
+            deleteDSPInstance(fDSP);
         }
-        */
-
+        
+        virtual bool start()
+        {
+            return fAudio->start();
+        }
+        void stop()
+        {
+            fAudio->stop();
+        }
+       
+        virtual bool init(int sr, int bs) = 0;
+        virtual bool isActive() = 0;
+        
+        string  getKey() { return fInstanceKey; }
+        void    setKey(const string& key) { fInstanceKey = key; }
+        string  getName() { return fName; }
+        void    setName(string name) { fName = name; }
+         
 };
 
 // Structure handled by libmicrohttp related to a connection
 
-struct connection_info_struct {
+enum {
+    ERROR_FACTORY_NOTFOUND,
+    ERROR_INSTANCE_NOTCREATED,
+    ERROR_INSTANCE_NOTFOUND
+};
+
+typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
+
+class DSPServer;
+
+struct connection_info {
     
-    int                 fConnectiontype;    // GET or POST
+    int fAnswercode;    // internally used by libmicrohttpd to see where things went wrong or right
     
-    MHD_PostProcessor*  fPostprocessor;     // the POST processor used internally by microhttpd
-    int                 fAnswercode;        // used internally by microhttpd to see where things went wrong or right
+    string fAnswer;     // the answer sent to the user after upload
     
-    std::string         fAnswerstring;      // the answer sent to the user after upload
+    string fAudioType;   // type of audio driver
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
-    string              fNameApp;
-    string              fFaustCode;
-    string              fFactoryKey;
-    vector<string>      fCompilationOptions;
-    string              fOptLevel;
+    string fNameApp;
+    string fFaustCode;
+    string fFactoryKey;
+    vector<string> fCompilationOptions;
+    string fOptLevel;
+    llvm_dsp_factory* fFactory;
     
-    llvm_dsp_factory*   fLLVMFactory;
-    //---------------------------------------------
+    //------DATAS RECEIVED TO CREATE NEW NetJack DSP INSTANCE-------
+    string fIP;
+    string fPort;
+    string fCompression;
+    string fMTU;
+    string fLatency;
+    string fSHAKey;
+    string fInstanceKey;
     
-    //------DATAS RECEIVED TO CREATE NEW DSP INSTANCE-------
-    string              fIP;
-    string              fPort;
-    string              fCompression;
-    string              fMTU;
-    string              fLatency;
-    string              fSHAKey;
-    string              fInstanceKey;
-    //--------------------------------------------- 
+    //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
+    string fSampleRate;
+    string fBufferSize;
     
-    connection_info_struct();
-    ~connection_info_struct();
+    connection_info();
+    virtual ~connection_info() {}
+    
+    string getJson();
+    bool getJsonFromKey(FactoryTable factories);
+    
+    int iteratePost(const char* key, const char* data, size_t size); 
+    
+    bool createFactory(FactoryTable factories, DSPServer* server);
+    
+    virtual int postProcess(const char* upload_data, size_t* upload_data_size)
+    {
+        return MHD_NO;
+    }
     
 };
-    
-#include <netdb.h>
-#include <arpa/inet.h>
 
-// Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
+struct connection_info_post : public connection_info {
 
-struct netjack_dsp {
-    
-    string          fInstanceKey;
-    string          fName;
-    
-    // NETJACK PARAMETERS
-    string          fIP;
-    string          fPort;
-    string          fCompression;
-    string          fMTU;
-    string          fLatency;
-    
-    netjackaudio_server*   fAudio; //NETJACK SLAVE 
-    llvm_dsp*              fDSP;   //Real DSP Instance 
-    
-    //To be sure not access the same resources at the same time, the mutex of the server has to be accessible here
-    //So that the server himself is kept
-    DSPServer*      fDSPServer;
-    
-    netjack_dsp(llvm_dsp_factory* smartFactory, 
-            const string& compression, 
-            const string& ip, const string& port, 
-            const string& mtu, const string& latency, 
-            DSPServer* server);
-    virtual ~netjack_dsp();
-    
-    bool start();
-    void stop();
-    
-    string  getKey() { return fInstanceKey; }
-    void    setKey(const string& key) { fInstanceKey = key; }
-    string  getName() { return fName; }
-    void    setName(string name) { fName = name; }
-    
-    bool openAudioConnection();
-};
-    
-// Same Prototype LLVM/REMOTE dsp are using for allocation/desallocation
+    MHD_PostProcessor* fPostprocessor;     // the POST processor used internally by libmicrohttpd
+ 
+    connection_info_post(MHD_Connection* connection);
+     
+    virtual ~connection_info_post()
+    {
+        MHD_destroy_post_processor(fPostprocessor);
+    }
+
+    int postProcess(const char* upload_data, size_t* upload_data_size)
+    {
+        MHD_post_process(fPostprocessor, upload_data, *upload_data_size);
+        *upload_data_size = 0;
+        return MHD_YES;
+    }
+}; 
+
+struct connection_info_get : public connection_info  {
+
+    connection_info_get():connection_info()
+    {}
+}; 
+
+// Same prototype LLVM/REMOTE DSP are using for allocation/desallocation
 
 class DSPServer {
-
-    friend struct netjack_dsp;
-        
+    
+    friend struct connection_info_post;
+    friend struct connection_info;
+    
+    createFactoryDSPCallback fCreateDSPFactoryCb;
+    void* fCreateDSPFactoryCb_arg;
+   
+    deleteFactoryDSPCallback fDeleteDSPFactoryCb;
+    void* fDeleteDSPFactoryCb_arg;
+    
+    createInstanceDSPCallback fCreateDSPInstanceCb;
+    void* fCreateDSPInstanceCb_arg;
+   
+    deleteInstanceDSPCallback fDeleteDSPInstanceCb;
+    void* fDeleteDSPInstanceCb_arg;
+    
     private:
 
+        TMutex fLocker;
         pthread_t fThread;
-        TMutex    fLocker;
-        int       fPort;
+        int fPort;
         
         // Factories that can be instanciated. 
         // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
         // SHAKey, pair<NameApp, Factory>
-        map<string, pair<string, llvm_dsp_factory*> > fAvailableFactories;
+        map<string, pair<string, llvm_dsp_factory*> > fFactories;
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
-        list<netjack_dsp*> fRunningDsp;
-        struct MHD_Daemon* fDaemon; //Running http daemon
+        list<audio_dsp*> fRunningDsp;
+        MHD_Daemon* fDaemon;    // Running http daemon
         
-        // Callback of another thread to wait netjack audio connection without blocking the server
-        static void*    openAudioConnection(void*);
+        void open(audio_dsp* dsp);
                 
         // Creates the html to send back
-        int             sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
+        int sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type);
             
-        void            stopNotActiveDSP();
-            
-        connection_info_struct* allocateConnectionStruct(MHD_Connection* connection, const char* method);
-            
-        // Reaction to any kind of connection to the Server
-        static int      answerToConnection(void* cls, MHD_Connection* connection, 
-                                            const char* url, const char* method, 
-                                            const char* version, const char* upload_data, 
-                                            size_t* upload_data_size, void** con_cls);
-            
+        void stopNotActiveDSP();
             
         // Reaction to a GET request
-        int             answerGet(MHD_Connection* connection, const char* url);
+        int answerGet(MHD_Connection* connection, const char* url);
             
         // Reaction to a POST request
-        int             answerPost(MHD_Connection* connection, const char* url, 
+        int answerPost(MHD_Connection* connection, const char* url, 
                                     const char* upload_data, size_t *upload_data_size, 
                                     void** con_cls);
             
+        // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
+        bool createInstance(connection_info* con_info);
+         
+        int createConnection(MHD_Connection* connection, const char* method, void** con_cls);
+        
+        bool start(const string& shakey);
+        bool stop(const string& shakey);
+        
+        // Register Service as available
+        static void* registration(void* arg);
+       
+        // Callback of another thread to wait netjack audio connection without blocking the server
+        static void* open(void* arg);
+   
         // Callback that processes the data send to the server
         static int iteratePost(void* coninfo_cls, MHD_ValueKind kind, const char* key, 
                                 const char* filename, const char* content_type, 
@@ -214,24 +261,13 @@ class DSPServer {
                                 uint64_t off, size_t size);
             
         static void requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
-            
-        // Reaction to a /GetJson request --> Creates llvm_dsp_factory & json interface
-        bool        createFactory(connection_info_struct* con_info);
-        // Reaction to a /GetJsonFromKey --> GetJson form available factory
-        bool        getJsonFromKey(connection_info_struct* con_info);
-            
-        // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
-        bool        createInstance(connection_info_struct* con_info);
         
-        bool        startAudio(const string& shakey);
-        
-        void        stopAudio(const string& shakey);
-        
-        int         createConnection(MHD_Connection* connection, const char* method, void** con_cls);
-        
-        // Register Service as Available
-        static void* registration(void* arg);
-
+        // Reaction to any kind of connection to the Server
+        static int answerToConnection(void* cls, MHD_Connection* connection, 
+                                        const char* url, const char* method, 
+                                        const char* version, const char* upload_data, 
+                                        size_t* upload_data_size, void** con_cls);
+    
     public:
             
         DSPServer(int argc, const char* argv[]);
@@ -240,7 +276,41 @@ class DSPServer {
         // Start server on specified port 
         bool start(int port = 7777);
         void stop();
+        
+        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg)
+        {
+            fCreateDSPFactoryCb = callback;
+            fCreateDSPFactoryCb_arg = callback_arg;
+        }
+        void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg)
+        {
+            fDeleteDSPFactoryCb = callback;
+            fDeleteDSPFactoryCb_arg = callback_arg;
+        }
+        
+        void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg)
+        {
+            fCreateDSPInstanceCb = callback;
+            fCreateDSPInstanceCb_arg = callback_arg;
+        }
+        void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg)
+        {
+            fDeleteDSPInstanceCb = callback;
+            fDeleteDSPInstanceCb_arg = callback_arg;
+        }
+     
+};
+
+// Helper class
+
+struct AudioStarter {
     
+    DSPServer* fServer;
+    audio_dsp* fDSP;
+    
+    AudioStarter(DSPServer* server, audio_dsp* dsp):fServer(server),fDSP(dsp)
+    {}
+  
 };
 
 // Public C++ API
@@ -249,8 +319,15 @@ class EXPORT remote_dsp_server {
     
     public: 
         
-        bool start(int port);
+        bool start(int port = 7777);
         void stop();
+        
+        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
+        void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
+        
+        void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg);
+        void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg);
+      
 };
 
 EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);

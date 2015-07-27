@@ -45,8 +45,6 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp-adapter.h"
 
-static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv);
-
 static bool pa_error(int err)
 {
 	if (err != paNoError) {
@@ -77,15 +75,30 @@ class portaudio : public audio {
         PaStreamParameters fOutputParameters;
         
         //----------------------------------------------------------------------------
-        // 	number of physical input and output channels of the PA device
+        // 	Number of physical input and output channels of the PA device
         //----------------------------------------------------------------------------
         int	fDevNumInChans;
         int	fDevNumOutChans;
         
+        static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv)
+        {
+            portaudio* pa = (portaudio*)drv;
+            return pa->processAudio((float**)ibuf, (float**)obuf, frames);
+        }
+        
+        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
+        {
+            // process samples
+            fDsp->compute(frames, ibuf, obuf);
+            return paContinue;
+        }
+        
     public:
         
-        portaudio(long srate, long bsize) : fDsp(0), fAudioStream(0),
-        fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
+        portaudio(long srate, long bsize) : 
+            fDsp(0), fAudioStream(0),
+            fSampleRate(srate), fBufferSize(bsize), 
+            fDevNumInChans(0), fDevNumOutChans(0) {}
         virtual ~portaudio() 
         {   
             stop(); 
@@ -95,7 +108,7 @@ class portaudio : public audio {
         virtual bool init(const char* name, dsp* DSP)
         {
             if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())) {
-                set_dsp_aux(DSP);
+                set_dsp(DSP);
                 return true;
             } else {
                 return false;
@@ -159,7 +172,7 @@ class portaudio : public audio {
             return true;
         }
         
-        void set_dsp_aux(dsp* DSP) 
+        void set_dsp(dsp* DSP) 
         {
             fDsp = DSP;
             if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {
@@ -195,13 +208,6 @@ class portaudio : public audio {
             }
         }
         
-        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
-        {
-            // process samples
-            fDsp->compute(frames, ibuf, obuf);
-            return paContinue;
-        }
-        
         virtual int get_buffer_size() 
         { 
             return fBufferSize; 
@@ -211,15 +217,16 @@ class portaudio : public audio {
         { 
             return fSampleRate; 
         }
+        
+        virtual int get_num_inputs() 
+        {
+            return fDevNumInChans;
+        }
+        
+        virtual int get_num_outputs() 
+        {
+            return fDevNumOutChans;
+        }
 };
-
-//----------------------------------------------------------------------------
-// Port Audio Callback
-//----------------------------------------------------------------------------
-static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void* drv)
-{
-	portaudio* pa = (portaudio*)drv;
-	return pa->processAudio((float**)ibuf, (float**)obuf, frames);
-}
 
 #endif

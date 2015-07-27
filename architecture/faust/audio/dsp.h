@@ -51,11 +51,14 @@
 class UI;
 
 //----------------------------------------------------------------
-//  signal processor definition
+//  Signal processor definition
 //----------------------------------------------------------------
 
 class dsp {
 
+ protected:
+	int fSamplingFreq;
+    
  public:
 	dsp() {}
 	virtual ~dsp() {}

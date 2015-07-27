@@ -27,56 +27,57 @@ class GUI : public UI
     
 	typedef std::map<FAUSTFLOAT*, clist*> zmap;
 	
- private:
- 	static std::list<GUI*>	fGuiList;
-	zmap                    fZoneMap;
-	bool                    fStopped;
-	
- public:
-		
-    GUI() : fStopped(false) 
-    {	
-		fGuiList.push_back(this);
-	}
-	
-    virtual ~GUI() 
-    {   
-        // delete all 
-        zmap::iterator g;
-        for (g = fZoneMap.begin(); g != fZoneMap.end(); g++) {
-            delete (*g).second;
+    private:
+     
+        static std::list<GUI*>  fGuiList;
+        zmap                    fZoneMap;
+        bool                    fStopped;
+        
+     public:
+            
+        GUI() : fStopped(false) 
+        {	
+            fGuiList.push_back(this);
         }
-        // suppress 'this' in static fGuiList
-        fGuiList.remove(this);
-    }
+        
+        virtual ~GUI() 
+        {   
+            // delete all 
+            zmap::iterator g;
+            for (g = fZoneMap.begin(); g != fZoneMap.end(); g++) {
+                delete (*g).second;
+            }
+            // suppress 'this' in static fGuiList
+            fGuiList.remove(this);
+        }
 
-	// -- registerZone(z,c) : zone management
-	
-	void registerZone(FAUSTFLOAT* z, uiItem* c)
-	{
-  		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
-		fZoneMap[z]->push_back(c);
-	} 	
+        // -- registerZone(z,c) : zone management
+        
+        void registerZone(FAUSTFLOAT* z, uiItem* c)
+        {
+            if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
+            fZoneMap[z]->push_back(c);
+        } 	
 
-	void updateAllZones();
-	
-	void updateZone(FAUSTFLOAT* z);
-	
-	static void updateAllGuis()
-	{
-		std::list<GUI*>::iterator g;
-		for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
-			(*g)->updateAllZones();
-		}
-	}
-    void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data);
-    virtual void show() {};	
-    virtual void run() {};
-	
-	virtual void stop()		{ fStopped = true; }
-	bool stopped() 	{ return fStopped; }
+        void updateAllZones();
+        
+        void updateZone(FAUSTFLOAT* z);
+        
+        static void updateAllGuis()
+        {
+            std::list<GUI*>::iterator g;
+            for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
+                (*g)->updateAllZones();
+            }
+        }
+        void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data);
+        virtual void show() {};	
+        virtual void run() {};
+        
+        virtual void stop()		{ fStopped = true; }
+        bool stopped() 	{ return fStopped; }
 
-    virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
+        virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
 };
 
 /**
@@ -85,33 +86,33 @@ class GUI : public UI
 
 class uiItem
 {
-  protected :
-		  
-	GUI*            fGUI;
-	FAUSTFLOAT*		fZone;
-	FAUSTFLOAT		fCache;
-	
-	uiItem(GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
-	{ 
- 		ui->registerZone(zone, this); 
- 	}
-	
-  public :
-  
-	virtual ~uiItem() 
-    {}
-	
-	void modifyZone(FAUSTFLOAT v) 	
-	{ 
-		fCache = v;
-		if (*fZone != v) {
-			*fZone = v;
-			fGUI->updateZone(fZone);
-		}
-	}
-		  	
-	FAUSTFLOAT		cache()			{ return fCache; }
-	virtual void 	reflectZone() 	= 0;	
+    protected:
+          
+        GUI*            fGUI;
+        FAUSTFLOAT*     fZone;
+        FAUSTFLOAT      fCache;
+
+        uiItem(GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+        { 
+            ui->registerZone(zone, this); 
+        }
+
+    public:
+
+        virtual ~uiItem() 
+        {}
+
+        void modifyZone(FAUSTFLOAT v) 	
+        { 
+            fCache = v;
+            if (*fZone != v) {
+                *fZone = v;
+                fGUI->updateZone(fZone);
+            }
+        }
+                
+        FAUSTFLOAT		cache()	{ return fCache; }
+        virtual void 	reflectZone() = 0;	
 };
 
 /**
@@ -126,14 +127,15 @@ struct uiCallbackItem : public uiItem
 	uiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data) 
 			: uiItem(ui, zone), fCallback(foo), fData(data) {}
 	
-	virtual void reflectZone() {		
+	virtual void reflectZone() 
+    {		
 		FAUSTFLOAT 	v = *fZone;
 		fCache = v; 
 		fCallback(v, fData);	
 	}
 };
 
-// en cours d'installation de call back. a finir!!!!!
+// en cours d'installation de callback : a finir!!!!!
 
 /**
  * Update all user items reflecting zone z
@@ -141,8 +143,8 @@ struct uiCallbackItem : public uiItem
 
 inline void GUI::updateZone(FAUSTFLOAT* z)
 {
-	FAUSTFLOAT 	v = *z;
-	clist* 	l = fZoneMap[z];
+	FAUSTFLOAT v = *z;
+	clist* l = fZoneMap[z];
 	for (clist::iterator c = l->begin(); c != l->end(); c++) {
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}

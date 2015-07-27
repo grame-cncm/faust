@@ -1848,7 +1848,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     _jackView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     
     // Load client in view
-    [_jackView loadJackClient:dynamic_cast<jackaudio*>(audio_device)->getClient()];
+    [_jackView loadJackClient:dynamic_cast<jackaudio*>(audio_device)->get_client()];
     
     // Insert view in super view
     [_dspScrollView.superview addSubview:_jackView];

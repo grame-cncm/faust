@@ -32,17 +32,19 @@
 //-------------------------------------------------------------------------
 #include <sys/stat.h>
 #include <iostream>
+#include <pthread.h>
 
 #include "../../utilities.h"
 #include "faust/dsp/remote-dsp.h"
 #include "faust/gui/faustqt.h"
+#include "faust/gui/httpdUI.h"
 //#include "faust/audio/coreaudio-dsp.h"
 #include "faust/audio/jack-dsp.h"
 
 std::list<GUI*> GUI::fGuiList;
 
-int main(int argc, char* argv[])
-{    
+int testClient(int argc, const char* argv[])
+{
     if (argv[1] && !strcmp(argv[1], "--help")){
         printf("\nOPTIONS OF FAUST DISTRIBUTED : \n\n\
                ########### REMOTE CALCULATION PARAMETERS ############\n\
@@ -68,7 +70,7 @@ int main(int argc, char* argv[])
     int srate = lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
 
-    QApplication myApp(argc, argv);
+    QApplication myApp(argc, (char**)argv);
     
     string filePath = loptions(argv, "--file", "");
             
@@ -123,24 +125,23 @@ int main(int argc, char* argv[])
         
         int errorInstance;
                 
-        DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), srate, fpb, NULL, NULL, errorInstance);
+        DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), NULL, NULL, errorInstance);
                     
-        if (DSP != NULL){
+        if (DSP != NULL) { 
                         
             QTGUI* interface = new QTGUI();
-                    
             jackaudio* audio = new jackaudio;
-            
             //coreaudio* audio = new coreaudio(srate, fpb);
                     
             DSP->buildUserInterface(interface);   
                     
-            if (!audio->init("RemoteExample", DSP))
+            if (!audio->init("RemoteExample", DSP)) {
                 printf("Audio could not be initialized\n");
-            else if (!audio->start())
+            } else if (!audio->start()) {
                 printf("Audio could not be started\n");
-            else
+            } else {
                 interface->run();
+            }
             
             //myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
@@ -155,15 +156,80 @@ int main(int argc, char* argv[])
             
             deleteRemoteDSPInstance(DSP);
             deleteRemoteDSPFactory(factory);
-                
-        }
-        else
+        } else {
             printf("CREATE INSTANCE FAILED = %d\n", errorInstance);
-    }
-    else
+        }
+    } else {
         printf("CREATE FACTORY FAILED = %s\n", errorFactory.c_str());
+    }
+
+    return 0;
+}
+
+pthread_t gThread;
+
+QTGUI* interface = NULL;
+httpdUI* httpdinterface = NULL;
+ 
+static void* RunDSP(void* arg)
+{
+    llvm_dsp* dsp = (llvm_dsp*)arg;
     
-  	return 0;
+    //QTGUI* interface = new QTGUI();
+    //dsp->buildUserInterface(interface);  
+    
+    httpdinterface = new httpdUI("toto", dsp->getNumInputs(), dsp->getNumOutputs(), 0, NULL);
+    dsp->buildUserInterface(httpdinterface);
+    httpdinterface->run();
+    return 0;
+}
+
+static bool DSPCallback(llvm_dsp* dsp, void* arg)
+{
+    printf("DSPCallback\n");
+    
+    if (interface) {
+        interface->stop();
+    }
+     
+    if (pthread_create(&gThread, NULL, RunDSP, dsp) != 0) {
+        printf("RemoteDSPServer : pthread_create failed\n");
+        return false;
+    }
+  
+    return true;
+}
+
+int testServer(int argc, const char* argv[])
+{
+    int	port = lopt(argv, "--port", 7777);
+    
+    QApplication myApp(argc, (char**)argv);
+     
+    remote_dsp_server* server = createRemoteDSPServer(0, NULL);
+    
+    //interface = new QTGUI();
+    
+    server->setCreateDSPInstanceCallback(DSPCallback, server);
+     
+    if (!server->start(port)) {
+        std::cerr << "Unable to start Faust Remote Processing Server" << std::endl;
+        return -1;
+    } else {
+        std::cerr << "Faust Remote Processing Server is running on port : "<< port<<std::endl;
+    }
+    
+    getchar();
+    printf("Quit server...\n");
+    server->stop();
+    deleteRemoteDSPServer(server);
+    return 0;
+}
+
+int main(int argc, const char* argv[])
+{    
+    return testClient(argc, argv);
+    //return testServer(argc, argv);
 }
 
 

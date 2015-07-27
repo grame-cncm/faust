@@ -37,24 +37,24 @@ public class FaustProcessing {
 		String faustpath = subpath.substring(subpath.lastIndexOf(":")+1,subpath.length());
 		System.out.println("Faust path is : "+ faustpath);
 		// creation automatique d'un processeur
-		myDSP = FaustEngine.create2(name, code, "-I " + faustpath, "", 3);
+		myDSP = FaustEngine.create2Dsp(name, code, "-I " + faustpath, "", 3);
 		//myDSP = FaustEngine.create1(name, code);
 		System.out.println("Faust created");
 		if (myDSP != null) { 
-			FaustEngine.init1(myDSP, name); 
-			FaustEngine.start(myDSP); 
+			FaustEngine.init1Dsp(myDSP, name); 
+			FaustEngine.startDsp(myDSP); 
 		} else {
 			System.out.println("Error "+ FaustEngine.getLastError());
 		}
 	}
 
 	public void start() {
-		if (myDSP != null) { FaustEngine.start(myDSP); }
+		if (myDSP != null) { FaustEngine.startDsp(myDSP); }
 	}
 
 
 	public void stop() {
-		if (myDSP != null) { FaustEngine.stop(myDSP); }
+		if (myDSP != null) { FaustEngine.stopDsp(myDSP); }
 	}
 
 
@@ -64,8 +64,8 @@ public class FaustProcessing {
     	// shut down a thread used by this library.
 		System.out.println("Entering dispose()");
 		if (myDSP != null) {
-			FaustEngine.stop(myDSP);
-        	FaustEngine.destroy(myDSP);
+			FaustEngine.stopDsp(myDSP);
+        	FaustEngine.destroyDsp(myDSP);
 		}
 		System.out.println("Exiting dispose()");
   	}
@@ -74,7 +74,7 @@ public class FaustProcessing {
 	
 	public String getJSON() {
 		if (myDSP != null) {
-    		return FaustEngine.getJSON(myDSP);
+    		return FaustEngine.getJSONDsp(myDSP);
     	} else {
     		return "";
     	}
@@ -82,7 +82,7 @@ public class FaustProcessing {
 
   	public int getParamsCount() {
   		if (myDSP != null) {
-    		return FaustEngine.getParamsCount(myDSP);
+    		return FaustEngine.getParamsCountDsp(myDSP);
     	} else {
     		return 0;
     	}
@@ -90,7 +90,7 @@ public class FaustProcessing {
 
   	public int getParamIndex(String name) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamIndex(myDSP, name);
+    		return FaustEngine.getParamIndexDsp(myDSP, name);
     	} else {
     		return 0;
     	}
@@ -98,7 +98,7 @@ public class FaustProcessing {
 
   	public String getParamName(int p) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamName(myDSP, p);
+    		return FaustEngine.getParamNameDsp(myDSP, p);
     	} else {
     		return "";
     	}
@@ -106,7 +106,7 @@ public class FaustProcessing {
 
   	public String getParamUnit(int p) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamUnit(myDSP, p);
+    		return FaustEngine.getParamUnitDsp(myDSP, p);
     	} else {
     		return "";
     	}
@@ -114,7 +114,7 @@ public class FaustProcessing {
 
   	public float getParamMin(int p) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamMin(myDSP, p);
+    		return FaustEngine.getParamMinDsp(myDSP, p);
     	} else {
     		return 0f;
     	}
@@ -122,7 +122,7 @@ public class FaustProcessing {
 
   	public float getParamMax(int p) {
    		if (myDSP != null) {
-   			return FaustEngine.getParamMax(myDSP, p);
+   			return FaustEngine.getParamMaxDsp(myDSP, p);
     	} else {
     		return 0f;
     	}
@@ -130,7 +130,7 @@ public class FaustProcessing {
 
   	public float getParamStep(int p) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamStep(myDSP, p);
+    		return FaustEngine.getParamStepDsp(myDSP, p);
     	} else {
     		return 0f;
     	}
@@ -138,7 +138,7 @@ public class FaustProcessing {
 
   	public float getParamValue(int p) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamValue(myDSP, p);
+    		return FaustEngine.getParamValueDsp(myDSP, p);
     	} else {
     		return 0f;
     	}
@@ -146,13 +146,13 @@ public class FaustProcessing {
 
   	public void setParamValue(int p, float v) {
     	if (myDSP != null) {
-    		FaustEngine.setParamValue(myDSP, p, v);
+    		FaustEngine.setParamValueDsp(myDSP, p, v);
     	}
   	}
 
   	public float getParamRatio(int p) {
     	if (myDSP != null) {
-    		return FaustEngine.getParamRatio(myDSP, p);
+    		return FaustEngine.getParamRatioDsp(myDSP, p);
     	} else {
     		return 0f;
     	}
@@ -160,25 +160,25 @@ public class FaustProcessing {
 
   	public void setParamRatio(int p, float v) {
   		if (myDSP != null) {
-    		FaustEngine.setParamRatio(myDSP, p, v);
+    		FaustEngine.setParamRatioDsp(myDSP, p, v);
     	}
   	}
 
   	public void propagateAccX(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateAccX(myDSP, a);
+    		FaustEngine.propagateAccXDsp(myDSP, a);
     	}
   	}
 
   	public void propagateAccY(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateAccY(myDSP, a);
+    		FaustEngine.propagateAccYDsp(myDSP, a);
     	}
   	}
 
   	public void propagateAccZ(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateAccZ(myDSP, a);
+    		FaustEngine.propagateAccZDsp(myDSP, a);
     	}
   	}
 }

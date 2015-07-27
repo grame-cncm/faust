@@ -62,31 +62,37 @@ bool isInt(const char* word)
     return returning;
 }
 
-long lopt(char *argv[], const char *name, long def)
+long lopt(const char* argv[], const char* name, long def)
 {
 	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
 	return def;
 }
 
-const char* loptions(char *argv[], const char *name, const char* def)
+const char* loptions(const char* argv[], const char* name, const char* def)
 {
 	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
 	return def;
 }
 
-bool isopt(const char *argv[], const char *name)
+const char* loptions(int argc, const char* argv[], const char* name, const char* def)
+{
+	for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return argv[i+1];
+	return def;
+}
+
+bool isopt(const char* argv[], const char* name)
 {
 	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
 	return false;
 }
 
-bool isopt1(int argc, const char *argv[], const char *name)
+bool isopt(int argc, const char* argv[], const char* name)
 {
 	for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return true;
 	return false;
 }
 
-int lopt_Spe(int i, char *argv[], const char *name, char* path)
+int lopt_Spe(int i, const char* argv[], const char* name, char* path)
 {
     if (!strcmp(argv[i], name)){
         strcpy(path, argv[i+1]);

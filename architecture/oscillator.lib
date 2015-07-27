@@ -15,8 +15,8 @@ fl = environment {}; // some day, so write compatibly below
 // Low-frequency oscillators have prefix "lf_"
 // (no aliasing suppression, signal means not zero)
 
-//-------------------- LF Impulse and Pulse Trains ------------------------
-// lf_imptrain, lf_pulsetrainpos, lf_squarewavepos, lf_squarewave
+//-------- LF Impulse and Pulse Trains, Square and Triangle Waves ----------
+// lf_imptrain, lf_pulsetrainpos, lf_squarewavepos, lf_squarewave, lf_trianglepos
 
 // All impulse and pulse trains jump to 1 at time 0.
 
@@ -34,6 +34,9 @@ lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
 // Zero-mean unit-amplitude LF square wave:
 lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 // squarewave = lf_squarewave; // for backward compatibility
+
+// Positive unit-amplitude LF triangle wave:
+lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 
 //---------- LF Sawtooths: lf_rawsaw, lf_sawpos, saw1 -------------------
 

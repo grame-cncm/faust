@@ -9,98 +9,118 @@
 package com.grame.faust;
 
 public class FaustEngine implements FaustEngineConstants {
-  public static dsp create1(String name_app, String dsp_content) {
-    long cPtr = FaustEngineJNI.create1(name_app, dsp_content);
-    return (cPtr == 0) ? null : new dsp(cPtr, false);
-  }
-
-  public static dsp create2(String name_app, String dsp_content, String argv, String target, int opt_level) {
-    long cPtr = FaustEngineJNI.create2(name_app, dsp_content, argv, target, opt_level);
-    return (cPtr == 0) ? null : new dsp(cPtr, false);
-  }
-
   public static String getLastError() {
     return FaustEngineJNI.getLastError();
   }
 
-  public static void destroy(dsp dsp) {
-    FaustEngineJNI.destroy(dsp.getCPtr(dsp), dsp);
+  public static dsp create1Dsp(String name_app, String dsp_content) {
+    long cPtr = FaustEngineJNI.create1Dsp(name_app, dsp_content);
+    return (cPtr == 0) ? null : new dsp(cPtr, false);
   }
 
-  public static boolean init1(dsp dsp, String name) {
-    return FaustEngineJNI.init1(dsp.getCPtr(dsp), dsp, name);
+  public static dsp create2Dsp(String name_app, String dsp_content, String argv, String target, int opt_level) {
+    long cPtr = FaustEngineJNI.create2Dsp(name_app, dsp_content, argv, target, opt_level);
+    return (cPtr == 0) ? null : new dsp(cPtr, false);
   }
 
-  public static boolean init2(dsp dsp, String name, int renderer, int sr, int bsize) {
-    return FaustEngineJNI.init2(dsp.getCPtr(dsp), dsp, name, renderer, sr, bsize);
+  public static void destroyDsp(dsp dsp) {
+    FaustEngineJNI.destroyDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static boolean start(dsp dsp) {
-    return FaustEngineJNI.start(dsp.getCPtr(dsp), dsp);
+  public static boolean init1Dsp(dsp dsp, String name) {
+    return FaustEngineJNI.init1Dsp(dsp.getCPtr(dsp), dsp, name);
   }
 
-  public static void stop(dsp dsp) {
-    FaustEngineJNI.stop(dsp.getCPtr(dsp), dsp);
+  public static boolean init2Dsp(dsp dsp, String name, int renderer, int sr, int bsize) {
+    return FaustEngineJNI.init2Dsp(dsp.getCPtr(dsp), dsp, name, renderer, sr, bsize);
   }
 
-  public static String getJSON(dsp dsp) {
-    return FaustEngineJNI.getJSON(dsp.getCPtr(dsp), dsp);
+  public static boolean startDsp(dsp dsp) {
+    return FaustEngineJNI.startDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static int getParamsCount(dsp dsp) {
-    return FaustEngineJNI.getParamsCount(dsp.getCPtr(dsp), dsp);
+  public static void stopDsp(dsp dsp) {
+    FaustEngineJNI.stopDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static int getParamIndex(dsp dsp, String name) {
-    return FaustEngineJNI.getParamIndex(dsp.getCPtr(dsp), dsp, name);
+  public static int getNumInputsDsp(dsp dsp) {
+    return FaustEngineJNI.getNumInputsDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static String getParamName(dsp dsp, int p) {
-    return FaustEngineJNI.getParamName(dsp.getCPtr(dsp), dsp, p);
+  public static int getNumOutputsDsp(dsp dsp) {
+    return FaustEngineJNI.getNumOutputsDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static String getParamUnit(dsp dsp, int p) {
-    return FaustEngineJNI.getParamUnit(dsp.getCPtr(dsp), dsp, p);
+  public static void connectDsp(dsp dsp1, dsp dsp2, int src, int dst) {
+    FaustEngineJNI.connectDsp(dsp.getCPtr(dsp1), dsp1, dsp.getCPtr(dsp2), dsp2, src, dst);
   }
 
-  public static float getParamMin(dsp dsp, int p) {
-    return FaustEngineJNI.getParamMin(dsp.getCPtr(dsp), dsp, p);
+  public static void disconnectDsp(dsp dsp1, dsp dsp2, int src, int dst) {
+    FaustEngineJNI.disconnectDsp(dsp.getCPtr(dsp1), dsp1, dsp.getCPtr(dsp2), dsp2, src, dst);
   }
 
-  public static float getParamMax(dsp dsp, int p) {
-    return FaustEngineJNI.getParamMax(dsp.getCPtr(dsp), dsp, p);
+  public static boolean isConnectedDsp(dsp dsp1, dsp dsp2, int src, int dst) {
+    return FaustEngineJNI.isConnectedDsp(dsp.getCPtr(dsp1), dsp1, dsp.getCPtr(dsp2), dsp2, src, dst);
   }
 
-  public static float getParamStep(dsp dsp, int p) {
-    return FaustEngineJNI.getParamStep(dsp.getCPtr(dsp), dsp, p);
+  public static String getJSONDsp(dsp dsp) {
+    return FaustEngineJNI.getJSONDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static float getParamValue(dsp dsp, int p) {
-    return FaustEngineJNI.getParamValue(dsp.getCPtr(dsp), dsp, p);
+  public static int getParamsCountDsp(dsp dsp) {
+    return FaustEngineJNI.getParamsCountDsp(dsp.getCPtr(dsp), dsp);
   }
 
-  public static void setParamValue(dsp dsp, int p, float v) {
-    FaustEngineJNI.setParamValue(dsp.getCPtr(dsp), dsp, p, v);
+  public static int getParamIndexDsp(dsp dsp, String name) {
+    return FaustEngineJNI.getParamIndexDsp(dsp.getCPtr(dsp), dsp, name);
   }
 
-  public static float getParamRatio(dsp dsp, int p) {
-    return FaustEngineJNI.getParamRatio(dsp.getCPtr(dsp), dsp, p);
+  public static String getParamNameDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamNameDsp(dsp.getCPtr(dsp), dsp, p);
   }
 
-  public static void setParamRatio(dsp dsp, int p, float v) {
-    FaustEngineJNI.setParamRatio(dsp.getCPtr(dsp), dsp, p, v);
+  public static String getParamUnitDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamUnitDsp(dsp.getCPtr(dsp), dsp, p);
   }
 
-  public static void propagateAccX(dsp dsp, float a) {
-    FaustEngineJNI.propagateAccX(dsp.getCPtr(dsp), dsp, a);
+  public static float getParamMinDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamMinDsp(dsp.getCPtr(dsp), dsp, p);
   }
 
-  public static void propagateAccY(dsp dsp, float a) {
-    FaustEngineJNI.propagateAccY(dsp.getCPtr(dsp), dsp, a);
+  public static float getParamMaxDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamMaxDsp(dsp.getCPtr(dsp), dsp, p);
   }
 
-  public static void propagateAccZ(dsp dsp, float a) {
-    FaustEngineJNI.propagateAccZ(dsp.getCPtr(dsp), dsp, a);
+  public static float getParamStepDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamStepDsp(dsp.getCPtr(dsp), dsp, p);
+  }
+
+  public static float getParamValueDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamValueDsp(dsp.getCPtr(dsp), dsp, p);
+  }
+
+  public static void setParamValueDsp(dsp dsp, int p, float v) {
+    FaustEngineJNI.setParamValueDsp(dsp.getCPtr(dsp), dsp, p, v);
+  }
+
+  public static float getParamRatioDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamRatioDsp(dsp.getCPtr(dsp), dsp, p);
+  }
+
+  public static void setParamRatioDsp(dsp dsp, int p, float v) {
+    FaustEngineJNI.setParamRatioDsp(dsp.getCPtr(dsp), dsp, p, v);
+  }
+
+  public static void propagateAccXDsp(dsp dsp, float a) {
+    FaustEngineJNI.propagateAccXDsp(dsp.getCPtr(dsp), dsp, a);
+  }
+
+  public static void propagateAccYDsp(dsp dsp, float a) {
+    FaustEngineJNI.propagateAccYDsp(dsp.getCPtr(dsp), dsp, a);
+  }
+
+  public static void propagateAccZDsp(dsp dsp, float a) {
+    FaustEngineJNI.propagateAccZDsp(dsp.getCPtr(dsp), dsp, a);
   }
 
 }

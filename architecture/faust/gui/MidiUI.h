@@ -33,6 +33,7 @@
 
 #include "faust/gui/GUI.h"
 #include "faust/midi/midi.h"
+#include "faust/midi/rt-midi.h"
 #include "faust/gui/ValueConverter.h"
 #include <vector>
 #include <string>
@@ -103,18 +104,22 @@ class MidiUI : public GUI, public midi
 
     private:
     
-        std::map <int, vector<uiMidiCtrl*> > fCtrlChangeTable;
-        std::map <int, vector<uiMidiPgm*> > fProgChangeTable;
+        std::map <int, std::vector<uiMidiCtrl*> > fCtrlChangeTable;
+        std::map <int, std::vector<uiMidiPgm*> > fProgChangeTable;
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
+        rtmidi fMIDI;
         midi* fMidiOut;
   
     public:
 
-        MidiUI(rtmidi* midi):fMidiOut(midi) { midi->addMidiIn(this); }
+        MidiUI(const string& name = "RTMidi"):fMIDI(name), fMidiOut(&fMIDI) { fMIDI.addMidiIn(this); }
 
         virtual ~MidiUI() {}
+        
+        virtual void run() { fMIDI.start(); }
+        virtual void stop() { fMIDI.stop(); }
       
         // -- widget's layouts
 

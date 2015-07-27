@@ -64,6 +64,9 @@ class audio {
     virtual int get_buffer_size() = 0;
     virtual int get_sample_rate() = 0;
     
+    virtual int get_num_inputs() { return -1; }
+    virtual int get_num_outputs() { return -1; }
+    
 };
 					
 #endif

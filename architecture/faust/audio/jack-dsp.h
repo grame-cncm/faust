@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <list>
+#include <vector>
 #include <string.h>
 #include <jack/jack.h>
 #ifdef JACK_IOS
@@ -70,6 +71,9 @@ class jackaudio : public audio {
     
         jack_port_t**	fInputPorts;        // JACK input ports
         jack_port_t**	fOutputPorts;       // JACK output ports
+        
+        std::vector<char*> fPhysicalInputs;
+        std::vector<char*> fPhysicalOutputs;
     
         shutdown_callback fShutdown;        // Shutdown callback to be called by libjack
         void*           fShutdownArg;       // Shutdown callback data
@@ -162,6 +166,38 @@ class jackaudio : public audio {
                 jack_connect(fClient, connection.first.c_str(), connection.second.c_str());
             }
         }
+     
+    #ifdef _OPENMP
+        void process_thread() 
+        {
+            jack_nframes_t nframes;
+            while (1) {
+                nframes = jack_cycle_wait(fClient);
+                process(nframes);
+                jack_cycle_signal(fClient, 0);
+            }
+        }
+    #endif
+    
+        // JACK callbacks
+        virtual int	process(jack_nframes_t nframes) 
+        {
+            AVOIDDENORMALS;
+            
+            // Retrieve JACK inputs/output audio buffers
+			float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
+            for (int i = 0; i < fNumInChans; i++) {
+                fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
+            }
+            
+			float** fOutChannel = (float**)alloca(fNumOutChans*sizeof(float*));
+            for (int i = 0; i < fNumOutChans; i++) {
+                fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
+            }
+            
+            fDsp->compute(nframes, fInChannel, fOutChannel);
+            return 0;
+        }
 
     public:
     
@@ -183,7 +219,7 @@ class jackaudio : public audio {
         
         virtual ~jackaudio() 
         { 
-            if(fClient){
+            if (fClient) {
                 stop();
                 
                 for (int i = 0; i < fNumInChans; i++) {
@@ -203,14 +239,12 @@ class jackaudio : public audio {
             }
         }
         
-        jack_client_t* getClient() { return fClient; }
-
         virtual bool init(const char* name, dsp* DSP) 
         {
             if (!init(name)) {
                 return false;
             }
-            set_dsp(DSP);
+            if (DSP) set_dsp(DSP);
             return true;
         }
 
@@ -233,11 +267,98 @@ class jackaudio : public audio {
             jack_set_sample_rate_callback(fClient, _jack_srate, this);
             jack_set_buffer_size_callback(fClient, _jack_buffersize, this);
             jack_on_info_shutdown(fClient, _jack_info_shutdown, this);
+            
+            // Get Physical inputs
+            int inputs = 0;
+            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
+            if (physicalInPorts != NULL) {
+                while (physicalInPorts[inputs]) { 
+                    fPhysicalInputs.push_back(physicalInPorts[inputs]);  
+                    printf("physical input %s\n", physicalInPorts[inputs]);
+                    inputs++; 
+                }
+                jack_free(physicalInPorts);
+            }
+            
+            // Get Physical outputs
+            int outputs = 0;
+            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
+            if (physicalOutPorts != NULL) {
+                while (physicalOutPorts[outputs]) { 
+                    fPhysicalOutputs.push_back(physicalOutPorts[outputs]); 
+                    printf("physical output %s\n", physicalOutPorts[outputs]);
+                    outputs++; 
+                }
+                jack_free(physicalOutPorts);
+            }
         
             return true;
         }    
+        
+        virtual bool start() 
+        {
+            if (jack_activate(fClient)) {
+                fprintf(stderr, "Cannot activate client");
+                return false;
+            }
+            
+            if (fConnections.size() > 0) {
+                load_connections();
+            } else if (fAutoConnect) {
+                default_connections();
+            }
+            
+            return true;
+        }
+
+        virtual void stop() 
+        {
+            if (fClient) {
+                save_connections();
+                jack_deactivate(fClient);
+            }
+        }
     
-        virtual bool set_dsp(dsp* DSP){
+        virtual void shutdown(shutdown_callback cb, void* arg)
+        {
+            fShutdown = cb;
+            fShutdownArg = arg;
+        }
+        
+        virtual int get_buffer_size() { return jack_get_buffer_size(fClient); }
+        virtual int get_sample_rate() { return jack_get_sample_rate(fClient); }
+                 
+        virtual int get_num_inputs() 
+        { 
+            return fPhysicalInputs.size(); 
+        }
+        
+        virtual int get_num_outputs() 
+        { 
+            return fPhysicalOutputs.size();
+        }
+  
+        // Additional public API
+        
+        jack_client_t* get_client() { return fClient; }
+   
+        // Connect to physical inputs/outputs
+        void default_connections()
+        {
+            // To avoid feedback at launch time, don't connect hardware inputs
+            /*
+            for (int i = 0; i < fNumOutChans && fPhysicalInputs[i]; i++) {
+                jack_connect(fClient, fPhysicalOutputs[i], jack_port_name(fInputPorts[i]));
+            }
+            */
+               
+            for (int i = 0; i < fNumOutChans && fPhysicalInputs[i]; i++) {
+                jack_connect(fClient, jack_port_name(fOutputPorts[i]), fPhysicalInputs[i]);
+            }
+        }
+    
+        virtual bool set_dsp(dsp* DSP)
+        {
             fDsp = DSP;
             
             fNumInChans  = fDsp->getNumInputs();
@@ -260,91 +381,94 @@ class jackaudio : public audio {
             fDsp->init(jack_get_sample_rate(fClient));
             return true;
         }
-    
-        virtual bool start() 
+             
+        void connect(jackaudio* driver, int src, int dst, bool reverse)
         {
-            if (jack_activate(fClient)) {
-                fprintf(stderr, "Cannot activate client");
-                return false;
+            if (driver) {
+                // Connection between drivers
+                jack_port_t* src_port = get_output_port(src);
+                jack_port_t* dst_port = driver->get_input_port(src);
+                if (src_port && dst_port) {
+                    jack_connect(fClient, jack_port_name(src_port), jack_port_name(dst_port));
+                }
+            } else if (reverse) {
+                // Connection to physical input
+                if (src > fPhysicalInputs.size()) return;
+                jack_port_t* dst_port = get_input_port(dst);
+                if (dst_port) {
+                    jack_connect(fClient, fPhysicalInputs[src], jack_port_name(dst_port));
+                }
+            } else {
+                // Connection to physical output
+                if (dst > fPhysicalOutputs.size()) return;
+                jack_port_t* src_port = get_output_port(src);
+                if (src_port) {
+                    jack_connect(fClient, jack_port_name(src_port), fPhysicalOutputs[dst]);
+                }
             }
-            
-            if (fConnections.size() > 0) {
-                load_connections();
-            } else if (fAutoConnect) {
-                default_connections();
-            }
-            return true;
-        }
-
-        virtual void stop() 
-        {
-            if(fClient){
-
-                save_connections();
-                jack_deactivate(fClient);
-            }
-        }
-    
-        virtual void shutdown(shutdown_callback cb, void* arg)
-        {
-            fShutdown = cb;
-            fShutdownArg = arg;
         }
         
-        virtual int get_buffer_size() { return jack_get_buffer_size(fClient); }
-        virtual int get_sample_rate() { return jack_get_sample_rate(fClient); }
-
-        // jack callbacks
-        virtual int	process(jack_nframes_t nframes) 
+        void disconnect(jackaudio* driver, int src, int dst, bool reverse)
         {
-            AVOIDDENORMALS;
-            // Retrieve JACK inputs/output audio buffers
-			float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
-            for (int i = 0; i < fNumInChans; i++) {
-                fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
-            }
-			float** fOutChannel = (float**)alloca(fNumOutChans*sizeof(float*));
-            for (int i = 0; i < fNumOutChans; i++) {
-                fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
-            }
-            fDsp->compute(nframes, fInChannel, fOutChannel);
-            return 0;
-        }
-    
-        // Connect to physical inputs/outputs
-        void default_connections()
-        {
-            // To avoid feedback at launch time, don't connect hardware inputs
-            /*
-            char** physicalOutPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
-            if (physicalOutPorts != NULL) {
-                for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++) {
-                jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInputPorts[i]));
-            }
-                jack_free(physicalOutPorts);
-            }
-            */
-            
-            char** physicalInPorts = (char**)jack_get_ports(fClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
-            if (physicalInPorts != NULL) {
-                for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++) {
-                    jack_connect(fClient, jack_port_name(fOutputPorts[i]), physicalInPorts[i]);
+            if (driver) {
+                // Connection between drivers
+                jack_port_t* src_port = get_output_port(src);
+                jack_port_t* dst_port = driver->get_input_port(src);
+                if (src_port && dst_port) {
+                    jack_disconnect(fClient, jack_port_name(src_port), jack_port_name(dst_port));
                 }
-                jack_free(physicalInPorts);
+            } else if (reverse) {
+                // Connection to physical input
+                if (src > fPhysicalInputs.size()) return;
+                jack_port_t* dst_port = get_input_port(dst);
+                if (dst_port) {
+                    jack_disconnect(fClient, fPhysicalInputs[src], jack_port_name(dst_port));
+                }
+            } else {
+                // Connection to physical output
+                if (dst > fPhysicalOutputs.size()) return;
+                jack_port_t* src_port = get_output_port(src);
+                if (src_port) {
+                    jack_disconnect(fClient, jack_port_name(src_port), fPhysicalOutputs[dst]);
+                }
             }
         }
-
-    #ifdef _OPENMP
-        void process_thread() 
+        
+        bool is_connected(jackaudio* driver, int src, int dst, bool reverse)
         {
-            jack_nframes_t nframes;
-            while (1) {
-                nframes = jack_cycle_wait(fClient);
-                process(nframes);
-                jack_cycle_signal(fClient, 0);
+            if (driver) {
+                // Connection between drivers
+                jack_port_t* src_port = get_output_port(src);
+                jack_port_t* dst_port = driver->get_input_port(src);
+                if (src_port && dst_port) {
+                    return jack_port_connected_to(src_port, jack_port_name(dst_port));
+                } else {
+                    return false;
+                }
+            } else if (reverse) {
+                // Connection to physical input
+                if (src > fPhysicalInputs.size()) return false;
+                jack_port_t* dst_port = get_input_port(dst);
+                if (dst_port) {
+                    return jack_port_connected_to(dst_port, fPhysicalInputs[src]);
+                } else {
+                    return false;
+                }
+            } else {
+                // Connection to physical output
+                if (dst > fPhysicalOutputs.size()) return false;
+                jack_port_t* src_port = get_output_port(src);
+                if (src_port) {
+                    return jack_port_connected_to(src_port, fPhysicalOutputs[dst]);
+                } else {
+                    return false;
+                }
             }
         }
-    #endif
+        
+        jack_port_t* get_input_port(int port)  { return (port >= 0 && port < fNumInChans) ? fInputPorts[port] : 0; }
+        jack_port_t* get_output_port(int port) { return (port >= 0 && port < fNumOutChans) ? fOutputPorts[port] : 0; }
+     
 };
 
 #endif

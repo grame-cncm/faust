@@ -25,7 +25,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "faust/audio/dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/meta.h"
 
 /**
@@ -72,7 +72,10 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& ip_server, 
  *
  * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
- * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param argv - the array of compilation parameters :
+ *  - Faust compile parameters (like -vec/-sch/...)
+ *  - 'machine <target>' (like '-machine x86_64-apple-macosx10.6.0') to cross-compile on client side 
+ * and send compiled machine code on server side 
  * @param ip_server - IP of remote machine
  * @param port_server - Port on which the Remote Server started
  * @param error - the error string to be filled
@@ -93,7 +96,10 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
  * @param name_app - the name of the Faust Application to be compiled
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
- * @param argv - the array of compilation parameters (-vec/-sch/...)
+ * @param argv - the array of compilation parameters :
+ *  - Faust compile parameters (like -vec/-sch/...)
+ *  - 'machine <target>' (like '-machine x86_64-apple-macosx10.6.0') to cross-compile on client side 
+ * and send compiled machine code on server side 
  * @param ip_server - IP of remote machine
  * @param port_server - Port on which the Remote Server started
  * @param error - the error string to be filled
@@ -142,7 +148,7 @@ void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 std::vector<std::string> getLibraryList(remote_dsp_factory* factory);
 
 /**
- * Instance class
+ * DSP instance class
  */
 class remote_dsp : public dsp {
     
@@ -158,9 +164,7 @@ class remote_dsp : public dsp {
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        virtual void startAudio();
-        virtual void stopAudio();
+
 };
 
 /**
@@ -170,7 +174,7 @@ class remote_dsp : public dsp {
  *
  * @return -1 to stop calling DSP 'compute', otherwise 0 to continue.
  */
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 /**
  * Create a remote DSP instance. A NetJack connexion is initialized with a specified sampling rate and buffer size. 
@@ -190,8 +194,8 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  *                  --NJ_latency ==> default is 2 cycles
  *                  --NJ_mtu ==> default is 1500
  *                  --NJ_partial ==> default is 'false'
- * @param sampling_rate - NetJack slave sampling rate
- * @param buffer_size - NetJack slave buffer size
+ *                  --NJ_buffer_size 
+ *                  --NJ_sample_rate 
  * @param error_callback - error callback
  * @param error_callback_arg - error callback argument
  * @param error - the error value to be filled
@@ -200,8 +204,7 @@ typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
  */
 remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                     int argc, const char* argv[], 
-                                    int sampling_rate, int buffer_size, 
-                                    RemoteDSPErrorCallback error_callback,
+                                    remoteDSPErrorCallback error_callback,
                                     void* error_callback_arg,
                                     int& error);
 
@@ -213,12 +216,45 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 /**
+ * Audio instance class
+ */
+class remote_audio {
+    
+    public: 
+        
+        virtual bool start();
+        virtual bool stop();
+  
+};
+
+/**
+ * Create a remote Audio instance.
+ * 
+ * @param factory - the Remote DSP factory
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters 
+ *                  -buffer_size 
+ *                  -sample_rate 
+ * @param error - the error value to be filled
+ * 
+ * @return the remote DSP instance on success, otherwise a null pointer.
+ */
+remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error);
+
+/**
+ * Destroy a remote Audio instance.
+ * 
+ * @param audio - the Audio instance to be deleted.
+ */ 
+void deleteRemoteAudioInstance(remote_audio* audio);
+
+/**
  * Scan the network to find the available machines for Remote Processing
  * @param machine_list - map to be filled with <name_machine, <ip_machine, port_machine>>
  *
  * @return true if no error was encountered.
  */
-bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int> >* machine_list);
+bool getRemoteDSPMachines(std::map<std::string, std::pair<std::string, int> >* machine_list);
 
 /**
  * For a machine on the network that does Remote Processing, get the list of all currently available DSP factories.
@@ -228,7 +264,7 @@ bool getRemoteMachinesAvailable(std::map<std::string, std::pair<std::string, int
  *
  * @return true if no error was encountered.
  */    
-bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
+bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::vector<std::pair<std::string, std::string> >* factories_list);
 
  /**
  * DSP compilation service class : after being started, the server waits for compilation 
@@ -237,12 +273,32 @@ bool getRemoteFactoriesAvailable(const std::string& ip_server, int port_server, 
  * several 'DSP instances' will be created and connected to the client side
  * using a NetJack master/slave connection.
  */
+ 
+/* Called each time a new DSP factory is created */
+typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+
+/* Called each time a DSP factory is deleted */
+typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+
+/* Called each time a new DSP instance is created */
+typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+
+/* Called each time a DSP instance is deleted */
+typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+
 class remote_dsp_server {
     
     public: 
         
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
         void stop();                 /* Stop the DSP compilation service. */
+        
+        
+        void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
+        void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
+        
+        void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg);
+        void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg);
 };
 
  /**

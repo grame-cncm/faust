@@ -134,6 +134,7 @@ static void dumpCost(StatementInst* inst, ostream* dst)
     InstComplexityVisitor complexity;
     inst->accept(&complexity);
     complexity.dump(dst);
+    *dst << std::endl;
 }
 
 void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
@@ -142,7 +143,6 @@ void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst
         *dst << "======= Compute Block ==========" << std::endl;
         // Complexity estimation
         dumpCost(fComputeBlockInstructions, dst);
-        *dst << std::endl;
         fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
@@ -205,13 +205,14 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
     // Complexity estimation
     dumpCost(loop, dst);
-    *dst << std::endl;
     loop->accept(&firvisitor);
     *dst << std::endl;
 }
 
 void FirVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
+    // Complexity estimation
+    dumpCost(fDAGBlock, dst);
     // Generate it
     fDAGBlock->accept(&firvisitor);
 
@@ -231,9 +232,11 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
 
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
+    // Complexity estimation
+    dumpCost(fGlobalLoopBlock, dst);
     // Generate it
     fGlobalLoopBlock->accept(&firvisitor);
-
+ 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
         *dst << std::endl;
@@ -295,6 +298,8 @@ void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostrea
     // Generate it
     *dst << "======= Compute Thread ==========" << std::endl;
     *dst << std::endl;
+    // Complexity estimation
+    dumpCost(fThreadLoopBlock, dst);
     fThreadLoopBlock->accept(&firvisitor);
     *dst << std::endl;
 }

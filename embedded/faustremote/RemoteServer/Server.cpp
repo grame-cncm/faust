@@ -8,44 +8,306 @@
 
 #include "Server.h"
 #include "utilities.h"
+#include "faust/gui/meta.h"
+#include "faust/gui/JSONUI.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <openssl/sha.h>
 
-#include "faust/gui/meta.h"
-#include "faust/gui/JSONUI.h"
+#ifdef __APPLE__
+#include <dns_sd.h>
+#endif
 
-enum {
-    ERROR_FACTORY_NOTFOUND,
-    ERROR_INSTANCE_NOTCREATED
-};
+//#define JACK 1
+#define COREAUDIO 1
+//#define PORTAUDIO 1
+//#define IOSAUDIO 1
 
-// Declare is called for every metadata coded in the faust DSP
-// That way, we get the faust name declared in the faust DSP
+#include "faust/audio/netjack-dsp.h"
+
+#ifdef COREAUDIO
+#include "faust/audio/coreaudio-dsp.h"
+#endif
+
+#ifdef IOSAUDIO
+#include "faust/audio/coreaudio-ios-dsp.h"
+#endif
+
+#ifdef PORTAUDIO
+#include "faust/audio/portaudio-dsp.h"
+#endif
+
+#ifdef JACK
+#include "faust/audio/jack-dsp.h"
+#endif
+
+// Declare is called for every metadata coded in the Faust DSP
+// That way, we get the faust name declared in the Faust DSP
 struct myMeta : public Meta
 {
     string name;
     
-    virtual void declare(const char* key, const char* value) {
+    virtual void declare(const char* key, const char* value) 
+    {
         if (strcmp(key, "name") == 0) {
             name = value;
         }
     }
 };
 
-connection_info_struct::connection_info_struct() 
+static string builtError(int error)
+{
+    stringstream s; s << error;
+    return s.str();
+}
+
+//--------------SLAVE DSP INSTANCE-----------------------------
+
+// NetJack slave client
+
+class netjackaudio_slave : public netjackaudio_midicontrol {  
+
+    private:
+
+        int fNumberRestartAttempts;
+
+    public:
+    
+        netjackaudio_slave(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
+            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
+        {
+            fNumberRestartAttempts = 0;
+        }
+        
+        void error_cb(int error_code)
+        {
+            switch (error_code) {
+            
+                case SOCKET_ERROR:
+                    printf("NetJack : SOCKET_ERROR\n");
+                    break;
+                    
+                case SYNC_PACKET_ERROR:
+                    printf("NetJack : SYNC_PACKET_ERROR\n");
+                    break;
+
+                 case DATA_PACKET_ERROR:
+                    printf("NetJack : DATA_PACKET_ERROR\n");
+                    break;
+            }
+        }
+    
+        /*
+        virtual int restart_cb()
+        {
+            printf("NetJack : restart_cb\n");
+            return 0;
+        }
+        */
+
+};
+
+class netjack_dsp : public audio_dsp {
+
+    private: 
+        
+        // NetJack parameters
+        string fIP;
+        string fPort;
+        string fCompression;
+        string fMTU;
+        string fLatency;
+     
+    public:
+    
+        netjack_dsp(llvm_dsp_factory* factory, 
+                    const string& compression, 
+                    const string& ip, const string& port, 
+                    const string& mtu, const string& latency,
+                    const string& name, const string& key,
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg);
+        
+        bool init(int u1, int u2);
+       
+        bool isActive() { return dynamic_cast<netjackaudio_slave*>(fAudio)->is_connexion_active(); }
+
+};
+
+netjack_dsp::netjack_dsp(llvm_dsp_factory* factory, 
+                        const string& compression, 
+                        const string& ip, 
+                        const string& port, 
+                        const string& mtu, 
+                        const string& latency,
+                        const string& name,
+                        const string& key,
+                        createInstanceDSPCallback cb1, void* cb1_arg,
+                        deleteInstanceDSPCallback cb2, void* cb2_arg)
+                        :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
+                        fPort(port), fCompression(compression), 
+                        fMTU(mtu), fLatency(latency)
+{}
+
+bool netjack_dsp::init(int u1, int u2)
+{
+    fAudio = new netjackaudio_slave(atoi(fCompression.c_str()), 
+                                    fIP, 
+                                    atoi(fPort.c_str()), 
+                                    atoi(fMTU.c_str()), 
+                                    atoi(fLatency.c_str()));
+                                        
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("netjack_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+
+// Local CoreAudio client
+
+#ifdef COREAUDIO
+class coreaudio_dsp : public audio_dsp {
+
+    public:
+     
+        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
+        {}
+        
+        virtual ~coreaudio_dsp() {}
+        
+        bool init(int sr, int bs);
+        
+        bool isActive() { return true; }
+        
+};
+
+bool coreaudio_dsp::init(int sr, int bs)
+{
+    fAudio = new coreaudio(sr, bs);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("coreaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
+#ifdef IOSAUDIO
+class iosaudio_dsp : public audio_dsp {
+
+    public:
+     
+        iosaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
+        {}
+        
+        virtual ~iosaudio_dsp() {}
+        
+        bool init(int sr, int bs);
+        
+        bool isActive() { return true; }
+        
+};
+
+bool iosaudio_dsp::init(int sr, int bs)
+{
+    fAudio = new iosaudio(sr, bs);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("iosaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
+#ifdef PORTAUDIO
+class portaudio_dsp : public audio_dsp {
+
+    public:
+     
+        portaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key, 
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
+        {}
+        
+        virtual ~portaudio_dsp() {}
+        
+        bool init(int sr, int bs);
+        
+        bool isActive() { return true; }
+        
+};
+
+bool portaudio_dsp::init(int sr, int bs)
+{
+    fAudio = new portaudio(sr, bs);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("portaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
+#ifdef JACK
+class jack_dsp : public audio_dsp {
+
+    public:
+     
+        jack_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
+                createInstanceDSPCallback cb1, void* cb1_arg,
+                deleteInstanceDSPCallback cb2, void* cb2_arg)
+            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
+        {}
+        
+        virtual ~jack_dsp() {}
+        
+        bool init(int sr, int bs);
+        
+        bool isActive() { return true; }
+        
+};
+
+bool jack_dsp::init(int u1, int u2)
+{
+    fAudio = new jackaudio(0, 0);
+    
+    if (!fAudio->init(fName.c_str(), fDSP)) {
+        printf("portaudio_dsp : init audio failed\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
+//------------ CONNECTION INFO -------------------------------
+
+connection_info::connection_info() 
 {   
-    fPostprocessor = 0;
     fAnswercode = -1;
-    fAnswerstring = "";
+    fAnswer = "";
     fNameApp = "";
     fFaustCode = "";
     fFactoryKey = "";
     fOptLevel = "";
-    fLLVMFactory = 0;
+    fFactory = 0;
     fIP = "";
     fPort = "";
     fCompression = "";
@@ -55,19 +317,14 @@ connection_info_struct::connection_info_struct()
     fInstanceKey = "";
 }
     
-connection_info_struct::~connection_info_struct()
-{}
-
-//------------SLAVE DSP FACTORY-------------------------------
-
-string getJson(connection_info_struct* con_info) 
+string connection_info::getJson() 
 {
     myMeta metadata;
-    metadataDSPFactory(con_info->fLLVMFactory, &metadata);
-    con_info->fNameApp = metadata.name;
+    metadataDSPFactory(fFactory, &metadata);
+    fNameApp = metadata.name;
         
     // This instance is used only to build JSON interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(con_info->fLLVMFactory);
+    llvm_dsp* dsp = createDSPInstance(fFactory);
     JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
     dsp->buildUserInterface(&json);
     deleteDSPInstance(dsp);  
@@ -75,505 +332,129 @@ string getJson(connection_info_struct* con_info)
     return json.JSON();
 }
 
-//--------------SLAVE DSP INSTANCE-----------------------------
-
-// Same Allocation/Deallocation Prototype as LLVM/REMOTE-DSP
-static netjack_dsp* createSlaveDSPInstance(llvm_dsp_factory* smartFactory, 
-                                            const string& compression, 
-                                            const string& ip, 
-                                            const string& port, 
-                                            const string& mtu, 
-                                            const string& latency, 
-                                            DSPServer* server) 
+bool connection_info::getJsonFromKey(FactoryTable factories)
 {
-    return new netjack_dsp(smartFactory, compression, ip, port, mtu, latency, server);
-}
-
-static void deleteSlaveDSPInstance(netjack_dsp* dsp)
-{
-    delete dsp;
-}
-
-// Allocation of real LLVM DSP INSTANCE
-netjack_dsp::netjack_dsp(llvm_dsp_factory* smartFactory, 
-                        const string& compression, 
-                        const string& ip, 
-                        const string& port, 
-                        const string& mtu, 
-                        const string& latency, 
-                        DSPServer* server) 
-                        :fIP(ip), fPort(port), fCompression(compression), 
-                        fMTU(mtu), fLatency(latency), 
-                        fAudio(NULL), fDSPServer(server)
-{
-    fDSP = createDSPInstance(smartFactory);
-}
-
-bool netjack_dsp::start() 
-{
-    return fAudio->start();
-}
-
-void netjack_dsp::stop()
-{
-    fAudio->stop();
-}
-
-// Desallocation of slave dsp resources
-netjack_dsp::~netjack_dsp()
-{
-    delete fAudio;
-    deleteDSPInstance(fDSP);
-}
-
-//----------------SERVER----------------------------------------
-
-DSPServer::DSPServer(int argc, const char* argv[]):fPort(-1), fDaemon(NULL)
-{}
-
-DSPServer::~DSPServer() {}
+    fNameApp = factories[fSHAKey].first;
+    fFactory = factories[fSHAKey].second;
     
-//---- START/STOP SERVER
-bool DSPServer::start(int port) 
-{
-    fPort = port;
-    fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
-                               port, 
-                               NULL, 
-                               NULL, 
-                               &answerToConnection, 
-                               this, MHD_OPTION_NOTIFY_COMPLETED, 
-                               requestCompleted, NULL, MHD_OPTION_END);
-    if (!fDaemon) {
-        printf("RemoteDSPServer : MHD_start_daemon failed\n");
-        return false;
-    }                           
-
-    if (pthread_create(&fThread, NULL, DSPServer::registration, this) != 0) {
-        printf("RemoteDSPServer : pthread_create failed\n");
+    if (fFactory) {
+        fAnswer = getJson();
+        return true;
+    } else {
+        fAnswer = "Factory not found";
         return false;
     }
-    
-    return true;
 }
 
-void DSPServer::stop()
+int connection_info::iteratePost(const char* key, const char* data, size_t size) 
 {
-    if (fDaemon) {
-//      Faire un truc pour arrêter la boucle
-        pthread_cancel(fThread);
-        pthread_join(fThread, NULL);
-        MHD_stop_daemon(fDaemon);
-    }
-    fDaemon = 0;
-}
-
-bool netjack_dsp::openAudioConnection()
-{
-    bool res = false;
-     
-    if (fDSPServer->fLocker.Lock()) {
-    
-        fAudio = new netjackaudio_server(atoi(fCompression.c_str()), 
-                                                    fIP, 
-                                                    atoi(fPort.c_str()), 
-                                                    atoi(fMTU.c_str()), 
-                                                    atoi(fLatency.c_str()));
-        
-        if (fAudio->init(getName().c_str(), fDSP)) {
-            if (!fAudio->start()) {
-                printf("RemoteDSPServer : Start slave audio failed\n");
-            } else {
-                fDSPServer->fRunningDsp.push_back(this);
-                res = true;
-            }
-        } else {
-            printf("RemoteDSPServer : Init slave audio failed\n");
-        }
-            
-        fDSPServer->fLocker.Unlock();
-    }
-    
-    return res;
-}
-
-//---- Callback of another thread to wait netjack audio connection without blocking the server
-void* DSPServer::openAudioConnection(void* arg) 
-{
-    netjack_dsp* dspToStart = (netjack_dsp*)arg;
-    
-    if (!dspToStart->openAudioConnection()) {
-        deleteSlaveDSPInstance(dspToStart);
-    }
-   
-    return NULL;
-}
- 
-//---- Creating response page with right header syntaxe
-int DSPServer::sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type)
-{
-    struct MHD_Response *response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
-    if (response) {
-        MHD_add_response_header(response, "Content-Type", type.c_str());
-        return MHD_queue_response(connection, status_code, response);
-    } else {
-        return MHD_NO;
-    }
-}
-
-//-------------------RESPONSE TO CONNEXION
-
-// Checking if every running DSP is really running or if any has stopped
-void DSPServer::stopNotActiveDSP()
-{
-    list<netjack_dsp*>::iterator it = fRunningDsp.begin();
-    
-    while (it != fRunningDsp.end()) {
-        if (!(*it)->fAudio->is_connexion_active()) {
-            netjack_dsp* toDelete = *it;
-            it = fRunningDsp.erase(it); 
-            toDelete->fAudio->stop();
-            deleteSlaveDSPInstance(toDelete);
-        } else {
-            it++;
-        }
-    }
-}
-
-// Allocation/Initialization of connection struct
-connection_info_struct* DSPServer::allocateConnectionStruct(MHD_Connection* connection, const char* method)
-{
-    connection_info_struct* con_info = new connection_info_struct();
-    if (!con_info) {
-        return NULL;
-    }
-     
-    if (strcmp(method, "POST") == 0) {
-        con_info->fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, &iteratePost, (void*)con_info);
-        if (!con_info->fPostprocessor) {
-            delete con_info;
-            return NULL;
-        }
-        con_info->fConnectiontype = POST;
-        con_info->fAnswercode = MHD_HTTP_OK;
-    } else {
-        con_info->fConnectiontype = GET;
-    }
-
-    return con_info;
-}
-
-int DSPServer::createConnection(MHD_Connection* connection, const char* method, void** con_cls)
-{
-    // If connection is new, a connection structure is allocated
-    connection_info_struct* con_struct = allocateConnectionStruct(connection, method);
-    if (con_struct) {
-        *con_cls = (void*)con_struct;
-        return MHD_YES;
-    } else {
-        return MHD_NO;
-    }
-}
-
-//---- Callback for any type of connection to the server
-int DSPServer::answerToConnection(void* cls, 
-                                MHD_Connection* connection, 
-                                const char* url, 
-                                const char* method, 
-                                const char* version, 
-                                const char* upload_data, 
-                                size_t* upload_data_size, 
-                                void** con_cls)
-{
-
-    DSPServer* server = (DSPServer*)cls;
-    server->stopNotActiveDSP();
-    
-    // If connection is new, a connection structure is allocated
-    if (!*con_cls) {
-        return server->createConnection(connection, method, con_cls);
-    }
-    
-    // Once connection struct is allocated, the request is treated
-    if (strcmp(method, "GET") == 0) {
-        return server->answerGet(connection, url);
-    } else if (strcmp(method, "POST") == 0) {
-        return server->answerPost(connection, url, upload_data, upload_data_size, con_cls);
-    } else {
-        return server->sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html");
-    }
-}
-    
-// For now GET is not a request supported for now
-int DSPServer::answerGet(MHD_Connection* connection, const char* url)
-{
-    printf("answerGet %s\n", url);
-    
-    if (strcmp(url, "/") == 0) {
-        return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
-    } else if (strcmp(url, "/GetAvailableFactories") == 0) {
-        stringstream answer;
-        for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fAvailableFactories.begin(); it != fAvailableFactories.end(); it++) {
-            answer << it->first << " " << it->second.first << " ";
-        }
-        return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
-    } else {
-        return MHD_NO;
-    }
-}
-
-// Response to all POST request
-// 3 requests are correct : 
-// - /GetJson --> Receive Faust code / Compile Data / Send back jsonInterface
-// - /CreateInstance --> Receive factoryIndex / Create instance 
-// - /DeleteFactory --> Receive factoryIndex / Delete Factory
-int DSPServer::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls)
-{
-    connection_info_struct* con_info = (connection_info_struct*)*con_cls;
-    
-    if (0 != *upload_data_size) {
-        
-        MHD_post_process(con_info->fPostprocessor, upload_data, *upload_data_size);
-        *upload_data_size = 0;
-        return MHD_YES;
-        
-    } else {
-        
-        if (strcmp(url, "/GetJson") == 0) {
-            if (createFactory(con_info)) {
-                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
-            } else {
-                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
-            }
-        } else if (strcmp(url, "/GetJsonFromKey") == 0) {
-            if (getJsonFromKey(con_info)) {
-                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_OK, "application/json"); 
-            } else {
-                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
-            }
-        } else if (strcmp(url, "/CreateInstance") == 0) {
-            if (createInstance(con_info)) {
-                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-            } else {
-                return sendPage(connection, con_info->fAnswerstring, MHD_HTTP_BAD_REQUEST, "text/html");
-            }
-        }
-//        else if(strcmp(url, "/DeleteFactory") == 0){
-//                    
-//            llvm_dsp_factory* toDelete = fAvailableFactories[con_info->fSHAKey];
-//            
-//            if (toDelete) {
-//                
-//                fAvailableFactories.erase(con_info->fSHAKey);
-//                deleteSlaveDSPFactory(toDelete);
-//                
-//                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
-//            } else {
-//                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
-//            }
-//        }
-        else if (strcmp(url, "/StartAudio") == 0) {
-            startAudio(con_info->fSHAKey);
-            return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-        } else if(strcmp(url, "/StopAudio") == 0){
-            stopAudio(con_info->fSHAKey);
-            return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-        } else {
-            return sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html"); 
-        }
-    }
-}
-
-// Callback processing the received data.
-// The datas are stocked in connection_info_struct
-int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/, 
-                            const char* key, 
-                            const char* /*filename*/, 
-                            const char* /*content_type*/, 
-                            const char* /*transfer_encoding*/, 
-                            const char* data, 
-                            uint64_t /*off*/, 
-                            size_t size) {
-    
-    struct connection_info_struct* con_info = (connection_info_struct*)coninfo_cls;
-     
     if (size > 0) {
-        
-        if (strcmp(key,"name") == 0){
-            con_info->fNameApp += nameWithoutSpaces(data);
-            if (con_info->fNameApp == "")
-                con_info->fNameApp = "RemoteDSPServer_DefaultName";
+        if (strcmp(key,"name") == 0) {
+            fNameApp += nameWithoutSpaces(data);
+            if (fNameApp == "") {
+                fNameApp = "RemoteDSPServer_DefaultName";
+            }
+        } else if (strcmp(key,"audio_type") == 0) {
+            fAudioType = data;
+        } else if (strcmp(key,"dsp_data") == 0) {
+            fFaustCode += data;  // Possibly several post ?
+        } else if (strcmp(key,"NJ_ip") == 0) {
+            fIP = data;
+        } else if (strcmp(key,"NJ_port") == 0) {
+            fPort = data;   
+        } else if (strcmp(key,"NJ_latency") == 0) {
+            fLatency = data;
+        } else if (strcmp(key,"NJ_compression") == 0) {
+            fCompression = data;        
+        } else if (strcmp(key,"NJ_mtu") == 0) {
+            fMTU = data;
+        } else if (strcmp(key,"shaKey") == 0) {
+            fSHAKey = data;
+        } else if (strcmp(key,"instanceKey") == 0) {
+            fInstanceKey = data;
+        } else if (strcmp(key,"factoryKey") == 0) {
+            fFactoryKey = data;
+        } else if (strcmp(key,"options") == 0) {
+            fCompilationOptions.push_back(data);
+        } else if (strcmp(key,"opt_level") == 0) {
+            fOptLevel = data;
+        } else if (strcmp(key,"LA_sr") == 0) {
+            fSampleRate = data;
+        } else if (strcmp(key,"LA_bs") == 0) {
+            fBufferSize = data;
         }
-        
-        if (strcmp(key,"dsp_data") == 0)
-            con_info->fFaustCode += data;   
-              
-        if (strcmp(key,"NJ_ip") == 0) 
-            con_info->fIP = data;
-        
-        if (strcmp(key,"NJ_port") == 0) 
-            con_info->fPort = data;   
-        
-        if (strcmp(key,"NJ_latency") == 0)
-            con_info->fLatency = data;
-        
-        if (strcmp(key,"NJ_compression") == 0)
-            con_info->fCompression = data;        
-        
-        if (strcmp(key,"NJ_mtu") == 0) 
-            con_info->fMTU = data;
-        
-        if (strcmp(key,"shaKey") == 0)
-            con_info->fSHAKey = data;
-        
-        if (strcmp(key,"instanceKey") == 0)
-            con_info->fInstanceKey = data;
-        
-        if (strcmp(key,"factoryKey") == 0)
-            con_info->fFactoryKey = data;
-        
-        if (strcmp(key,"options") == 0)
-            con_info->fCompilationOptions.push_back(string(data));
-        
-        if (strcmp(key,"opt_level") == 0)
-            con_info->fOptLevel = data;
     }
     
-    con_info->fAnswercode = MHD_HTTP_OK;
+    fAnswercode = MHD_HTTP_OK;
     return MHD_YES;
 }
 
-// Callback when connection is ended
-void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe) 
-{
-    struct connection_info_struct* con_info = (connection_info_struct*)*con_cls;
-    
-    if (con_info) {
-        if (con_info->fConnectiontype == POST) {
-            if (con_info->fPostprocessor) {
-                MHD_destroy_post_processor(con_info->fPostprocessor);
-            }
-        }
-        delete con_info;
-        *con_cls = NULL;
-    }
-}
-
-// Start/Stop DSP Instance from its SHAKEY
-bool DSPServer::startAudio(const string& shakey)
-{
-    list<netjack_dsp*>::iterator it;
-    
-    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey == (*it)->getKey()) {
-            if ((*it)->start()) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-void DSPServer::stopAudio(const string& shakey)
-{
-    list<netjack_dsp*>::iterator it;
-    
-    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey == (*it)->getKey()) {
-            (*it)->stop();
-            return;
-        }
-    }
-}
-
-bool DSPServer::getJsonFromKey(connection_info_struct* con_info)
-{
-    con_info->fNameApp = fAvailableFactories[con_info->fSHAKey].first;
-    con_info->fLLVMFactory = fAvailableFactories[con_info->fSHAKey].second;
-    
-    if (con_info->fLLVMFactory) {
-        con_info->fAnswerstring = getJson(con_info);
-        return true;
-    } else {
-        con_info->fAnswerstring = "Factory not found";
-        return false;
-    }
-}
-
 // Create DSP Factory 
-bool DSPServer::createFactory(connection_info_struct* con_info) {
-    
+bool connection_info::createFactory(FactoryTable factories, DSPServer* server) 
+{
     // Factory already compiled ?
-    if (fAvailableFactories.find(con_info->fSHAKey) != fAvailableFactories.end()) {
-        con_info->fLLVMFactory = fAvailableFactories[con_info->fSHAKey].second;
-        con_info->fAnswerstring = getJson(con_info);
+    if (factories.find(fSHAKey) != factories.end()) {
+        fFactory = factories[fSHAKey].second;
+        fAnswer = getJson();
         return true;
     }
     
     string error = "Incorrect machine code";
     
     // Sort out compilation options
-    int argc = con_info->fCompilationOptions.size();
+    int argc = fCompilationOptions.size();
     const char* argv[argc];
     for (int i = 0; i < argc; i++) {
-        argv[i] = (con_info->fCompilationOptions[i]).c_str();
+        argv[i] = (fCompilationOptions[i]).c_str();
     }
     
-    if (isopt1(argc, argv, "-machine")) {
+    if (isopt(argc, argv, "-machine")) {
         // Machine code
-        con_info->fLLVMFactory = readDSPFactoryFromMachine(con_info->fFaustCode);
+        fFactory = readDSPFactoryFromMachine(fFaustCode);
     } else {
         // DSP code
-        con_info->fLLVMFactory = createDSPFactoryFromString(con_info->fNameApp, 
-                                                            con_info->fFaustCode, 
-                                                            argc, argv, "", 
-                                                            error, atoi(con_info->fOptLevel.c_str()));
+        fFactory = createDSPFactoryFromString(fNameApp, 
+                                            fFaustCode, 
+                                            argc, argv, "", 
+                                            error, atoi(fOptLevel.c_str()));
     }
    
-    if (con_info->fLLVMFactory) {
-        fAvailableFactories[con_info->fSHAKey] = make_pair(con_info->fNameApp, con_info->fLLVMFactory);
+    if (fFactory) {
+        // Possibly call callback
+        if (server->fCreateDSPFactoryCb) {
+            return server->fCreateDSPFactoryCb(fFactory, server->fCreateDSPFactoryCb_arg);
+        }   
+        factories[fSHAKey] = make_pair(fNameApp, fFactory);
         // Once the factory is compiled, the JSON is stored as answerstring
-        con_info->fAnswerstring = getJson(con_info);
+        fAnswer = getJson();
         return true;
     } else {
-        con_info->fAnswerstring = error;
+        fAnswer = error;
         return false;
     }
 }
 
-// Create DSP Instance
-bool DSPServer::createInstance(connection_info_struct* con_info)
+connection_info_post::connection_info_post(MHD_Connection* connection):connection_info()
 {
-    llvm_dsp_factory* realFactory = fAvailableFactories[con_info->fFactoryKey].second;
-    
-    if (realFactory) {
-        
-        netjack_dsp* dsp = createSlaveDSPInstance(realFactory, con_info->fCompression, con_info->fIP, con_info->fPort, con_info->fMTU, con_info->fLatency, this);
-        if (!dsp) return false;
-        
-        dsp->setName(fAvailableFactories[con_info->fFactoryKey].first);
-        pthread_t myNewThread;
-        
-        if (pthread_create(&myNewThread, NULL, DSPServer::openAudioConnection, dsp) == 0){
-            dsp->setKey(con_info->fInstanceKey);
-            return true;
-        } else {
-            stringstream s;
-            s << ERROR_INSTANCE_NOTCREATED;
-            con_info->fAnswerstring = s.str();
-            return false;
-        }
-        
-    } else {
-        stringstream s;
-        s << ERROR_FACTORY_NOTFOUND;
-        con_info->fAnswerstring = s.str();
-        return false;
-    }    
+    fPostprocessor = 0;
+    fAnswercode = MHD_HTTP_OK;
+    if (!(fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, DSPServer::iteratePost, this))) {
+        throw -1;
+    }
 }
 
+//----------------SERVER----------------------------------------
+
 #include "lo/lo.h"
+
+DSPServer::DSPServer(int argc, const char* argv[]):fPort(-1),fDaemon(NULL),
+fCreateDSPFactoryCb(NULL),fCreateDSPFactoryCb_arg(NULL),
+fCreateDSPInstanceCb(NULL),fCreateDSPInstanceCb_arg(NULL),
+fDeleteDSPFactoryCb(NULL),fDeleteDSPFactoryCb_arg(NULL),
+fDeleteDSPInstanceCb(NULL),fDeleteDSPInstanceCb_arg(NULL)
+{}
+
+DSPServer::~DSPServer() {}
 
 // Register server as available
 void* DSPServer::registration(void* arg) 
@@ -597,7 +478,367 @@ void* DSPServer::registration(void* arg)
     
     pthread_exit(NULL);
 }
+    
+bool DSPServer::start(int port) 
+{
+    fPort = port;
+    fDaemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
+                               port, 
+                               NULL, 
+                               NULL, 
+                               answerToConnection, 
+                               this, MHD_OPTION_NOTIFY_COMPLETED, 
+                               requestCompleted, NULL, MHD_OPTION_END);
+    if (!fDaemon) {
+        printf("RemoteDSPServer : MHD_start_daemon failed\n");
+        return false;
+    }                           
 
+    if (pthread_create(&fThread, NULL, DSPServer::registration, this) != 0) {
+        printf("RemoteDSPServer : pthread_create failed\n");
+        return false;
+    }
+    
+    return true;
+}
+
+void DSPServer::stop()
+{
+    if (fDaemon) {
+        // Faire un truc pour arrêter la boucle ?
+        pthread_cancel(fThread);
+        pthread_join(fThread, NULL);
+        MHD_stop_daemon(fDaemon);
+        fDaemon = 0;
+    }
+}
+
+//---- Callback of another thread to wait netjack audio connection without blocking the server
+void* DSPServer::open(void* arg) 
+{
+    AudioStarter* starter = (AudioStarter*)arg;
+    starter->fServer->open(starter->fDSP);
+    delete starter;
+    return NULL;
+}
+
+void DSPServer::open(audio_dsp* dsp)
+{
+    if (fLocker.Lock()) {
+        if (dsp->init(-1, -1) && dsp->start()) {
+            fRunningDsp.push_back(dsp);
+        } else {
+            delete dsp;
+        }
+        fLocker.Unlock();
+    }
+}
+ 
+//---- Creating response page with right header syntaxe
+int DSPServer::sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type)
+{
+    struct MHD_Response *response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
+    if (response) {
+        MHD_add_response_header(response, "Content-Type", type.c_str());
+        return MHD_queue_response(connection, status_code, response);
+    } else {
+        return MHD_NO;
+    }
+}
+
+//-------------------RESPONSE TO CONNEXION
+
+// Checking if every running DSP is really running or if any has stopped
+void DSPServer::stopNotActiveDSP()
+{
+    list<audio_dsp*>::iterator it = fRunningDsp.begin();
+    
+    while (it != fRunningDsp.end()) {
+        if (!(*it)->isActive()) {
+            audio_dsp* dsp = *it;
+            it = fRunningDsp.erase(it); 
+            dsp->stop();
+            delete dsp;
+        } else {
+            it++;
+        }
+    }
+}
+
+// If connection is new, a connection structure is allocated
+int DSPServer::createConnection(MHD_Connection* connection, const char* method, void** con_cls)
+{
+    connection_info* info = NULL;
+    try {
+        if (strcmp(method, "POST") == 0) {
+            info = new connection_info_post(connection);
+        } else {
+            info = new connection_info_get();
+        }
+        *con_cls = info;
+        return MHD_YES;
+    } catch (...) {
+        delete info; 
+        return MHD_NO;
+    }
+}
+
+//---- Callback for any type of connection to the server
+int DSPServer::answerToConnection(void* cls, 
+                                MHD_Connection* connection, 
+                                const char* url, 
+                                const char* method, 
+                                const char* version, 
+                                const char* upload_data, 
+                                size_t* upload_data_size, 
+                                void** con_cls)
+{
+
+    DSPServer* server = (DSPServer*)cls;
+    server->stopNotActiveDSP();
+    
+    if (*con_cls) {
+    
+        // Once connection struct is allocated, the request is treated
+        if (strcmp(method, "GET") == 0) {
+            return server->answerGet(connection, url);
+        } else if (strcmp(method, "POST") == 0) {
+            return server->answerPost(connection, url, upload_data, upload_data_size, con_cls);
+        } else {
+            return server->sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html");
+        }
+        
+    } else {
+        // If connection is new, a connection structure is allocated
+        return server->createConnection(connection, method, con_cls);
+    }
+}
+    
+// For now GET is not a request supported for now
+int DSPServer::answerGet(MHD_Connection* connection, const char* url)
+{
+    if (strcmp(url, "/") == 0) {
+        return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
+    } else if (strcmp(url, "/GetAvailableFactories") == 0) {
+        stringstream answer;
+        for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fFactories.begin(); it != fFactories.end(); it++) {
+            answer << it->first << " " << it->second.first << " ";
+        }
+        return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
+    } else {
+        return MHD_NO;
+    }
+}
+
+// Response to all POST request
+// 3 requests are correct : 
+// - /GetJson --> Receive Faust code / Compile Data / Send back jsonInterface
+// - /CreateInstance --> Receive factoryIndex / Create instance 
+// - /DeleteFactory --> Receive factoryIndex / Delete Factory
+int DSPServer::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls)
+{
+    connection_info* info = (connection_info*)*con_cls;
+    
+    if (*upload_data_size != 0) {
+        return info->postProcess(upload_data, upload_data_size);
+    } else {
+        
+        if (strcmp(url, "/GetJson") == 0) {
+            if (info->createFactory(fFactories, this)) {
+                return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
+            } else {
+                return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } else if (strcmp(url, "/GetJsonFromKey") == 0) {
+            if (info->getJsonFromKey(fFactories)) {
+                return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
+            } else {
+                return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } else if (strcmp(url, "/CreateInstance") == 0) {
+            if (createInstance(info)) {
+                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+            } else {
+                return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } else if (strcmp(url, "/Start") == 0) {
+            if (start(info->fSHAKey)) {
+                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+            } else {
+                return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } else if(strcmp(url, "/Stop") == 0) {
+            if (stop(info->fSHAKey)) {
+                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+            } else {
+                return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
+            }
+        } 
+//        else if(strcmp(url, "/DeleteFactory") == 0) {
+//            llvm_dsp_factory* toDelete = fFactories[con_info->fSHAKey];
+//            
+//            if (toDelete) {
+//                fFactories.erase(con_info->fSHAKey);
+//                deleteSlaveDSPFactory(toDelete);
+//                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
+//            } else {
+//                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
+//            }
+//        }
+        else {
+            return sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html"); 
+        }
+    }
+}
+
+// Callback processing the received data, to be kept in connection_info
+int DSPServer::iteratePost(void* coninfo_cls, MHD_ValueKind /*kind*/, 
+                            const char* key, 
+                            const char* /*filename*/, 
+                            const char* /*content_type*/, 
+                            const char* /*transfer_encoding*/, 
+                            const char* data, 
+                            uint64_t /*off*/, 
+                            size_t size) {
+    
+    connection_info* con_info = (connection_info*)coninfo_cls;
+    return con_info->iteratePost(key, data, size);
+}
+
+// Callback when connection is ended
+void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe) 
+{
+    connection_info* con_info = (connection_info*)*con_cls;
+    delete con_info;
+}
+
+// Create DSP Instance
+bool DSPServer::createInstance(connection_info* con_info)
+{
+    llvm_dsp_factory* factory = fFactories[con_info->fFactoryKey].second;
+    audio_dsp* audio = NULL;
+    
+    if (factory) {
+    
+        try {
+            if (con_info->fAudioType == "kNetJack") {
+                audio = new netjack_dsp(factory, con_info->fCompression, 
+                                        con_info->fIP, con_info->fPort, 
+                                        con_info->fMTU, con_info->fLatency, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey,
+                                        fCreateDSPInstanceCb, fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, fDeleteDSPInstanceCb_arg);
+                pthread_t thread;
+                AudioStarter* starter = new AudioStarter(this, audio);
+                if (pthread_create(&thread, NULL, DSPServer::open, starter) != 0) {
+                    goto error;
+                }
+            } else if (con_info->fAudioType == "kLocalAudio") {
+            #ifdef COREAUDIO
+                audio = new coreaudio_dsp(factory, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey,
+                                        fCreateDSPInstanceCb, 
+                                        fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, 
+                                        fDeleteDSPInstanceCb_arg);
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                    fRunningDsp.push_back(audio);
+                } else {
+                    delete audio;
+                }
+            #endif
+            #ifdef IOSAUDIO
+                audio = new iosaudio_dsp(factory, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey,
+                                        fCreateDSPInstanceCb, 
+                                        fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, 
+                                        fDeleteDSPInstanceCb_arg);
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                    fRunningDsp.push_back(audio);
+                } else {
+                    delete audio;
+                }
+            #endif
+            #ifdef PORTAUDIO
+                audio = new portaudio_dsp(factory, 
+                                        fFactories[con_info->fFactoryKey].first, 
+                                        con_info->fInstanceKey, 
+                                        fCreateDSPInstanceCb, 
+                                        fCreateDSPInstanceCb_arg,
+                                        fDeleteDSPInstanceCb, 
+                                        fDeleteDSPInstanceCb_arg);
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                    fRunningDsp.push_back(audio);
+                } else {
+                    delete audio;
+                }
+            #endif
+            } else if (con_info->fAudioType == "kJack") {
+            #ifdef JACK
+                audio = new jack_dsp(factory, 
+                                    fFactories[con_info->fFactoryKey].first, 
+                                    con_info->fInstanceKey,
+                                    fCreateDSPInstanceCb, 
+                                    fCreateDSPInstanceCb_arg,
+                                    fDeleteDSPInstanceCb, 
+                                    fDeleteDSPInstanceCb_arg);
+                if (audio->init(-1, -1) && audio->start()) {
+                    fRunningDsp.push_back(audio);
+                } else {
+                    delete audio;
+                }
+            #endif
+            }
+            
+        } catch (...) {
+             goto error;
+        }
+    
+        return true;
+        
+    } else {
+        con_info->fAnswer = builtError(ERROR_FACTORY_NOTFOUND);
+        return false;
+    }  
+    
+error:
+    con_info->fAnswer = builtError(ERROR_INSTANCE_NOTCREATED);
+    return false;
+}
+
+// Start/Stop Audio instance from its SHAKEY
+bool DSPServer::start(const string& shakey)
+{
+    list<audio_dsp*>::iterator it;
+    
+    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
+        if (shakey == (*it)->getKey()) {
+            if ((*it)->start()) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool DSPServer::stop(const string& shakey)
+{
+    list<audio_dsp*>::iterator it;
+    
+    for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
+        if (shakey == (*it)->getKey()) {
+            (*it)->stop();
+            return true;
+        }
+    }
+
+    return false;
+}
 // DSP server API
 
 EXPORT remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[])
@@ -618,4 +859,24 @@ EXPORT bool remote_dsp_server::start(int port)
 EXPORT void remote_dsp_server::stop()
 {
     return reinterpret_cast<DSPServer*>(this)->stop();
+}
+
+EXPORT void remote_dsp_server::setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setCreateDSPFactoryCallback(callback, callback_arg);
+}
+
+EXPORT void remote_dsp_server::setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setDeleteDSPFactoryCallback(callback, callback_arg);
+}
+
+EXPORT void remote_dsp_server::setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setCreateDSPInstanceCallback(callback, callback_arg);
+}
+
+EXPORT void remote_dsp_server::setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg)
+{
+    reinterpret_cast<DSPServer*>(this)->setDeleteDSPInstanceCallback(callback, callback_arg);
 }

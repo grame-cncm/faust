@@ -13,9 +13,13 @@
           android:title="@string/zoomout"
           android:showAsAction="ifRoom" />
     <item android:id="@+id/action_lock"
-          android:icon="@drawable/ic_lockiconclose"
-          android:title="@string/lock"
-          android:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_lockiconclose"
+        android:title="@string/lock"
+        android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_reset"
+        android:icon="@drawable/ic_reset"
+        android:title="@string/reset"
+        android:showAsAction="ifRoom" />
           <!--
     <item android:id="@+id/action_settings"
           android:title="@string/action_settings"

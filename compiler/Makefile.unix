@@ -139,6 +139,15 @@ ios : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $
 ios : LLVM_VERSION =
 ios : libfaust.a
 
+ios-llvm : IPHONEOS_DEPLOYMENT_TARGET=5.0
+ios-llvm : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
+ios-llvm : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk
+ios-llvm : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+ios-llvm : CXXFLAGS += -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+ios-llvm : CXXFLAGS += -I/Documents/llvm-ios/include
+ios-llvm : libfaust.a
+
+## For the Web, do not compile LLVM part
 emcc : CC = emcc
 emcc : CXX = emcc
 emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 

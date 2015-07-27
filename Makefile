@@ -38,7 +38,7 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world dynamic httpd remote win32 ios emcc sound2faust
+.PHONY: all world dynamic httpd remote win32 ios ios-llvm emcc sound2faust
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
@@ -72,6 +72,9 @@ win32 :
 
 ios :
 	$(MAKE) -C compiler ios -f $(MAKEFILE) prefix=$(prefix)
+
+ios-llvm :
+	$(MAKE) -C compiler ios-llvm -f $(MAKEFILE) prefix=$(prefix)
 
 emcc :
 	$(MAKE) -C compiler emcc -f $(MAKEFILE) prefix=$(prefix)
@@ -153,6 +156,8 @@ install :
 	rm -rf $(prefix)/lib/faust/AU/
 	cp -r architecture/AU $(prefix)/lib/faust/
 	cp -r architecture/android $(prefix)/lib/faust/
+	cp -r architecture/max-msp $(prefix)/lib/faust/
+
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/

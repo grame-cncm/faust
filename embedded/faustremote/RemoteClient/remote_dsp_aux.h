@@ -52,9 +52,9 @@
 
 using namespace std;
 
-#define FactoryTableItem   pair<string, list<remote_dsp_aux*> >
-#define FactoryTableType   map<Sremote_dsp_factory, FactoryTableItem>
-#define FactoryTableIt     FactoryTableType::iterator
+#define FactoryTableDSP     pair<string, pair<list<remote_dsp_aux*>, list<remote_audio_aux*> > >
+#define FactoryTableDSPType map<Sremote_dsp_factory, FactoryTableDSP>
+#define FactoryTableDSPIt   FactoryTableDSPType::iterator
 
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -99,9 +99,10 @@ struct remote_DNS {
     
 };
 
-typedef int (*RemoteDSPErrorCallback) (int error_code, void* arg);
+typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 class remote_dsp_aux;
+class remote_audio_aux;
 class remote_dsp_factory;
 
 typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
@@ -113,7 +114,7 @@ class remote_dsp_factory : public smartable {
         string      fSHAKey;            //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
         
         int         fNumInputs;
-        int         fNumOutputs;        //Num of In/Output of compiled DSP factory
+        int         fNumOutputs;        //Num of Input/Output of compiled DSP factory
         
         string      fServerIP;          //IP of remote server 
         
@@ -127,9 +128,10 @@ class remote_dsp_factory : public smartable {
         void        decodeJson(const string& json);
         
         remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], 
-                                                int sampling_rate, int buffer_size, 
-                                                RemoteDSPErrorCallback error_callback, 
+                                                remoteDSPErrorCallback error_callback, 
                                                 void* error_callback_arg, int& error);
+                                                
+        remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], int& error);
         
         bool        init(int argc, const char *argv[], 
                         const string& ip_server, 
@@ -139,6 +141,7 @@ class remote_dsp_factory : public smartable {
                         const string& sha_key, 
                         string& error_msg, 
                         int opt_level);
+                        
         void        stop();
         
         void        metadataRemoteDSPFactory(Meta* m);  
@@ -157,7 +160,8 @@ class remote_dsp_factory : public smartable {
         
         vector<string>      getLibraryList() { return fPathnameList; }
         
-        static FactoryTableType gFactoryTable;
+        static FactoryTableDSPType gFactoryDSPTable;
+
 };
 
 class remote_dsp_aux : public dsp {
@@ -182,7 +186,7 @@ class remote_dsp_aux : public dsp {
         int                     fCounterIn;
         int                     fCounterOut;
         
-        RemoteDSPErrorCallback  fErrorCallback;
+        remoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
         
         bool                    fRunningFlag;
@@ -191,7 +195,7 @@ class remote_dsp_aux : public dsp {
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
         
         // Command-line parsing fonction
-        const char* getValueFromKey(int argc, const char* argv[], const char* key, const char* defaultValue);
+        //const char* getValueFromKey(int argc, const char* argv[], const char* key, const char* defaultValue);
         
         void sendSlice(int buffer_size);
         void recvSlice(int buffer_size);
@@ -199,11 +203,10 @@ class remote_dsp_aux : public dsp {
     public:   
         
         remote_dsp_aux(remote_dsp_factory* factory);
-        ~remote_dsp_aux();
+        virtual ~remote_dsp_aux();
         
         bool init(int argc, const char* argv[], 
-                int sampling_rate, int buffer_size, 
-                RemoteDSPErrorCallback errror_callback, 
+                remoteDSPErrorCallback errror_callback, 
                 void* errror_callback_arg, int& error);
         
         void metadata(Meta* m);
@@ -216,12 +219,28 @@ class remote_dsp_aux : public dsp {
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        virtual bool startAudio();
-        virtual bool stopAudio();
-
+  
         remote_dsp_factory* getFactory() { return fFactory; }
 
+};
+
+class remote_audio_aux {
+    
+    private:
+    
+         remote_dsp_factory*     fFactory;           
+         
+    public:
+    
+        remote_audio_aux(remote_dsp_factory* factory);
+        virtual ~remote_audio_aux();
+        
+        bool init(int argc, const char* argv[], int& error);
+        
+        remote_dsp_factory* getFactory() { return fFactory; }
+
+        bool start();
+        bool stop();
 };
 
 //---------------------- Public C++ interface --------
@@ -240,11 +259,19 @@ class EXPORT remote_dsp : public dsp {
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        virtual bool startAudio();
-        virtual bool stopAudio();
-        
+         
 };
+
+class EXPORT remote_audio {
+    
+    public: 
+        
+        virtual bool start();
+        virtual bool stop();
+         
+};
+
+// Factories
     
 EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& ip_server, int port_server, const string& sha_key);  
 
@@ -265,17 +292,28 @@ EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 
 EXPORT vector<string> getLibraryList(remote_dsp_factory* factory);
 
+// DSP instance
+
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                            int argc, const char *argv[], 
-                                           int sampling_rate, int buffer_size, 
-                                           RemoteDSPErrorCallback error_callback,
+                                           remoteDSPErrorCallback error_callback,
                                            void* errror_callback_arg,
                                            int& error);
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
 
-EXPORT bool getRemoteMachinesAvailable(map<string, pair<string, int> >* machineList);
+// Audio instance
 
-EXPORT bool getRemoteFactoriesAvailable(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
+EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, 
+                                            int argc, const char* argv[],  
+                                            int& error);
+
+EXPORT void deleteRemoteAudioInstance(remote_audio* audio);
+
+// Remote machine access
+ 
+EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList);
+
+EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
 
 #endif
