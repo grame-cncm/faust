@@ -105,7 +105,7 @@ for p in $FILES; do
 		echo "EXPORTS     main" 							>> ${f%.dsp}.def
 	
 		$CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
-		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static-libstdc++ -static-libgcc -o "${f%.dsp}$EXT"
+		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
 		$STRIP "${f%.dsp}$EXT"
     ) > /dev/null
 		
