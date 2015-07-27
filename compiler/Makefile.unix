@@ -696,7 +696,7 @@ generator/fir/fir_code_container.o: tlib/occurrences.hh generator/floats.hh gene
 generator/fir/fir_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
 generator/fir/fir_code_container.o: generator/fir/fir_instructions.hh generator/type_manager.hh
 generator/fir/fir_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
-generator/fir/fir_code_container.o: generator/wss_code_container.hh
+generator/fir/fir_code_container.o: generator/wss_code_container.hh generator/instructions_complexity.hh
 generator/java/java_code_container.o: generator/java/java_code_container.hh generator/code_container.hh
 generator/java/java_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/java/java_code_container.o: garbageable.hh tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh
@@ -719,6 +719,7 @@ generator/js/js_code_container.o: tlib/occurrences.hh generator/floats.hh genera
 generator/js/js_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
 generator/js/js_code_container.o: generator/js/js_instructions.hh generator/text_instructions.hh
 generator/js/js_code_container.o: generator/type_manager.hh errors/exception.hh
+generator/llvm/base64.o: generator/llvm/base64.h
 generator/llvm/clang_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_dsp_aux.o: tlib/compatibility.hh
