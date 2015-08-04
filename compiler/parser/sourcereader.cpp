@@ -253,7 +253,6 @@ Tree SourceReader::parsefile(string fname)
 		if (strstr(yyfilename,"file://") != 0) {
 			yyfilename  = &yyfilename[7]; // skip 'file://'
 		}
-<<<<<<< HEAD
         
     #ifdef EMCC
         // Try to open with the complete URL
@@ -261,20 +260,6 @@ Tree SourceReader::parsefile(string fname)
         for (list<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
             string url = *i + fname;
             if ((res = parsefile(url))) return res;
-=======
-		
-        // We are requested to parse a regular file
-        FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath);
-        if (yyin == NULL) {
-            fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
-            exit(1);
-        }
-        yyrestart(yyin);	// make sure we scan from file again (in case we scanned a string just before)
-        yylineno = 1;
-        int r = yyparse();
-        if (r) { 
-            fprintf(stderr, "Parse error : code = %d \n", r); 
->>>>>>> master
         }
         stringstream error;
         error << "ERROR : unable to open file " << yyfilename << endl;
@@ -287,19 +272,10 @@ Tree SourceReader::parsefile(string fname)
             error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
         }
-<<<<<<< HEAD
         Tree res = parse(fullpath);
         fclose(tmp_file);
         return res;
     #endif
-    
-=======
-
-        // we have parsed a valid file
-        fFilePathnames.push_back(fullpath);
-        fclose(tmp_file);
-        return gResult;
->>>>>>> master
     }
 }
 
