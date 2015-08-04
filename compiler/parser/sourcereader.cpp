@@ -224,7 +224,7 @@ Tree SourceReader::parse(string fname)
 		}
 		
         // We are requested to parse a regular file
-        yyin = fopensearch(yyfilename, fullpath);
+        FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath);
         if (yyin == NULL) {
             fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
             exit(1);
@@ -242,6 +242,7 @@ Tree SourceReader::parse(string fname)
 
         // we have parsed a valid file
         fFilePathnames.push_back(fullpath);
+        fclose(tmp_file);
         return gResult;
     }
 }
