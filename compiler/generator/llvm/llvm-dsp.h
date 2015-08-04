@@ -117,6 +117,15 @@ std::string getName(llvm_dsp_factory* factory);
 std::string getSHAKey(llvm_dsp_factory* factory);
 
 /**
+ * Get the target (triple + CPU) of the DSP factory.
+ *
+ * @param factory - the DSP factory.
+ * 
+ * @return the target as a string.
+ */
+std::string getTarget(llvm_dsp_factory* factory);
+
+/**
  * Get the list of library dependancies of the Faust DSP factory.
  *
  * @param factory - the DSP factory.

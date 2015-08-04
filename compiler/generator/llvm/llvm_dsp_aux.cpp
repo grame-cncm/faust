@@ -428,7 +428,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     Init();
     fSHAKey = sha_key;
     fOptLevel = opt_level;
-    fTarget = target;
+    fTarget = (target == "") ? llvm::sys::getDefaultTargetTriple() : target;
  
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
@@ -473,7 +473,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         
         fSHAKey = sha_key;
         fOptLevel = opt_level;
-        fTarget = target;
+        fTarget = (target == "") ? llvm::sys::getDefaultTargetTriple() : target;
         Init();    
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         fObjectCache = NULL;
@@ -680,17 +680,10 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         string target_suffix = "";
     #endif
     
-        if (fTarget != "") {
-            string triple, cpu;
-            splitTarget(fTarget, triple, cpu);
-            fResult->fModule->setTargetTriple(triple + target_suffix);
-            if (cpu != "") {
-                builder.setMCPU(cpu);
-            }
-        } else {
-            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple() + target_suffix);
-            builder.setMCPU(llvm::sys::getHostCPUName());
-        }
+        string triple, cpu;
+        splitTarget(fTarget, triple, cpu);
+        fResult->fModule->setTargetTriple(triple + target_suffix);
+        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : cpu);
         
         TargetOptions targetOptions;
         //targetOptions.NoFramePointerElim = true;
@@ -810,12 +803,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
     
-    if (fTarget != "") {
-        fResult->fModule->setTargetTriple(fTarget);
-    } else {
-        fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-    }
-
+    fResult->fModule->setTargetTriple(fTarget);
+   
     EngineBuilder builder(fResult->fModule);
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
@@ -1222,6 +1211,13 @@ EXPORT std::string getSHAKey(llvm_dsp_factory* factory)
     TLock lock(gDSPFactoriesLock);
     
     return factory->getSHAKey();
+}
+
+EXPORT std::string getTarget(llvm_dsp_factory* factory)
+{
+    TLock lock(gDSPFactoriesLock);
+    
+    return factory->getTarget();
 }
 
 EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory)

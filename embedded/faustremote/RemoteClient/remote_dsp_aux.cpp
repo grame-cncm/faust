@@ -889,7 +889,7 @@ EXPORT vector<string> getLibraryList(remote_dsp_factory* factory)
 EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }
 EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
 
-EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList)
+EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list)
 {
     if (gDNS && gDNS->fLocker.Lock()) {
         
@@ -903,6 +903,7 @@ EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList)
             if ((now.sec - iterMem.timetag.sec) < 3) {
                 
                 // Decompose HostName to have Name, Ip and Port of service
+                /*
                 string serviceNameCpy(iterMem.hostname);
                 
                 int pos = serviceNameCpy.find("._");
@@ -914,8 +915,21 @@ EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList)
                 int pos2 = serviceIP.find(":");
                 string ipAddr = serviceIP.substr(0, pos2);
                 string port = serviceIP.substr(pos2+1, string::npos);
+                */
                 
-                (*machineList)[hostName] = make_pair(ipAddr, atoi(port.c_str()));
+                string name_service1 = iterMem.hostname;
+                int pos1 = name_service1.find(":");
+                string name_service2 = name_service1.substr(pos1 + 1, string::npos);
+                int pos2 = name_service2.find(":");
+                string name_service3 = name_service2.substr(pos2 + 1, string::npos);
+                int pos3 = name_service3.find(":");
+    
+                string ip = name_service1.substr(0, pos1);
+                string port = name_service2.substr(0, pos2);
+                string host_name = name_service3.substr(0, pos3);
+                string target = name_service3.substr(pos3 + 1, string::npos);
+                    
+                (*machine_list)[host_name] =  reinterpret_cast<remote_dsp_machine*>(new remote_dsp_machine_aux(ip, atoi(port.c_str()), target));
             }
         }
         
@@ -964,6 +978,31 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
     }
    
     return res;
+}
+
+EXPORT remote_dsp_machine* remote_dsp_machine::create(const std::string& ip, int port, const std::string& target)
+{
+    return reinterpret_cast<remote_dsp_machine*>(new remote_dsp_machine_aux(ip, port, ip));
+}
+
+EXPORT void remote_dsp_machine::destroy(remote_dsp_machine* machine)
+{
+    delete reinterpret_cast<remote_dsp_machine_aux*>(machine);
+}
+
+EXPORT std::string remote_dsp_machine::getIP()
+{
+    return reinterpret_cast<remote_dsp_machine_aux*>(this)->getIP();
+}
+
+EXPORT int remote_dsp_machine::getPort()
+{
+    return reinterpret_cast<remote_dsp_machine_aux*>(this)->getPort();
+}
+
+EXPORT std::string remote_dsp_machine::getTarget()
+{
+    return reinterpret_cast<remote_dsp_machine_aux*>(this)->getTarget();
 }
 
 //---------DSP INSTANCE

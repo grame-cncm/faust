@@ -252,13 +252,25 @@ remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, c
  */ 
 void deleteRemoteAudioInstance(remote_audio* audio);
 
+class remote_dsp_machine {
+    
+    public: 
+        
+        std::string getIP();
+        int getPort();
+        std::string getTarget();
+        
+        static remote_dsp_machine* create(const std::string& ip, int port, const std::string& target);
+        static void destroy(remote_dsp_machine* machine);
+};
+
 /**
  * Scan the network to find the available machines for Remote Processing
- * @param machine_list - map to be filled with <name_machine, <ip_machine, port_machine>>
+ * @param machine_list - map to be filled with <name_machine, remote_dsp_machine>
  *
  * @return true if no error was encountered.
  */
-bool getRemoteDSPMachines(std::map<std::string, std::pair<std::string, int> >* machine_list);
+bool getRemoteDSPMachines(std::map<std::string, remote_dsp_machine* >* machine_list);
 
 /**
  * For a machine on the network that does Remote Processing, get the list of all currently available DSP factories.

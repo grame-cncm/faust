@@ -90,7 +90,7 @@ class llvm_dsp_factory : public smartable {
         computeFun fCompute;
         metadataFun fMetadata;
         
-        void* LoadOptimize(const std::string& function);
+        void* LoadOptimize(const string& function);
         
         LLVMResult* CompileModule(int argc, 
                                 const char* argv[], 
@@ -111,14 +111,14 @@ class llvm_dsp_factory : public smartable {
   public:
   
         llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
-                        const std::string& name, 
-                        const std::string& input, const std::string& target, 
-                        std::string& error_msg, int opt_level = 3);
+                        const string& name, 
+                        const string& input, const string& target, 
+                        string& error_msg, int opt_level = 3);
               
-        llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const std::string& target, int opt_level = 0);
+        llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
         
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-        llvm_dsp_factory(const string& sha_key, const std::string& machine_code);
+        llvm_dsp_factory(const string& sha_key, const string& machine_code);
     #endif
       
         virtual ~llvm_dsp_factory();
@@ -126,18 +126,18 @@ class llvm_dsp_factory : public smartable {
         llvm_dsp_aux* createDSPInstance();
         
         // Bitcode
-        std::string writeDSPFactoryToBitcode();
+        string writeDSPFactoryToBitcode();
         
-        void writeDSPFactoryToBitcodeFile(const std::string& bit_code_path);
+        void writeDSPFactoryToBitcodeFile(const string& bit_code_path);
         
         // IR
-        std::string writeDSPFactoryToIR();
+        string writeDSPFactoryToIR();
         
-        void writeDSPFactoryToIRFile(const std::string& ir_code_path);
+        void writeDSPFactoryToIRFile(const string& ir_code_path);
         
-        std::string writeDSPFactoryToMachine();
+        string writeDSPFactoryToMachine();
         
-        void writeDSPFactoryToMachineFile(const std::string& machine_code_path);
+        void writeDSPFactoryToMachineFile(const string& machine_code_path);
         
         bool initJIT(std::string& error_msg);
         
@@ -145,11 +145,13 @@ class llvm_dsp_factory : public smartable {
         
         void metadataDSPFactory(MetaGlue* glue);
     
-        std::string getName();
+        string getName();
         
-        std::string getSHAKey() { return fSHAKey; }
+        string getSHAKey() { return fSHAKey; }
+        
+        string getTarget() { return fTarget; }
     
-        std::vector<std::string> getLibraryList() { return fResult->fPathnameList; }
+        vector<std::string> getLibraryList() { return fResult->fPathnameList; }
     
         static FactoryTableType gFactoryTable;
        
@@ -207,6 +209,8 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
 EXPORT std::string getName(llvm_dsp_factory* factory);
 
 EXPORT std::string getSHAKey(llvm_dsp_factory* factory);
+
+EXPORT std::string getTarget(llvm_dsp_factory* factory);
 
 EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 

@@ -243,6 +243,24 @@ class remote_audio_aux {
         bool stop();
 };
 
+class EXPORT remote_dsp_machine_aux {
+
+    private:
+    
+        string fIP;
+        int fPort;
+        string fTarget;
+    
+    public: 
+    
+        remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
+        {}
+        
+        string getIP() { return fIP; }
+        int getPort() { return fPort; }
+        string getTarget() { return fTarget; }
+};
+
 //---------------------- Public C++ interface --------
 
 class EXPORT remote_dsp : public dsp {
@@ -269,6 +287,19 @@ class EXPORT remote_audio {
         virtual bool start();
         virtual bool stop();
          
+};
+
+class EXPORT remote_dsp_machine {
+    
+    public: 
+        
+        std::string getIP();
+        int getPort();
+        std::string getTarget();
+        
+        static remote_dsp_machine* create(const std::string& ip, int port, const std::string& target);
+        static void destroy(remote_dsp_machine* machine);
+        
 };
 
 // Factories
@@ -312,7 +343,7 @@ EXPORT void deleteRemoteAudioInstance(remote_audio* audio);
 
 // Remote machine access
  
-EXPORT bool getRemoteDSPMachines(map<string, pair<string, int> >* machineList);
+EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list);
 
 EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vector<pair<string, string> >* factories_list);
 
