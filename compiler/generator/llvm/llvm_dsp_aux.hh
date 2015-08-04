@@ -295,9 +295,11 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
 
-EXPORT char* getCName(llvm_dsp_factory* factory);
+EXPORT const char* getCName(llvm_dsp_factory* factory);
 
-EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
+EXPORT const char* getCSHAKey(llvm_dsp_factory* factory);
+
+EXPORT const char* getCTarget(llvm_dsp_factory* factory);
 
 EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
     

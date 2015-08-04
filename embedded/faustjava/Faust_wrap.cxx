@@ -275,7 +275,7 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_getCDSPFactoryFromSHAKey(
     arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
     if (!arg1) return 0;
   }
-  result = (llvm_dsp_factory *)getCDSPFactoryFromSHAKey(arg1);
+  result = (llvm_dsp_factory *)getCDSPFactoryFromSHAKey((char const *)arg1);
   *(llvm_dsp_factory **)&jresult = result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   return jresult;
@@ -405,6 +405,21 @@ SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_getCSHAKey(JNIEnv *jenv
   (void)jarg1_;
   arg1 = *(llvm_dsp_factory **)&jarg1; 
   result = (char *)getCSHAKey(arg1);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_getCTarget(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jstring jresult = 0 ;
+  llvm_dsp_factory *arg1 = (llvm_dsp_factory *) 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp_factory **)&jarg1; 
+  result = (char *)getCTarget(arg1);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }

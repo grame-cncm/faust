@@ -36,6 +36,10 @@ public class Faust {
     return FaustJNI.getCSHAKey(llvm_dsp_factory.getCPtr(factory), factory);
   }
 
+  public static String getCTarget(llvm_dsp_factory factory) {
+    return FaustJNI.getCTarget(llvm_dsp_factory.getCPtr(factory), factory);
+  }
+
   public static SWIGTYPE_p_p_char getCLibraryList(llvm_dsp_factory factory) {
     long cPtr = FaustJNI.getCLibraryList(llvm_dsp_factory.getCPtr(factory), factory);
     return (cPtr == 0) ? null : new SWIGTYPE_p_p_char(cPtr, false);
