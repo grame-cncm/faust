@@ -577,6 +577,19 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
     Builder.populateModulePassManager(MPM);
 }
 
+static void splitTarget(const string& target, string& triple, string& cpu)
+{
+    size_t pos1 = target.find_first_of('-', 0);
+    size_t pos2 = target.find_first_of('-', pos1 + 1);
+    size_t pos3 = target.find_first_of('-', pos2 + 1);
+       
+    triple = target.substr(0, pos3);
+    
+    if (pos3 != string::npos) {
+        cpu = target.substr(pos3 + 1);
+    }
+}
+
 bool llvm_dsp_factory::initJIT(string& error_msg)
 {
     startTiming("initJIT");
@@ -640,7 +653,23 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         initializeTarget(Registry);
         
         TargetRegistry::printRegisteredTargetsForVersion();
-
+       
+    #if defined(LLVM_36)
+        EngineBuilder builder(unique_ptr<Module>(fResult->fModule));
+    #else
+        EngineBuilder builder(fResult->fModule);
+    #endif
+        builder.setOptLevel(CodeGenOpt::Aggressive);
+        builder.setEngineKind(EngineKind::JIT);
+        builder.setCodeModel(CodeModel::JITDefault);
+        
+        // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
+    #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
+        builder.setUseMCJIT(true);
+    #elif !defined(LLVM_36)
+        builder.setUseMCJIT(false);
+    #endif
+    
     #ifdef _WIN32
         // Windows needs this special suffix to the target triple,
         // otherwise the backend would try to generate native COFF
@@ -650,31 +679,18 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     #else
         string target_suffix = "";
     #endif
-        if (fTarget != "") {
-            fResult->fModule->setTargetTriple(fTarget+target_suffix);
-        } else {
-            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple()+target_suffix);
-        }
-     
-    #if defined(LLVM_36)
-        EngineBuilder builder(unique_ptr<Module>(fResult->fModule));
-    #else
-        EngineBuilder builder(fResult->fModule);
-    #endif
-        builder.setOptLevel(CodeGenOpt::Aggressive);
-        builder.setEngineKind(EngineKind::JIT);
-        
-        // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
-    #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
-        builder.setUseMCJIT(true);
-    #else
-        #if !defined(LLVM_36)
-            builder.setUseMCJIT(false);
-        #endif
-    #endif
     
-        builder.setCodeModel(CodeModel::JITDefault);
-        builder.setMCPU(llvm::sys::getHostCPUName());
+        if (fTarget != "") {
+            string triple, cpu;
+            splitTarget(fTarget, triple, cpu);
+            fResult->fModule->setTargetTriple(triple + target_suffix);
+            if (cpu != "") {
+                builder.setMCPU(cpu);
+            }
+        } else {
+            fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple() + target_suffix);
+            builder.setMCPU(llvm::sys::getHostCPUName());
+        }
         
         TargetOptions targetOptions;
         //targetOptions.NoFramePointerElim = true;
@@ -795,7 +811,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     InitializeNativeTargetAsmParser();
     
     if (fTarget != "") {
-         fResult->fModule->setTargetTriple(fTarget);
+        fResult->fModule->setTargetTriple(fTarget);
     } else {
         fResult->fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     }
