@@ -44,4 +44,6 @@ int lopt_Spe(int i, const char* argv[], const char* name, char* path);
 
 string nameWithoutSpaces(const string& name);
 
+void printOptions(int argc, const char* argv[]);
+
 #endif

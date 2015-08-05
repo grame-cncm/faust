@@ -114,6 +114,13 @@ string nameWithoutSpaces(const string& name)
     return newname;
 }
 
+void printOptions(int argc, const char* argv[])
+{
+    for (int i = 0; i < argc; i++) {
+        printf("argv[%i] = %s\n", i, argv[i]);
+    }
+}
+
 //------------------------REGISTRATION TO DISCOVERY SYSTEM
 #include <stdio.h>      
 #include <sys/types.h>

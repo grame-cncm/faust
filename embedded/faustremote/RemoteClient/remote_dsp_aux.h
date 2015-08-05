@@ -228,7 +228,7 @@ class remote_audio_aux {
     
     private:
     
-         remote_dsp_factory*     fFactory;           
+         remote_dsp_factory* fFactory;
          
     public:
     
@@ -254,7 +254,9 @@ class EXPORT remote_dsp_machine_aux {
     public: 
     
         remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
-        {}
+        {
+            printf("remote_dsp_machine_aux %s %d %s\n", ip.c_str(), port, target.c_str());
+        }
         
         string getIP() { return fIP; }
         int getPort() { return fPort; }

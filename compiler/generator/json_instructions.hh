@@ -105,6 +105,8 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
             fPathTable[inst->fZone] = buildPath(inst->fLabel);
         }
     
+        void setInputs(int input) {fInputs = input;}
+        void setOutputs(int output) {fOutputs = output;}
 };
 
 #endif

@@ -225,6 +225,9 @@ class FaustObjectCache : public ObjectCache {
 #endif
 
 #if defined(LLVM_36)
+
+void ObjectCache::anchor() {}
+
 class FaustObjectCache : public ObjectCache {
     
 private:
@@ -239,12 +242,12 @@ public:
     virtual ~FaustObjectCache()
     {}
     
-    void notifyObjectCompiled(const Module *M, MemoryBufferRef Obj)
+    virtual void notifyObjectCompiled(const Module *M, MemoryBufferRef Obj)
     {
         fMachineCode = Obj.getBuffer().str();
     }
     
-    std::unique_ptr<MemoryBuffer> getObject(const Module* M)
+    virtual std::unique_ptr<MemoryBuffer> getObject(const Module* M)
     {
         return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
     }
@@ -428,8 +431,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     Init();
     fSHAKey = sha_key;
     fOptLevel = opt_level;
-    fTarget = (target == "") ? llvm::sys::getDefaultTargetTriple() : target;
- 
+    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str()) : target;
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
     fResult->fContext = context;
@@ -473,7 +475,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         
         fSHAKey = sha_key;
         fOptLevel = opt_level;
-        fTarget = (target == "") ? llvm::sys::getDefaultTargetTriple() : target;
+        fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str()) : target;
         Init();    
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         fObjectCache = NULL;
@@ -683,7 +685,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         string triple, cpu;
         splitTarget(fTarget, triple, cpu);
         fResult->fModule->setTargetTriple(triple + target_suffix);
-        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : cpu);
+        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : StringRef(cpu));
         
         TargetOptions targetOptions;
         //targetOptions.NoFramePointerElim = true;
@@ -954,6 +956,7 @@ string llvm_dsp_factory::getName()
                 name = value;
             }
         }
+        
     };
     
     MyMeta metadata;
@@ -1103,7 +1106,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                     const string& target, 
                                                     string& error_msg, int opt_level)
 {
-TLock lock(gDSPFactoriesLock);
+    TLock lock(gDSPFactoriesLock);
     
     const char* argv1[64];
     int argc1 = 0;

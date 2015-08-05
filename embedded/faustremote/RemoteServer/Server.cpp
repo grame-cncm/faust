@@ -21,9 +21,9 @@
 #endif
 
 //#define JACK 1
-#define COREAUDIO 1
+//#define COREAUDIO 1
 //#define PORTAUDIO 1
-//#define IOSAUDIO 1
+#define IOSAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 
@@ -409,14 +409,23 @@ bool connection_info::createFactory(FactoryTable factories, DSPServer* server)
     }
     
     if (isopt(argc, argv, "-m")) {
+        printf("Machine code\n");
         // Machine code
-        fFactory = readDSPFactoryFromMachine(fFaustCode);
+        //fFactory = readDSPFactoryFromMachine(fFaustCode);
+        fFactory = readCDSPFactoryFromMachine(fFaustCode.c_str());
     } else {
         // DSP code
-        fFactory = createDSPFactoryFromString(fNameApp, 
+        /*
+        fFactory = createDSPFactoryFromString(fNameApp,
                                             fFaustCode, 
                                             argc, argv, "", 
                                             error, atoi(fOptLevel.c_str()));
+        */
+        char error1[256];
+        fFactory = createCDSPFactoryFromString(fNameApp.c_str(),
+                                            fFaustCode.c_str(),
+                                            argc, argv, "",
+                                            error1, atoi(fOptLevel.c_str()));
     }
    
     if (fFactory) {
@@ -464,15 +473,29 @@ void* DSPServer::registration(void* arg)
     
     // Dummmy factory to get 'target'
     string error;
-    llvm_dsp_factory* factory = createDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error, 0);
+    //llvm_dsp_factory* factory = createDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error, 0);
+    char error1[256];
+    llvm_dsp_factory* factory = createCDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error1, 0);
     assert(factory);
-    string target = getTarget(factory);
-    deleteDSPFactory(factory);
+    llvm_dsp* dsp = createDSPInstance(factory);
     
+    printf("dsp %d\n", dsp->getNumInputs());
+    
+    printf("factory %p\n", factory);
+    string name = getName(factory);
+    printf("factory %s\n", name.c_str());
+    
+    string target = getTarget(factory);
+    printf("target %s\n", target.c_str());
+    
+    deleteDSPFactory(factory);
+      
     DSPServer* serv = (DSPServer*)arg;
     stringstream name_service;
     name_service << searchIP() << ":" << serv->fPort << ":" << host_name << ":" << target;
     lo_address t = lo_address_new("224.0.0.1", "7770");
+    
+    cout << name_service.str() << endl;
     
     while (true) {
     #ifdef WIN32

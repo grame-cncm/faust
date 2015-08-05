@@ -129,7 +129,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         string error;
         llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, 
                                                             argc, argv, 
-                                                            loptions(argv,"-m", ""), 
+                                                            loptions(argv, "-m", ""),
                                                             error, 3);
         if (factory) {
             // Transforming machine code to URL format
@@ -928,6 +928,8 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
                 string port = name_service2.substr(0, pos2);
                 string host_name = name_service3.substr(0, pos3);
                 string target = name_service3.substr(pos3 + 1, string::npos);
+                
+                cout << "ip " << ip << "port " << port << "host_name " << host_name << "target " << target << endl;
                     
                 (*machine_list)[host_name] =  reinterpret_cast<remote_dsp_machine*>(new remote_dsp_machine_aux(ip, atoi(port.c_str()), target));
             }
@@ -982,7 +984,7 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
 
 EXPORT remote_dsp_machine* remote_dsp_machine::create(const std::string& ip, int port, const std::string& target)
 {
-    return reinterpret_cast<remote_dsp_machine*>(new remote_dsp_machine_aux(ip, port, ip));
+    return reinterpret_cast<remote_dsp_machine*>(new remote_dsp_machine_aux(ip, port, target));
 }
 
 EXPORT void remote_dsp_machine::destroy(remote_dsp_machine* machine)

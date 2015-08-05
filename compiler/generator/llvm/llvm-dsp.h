@@ -90,6 +90,11 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
                                              const std::string& target, 
                                              std::string& error_msg, int opt_level = 3);
 
+extern "C" llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content,
+                                                         int argc, const char* argv[],
+                                                         const char* target,
+                                                         char* error_msg, int opt_level);
+
 /**
  * Destroy a Faust DSP factory, that is decrements it's reference counter, possible really deleting the pointer.  
  * 
@@ -256,6 +261,8 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * @return the Faust DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+
+extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
 /**
  * Write a Faust DSP factory into a machine code string.
