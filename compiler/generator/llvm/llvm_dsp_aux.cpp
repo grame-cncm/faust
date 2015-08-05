@@ -1635,7 +1635,7 @@ EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCName(llvm_dsp_factory* factory)
+EXPORT const char* getCName(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(factory->getName().c_str());
@@ -1644,10 +1644,19 @@ EXPORT char* getCName(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
+EXPORT const char* getCSHAKey(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(factory->getSHAKey().c_str()); 
+    } else {
+        return NULL;
+    }
+}
+
+EXPORT const char* getCTarget(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        return strdup(factory->getTarget().c_str()); 
     } else {
         return NULL;
     }

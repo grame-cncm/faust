@@ -19,6 +19,7 @@ public class FaustJNI {
   public final static native void deleteCDSPFactory(long jarg1, llvm_dsp_factory jarg1_);
   public final static native String getCName(long jarg1, llvm_dsp_factory jarg1_);
   public final static native String getCSHAKey(long jarg1, llvm_dsp_factory jarg1_);
+  public final static native String getCTarget(long jarg1, llvm_dsp_factory jarg1_);
   public final static native long getCLibraryList(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteAllCDSPFactories();
   public final static native long getAllCDSPFactories();
