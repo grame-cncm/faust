@@ -23,7 +23,7 @@
 //#define JACK 1
 //#define COREAUDIO 1
 //#define PORTAUDIO 1
-#define IOSAUDIO 1
+//#define IOSAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 

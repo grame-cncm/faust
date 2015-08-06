@@ -13,22 +13,24 @@
 ********************************************************************/
 
 //------ Handle Combo Boxes
-function addItem(id, itemText){
-	var e2=document.getElementById(id);
-	var o=document.createElement('option');
-	o.text=itemText;
+function addItem(id, itemText)
+{
+	var e2 = document.getElementById(id);
+	var o = document.createElement('option');
+	o.text = itemText;
 	e2.options.add(o);
 }
 			
-function clearComboBox(id){
-	while(document.getElementById(id).childNodes.length>0) {
+function clearComboBox(id)
+{
+	while (document.getElementById(id).childNodes.length>0) {
 		document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
 	}
 }
 
 //------ Update Architectures with Plateform change
-function updateArchitectures(){
-
+function updateArchitectures()
+{
 	clearComboBox('architectures');
 		
 	var data = JSON.parse(window.jsonText);
@@ -50,8 +52,8 @@ function updateArchitectures(){
 	}
 }
 
-function uploadTargets(){
-
+function uploadTargets()
+{
 	clearComboBox('platforms');
 	clearComboBox('architectures');
 
@@ -76,22 +78,19 @@ function uploadTargets(){
 *********************  HANDLE POST TO FAUST WEB  ********************
 ********************************************************************/
 
-function exportPatch(event){
-
+function exportPatch(event)
+{
 	var sceneName = document.getElementById("PatchName").innerHTML;
-
 	var faustCode = getFaustEquivalent(window.scenes[window.currentScene], sceneName);
-
 	getSHAKey(document.getElementById("faustweburl").value, sceneName, faustCode, exportFaustCode);
-
 }
 
 /******************************************************************** 
 **************  CALLBACK ONCE SHA KEY WAS CALCULATED  ***************
 ********************************************************************/
 
-function exportFaustCode(shaKey){
-
+function exportFaustCode(shaKey)
+{
 	var xhr = new XMLHttpRequest();
 				
 	var e = document.getElementById("platforms");//get the combobox
@@ -104,12 +103,12 @@ function exportFaustCode(shaKey){
  		
 	var appType = "binary.zip";
 	
-	if(selArch == "android")
+	if (selArch == "android")
 		appType = "binary.apk";
 	
 	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
-	if(qrcodeSpan)
+	if (qrcodeSpan)
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
 			
 	var qrDiv = document.createElement('div');
