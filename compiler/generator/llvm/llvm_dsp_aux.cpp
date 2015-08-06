@@ -136,6 +136,16 @@
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+
+static void splitTarget(const string& target, string& triple, string& cpu)
+{
+    size_t pos1 = target.find_first_of(':');
+    triple = target.substr(0, pos1);
+    if (pos1 != string::npos) {
+        cpu = target.substr(pos1 + 1);
+    }
+}
+
 #else
 #define STREAM_ERROR string
 #define MEMORY_BUFFER MemoryBuffer*
@@ -176,24 +186,29 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-EXPORT bool startMTDSPFactories()
-{
-    try {
-        if (!gDSPFactoriesLock) {
-            gDSPFactoriesLock = new TLockAble();
-        }
-        return true;
-    } catch (...) {
-        return false;
+static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, string& error_msg)
+{   
+    if (factory->initJIT(error_msg)) {
+        return factory;
+    } else {
+        delete factory;
+        return NULL;
     }
 }
 
-EXPORT void stopMTDSPFactories()
+static bool getFactory(const string& sha_key, FactoryTableIt& res)
 {
-    delete gDSPFactoriesLock;
-    gDSPFactoriesLock = 0;
+    FactoryTableIt it;
+    
+    for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
+        if ((*it).first->getSHAKey() == sha_key) {
+            res = it;
+            return true;
+        }
+    }
+    
+    return false;
 }
-
 
 // ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work 
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
@@ -299,43 +314,6 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
         throw faustexception(error.str());
     }
 #endif
-}
-
-EXPORT Module* load_single_module(const string filename, LLVMContext* context)
-{
-    SMDiagnostic err;
-#if defined(LLVM_36)
-    Module* module = parseIRFile(filename, err, *context).get();
-#else
-    Module* module = ParseIRFile(filename, err, *context);
-#endif
-    
-    if (module) {
-        return module;
-    } else {
-        err.print("ParseIRFile failed :", errs());
-        return NULL;
-    }
-}
-
-EXPORT bool link_modules(Module* dst, Module* src, char* error_msg)
-{
-    bool res = false;
-    
-#if defined(LLVM_36)
-    if (Linker::LinkModules(dst, src)) {
-        snprintf(error_msg, 256, "cannot link module");
-#else
-    string err;
-    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
-        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
-#endif
-    } else {
-        res = true;
-    }
-        
-    delete src;
-    return res;
 }
 
 LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
@@ -579,15 +557,6 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
      
     Builder.populateFunctionPassManager(FPM);
     Builder.populateModulePassManager(MPM);
-}
-
-static void splitTarget(const string& target, string& triple, string& cpu)
-{
-    size_t pos1 = target.find_first_of(':');
-    triple = target.substr(0, pos1);
-    if (pos1 != string::npos) {
-        cpu = target.substr(pos1 + 1);
-    }
 }
 
 bool llvm_dsp_factory::initJIT(string& error_msg)
@@ -1027,14 +996,62 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fDSPFactory->fCompute(fDSP, count, input, output);
 }
 
-static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, string& error_msg)
-{   
-    if (factory->initJIT(error_msg)) {
-        return factory;
+// Public C++ API
+
+
+EXPORT Module* load_single_module(const string filename, LLVMContext* context)
+{
+    SMDiagnostic err;
+#if defined(LLVM_36)
+    Module* module = parseIRFile(filename, err, *context).get();
+#else
+    Module* module = ParseIRFile(filename, err, *context);
+#endif
+    
+    if (module) {
+        return module;
     } else {
-        delete factory;
+        err.print("ParseIRFile failed :", errs());
         return NULL;
     }
+}
+
+EXPORT bool link_modules(Module* dst, Module* src, char* error_msg)
+{
+    bool res = false;
+    
+#if defined(LLVM_36)
+    if (Linker::LinkModules(dst, src)) {
+        snprintf(error_msg, 256, "cannot link module");
+#else
+    string err;
+    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
+#endif
+    } else {
+        res = true;
+    }
+        
+    delete src;
+    return res;
+}
+
+EXPORT bool startMTDSPFactories()
+{
+    try {
+        if (!gDSPFactoriesLock) {
+            gDSPFactoriesLock = new TLockAble();
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+EXPORT void stopMTDSPFactories()
+{
+    delete gDSPFactoriesLock;
+    gDSPFactoriesLock = 0;
 }
 
 EXPORT string path_to_content(const string& path)
@@ -1056,22 +1073,6 @@ EXPORT string path_to_content(const string& path)
     delete [] buffer;
     return result;
 }
-
-static bool getFactory(const string& sha_key, FactoryTableIt& res)
-{
-    FactoryTableIt it;
-    
-    for (it = llvm_dsp_factory::gFactoryTable.begin(); it != llvm_dsp_factory::gFactoryTable.end(); it++) {
-        if ((*it).first->getSHAKey() == sha_key) {
-            res = it;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-// Public C++ API
 
 EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char* argv[], 
                                         const string& name, 
@@ -1302,7 +1303,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
         return readDSPFactoryFromBitcodeAux(buffer.get(), target, opt_level);
     }
 #endif
- 
 }
 
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
@@ -1331,9 +1331,9 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
     #if defined(LLVM_36)
-        Module* module = parseIR(buffer, err, *context).get(); // ParseIR takes ownership of the given buffer, so don't delete it
+        Module* module = parseIR(buffer, err, *context).get();  // ParseIR takes ownership of the given buffer, so don't delete it
     #else
-        Module* module = ParseIR(buffer, err, *context); // ParseIR takes ownership of the given buffer, so don't delete it
+        Module* module = ParseIR(buffer, err, *context);        // ParseIR takes ownership of the given buffer, so don't delete it
     #endif
         setlocale(LC_ALL, tmp_local);
         llvm_dsp_factory* factory = 0;
@@ -1384,7 +1384,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
         return readDSPFactoryFromIRAux(buffer.get(), target, opt_level);
     }
 #endif
-
 }
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
@@ -1457,7 +1456,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
         return readDSPFactoryFromMachineAux(buffer.get());
     }
 #endif
-    
 }
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path)
