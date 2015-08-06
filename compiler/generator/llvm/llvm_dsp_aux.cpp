@@ -186,7 +186,7 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory, string& error_msg)
+static llvm_dsp_factory* checkDSPFactory(llvm_dsp_factory* factory, string& error_msg)
 {   
     if (factory->initJIT(error_msg)) {
         return factory;
@@ -295,7 +295,6 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
 void* llvm_dsp_factory::LoadOptimize(const string& function)
 {
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-    return (void*)fJIT->getFunctionAddress(function);
     void* fun = (void*)fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
@@ -468,7 +467,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         error_msg = error_msg_aux;
     } else {
         fResult = NULL;
-        error_msg = "Incorrect LLVM optimisation level";
+        error_msg = "Incorrect LLVM optimization level";
     }
 }
 
@@ -1081,7 +1080,7 @@ EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char* argv[],
 {
     TLock lock(gDSPFactoriesLock);
     
-    return CheckDSPFactory(new llvm_dsp_factory("", argc, argv, name, input, target, error_msg, opt_level), error_msg);
+    return checkDSPFactory(new llvm_dsp_factory("", argc, argv, name, input, target, error_msg, opt_level), error_msg);
 }
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, 
@@ -1138,7 +1137,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             Sllvm_dsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc1, argv1, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
+        } else if ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, argc1, argv1, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
@@ -1155,7 +1154,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         Sllvm_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;
-    } else if ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
+    } else if ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
         llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
         return factory;
     } else {
@@ -1257,7 +1256,7 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         LLVMContext* context = new LLVMContext();
         Module* module = ParseBitcodeFile(buffer, *context, &error_msg);
         llvm_dsp_factory* factory = 0;
-        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
+        if (module && ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
@@ -1338,7 +1337,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         setlocale(LC_ALL, tmp_local);
         llvm_dsp_factory* factory = 0;
         string error_msg;
-        if (module && ((factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
+        if (module && ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } else {
@@ -1409,7 +1408,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
     } else {
         string error_msg;
         try {
-            llvm_dsp_factory* factory = CheckDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str()), error_msg);
+            llvm_dsp_factory* factory = checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str()), error_msg);
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } catch (faustexception& e) {

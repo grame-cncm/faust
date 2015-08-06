@@ -43,7 +43,6 @@ typedef struct LLVMResult {
     
 } LLVMResult;
 
-
 #define LVVM_BACKEND_NAME "Faust LLVM backend"
 
 /*
