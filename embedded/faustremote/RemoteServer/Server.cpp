@@ -468,18 +468,11 @@ DSPServer::~DSPServer() {}
 // Register server as available
 void* DSPServer::registration(void* arg) 
 {
+    DSPServer* serv = (DSPServer*)arg;
+    
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
-    
-    // Dummmy factory to get 'target'
-    //string error;
-    //llvm_dsp_factory* factory = createDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error, 0);
-    char error1[256];
-    llvm_dsp_factory* factory = createCDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error1, 0);
-    string target = getCTarget(factory);
-    deleteDSPFactory(factory);
-      
-    DSPServer* serv = (DSPServer*)arg;
+    char* target = getCDSPMachineTarget();
     stringstream name_service;
     name_service << searchIP() << ":" << serv->fPort << ":" << host_name << ":" << target;
     lo_address adress = lo_address_new("224.0.0.1", "7770");
@@ -494,6 +487,7 @@ void* DSPServer::registration(void* arg)
         lo_send(adress, "/faustcompiler", "is", getpid(), name_service.str().c_str());
     }
     
+    freeCDSP(target);
     pthread_exit(NULL);
 }
     

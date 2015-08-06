@@ -37,15 +37,22 @@ extern "C"
     /* Opaque types */
 	
     /*!
-     \addtogroup llvmc C interface for compiling Faust code. Note that the API is not thread safe and must be used with 
-     appropriate protections (like mutexes) in a multi-thread context.
-     @{
+     \addtogroup llvmc C interface for compiling Faust code. Note that the API is not thread safe : 
+     use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context.
+    @{
      */
     
     typedef struct {} llvm_dsp_factory;
     
     typedef struct {} llvm_dsp;
-    
+      
+    /**
+     * Get the target (triple + CPU) of the DSP machine.
+     * 
+     * @return the target as a string (to be deleted by the caller).
+     */
+     char* getCDSPMachineTarget();
+  
     /**
      * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
      * if already allocated in the factories cache.
@@ -108,7 +115,7 @@ extern "C"
      * 
      * @return the name as a string (to be deleted by the caller).
      */
-    const char* getCName(llvm_dsp_factory* factory);
+    char* getCName(llvm_dsp_factory* factory);
 
     /**
      * Get the SHA Key of the DSP factory.
@@ -117,17 +124,8 @@ extern "C"
      * 
      * @return the SHA key as a string (to be deleted by the caller).
      */
-    const char* getCSHAKey(llvm_dsp_factory* factory);
-    
-    /**
-     * Get the target (triple + CPU) of the DSP factory.
-     *
-     * @param factory - the DSP factory.
-     * 
-     * @return the target as a string (to be deleted by the caller).
-     */
-     const char* getCTarget(llvm_dsp_factory* factory);
-
+    char* getCSHAKey(llvm_dsp_factory* factory);
+  
     /**
      * Get the list of library dependancies of the DSP factory as a null-terminated array.
      *
@@ -183,7 +181,7 @@ extern "C"
      *
      * @return the LLVM bitcode as a string (to be deleted by the caller).
      */
-    const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
+    char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
     
     /**
      * Create a Faust DSP factory from a LLVM bitcode file. Note that the library keeps an internal cache of all 
@@ -225,7 +223,7 @@ extern "C"
      *
      * @return the LLVM IR (textual) as a string (to be deleted by the caller).
      */
-    const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
+    char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
     
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) file. Note that the library keeps an internal cache of all 
@@ -267,7 +265,7 @@ extern "C"
      *
      * @return the machine code as a string (to be deleted by the caller).
      */
-    const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+    char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
 
     /**
      * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
@@ -310,10 +308,10 @@ extern "C"
      *
      * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
      */ 
-    const char* expandCDSPFromFile(const char* filename, 
-                                   int argc, const char* argv[], 
-                                   char* sha_key,
-                                   char* error_msg);
+    char* expandCDSPFromFile(const char* filename, 
+                           int argc, const char* argv[], 
+                           char* sha_key,
+                           char* error_msg);
     
     /**
      * From a DSP source string, creates a 'self-contained' DSP source string where all needed librairies have been included.
@@ -328,11 +326,11 @@ extern "C"
      *
      * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
      */ 
-    const char* expandCDSPFromString(const char* name_app, 
-                                     const char* dsp_content, 
-                                     int argc, const char* argv[], 
-                                     char* sha_key,
-                                     char* error_msg);
+    char* expandCDSPFromString(const char* name_app, 
+                             const char* dsp_content, 
+                             int argc, const char* argv[], 
+                             char* sha_key,
+                             char* error_msg);
     
     /**
      * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
@@ -403,9 +401,9 @@ extern "C"
     void generateCSHA1(const char* data, char* key);
     
     /**
-     * The free function to be used on memory returned by getCName, getCSHAKey, getCLibraryList, 
+     * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCLibraryList, 
      * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine, 
-     * expandCDSPFromString end expandCDSPFromFile.
+     * expandCDSPFromString and expandCDSPFromFile.
      * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
      * 
      * @param ptr - the pointer to be deleted.

@@ -1214,11 +1214,9 @@ EXPORT std::string getSHAKey(llvm_dsp_factory* factory)
     return factory->getSHAKey();
 }
 
-EXPORT std::string getTarget(llvm_dsp_factory* factory)
+EXPORT std::string getDSPMachineTarget()
 {
-    TLock lock(gDSPFactoriesLock);
-    
-    return factory->getTarget();
+    return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
 }
 
 EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory)
@@ -1630,7 +1628,7 @@ EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT const char* getCName(llvm_dsp_factory* factory)
+EXPORT char* getCName(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(factory->getName().c_str());
@@ -1639,7 +1637,7 @@ EXPORT const char* getCName(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT const char* getCSHAKey(llvm_dsp_factory* factory)
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(factory->getSHAKey().c_str()); 
@@ -1648,13 +1646,9 @@ EXPORT const char* getCSHAKey(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT const char* getCTarget(llvm_dsp_factory* factory)
+EXPORT char* getCDSPMachineTarget()
 {
-    if (factory) {
-        return strdup(factory->getTarget().c_str()); 
-    } else {
-        return NULL;
-    }
+    return strdup(getDSPMachineTarget().c_str()); 
 }
 
 EXPORT const char** getCLibraryList(llvm_dsp_factory* factory)
@@ -1686,7 +1680,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
     return readDSPFactoryFromBitcode(bit_code, target, opt_level);
 }
 
-EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
+EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(writeDSPFactoryToBitcode(factory).c_str());
@@ -1712,7 +1706,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
     return readDSPFactoryFromIR(ir_code, target, opt_level);
 }
 
-EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
+EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(writeDSPFactoryToIR(factory).c_str());
@@ -1739,7 +1733,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
     return readDSPFactoryFromMachine(machine_code);
 }
 
-EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
 {
     if (factory) {
         return strdup(writeDSPFactoryToMachine(factory).c_str());
@@ -1765,7 +1759,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
     return NULL;
 }
 
-EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
 {
     return NULL;
 }

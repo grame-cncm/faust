@@ -210,7 +210,7 @@ EXPORT std::string getName(llvm_dsp_factory* factory);
 
 EXPORT std::string getSHAKey(llvm_dsp_factory* factory);
 
-EXPORT std::string getTarget(llvm_dsp_factory* factory);
+EXPORT std::string getDSPMachineTarget();
 
 EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
@@ -295,11 +295,11 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
 
-EXPORT const char* getCName(llvm_dsp_factory* factory);
+EXPORT char* getCName(llvm_dsp_factory* factory);
 
-EXPORT const char* getCSHAKey(llvm_dsp_factory* factory);
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
 
-EXPORT const char* getCTarget(llvm_dsp_factory* factory);
+EXPORT char* getCDSPMachineTarget();
 
 EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
     
@@ -313,7 +313,7 @@ EXPORT void stopMTCDSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 
-EXPORT const char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
+EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level);
 
@@ -321,7 +321,7 @@ EXPORT void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char*
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level);
 
-EXPORT const char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
+EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level);
 
@@ -329,7 +329,7 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
-EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
 
@@ -357,7 +357,7 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void generateCSHA1(const char* data, char* key);
 
-EXPORT void freeCDSP(void* ptr);
+EXPORT void freeCDSP(const char* ptr);
 
 #ifdef __cplusplus
 }

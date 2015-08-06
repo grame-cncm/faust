@@ -32,14 +32,24 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup llvmcpp C++ interface for compiling Faust code. Note that the API is not thread safe and must be used with 
- appropriate protections (like mutexes) in a multi-thread context.
+ \addtogroup llvmcpp C++ interface for compiling Faust code. Note that the API is not thread safe : 
+ use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
  @{
  */
 
 /* Opaque type */
 
 class llvm_dsp_factory {};
+
+
+/**
+ * Get the target (triple + CPU) of the DSP machine.
+ * 
+ * @return the target as a string.
+ */
+std::string getDSPMachineTarget();
+
+extern "C" char* getCDSPMachineTarget();
 
 /**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
@@ -124,17 +134,6 @@ extern "C" const char* getCName(llvm_dsp_factory* factory);
 std::string getSHAKey(llvm_dsp_factory* factory);
 
 extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
-
-/**
- * Get the target (triple + CPU) of the DSP factory.
- *
- * @param factory - the DSP factory.
- * 
- * @return the target as a string.
- */
-std::string getTarget(llvm_dsp_factory* factory);
-
-extern "C" const char* getCTarget(llvm_dsp_factory* factory);
 
 /**
  * Get the list of library dependancies of the Faust DSP factory.
@@ -415,6 +414,16 @@ void deleteDSPInstance(llvm_dsp* dsp);
  * @return the computed SHA1 key.
  */ 
 std::string generateSHA1(const std::string& data);
+
+/**
+ * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCLibraryList, 
+ * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine, 
+ * expandCDSPFromString and expandCDSPFromFile.
+ * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
+ * 
+ * @param ptr - the pointer to be deleted.
+ */
+void freeCDSP(void* ptr);
 
 /*!
  @}
