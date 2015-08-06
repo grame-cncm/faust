@@ -135,12 +135,14 @@
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
+#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
 #else
 #define STREAM_ERROR string
 #define MEMORY_BUFFER MemoryBuffer*
 #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
+#define GET_CPU_NAME llvm::sys::getHostCPUName()
 #endif
 
 #if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36)
@@ -431,7 +433,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMCo
     Init();
     fSHAKey = sha_key;
     fOptLevel = opt_level;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str()) : target;
+    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
     fResult->fContext = context;
@@ -475,7 +477,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         
         fSHAKey = sha_key;
         fOptLevel = opt_level;
-        fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str()) : target;
+        fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
         Init();
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         fObjectCache = NULL;
