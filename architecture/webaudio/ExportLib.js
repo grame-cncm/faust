@@ -15,14 +15,13 @@ function getTargets(exportUrl, callback, errCallback)
 	var getrequest = new XMLHttpRequest();
 				
 	getrequest.onreadystatechange = function() {
-		if(getrequest.readyState == 4 && getrequest.status == 200)				    		
+		if (getrequest.readyState == 4 && getrequest.status == 200)				    		
 			callback(getrequest.responseText);
-		else if(getrequest.readyState == 4 && getrequest.status == 400)				    		
+		else if (getrequest.readyState == 4 && getrequest.status == 400)				    		
 			errCallback(getrequest.responseText);
 	}
 				
 	var targetsUrl = exportUrl + "/targets";
-				
 	getrequest.open("GET", targetsUrl, true);
 	getrequest.send(null);
 }	
@@ -41,15 +40,13 @@ function getSHAKey(exportUrl, name, source_code, callback, errCallback)
 
 	var params = new FormData();
 	params.append('file', file);
-
-	var urlToTarget = exportUrl + "/filepost";	
-	
+    var urlToTarget = exportUrl + "/filepost";	
 	newRequest.open("POST", urlToTarget, true);
 
 	newRequest.onreadystatechange = function() {
-		if(newRequest.readyState == 4 && newRequest.status == 200)
+		if (newRequest.readyState == 4 && newRequest.status == 200)
 			callback(newRequest.responseText);
-		else if(newRequest.readyState == 4 && newRequest.status == 400)
+		else if (newRequest.readyState == 4 && newRequest.status == 400)
 			errCallback(newRequest.responseText);
 	}
 				
@@ -91,8 +88,7 @@ function getQrCode(url, sha, plateform, architecture, target, size)
 	whiteContainer.style.cssText = "width:" + size.toString() + "px; height:" + size.toString() + "px; background-color:white; position:relative; margin-left:auto; margin-right:auto; padding:3px;";
 	
 	var qqDiv = document.createElement('qrcode');
-	
-	var qq = new QRCode(qqDiv, {
+    var qq = new QRCode(qqDiv, {
     	text: downloadString,
 	    width: size,
     	height: size,
@@ -102,7 +98,6 @@ function getQrCode(url, sha, plateform, architecture, target, size)
 	});
 
 	whiteContainer.appendChild(qqDiv);
-
 	return whiteContainer;
 }
 

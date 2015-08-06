@@ -15,7 +15,8 @@
 ******************* INIT/LOAD/UNLOAD EXPORT SCENE ******************
 ********************************************************************/
 
-function onloadExportScene(scene){
+function onloadExportScene(scene)
+{
 // 	window.scenes[1].saveScene();
 
 	scene.integrateSceneInBody();
@@ -23,14 +24,14 @@ function onloadExportScene(scene){
 	document.body.style.background = "url('"+window.baseImg + "output-bkg.gif') 0 0 repeat";
 	var appName = prompt("Choisis le nom de ton application", "");
 
-	if(appName == null)
+	if (appName == null)
 		appName = "MonApplication";
 			
 	initExportScene(scene, appName);
 }
 
-function initExportScene(scene, name){
-
+function initExportScene(scene, name)
+{
 	var container = scene.getSceneContainer();
 
 //--------- HEADER
@@ -60,7 +61,7 @@ function initExportScene(scene, name){
 	androidApp.appendChild(androidImg);
 
 // -- Once you have been to the finish scene, you probably don't need tooltips anymore.
-	if(isTooltipEnabled()){
+	if (isTooltipEnabled()) {
 		changeSceneToolTip(0);
 		disableTooltips();
 	}
@@ -70,22 +71,20 @@ function initExportScene(scene, name){
 	backImg.src = window.baseImg + "BACK.png";
 	backImg.onclick = function(){ previousScene()};
 	container.appendChild(backImg);
-	
 
 //-------- GET FAUST EQUIVALENT & LAUNCH EXPORT
 	var faustSource = getFaustEquivalent(window.scenes[1], name)
 	
-	if(faustSource)
+	if (faustSource)
 		getAndroidApp(name, faustSource);
-
 }
 
-function onunloadExportScene(scene){
-	
+function onunloadExportScene(scene)
+{
 //--- clean graphical elements
 	var children = scene.getSceneContainer().childNodes;
 	
-	for(var i=children.length-1; i>=0; i--)
+	for (var i=children.length-1; i>=0; i--)
 		scene.getSceneContainer().removeChild(children[i]);
 }
 
@@ -94,14 +93,14 @@ function onunloadExportScene(scene){
 ********************************************************************/
 
 //--- Create QrCode once precompile request has finished
-function terminateAndroidMenu(sha){
-
-	if(document.getElementById("androidImg"))
+function terminateAndroidMenu(sha)
+{
+	if (document.getElementById("androidImg"))
 		document.getElementById("androidButton").removeChild(document.getElementById("androidImg"));
 
 	var url = "http://faustservice.grame.fr";
 
-	if(document.getElementById("androidButton")){
+	if (document.getElementById("androidButton")) {
 	
 		var qrcodeDiv = getQrCode(url, sha, "android", "android", "binary.apk", 170);
 		qrcodeDiv.id = "qrcode";
@@ -111,20 +110,15 @@ function terminateAndroidMenu(sha){
 	}
 }
 
-function exportAndroidCallback(sha){
-
+function exportAndroidCallback(sha)
+{
 	sendPrecompileRequest("http://faustservice.grame.fr", sha, "android", "android", terminateAndroidMenu);
 }
 
-function getAndroidApp(name, source){
-
+function getAndroidApp(name, source)
+{
 	getSHAKey("http://faustservice.grame.fr", name, source, exportAndroidCallback);
 }
-
-
-
-
-
 
 /******************************************************************** 
 ************************* PLUS UTILISÉ...  *************************
@@ -132,7 +126,8 @@ function getAndroidApp(name, source){
 ********************************************************************/
 
 // Plus utilisé (c'était pour faire des flèches en svg)
-function drawArrow(svgCanvas, x1, y1, x2, y2){
+function drawArrow(svgCanvas, x1, y1, x2, y2)
+{
 	// Create a connector visual line
 	var svgns = "http://www.w3.org/2000/svg";
 	
@@ -177,16 +172,15 @@ function drawArrow(svgCanvas, x1, y1, x2, y2){
 }
 
 // Plus utilisé (c'était pour faire l'export en page Web)
-function equFaustModule(factory){
-
+function equFaustModule(factory)
+{
 	if (!factory) {
     	alert(faust.getErrorMessage());    
         return null;
 	}
        
     var scene = window.scenes[2];   
-     
-	var faustModule = createNode(idX++, window.x, window.y, window.name, window.parent, scene.removeModule);
+  	var faustModule = createNode(idX++, window.x, window.y, window.name, window.parent, scene.removeModule);
 
  	faustModule.setSource(window.source);
  	faustModule.setDSP(factory); 	
@@ -224,13 +218,12 @@ function equFaustModule(factory){
 	getAndroidApp(window.name, window.source);
 }
 
-function terminateWebMenu(sha){
-
+function terminateWebMenu(sha)
+{
 	document.getElementById("webButton").removeChild(document.getElementById("webImg"));
 
 	var url = "http://faustservice.grame.fr" + "/" + sha +"/web/asmjs-links/binary.zip";
-
-	var link = document.createElement('a');
+    var link = document.createElement('a');
 	link.href = url;
 	var title = document.createElement("h6");
 	title.appendChild(document.createTextNode("Télécharger page Web"));
@@ -239,13 +232,13 @@ function terminateWebMenu(sha){
 	document.getElementById("webButton").appendChild(link);
 }
 
-function exportWebCallback(sha){
-	
+function exportWebCallback(sha)
+{
 	sendPrecompileRequest("http://faustservice.grame.fr", sha, "web", "asmjs", terminateWebMenu);
 }	
 
-function getWebApp(faustDiv){
-
+function getWebApp(faustDiv)
+{
 	var shaKey = getSHAKey("http://faustservice.grame.fr", faustDiv.getName(), faustDiv.getSource(), exportWebCallback);
 }
 

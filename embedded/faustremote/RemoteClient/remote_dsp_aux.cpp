@@ -353,8 +353,9 @@ void remote_dsp_aux::buildUserInterface(UI* ui)
             fInControl[counterIn] = init;
             isInItem = true;
             
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
+            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
                 ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
+            }
         }
         // Meta Data declaration for exit items
         else if ((*it)->type.find("bargraph") != string::npos){
@@ -362,50 +363,52 @@ void remote_dsp_aux::buildUserInterface(UI* ui)
             fOutControl[counterOut] = init;
             isOutItem = true;
             
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++){
+            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
                 ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
             }
         }
         // Meta Data declaration for group opening or closing
         else {
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++)
+            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
                 ui->declare(0, it2->first.c_str(), it2->second.c_str());
+            }
         }
         
         // Item declaration
         string type = (*it)->type;
-        if (type == "hgroup") 
+        if (type == "hgroup") {
             ui->openHorizontalBox((*it)->label.c_str());
         
-        else if (type == "vgroup") 
+        } else if (type == "vgroup") { 
              ui->openVerticalBox((*it)->label.c_str());
      
-        else if (type == "tgroup")
+        } else if (type == "tgroup") {
             ui->openTabBox((*it)->label.c_str());
         
-        else if (type == "vslider")
+        } else if (type == "vslider") {
             ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
-        else if (type == "hslider")
+        } else if (type == "hslider") {
             ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
         
-        else if (type == "checkbox")
+        } else if (type == "checkbox") {
             ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
         
-        else if (type == "hbargraph")
+        } else if (type == "hbargraph") {
             ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
-        else if (type == "vbargraph")
+        } else if (type == "vbargraph") {
             ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
         
-        else if (type == "nentry")
+        } else if (type == "nentry") {
             ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
         
-        else if (type == "button")
+        } else if (type == "button") {
             ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
         
-        else if (type == "close")
+        } else if (type == "close") {
             ui->closeBox();
+        }
             
         if (isInItem)
             counterIn++;
@@ -902,21 +905,8 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
             // If the server machine did not send a message for 3 secondes, it is considered disconnected
             if ((now.sec - iterMem.timetag.sec) < 3) {
                 
-                // Decompose HostName to have Name, Ip and Port of service
-                /*
-                string serviceNameCpy(iterMem.hostname);
-                
-                int pos = serviceNameCpy.find("._");
-                string remainingString = serviceNameCpy.substr(pos+2, string::npos);
-                pos = remainingString.find("._");
-                string serviceIP = remainingString.substr(0, pos);
-                string hostName = remainingString.substr(pos+2, string::npos);
-                
-                int pos2 = serviceIP.find(":");
-                string ipAddr = serviceIP.substr(0, pos2);
-                string port = serviceIP.substr(pos2+1, string::npos);
-                */
-                
+                // Decompose HostName to have Name, Ip and Port of service, Target
+                   
                 string name_service1 = iterMem.hostname;
                 int pos1 = name_service1.find(":");
                 string name_service2 = name_service1.substr(pos1 + 1, string::npos);
@@ -928,8 +918,6 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
                 string port = name_service2.substr(0, pos2);
                 string host_name = name_service3.substr(0, pos3);
                 string target = name_service3.substr(pos3 + 1, string::npos);
-                
-                cout << "ip " << ip << "port " << port << "host_name " << host_name << "target " << target << endl;
                     
                 (*machine_list)[host_name] =  reinterpret_cast<remote_dsp_machine*>(new remote_dsp_machine_aux(ip, atoi(port.c_str()), target));
             }
