@@ -476,7 +476,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         fSHAKey = sha_key;
         fOptLevel = opt_level;
         fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str()) : target;
-        Init();    
+        Init();
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         fObjectCache = NULL;
     #endif
@@ -581,14 +581,10 @@ static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
 
 static void splitTarget(const string& target, string& triple, string& cpu)
 {
-    size_t pos1 = target.find_first_of('-', 0);
-    size_t pos2 = target.find_first_of('-', pos1 + 1);
-    size_t pos3 = target.find_first_of('-', pos2 + 1);
-       
-    triple = target.substr(0, pos3);
-    
-    if (pos3 != string::npos) {
-        cpu = target.substr(pos3 + 1);
+    size_t pos1 = target.find_first_of(':');
+    triple = target.substr(0, pos1);
+    if (pos1 != string::npos) {
+        cpu = target.substr(pos1 + 1);
     }
 }
 

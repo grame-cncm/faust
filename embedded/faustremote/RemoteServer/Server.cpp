@@ -23,7 +23,7 @@
 //#define JACK 1
 //#define COREAUDIO 1
 //#define PORTAUDIO 1
-#define IOSAUDIO 1
+//#define IOSAUDIO 1
 
 #include "faust/audio/netjack-dsp.h"
 
@@ -472,30 +472,17 @@ void* DSPServer::registration(void* arg)
     gethostname(host_name, sizeof(host_name));
     
     // Dummmy factory to get 'target'
-    string error;
+    //string error;
     //llvm_dsp_factory* factory = createDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error, 0);
     char error1[256];
     llvm_dsp_factory* factory = createCDSPFactoryFromString("dummy", "process = !;", 0, NULL, "", error1, 0);
-    assert(factory);
-    llvm_dsp* dsp = createDSPInstance(factory);
-    
-    printf("dsp %d\n", dsp->getNumInputs());
-    
-    printf("factory %p\n", factory);
-    string name = getName(factory);
-    printf("factory %s\n", name.c_str());
-    
-    string target = getTarget(factory);
-    printf("target %s\n", target.c_str());
-    
+    string target = getCTarget(factory);
     deleteDSPFactory(factory);
       
     DSPServer* serv = (DSPServer*)arg;
     stringstream name_service;
     name_service << searchIP() << ":" << serv->fPort << ":" << host_name << ":" << target;
-    lo_address t = lo_address_new("224.0.0.1", "7770");
-    
-    cout << name_service.str() << endl;
+    lo_address adress = lo_address_new("224.0.0.1", "7770");
     
     while (true) {
     #ifdef WIN32
@@ -504,7 +491,7 @@ void* DSPServer::registration(void* arg)
         usleep(1000000);
     #endif
         pthread_testcancel();
-        lo_send(t, "/faustcompiler", "is", getpid(), name_service.str().c_str());
+        lo_send(adress, "/faustcompiler", "is", getpid(), name_service.str().c_str());
     }
     
     pthread_exit(NULL);
@@ -748,6 +735,7 @@ bool DSPServer::createInstance(connection_info* con_info)
 {
     llvm_dsp_factory* factory = fFactories[con_info->fFactoryKey].second;
     audio_dsp* audio = NULL;
+    llvm_dsp* dsp = NULL;
     
     if (factory) {
     
@@ -766,6 +754,16 @@ bool DSPServer::createInstance(connection_info* con_info)
                     goto error;
                 }
             } else if (con_info->fAudioType == "kLocalAudio") {
+                
+                 // Steph : 06/15
+                if (!(dsp = createDSPInstance(factory))) {
+                    return false;
+                }
+                
+                if (fCreateDSPInstanceCb) {
+                    fCreateDSPInstanceCb(dsp, fCreateDSPInstanceCb_arg);
+                }
+                
             #ifdef COREAUDIO
                 audio = new coreaudio_dsp(factory, 
                                         fFactories[con_info->fFactoryKey].first, 
@@ -781,7 +779,7 @@ bool DSPServer::createInstance(connection_info* con_info)
                 }
             #endif
             #ifdef IOSAUDIO
-                audio = new iosaudio_dsp(factory, 
+                audio = new iosaudio_dsp(factory,
                                         fFactories[con_info->fFactoryKey].first, 
                                         con_info->fInstanceKey,
                                         fCreateDSPInstanceCb, 

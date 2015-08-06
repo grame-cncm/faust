@@ -695,8 +695,8 @@ int remote_DNS::pingHandler(const char* path, const char* types,
     messageSender.hostname = (char*)argv[1];
     lo_timetag_now(&messageSender.timetag);
     stringstream convert;
-    convert << messageSender.hostname  << ":" << messageSender.pid;
-    
+    convert << messageSender.hostname << ":" << messageSender.pid;
+  
     if (gDNS->fLocker.Lock()) {
         gDNS->fClients[convert.str()] = messageSender;
         gDNS->fLocker.Unlock();

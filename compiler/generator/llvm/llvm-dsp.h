@@ -112,6 +112,8 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
  */
 std::string getName(llvm_dsp_factory* factory);
 
+extern "C" const char* getCName(llvm_dsp_factory* factory);
+
 /**
  * Get the SHA Key of the DSP factory.
  *
@@ -121,6 +123,8 @@ std::string getName(llvm_dsp_factory* factory);
  */
 std::string getSHAKey(llvm_dsp_factory* factory);
 
+extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
+
 /**
  * Get the target (triple + CPU) of the DSP factory.
  *
@@ -129,6 +133,8 @@ std::string getSHAKey(llvm_dsp_factory* factory);
  * @return the target as a string.
  */
 std::string getTarget(llvm_dsp_factory* factory);
+
+extern "C" const char* getCTarget(llvm_dsp_factory* factory);
 
 /**
  * Get the list of library dependancies of the Faust DSP factory.
