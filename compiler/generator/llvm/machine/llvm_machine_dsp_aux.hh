@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,8 +68,7 @@ class llvm_dsp_factory : public smartable {
         int getOptlevel();
 
         ExecutionEngine* fJIT;
-
-        FaustObjectCache* fObjectCache;
+        FaustObjectCache fObjectCache;
         LLVMResult* fResult;
      
         int fOptLevel;
@@ -89,8 +88,7 @@ class llvm_dsp_factory : public smartable {
         metadataFun fMetadata;
         
         void* LoadOptimize(const string& function);
-        void Init();
-        
+         
         static int gInstance;
                    
   public:

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,25 +59,6 @@
 #define MAX_OPT_LEVEL 5
 
 using namespace llvm;
-
-EXPORT string generateSHA1(const string& dsp_content)
-{
-    // compute SHA1 key
-    unsigned char obuf[20];
-    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
-    
-    // convert SHA1 key into hexadecimal string
-    string sha1key;
-    for (int i = 0; i < 20; i++) {
-        const char* H = "0123456789ABCDEF";
-        char c1 = H[(obuf[i] >> 4)];
-        char c2 = H[(obuf[i] & 15)];
-        sha1key += c1;
-        sha1key += c2;
-    }
-    
-    return sha1key;
-}
 
 // Factories instances management
 int llvm_dsp_factory::gInstance = 0;
@@ -169,20 +150,7 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
 }
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
-{
-    Init();
-    fSHAKey = sha_key;
-   
-    // Restoring the cache
-    fObjectCache = new FaustObjectCache(machine_code);
-    
-    // Creates module and context
-    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
-    fResult->fContext = new LLVMContext();
-    fResult->fModule = new Module(LVVM_BACKEND_NAME, *fResult->fContext);
- }
-
-void llvm_dsp_factory::Init()
+    :fObjectCache(machine_code)
 {
     fJIT = 0;
     fNew = 0;
@@ -195,6 +163,12 @@ void llvm_dsp_factory::Init()
     fClassName = "mydsp";
     fExtName = "ModuleDSP";
     fTarget = llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str();
+    fSHAKey = sha_key;
+    
+    // Creates module and context
+    fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
+    fResult->fContext = new LLVMContext();
+    fResult->fModule = new Module(LVVM_BACKEND_NAME, *fResult->fContext);
 }
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
@@ -232,7 +206,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     EngineBuilder builder(unique_ptr<Module>(fResult->fModule));
     TargetMachine* tm = builder.selectTarget();
     fJIT = builder.create(tm);
-    fJIT->setObjectCache(fObjectCache);
+    fJIT->setObjectCache(&fObjectCache);
     fJIT->finalizeObject();
     
     // Run static constructors.
@@ -249,7 +223,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fCompute = (computeFun)LoadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)LoadOptimize("metadata" + fClassName);
         return true;
-     } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
+    } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
         error_msg = e.Message();
         return false;
     }
@@ -257,8 +231,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
 
 llvm_dsp_factory::~llvm_dsp_factory()
 {
-    delete fObjectCache;
-
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fResult->fModule is kept and deleted by fJIT
@@ -722,6 +694,25 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
     if (dsp) {
         delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
     }
+}
+
+EXPORT string generateSHA1(const string& dsp_content)
+{
+    // compute SHA1 key
+    unsigned char obuf[20];
+    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
+    
+    // convert SHA1 key into hexadecimal string
+    string sha1key;
+    for (int i = 0; i < 20; i++) {
+        const char* H = "0123456789ABCDEF";
+        char c1 = H[(obuf[i] >> 4)];
+        char c2 = H[(obuf[i] & 15)];
+        sha1key += c1;
+        sha1key += c2;
+    }
+    
+    return sha1key;
 }
 
 EXPORT void generateCSHA1(const char* data, char* key)
