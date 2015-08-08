@@ -68,7 +68,7 @@ install:
 	install faust2api $(dest)
 	install faust2raqt $(dest)
 	install faust2gen $(dest)
-	
+	install faust2md $(dest)
 
 uninstall:
 	rm -f $(dest)/faustpath
@@ -127,6 +127,7 @@ uninstall:
 	rm -f $(dest)/faust2api
 	rm -f $(dest)/faust2raqt
 	rm -f $(dest)/faust2gen
+	rm -f $(dest)/faust2md
 	
 
 

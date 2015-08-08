@@ -84,7 +84,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -static -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -static-libstdc++ -static-libgcc -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
 
         if [ $(which faust2pd) ]; then
         	faust2pd -s $F2PDPOLY $f.xml
