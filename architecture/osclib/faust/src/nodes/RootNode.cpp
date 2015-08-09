@@ -237,7 +237,6 @@ bool RootNode::accept( const Message* msg )
         } else if (val == kXmitFilter) {
             for (int i = 1 ; i < msg->size(); i++) {
                 msg->param(i, str);
-                printf("XMITFILTER WITH MSG = %s\n", str.c_str());
                 OSCControler::addFilteredPath(str);
             }
         }
