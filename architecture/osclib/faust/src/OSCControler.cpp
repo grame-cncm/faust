@@ -91,24 +91,23 @@ static bool getXmitOption (int argc, char *argv[], const std::string& option, bo
 }
 
 static void treatXmitFilterOption (int argc, char *argv[], const std::string& option)
-    {
-        for (int i=0; i < argc-1; i++) {
+{
+    for (int i = 0; i < argc-1; i++) {
+        
+        if (option == argv[i]) {
+            int j = i+1;
             
-            if (option == argv[i]) {
-                int j = i+1;
-                
-                while(j<argc){
-                    if(argv[j][0] == '-')
-                        return;
-                    else
-                        OSCControler::addFilteredPath(argv[j]);
-                    
-                    j++;
+            while (j < argc) {
+                if (argv[j][0] == '-') {
+                    return;
+                } else {
+                    OSCControler::addFilteredPath(argv[j]);
                 }
+                j++;
             }
         }
     }
-
+}
 
 //--------------------------------------------------------------------------
 OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
@@ -121,8 +120,7 @@ OSCControler::OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCal
 	gXmit = getXmitOption (argc, argv, kXmitOpt, false);
     
     treatXmitFilterOption(argc, argv, kXmitFilterOpt);
-    
-
+ 
 	fFactory = new FaustFactory(ui, io);
 	fOsc	= new OSCSetup(errCallback, arg);
 }

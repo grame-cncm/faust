@@ -220,42 +220,34 @@ bool RootNode::accept( const Message* msg )
 		return true;
 	}
 
-	if (MessageDriven::accept (msg))
+	if (MessageDriven::accept (msg)) {
 		return true;
-
-	else if ((msg->size() >= 2) && (msg->param(0, val))) {
+	} else if ((msg->size() >= 2) && (msg->param(0, val))) {
 		string str; int num;
-		if ((val == kDestMsg) && (msg->param(1, str)))
+		if ((val == kDestMsg) && (msg->param(1, str))) {
 			oscout.setAddress(str);
-		else if ((val == kUdpOutPortMsg) && (msg->param(1, num))) {
+		} else if ((val == kUdpOutPortMsg) && (msg->param(1, num))) {
 			*fUDPOut = num;
 			oscout.setPort(num);
-		}
-		else if ((val == kUdpErrPortMsg) && (msg->param(1, num))) {
+		} else if ((val == kUdpErrPortMsg) && (msg->param(1, num))) {
 			*fUDPErr = num;
 			oscerr.setPort(num);
-		}
-		else if ((val == kXmitMsg) && (msg->param(1, num)))
+		} else if ((val == kXmitMsg) && (msg->param(1, num))) {
 			OSCControler::gXmit = num ? true : false;
-        
-        else if(val == kXmitFilter){
-            
-            printf("XMITFILER WITH %i params\n", msg->size());
-            
-            for(int i = 1 ; i<msg->size(); i++){
+        } else if (val == kXmitFilter) {
+            for (int i = 1 ; i < msg->size(); i++) {
                 msg->param(i, str);
                 printf("XMITFILTER WITH MSG = %s\n", str.c_str());
                 OSCControler::addFilteredPath(str);
             }
         }
-	}
-    else if((msg->size() == 1) && (msg->param(0, val))){
-        if(val == kXmitFilter)
+    } else if((msg->size() == 1) && (msg->param(0, val))) { 
+        if (val == kXmitFilter) {
             OSCControler::resetFilteredPaths();
-    }
-    
-	else if (fIO)							// when still not handled and if a IO controler is set
+        }
+    } else if (fIO) {						// when still not handled and if a IO controler is set
 		return acceptSignal (msg);			// try to read signal data
+    }
 	return false;
 }
 
