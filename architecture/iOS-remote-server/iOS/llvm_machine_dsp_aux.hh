@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,6 +68,7 @@ class llvm_dsp_factory : public smartable {
         int getOptlevel();
 
         ExecutionEngine* fJIT;
+
         FaustObjectCache* fObjectCache;
         LLVMResult* fResult;
      
@@ -88,7 +89,9 @@ class llvm_dsp_factory : public smartable {
         metadataFun fMetadata;
         
         void* LoadOptimize(const string& function);
-         
+        
+        void Init();
+        
         static int gInstance;
                    
   public:
@@ -98,6 +101,10 @@ class llvm_dsp_factory : public smartable {
         virtual ~llvm_dsp_factory();
       
         llvm_dsp_aux* createDSPInstance();
+        
+        string writeDSPFactoryToMachine();
+        
+        void writeDSPFactoryToMachineFile(const string& machine_code_path);
         
         bool initJIT(std::string& error_msg);
         
@@ -154,19 +161,13 @@ class llvm_dsp_aux : public dsp {
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
-                                                    int argc, const char* argv[],
-                                                    const std::string& target,
-                                                    std::string& error_msg, int opt_level = 3);
-
-
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT std::string getName(llvm_dsp_factory* factory);
 
 EXPORT std::string getSHAKey(llvm_dsp_factory* factory);
 
-EXPORT std::string getDSPMachineTarget();
+EXPORT std::string getTarget(llvm_dsp_factory* factory);
 
 EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
@@ -181,8 +182,12 @@ EXPORT void stopMTDSPFactories();
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
 
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
+
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path);
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
@@ -214,20 +219,14 @@ extern "C" {
 // Public C interface using LLVM
 
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
-    
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content,
-                                                         int argc, const char* argv[],
-                                                         const char* target,
-                                                     char* error_msg, int opt_level);
 
-    
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT const char* getCName(llvm_dsp_factory* factory);
 
 EXPORT const char* getCSHAKey(llvm_dsp_factory* factory);
-    
-EXPORT char* getCDSPMachineTarget();
+
+EXPORT const char* getCTarget(llvm_dsp_factory* factory);
 
 EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
     
@@ -241,7 +240,11 @@ EXPORT void stopMTCDSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
+EXPORT const char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     

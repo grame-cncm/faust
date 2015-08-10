@@ -41,7 +41,6 @@
 
 class llvm_dsp_factory {};
 
-
 /**
  * Get the target (triple + CPU) of the DSP machine.
  * 

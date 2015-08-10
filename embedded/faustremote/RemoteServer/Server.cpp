@@ -421,6 +421,7 @@ bool connection_info::createFactory(FactoryTable factories, DSPServer* server)
                                             argc, argv, "", 
                                             error, atoi(fOptLevel.c_str()));
         */
+    
         char error1[256];
         fFactory = createCDSPFactoryFromString(fNameApp.c_str(),
                                             fFaustCode.c_str(),

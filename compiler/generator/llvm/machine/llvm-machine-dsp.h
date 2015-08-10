@@ -42,6 +42,15 @@
 class llvm_dsp_factory {};
 
 /**
+ * Get the target (triple + CPU) of the DSP machine.
+ *
+ * @return the target as a string.
+ */
+std::string getDSPMachineTarget();
+
+extern "C" char* getCDSPMachineTarget();
+
+/**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
  * if already allocated in the factories cache.
  *
@@ -50,6 +59,32 @@ class llvm_dsp_factory {};
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
 llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
+
+/**
+ * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of same DSP code (that is same source code and
+ * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer.
+ *
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters (Warning : aux file generation options will be filtrated (-svg, ...) --> use generateAuxFiles)
+ * @param target - the LLVM machine target (using empty string will take current machine settings)
+ * @param error_msg - the error string to be filled
+ * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+ *
+ * @return a valid DSP factory on success, otherwise a null pointer.
+ */
+llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
+                                             int argc, const char* argv[],
+                                             const std::string& target,
+                                             std::string& error_msg, int opt_level = 3);
+
+extern "C" llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content,
+                                                         int argc, const char* argv[],
+                                                         const char* target,
+                                                         char* error_msg, int opt_level);
+
 
 /**
  * Destroy a Faust DSP factory, that is decrements it's reference counter, possible really deleting the pointer.  

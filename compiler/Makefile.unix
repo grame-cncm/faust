@@ -146,7 +146,7 @@ ios-llvm : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parenthe
 ios-llvm : CXXFLAGS += -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ios-llvm : CXXFLAGS += -stdlib=libc++  -std=c++11
 ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
-ios-llvm : libfaust.a
+ios-llvm : libfaust.a libfaustmachine.a
 
 ## For the Web, do not compile LLVM part
 emcc : CC = emcc
@@ -157,7 +157,11 @@ emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
 emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_freeCDSP']"
 
-##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 
+libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/base64.o
+	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/base64.o -static -o libfaustmachine.a
+
+
+##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
 
 libfaust.js : $(objects) libcode.o libmain.o global.o
