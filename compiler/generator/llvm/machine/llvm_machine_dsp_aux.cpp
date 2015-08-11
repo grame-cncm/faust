@@ -137,14 +137,14 @@ public:
     
 };
 
-void* llvm_dsp_factory::LoadOptimize(const string& function)
+void* llvm_dsp_factory::loadOptimize(const string& function)
 {
     void* fun = (void*)fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
     } else {
         stringstream error;
-        error << "LoadOptimize failed for '" << function << "'";
+        error << "loadOptimize failed for '" << function << "'";
         throw faustexception(error.str());
     }
 }
@@ -215,14 +215,14 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     fJIT->DisableLazyCompilation(true);
     
     try {
-        fNew = (newDspFun)LoadOptimize("new" + fClassName);
-        fDelete = (deleteDspFun)LoadOptimize("delete" + fClassName);
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fClassName);
-        fInit = (initFun)LoadOptimize("init" + fClassName);
-        fCompute = (computeFun)LoadOptimize("compute" + fClassName);
-        fMetadata = (metadataFun)LoadOptimize("metadata" + fClassName);
+        fNew = (newDspFun)loadOptimize("new" + fClassName);
+        fDelete = (deleteDspFun)loadOptimize("delete" + fClassName);
+        fGetNumInputs = (getNumInputsFun)loadOptimize("getNumInputs" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
+        fInit = (initFun)loadOptimize("init" + fClassName);
+        fCompute = (computeFun)loadOptimize("compute" + fClassName);
+        fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         return true;
     } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
         error_msg = e.Message();

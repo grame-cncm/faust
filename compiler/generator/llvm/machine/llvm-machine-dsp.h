@@ -32,7 +32,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup llvmcpp C++ interface for loading (cross)compiled Faust code. Note that the API is not thread safe : 
+ \addtogroup llvmcpp C++ interface for loading (cross) compiled Faust code. Note that the API is not thread safe :
  use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
  @{
  */
@@ -176,6 +176,8 @@ extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code
  * @return the Faust DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+
+extern "C" llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
 
 /**
  * Call global declarations with the given meta object.

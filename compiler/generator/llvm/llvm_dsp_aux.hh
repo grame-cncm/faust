@@ -65,8 +65,6 @@ class llvm_dsp_factory : public smartable {
 
     private:
     
-        int getOptlevel();
-
         ExecutionEngine* fJIT;
 
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
@@ -90,20 +88,17 @@ class llvm_dsp_factory : public smartable {
         computeFun fCompute;
         metadataFun fMetadata;
         
-        void* LoadOptimize(const string& function);
+        int getOptlevel();
         
-        LLVMResult* CompileModule(int argc, 
+        void* loadOptimize(const string& function);
+        
+        LLVMResult* compileModule(int argc, 
                                 const char* argv[], 
                                 const char* input_name, 
                                 const char* input, 
                                 char* error_msg);
-            
-        Module* LoadSchedulerModule();
-            
-        void Init();
-        
-        static int gInstance;
-    
+        void init();
+      
     #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
@@ -154,7 +149,7 @@ class llvm_dsp_factory : public smartable {
         vector<std::string> getLibraryList() { return fResult->fPathnameList; }
     
         static FactoryTableType gFactoryTable;
-       
+        static int gInstance;
 };
 
 class llvm_dsp_aux : public dsp {

@@ -292,7 +292,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
 }
 #endif
 
-void* llvm_dsp_factory::LoadOptimize(const string& function)
+void* llvm_dsp_factory::loadOptimize(const string& function)
 {
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
     void* fun = (void*)fJIT->getFunctionAddress(function);
@@ -300,7 +300,7 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
         return fun;
     } else {
         stringstream error;
-        error << "LoadOptimize failed for '" << function << "'";
+        error << "loadOptimize failed for '" << function << "'";
         throw faustexception(error.str());
     }
 #else
@@ -309,13 +309,13 @@ void* llvm_dsp_factory::LoadOptimize(const string& function)
         return fJIT->getPointerToFunction(fun_ptr);
     } else {
         stringstream error;
-        error << "LoadOptimize failed for '" << function << "'";
+        error << "loadOptimize failed for '" << function << "'";
         throw faustexception(error.str());
     }
 #endif
 }
 
-LLVMResult* llvm_dsp_factory::CompileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
+LLVMResult* llvm_dsp_factory::compileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
 {
     int argc1 = argc + 3;
     const char* argv1[32];
@@ -392,7 +392,7 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
 {
-    Init();
+    init();
     fSHAKey = sha_key;
    
     // Restoring the cache
@@ -407,7 +407,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
-    Init();
+    init();
     fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
@@ -455,7 +455,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         fSHAKey = sha_key;
         fOptLevel = opt_level;
         fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
-        Init();
+        init();
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         fObjectCache = NULL;
     #endif
@@ -463,7 +463,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
         char error_msg_aux[512];
         fClassName = getParam(argc, argv, "-cn", "mydsp");
         fIsDouble = isParam(argc, argv, "-double");
-        fResult = CompileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+        fResult = compileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
         error_msg = error_msg_aux;
     } else {
         fResult = NULL;
@@ -471,7 +471,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, int argc, const char* 
     }
 }
 
-void llvm_dsp_factory::Init()
+void llvm_dsp_factory::init()
 {
     fJIT = 0;
     fNew = 0;
@@ -739,14 +739,14 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     fJIT->DisableLazyCompilation(true);
     
     try {
-        fNew = (newDspFun)LoadOptimize("new" + fClassName);
-        fDelete = (deleteDspFun)LoadOptimize("delete" + fClassName);
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fClassName);
-        fInit = (initFun)LoadOptimize("init" + fClassName);
-        fCompute = (computeFun)LoadOptimize("compute" + fClassName);
-        fMetadata = (metadataFun)LoadOptimize("metadata" + fClassName);
+        fNew = (newDspFun)loadOptimize("new" + fClassName);
+        fDelete = (deleteDspFun)loadOptimize("delete" + fClassName);
+        fGetNumInputs = (getNumInputsFun)loadOptimize("getNumInputs" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
+        fInit = (initFun)loadOptimize("init" + fClassName);
+        fCompute = (computeFun)loadOptimize("compute" + fClassName);
+        fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
         return true;
      } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
@@ -855,14 +855,14 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     }
      
     try {
-        fNew = (newDspFun)LoadOptimize("new" + fClassName);
-        fDelete = (deleteDspFun)LoadOptimize("delete" + fClassName);
-        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface" + fClassName);
-        fInit = (initFun)LoadOptimize("init" + fClassName);
-        fCompute = (computeFun)LoadOptimize("compute" + fClassName);
-        fMetadata = (metadataFun)LoadOptimize("metadata" + fClassName);
+        fNew = (newDspFun)loadOptimize("new" + fClassName);
+        fDelete = (deleteDspFun)loadOptimize("delete" + fClassName);
+        fGetNumInputs = (getNumInputsFun)loadOptimize("getNumInputs" + fClassName);
+        fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
+        fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
+        fInit = (initFun)loadOptimize("init" + fClassName);
+        fCompute = (computeFun)loadOptimize("compute" + fClassName);
+        fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...

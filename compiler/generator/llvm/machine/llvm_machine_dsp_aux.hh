@@ -65,8 +65,6 @@ class llvm_dsp_factory : public smartable {
 
     private:
     
-        int getOptlevel();
-
         ExecutionEngine* fJIT;
         FaustObjectCache* fObjectCache;
         LLVMResult* fResult;
@@ -87,7 +85,8 @@ class llvm_dsp_factory : public smartable {
         computeFun fCompute;
         metadataFun fMetadata;
         
-        void* LoadOptimize(const string& function);
+        int getOptlevel();
+        void* loadOptimize(const string& function);
          
         static int gInstance;
                    
