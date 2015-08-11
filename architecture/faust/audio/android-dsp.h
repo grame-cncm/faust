@@ -74,41 +74,29 @@ class androidaudio : public audio {
     
         virtual int processAudio(short* audioIO)
         {
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "processAudio0");
-            
             for (int chan = 0; chan < NUM_INPUTS; chan++) {
                 for (int i = 0; i < fBufferSize; i++) {
                     fInputs[chan][i] =  float(audioIO[i * 2 + chan] * CONVMYFLT);
                 }
             }
             
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "processAudio1");
-            
             // computing...
             fDsp->compute(fBufferSize, fInputs, fOutputs);
-            
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "processAudio2");
             
             for (int chan = 0; chan < NUM_OUPUTS; chan++) {
                 for (int i = 0; i < fBufferSize; i++) {
                     audioIO[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
                 }
             }
-            
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "processAudio3");
         }
     
         void checkRoom()
         {
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "checkRoom0");
-            
             if (fFifoLastSample + fBufferSize >= fFifoCapacity) {
                 int samplesInFifo = fFifoLastSample - fFifoFirstSample;
-                //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "checkRoom1");
                 if (samplesInFifo > 0) memmove(fFifobuffer, fFifobuffer + fFifoFirstSample * 2, samplesInFifo * 8);
                 fFifoFirstSample = 0;
                 fFifoLastSample = samplesInFifo;
-                //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "checkRoom2");
             };
         }
     
@@ -120,8 +108,6 @@ class androidaudio : public audio {
     
         void inputCallback(SLAndroidSimpleBufferQueueItf caller)
         {
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "inputCallback");
-            
             pthread_mutex_lock(&fMutex);
             checkRoom();
             
@@ -149,8 +135,6 @@ class androidaudio : public audio {
     
         void outputCallback(SLAndroidSimpleBufferQueueItf caller)
         {
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "outputCallback");
-            
             pthread_mutex_lock(&fMutex);
             
             if (!(fNumInChans > 0)) {
@@ -233,10 +217,8 @@ class androidaudio : public audio {
     
         virtual bool start()
         {
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "Start0");
-            
-            SLresult result;
             static const SLboolean requireds[2] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
+            SLresult result;
             SLuint32 sr;
             
             switch (fSampleRate) {
@@ -310,8 +292,6 @@ class androidaudio : public audio {
             
             SLDataLocator_OutputMix outputMixLocator = { SL_DATALOCATOR_OUTPUTMIX, fOutputMix };
             
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "Start1");
-            
             if (fNumInChans > 0) {
                 
                 // Create the input buffer queue.
@@ -329,8 +309,6 @@ class androidaudio : public audio {
                 if (result != SL_RESULT_SUCCESS) return false;
             };
             
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "Start2");
-            
             if (fNumOutChans > 0) {
                 
                 // Create the output buffer queue.
@@ -346,8 +324,6 @@ class androidaudio : public audio {
                 result = (*fOutputBufferQueue)->Realize(fOutputBufferQueue, SL_BOOLEAN_FALSE);
                 if (result != SL_RESULT_SUCCESS) return false;
             };
-            
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "Start3");
             
             if (fNumInChans > 0) { // Initialize and start the input buffer queue.
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &fInputBufferQueueInterface);
@@ -367,8 +343,6 @@ class androidaudio : public audio {
                 if (result != SL_RESULT_SUCCESS) return false;
             };
             
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "Start4");
-            
             if (fNumOutChans > 0) { // Initialize and start the output buffer queue.
                 result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_BUFFERQUEUE, &fOutputBufferQueueInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
@@ -386,8 +360,6 @@ class androidaudio : public audio {
                 result = (*outputPlayInterface)->SetPlayState(outputPlayInterface, SL_PLAYSTATE_PLAYING);
                 if (result != SL_RESULT_SUCCESS) return false;
             };
-            
-            //__android_log_print(ANDROID_LOG_VERBOSE, "Faust", "Start5");
             
             return true;
         }
