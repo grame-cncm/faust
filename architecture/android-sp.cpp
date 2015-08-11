@@ -51,10 +51,12 @@
 #include "faust/dsp/poly-dsp.h"
 
 //**************************************************************
-// Android Audio (modified opensl_io)
+// Android Audio
 //**************************************************************
 
-#include "faust/audio/opensles-android-dsp.h"
+#define FAUSTFLOAT float
+
+#include "faust/audio/android-dsp.h"
 
 //**************************************************************
 // Native Faust API
@@ -65,21 +67,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#define FAUSTFLOAT float
-
 using namespace std;
 
-OPENSL_STREAM *p;           // the audio engine
-mydsp DSP;                  // the monophonic Faust object
-mydsp_poly *DSPpoly = NULL; // the polyphonic Faust object
-MapUI mapUI;                // the UI description
-pthread_t audioThread;      // native thread for audio
-JSONUI json(DSP.getNumInputs(), DSP.getNumOutputs());
+androidaudio* p;                // the audio engine
+mydsp mono_dsp;                 // the monophonic Faust object
+mydsp_poly* poly_dsp = NULL;    // the polyphonic Faust object
+MapUI mapUI;                    // the UI description
+JSONUI json(mono_dsp.getNumInputs(), mono_dsp.getNumOutputs());
 string jsonString;
 
 // Global variables
-int SR, bufferSize, polyMax, inChanNumb, outChanNumb;
-float **bufferout, **bufferin;
+int SR, bufferSize, polyMax;
 bool on;
 
 /*
@@ -95,65 +93,21 @@ void init(int samplingRate, int bufferFrames) {
 	// configuring global variables
 	SR = samplingRate;
 	bufferSize = bufferFrames;
-	DSP.init(SR);
-	inChanNumb = DSP.getNumInputs();
-	outChanNumb = DSP.getNumOutputs();
 
 	// configuring the UI
-	DSP.buildUserInterface(&mapUI);
-	DSP.buildUserInterface(&json);
+	mono_dsp.buildUserInterface(&mapUI);
+	mono_dsp.buildUserInterface(&json);
 
 	jsonString = json.JSON();
 
     if (jsonString.find("keyboard") != std::string::npos ||
         jsonString.find("poly") != std::string::npos){
         polyMax = 6;
-        DSPpoly = new mydsp_poly(bufferSize, polyMax);
-        DSPpoly->init(SR);
+        poly_dsp = new mydsp_poly(bufferSize, polyMax);
+        poly_dsp->init(SR);
     } else {
         polyMax = 0;
     }
-
-	// Allocating memory for output channels. Only the first two channels
-	// are played. Additional output channels are ignored.
-	bufferout = new float *[outChanNumb];
-	for (int i = 0; i < outChanNumb; i++) {
-		bufferout[i] = new float[bufferSize];
-	}
-
-	// Allocating memory for input channel. We assume no more than
-	// one physical input channel. Additional input channels will 
-	// share the content of input channel 0.
-	if (inChanNumb >= 1) {
-		bufferin = new float *[inChanNumb];
-		bufferin[0] = new float[bufferSize];
-		for (int i = 1; i < inChanNumb; i++) {
-			bufferin[i] = bufferin[0];
-		}
-	}
-}
-
-/*
- * processDSP(threadID)
- * Compute the DSP frames of the Faust object.
- */
-void *processDSP(void *threadID) {
-	while (on) {
-		// getting input signal
-		if (inChanNumb >= 1) {
-			android_AudioIn(p, bufferin[0], bufferSize);
-        }
-
-		// computing...
-		if (polyMax == 0) {
-			DSP.compute(bufferSize, bufferin, bufferout);
-		} else {
-			DSPpoly->compute(bufferSize, bufferin, bufferout);
-        }
-
-		// sending output signal
-		android_AudioOut(p, bufferout, bufferSize);
-	}
 }
 
 /*
@@ -165,9 +119,10 @@ void *processDSP(void *threadID) {
  */
 bool start() {
 	on = true;
-	p = android_OpenAudioDevice(SR, min(1, inChanNumb), min(2, outChanNumb), bufferSize);
-	pthread_create(&audioThread, NULL, processDSP, NULL);
-	return (p != NULL);
+    p = new androidaudio(SR, bufferSize);
+    if (!p) return false;
+    if (!p->init("Dummy", (polyMax == 0) ? &mono_dsp : (dsp*)poly_dsp)) return false;
+    return p->start();
 }
 
 /*
@@ -177,19 +132,8 @@ bool start() {
  */
 void stop() {
 	on = false;
-	pthread_join(audioThread, 0);
-	android_CloseAudioDevice(p);
-	for (int i = 0; i < outChanNumb; i++) {
-		delete[] bufferout[i];
-	}
-	delete[] bufferout;
-	if (inChanNumb >= 1) {
-		for (int i = 0; i < inChanNumb; i++) {
-			delete[] bufferin[i];
-		}
-		delete[] bufferin;
-	}
-	delete DSPpoly;
+    delete p;
+  	delete poly_dsp;
 }
 
 /*
@@ -211,7 +155,7 @@ bool isRunning() {
  */
 int keyOn(int pitch, int velocity) {
 	if (polyMax > 0) {
-		DSPpoly->keyOn(0, pitch, velocity);
+		poly_dsp->keyOn(0, pitch, velocity);
 		return 1;
 	} else {
 		return 0;
@@ -228,7 +172,7 @@ int keyOn(int pitch, int velocity) {
  */
 int keyOff(int pitch) {
 	if (polyMax > 0) {
-		DSPpoly->keyOff(0, pitch);
+		poly_dsp->keyOff(0, pitch);
 		return 1;
 	} else {
 		return 0;
@@ -245,7 +189,7 @@ int keyOff(int pitch) {
  */
 int pitchBend(int refPitch, float pitch){
 	if (polyMax > 0) {
-		DSPpoly->pitchBend(0, refPitch, pitch);
+		poly_dsp->pitchBend(0, refPitch, pitch);
 		return 1;
 	} else {
 		return 0;
@@ -275,7 +219,7 @@ int getParamsCount() {
  * value.
  */
 float getParam(const char* address) {
-	 return (polyMax == 0) ? mapUI.getValue(address) : DSPpoly->getValue(address);
+	 return (polyMax == 0) ? mapUI.getValue(address) : poly_dsp->getValue(address);
 }
 
 /*
@@ -286,7 +230,7 @@ void setParam(const char* address, float value) {
 	if (polyMax == 0) {
 		mapUI.setValue(address, value);
 	} else {
-		DSPpoly->setValue(address, value);
+		poly_dsp->setValue(address, value);
     }
 	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %s",address);
 }
@@ -301,7 +245,7 @@ void setParam(const char* address, float value) {
  */
 int setVoiceParam(const char* address, int pitch, float value) {
 	if (polyMax > 0) {
-		DSPpoly->setValue(address, pitch, value);
+		poly_dsp->setValue(address, pitch, value);
 		return 1;
 	} else {
         return 0;
@@ -317,7 +261,7 @@ int setVoiceParam(const char* address, int pitch, float value) {
  */
 int setVoiceGain(int pitch, float gain) {
 	if (polyMax > 0) {
-		DSPpoly->setVoiceGain(pitch, gain);
+		poly_dsp->setVoiceGain(pitch, gain);
 		return 1;
 	} else {
         return 0;
