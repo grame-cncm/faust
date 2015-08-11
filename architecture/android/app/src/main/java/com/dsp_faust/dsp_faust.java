@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package com.dsp_faust;
+import android.util.Log;
 
 public class dsp_faust {
   public static void init(int arg0, int arg1) {
@@ -14,10 +15,12 @@ public class dsp_faust {
   }
 
   public static int start() {
+    Log.d("FaustJava", "start");
     return dsp_faustJNI.start();
   }
 
   public static void stop() {
+    Log.d("FaustJava", "stop");
     dsp_faustJNI.stop();
   }
 

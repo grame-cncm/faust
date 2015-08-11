@@ -60,7 +60,7 @@ done
 
 # only carry out the faust compilation 
 if [ $FAUST -eq 1 ]; then
-	faust -i -a android.cpp "$FILE" -o "app/src/main/jni/dsp_faust.cpp"
+	faust -i -a android-sp.cpp "$FILE" -o "app/src/main/jni/dsp_faust.cpp"
 	exit 1
 fi
  
@@ -120,7 +120,7 @@ fi
 
 
 # Compile the Faust code for the NDK
-faust -i -a android.cpp "$FILE" -o "$JNIFOLDER/dsp_faust.cpp"
+faust -i -a android-sp.cpp "$FILE" -o "$JNIFOLDER/dsp_faust.cpp"
 
 
 # Run Gradle

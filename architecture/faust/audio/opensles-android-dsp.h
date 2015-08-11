@@ -40,8 +40,10 @@
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+#include <android/log.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef struct threadLock_ {
 	pthread_mutex_t m;
@@ -96,8 +98,8 @@ typedef struct opensl_stream {
 
 } OPENSL_STREAM;
 
-#define CONV16BIT 32767
-#define CONVMYFLT (1./32767.)
+#define CONV16BIT 32767.f
+#define CONVMYFLT (1.f/32767.f)
 
 static void* createThreadLock(void);
 static int waitThreadLock(void *lock);
@@ -545,6 +547,8 @@ int android_AudioOut(OPENSL_STREAM *p, float **buffer, int size) {
 	int i, bufsamps = p->outBufSamples, index = p->currentOutputIndex;
 	if (p == NULL || bufsamps == 0)
 		return 0;
+    
+    __android_log_write(ANDROID_LOG_INFO, "FaustCPP", "Error");
     
 	outBuffer = p->outputBuffer[p->currentOutputBuffer];
     if (p->outchannels == 1) {
