@@ -545,32 +545,39 @@ int android_AudioOut(OPENSL_STREAM *p, float **buffer, int size) {
 	int i, bufsamps = p->outBufSamples, index = p->currentOutputIndex;
 	if (p == NULL || bufsamps == 0)
 		return 0;
+    
 	outBuffer = p->outputBuffer[p->currentOutputBuffer];
-
-	for (i = 0; i < size; i++) {
-		if (p->outchannels == 1)
-			outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
-					* CONV16BIT);
-		else {
-			outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
-					* CONV16BIT);
-			outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[1][i]))
-					* CONV16BIT);
-		}
-		if (index >= p->outBufSamples) {
-			waitThreadLock(p->outlock);
-			(*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,
-					outBuffer, bufsamps * sizeof(short));
-			p->currentOutputBuffer = (p->currentOutputBuffer ? 0 : 1);
-			index = 0;
-			outBuffer = p->outputBuffer[p->currentOutputBuffer];
-		}
-	}
+    if (p->outchannels == 1) {
+        for (i = 0; i < size; i++) {
+            outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
+                                          * CONV16BIT);
+            if (index >= p->outBufSamples) {
+                waitThreadLock(p->outlock);
+                (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,
+                                                   outBuffer, bufsamps * sizeof(short));
+                p->currentOutputBuffer = (p->currentOutputBuffer ? 0 : 1);
+                index = 0;
+                outBuffer = p->outputBuffer[p->currentOutputBuffer];
+            }
+        }
+    } else {
+        for (i = 0; i < size; i++) {
+            outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
+                                          * CONV16BIT);
+            outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[1][i]))
+                                          * CONV16BIT);
+            if (index >= p->outBufSamples) {
+                waitThreadLock(p->outlock);
+                (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,
+                                                   outBuffer, bufsamps * sizeof(short));
+                p->currentOutputBuffer = (p->currentOutputBuffer ? 0 : 1);
+                index = 0;
+                outBuffer = p->outputBuffer[p->currentOutputBuffer];
+            }
+        }
+    }
 	p->currentOutputIndex = index;
-	if (p->outchannels == 1)
-		p->time += (double) size / (p->sr * p->outchannels);
-	else
-		p->time += (double) size * 2 / (p->sr * p->outchannels);
+	p->time += (double) size * p->outchannels/ (p->sr * p->outchannels);
 	return i;
 }
 
