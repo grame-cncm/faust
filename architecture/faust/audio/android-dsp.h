@@ -394,7 +394,23 @@ class androidaudio : public audio {
         
         virtual void stop()
         {
-            // TODO
+            if (fOpenSLEngine) {
+                (*fOpenSLEngine)->Destroy(fOpenSLEngine);
+                fOpenSLEngine = NULL;
+            }
+            if (fOutputMix) {
+                (*fOutputMix)->Destroy(fOutputMix);
+                fOutputMix = NULL;
+            }
+            if (fInputBufferQueue) {
+                (*fInputBufferQueue)->Destroy(fInputBufferQueue);
+                fInputBufferQueue = NULL;
+            }
+            if (fOutputBufferQueue) {
+                (*fOutputBufferQueue)->Destroy(fOutputBufferQueue);
+                fOutputBufferQueue = NULL;
+            }
+            
             free(fFifobuffer);
             free(fSilence);
          }
