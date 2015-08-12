@@ -2,7 +2,7 @@
  ************************************************************************
  FAUST Architecture File for Android
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
- Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  
  This is sample code. This file is provided as an example of minimal
