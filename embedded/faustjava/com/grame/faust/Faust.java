@@ -9,6 +9,10 @@
 package com.grame.faust;
 
 public class Faust {
+  public static String getCDSPMachineTarget() {
+    return FaustJNI.getCDSPMachineTarget();
+  }
+
   public static llvm_dsp_factory getCDSPFactoryFromSHAKey(String sha_key) {
     long cPtr = FaustJNI.getCDSPFactoryFromSHAKey(sha_key);
     return (cPtr == 0) ? null : new llvm_dsp_factory(cPtr, false);
@@ -34,10 +38,6 @@ public class Faust {
 
   public static String getCSHAKey(llvm_dsp_factory factory) {
     return FaustJNI.getCSHAKey(llvm_dsp_factory.getCPtr(factory), factory);
-  }
-
-  public static String getCTarget(llvm_dsp_factory factory) {
-    return FaustJNI.getCTarget(llvm_dsp_factory.getCPtr(factory), factory);
   }
 
   public static SWIGTYPE_p_p_char getCLibraryList(llvm_dsp_factory factory) {

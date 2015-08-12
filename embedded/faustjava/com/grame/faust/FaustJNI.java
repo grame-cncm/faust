@@ -13,13 +13,13 @@ public class FaustJNI {
   public final static native void delete_llvm_dsp_factory(long jarg1);
   public final static native long new_llvm_dsp();
   public final static native void delete_llvm_dsp(long jarg1);
+  public final static native String getCDSPMachineTarget();
   public final static native long getCDSPFactoryFromSHAKey(String jarg1);
   public final static native long createCDSPFactoryFromFile(String jarg1, int jarg2, long jarg3, String jarg4, String jarg5, int jarg6);
   public final static native long createCDSPFactoryFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5, String jarg6, int jarg7);
   public final static native void deleteCDSPFactory(long jarg1, llvm_dsp_factory jarg1_);
   public final static native String getCName(long jarg1, llvm_dsp_factory jarg1_);
   public final static native String getCSHAKey(long jarg1, llvm_dsp_factory jarg1_);
-  public final static native String getCTarget(long jarg1, llvm_dsp_factory jarg1_);
   public final static native long getCLibraryList(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteAllCDSPFactories();
   public final static native long getAllCDSPFactories();

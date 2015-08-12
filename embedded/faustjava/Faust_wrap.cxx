@@ -263,6 +263,18 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_delete_1llvm_1dsp(JNIEnv *
 }
 
 
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_getCDSPMachineTarget(JNIEnv *jenv, jclass jcls) {
+  jstring jresult = 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (char *)getCDSPMachineTarget();
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
 SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_getCDSPFactoryFromSHAKey(JNIEnv *jenv, jclass jcls, jstring jarg1) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
@@ -405,21 +417,6 @@ SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_getCSHAKey(JNIEnv *jenv
   (void)jarg1_;
   arg1 = *(llvm_dsp_factory **)&jarg1; 
   result = (char *)getCSHAKey(arg1);
-  if (result) jresult = jenv->NewStringUTF((const char *)result);
-  return jresult;
-}
-
-
-SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_getCTarget(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
-  jstring jresult = 0 ;
-  llvm_dsp_factory *arg1 = (llvm_dsp_factory *) 0 ;
-  char *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  (void)jarg1_;
-  arg1 = *(llvm_dsp_factory **)&jarg1; 
-  result = (char *)getCTarget(arg1);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }

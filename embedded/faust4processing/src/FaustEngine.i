@@ -2,9 +2,9 @@
 %module FaustEngine
 
 %{
-#include "FaustEngine.h"
+#include "../../../architecture/faust/dsp/FaustEngine.h"
 %}
 
 /* Let's just grab the original header file here */
-%include "FaustEngine.h"
+%include "../../../architecture/faust/dsp/FaustEngine.h"
 
